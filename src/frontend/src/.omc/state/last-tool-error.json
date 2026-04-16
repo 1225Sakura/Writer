@@ -1,0 +1,7 @@
+{
+  "tool_name": "Bash",
+  "tool_input_preview": "{\"command\":\"cd \\\"D:/writer/src/frontend/src\\\" && \\\\\\nsed -i 's/bg-\\\\[var(--color-bg)\\\\]/bg-var-bg/g; s/bg-\\\\[var(--color-card)\\\\]/bg-var-card/g; s/bg-\\\\[var(--color-border)\\\\]/bg-var-border/g; s/bg-\\\\...",
+  "error": "Exit code 4\n/usr/bin/grep: Unmatched [, [^, [:, [., or [=\n/usr/bin/sed: no input files",
+  "timestamp": "2026-04-16T15:48:36.343Z",
+  "retry_count": 1
+}

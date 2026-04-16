@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(mkdir -p \"D:/writer/.claude/projects\")",
+      "Bash(mkdir -p \"D:/writer/src/backend/app/agents\")",
+      "Bash(mkdir -p \"D:/writer/src/backend/app/services\")",
+      "Bash(mkdir -p \"D:/writer/src/backend/app/models\")",
+      "Bash(mkdir -p \"D:/writer/src/backend/app/db\")"
+    ]
+  }
+}

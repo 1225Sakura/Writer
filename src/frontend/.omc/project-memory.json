@@ -1,0 +1,260 @@
+{
+  "version": "1.0.0",
+  "lastScanned": 1776355388637,
+  "projectRoot": "D:\\writer\\src\\frontend",
+  "techStack": {
+    "languages": [
+      {
+        "name": "JavaScript/TypeScript",
+        "version": null,
+        "confidence": "high",
+        "markers": [
+          "package.json"
+        ]
+      },
+      {
+        "name": "TypeScript",
+        "version": null,
+        "confidence": "high",
+        "markers": [
+          "tsconfig.json"
+        ]
+      }
+    ],
+    "frameworks": [
+      {
+        "name": "react",
+        "version": "18.3.1",
+        "category": "frontend"
+      },
+      {
+        "name": "react-dom",
+        "version": "18.3.1",
+        "category": "frontend"
+      },
+      {
+        "name": "vite",
+        "version": "6.2.0",
+        "category": "build"
+      }
+    ],
+    "packageManager": "npm",
+    "runtime": null
+  },
+  "build": {
+    "buildCommand": "npm run build",
+    "testCommand": null,
+    "lintCommand": "npm run lint",
+    "devCommand": "npm run dev",
+    "scripts": {
+      "dev": "vite",
+      "build": "tsc -b && vite build",
+      "lint": "eslint .",
+      "preview": "vite preview"
+    }
+  },
+  "conventions": {
+    "namingStyle": null,
+    "importStyle": null,
+    "testPattern": null,
+    "fileOrganization": "type-based"
+  },
+  "structure": {
+    "isMonorepo": false,
+    "workspaces": [],
+    "mainDirectories": [
+      "src"
+    ],
+    "gitBranches": null
+  },
+  "customNotes": [],
+  "directoryMap": {
+    "dist": {
+      "path": "dist",
+      "purpose": "Distribution/build output",
+      "fileCount": 1,
+      "lastAccessed": 1776355388604,
+      "keyFiles": [
+        "index.html"
+      ]
+    },
+    "src": {
+      "path": "src",
+      "purpose": "Source code",
+      "fileCount": 3,
+      "lastAccessed": 1776355388604,
+      "keyFiles": [
+        "App.tsx",
+        "main.tsx",
+        "vite-env.d.ts"
+      ]
+    },
+    "dist\\assets": {
+      "path": "dist\\assets",
+      "purpose": "Static assets",
+      "fileCount": 2,
+      "lastAccessed": 1776355388612,
+      "keyFiles": [
+        "index-jRNbEV57.js",
+        "index-tOIr55pn.css"
+      ]
+    },
+    "src\\components": {
+      "path": "src\\components",
+      "purpose": "UI components",
+      "fileCount": 1,
+      "lastAccessed": 1776355388613,
+      "keyFiles": [
+        "index.ts"
+      ]
+    },
+    "src\\pages": {
+      "path": "src\\pages",
+      "purpose": "Page components",
+      "fileCount": 0,
+      "lastAccessed": 1776355388614,
+      "keyFiles": []
+    }
+  },
+  "hotPaths": [
+    {
+      "path": "src\\components\\settings\\SettingEditorPage.tsx",
+      "accessCount": 17,
+      "lastAccessed": 1776357078732,
+      "type": "file"
+    },
+    {
+      "path": "src\\components\\writing\\CollaborationPanel.tsx",
+      "accessCount": 11,
+      "lastAccessed": 1776356077456,
+      "type": "file"
+    },
+    {
+      "path": "src\\components\\writing\\AIOperationDrawer.tsx",
+      "accessCount": 10,
+      "lastAccessed": 1776356020428,
+      "type": "file"
+    },
+    {
+      "path": "src\\components\\writing\\WritingToolbar.tsx",
+      "accessCount": 7,
+      "lastAccessed": 1776356806344,
+      "type": "file"
+    },
+    {
+      "path": "src\\components\\settings\\EntityEditor.tsx",
+      "accessCount": 7,
+      "lastAccessed": 1776356945662,
+      "type": "file"
+    },
+    {
+      "path": "src\\components\\writing\\WritingCanvas.tsx",
+      "accessCount": 7,
+      "lastAccessed": 1776357078665,
+      "type": "file"
+    },
+    {
+      "path": "src\\components\\settings\\AISuggestionPanel.tsx",
+      "accessCount": 5,
+      "lastAccessed": 1776356982432,
+      "type": "file"
+    },
+    {
+      "path": "",
+      "accessCount": 4,
+      "lastAccessed": 1776355626589,
+      "type": "directory"
+    },
+    {
+      "path": "src\\components\\ui\\Toast.tsx",
+      "accessCount": 4,
+      "lastAccessed": 1776355688520,
+      "type": "file"
+    },
+    {
+      "path": "src\\components\\ui\\Badge.tsx",
+      "accessCount": 4,
+      "lastAccessed": 1776355688534,
+      "type": "file"
+    },
+    {
+      "path": "src\\components\\ui\\Button.tsx",
+      "accessCount": 4,
+      "lastAccessed": 1776355688563,
+      "type": "file"
+    },
+    {
+      "path": "src\\components\\settings\\RelationGraph.tsx",
+      "accessCount": 4,
+      "lastAccessed": 1776355954688,
+      "type": "file"
+    },
+    {
+      "path": "src\\components\\settings\\CategoryNav.tsx",
+      "accessCount": 4,
+      "lastAccessed": 1776356932185,
+      "type": "file"
+    },
+    {
+      "path": "tailwind.config.js",
+      "accessCount": 3,
+      "lastAccessed": 1776355629163,
+      "type": "file"
+    },
+    {
+      "path": "src\\components\\ui\\Card.tsx",
+      "accessCount": 3,
+      "lastAccessed": 1776355688481,
+      "type": "file"
+    },
+    {
+      "path": "src\\components\\ui\\Input.tsx",
+      "accessCount": 3,
+      "lastAccessed": 1776355688642,
+      "type": "file"
+    },
+    {
+      "path": "src\\components\\writing\\WritingEditorPage.tsx",
+      "accessCount": 3,
+      "lastAccessed": 1776356579277,
+      "type": "file"
+    },
+    {
+      "path": "src\\components\\chat\\ChatInitPage.tsx",
+      "accessCount": 2,
+      "lastAccessed": 1776356672607,
+      "type": "file"
+    },
+    {
+      "path": "src\\hooks\\useTheme.ts",
+      "accessCount": 1,
+      "lastAccessed": 1776355610396,
+      "type": "file"
+    },
+    {
+      "path": "src\\components\\shared\\ThemeProvider.tsx",
+      "accessCount": 1,
+      "lastAccessed": 1776355610419,
+      "type": "file"
+    },
+    {
+      "path": "src\\styles\\globals.css",
+      "accessCount": 1,
+      "lastAccessed": 1776356589542,
+      "type": "file"
+    },
+    {
+      "path": "C:\\Users\\36084\\AppData\\Local\\Temp\\claude\\D--writer\\5e549d04-4452-45dd-befc-a5945bb93ee5\\tasks\\bt5oewlrv.output",
+      "accessCount": 1,
+      "lastAccessed": 1776360180495,
+      "type": "file"
+    },
+    {
+      "path": "C:\\Users\\36084\\AppData\\Local\\Temp\\claude\\D--writer\\5e549d04-4452-45dd-befc-a5945bb93ee5\\tasks\\b4p3n006h.output",
+      "accessCount": 1,
+      "lastAccessed": 1776360222820,
+      "type": "file"
+    }
+  ],
+  "userDirectives": []
+}
