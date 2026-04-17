@@ -290,6 +290,36 @@ body {
 .entity-ifline-bg { background-color: var(--color-ifline); }
 
 /* ========================================
+   响应式布局工具类
+   ======================================== */
+
+/* 移动端隐藏 */
+@media (max-width: 640px) {
+  .hide-mobile { display: none !important; }
+  .drawer-mobile-full { width: 100% !important; }
+}
+
+/* 平板 */
+@media (min-width: 641px) and (max-width: 1024px) {
+  .hide-tablet { display: none !important; }
+}
+
+/* 桌面端 */
+@media (min-width: 1025px) {
+  .hide-desktop { display: none !important; }
+}
+
+/* 抽屉宽度响应式 */
+.drawer-collapsed { width: 0; }
+.drawer-normal { width: 280px; }
+.drawer-wide { width: 360px; }
+
+@media (max-width: 640px) {
+  .drawer-normal, .drawer-wide { width: 100%; }
+  .drawer-collapsed { width: 0; }
+}
+
+/* ========================================
    组件样式
    ======================================== */
 
