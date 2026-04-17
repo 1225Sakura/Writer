@@ -6,22 +6,27 @@ export {
 } from './chatStore'
 export {
   useSettingsStore,
-  type Character,
   type Relationship,
-  type Item,
-  type Location,
-  type Faction,
-  type WorldSetting,
-  type Rule,
-  type Outline,
-  type Chapter,
-  type IFLine,
   type EntityType,
+  type CharacterLocal,
 } from './settingsStore'
+export type {
+  Character,
+  Item,
+  Location,
+  Faction,
+  WorldSetting,
+  Rule,
+  Outline,
+  Chapter,
+  IFLine,
+} from '../api/types'
 export {
   useWritingStore,
   type WritingStyle,
-  type DraftVersion,
-  type PlotThread,
-  type AIInspectionResult,
+} from './writingStore'
+export type {
+  DraftVersionLocal as DraftVersion,
+  PlotThreadLocal as PlotThread,
+  AIInspectionResultLocal as AIInspectionResult,
 } from './writingStore'

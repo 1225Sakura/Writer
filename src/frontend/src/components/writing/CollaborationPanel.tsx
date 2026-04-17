@@ -90,7 +90,7 @@ function BattleStation() {
 // 伏笔追踪
 function PlotTracker() {
   const [isExpanded, setIsExpanded] = useState(true)
-  const { plotThreads, closePlotThread } = useWritingStore()
+  const { plotThreads, deletePlotThread } = useWritingStore()
 
   const openThreads = plotThreads.filter((t) => t.status === 'open')
 
@@ -123,7 +123,7 @@ function PlotTracker() {
                 )}
               </div>
               <Button
-                onClick={() => closePlotThread(thread.id)}
+                onClick={() => deletePlotThread(thread.id)}
                 variant="ghost"
                 size="icon"
                 title="标记为已揭示"

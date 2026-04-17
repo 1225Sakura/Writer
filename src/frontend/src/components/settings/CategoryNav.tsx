@@ -97,7 +97,11 @@ export function CategoryNav() {
       {/* 底部：AI辅助 */}
       <div className="p-4" style={{ borderTop: '1px solid rgba(255,255,255,0.06)' }}>
         <Button
-          onClick={generate}
+          onClick={() => {
+            if (settingsCategory !== 'outline' && settingsCategory !== 'ifline') {
+              generate(settingsCategory as 'character' | 'item' | 'location' | 'faction' | 'world' | 'rule')
+            }
+          }}
           variant="ghost"
           size="md"
           className="w-full"

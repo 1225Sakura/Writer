@@ -1,3 +1,4 @@
+import { useEffect } from 'react'
 import { useChatStore, useUIStore } from '@/store'
 import { AIGuidePanel } from './AIGuidePanel'
 import { UserInputPanel } from './UserInputPanel'
@@ -6,8 +7,22 @@ import { Button } from '@/components/ui/Button'
 import { ArrowRight, Settings } from 'lucide-react'
 
 export function ChatInitPage() {
-  const { extractedEntities } = useChatStore()
+  const { extractedEntities, sessionId, createSession, loadExtractedEntities } = useChatStore()
   const { setCurrentInterface } = useUIStore()
+
+  // Initialize session on mount
+  useEffect(() => {
+    if (!sessionId) {
+      createSession()
+    }
+  }, [sessionId, createSession])
+
+  // Load extracted entities when session changes
+  useEffect(() => {
+    if (sessionId) {
+      loadExtractedEntities()
+    }
+  }, [sessionId, loadExtractedEntities])
 
   return (
     <div className="flex h-full bg-[#08090a]">

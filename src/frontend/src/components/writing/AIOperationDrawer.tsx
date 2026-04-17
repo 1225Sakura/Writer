@@ -3,7 +3,7 @@ import { useWritingStore, WritingStyle } from '@/store'
 import { getEditorInstance } from '@/store/editorRegistry'
 import { showToast } from '@/components/ui/Toast'
 import { Button } from '@/components/ui/Button'
-import { ChevronDown, Feather, FileText, Edit3, Sparkles, Wand2 } from 'lucide-react'
+import { ChevronDown, Feather, FileText, Edit3, Sparkles, Wand2, Loader2 } from 'lucide-react'
 
 const writingStyles: Array<{ value: WritingStyle; label: string; description: string }> = [
   { value: 'default', label: '默认', description: '标准网络小说风格' },
@@ -14,13 +14,26 @@ const writingStyles: Array<{ value: WritingStyle; label: string; description: st
 ]
 
 export function AIOperationDrawer() {
-  const { humanAIRatio, setHumanAIRatio, writingStyle, setWritingStyle } = useWritingStore()
+  const {
+    humanAIRatio,
+    setHumanAIRatio,
+    writingStyle,
+    setWritingStyle,
+    optimize,
+    expand,
+    shrink,
+    rewrite,
+    continue: continueWriting,
+    polish,
+  } = useWritingStore()
   const [expandedSections, setExpandedSections] = useState<Set<string>>(
     new Set(['global', 'style', 'ratio', 'selection'])
   )
-  const [loading, setLoading] = useState<string | null>(null)
+  const [operationLoading, setOperationLoading] = useState<string | null>(null)
 
-  const handleOperation = async (operation: string) => {
+  const handleOperation = async (
+    operation: 'optimize' | 'expand' | 'shrink' | 'rewrite' | 'continue' | 'polish'
+  ) => {
     const editor = getEditorInstance()
     const selectedText = editor
       ? editor.state.doc.textBetween(editor.state.selection.from, editor.state.selection.to, ' ')
@@ -31,14 +44,44 @@ export function AIOperationDrawer() {
       return
     }
 
-    setLoading(operation)
-    console.log(`[写作操作] ${operation}:`, selectedText)
+    setOperationLoading(operation)
 
-    // 模拟API调用
-    await new Promise(resolve => setTimeout(resolve, 1000))
+    try {
+      let result: string
+      switch (operation) {
+        case 'optimize':
+          result = await optimize(selectedText)
+          break
+        case 'expand':
+          result = await expand(selectedText)
+          break
+        case 'shrink':
+          result = await shrink(selectedText)
+          break
+        case 'rewrite':
+          result = await rewrite(selectedText)
+          break
+        case 'continue':
+          result = await continueWriting(selectedText)
+          break
+        case 'polish':
+          result = await polish(selectedText)
+          break
+        default:
+          throw new Error(`Unknown operation: ${operation}`)
+      }
 
-    setLoading(null)
-    showToast(`${operation}完成`, 'success')
+      // Replace selected text with result
+      if (editor && result) {
+        editor.commands.insertContent(result)
+        showToast(`${operation}完成`, 'success')
+      }
+    } catch (error) {
+      console.error(`[写作操作] ${operation} failed:`, error)
+      showToast(`${operation}失败: ${error instanceof Error ? error.message : '未知错误'}`, 'error')
+    } finally {
+      setOperationLoading(null)
+    }
   }
 
   const toggleSection = (section: string) => {
@@ -119,12 +162,12 @@ export function AIOperationDrawer() {
         onToggle={() => toggleSection('selection')}
       >
         <div className="grid grid-cols-2 gap-2">
-          <OperationButton label="优化" shortcut="⌘⇧O" onClick={() => handleOperation('优化')} disabled={loading === '优化'} />
-          <OperationButton label="扩写" shortcut="⌘⇧E" onClick={() => handleOperation('扩写')} disabled={loading === '扩写'} />
-          <OperationButton label="缩写" shortcut="⌘⇧S" onClick={() => handleOperation('缩写')} disabled={loading === '缩写'} />
-          <OperationButton label="改写" shortcut="⌘⇧R" onClick={() => handleOperation('改写')} disabled={loading === '改写'} />
-          <OperationButton label="续写" shortcut="⌘⇧W" onClick={() => handleOperation('续写')} disabled={loading === '续写'} />
-          <OperationButton label="润色" shortcut="⌘⇧P" onClick={() => handleOperation('润色')} disabled={loading === '润色'} />
+          <OperationButton label="优化" shortcut="⌘⇧O" onClick={() => handleOperation('optimize')} disabled={operationLoading !== null} loading={operationLoading === 'optimize'} />
+          <OperationButton label="扩写" shortcut="⌘⇧E" onClick={() => handleOperation('expand')} disabled={operationLoading !== null} loading={operationLoading === 'expand'} />
+          <OperationButton label="缩写" shortcut="⌘⇧S" onClick={() => handleOperation('shrink')} disabled={operationLoading !== null} loading={operationLoading === 'shrink'} />
+          <OperationButton label="改写" shortcut="⌘⇧R" onClick={() => handleOperation('rewrite')} disabled={operationLoading !== null} loading={operationLoading === 'rewrite'} />
+          <OperationButton label="续写" shortcut="⌘⇧W" onClick={() => handleOperation('continue')} disabled={operationLoading !== null} loading={operationLoading === 'continue'} />
+          <OperationButton label="润色" shortcut="⌘⇧P" onClick={() => handleOperation('polish')} disabled={operationLoading !== null} loading={operationLoading === 'polish'} />
         </div>
         <p className="text-xs text-[#d0d6e0] mt-2">
           选中文字后点击或使用快捷键
@@ -171,22 +214,28 @@ function OperationButton({
   shortcut,
   onClick,
   disabled,
+  loading,
 }: {
   icon?: React.ReactNode
   label: string
   shortcut?: string
   onClick?: () => void
   disabled?: boolean
+  loading?: boolean
 }) {
   return (
     <Button
       onClick={onClick}
-      disabled={disabled}
+      disabled={disabled || loading}
       variant="ghost"
       size="sm"
       className="w-full justify-start"
     >
-      {icon && <span className="text-[#5e6ad2]">{icon}</span>}
+      {loading ? (
+        <Loader2 className="w-4 h-4 text-[#5e6ad2] animate-spin" />
+      ) : icon ? (
+        <span className="text-[#5e6ad2]">{icon}</span>
+      ) : null}
       <span className="flex-1">{label}</span>
       {shortcut && (
         <span className="text-xs text-[#d0d6e0]">{shortcut}</span>

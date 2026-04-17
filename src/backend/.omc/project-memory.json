@@ -1,0 +1,211 @@
+{
+  "version": "1.0.0",
+  "lastScanned": 1776426680659,
+  "projectRoot": "D:\\writer\\src\\backend",
+  "techStack": {
+    "languages": [
+      {
+        "name": "Python",
+        "version": null,
+        "confidence": "high",
+        "markers": [
+          "requirements.txt"
+        ]
+      }
+    ],
+    "frameworks": [],
+    "packageManager": "pip",
+    "runtime": null
+  },
+  "build": {
+    "buildCommand": null,
+    "testCommand": null,
+    "lintCommand": null,
+    "devCommand": null,
+    "scripts": {}
+  },
+  "conventions": {
+    "namingStyle": null,
+    "importStyle": null,
+    "testPattern": null,
+    "fileOrganization": null
+  },
+  "structure": {
+    "isMonorepo": false,
+    "workspaces": [],
+    "mainDirectories": [
+      "app"
+    ],
+    "gitBranches": null
+  },
+  "customNotes": [],
+  "directoryMap": {
+    "app": {
+      "path": "app",
+      "purpose": "Application code",
+      "fileCount": 0,
+      "lastAccessed": 1776426680633,
+      "keyFiles": []
+    },
+    "models": {
+      "path": "models",
+      "purpose": "Data models",
+      "fileCount": 2,
+      "lastAccessed": 1776426680634,
+      "keyFiles": [
+        "entities.py",
+        "__init__.py"
+      ]
+    },
+    "routes": {
+      "path": "routes",
+      "purpose": "Route handlers",
+      "fileCount": 6,
+      "lastAccessed": 1776426680634,
+      "keyFiles": [
+        "ai.py",
+        "chapters.py",
+        "chat.py",
+        "settings.py",
+        "styles.py"
+      ]
+    },
+    "services": {
+      "path": "services",
+      "purpose": "Business logic services",
+      "fileCount": 3,
+      "lastAccessed": 1776426680635,
+      "keyFiles": [
+        "ai_service.py",
+        "database_service.py",
+        "__init__.py"
+      ]
+    },
+    "__pycache__": {
+      "path": "__pycache__",
+      "purpose": null,
+      "fileCount": 8,
+      "lastAccessed": 1776426680635,
+      "keyFiles": [
+        "config.cpython-311.pyc",
+        "config.cpython-312.pyc",
+        "database.cpython-311.pyc",
+        "database.cpython-312.pyc",
+        "main.cpython-311.pyc"
+      ]
+    },
+    "app\\models": {
+      "path": "app\\models",
+      "purpose": "Data models",
+      "fileCount": 0,
+      "lastAccessed": 1776426680636,
+      "keyFiles": []
+    },
+    "app\\services": {
+      "path": "app\\services",
+      "purpose": "Business logic services",
+      "fileCount": 0,
+      "lastAccessed": 1776426680637,
+      "keyFiles": []
+    }
+  },
+  "hotPaths": [
+    {
+      "path": "",
+      "accessCount": 7,
+      "lastAccessed": 1776428198330,
+      "type": "directory"
+    },
+    {
+      "path": "config.py",
+      "accessCount": 6,
+      "lastAccessed": 1776428170788,
+      "type": "file"
+    },
+    {
+      "path": "models\\entities.py",
+      "accessCount": 6,
+      "lastAccessed": 1776428191382,
+      "type": "file"
+    },
+    {
+      "path": "main.py",
+      "accessCount": 6,
+      "lastAccessed": 1776433734647,
+      "type": "file"
+    },
+    {
+      "path": "routes\\ai.py",
+      "accessCount": 5,
+      "lastAccessed": 1776428194672,
+      "type": "file"
+    },
+    {
+      "path": "routes\\__init__.py",
+      "accessCount": 4,
+      "lastAccessed": 1776433738914,
+      "type": "file"
+    },
+    {
+      "path": "schema.sql",
+      "accessCount": 3,
+      "lastAccessed": 1776428164482,
+      "type": "file"
+    },
+    {
+      "path": "routes\\chapters.py",
+      "accessCount": 3,
+      "lastAccessed": 1776428191444,
+      "type": "file"
+    },
+    {
+      "path": "routes\\chat.py",
+      "accessCount": 3,
+      "lastAccessed": 1776433745887,
+      "type": "file"
+    },
+    {
+      "path": "routes\\settings.py",
+      "accessCount": 3,
+      "lastAccessed": 1776433768084,
+      "type": "file"
+    },
+    {
+      "path": "routes\\styles.py",
+      "accessCount": 2,
+      "lastAccessed": 1776427986364,
+      "type": "file"
+    },
+    {
+      "path": "init_db.py",
+      "accessCount": 1,
+      "lastAccessed": 1776427245934,
+      "type": "file"
+    },
+    {
+      "path": "start.py",
+      "accessCount": 1,
+      "lastAccessed": 1776427275513,
+      "type": "file"
+    },
+    {
+      "path": "C:\\Users\\36084\\AppData\\Local\\Temp\\claude\\D--writer\\b9796594-3695-4b63-8ffa-dfb87b07756a\\tasks\\b06do4oz4.output",
+      "accessCount": 1,
+      "lastAccessed": 1776427292524,
+      "type": "file"
+    },
+    {
+      "path": "C:\\Users\\36084\\AppData\\Local\\Temp\\claude\\D--writer\\b9796594-3695-4b63-8ffa-dfb87b07756a\\tasks\\bthhr42i2.output",
+      "accessCount": 1,
+      "lastAccessed": 1776427308265,
+      "type": "file"
+    },
+    {
+      "path": "services\\ai_service.py",
+      "accessCount": 1,
+      "lastAccessed": 1776428159371,
+      "type": "file"
+    }
+  ],
+  "userDirectives": []
+}

@@ -59,7 +59,11 @@ export function SettingEditorPage() {
               开始写作
             </Button>
             <Button
-              onClick={generate}
+              onClick={() => {
+                if (settingsCategory !== 'outline' && settingsCategory !== 'ifline') {
+                  generate(settingsCategory as 'character' | 'item' | 'location' | 'faction' | 'world' | 'rule')
+                }
+              }}
               variant="ghost"
               size="sm"
             >

@@ -1,5 +1,5 @@
-import { useSettingsStore, Character, UIState, Chapter } from '@/store'
-import { Trash2, Edit2, Users, Plus, FileText, X } from 'lucide-react'
+import { useSettingsStore, type CharacterLocal, UIState, Chapter } from '@/store'
+import { Trash2, Edit2, Users, Plus, FileText, X, Sparkles } from 'lucide-react'
 import { useState } from 'react'
 
 interface EntityEditorProps {
@@ -178,15 +178,17 @@ function AddEntityForm({
   )
 }
 
-// Section header with add button
+// Section header with add and AI generate buttons
 function SectionHeader({
   title,
   count,
   onAdd,
+  onGenerate,
 }: {
   title: string
   count: number
   onAdd: () => void
+  onGenerate?: () => void
 }) {
   return (
     <div className="flex items-center justify-between mb-4">
@@ -201,24 +203,46 @@ function SectionHeader({
           {count}
         </span>
       </div>
-      <button
-        onClick={onAdd}
-        className="flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-all"
-        style={{
-          backgroundColor: 'rgba(255,255,255,0.05)',
-          color: '#d0d6e0',
-          border: '1px solid rgba(255,255,255,0.08)',
-        }}
-        onMouseEnter={(e) => {
-          e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.08)'
-        }}
-        onMouseLeave={(e) => {
-          e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.05)'
-        }}
-      >
-        <Plus className="w-3.5 h-3.5" />
-        新增
-      </button>
+      <div className="flex items-center gap-2">
+        {onGenerate && (
+          <button
+            onClick={onGenerate}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-all"
+            style={{
+              backgroundColor: 'rgba(94,106,210,0.15)',
+              color: '#5e6ad2',
+              border: '1px solid rgba(94,106,210,0.3)',
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.backgroundColor = 'rgba(94,106,210,0.25)'
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.backgroundColor = 'rgba(94,106,210,0.15)'
+            }}
+          >
+            <Sparkles className="w-3.5 h-3.5" />
+            AI生成
+          </button>
+        )}
+        <button
+          onClick={onAdd}
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-all"
+          style={{
+            backgroundColor: 'rgba(255,255,255,0.05)',
+            color: '#d0d6e0',
+            border: '1px solid rgba(255,255,255,0.08)',
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.08)'
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.05)'
+          }}
+        >
+          <Plus className="w-3.5 h-3.5" />
+          新增
+        </button>
+      </div>
     </div>
   )
 }
@@ -342,7 +366,7 @@ const tierLabels: Record<string, string> = {
 }
 
 // 角色卡片
-function CharacterCard({ character }: { character: Character }) {
+function CharacterCard({ character }: { character: CharacterLocal }) {
   const { updateCharacter, deleteCharacter } = useSettingsStore()
   const [isHovered, setIsHovered] = useState(false)
   const [isEditing, setIsEditing] = useState(false)
@@ -492,10 +516,10 @@ function NewCharacterForm() {
 
 // 大纲编辑器
 function OutlineEditor() {
-  const { outline, setOutline, addChapter, updateChapter, deleteChapter } = useSettingsStore()
-  const [editingChapterId, setEditingChapterId] = useState<string | null>(null)
+  const { outline, chapters, addChapter, updateChapter, deleteChapter } = useSettingsStore()
+  const [editingChapterId, setEditingChapterId] = useState<number | null>(null)
   const [editingTitle, setEditingTitle] = useState('')
-  const [summaryModalChapterId, setSummaryModalChapterId] = useState<string | null>(null)
+  const [summaryModalChapterId, setSummaryModalChapterId] = useState<number | null>(null)
   const [isCreatingOutline, setIsCreatingOutline] = useState(false)
   const [newOutlineTitle, setNewOutlineTitle] = useState('')
   const [newChapterTitle, setNewChapterTitle] = useState('')
@@ -503,10 +527,10 @@ function OutlineEditor() {
 
   const handleCreateOutline = () => {
     if (newOutlineTitle.trim()) {
-      setOutline({
-        id: 'outline-main',
+      useSettingsStore.getState().setOutline({
+        id: Date.now(),
         title: newOutlineTitle.trim(),
-        chapters: [],
+        description: '',
       })
       setIsCreatingOutline(false)
       setNewOutlineTitle('')
@@ -519,7 +543,10 @@ function OutlineEditor() {
         title: newChapterTitle.trim(),
         summary: '',
         status: 'planning',
-        wordCount: 0,
+        word_count: 0,
+        chapter_order: chapters.length,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
       })
       setNewChapterTitle('')
       setShowAddChapter(false)
@@ -528,10 +555,10 @@ function OutlineEditor() {
 
   const startEditTitle = (chapter: Chapter) => {
     setEditingChapterId(chapter.id)
-    setEditingTitle(chapter.title)
+    setEditingTitle(chapter.title || '')
   }
 
-  const handleSaveTitle = (chapterId: string) => {
+  const handleSaveTitle = (chapterId: number) => {
     if (editingTitle.trim()) {
       updateChapter(chapterId, { title: editingTitle.trim() })
     }
@@ -539,7 +566,7 @@ function OutlineEditor() {
     setEditingTitle('')
   }
 
-  const handleKeyDown = (e: React.KeyboardEvent, chapterId: string) => {
+  const handleKeyDown = (e: React.KeyboardEvent, chapterId: number) => {
     if (e.key === 'Enter') {
       handleSaveTitle(chapterId)
     } else if (e.key === 'Escape') {
@@ -653,7 +680,7 @@ function OutlineEditor() {
             className="text-xs px-2 py-0.5 rounded"
             style={{ backgroundColor: 'rgba(94,106,210,0.15)', color: '#5e6ad2' }}
           >
-            {outline.chapters.length} 章节
+            {chapters.length} 章节
           </span>
         </div>
         <button
@@ -684,7 +711,7 @@ function OutlineEditor() {
 
       {/* 章节列表 */}
       <div className="space-y-2">
-        {outline.chapters.length === 0 && !showAddChapter ? (
+        {chapters.length === 0 && !showAddChapter ? (
           <div className="rounded-lg p-6 text-center" style={cardStyle}>
             <p className="text-sm" style={{ color: '#6b7280' }}>
               暂无章节
@@ -694,7 +721,7 @@ function OutlineEditor() {
             </p>
           </div>
         ) : (
-          outline.chapters.map((chapter, index) => (
+          chapters.map((chapter, index) => (
             <div
               key={chapter.id}
               className="p-3 rounded-lg transition-all group"
@@ -770,7 +797,7 @@ function OutlineEditor() {
                       {statusLabels[chapter.status]}
                     </span>
                     <span className="text-xs" style={{ color: '#6b7280' }}>
-                      {chapter.wordCount.toLocaleString()} 字
+                      {chapter.word_count.toLocaleString()} 字
                     </span>
                   </div>
                 </div>
@@ -890,7 +917,7 @@ function OutlineEditor() {
       {/* 章节摘要编辑 Modal */}
       {summaryModalChapterId && (
         <ChapterSummaryModal
-          chapter={outline.chapters.find((c) => c.id === summaryModalChapterId)!}
+          chapter={chapters.find((c) => c.id === summaryModalChapterId)!}
           onSave={(summary) => {
             updateChapter(summaryModalChapterId, { summary })
             setSummaryModalChapterId(null)
@@ -999,7 +1026,13 @@ export function EntityEditor({ category }: EntityEditorProps) {
     worldSettings,
     rules,
     ifLines,
+    generate,
+    generateRelations,
   } = useSettingsStore()
+
+  const handleGenerate = (type: 'character' | 'item' | 'location' | 'faction' | 'world' | 'rule') => {
+    generate(type)
+  }
 
   switch (category) {
     case 'character':
@@ -1009,6 +1042,7 @@ export function EntityEditor({ category }: EntityEditorProps) {
             title="角色管理"
             count={characters.length}
             onAdd={() => {}}
+            onGenerate={() => handleGenerate('character')}
           />
           <div className="space-y-3">
             {characters.map((char) => (
@@ -1033,6 +1067,7 @@ export function EntityEditor({ category }: EntityEditorProps) {
             title="物品管理"
             count={items.length}
             onAdd={() => {}}
+            onGenerate={() => handleGenerate('item')}
           />
           <div className="space-y-3">
             {items.map((item) => (
@@ -1066,6 +1101,7 @@ export function EntityEditor({ category }: EntityEditorProps) {
             title="地点管理"
             count={locations.length}
             onAdd={() => {}}
+            onGenerate={() => handleGenerate('location')}
           />
           <div className="space-y-3">
             {locations.map((loc) => (
@@ -1099,6 +1135,7 @@ export function EntityEditor({ category }: EntityEditorProps) {
             title="势力管理"
             count={factions.length}
             onAdd={() => {}}
+            onGenerate={() => handleGenerate('faction')}
           />
           <div className="space-y-3">
             {factions.map((fac) => (
@@ -1132,6 +1169,7 @@ export function EntityEditor({ category }: EntityEditorProps) {
             title="世界观设定"
             count={worldSettings.length}
             onAdd={() => {}}
+            onGenerate={() => handleGenerate('world')}
           />
           <div className="space-y-3">
             {worldSettings.map((world) => (
@@ -1150,7 +1188,7 @@ export function EntityEditor({ category }: EntityEditorProps) {
             )}
             <AddEntityForm
               placeholder="输入世界观设定名称..."
-              onAdd={(name) => useSettingsStore.getState().addWorldSetting({ type: 'world', name, description: '', details: {} })}
+              onAdd={(name) => useSettingsStore.getState().addWorldSetting({ name, description: '' })}
               onCancel={() => {}}
             />
           </div>
@@ -1164,6 +1202,7 @@ export function EntityEditor({ category }: EntityEditorProps) {
             title="规则设定"
             count={rules.length}
             onAdd={() => {}}
+            onGenerate={() => handleGenerate('rule')}
           />
           <div className="space-y-3">
             {rules.map((rule) => (
@@ -1200,6 +1239,7 @@ export function EntityEditor({ category }: EntityEditorProps) {
             title="IF线管理"
             count={ifLines.length}
             onAdd={() => {}}
+            onGenerate={generateRelations}
           />
           <div className="space-y-3">
             {ifLines.map((ifline) => (
@@ -1207,7 +1247,7 @@ export function EntityEditor({ category }: EntityEditorProps) {
                 key={ifline.id}
                 name={ifline.title}
                 description={ifline.description}
-                badge={ifline.syncMode === 'auto' ? '自动同步' : '手动同步'}
+                badge={ifline.sync_mode === 'auto' ? '自动同步' : '手动同步'}
                 badgeColor={entityColors.ifline}
                 onDelete={() => useSettingsStore.getState().deleteIFLine(ifline.id)}
               />
@@ -1219,7 +1259,7 @@ export function EntityEditor({ category }: EntityEditorProps) {
             )}
             <AddEntityForm
               placeholder="输入IF线标题..."
-              onAdd={(title) => useSettingsStore.getState().addIFLine({ title, linkedCharacterId: '', syncMode: 'manual' })}
+              onAdd={(title) => useSettingsStore.getState().addIFLine({ title, sync_mode: 'manual', created_at: new Date().toISOString(), updated_at: new Date().toISOString() })}
               onCancel={() => {}}
             />
           </div>

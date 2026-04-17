@@ -3,15 +3,15 @@ import { useSettingsStore } from '@/store'
 import { LinkIcon } from 'lucide-react'
 
 interface GraphNode {
-  id: string
+  id: number
   name: string
   type: string
   color: string
 }
 
 interface GraphLink {
-  source: string
-  target: string
+  source: number
+  target: number
   type: string
 }
 
@@ -37,7 +37,7 @@ export function RelationGraph() {
   )
 
   // 简单的力导向布局计算
-  const [positions] = useState<Map<string, { x: number; y: number }>>(() => {
+  const [positions] = useState<Map<number, { x: number; y: number }>>(() => {
     const map = new Map()
     characters.forEach((char, i) => {
       const angle = (i / characters.length) * 2 * Math.PI
