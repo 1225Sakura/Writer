@@ -70,7 +70,14 @@ export const useUIStore = create<UIState & UIActions>()(
     }),
     {
       name: 'writer-ui-store',
-      partialize: (state: UIState & UIActions) => ({ theme: state.theme }),
+      partialize: (state: UIState & UIActions) => ({
+        theme: state.theme,
+        // Only persist theme and current interface - not transient UI state
+        currentInterface: state.currentInterface,
+        settingsCategory: state.settingsCategory,
+      }),
+      // Version for future migrations
+      version: 1,
     }
   )
 )
