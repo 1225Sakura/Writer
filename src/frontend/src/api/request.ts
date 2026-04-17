@@ -5,6 +5,7 @@ import axios, {
   type AxiosResponse,
 } from 'axios'
 import axiosRetry from 'axios-retry'
+import { apiCache } from '@/utils/cache'
 
 // ============================================
 // API Error Types
@@ -235,6 +236,7 @@ export const getOnlineStatus = (): boolean => isOnline
 interface RequestOptions {
   skipOnlineCheck?: boolean
   skipRetry?: boolean
+  cacheTTL?: number // Cache TTL in ms, default 1 min
 }
 
 const request = async <T>(
@@ -250,6 +252,14 @@ const request = async <T>(
     } as ApiError)
   }
 
+  // Check cache for GET requests
+  if (method === 'get' && options.cacheTTL !== 0) {
+    const cached = apiCache.get<T>(url)
+    if (cached) {
+      return cached
+    }
+  }
+
   const config: Record<string, unknown> = {}
   if (options.skipRetry) {
     config['axios-retry'] = { retries: 0 }
@@ -261,6 +271,11 @@ const request = async <T>(
     data,
     ...config,
   })
+
+  // Cache GET responses
+  if (method === 'get') {
+    apiCache.set(url, response.data, options.cacheTTL)
+  }
 
   return response.data
 }

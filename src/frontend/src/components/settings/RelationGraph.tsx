@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, useMemo } from 'react'
 import { useSettingsStore } from '@/store'
-import { LinkIcon, Filter } from 'lucide-react'
+import { LinkIcon, Filter, Box, Grid2x2 } from 'lucide-react'
+import ForceGraph2D, { ForceGraphMethods } from 'react-force-graph-2d'
 
 interface GraphNode {
   id: number
@@ -28,10 +29,12 @@ const RELATION_TYPE_COLORS: Record<string, string> = {
 
 export function RelationGraph() {
   const containerRef = useRef<HTMLDivElement>(null)
+  const graph2DRef = useRef<ForceGraphMethods>()
   const { characters } = useSettingsStore()
   const [dimensions, setDimensions] = useState({ width: 300, height: 400 })
   const [filterType, setFilterType] = useState<string>('all')
   const [hoveredNode, setHoveredNode] = useState<number | null>(null)
+  const [viewMode, setViewMode] = useState<'2d' | '3d'>('2d')
 
   // 计算节点和连线 - 使用useMemo优化
   const nodes: GraphNode[] = useMemo(() =>
@@ -137,10 +140,18 @@ export function RelationGraph() {
       className="h-full overflow-hidden relative"
       style={{ backgroundColor: '#0a0b0d' }}
     >
-      {/* 筛选器 */}
+      {/* 筛选器和视图切换 */}
       <div
         className="absolute top-3 right-3 z-10 flex items-center gap-2"
       >
+        {/* 视图切换 */}
+        <button
+          onClick={() => setViewMode(viewMode === '2d' ? '3d' : '2d')}
+          className="p-1.5 rounded hover:bg-white/10 transition-colors"
+          title={viewMode === '2d' ? '切换到3D视图' : '切换到2D视图'}
+        >
+          {viewMode === '2d' ? <Box className="w-4 h-4" style={{ color: '#6b7280' }} /> : <Grid2x2 className="w-4 h-4" style={{ color: '#6b7280' }} />}
+        </button>
         <Filter className="w-4 h-4" style={{ color: '#6b7280' }} />
         <select
           value={filterType}

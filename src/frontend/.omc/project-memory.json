@@ -154,15 +154,15 @@
       "type": "file"
     },
     {
-      "path": "src\\components\\writing\\AIOperationDrawer.tsx",
-      "accessCount": 10,
-      "lastAccessed": 1776356020428,
+      "path": "src\\components\\settings\\RelationGraph.tsx",
+      "accessCount": 13,
+      "lastAccessed": 1776441659463,
       "type": "file"
     },
     {
-      "path": "src\\components\\settings\\RelationGraph.tsx",
-      "accessCount": 8,
-      "lastAccessed": 1776429965718,
+      "path": "src\\components\\writing\\AIOperationDrawer.tsx",
+      "accessCount": 10,
+      "lastAccessed": 1776356020428,
       "type": "file"
     },
     {
@@ -289,6 +289,12 @@
       "path": "tsconfig.json",
       "accessCount": 2,
       "lastAccessed": 1776441463021,
+      "type": "file"
+    },
+    {
+      "path": "src\\utils\\performance.ts",
+      "accessCount": 2,
+      "lastAccessed": 1776441614244,
       "type": "file"
     },
     {

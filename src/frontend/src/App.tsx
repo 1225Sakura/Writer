@@ -2,6 +2,7 @@ import { useEffect, lazy, Suspense, ComponentType } from 'react'
 import { useUIStore } from '@/store'
 import { ThemeProvider } from '@/components/shared/ThemeProvider'
 import { ShortcutManager } from '@/components/shared/ShortcutManager'
+import { ErrorBoundary } from '@/components/shared/ErrorBoundary'
 import { ToastContainer } from '@/components/ui/Toast'
 import { Loader2 } from 'lucide-react'
 
@@ -52,10 +53,12 @@ function AppContent() {
 
 export default function App() {
   return (
-    <ThemeProvider>
-      <ShortcutManager />
-      <AppContent />
-      <ToastContainer />
-    </ThemeProvider>
+    <ErrorBoundary>
+      <ThemeProvider>
+        <ShortcutManager />
+        <AppContent />
+        <ToastContainer />
+      </ThemeProvider>
+    </ErrorBoundary>
   )
 }
