@@ -1,0 +1,51 @@
+{
+  "name": "writer-desktop",
+  "productName": "Writer - 自动化写作软件",
+  "version": "1.0.0",
+  "description": "AI-assisted Chinese web novel writing desktop application",
+  "main": "dist-electron/main.js",
+  "author": "Writer Team",
+  "license": "MIT",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc -b && vite build",
+    "build:electron": "tsc -p tsconfig.electron.json",
+    "electron:dev": "npm run build:electron && electron .",
+    "dist": "npm run build && npm run build:electron && electron-builder",
+    "dist:win": "npm run build && npm run build:electron && electron-builder --win"
+  },
+  "build": {
+    "appId": "com.writer.app",
+    "productName": "Writer",
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "dist/**/*",
+      "dist-electron/**/*"
+    ],
+    "extraResources": [
+      {
+        "from": "src/backend",
+        "to": "backend",
+        "filter": ["**/*"]
+      }
+    ],
+    "win": {
+      "target": "nsis",
+      "icon": "public/icon.ico"
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": true,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true
+    }
+  },
+  "devDependencies": {
+    "electron": "^33.0.0",
+    "electron-builder": "^25.0.0",
+    "typescript": "^5.7.2",
+    "vite": "^6.2.0"
+  }
+}
