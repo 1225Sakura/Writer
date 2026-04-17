@@ -118,15 +118,39 @@
   },
   "hotPaths": [
     {
+      "path": "src\\components\\settings\\EntityEditor.tsx",
+      "accessCount": 42,
+      "lastAccessed": 1776430001159,
+      "type": "file"
+    },
+    {
+      "path": "src\\store\\settingsStore.ts",
+      "accessCount": 41,
+      "lastAccessed": 1776429989053,
+      "type": "file"
+    },
+    {
       "path": "src\\components\\settings\\SettingEditorPage.tsx",
-      "accessCount": 17,
-      "lastAccessed": 1776357078732,
+      "accessCount": 20,
+      "lastAccessed": 1776429034384,
       "type": "file"
     },
     {
       "path": "src\\components\\writing\\CollaborationPanel.tsx",
-      "accessCount": 11,
-      "lastAccessed": 1776356077456,
+      "accessCount": 16,
+      "lastAccessed": 1776428909831,
+      "type": "file"
+    },
+    {
+      "path": "src\\store\\writingStore.ts",
+      "accessCount": 16,
+      "lastAccessed": 1776429156394,
+      "type": "file"
+    },
+    {
+      "path": "src\\components\\settings\\CategoryNav.tsx",
+      "accessCount": 13,
+      "lastAccessed": 1776429033865,
       "type": "file"
     },
     {
@@ -136,15 +160,15 @@
       "type": "file"
     },
     {
-      "path": "src\\components\\writing\\WritingToolbar.tsx",
-      "accessCount": 7,
-      "lastAccessed": 1776356806344,
+      "path": "src\\components\\settings\\RelationGraph.tsx",
+      "accessCount": 8,
+      "lastAccessed": 1776429965718,
       "type": "file"
     },
     {
-      "path": "src\\components\\settings\\EntityEditor.tsx",
+      "path": "src\\components\\writing\\WritingToolbar.tsx",
       "accessCount": 7,
-      "lastAccessed": 1776356945662,
+      "lastAccessed": 1776356806344,
       "type": "file"
     },
     {
@@ -154,10 +178,34 @@
       "type": "file"
     },
     {
+      "path": "src\\components\\chat\\UserInputPanel.tsx",
+      "accessCount": 6,
+      "lastAccessed": 1776428876399,
+      "type": "file"
+    },
+    {
+      "path": "src\\store\\index.ts",
+      "accessCount": 6,
+      "lastAccessed": 1776429312971,
+      "type": "file"
+    },
+    {
       "path": "src\\components\\settings\\AISuggestionPanel.tsx",
       "accessCount": 5,
       "lastAccessed": 1776356982432,
       "type": "file"
+    },
+    {
+      "path": "src\\components\\ui\\Button.tsx",
+      "accessCount": 5,
+      "lastAccessed": 1776428923665,
+      "type": "file"
+    },
+    {
+      "path": "src\\api\\types.ts",
+      "accessCount": 5,
+      "lastAccessed": 1776429439554,
+      "type": "directory"
     },
     {
       "path": "",
@@ -175,24 +223,6 @@
       "path": "src\\components\\ui\\Badge.tsx",
       "accessCount": 4,
       "lastAccessed": 1776355688534,
-      "type": "file"
-    },
-    {
-      "path": "src\\components\\ui\\Button.tsx",
-      "accessCount": 4,
-      "lastAccessed": 1776355688563,
-      "type": "file"
-    },
-    {
-      "path": "src\\components\\settings\\RelationGraph.tsx",
-      "accessCount": 4,
-      "lastAccessed": 1776355954688,
-      "type": "file"
-    },
-    {
-      "path": "src\\components\\settings\\CategoryNav.tsx",
-      "accessCount": 4,
-      "lastAccessed": 1776356932185,
       "type": "file"
     },
     {
@@ -220,9 +250,39 @@
       "type": "file"
     },
     {
+      "path": "tsconfig.node.json",
+      "accessCount": 3,
+      "lastAccessed": 1776423921441,
+      "type": "file"
+    },
+    {
+      "path": "src\\api\\settings.ts",
+      "accessCount": 3,
+      "lastAccessed": 1776428749570,
+      "type": "file"
+    },
+    {
+      "path": "src\\store\\chatStore.ts",
+      "accessCount": 3,
+      "lastAccessed": 1776428854547,
+      "type": "file"
+    },
+    {
+      "path": "src",
+      "accessCount": 3,
+      "lastAccessed": 1776429798701,
+      "type": "directory"
+    },
+    {
       "path": "src\\components\\chat\\ChatInitPage.tsx",
+      "accessCount": 3,
+      "lastAccessed": 1776441175992,
+      "type": "file"
+    },
+    {
+      "path": "src\\api\\writing.ts",
       "accessCount": 2,
-      "lastAccessed": 1776356672607,
+      "lastAccessed": 1776428749590,
       "type": "file"
     },
     {
@@ -253,6 +313,30 @@
       "path": "C:\\Users\\36084\\AppData\\Local\\Temp\\claude\\D--writer\\5e549d04-4452-45dd-befc-a5945bb93ee5\\tasks\\b4p3n006h.output",
       "accessCount": 1,
       "lastAccessed": 1776360222820,
+      "type": "file"
+    },
+    {
+      "path": "src\\store\\uiStore.ts",
+      "accessCount": 1,
+      "lastAccessed": 1776428919219,
+      "type": "directory"
+    },
+    {
+      "path": "src\\store",
+      "accessCount": 1,
+      "lastAccessed": 1776429450147,
+      "type": "directory"
+    },
+    {
+      "path": "src\\App.tsx",
+      "accessCount": 1,
+      "lastAccessed": 1776441187613,
+      "type": "file"
+    },
+    {
+      "path": "vite.config.ts",
+      "accessCount": 1,
+      "lastAccessed": 1776441208426,
       "type": "file"
     }
   ],

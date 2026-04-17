@@ -9,8 +9,8 @@ from .chapters import router as chapters_router
 from .ai import router as ai_router
 from .styles import router as styles_router
 
-# Main API router
-api_router = APIRouter(prefix="/api")
+# Main API router with version prefix
+api_router = APIRouter(prefix="/api/v1")
 
 api_router.include_router(chat_router)
 api_router.include_router(settings_router)

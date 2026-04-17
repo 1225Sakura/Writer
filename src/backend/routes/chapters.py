@@ -389,7 +389,7 @@ async def create_inspection_result(
     return db_inspection
 
 
-# IF Lines
+# IF Lines - MUST be registered BEFORE /{chapter_id} to avoid route conflicts
 @router.get("/if-lines", response_model=List[IFLineResponse])
 async def list_if_lines(
     skip: int = 0,
@@ -459,7 +459,7 @@ async def delete_if_line(if_line_id: int, db: AsyncSession = Depends(get_db)):
     return {"message": "IF line deleted"}
 
 
-# Plot Threads
+# Plot Threads - MUST be registered BEFORE /{chapter_id} to avoid route conflicts
 @router.get("/plot-threads", response_model=List[PlotThreadResponse])
 async def list_plot_threads(
     skip: int = 0,

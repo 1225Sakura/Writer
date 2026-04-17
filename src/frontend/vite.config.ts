@@ -15,6 +15,21 @@ export default defineConfig({
       '/api': {
         target: 'http://localhost:8000',
         changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api/, '/api/v1'),
+      },
+    },
+  },
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          'vendor-react': ['react', 'react-dom'],
+          'vendor-ui': ['@radix-ui/react-dialog', '@radix-ui/react-dropdown-menu', '@radix-ui/react-slider', '@radix-ui/react-slot', '@radix-ui/react-switch', '@radix-ui/react-tooltip'],
+          'vendor-tiptap': ['@tiptap/react', '@tiptap/starter-kit', '@tiptap/extension-highlight', '@tiptap/extension-placeholder', '@tiptap/extension-text-align', '@tiptap/extension-underline'],
+          'vendor-force-graph': ['react-force-graph-2d', 'react-force-graph-3d'],
+          'vendor-motion': ['framer-motion'],
+          'vendor-zustand': ['zustand', 'immer'],
+        },
       },
     },
   },

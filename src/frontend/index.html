@@ -4,10 +4,52 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>自动化写作软件</title>
+    <title>自动化写作软件 - AI智能小说创作平台</title>
+    <meta name="description" content="面向中文网络小说作者的本地桌面写作软件，通过AI辅助完成从世界观构建、角色设定到正文创作的全流程。" />
+    <meta name="keywords" content="AI写作,小说创作,网络文学,写作软件,人工智能" />
+    <meta name="author" content="Writer Team" />
+    <meta name="robots" content="index, follow" />
+    <meta property="og:title" content="自动化写作软件 - AI智能小说创作平台" />
+    <meta property="og:description" content="面向中文网络小说作者的本地桌面写作软件" />
+    <meta property="og:type" content="website" />
+    <meta name="theme-color" content="#1a1a2e" />
+    <link rel="manifest" href="/manifest.json" />
   </head>
   <body>
-    <div id="root"></div>
+    <div id="root">
+      <style>
+        .app-loading {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          height: 100vh;
+          background: #1a1a2e;
+          color: #f5f0e6;
+          font-family: system-ui, sans-serif;
+        }
+        .app-loading-spinner {
+          width: 40px;
+          height: 40px;
+          border: 3px solid #333;
+          border-top-color: #e8b87d;
+          border-radius: 50%;
+          animation: spin 1s linear infinite;
+        }
+        .app-loading-text {
+          margin-top: 16px;
+          font-size: 14px;
+          opacity: 0.7;
+        }
+        @keyframes spin {
+          to { transform: rotate(360deg); }
+        }
+      </style>
+      <div class="app-loading">
+        <div class="app-loading-spinner"></div>
+        <div class="app-loading-text">加载中...</div>
+      </div>
+    </div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

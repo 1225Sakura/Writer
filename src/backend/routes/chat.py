@@ -1,10 +1,11 @@
 # Auto Novel Writer - Chat Routes
 # Interface 1: Chat initialization
 
-from fastapi import APIRouter, HTTPException, Depends
-from pydantic import BaseModel
+from fastapi import APIRouter, HTTPException, Depends, Request
+from pydantic import BaseModel, field_validator
 from typing import List, Optional
 from datetime import datetime
+import re
 
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
@@ -15,11 +16,49 @@ from backend.models.entities import ChatSession, ChatMessage, ExtractedEntity
 
 router = APIRouter(prefix="/chat", tags=["chat"])
 
+# Simple in-memory rate limiting (for production use Redis)
+rate_limit_store: dict[str, list[float]] = {}
+
+def check_rate_limit(client_ip: str, max_requests: int = 30, window_seconds: float = 60.0) -> bool:
+    """Check if client exceeds rate limit. Returns True if allowed."""
+    now = time.time()
+    if client_ip not in rate_limit_store:
+        rate_limit_store[client_ip] = []
+
+    # Remove old requests outside the window
+    rate_limit_store[client_ip] = [
+        t for t in rate_limit_store[client_ip]
+        if now - t < window_seconds
+    ]
+
+    if len(rate_limit_store[client_ip]) >= max_requests:
+        return False
+
+    rate_limit_store[client_ip].append(now)
+    return True
+
+import time
 
 # Pydantic models
 class ChatMessageCreate(BaseModel):
     role: str
     content: str
+
+    @field_validator('role')
+    @classmethod
+    def validate_role(cls, v: str) -> str:
+        if v not in ('user', 'assistant', 'system'):
+            raise ValueError('Role must be user, assistant, or system')
+        return v
+
+    @field_validator('content')
+    @classmethod
+    def validate_content(cls, v: str) -> str:
+        if not v or not v.strip():
+            raise ValueError('Content cannot be empty')
+        if len(v) > 50000:  # Max 50k characters per message
+            raise ValueError('Content exceeds maximum length')
+        return v.strip()
 
 
 class ChatMessageResponse(BaseModel):
@@ -72,16 +111,22 @@ async def create_session(db: AsyncSession = Depends(get_db)):
 
 @router.get("/sessions", response_model=List[ChatSessionResponse])
 async def list_sessions(
+    request: Request,
     skip: int = 0,
     limit: int = 20,
     db: AsyncSession = Depends(get_db)
 ):
     """List all chat sessions with pagination."""
+    # Rate limiting
+    client_ip = request.client.host if request.client else "unknown"
+    if not check_rate_limit(client_ip, max_requests=60, window_seconds=60):
+        raise HTTPException(status_code=429, detail="Too many requests")
+
     result = await db.execute(
         select(ChatSession)
         .order_by(ChatSession.updated_at.desc())
         .offset(skip)
-        .limit(limit)
+        .limit(min(limit, 100))  # Cap at 100
     )
     sessions = result.scalars().all()
     return sessions
@@ -110,11 +155,17 @@ async def delete_session(session_id: int, db: AsyncSession = Depends(get_db)):
 
 @router.post("/sessions/{session_id}/messages", response_model=ChatMessageResponse)
 async def create_message(
+    request: Request,
     session_id: int,
     message: ChatMessageCreate,
     db: AsyncSession = Depends(get_db)
 ):
     """Add a message to a chat session."""
+    # Rate limiting
+    client_ip = request.client.host if request.client else "unknown"
+    if not check_rate_limit(client_ip, max_requests=30, window_seconds=60):
+        raise HTTPException(status_code=429, detail="Too many requests")
+
     # Verify session exists
     result = await db.execute(select(ChatSession).where(ChatSession.id == session_id))
     session = result.scalar_one_or_none()
