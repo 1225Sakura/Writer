@@ -1,5 +1,6 @@
 import { useWritingStore, useSettingsStore } from '@/store'
 import { useState } from 'react'
+import { Button } from '@/components/ui/Button'
 import { Target, AlertCircle, Users, BarChart, ChevronDown, Check } from 'lucide-react'
 
 export function CollaborationPanel() {
@@ -121,13 +122,14 @@ function PlotTracker() {
                   </div>
                 )}
               </div>
-              <button
+              <Button
                 onClick={() => closePlotThread(thread.id)}
-                className="p-1 rounded hover:bg-[rgba(255,255,255,0.08)] active:scale-95 transition-all text-[#6dd45e]"
+                variant="ghost"
+                size="icon"
                 title="标记为已揭示"
               >
-                <Check className="w-4 h-4" />
-              </button>
+                <Check className="w-4 h-4 text-[#6dd45e]" />
+              </Button>
             </div>
           ))
         )}

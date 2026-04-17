@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useWritingStore, WritingStyle } from '@/store'
 import { getEditorInstance } from '@/store/editorRegistry'
 import { showToast } from '@/components/ui/Toast'
+import { Button } from '@/components/ui/Button'
 import { ChevronDown, Feather, FileText, Edit3, Sparkles, Wand2 } from 'lucide-react'
 
 const writingStyles: Array<{ value: WritingStyle; label: string; description: string }> = [
@@ -178,20 +179,19 @@ function OperationButton({
   disabled?: boolean
 }) {
   return (
-    <button
+    <Button
       onClick={onClick}
       disabled={disabled}
-      className="w-full flex items-center gap-2 px-3 py-2 rounded-md
-                 border border-[rgba(255,255,255,0.08)] hover:bg-[#0f1011]
-                 active:scale-95 transition-all text-sm text-left text-[#f7f8f8]
-                 disabled:opacity-50 disabled:cursor-not-allowed"
+      variant="ghost"
+      size="sm"
+      className="w-full justify-start"
     >
       {icon && <span className="text-[#5e6ad2]">{icon}</span>}
       <span className="flex-1">{label}</span>
       {shortcut && (
         <span className="text-xs text-[#d0d6e0]">{shortcut}</span>
       )}
-    </button>
+    </Button>
   )
 }
 
@@ -207,16 +207,14 @@ function StyleButton({
   onClick: () => void
 }) {
   return (
-    <button
+    <Button
       onClick={onClick}
-      className={`w-full text-left px-3 py-2 rounded-md border transition-all ${
-        isActive
-          ? 'border-[#5e6ad2] bg-[#5e6ad2] text-white'
-          : 'border-[rgba(255,255,255,0.08)] hover:bg-[#0f1011] hover:border-[rgba(255,255,255,0.16)]'
-      }`}
+      variant={isActive ? 'primary' : 'ghost'}
+      size="sm"
+      className="w-full justify-start"
     >
       <div className="font-medium text-sm">{label}</div>
       <div className={`text-xs ${isActive ? 'text-white/80' : 'text-[#d0d6e0]'}`}>{description}</div>
-    </button>
+    </Button>
   )
 }

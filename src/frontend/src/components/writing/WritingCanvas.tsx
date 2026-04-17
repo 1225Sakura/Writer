@@ -33,7 +33,7 @@ export function WritingCanvas() {
     editorProps: {
       attributes: {
         class:
-          'writing-area prose prose-lg max-w-none focus:outline-none min-h-full px-8 py-6',
+          'writing-area max-w-none focus:outline-none min-h-full px-8 py-6',
       },
     },
   })
@@ -67,33 +67,39 @@ export function WritingCanvas() {
   }, [editor])
 
   return (
-    <div className="h-full flex flex-col bg-[#faf6e8] dark:bg-[#1a1a2e]">
-      {/* 章节标题 */}
-      <div className="px-8 pt-8 pb-2">
-        <h1
-          className="font-['Inter'] text-2xl font-medium tracking-tight text-[#2d2d2d] dark:text-[#f5f0e6]"
-          style={{ lineHeight: 1.75 }}
-        >
-          {chapterTitle}
-        </h1>
-      </div>
+    <div className="h-full flex flex-col bg-[#1a1a2e]">
+      {/* 写作区域 - 温暖宣纸背景 */}
+      <div className="flex-1 overflow-y-auto bg-[#faf6e8]">
+        {/* 章节标题 - 与正文融合过渡 */}
+        <div className="px-12 pt-10 pb-4">
+          <h1
+            className="font-['Source_Serif_4','Noto_Serif_SC',Georgia,serif] text-2xl font-medium tracking-tight text-[#3d3d3d]"
+            style={{
+              lineHeight: 1.75,
+              letterSpacing: '-0.02em',
+            }}
+          >
+            {chapterTitle}
+          </h1>
+          {/* 柔和分隔线 */}
+          <div className="mt-4 h-px bg-gradient-to-r from-transparent via-[#d4c8a8] to-transparent opacity-60" />
+        </div>
 
-      {/* 写作区域 */}
-      <div className="flex-1 overflow-y-auto">
+        {/* 正文编辑器 */}
         <EditorContent
           editor={editor}
-          className="min-h-full"
+          className="min-h-full px-12 pb-12"
         />
       </div>
 
-      {/* 底部状态栏 */}
-      <div className="h-8 border-t border-[rgba(255,255,255,0.08)] bg-[#0f1011] flex items-center px-4 text-xs text-[#d0d6e0] font-['Inter']">
-        <span className="font-medium">{chapterTitle}</span>
-        <span className="mx-2 opacity-40">|</span>
+      {/* 底部状态栏 - Linear深色风格 */}
+      <div className="h-8 bg-[var(--color-bg-surface)] border-t border-[var(--color-border-subtle)] flex items-center px-4 text-xs text-[var(--color-text-muted)] font-['Inter']">
+        <span className="text-[var(--color-text-secondary)] font-medium">{chapterTitle}</span>
+        <span className="mx-2 opacity-30">|</span>
         <span>{wordCount} 字</span>
-        <span className="mx-2 opacity-40">|</span>
+        <span className="mx-2 opacity-30">|</span>
         <span>人机比例: {humanAIRatio}%</span>
-        <span className="mx-2 opacity-40">|</span>
+        <span className="mx-2 opacity-30">|</span>
         <span className="text-[#e8b87d]">文笔风格: {WRITING_STYLE_NAMES[writingStyle] || writingStyle}</span>
       </div>
     </div>

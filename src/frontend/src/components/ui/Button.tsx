@@ -4,16 +4,18 @@ import { twMerge } from 'tailwind-merge'
 import { Slot } from '@radix-ui/react-slot'
 
 export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: 'default' | 'outline' | 'ghost' | 'destructive' | 'secondary'
+  variant?: 'default' | 'primary' | 'outline' | 'ghost' | 'subtle' | 'destructive' | 'secondary'
   size?: 'sm' | 'md' | 'lg' | 'icon'
   asChild?: boolean
 }
 
 const variantStyles = {
-  default: 'bg-var-accent text-white hover:brightness-110 active:brightness-90 shadow-sm hover:shadow-md',
+  default: 'bg-var-accent text-white hover:bg-[#828fff] active:bg-[#4f5ab8] shadow-sm hover:shadow-md',
+  primary: 'bg-[#5e6ad2] text-white hover:bg-[#828fff] active:bg-[#4f5ab8] shadow-sm hover:shadow-md',
   secondary: 'bg-var-border text-var-text hover:bg-var-border/80 active:bg-var-border/60 border border-transparent hover:border-var-text-secondary/30',
   outline: 'border border-var-border bg-transparent hover:bg-var-border/20 active:bg-var-border/40',
-  ghost: 'bg-transparent hover:bg-var-border/20 active:bg-var-border/40',
+  ghost: 'bg-[rgba(255,255,255,0.02)] hover:bg-[rgba(255,255,255,0.05)] text-[#e2e4e7] border border-[rgb(36,40,44)]',
+  subtle: 'bg-[rgba(255,255,255,0.04)] hover:bg-[rgba(255,255,255,0.08)] text-[#d0d6e0] border border-transparent',
   destructive: 'bg-var-error text-white hover:brightness-110 active:brightness-90 shadow-sm hover:shadow-md',
 }
 

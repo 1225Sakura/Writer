@@ -3,6 +3,7 @@ import { WritingToolbar } from './WritingToolbar'
 import { WritingCanvas } from './WritingCanvas'
 import { AIOperationDrawer } from './AIOperationDrawer'
 import { CollaborationPanel } from './CollaborationPanel'
+import { Button } from '@/components/ui/Button'
 import { X } from 'lucide-react'
 
 export function WritingEditorPage() {
@@ -25,12 +26,13 @@ export function WritingEditorPage() {
           <div className="w-[280px] border-l border-[rgba(255,255,255,0.08)] bg-[#191a1b] flex flex-col">
             <div className="p-3 border-b border-[rgba(255,255,255,0.08)] flex items-center justify-between">
               <span className="font-medium text-sm text-[#f7f8f8]">写作操作</span>
-              <button
+              <Button
                 onClick={() => setAIDrawerOpen(false)}
-                className="p-1 rounded hover:bg-[rgba(255,255,255,0.08)] transition-colors"
+                variant="ghost"
+                size="icon"
               >
                 <X className="w-4 h-4 text-[#d0d6e0]" />
-              </button>
+              </Button>
             </div>
             <AIOperationDrawer />
           </div>
@@ -41,12 +43,13 @@ export function WritingEditorPage() {
           <div className="w-[260px] border-l border-[rgba(255,255,255,0.08)] bg-[#191a1b] flex flex-col">
             <div className="p-3 border-b border-[rgba(255,255,255,0.08)] flex items-center justify-between">
               <span className="font-medium text-sm text-[#f7f8f8]">协作面板</span>
-              <button
+              <Button
                 onClick={() => setCollaborationDrawerOpen(false)}
-                className="p-1 rounded hover:bg-[rgba(255,255,255,0.08)] transition-colors"
+                variant="ghost"
+                size="icon"
               >
                 <X className="w-4 h-4 text-[#d0d6e0]" />
-              </button>
+              </Button>
             </div>
             <CollaborationPanel />
           </div>

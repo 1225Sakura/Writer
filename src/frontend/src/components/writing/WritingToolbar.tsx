@@ -1,4 +1,5 @@
 import { useUIStore, useWritingStore } from '@/store'
+import { Button } from '@/components/ui/Button'
 import {
   Pen,
   List,
@@ -38,23 +39,23 @@ export function WritingToolbar() {
   return (
     <div className="h-12 border-b border-[rgba(255,255,255,0.08)] bg-[#0f1011] flex items-center px-4 gap-2">
       {/* 左侧：返回聊天 + 返回设定 */}
-      <button
+      <Button
         onClick={() => setCurrentInterface('chat')}
-        className="flex items-center gap-1 px-3 py-1.5 rounded-md
-                   hover:bg-[rgba(255,255,255,0.08)] transition-colors text-sm text-[#f7f8f8]"
+        variant="ghost"
+        size="sm"
       >
         <MessageCircle className="w-4 h-4" />
         <span>返回聊天</span>
-      </button>
+      </Button>
 
-      <button
+      <Button
         onClick={() => setCurrentInterface('settings')}
-        className="flex items-center gap-1 px-3 py-1.5 rounded-md
-                   hover:bg-[rgba(255,255,255,0.08)] transition-colors text-sm text-[#f7f8f8]"
+        variant="ghost"
+        size="sm"
       >
         <ArrowLeft className="w-4 h-4" />
         <span>返回设定</span>
-      </button>
+      </Button>
 
       <div className="w-px h-6 bg-[rgba(255,255,255,0.08)]" />
 
@@ -91,21 +92,22 @@ export function WritingToolbar() {
       <div className="ml-auto flex items-center gap-2">
         {/* OOC/战力警告 */}
         {hasWarnings && (
-          <button
+          <Button
             onClick={handleWarningClick}
-            className="flex items-center gap-1 px-2 py-1 rounded-md
-                       bg-[#c45c5c] text-white text-xs animate-pulse cursor-pointer"
+            variant="destructive"
+            size="sm"
             title={`OOC: ${oocWarnings.length}, 战力: ${powerImbalanceWarnings.length}`}
           >
             <AlertTriangle className="w-3 h-3" />
             <span>警告 {oocWarnings.length + powerImbalanceWarnings.length}</span>
-          </button>
+          </Button>
         )}
 
         {/* 主题切换 */}
-        <button
+        <Button
           onClick={toggleTheme}
-          className="p-2 rounded-md hover:bg-[rgba(255,255,255,0.08)] transition-colors text-[#d0d6e0]"
+          variant="ghost"
+          size="icon"
           title={theme === 'dark' ? '切换浅色模式' : '切换深色模式'}
         >
           {theme === 'dark' ? (
@@ -113,7 +115,7 @@ export function WritingToolbar() {
           ) : (
             <Moon className="w-4 h-4" />
           )}
-        </button>
+        </Button>
       </div>
     </div>
   )
@@ -133,19 +135,16 @@ const ToolbarButton = memo(function ToolbarButton({
   badge?: string
 }) {
   return (
-    <button
+    <Button
       onClick={onClick}
-      className={`relative flex items-center gap-1 px-3 py-1.5 rounded-md transition-colors text-sm text-[#f7f8f8] ${
-        isActive
-          ? 'bg-[#5e6ad2] text-white'
-          : 'hover:bg-[rgba(255,255,255,0.08)]'
-      }`}
+      variant={isActive ? 'primary' : 'ghost'}
+      size="sm"
     >
       {icon}
       <span>{label}</span>
       {badge && (
         <span className="absolute -top-1 -right-1 w-2 h-2 bg-[#c45c5c] rounded-full" />
       )}
-    </button>
+    </Button>
   )
 })

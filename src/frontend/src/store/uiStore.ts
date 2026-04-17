@@ -45,7 +45,7 @@ export const useUIStore = create<UIState & UIActions>()(
       collaborationDrawerOpen: false,
       outlineDrawerOpen: false,
       fullscreenWriting: false,
-      theme: 'light',
+      theme: 'dark',
       settingsCategory: 'world',
 
       // 界面流转

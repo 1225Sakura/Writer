@@ -1,4 +1,5 @@
 import { useUIStore, useSettingsStore, UIState } from '@/store'
+import { Button } from '@/components/ui/Button'
 import { Globe, Users, Package, MapPin, Shield, BookOpen, FileText, GitBranch, Feather } from 'lucide-react'
 
 const categories: Array<{ key: UIState['settingsCategory']; label: string; icon: typeof Globe }> = [
@@ -95,24 +96,15 @@ export function CategoryNav() {
 
       {/* 底部：AI辅助 */}
       <div className="p-4" style={{ borderTop: '1px solid rgba(255,255,255,0.06)' }}>
-        <button
+        <Button
           onClick={generate}
-          className="w-full flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-medium transition-all"
-          style={{
-            backgroundColor: 'rgba(255,255,255,0.05)',
-            color: '#d0d6e0',
-            border: '1px solid rgba(255,255,255,0.08)',
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.08)'
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.05)'
-          }}
+          variant="ghost"
+          size="md"
+          className="w-full"
         >
           <Feather className="w-4 h-4" />
           <span>智能生成</span>
-        </button>
+        </Button>
       </div>
     </div>
   )

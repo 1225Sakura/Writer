@@ -71,12 +71,12 @@ export function AIGuidePanel() {
           </p>
           <div className="mt-8 flex flex-wrap justify-center gap-2">
             {['玄幻修仙', '都市异能', '悬疑推理', '言情'].map((tag) => (
-              <span
+              <button
                 key={tag}
-                className="px-3 py-1.5 rounded-md bg-[#0f1011] border border-[rgba(255,255,255,0.08)] text-[#d0d6e0] text-sm hover:border-[#5e6ad2] cursor-pointer transition-colors"
+                className="px-3 py-1.5 rounded-md bg-[rgba(255,255,255,0.02)] border border-[#24282c] text-[#e2e4e7] text-sm hover:bg-[rgba(255,255,255,0.05)] hover:border-[rgba(255,255,255,0.08)] cursor-pointer transition-colors"
               >
                 {tag}
-              </span>
+              </button>
             ))}
           </div>
         </div>

@@ -2,6 +2,7 @@ import { useChatStore, useUIStore } from '@/store'
 import { AIGuidePanel } from './AIGuidePanel'
 import { UserInputPanel } from './UserInputPanel'
 import { CollectedInfoPanel } from './CollectedInfoPanel'
+import { Button } from '@/components/ui/Button'
 import { ArrowRight, Settings } from 'lucide-react'
 
 export function ChatInitPage() {
@@ -21,15 +22,15 @@ export function ChatInitPage() {
             <h1 className="font-medium text-[#f7f8f8] text-sm">自动化写作软件</h1>
           </div>
           <div className="flex items-center gap-2">
-            <button
+            <Button
               onClick={() => setCurrentInterface('settings')}
-              className="flex items-center gap-2 px-3 py-1.5 rounded-md
-                         bg-[#5e6ad2] text-white hover:bg-[#4f5ab8] transition-colors text-sm"
+              variant="primary"
+              size="sm"
             >
               <Settings className="w-4 h-4" />
               <span>进入设定</span>
               <ArrowRight className="w-3 h-3" />
-            </button>
+            </Button>
           </div>
         </div>
 

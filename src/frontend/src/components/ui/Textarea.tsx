@@ -11,11 +11,12 @@ export const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
         ref={ref}
         className={twMerge(
           clsx(
-            'flex min-h-[80px] w-full rounded-[var(--radius-input)] border border-var-border bg-var-bg px-3 py-2 text-sm',
-            'text-var-text placeholder:text-var-text-secondary',
-            'transition-all duration-[var(--transition-fast)]',
-            'focus:outline-none focus:ring-2 focus:ring-var-vermillion/50 focus:border-var-vermillion',
-            'hover:border-var-text-secondary',
+            // Linear textarea: translucent bg, semi-transparent border, 6px radius
+            'flex min-h-[80px] w-full rounded-[6px] border border-[rgba(255,255,255,0.08)] bg-[rgba(255,255,255,0.02)] px-3 py-2 text-sm',
+            'text-[#d0d6e0] placeholder:text-[#8a8f98]',
+            'transition-all duration-200',
+            'focus:outline-none focus:ring-2 focus:ring-[#5e6ad2]/50 focus:border-[rgba(255,255,255,0.12)]',
+            'hover:border-[rgba(255,255,255,0.12)]',
             'disabled:cursor-not-allowed disabled:opacity-50',
             'resize-y'
           ),

@@ -3,6 +3,7 @@ import { CategoryNav } from './CategoryNav'
 import { EntityEditor } from './EntityEditor'
 import { RelationGraph } from './RelationGraph'
 import { AISuggestionPanel } from './AISuggestionPanel'
+import { Button } from '@/components/ui/Button'
 import { Settings, Feather, RefreshCw, PenTool, ArrowLeft } from 'lucide-react'
 
 export function SettingEditorPage() {
@@ -17,8 +18,8 @@ export function SettingEditorPage() {
         className="flex-shrink-0 h-full overflow-hidden flex flex-col"
         style={{
           width: '224px',
-          backgroundColor: '#0f1011',
-          borderRight: '1px solid rgba(255,255,255,0.06)',
+          backgroundColor: 'var(--color-bg-surface)',
+          borderRight: '1px solid var(--color-border)',
         }}
       >
         <CategoryNav />
@@ -30,8 +31,8 @@ export function SettingEditorPage() {
         <div
           className="flex items-center justify-between px-4 py-3"
           style={{
-            backgroundColor: '#0f1011',
-            borderBottom: '1px solid rgba(255,255,255,0.06)',
+            backgroundColor: 'var(--color-bg-surface)',
+            borderBottom: '1px solid var(--color-border)',
           }}
         >
           <div className="flex items-center gap-2">
@@ -41,60 +42,30 @@ export function SettingEditorPage() {
             </span>
           </div>
           <div className="flex items-center gap-2">
-            <button
+            <Button
               onClick={() => setCurrentInterface('chat')}
-              className="flex items-center gap-1 px-3 py-1.5 rounded text-xs font-medium transition-all"
-              style={{
-                backgroundColor: 'rgba(255,255,255,0.05)',
-                color: '#d0d6e0',
-                border: '1px solid rgba(255,255,255,0.08)',
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.08)'
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.05)'
-              }}
+              variant="ghost"
+              size="sm"
             >
               <ArrowLeft className="w-3.5 h-3.5" />
               返回聊天
-            </button>
-            <button
+            </Button>
+            <Button
               onClick={() => setCurrentInterface('writing')}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded text-xs font-medium transition-all"
-              style={{
-                backgroundColor: 'rgba(94,106,210,0.15)',
-                color: '#5e6ad2',
-                border: '1px solid rgba(94,106,210,0.3)',
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = 'rgba(94,106,210,0.25)'
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = 'rgba(94,106,210,0.15)'
-              }}
+              variant="primary"
+              size="sm"
             >
               <PenTool className="w-3.5 h-3.5" />
               开始写作
-            </button>
-            <button
+            </Button>
+            <Button
               onClick={generate}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded text-xs font-medium transition-all"
-              style={{
-                backgroundColor: 'rgba(255,255,255,0.05)',
-                color: '#d0d6e0',
-                border: '1px solid rgba(255,255,255,0.08)',
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.08)'
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.05)'
-              }}
+              variant="ghost"
+              size="sm"
             >
               <Feather className="w-3.5 h-3.5" />
               智能生成
-            </button>
+            </Button>
           </div>
         </div>
 
@@ -106,7 +77,7 @@ export function SettingEditorPage() {
         {/* AI审查建议 */}
         <div
           style={{
-            borderTop: '1px solid rgba(255,255,255,0.06)',
+            borderTop: '1px solid var(--color-border)',
           }}
         >
           <AISuggestionPanel />
@@ -118,14 +89,14 @@ export function SettingEditorPage() {
         className="flex-shrink-0 h-full flex flex-col overflow-hidden"
         style={{
           width: '320px',
-          backgroundColor: '#0a0b0d',
-          borderLeft: '1px solid rgba(255,255,255,0.06)',
+          backgroundColor: 'var(--color-bg-primary)',
+          borderLeft: '1px solid var(--color-border)',
         }}
       >
         <div
           className="flex items-center justify-between px-4 py-3"
           style={{
-            borderBottom: '1px solid rgba(255,255,255,0.06)',
+            borderBottom: '1px solid var(--color-border)',
           }}
         >
           <div className="flex items-center gap-2">
@@ -133,20 +104,14 @@ export function SettingEditorPage() {
               关系图谱
             </span>
           </div>
-          <button
+          <Button
             onClick={generateRelations}
-            className="p-1.5 rounded transition-all"
-            style={{ color: '#5e6ad2' }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.backgroundColor = 'rgba(94,106,210,0.15)'
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.backgroundColor = 'transparent'
-            }}
+            variant="ghost"
+            size="icon"
             title="生成关系"
           >
             <RefreshCw className="w-4 h-4" />
-          </button>
+          </Button>
         </div>
         <div className="flex-1 overflow-hidden">
           <RelationGraph />
