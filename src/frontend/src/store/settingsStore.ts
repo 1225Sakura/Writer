@@ -13,6 +13,7 @@ import {
   ifLineApi,
   aiGenerateApi,
 } from '../api/settings';
+import { aiReviewApi, AIReviewResult } from '../api/aiReview';
 import type {
   Character,
   Item,
@@ -81,15 +82,20 @@ interface SettingsState {
   // Loading状态
   isLoading: boolean;
   error: string | null;
+
+  // AI审查结果
+  aiReviewResult: AIReviewResult | null;
 }
 
 interface SettingsActions {
   // 数据加载
   loadAll: () => Promise<void>;
+  loadCategoryData: (category: EntityType) => Promise<void>;
 
   // AI生成
   generate: (type: 'character' | 'item' | 'location' | 'faction' | 'world' | 'rule', context?: string) => Promise<void>;
   generateRelations: () => Promise<void>;
+  reviewWithAI: (category: EntityType) => Promise<void>;
 
   // 角色 CRUD
   addCharacter: (character: Omit<CharacterLocal, 'id' | 'relationships' | 'storylines'>) => Promise<string>;
@@ -168,6 +174,7 @@ export const useSettingsStore = create<SettingsState & SettingsActions>()(
     ifLines: [],
     isLoading: false,
     error: null,
+    aiReviewResult: null,
 
     // 加载所有数据
     loadAll: async () => {
@@ -235,6 +242,100 @@ export const useSettingsStore = create<SettingsState & SettingsActions>()(
         });
       } catch (error) {
         set({ error: (error as Error).message, isLoading: false });
+      }
+    },
+
+    // 按分类加载数据
+    loadCategoryData: async (category: EntityType) => {
+      set({ isLoading: true, error: null });
+      try {
+        switch (category) {
+          case 'character': {
+            const characters = await characterApi.list();
+            const charactersWithRelations = await Promise.all(
+              characters.map(async (apiChar) => {
+                const localChar = toLocalCharacter(apiChar);
+                try {
+                  const [relationships, storylines] = await Promise.all([
+                    relationshipApi.getByCharacter(apiChar.id),
+                    storylineApi.getByCharacter(apiChar.id),
+                  ]);
+                  localChar.relationships = relationships.map((r) => ({
+                    id: r.id,
+                    targetId: r.target_id,
+                    type: r.type as Relationship['type'],
+                    description: r.description,
+                  }));
+                  localChar.storylines = storylines.map((s) => ({
+                    id: s.id,
+                    title: s.title,
+                    arc: s.arc || '',
+                    progress: s.progress,
+                  }));
+                } catch {
+                  // 关系或剧情线获取失败，使用空数组
+                }
+                return localChar;
+              })
+            );
+            set({ characters: charactersWithRelations });
+            break;
+          }
+          case 'item': {
+            const items = await itemApi.list();
+            set({ items });
+            break;
+          }
+          case 'location': {
+            const locations = await locationApi.list();
+            set({ locations });
+            break;
+          }
+          case 'faction': {
+            const factions = await factionApi.list();
+            set({ factions });
+            break;
+          }
+          case 'world': {
+            const worldSettings = await worldSettingApi.list();
+            set({ worldSettings });
+            break;
+          }
+          case 'rule': {
+            const rules = await ruleApi.list();
+            set({ rules });
+            break;
+          }
+          case 'outline': {
+            const outlines = await outlineApi.list();
+            let outline: Outline | null = null;
+            let chapters: Chapter[] = [];
+            if (outlines.length > 0) {
+              outline = outlines[0];
+              chapters = await chapterApi.list(outline.id);
+            }
+            set({ outline, chapters });
+            break;
+          }
+          case 'ifline': {
+            const ifLines = await ifLineApi.list();
+            set({ ifLines });
+            break;
+          }
+        }
+        set({ isLoading: false });
+      } catch (error) {
+        set({ error: (error as Error).message, isLoading: false });
+      }
+    },
+
+    // AI审查
+    reviewWithAI: async (category: EntityType) => {
+      try {
+        const result = await aiReviewApi.review(category);
+        set({ aiReviewResult: result });
+      } catch (error) {
+        set({ error: (error as Error).message });
       }
     },
 

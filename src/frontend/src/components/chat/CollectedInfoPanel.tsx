@@ -4,6 +4,7 @@ import { CheckCircle, Circle, ChevronRight, ArrowRight, Edit3 } from 'lucide-rea
 
 interface CollectedInfoPanelProps {
   entities: ExtractedEntity[]
+  onConfirmEntity?: (id: string) => void
 }
 
 const categoryLabels: Record<string, string> = {
@@ -16,7 +17,7 @@ const categoryLabels: Record<string, string> = {
   ifline: 'IF线',
 }
 
-function EntityItem({ entity }: { entity: ExtractedEntity }) {
+function EntityItem({ entity, onConfirm }: { entity: ExtractedEntity; onConfirm?: (id: string) => void }) {
   return (
     <div className="flex items-center gap-2 py-2 border-b border-[rgba(255,255,255,0.06)] last:border-b-0">
       <EntityTag type={entity.type} size="small" />
@@ -28,11 +29,17 @@ function EntityItem({ entity }: { entity: ExtractedEntity }) {
           </div>
         )}
       </div>
-      {entity.confirmed ? (
-        <CheckCircle className="w-4 h-4 text-[#7eb84a] flex-shrink-0" />
-      ) : (
-        <Circle className="w-4 h-4 text-[#d0d6e0] flex-shrink-0" />
-      )}
+      <button
+        onClick={() => onConfirm?.(entity.id)}
+        className="cursor-pointer"
+        title={entity.confirmed ? '已确认' : '点击确认'}
+      >
+        {entity.confirmed ? (
+          <CheckCircle className="w-4 h-4 text-[#7eb84a] flex-shrink-0" />
+        ) : (
+          <Circle className="w-4 h-4 text-[#d0d6e0] flex-shrink-0 hover:text-[#7eb84a]" />
+        )}
+      </button>
     </div>
   )
 }
@@ -40,9 +47,11 @@ function EntityItem({ entity }: { entity: ExtractedEntity }) {
 function CategorySection({
   title,
   entities,
+  onConfirm,
 }: {
   title: string
   entities: ExtractedEntity[]
+  onConfirm?: (id: string) => void
 }) {
   if (entities.length === 0) return null
 
@@ -55,14 +64,14 @@ function CategorySection({
       </div>
       <div className="pl-4">
         {entities.map((entity) => (
-          <EntityItem key={entity.id} entity={entity} />
+          <EntityItem key={entity.id} entity={entity} onConfirm={onConfirm} />
         ))}
       </div>
     </div>
   )
 }
 
-export function CollectedInfoPanel({ entities }: CollectedInfoPanelProps) {
+export function CollectedInfoPanel({ entities, onConfirmEntity }: CollectedInfoPanelProps) {
   const groupedEntities = entities.reduce(
     (acc, entity) => {
       const key = entity.type
@@ -109,6 +118,7 @@ export function CollectedInfoPanel({ entities }: CollectedInfoPanelProps) {
                 key={type}
                 title={categoryLabels[type] || type}
                 entities={typeEntities}
+                onConfirm={onConfirmEntity}
               />
             ))}
           </>

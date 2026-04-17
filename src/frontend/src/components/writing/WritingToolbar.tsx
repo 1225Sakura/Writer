@@ -26,7 +26,7 @@ export function WritingToolbar() {
     setCurrentInterface,
     currentInterface,
   } = useUIStore()
-  const { oocWarnings, powerImbalanceWarnings } = useWritingStore()
+  const { oocWarnings, powerImbalanceWarnings, wordCount, targetWordCount } = useWritingStore()
 
   const handleWarningClick = useCallback(() => {
     const oocMsg = oocWarnings.length > 0 ? `OOC警告:\n${oocWarnings.join('\n')}` : ''
@@ -88,8 +88,13 @@ export function WritingToolbar() {
         />
       </div>
 
-      {/* 右侧：警告和主题切换 */}
+      {/* 右侧：字数统计、警告和主题切换 */}
       <div className="ml-auto flex items-center gap-2">
+        {/* 字数统计 */}
+        <span className="text-xs text-[#9ca3af]">
+          {wordCount} / {targetWordCount} 字
+        </span>
+
         {/* OOC/战力警告 */}
         {hasWarnings && (
           <Button

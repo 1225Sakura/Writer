@@ -13,6 +13,9 @@ const categories: Array<{ key: UIState['settingsCategory']; label: string; icon:
   { key: 'ifline', label: 'IF线', icon: GitBranch },
 ]
 
+// Categories that support AI review
+const reviewableCategories = ['world', 'character', 'item', 'location', 'faction', 'rule']
+
 // Linear design system colors
 const categoryColors: Record<string, string> = {
   world: '#5e6ad2',
@@ -28,6 +31,14 @@ const categoryColors: Record<string, string> = {
 export function CategoryNav() {
   const { settingsCategory, setSettingsCategory } = useUIStore()
   const generate = useSettingsStore((state) => state.generate)
+  const loadCategoryData = useSettingsStore((state) => state.loadCategoryData)
+  const reviewWithAI = useSettingsStore((state) => state.reviewWithAI)
+  const isLoading = useSettingsStore((state) => state.isLoading)
+
+  const handleCategoryChange = (key: UIState['settingsCategory']) => {
+    setSettingsCategory(key)
+    loadCategoryData(key)
+  }
 
   return (
     <div className="h-full flex flex-col">
@@ -50,7 +61,7 @@ export function CategoryNav() {
           return (
             <button
               key={key}
-              onClick={() => setSettingsCategory(key)}
+              onClick={() => handleCategoryChange(key)}
               className="w-full flex items-center gap-3 px-4 py-2.5 mb-0.5 text-left transition-all relative"
               style={{
                 backgroundColor: isActive ? 'rgba(94,106,210,0.1)' : 'transparent',
@@ -95,7 +106,19 @@ export function CategoryNav() {
       </nav>
 
       {/* 底部：AI辅助 */}
-      <div className="p-4" style={{ borderTop: '1px solid rgba(255,255,255,0.06)' }}>
+      <div className="p-4 flex flex-col gap-2" style={{ borderTop: '1px solid rgba(255,255,255,0.06)' }}>
+        {reviewableCategories.includes(settingsCategory) && (
+          <Button
+            onClick={() => reviewWithAI(settingsCategory as 'world' | 'character' | 'item' | 'location' | 'faction' | 'rule')}
+            variant="ghost"
+            size="md"
+            className="w-full"
+            disabled={isLoading}
+          >
+            <Feather className="w-4 h-4" />
+            <span>AI审查</span>
+          </Button>
+        )}
         <Button
           onClick={() => {
             if (settingsCategory !== 'outline' && settingsCategory !== 'ifline') {
@@ -105,6 +128,7 @@ export function CategoryNav() {
           variant="ghost"
           size="md"
           className="w-full"
+          disabled={isLoading}
         >
           <Feather className="w-4 h-4" />
           <span>智能生成</span>

@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { ChevronDown, ChevronUp, Check, X, Sparkles } from 'lucide-react'
+import { useSettingsStore } from '@/store'
 
 interface Suggestion {
   id: string
@@ -9,55 +10,33 @@ interface Suggestion {
   autoFixable: boolean
 }
 
-const mockSuggestions: Suggestion[] = [
-  {
-    id: '1',
-    type: 'consistency',
-    title: '境界设定不一致',
-    description: '主角境界设定为炼气三层，但第三章描述为筑基期',
-    autoFixable: true,
-  },
-  {
-    id: '2',
-    type: 'relationship',
-    title: '关系冲突',
-    description: '玄天宗少主与主角有杀父之仇，但势力图中显示为同门',
-    autoFixable: false,
-  },
-  {
-    id: '3',
-    type: 'foreshadowing',
-    title: '伏笔未揭示',
-    description: '第一章埋下"神秘玉佩"伏笔，尚未在第五章揭示',
-    autoFixable: false,
-  },
-  {
-    id: '4',
-    type: 'suggestion',
-    title: '建议增加角色',
-    description: '建议为李青云增加一个劲敌角色增加戏剧冲突',
-    autoFixable: false,
-  },
-]
-
 const typeLabels: Record<string, string> = {
-  consistency: '一致性',
-  relationship: '关系',
+  inconsistency: '一致性',
   foreshadowing: '伏笔',
   suggestion: '建议',
+  warning: '警告',
 }
 
 const typeColors: Record<string, { bg: string; text: string; border: string }> = {
-  consistency: { bg: 'rgba(196,92,92,0.15)', text: '#d45d5d', border: 'rgba(196,92,92,0.3)' },
+  inconsistency: { bg: 'rgba(196,92,92,0.15)', text: '#d45d5d', border: 'rgba(196,92,92,0.3)' },
   relationship: { bg: 'rgba(232,184,125,0.15)', text: '#e8b87d', border: 'rgba(232,184,125,0.3)' },
   foreshadowing: { bg: 'rgba(126,184,74,0.15)', text: '#7eb84a', border: 'rgba(126,184,74,0.3)' },
   suggestion: { bg: 'rgba(94,106,210,0.15)', text: '#5e6ad2', border: 'rgba(94,106,210,0.3)' },
+  warning: { bg: 'rgba(196,92,92,0.15)', text: '#d45d5d', border: 'rgba(196,92,92,0.3)' },
 }
 
 export function AISuggestionPanel() {
   const [isExpanded, setIsExpanded] = useState(true)
-  const [suggestions] = useState<Suggestion[]>(mockSuggestions)
+  const aiReviewResult = useSettingsStore((state) => state.aiReviewResult)
   const [dismissed, setDismissed] = useState<Set<string>>(new Set())
+
+  const suggestions: Suggestion[] = aiReviewResult?.issues.map((issue, index) => ({
+    id: String(index),
+    type: issue.type === 'inconsistency' ? 'consistency' : issue.type === 'foreshadowing' ? 'foreshadowing' : issue.type === 'warning' ? 'warning' : 'suggestion',
+    title: issue.title,
+    description: issue.description,
+    autoFixable: false,
+  })) || []
 
   const visibleSuggestions = suggestions.filter((s) => !dismissed.has(s.id))
 

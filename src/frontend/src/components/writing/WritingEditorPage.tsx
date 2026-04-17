@@ -1,4 +1,5 @@
-import { useUIStore } from '@/store'
+import { useEffect } from 'react'
+import { useUIStore, useWritingStore } from '@/store'
 import { WritingToolbar } from './WritingToolbar'
 import { WritingCanvas } from './WritingCanvas'
 import { AIOperationDrawer } from './AIOperationDrawer'
@@ -7,7 +8,12 @@ import { Button } from '@/components/ui/Button'
 import { X } from 'lucide-react'
 
 export function WritingEditorPage() {
-  const { aiDrawerOpen, collaborationDrawerOpen, setAIDrawerOpen, setCollaborationDrawerOpen } = useUIStore()
+  const { aiDrawerOpen, collaborationDrawerOpen, toggleAIDrawer, toggleCollaborationDrawer } = useUIStore()
+  const { init } = useWritingStore()
+
+  useEffect(() => {
+    init()
+  }, [init])
 
   return (
     <div className="h-full flex flex-col bg-[#08090a]">
@@ -27,7 +33,7 @@ export function WritingEditorPage() {
             <div className="p-3 border-b border-[rgba(255,255,255,0.08)] flex items-center justify-between">
               <span className="font-medium text-sm text-[#f7f8f8]">写作操作</span>
               <Button
-                onClick={() => setAIDrawerOpen(false)}
+                onClick={toggleAIDrawer}
                 variant="ghost"
                 size="icon"
               >
@@ -44,7 +50,7 @@ export function WritingEditorPage() {
             <div className="p-3 border-b border-[rgba(255,255,255,0.08)] flex items-center justify-between">
               <span className="font-medium text-sm text-[#f7f8f8]">协作面板</span>
               <Button
-                onClick={() => setCollaborationDrawerOpen(false)}
+                onClick={toggleCollaborationDrawer}
                 variant="ghost"
                 size="icon"
               >

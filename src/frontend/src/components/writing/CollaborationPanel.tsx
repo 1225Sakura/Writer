@@ -1,16 +1,60 @@
 import { useWritingStore, useSettingsStore } from '@/store'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/Button'
-import { Target, AlertCircle, Users, BarChart, ChevronDown, Check } from 'lucide-react'
+import { Target, AlertCircle, Users, BarChart, ChevronDown, Check, Plus, GitBranch } from 'lucide-react'
 
 export function CollaborationPanel() {
   return (
     <div className="flex-1 overflow-y-auto p-4 space-y-4">
       <BattleStation />
       <PlotTracker />
+      <IFLinesSection />
       <CharacterStatus />
       <ChapterProgress />
     </div>
+  )
+}
+
+// IF线追踪
+function IFLinesSection() {
+  const [isExpanded, setIsExpanded] = useState(true)
+  const { ifLines, fetchIFLines } = useWritingStore()
+
+  useEffect(() => {
+    fetchIFLines()
+  }, [fetchIFLines])
+
+  return (
+    <CollapsibleSection
+      title="IF线"
+      icon={<GitBranch className="w-4 h-4" />}
+      isExpanded={isExpanded}
+      onToggle={() => setIsExpanded(!isExpanded)}
+      badge={ifLines.length}
+    >
+      <div className="space-y-2">
+        {ifLines.length === 0 ? (
+          <p className="text-sm text-[#d0d6e0] text-center py-2">
+            暂无IF线
+          </p>
+        ) : (
+          ifLines.map((line) => (
+            <div key={line.id} className="flex items-center gap-2 p-2 rounded-md bg-[#0f1011]">
+              <span className="w-2 h-2 rounded-full bg-[#7eb84a]" />
+              <div className="flex-1 min-w-0">
+                <div className="text-sm text-[#f7f8f8] truncate">{line.title}</div>
+                {line.description && (
+                  <div className="text-xs text-[#d0d6e0] truncate">{line.description}</div>
+                )}
+              </div>
+              <span className="text-xs px-1.5 py-0.5 rounded bg-[#7eb84a]/20 text-[#7eb84a]">
+                {line.sync_mode === 'auto' ? '自动' : '手动'}
+              </span>
+            </div>
+          ))
+        )}
+      </div>
+    </CollapsibleSection>
   )
 }
 
@@ -90,9 +134,35 @@ function BattleStation() {
 // 伏笔追踪
 function PlotTracker() {
   const [isExpanded, setIsExpanded] = useState(true)
-  const { plotThreads, deletePlotThread } = useWritingStore()
+  const { plotThreads, fetchPlotThreads, updatePlotThread, createPlotThread, currentChapterId } = useWritingStore()
+  const [newTitle, setNewTitle] = useState('')
+  const [newDesc, setNewDesc] = useState('')
+  const [isCreating, setIsCreating] = useState(false)
+
+  useEffect(() => {
+    fetchPlotThreads('open')
+  }, [fetchPlotThreads])
 
   const openThreads = plotThreads.filter((t) => t.status === 'open')
+
+  const handleReveal = async (threadId: number) => {
+    await updatePlotThread(threadId, { status: 'revealed' })
+    fetchPlotThreads('open')
+  }
+
+  const handleCreate = async () => {
+    if (!newTitle.trim()) return
+    await createPlotThread({
+      title: newTitle.trim(),
+      description: newDesc.trim(),
+      status: 'open',
+      created_chapter_id: currentChapterId ?? undefined,
+    })
+    setNewTitle('')
+    setNewDesc('')
+    setIsCreating(false)
+    fetchPlotThreads('open')
+  }
 
   return (
     <CollapsibleSection
@@ -103,7 +173,7 @@ function PlotTracker() {
       badge={openThreads.length}
     >
       <div className="space-y-2">
-        {openThreads.length === 0 ? (
+        {openThreads.length === 0 && !isCreating ? (
           <p className="text-sm text-[#d0d6e0] text-center py-2">
             暂无进行中的伏笔
           </p>
@@ -123,7 +193,7 @@ function PlotTracker() {
                 )}
               </div>
               <Button
-                onClick={() => deletePlotThread(thread.id)}
+                onClick={() => handleReveal(thread.id)}
                 variant="ghost"
                 size="icon"
                 title="标记为已揭示"
@@ -132,6 +202,38 @@ function PlotTracker() {
               </Button>
             </div>
           ))
+        )}
+        {isCreating ? (
+          <div className="space-y-2 p-2 rounded-md bg-[#0f1011]">
+            <input
+              type="text"
+              value={newTitle}
+              onChange={(e) => setNewTitle(e.target.value)}
+              placeholder="伏笔标题"
+              className="w-full px-2 py-1 text-sm rounded border border-[rgba(255,255,255,0.08)] bg-[#08090a] text-[#f7f8f8] placeholder-[#d0d6e0]/50 focus:outline-none focus:ring-1 focus:ring-[#5e6ad2]"
+              autoFocus
+            />
+            <input
+              type="text"
+              value={newDesc}
+              onChange={(e) => setNewDesc(e.target.value)}
+              placeholder="描述（可选）"
+              className="w-full px-2 py-1 text-sm rounded border border-[rgba(255,255,255,0.08)] bg-[#08090a] text-[#f7f8f8] placeholder-[#d0d6e0]/50 focus:outline-none focus:ring-1 focus:ring-[#5e6ad2]"
+            />
+            <div className="flex gap-2">
+              <Button onClick={handleCreate} size="sm" variant="default">确认</Button>
+              <Button onClick={() => setIsCreating(false)} size="sm" variant="ghost">取消</Button>
+            </div>
+          </div>
+        ) : (
+          <Button
+            onClick={() => setIsCreating(true)}
+            variant="ghost"
+            size="sm"
+            className="w-full"
+          >
+            <Plus className="w-4 h-4 mr-1" /> 添加伏笔
+          </Button>
         )}
       </div>
     </CollapsibleSection>
@@ -187,8 +289,14 @@ function CharacterStatus() {
 // 章节进度
 function ChapterProgress() {
   const [isExpanded, setIsExpanded] = useState(true)
-  const { wordCount, targetWordCount } = useWritingStore()
+  const { wordCount, targetWordCount, chapters, fetchChapters, currentChapterId } = useWritingStore()
 
+  useEffect(() => {
+    fetchChapters()
+  }, [fetchChapters])
+
+  const currentChapter = chapters.find((c) => c.id === currentChapterId)
+  const totalWords = chapters.reduce((sum, c) => sum + c.word_count, 0)
   const progress = Math.min((wordCount / targetWordCount) * 100, 100)
 
   return (
@@ -198,16 +306,29 @@ function ChapterProgress() {
       isExpanded={isExpanded}
       onToggle={() => setIsExpanded(!isExpanded)}
     >
-      <div className="space-y-2">
-        <div className="flex justify-between text-sm text-[#f7f8f8]">
-          <span>{wordCount} / {targetWordCount} 字</span>
-          <span>{Math.round(progress)}%</span>
+      <div className="space-y-3">
+        <div className="space-y-1">
+          <div className="flex justify-between text-sm text-[#f7f8f8]">
+            <span>本章: {wordCount} / {targetWordCount} 字</span>
+            <span>{Math.round(progress)}%</span>
+          </div>
+          <div className="h-2 bg-[rgba(255,255,255,0.08)] rounded-full overflow-hidden">
+            <div
+              className="h-full bg-[#5e6ad2] transition-all"
+              style={{ width: `${progress}%` }}
+            />
+          </div>
         </div>
-        <div className="h-2 bg-[rgba(255,255,255,0.08)] rounded-full overflow-hidden">
-          <div
-            className="h-full bg-[#5e6ad2] transition-all"
-            style={{ width: `${progress}%` }}
-          />
+        <div className="pt-2 border-t border-[rgba(255,255,255,0.06)]">
+          <div className="flex justify-between text-xs text-[#d0d6e0]">
+            <span>总章节: {chapters.length}</span>
+            <span>总字数: {totalWords.toLocaleString()}</span>
+          </div>
+          {currentChapter && (
+            <div className="mt-1 text-xs text-[#5e6ad2] truncate">
+              当前: {currentChapter.title || `第${currentChapter.chapter_order}章`}
+            </div>
+          )}
         </div>
       </div>
     </CollapsibleSection>

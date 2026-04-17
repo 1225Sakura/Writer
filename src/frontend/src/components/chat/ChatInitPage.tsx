@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/Button'
 import { ArrowRight, Settings } from 'lucide-react'
 
 export function ChatInitPage() {
-  const { extractedEntities, sessionId, createSession, loadExtractedEntities } = useChatStore()
+  const { extractedEntities, sessionId, createSession, loadExtractedEntities, loadMessages, confirmEntity } = useChatStore()
   const { setCurrentInterface } = useUIStore()
 
   // Initialize session on mount
@@ -21,8 +21,9 @@ export function ChatInitPage() {
   useEffect(() => {
     if (sessionId) {
       loadExtractedEntities()
+      loadMessages()
     }
-  }, [sessionId, loadExtractedEntities])
+  }, [sessionId, loadExtractedEntities, loadMessages])
 
   return (
     <div className="flex h-full bg-[#08090a]">
@@ -58,7 +59,7 @@ export function ChatInitPage() {
 
       {/* 右侧：已收集信息面板 - 320px */}
       <div className="w-80 bg-[#0f1011] overflow-y-auto">
-        <CollectedInfoPanel entities={extractedEntities} />
+        <CollectedInfoPanel entities={extractedEntities} onConfirmEntity={confirmEntity} />
       </div>
     </div>
   )
