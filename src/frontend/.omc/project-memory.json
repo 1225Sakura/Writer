@@ -286,6 +286,12 @@
       "type": "file"
     },
     {
+      "path": "tsconfig.json",
+      "accessCount": 2,
+      "lastAccessed": 1776441463021,
+      "type": "file"
+    },
+    {
       "path": "src\\hooks\\useTheme.ts",
       "accessCount": 1,
       "lastAccessed": 1776355610396,

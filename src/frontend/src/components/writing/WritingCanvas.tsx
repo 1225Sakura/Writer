@@ -1,9 +1,12 @@
 import { useEditor, EditorContent } from '@tiptap/react'
 import StarterKit from '@tiptap/starter-kit'
 import Placeholder from '@tiptap/extension-placeholder'
+import Underline from '@tiptap/extension-underline'
+import TextAlign from '@tiptap/extension-text-align'
+import Highlight from '@tiptap/extension-highlight'
 import { useWritingStore } from '@/store'
 import { setEditorInstance } from '@/store/editorRegistry'
-import { useEffect, useRef, useCallback } from 'react'
+import { useEffect, useRef, useCallback, useState } from 'react'
 
 const WRITING_STYLE_NAMES: Record<string, string> = {
   default: '默认',
@@ -27,11 +30,13 @@ export function WritingCanvas() {
     loading,
   } = useWritingStore()
 
+  const [sessionStats, setSessionStats] = useState({ startTime: Date.now(), charactersWritten: 0 })
   const currentChapter = chapters.find((c) => c.id === currentChapterId)
   const chapterTitle = currentChapter?.title || '未选择章节'
   const isSavingRef = useRef(false)
   const lastSavedContentRef = useRef('')
   const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null)
+  const lastWordCountRef = useRef(wordCount)
 
   const editor = useEditor({
     extensions: [
@@ -39,16 +44,30 @@ export function WritingCanvas() {
       Placeholder.configure({
         placeholder: '开始你的创作...',
       }),
+      Underline,
+      TextAlign.configure({
+        types: ['heading', 'paragraph'],
+      }),
+      Highlight.configure({
+        multicolor: true,
+      }),
     ],
     content: currentContent,
     onUpdate: ({ editor }) => {
       const text = editor.getText()
       updateContent(text)
+      // Track characters written in session
+      if (wordCount > lastWordCountRef.current) {
+        setSessionStats(prev => ({
+          ...prev,
+          charactersWritten: prev.charactersWritten + (wordCount - lastWordCountRef.current)
+        }))
+      }
+      lastWordCountRef.current = wordCount
     },
     editorProps: {
       attributes: {
-        class:
-          'writing-area max-w-none focus:outline-none min-h-full px-8 py-6',
+        class: 'writing-area max-w-none focus:outline-none min-h-full px-8 py-6',
       },
     },
   })
@@ -145,6 +164,8 @@ export function WritingCanvas() {
         <span className="text-[var(--color-text-secondary)] font-medium">{chapterTitle}</span>
         <span className="mx-2 opacity-30">|</span>
         <span>{wordCount} 字</span>
+        <span className="mx-2 opacity-30">|</span>
+        <span>本次写作: {sessionStats.charactersWritten} 字</span>
         <span className="mx-2 opacity-30">|</span>
         <span>人机比例: {humanAIRatio}%</span>
         <span className="mx-2 opacity-30">|</span>

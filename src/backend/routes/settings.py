@@ -634,3 +634,116 @@ async def update_writing_settings(
     await db.flush()
     await db.refresh(settings)
     return settings
+
+
+# Export/Import for backup and migration
+class ExportData(BaseModel):
+    """Complete project data for export."""
+    version: str = "1.0"
+    exported_at: str
+    characters: list
+    items: list
+    locations: list
+    factions: list
+    world_settings: list
+    rules: list
+    writing_settings: Optional[dict] = None
+
+
+@router.get("/export", response_model=ExportData)
+async def export_data(db: AsyncSession = Depends(get_db)):
+    """Export all project data as JSON."""
+    # Get all entities
+    characters = (await db.execute(select(Character))).scalars().all()
+    items = (await db.execute(select(Item))).scalars().all()
+    locations = (await db.execute(select(Location))).scalars().all()
+    factions = (await db.execute(select(Faction))).scalars().all()
+    world_settings = (await db.execute(select(WorldSetting))).scalars().all()
+    rules = (await db.execute(select(Rule))).scalars().all()
+    writing_settings = (await db.execute(select(WritingSettings))).scalars().one_or_none()
+
+    return ExportData(
+        version="1.0",
+        exported_at=datetime.utcnow().isoformat(),
+        characters=[{**c.__dict__, '_type': 'character'} for c in characters],
+        items=[{**i.__dict__, '_type': 'item'} for i in items],
+        locations=[{**l.__dict__, '_type': 'location'} for l in locations],
+        factions=[{**f.__dict__, '_type': 'faction'} for f in factions],
+        world_settings=[{**w.__dict__, '_type': 'world_setting'} for w in world_settings],
+        rules=[{**r.__dict__, '_type': 'rule'} for r in rules],
+        writing_settings=writing_settings.__dict__ if writing_settings else None,
+    )
+
+
+@router.post("/import")
+async def import_data(data: ExportData, db: AsyncSession = Depends(get_db)):
+    """Import project data from JSON."""
+    imported_count = {
+        'characters': 0,
+        'items': 0,
+        'locations': 0,
+        'factions': 0,
+        'world_settings': 0,
+        'rules': 0,
+    }
+
+    # Import characters
+    for char_data in data.characters:
+        char_data.pop('_type', None)
+        char_data.pop('id', None)
+        char_data.pop('created_at', None)
+        char_data.pop('updated_at', None)
+        db.add(Character(**char_data))
+        imported_count['characters'] += 1
+
+    # Import items
+    for item_data in data.items:
+        item_data.pop('_type', None)
+        item_data.pop('id', None)
+        item_data.pop('created_at', None)
+        item_data.pop('updated_at', None)
+        db.add(Item(**item_data))
+        imported_count['items'] += 1
+
+    # Import locations
+    for loc_data in data.locations:
+        loc_data.pop('_type', None)
+        loc_data.pop('id', None)
+        loc_data.pop('created_at', None)
+        loc_data.pop('updated_at', None)
+        db.add(Location(**loc_data))
+        imported_count['locations'] += 1
+
+    # Import factions
+    for fac_data in data.factions:
+        fac_data.pop('_type', None)
+        fac_data.pop('id', None)
+        fac_data.pop('created_at', None)
+        fac_data.pop('updated_at', None)
+        db.add(Faction(**fac_data))
+        imported_count['factions'] += 1
+
+    # Import world settings
+    for ws_data in data.world_settings:
+        ws_data.pop('_type', None)
+        ws_data.pop('id', None)
+        ws_data.pop('created_at', None)
+        ws_data.pop('updated_at', None)
+        db.add(WorldSetting(**ws_data))
+        imported_count['world_settings'] += 1
+
+    # Import rules
+    for rule_data in data.rules:
+        rule_data.pop('_type', None)
+        rule_data.pop('id', None)
+        rule_data.pop('created_at', None)
+        rule_data.pop('updated_at', None)
+        db.add(Rule(**rule_data))
+        imported_count['rules'] += 1
+
+    await db.flush()
+
+    return {
+        "message": "Import successful",
+        "imported": imported_count
+    }

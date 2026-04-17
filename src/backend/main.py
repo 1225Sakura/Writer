@@ -3,9 +3,11 @@
 
 import logging
 import time
-from fastapi import FastAPI, Request
+import json
+from fastapi import FastAPI, Request, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
+from typing import Dict, List
 
 from config import settings
 from routes import api_router
@@ -16,6 +18,45 @@ logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
 )
 logger = logging.getLogger('writer-api')
+
+# WebSocket connection manager
+class ConnectionManager:
+    """Manage WebSocket connections for real-time chat."""
+    def __init__(self):
+        self.active_connections: Dict[int, List[WebSocket]] = {}
+
+    async def connect(self, websocket: WebSocket, session_id: int):
+        await websocket.accept()
+        if session_id not in self.active_connections:
+            self.active_connections[session_id] = []
+        self.active_connections[session_id].append(websocket)
+        logger.info(f"WebSocket connected: session={session_id}, total={len(self.active_connections[session_id])}")
+
+    def disconnect(self, websocket: WebSocket, session_id: int):
+        if session_id in self.active_connections:
+            if websocket in self.active_connections[session_id]:
+                self.active_connections[session_id].remove(websocket)
+            if not self.active_connections[session_id]:
+                del self.active_connections[session_id]
+        logger.info(f"WebSocket disconnected: session={session_id}")
+
+    async def send_to_session(self, session_id: int, message: dict):
+        if session_id in self.active_connections:
+            for connection in self.active_connections[session_id]:
+                try:
+                    await connection.send_json(message)
+                except Exception:
+                    pass
+
+    async def broadcast(self, message: dict):
+        for connections in self.active_connections.values():
+            for connection in connections:
+                try:
+                    await connection.send_json(message)
+                except Exception:
+                    pass
+
+manager = ConnectionManager()
 
 # Create FastAPI app
 app = FastAPI(
@@ -71,3 +112,43 @@ async def root():
 @app.get("/health")
 async def health_check():
     return {"status": "healthy"}
+
+
+# WebSocket endpoint for real-time chat
+@app.websocket("/ws/chat/{session_id}")
+async def websocket_chat(websocket: WebSocket, session_id: int):
+    """WebSocket endpoint for real-time chat streaming."""
+    await manager.connect(websocket, session_id)
+    try:
+        while True:
+            # Receive message from client
+            data = await websocket.receive_text()
+            message_data = json.loads(data)
+
+            # Broadcast to all connections in this session
+            await manager.send_to_session(session_id, {
+                "type": "message",
+                "content": message_data.get("content", ""),
+                "role": message_data.get("role", "user"),
+            })
+    except WebSocketDisconnect:
+        manager.disconnect(websocket, session_id)
+    except Exception as e:
+        logger.error(f"WebSocket error: {e}")
+        manager.disconnect(websocket, session_id)
+
+
+@app.websocket("/ws")
+async def websocket_general(websocket: WebSocket):
+    """General WebSocket endpoint for real-time updates."""
+    await websocket.accept()
+    try:
+        while True:
+            data = await websocket.receive_text()
+            message_data = json.loads(data)
+            # Handle general messages (could be expanded)
+            await websocket.send_json({"type": "ack", "received": True})
+    except WebSocketDisconnect:
+        pass
+    except Exception as e:
+        logger.error(f"WebSocket error: {e}")
