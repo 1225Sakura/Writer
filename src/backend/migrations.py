@@ -1,12 +1,15 @@
-# Auto Novel Writer - Database Migrations
-# Simple script-based migration system
+#!/usr/bin/env python3
+"""
+Database Migrations Script
+Manages database schema versioning and migrations.
+"""
 
 import asyncio
 import sys
 from pathlib import Path
 
-# Add parent to path
-sys.path.insert(0, str(Path(__file__).parent.parent))
+# Add parent to path for imports
+sys.path.insert(0, str(Path(__file__).parent.parent / "src" / "backend"))
 
 from sqlalchemy import text
 from database import engine, async_session_maker, Base
@@ -18,17 +21,17 @@ from models.entities import (
     WritingSettings, AIInspectionResult
 )
 
+# Current schema version
+CURRENT_SCHEMA_VERSION = 1
+
 MIGRATIONS = [
     {
         "version": 1,
         "name": "initial_schema",
-        "description": "Create all initial tables",
-        "up": """
-            -- Initial schema is created by Base.metadata.create_all()
-            -- This migration is recorded for tracking purposes
-        """,
+        "description": "Create all initial tables using SQLAlchemy models",
+        "up": None,  # Uses Base.metadata.create_all()
         "down": """
-            -- Drop all tables
+            -- Drop all tables in reverse order of creation
             DROP TABLE IF EXISTS ai_inspection_results;
             DROP TABLE IF EXISTS writing_settings;
             DROP TABLE IF EXISTS extracted_entities;
@@ -53,7 +56,7 @@ MIGRATIONS = [
 
 
 async def get_current_version(session) -> int:
-    """Get the current database schema version."""
+    """Get the current database schema version from meta table."""
     try:
         result = await session.execute(text("SELECT MAX(version) FROM schema_migrations"))
         version = result.scalar()
@@ -76,12 +79,12 @@ async def create_migrations_table(session):
 
 async def apply_migration(session, migration: dict):
     """Apply a single migration."""
-    print(f"  → Applying migration {migration['version']}: {migration['name']}")
+    print(f"  -> Applying migration {migration['version']}: {migration['name']}")
     print(f"    {migration['description']}")
 
     # Execute the SQL (for manual SQL migrations)
-    if migration.get('sql'):
-        await session.execute(text(migration['sql']))
+    if migration.get('up'):
+        await session.execute(text(migration['up']))
 
     # Record the migration
     await session.execute(text(
@@ -91,9 +94,43 @@ async def apply_migration(session, migration: dict):
     await session.commit()
 
 
+def init_db():
+    """Initialize database - create all tables."""
+    import sqlite3
+    from pathlib import Path
+
+    data_dir = Path(__file__).parent / "db"
+    data_dir.mkdir(exist_ok=True)
+    db_path = data_dir / "writer.db"
+
+    # Create connection and enable foreign keys
+    conn = sqlite3.connect(str(db_path))
+    conn.execute("PRAGMA foreign_keys = ON")
+
+    # Create all tables using SQLAlchemy metadata
+    Base.metadata.create_all(conn)
+
+    # Initialize migrations table
+    conn.execute("""
+        CREATE TABLE IF NOT EXISTS schema_migrations (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            version INTEGER NOT NULL UNIQUE,
+            name TEXT NOT NULL,
+            applied_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+    """)
+
+    conn.commit()
+    conn.close()
+
+    print(f"Database initialized at {db_path}")
+    return db_path
+
+
 async def migrate(target_version: int = None):
     """Run all pending migrations."""
     print("Starting database migration...")
+    print("=" * 50)
 
     async with async_session_maker() as session:
         await create_migrations_table(session)
@@ -118,12 +155,13 @@ async def migrate(target_version: int = None):
         for migration in migrations_to_apply:
             await apply_migration(session, migration)
 
-        print(f"\n✓ Migration complete. Schema version is now {target_version or MIGRATIONS[-1]['version']}")
+        print(f"\n[MIGRATION COMPLETE] Schema version is now {target_version or MIGRATIONS[-1]['version']}")
 
 
 async def rollback(steps: int = 1):
     """Rollback the last N migrations."""
     print(f"Rolling back {steps} migration(s)...")
+    print("=" * 50)
 
     async with async_session_maker() as session:
         await create_migrations_table(session)
@@ -140,7 +178,7 @@ async def rollback(steps: int = 1):
         ][:steps]
 
         for migration in migrations_to_rollback:
-            print(f"  → Rolling back: {migration['name']}")
+            print(f"  -> Rolling back: {migration['name']}")
             if migration.get('down'):
                 await session.execute(text(migration['down']))
             await session.execute(text(
@@ -149,7 +187,7 @@ async def rollback(steps: int = 1):
             await session.commit()
 
         new_version = await get_current_version(session)
-        print(f"\n✓ Rollback complete. Schema version is now {new_version}")
+        print(f"\n[ROLLBACK COMPLETE] Schema version is now {new_version}")
 
 
 async def status():
@@ -160,13 +198,13 @@ async def status():
 
         print("Migration Status")
         print("=" * 50)
-        print(f"Current version: {current_version}")
+        print(f"Current version:  {current_version}")
         print(f"Total migrations: {len(MIGRATIONS)}")
-        print(f"Latest version:   {MIGRATIONS[-1]['version']}")
+        print(f"Latest version:    {MIGRATIONS[-1]['version']}")
         print()
 
         if current_version == MIGRATIONS[-1]['version']:
-            print("✓ Database is up to date")
+            print("[OK] Database is up to date")
         else:
             pending = [m for m in MIGRATIONS if m["version"] > current_version]
             print(f"Pending migrations ({len(pending)}):")
@@ -181,10 +219,13 @@ if __name__ == "__main__":
     parser.add_argument("--target", type=int, help="Target schema version")
     parser.add_argument("--rollback", type=int, const=1, nargs="?", help="Rollback N steps")
     parser.add_argument("--status", action="store_true", help="Show migration status")
+    parser.add_argument("--init", action="store_true", help="Initialize database tables")
 
     args = parser.parse_args()
 
-    if args.status:
+    if args.init:
+        init_db()
+    elif args.status:
         asyncio.run(status())
     elif args.rollback:
         asyncio.run(rollback(args.rollback))

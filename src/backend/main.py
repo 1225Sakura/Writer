@@ -2,7 +2,6 @@
 # Python 3.11+
 
 import logging
-import time
 import json
 from fastapi import FastAPI, Request, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
@@ -11,13 +10,13 @@ from typing import Dict, List
 
 from config import settings
 from routes import api_router
+from middleware.logging import setup_logging_middleware
+from middleware.errors import register_exception_handlers
+from utils.logging import setup_logging, get_logger
 
-# Configure logging
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-)
-logger = logging.getLogger('writer-api')
+# Setup structured logging
+setup_logging(level="INFO", json_logs=False)
+logger = get_logger('writer-api')
 
 # WebSocket connection manager
 class ConnectionManager:
@@ -77,31 +76,11 @@ app.add_middleware(
 app.include_router(api_router)
 
 
-# Request logging middleware
-@app.middleware("http")
-async def log_requests(request: Request, call_next):
-    start_time = time.time()
-    method = request.method
-    path = request.url.path
+# Setup comprehensive logging middleware
+setup_logging_middleware(app)
 
-    logger.info(f"→ {method} {path}")
-
-    response = await call_next(request)
-
-    duration = time.time() - start_time
-    logger.info(f"← {method} {path} {response.status_code} {duration:.3f}s")
-
-    return response
-
-
-# Global exception handler
-@app.exception_handler(Exception)
-async def global_exception_handler(request: Request, exc: Exception):
-    logger.error(f"Unhandled exception: {exc}", exc_info=True)
-    return JSONResponse(
-        status_code=500,
-        content={"detail": "Internal server error", "message": str(exc) if settings.app_version == "dev" else "An error occurred"},
-    )
+# Setup error handling with custom exceptions
+register_exception_handlers(app)
 
 
 @app.get("/")

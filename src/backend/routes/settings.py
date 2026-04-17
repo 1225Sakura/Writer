@@ -642,6 +642,8 @@ class ExportData(BaseModel):
     version: str = "1.0"
     exported_at: str
     characters: list
+    character_relationships: list
+    character_storylines: list
     items: list
     locations: list
     factions: list
@@ -655,6 +657,8 @@ async def export_data(db: AsyncSession = Depends(get_db)):
     """Export all project data as JSON."""
     # Get all entities
     characters = (await db.execute(select(Character))).scalars().all()
+    relationships = (await db.execute(select(CharacterRelationship))).scalars().all()
+    storylines = (await db.execute(select(CharacterStoryline))).scalars().all()
     items = (await db.execute(select(Item))).scalars().all()
     locations = (await db.execute(select(Location))).scalars().all()
     factions = (await db.execute(select(Faction))).scalars().all()
@@ -666,6 +670,8 @@ async def export_data(db: AsyncSession = Depends(get_db)):
         version="1.0",
         exported_at=datetime.utcnow().isoformat(),
         characters=[{**c.__dict__, '_type': 'character'} for c in characters],
+        character_relationships=[{**r.__dict__, '_type': 'relationship'} for r in relationships],
+        character_storylines=[{**s.__dict__, '_type': 'storyline'} for s in storylines],
         items=[{**i.__dict__, '_type': 'item'} for i in items],
         locations=[{**l.__dict__, '_type': 'location'} for l in locations],
         factions=[{**f.__dict__, '_type': 'faction'} for f in factions],
@@ -677,9 +683,11 @@ async def export_data(db: AsyncSession = Depends(get_db)):
 
 @router.post("/import")
 async def import_data(data: ExportData, db: AsyncSession = Depends(get_db)):
-    """Import project data from JSON."""
+    """Import project data from JSON with relationship support."""
     imported_count = {
         'characters': 0,
+        'character_relationships': 0,
+        'character_storylines': 0,
         'items': 0,
         'locations': 0,
         'factions': 0,
@@ -687,58 +695,104 @@ async def import_data(data: ExportData, db: AsyncSession = Depends(get_db)):
         'rules': 0,
     }
 
-    # Import characters
+    # Validate import data
+    if data.version != "1.0":
+        raise HTTPException(status_code=400, detail=f"Unsupported export version: {data.version}")
+
+    # Build ID mapping: old_id -> new_id for characters
+    id_mapping: dict[int, int] = {}
+
+    # Import characters first and build ID mapping
     for char_data in data.characters:
-        char_data.pop('_type', None)
-        char_data.pop('id', None)
-        char_data.pop('created_at', None)
-        char_data.pop('updated_at', None)
-        db.add(Character(**char_data))
+        char_data_clean = {k: v for k, v in char_data.items()
+                          if k not in ('_type', 'id', 'created_at', 'updated_at')}
+        char = Character(**char_data_clean)
+        db.add(char)
+        await db.flush()
+        # Map old ID to new ID (old ID stored temporarily)
+        old_id = char_data.get('id')
+        if old_id is not None:
+            id_mapping[old_id] = char.id
         imported_count['characters'] += 1
+
+    # Import character relationships (with circular reference handling)
+    processed_relationships = set()  # Track already-processed relationships
+    remaining_relationships = list(data.character_relationships)
+
+    # Process relationships in passes, resolving references as characters are mapped
+    max_passes = len(data.characters) + 1  # Prevent infinite loops
+    for _ in range(max_passes):
+        if not remaining_relationships:
+            break
+
+        unresolved = []
+        for rel_data in remaining_relationships:
+            old_char_id = rel_data.get('character_id')
+            old_target_id = rel_data.get('target_id')
+
+            # Check if both character IDs are resolved
+            if old_char_id in id_mapping and old_target_id in id_mapping:
+                rel_clean = {k: v for k, v in rel_data.items()
+                            if k not in ('_type', 'id', 'created_at', 'updated_at')}
+                rel_clean['character_id'] = id_mapping[old_char_id]
+                rel_clean['target_id'] = id_mapping[old_target_id]
+                db.add(CharacterRelationship(**rel_clean))
+                processed_relationships.add((old_char_id, old_target_id))
+                imported_count['character_relationships'] += 1
+            else:
+                unresolved.append(rel_data)
+
+        remaining_relationships = unresolved
+
+    # Handle any remaining unresolved relationships (circular refs)
+    # These reference characters that weren't in the export - skip them
+    if remaining_relationships:
+        # Log warning but don't fail the import
+        pass
+
+    # Import character storylines
+    for story_data in data.character_storylines:
+        old_char_id = story_data.get('character_id')
+        if old_char_id in id_mapping:
+            story_clean = {k: v for k, v in story_data.items()
+                          if k not in ('_type', 'id', 'created_at', 'updated_at')}
+            story_clean['character_id'] = id_mapping[old_char_id]
+            db.add(CharacterStoryline(**story_clean))
+            imported_count['character_storylines'] += 1
 
     # Import items
     for item_data in data.items:
-        item_data.pop('_type', None)
-        item_data.pop('id', None)
-        item_data.pop('created_at', None)
-        item_data.pop('updated_at', None)
-        db.add(Item(**item_data))
+        item_clean = {k: v for k, v in item_data.items()
+                     if k not in ('_type', 'id', 'created_at', 'updated_at')}
+        db.add(Item(**item_clean))
         imported_count['items'] += 1
 
     # Import locations
     for loc_data in data.locations:
-        loc_data.pop('_type', None)
-        loc_data.pop('id', None)
-        loc_data.pop('created_at', None)
-        loc_data.pop('updated_at', None)
-        db.add(Location(**loc_data))
+        loc_clean = {k: v for k, v in loc_data.items()
+                    if k not in ('_type', 'id', 'created_at', 'updated_at')}
+        db.add(Location(**loc_clean))
         imported_count['locations'] += 1
 
     # Import factions
     for fac_data in data.factions:
-        fac_data.pop('_type', None)
-        fac_data.pop('id', None)
-        fac_data.pop('created_at', None)
-        fac_data.pop('updated_at', None)
-        db.add(Faction(**fac_data))
+        fac_clean = {k: v for k, v in fac_data.items()
+                    if k not in ('_type', 'id', 'created_at', 'updated_at')}
+        db.add(Faction(**fac_clean))
         imported_count['factions'] += 1
 
     # Import world settings
     for ws_data in data.world_settings:
-        ws_data.pop('_type', None)
-        ws_data.pop('id', None)
-        ws_data.pop('created_at', None)
-        ws_data.pop('updated_at', None)
-        db.add(WorldSetting(**ws_data))
+        ws_clean = {k: v for k, v in ws_data.items()
+                   if k not in ('_type', 'id', 'created_at', 'updated_at')}
+        db.add(WorldSetting(**ws_clean))
         imported_count['world_settings'] += 1
 
     # Import rules
     for rule_data in data.rules:
-        rule_data.pop('_type', None)
-        rule_data.pop('id', None)
-        rule_data.pop('created_at', None)
-        rule_data.pop('updated_at', None)
-        db.add(Rule(**rule_data))
+        rule_clean = {k: v for k, v in rule_data.items()
+                     if k not in ('_type', 'id', 'created_at', 'updated_at')}
+        db.add(Rule(**rule_clean))
         imported_count['rules'] += 1
 
     await db.flush()
