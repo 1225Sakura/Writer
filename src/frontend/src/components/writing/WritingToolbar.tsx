@@ -37,8 +37,12 @@ export function WritingToolbar() {
   const hasWarnings = oocWarnings.length > 0 || powerImbalanceWarnings.length > 0
 
   return (
-    <div className="h-12 border-b border-[rgba(255,255,255,0.08)] bg-[#0f1011] flex items-center px-4 gap-2">
-      {/* 左侧：返回聊天 + 返回设定 */}
+    <div className="h-12 flex items-center px-4 gap-2"
+         style={{
+           backgroundColor: 'var(--color-bg-surface)',
+           borderBottom: '1px solid var(--color-border)',
+         }}>
+      {/* 左侧：返回聊天 + 返回设定 - Linear ghost buttons */}
       <Button
         onClick={() => setCurrentInterface('chat')}
         variant="ghost"
@@ -57,7 +61,7 @@ export function WritingToolbar() {
         <span>返回设定</span>
       </Button>
 
-      <div className="w-px h-6 bg-[rgba(255,255,255,0.08)]" />
+      <div className="w-px h-6" style={{ backgroundColor: 'var(--color-border)' }} />
 
       {/* 中间：工具按钮 */}
       <div className="flex items-center gap-1">
@@ -91,7 +95,7 @@ export function WritingToolbar() {
       {/* 右侧：字数统计、警告和主题切换 */}
       <div className="ml-auto flex items-center gap-2">
         {/* 字数统计 */}
-        <span className="text-xs text-[#9ca3af]">
+        <span className="text-xs" style={{ color: 'var(--color-text-muted)' }}>
           {wordCount} / {targetWordCount} 字
         </span>
 
@@ -108,12 +112,13 @@ export function WritingToolbar() {
           </Button>
         )}
 
-        {/* 主题切换 */}
+        {/* 主题切换 - Linear icon button with rounded-full */}
         <Button
           onClick={toggleTheme}
           variant="ghost"
           size="icon"
           title={theme === 'dark' ? '切换浅色模式' : '切换深色模式'}
+          className="!rounded-full"
         >
           {theme === 'dark' ? (
             <Sun className="w-4 h-4" />

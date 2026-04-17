@@ -1,5 +1,5 @@
 import { api } from "./request";
-import type { EntityType } from "../store/settingsStore";
+import type { EntityType } from "./types";
 
 export interface AIReviewResult {
   category: EntityType;

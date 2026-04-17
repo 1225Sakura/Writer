@@ -24,10 +24,11 @@ import type {
   Outline,
   Chapter,
   IFLine,
-} from '../api/types';
+  EntityType,
+} from '../shared/types';
 
-// 实体类型
-export type EntityType = 'character' | 'item' | 'location' | 'faction' | 'world' | 'rule' | 'outline' | 'ifline';
+// Re-export EntityType for external usage
+export type { EntityType } from '../shared/types';
 
 // 本地关系类型（用于UI）
 export interface Relationship {

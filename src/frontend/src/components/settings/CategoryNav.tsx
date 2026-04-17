@@ -41,18 +41,18 @@ export function CategoryNav() {
   }
 
   return (
-    <div className="h-full flex flex-col">
+    <div className="h-full flex flex-col" style={{ backgroundColor: 'var(--color-bg-surface)' }}>
       {/* 头部 */}
-      <div className="px-4 py-5" style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
-        <h2 className="font-semibold text-base" style={{ color: '#f7f8f8' }}>
+      <div className="px-4 py-5" style={{ borderBottom: '1px solid var(--color-border)' }}>
+        <h2 className="font-semibold text-base" style={{ color: 'var(--text-primary)' }}>
           设定编辑
         </h2>
-        <p className="text-xs mt-1.5" style={{ color: '#6b7280' }}>
+        <p className="text-xs mt-1.5" style={{ color: 'var(--color-text-muted)' }}>
           管理你的世界观、角色、物品等
         </p>
       </div>
 
-      {/* 导航列表 */}
+      {/* 导航列表 - Linear semi-transparent hover states */}
       <nav className="flex-1 overflow-y-auto py-3">
         {categories.map(({ key, label, icon: Icon }) => {
           const isActive = settingsCategory === key
@@ -77,7 +77,7 @@ export function CategoryNav() {
                 }
               }}
             >
-              {/* Active left border */}
+              {/* Active left border - Linear accent bar */}
               {isActive && (
                 <div
                   className="absolute left-0 top-1/2 -translate-y-1/2"
@@ -92,11 +92,11 @@ export function CategoryNav() {
 
               <Icon
                 className="w-4 h-4 flex-shrink-0 transition-colors"
-                style={{ color: isActive ? color : '#6b7280' }}
+                style={{ color: isActive ? color : 'var(--color-text-muted)' }}
               />
               <span
                 className="text-sm font-medium transition-colors"
-                style={{ color: isActive ? '#f7f8f8' : '#9ca3af' }}
+                style={{ color: isActive ? 'var(--text-primary)' : 'var(--color-text-secondary)' }}
               >
                 {label}
               </span>
@@ -105,8 +105,8 @@ export function CategoryNav() {
         })}
       </nav>
 
-      {/* 底部：AI辅助 */}
-      <div className="p-4 flex flex-col gap-2" style={{ borderTop: '1px solid rgba(255,255,255,0.06)' }}>
+      {/* 底部：AI辅助 - Linear ghost button style */}
+      <div className="p-4 flex flex-col gap-2" style={{ borderTop: '1px solid var(--color-border)' }}>
         {reviewableCategories.includes(settingsCategory) && (
           <Button
             onClick={() => reviewWithAI(settingsCategory as 'world' | 'character' | 'item' | 'location' | 'faction' | 'rule')}

@@ -170,3 +170,6 @@ export interface PaginatedResponse<T> {
   page: number;
   page_size: number;
 }
+
+// Entity type for category navigation in settings store
+export type EntityType = 'character' | 'item' | 'location' | 'faction' | 'world' | 'rule' | 'outline' | 'ifline';

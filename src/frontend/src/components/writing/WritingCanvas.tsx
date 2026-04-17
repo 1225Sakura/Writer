@@ -134,34 +134,47 @@ export function WritingCanvas() {
 
   return (
     <div className="h-full flex flex-col bg-[var(--color-writing-dark)]">
-      {/* 写作区域 - 温暖宣纸背景 */}
-      <div className="flex-1 overflow-y-auto bg-[var(--color-writing-light)] paper-texture-light">
-        {/* 章节标题 - 与正文融合过渡 */}
-        <div className="px-12 pt-10 pb-4">
-          <h1
-            className="font-serif text-2xl font-medium tracking-tight text-[var(--color-text-writing)]"
-            style={{
-              lineHeight: 1.85,
-              letterSpacing: '-0.02em',
-              transition: 'color var(--transition-normal)',
-            }}
-          >
-            {chapterTitle}
-          </h1>
-          {/* 柔和分隔线 - 温暖的淡金色 */}
-          <div className="mt-4 h-px bg-gradient-to-r from-transparent via-[var(--color-divider)] to-transparent opacity-60" />
-        </div>
+      {/* 写作区域 - Linear paper/elevation model with translucent card */}
+      <div className="flex-1 overflow-y-auto paper-texture-light">
+        {/* 卡片化容器 - Linear elevation-2 with semi-transparent border */}
+        <div className="mx-8 my-6 rounded-xl" style={{
+          backgroundColor: 'rgba(245, 240, 230, 0.03)',
+          border: '1px solid rgba(255, 255, 255, 0.06)',
+          backdropFilter: 'blur(8px)',
+        }}>
+          {/* 章节标题 - 与正文融合过渡 */}
+          <div className="px-12 pt-10 pb-4">
+            <h1
+              className="font-serif text-2xl font-medium tracking-tight text-[var(--color-text-writing)]"
+              style={{
+                lineHeight: 1.85,
+                letterSpacing: '-0.02em',
+                transition: 'color var(--transition-normal)',
+              }}
+            >
+              {chapterTitle}
+            </h1>
+            {/* 柔和分隔线 - Linear semi-transparent style */}
+            <div className="mt-4 h-px bg-gradient-to-r from-transparent via-[rgba(255,255,255,0.08)] to-transparent" />
+          </div>
 
-        {/* 正文编辑器 */}
-        <EditorContent
-          editor={editor}
-          className="min-h-full px-12 pb-12"
-        />
+          {/* 正文编辑器 */}
+          <EditorContent
+            editor={editor}
+            className="min-h-full px-12 pb-12"
+          />
+        </div>
       </div>
 
-      {/* 底部状态栏 - Linear深色风格 */}
-      <div className="h-8 bg-[var(--color-bg-surface)] border-t border-[var(--color-border-subtle)] flex items-center px-4 text-xs text-[var(--color-text-muted)] font-['Inter']">
-        <span className="text-[var(--color-text-secondary)] font-medium">{chapterTitle}</span>
+      {/* 底部状态栏 - Linear深色风格 with elevation stepping */}
+      <div className="h-9 flex items-center px-4 text-xs font-medium"
+           style={{
+             backgroundColor: 'var(--color-bg-surface)',
+             borderTop: '1px solid var(--color-border-subtle)',
+             color: 'var(--color-text-muted)',
+             fontFamily: 'var(--font-sans)',
+           }}>
+        <span style={{ color: 'var(--color-text-secondary)' }}>{chapterTitle}</span>
         <span className="mx-2 opacity-30">|</span>
         <span>{wordCount} 字</span>
         <span className="mx-2 opacity-30">|</span>
@@ -169,11 +182,11 @@ export function WritingCanvas() {
         <span className="mx-2 opacity-30">|</span>
         <span>人机比例: {humanAIRatio}%</span>
         <span className="mx-2 opacity-30">|</span>
-        <span className="text-[#e8b87d]">文笔风格: {WRITING_STYLE_NAMES[writingStyle] || writingStyle}</span>
+        <span style={{ color: 'var(--color-character)' }}>文笔风格: {WRITING_STYLE_NAMES[writingStyle] || writingStyle}</span>
         {loading.ai && (
           <>
             <span className="mx-2 opacity-30">|</span>
-            <span className="text-[var(--color-accent)]">AI处理中...</span>
+            <span style={{ color: 'var(--accent-primary)' }}>AI处理中...</span>
           </>
         )}
       </div>

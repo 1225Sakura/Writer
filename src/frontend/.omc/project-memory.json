@@ -178,6 +178,12 @@
       "type": "file"
     },
     {
+      "path": "src\\api\\types.ts",
+      "accessCount": 7,
+      "lastAccessed": 1776446102529,
+      "type": "directory"
+    },
+    {
       "path": "src\\components\\chat\\UserInputPanel.tsx",
       "accessCount": 6,
       "lastAccessed": 1776428876399,
@@ -200,12 +206,6 @@
       "accessCount": 5,
       "lastAccessed": 1776428923665,
       "type": "file"
-    },
-    {
-      "path": "src\\api\\types.ts",
-      "accessCount": 5,
-      "lastAccessed": 1776429439554,
-      "type": "directory"
     },
     {
       "path": "",
@@ -281,8 +281,8 @@
     },
     {
       "path": "src\\api\\writing.ts",
-      "accessCount": 2,
-      "lastAccessed": 1776428749590,
+      "accessCount": 3,
+      "lastAccessed": 1776446108297,
       "type": "file"
     },
     {
@@ -349,6 +349,12 @@
       "path": "vite.config.ts",
       "accessCount": 1,
       "lastAccessed": 1776441208426,
+      "type": "file"
+    },
+    {
+      "path": "src\\api\\chat.ts",
+      "accessCount": 1,
+      "lastAccessed": 1776446108271,
       "type": "file"
     }
   ],
