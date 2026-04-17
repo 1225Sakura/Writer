@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState, useMemo } from 'react'
 import { useSettingsStore } from '@/store'
 import { LinkIcon, Filter, Box, Grid2x2 } from 'lucide-react'
-import ForceGraph2D, { ForceGraphMethods } from 'react-force-graph-2d'
 
 interface GraphNode {
   id: number
@@ -29,7 +28,6 @@ const RELATION_TYPE_COLORS: Record<string, string> = {
 
 export function RelationGraph() {
   const containerRef = useRef<HTMLDivElement>(null)
-  const graph2DRef = useRef<ForceGraphMethods>()
   const { characters } = useSettingsStore()
   const [dimensions, setDimensions] = useState({ width: 300, height: 400 })
   const [filterType, setFilterType] = useState<string>('all')

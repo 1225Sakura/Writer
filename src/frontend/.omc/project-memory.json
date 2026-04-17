@@ -148,15 +148,15 @@
       "type": "file"
     },
     {
-      "path": "src\\components\\settings\\CategoryNav.tsx",
-      "accessCount": 13,
-      "lastAccessed": 1776429033865,
+      "path": "src\\components\\settings\\RelationGraph.tsx",
+      "accessCount": 15,
+      "lastAccessed": 1776441806580,
       "type": "file"
     },
     {
-      "path": "src\\components\\settings\\RelationGraph.tsx",
+      "path": "src\\components\\settings\\CategoryNav.tsx",
       "accessCount": 13,
-      "lastAccessed": 1776441659463,
+      "lastAccessed": 1776429033865,
       "type": "file"
     },
     {
