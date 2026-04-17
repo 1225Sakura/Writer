@@ -4,7 +4,7 @@ import { useSettingsStore } from '@/store'
 
 interface Suggestion {
   id: string
-  type: 'consistency' | 'relationship' | 'foreshadowing' | 'suggestion'
+  type: 'consistency' | 'relationship' | 'foreshadowing' | 'suggestion' | 'warning'
   title: string
   description: string
   autoFixable: boolean
@@ -45,7 +45,6 @@ export function AISuggestionPanel() {
   }
 
   const handleApplyFix = (id: string) => {
-    console.log('Applying fix for suggestion:', id)
     handleDismiss(id)
   }
 

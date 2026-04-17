@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, useMemo, useCallback } from 'react'
+import { useEffect, useRef, useState, useMemo } from 'react'
 import { useSettingsStore } from '@/store'
 import { LinkIcon, Filter } from 'lucide-react'
 
@@ -28,7 +28,7 @@ const RELATION_TYPE_COLORS: Record<string, string> = {
 
 export function RelationGraph() {
   const containerRef = useRef<HTMLDivElement>(null)
-  const { characters, addRelationship, removeRelationship } = useSettingsStore()
+  const { characters } = useSettingsStore()
   const [dimensions, setDimensions] = useState({ width: 300, height: 400 })
   const [filterType, setFilterType] = useState<string>('all')
   const [hoveredNode, setHoveredNode] = useState<number | null>(null)
@@ -86,18 +86,6 @@ export function RelationGraph() {
     })
     return ids
   }, [links])
-
-  // 处理删除关系
-  const handleRemoveRelationship = useCallback(
-    async (characterId: number, relationshipId: number) => {
-      try {
-        await removeRelationship(characterId, relationshipId)
-      } catch (error) {
-        console.error('删除关系失败:', error)
-      }
-    },
-    [removeRelationship]
-  )
 
   useEffect(() => {
     if (containerRef.current) {

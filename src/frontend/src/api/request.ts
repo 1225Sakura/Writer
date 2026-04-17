@@ -181,8 +181,8 @@ axiosRetry(apiClient, {
     const status = error.response.status
     return status >= 500 || status === 408 || status === 429
   },
-  onRetry: (retryCount, error) => {
-    console.log(`[API Retry] Attempt ${retryCount} for ${error.config?.url}`)
+  onRetry: (_retryCount, _error) => {
+    // Retry logging removed for production
   },
 })
 

@@ -1,13 +1,12 @@
 import { useEffect, useCallback } from 'react'
 import { useUIStore, useWritingStore } from '@/store'
 import { getEditorInstance } from '@/store/editorRegistry'
-import { KEYBOARD_SHORTCUTS, AI_SHORTCUT_OPERATIONS, AI_OPERATION_LABELS, AIOperationType } from '@/constants/shortcuts'
+import { KEYBOARD_SHORTCUTS, AI_SHORTCUT_OPERATIONS, AIOperationType } from '@/constants/shortcuts'
 
 /**
  * 执行AI操作（目前仅记录日志，实际API调用待实现）
  */
-function executeAIOperation(operation: AIOperationType, selectedText: string) {
-  console.log(`[AI操作] ${AI_OPERATION_LABELS[operation]}:`, selectedText || '(无选中文字)')
+function executeAIOperation(_operation: AIOperationType, _selectedText: string) {
   // TODO: 调用实际AI API
 }
 
@@ -27,11 +26,9 @@ export function useGlobalShortcuts() {
   // 保存功能
   const handleSave = useCallback(() => {
     if (!currentChapterId) {
-      console.log('[保存] 无活动章节')
       return
     }
     saveCurrentChapter()
-    console.log('[保存] 章节已保存:', currentChapterId)
   }, [currentChapterId, saveCurrentChapter])
 
   // 全屏切换
@@ -48,7 +45,6 @@ export function useGlobalShortcuts() {
   const handleAISelectionOperation = useCallback((operation: AIOperationType) => {
     const editor = getEditorInstance()
     if (!editor) {
-      console.log('[AI操作] 编辑器未就绪')
       return
     }
     const selectedText = editor.state.doc.textBetween(

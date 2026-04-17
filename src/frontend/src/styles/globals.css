@@ -7,29 +7,30 @@
    ======================================== */
 
 :root {
-  /* ========== Linear 背景色 ========== */
-  --color-bg-primary: #08090a;
-  --color-bg-surface: #0f1011;
-  --color-bg-elevated: #191a1b;
+  /* ========== 中性基准色 (默认浅色主题) ========== */
+  /* 界面背景 */
+  --color-bg-primary: #ffffff;
+  --color-bg-surface: #f5f0e6;
+  --color-bg-elevated: #ffffff;
 
-  /* ========== Linear 文字色 ========== */
-  --color-text-primary: #f7f8f8;
-  --color-text-secondary: #d0d6e0;
-  --color-text-muted: #8a8f98;
+  /* 界面文字 */
+  --color-text-primary: #1a1a2e;
+  --color-text-secondary: #666666;
+  --color-text-muted: #999999;
 
-  /* ========== Linear 强调色 ========== */
+  /* 强调色 */
   --color-accent: #5e6ad2;
   --color-accent-hover: #828fff;
 
-  /* ========== Linear 边框 ========== */
-  --color-border: rgba(255, 255, 255, 0.08);
-  --color-border-subtle: rgba(255, 255, 255, 0.05);
+  /* 边框 */
+  --color-border: #e0dcd3;
+  --color-border-subtle: #ede8df;
 
-  /* ========== Linear 按钮 ========== */
-  --color-button-bg: rgba(255, 255, 255, 0.02);
-  --color-button-hover: rgba(255, 255, 255, 0.05);
+  /* 按钮 */
+  --color-button-bg: rgba(0, 0, 0, 0.03);
+  --color-button-hover: rgba(0, 0, 0, 0.06);
 
-  /* ========== 中文网文语义色 (保留原值) ========== */
+  /* ========== 中文网文语义色 (内容颜色，不随主题切换) ========== */
   /* 实体颜色编码 */
   --color-character: #e8b87d;
   --color-item: #9b7ed9;
@@ -53,17 +54,20 @@
   --color-writing-light: #faf6e8;
   --color-writing-dark: #1a1a2e;
 
-  /* 写作文字颜色 */
+  /* 写作文字颜色 - 语义变量 */
   --color-text-writing: #3d3d3d;
   --color-text-writing-muted: #6d6d6d;
+  --color-text-writing-dark: #e8e4d9;
+  --color-text-writing-dark-muted: #a0a0a0;
 
   /* 分隔线颜色 */
   --color-divider: #d4c8a8;
+  --color-divider-dark: #3a3a5a;
 
   /* 选中高亮 */
   --color-highlight: rgba(91, 142, 232, 0.2);
 
-  /* ========== 传统变量映射 (向后兼容) ========== */
+  /* ========== 语义变量映射 (由主题覆盖) ========== */
   --color-bg: var(--color-bg-primary);
   --color-card: var(--color-bg-surface);
   --color-text: var(--color-text-primary);
@@ -91,9 +95,9 @@
   --radius-input: 6px;
 
   /* 阴影 */
-  --shadow-card: 0 2px 8px rgba(0, 0, 0, 0.3);
-  --shadow-drawer: 0 4px 20px rgba(0, 0, 0, 0.4);
-  --shadow-float: 0 8px 30px rgba(0, 0, 0, 0.5);
+  --shadow-card: 0 2px 8px rgba(0, 0, 0, 0.08);
+  --shadow-drawer: 0 4px 20px rgba(0, 0, 0, 0.15);
+  --shadow-float: 0 8px 30px rgba(0, 0, 0, 0.2);
 
   /* 过渡 */
   --transition-fast: 150ms ease;
@@ -101,15 +105,39 @@
   --transition-slow: 400ms ease;
 }
 
+/* ========== 深色主题覆盖 ========== */
 .dark {
+  --color-bg-primary: #08090a;
+  --color-bg-surface: #0f1011;
+  --color-bg-elevated: #191a1b;
+
+  --color-text-primary: #f7f8f8;
+  --color-text-secondary: #d0d6e0;
+  --color-text-muted: #8a8f98;
+
+  --color-border: rgba(255, 255, 255, 0.08);
+  --color-border-subtle: rgba(255, 255, 255, 0.05);
+
+  --color-button-bg: rgba(255, 255, 255, 0.02);
+  --color-button-hover: rgba(255, 255, 255, 0.05);
+
   --color-bg: var(--color-bg-primary);
   --color-card: var(--color-bg-surface);
   --color-text: var(--color-text-primary);
   --color-text-secondary: var(--color-text-secondary);
-  --color-border: var(--color-border);
   --color-toolbar: var(--color-bg-surface);
   --color-drawer: var(--color-bg-elevated);
+
+  --color-text-writing: var(--color-text-writing-dark);
+  --color-text-writing-muted: var(--color-text-writing-dark-muted);
+
+  --color-divider: var(--color-divider-dark);
+
   --color-highlight: rgba(94, 106, 210, 0.3);
+
+  --shadow-card: 0 2px 8px rgba(0, 0, 0, 0.3);
+  --shadow-drawer: 0 4px 20px rgba(0, 0, 0, 0.4);
+  --shadow-float: 0 8px 30px rgba(0, 0, 0, 0.5);
 }
 
 /* ========================================

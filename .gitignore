@@ -72,6 +72,9 @@ temp/
 output/
 logs/
 
+# OMC (oh-my-claudecode)
+.omc/
+
 # Frontend build
 dist/
 out/
