@@ -171,6 +171,478 @@ npm run build
 | `/api/styles/` | GET | 获取可用风格列表 |
 | `/api/styles/{id}` | GET | 获取指定风格 |
 
+## API 详细文档
+
+### 基础信息
+
+- **Base URL**: `http://localhost:8000/api`
+- **认证**: 当前版本无需认证（后续支持本地 Token）
+- **请求头**: `Content-Type: application/json`
+- **流式响应**: AI 生成接口返回 Server-Sent Events (SSE)
+
+---
+
+### 聊天接口 (Chat)
+
+#### 创建聊天会话
+```http
+POST /api/chat/sessions
+```
+
+**响应示例**:
+```json
+{
+  "id": 1,
+  "created_at": "2026-04-17T10:00:00",
+  "updated_at": "2026-04-17T10:00:00"
+}
+```
+
+#### 获取会话列表
+```http
+GET /api/chat/sessions?skip=0&limit=20
+```
+
+**响应示例**:
+```json
+[
+  {
+    "id": 1,
+    "created_at": "2026-04-17T10:00:00",
+    "updated_at": "2026-04-17T10:30:00"
+  }
+]
+```
+
+#### 发送消息
+```http
+POST /api/chat/sessions/{session_id}/messages
+Content-Type: application/json
+
+{
+  "role": "user",
+  "content": "我想写一个修仙小说"
+}
+```
+
+**响应示例**:
+```json
+{
+  "id": 1,
+  "session_id": 1,
+  "role": "user",
+  "content": "我想写一个修仙小说",
+  "created_at": "2026-04-17T10:00:00"
+}
+```
+
+#### 获取提取的实体
+```http
+GET /api/chat/sessions/{session_id}/entities?type=character&confirmed=true
+```
+
+**响应示例**:
+```json
+[
+  {
+    "id": 1,
+    "session_id": 1,
+    "type": "character",
+    "name": "张三",
+    "description": "主角，筑基期修士",
+    "confirmed": true,
+    "created_at": "2026-04-17T10:00:00"
+  }
+]
+```
+
+#### 确认/取消确认实体
+```http
+PATCH /api/chat/entities/{entity_id}/confirm?confirmed=true
+```
+
+**响应示例**:
+```json
+{
+  "message": "Entity updated"
+}
+```
+
+---
+
+### 设定接口 (Settings)
+
+#### 创建角色
+```http
+POST /api/settings/characters
+Content-Type: application/json
+
+{
+  "name": "张三",
+  "gender": "男",
+  "personality": "沉稳内敛，心思缜密",
+  "desires": "突破金丹期",
+  "flaws": "过于执着",
+  "tier": "main",
+  "cultivation_realm": "筑基期"
+}
+```
+
+**响应示例**:
+```json
+{
+  "id": 1,
+  "name": "张三",
+  "gender": "男",
+  "personality": "沉稳内敛，心思缜密",
+  "desires": "突破金丹期",
+  "flaws": "过于执着",
+  "description": null,
+  "tier": "main",
+  "cultivation_realm": "筑基期",
+  "created_at": "2026-04-17T10:00:00",
+  "updated_at": "2026-04-17T10:00:00"
+}
+```
+
+#### 获取角色列表
+```http
+GET /api/settings/characters?tier=main&skip=0&limit=100
+```
+
+**响应示例**:
+```json
+[
+  {
+    "id": 1,
+    "name": "张三",
+    "gender": "男",
+    "personality": "沉稳内敛",
+    "tier": "main",
+    "cultivation_realm": "筑基期",
+    "created_at": "2026-04-17T10:00:00",
+    "updated_at": "2026-04-17T10:00:00"
+  }
+]
+```
+
+#### 创建角色关系
+```http
+POST /api/settings/characters/{character_id}/relationships
+Content-Type: application/json
+
+{
+  "character_id": 1,
+  "target_id": 2,
+  "type": "rival",
+  "description": "同为筑基期天才，互相竞争"
+}
+```
+
+#### 创建物品
+```http
+POST /api/settings/items
+Content-Type: application/json
+
+{
+  "name": "青锋剑",
+  "description": "一柄青色长剑，剑身刻有符文",
+  "owner": "张三",
+  "location": "储物袋"
+}
+```
+
+#### 获取写作设置
+```http
+GET /api/settings/writing
+```
+
+**响应示例**:
+```json
+{
+  "id": 1,
+  "human_ai_ratio": 0.7,
+  "writing_style": "江南",
+  "target_word_count": 3000
+}
+```
+
+#### 更新写作设置
+```http
+PATCH /api/settings/writing
+Content-Type: application/json
+
+{
+  "human_ai_ratio": 0.8,
+  "writing_style": "卡夫卡",
+  "target_word_count": 5000
+}
+```
+
+---
+
+### 章节接口 (Chapters)
+
+#### 创建大纲
+```http
+POST /api/chapters/outlines
+Content-Type: application/json
+
+{
+  "title": "第一章：入门测试",
+  "description": "主角参加宗门入门测试"
+}
+```
+
+**响应示例**:
+```json
+{
+  "id": 1,
+  "title": "第一章：入门测试",
+  "description": "主角参加宗门入门测试"
+}
+```
+
+#### 创建章节
+```http
+POST /api/chapters/
+Content-Type: application/json
+
+{
+  "outline_id": 1,
+  "title": "测试开始",
+  "summary": "主角面对测试官",
+  "status": "pending",
+  "chapter_order": 1
+}
+```
+
+**响应示例**:
+```json
+{
+  "id": 1,
+  "outline_id": 1,
+  "title": "测试开始",
+  "summary": "主角面对测试官",
+  "status": "pending",
+  "word_count": 0,
+  "chapter_order": 1,
+  "created_at": "2026-04-17T10:00:00",
+  "updated_at": "2026-04-17T10:00:00"
+}
+```
+
+#### 创建草稿版本
+```http
+POST /api/chapters/{chapter_id}/drafts
+Content-Type: application/json
+
+{
+  "chapter_id": 1,
+  "content": "清晨，阳光洒在演武场上...",
+  "version_number": 1
+}
+```
+
+**响应示例**:
+```json
+{
+  "id": 1,
+  "chapter_id": 1,
+  "content": "清晨，阳光洒在演武场上...",
+  "version_number": 1,
+  "created_at": "2026-04-17T10:00:00"
+}
+```
+
+#### 获取草稿版本列表
+```http
+GET /api/chapters/{chapter_id}/drafts?skip=0&limit=20
+```
+
+#### 创建 IF 线
+```http
+POST /api/chapters/if-lines
+Content-Type: application/json
+
+{
+  "title": "支线：师妹的命运",
+  "linked_character_id": 2,
+  "description": "如果师妹选择了另一条路",
+  "sync_mode": "auto"
+}
+```
+
+#### 创建伏笔
+```http
+POST /api/chapters/plot-threads
+Content-Type: application/json
+
+{
+  "title": "神秘玉佩",
+  "description": "主角捡到的玉佩似乎有来历",
+  "status": "active",
+  "created_chapter_id": 1
+}
+```
+
+---
+
+### AI 接口
+
+#### AI 内容生成（流式）
+```http
+POST /api/ai/generate
+Content-Type: application/json
+
+{
+  "prompt": "主角站在山崖边，望着远处的云海...",
+  "operation": "continue",
+  "chapter_id": 1,
+  "human_ai_ratio": 70,
+  "style": "江南"
+}
+```
+
+**操作类型**:
+| operation | 说明 |
+|-----------|------|
+| `continue` | 续写后续内容 |
+| `expand` | 扩写当前内容 |
+| `condense` | 缩写当前内容 |
+| `rewrite` | 改写当前内容 |
+| `polish` | 润色当前内容 |
+| `optimize` | 优化当前内容 |
+
+**响应**: 流式文本响应 (text/plain)
+
+**响应头**:
+```
+X-Operation: continue
+X-Human-AI-Ratio: 70
+X-Style: 江南
+```
+
+#### AI 设定审查
+```http
+POST /api/ai/review
+Content-Type: application/json
+
+{
+  "settings_data": {
+    "characters": [...],
+    "locations": [...],
+    "items": [...]
+  }
+}
+```
+
+**响应示例**:
+```json
+{
+  "review_content": "审查意见：角色设定一致性问题...",
+  "raw_response": {
+    "choices": [...],
+    "usage": {...}
+  }
+}
+```
+
+#### 从聊天提取实体
+```http
+POST /api/ai/extract-entities
+Content-Type: application/json
+
+{
+  "chat_messages": [
+    {"role": "user", "content": "主角叫张三，是青云门弟子"}
+  ]
+}
+```
+
+**响应示例**:
+```json
+{
+  "entities": [
+    {"type": "character", "name": "张三", "description": "青云门弟子"}
+  ]
+}
+```
+
+#### 章节 AI 审查
+```http
+POST /api/ai/chapters/{chapter_id}/inspect
+```
+
+**响应示例**:
+```json
+{
+  "chapter_id": 1,
+  "review_content": "发现以下问题：\n1. 角色一致性...\n2. 情节逻辑...",
+  "raw_response": {...}
+}
+```
+
+---
+
+### 风格接口
+
+#### 获取风格列表
+```http
+GET /api/styles/
+```
+
+**响应示例**:
+```json
+[
+  {
+    "id": "江南",
+    "name": "江南风格",
+    "description": "东方玄幻风格，文笔细腻柔美，擅长情感描写和意境营造"
+  },
+  {
+    "id": "卡夫卡",
+    "name": "卡夫卡风格",
+    "description": "表现主义风格，文风荒诞抽象，善于揭示人性的异化和社会的荒谬"
+  },
+  {
+    "id": "加缪",
+    "name": "加缪风格",
+    "description": "存在主义风格，文风冷峻深刻，擅长哲学思辨和对生命意义的探索"
+  },
+  {
+    "id": "default",
+    "name": "默认风格",
+    "description": "专业中文网络小说风格，文笔流畅，情节紧凑，可读性强"
+  }
+]
+```
+
+#### 获取指定风格
+```http
+GET /api/styles/江南
+```
+
+---
+
+### 错误响应
+
+所有接口错误返回统一格式：
+
+```json
+{
+  "detail": "错误描述"
+}
+```
+
+**常见 HTTP 状态码**:
+| 状态码 | 说明 |
+|--------|------|
+| 200 | 成功 |
+| 400 | 请求参数错误 |
+| 404 | 资源不存在 |
+| 500 | 服务器内部错误 |
+
 ## 数据库 Schema (18 Tables)
 
 ### Characters & Relationships
@@ -276,6 +748,119 @@ writer/
 - 不部署本地模型，纯 API 调用
 - 不做出版级校对/语法检查
 - 不做多语言/翻译功能
+
+## 部署指南
+
+### 环境变量配置
+
+#### 后端环境变量 (`src/backend/.env`)
+
+| 变量名 | 必填 | 说明 | 示例 |
+|--------|------|------|------|
+| `MINIMAX_API_KEY` | 是 | MiniMax API 密钥 | `your_api_key_here` |
+| `DATABASE_URL` | 否 | 数据库连接 URL | `sqlite+aiosqlite:///./data/writer.db` |
+
+#### 前端环境变量 (`src/frontend/.env`)
+
+| 变量名 | 必填 | 说明 | 示例 |
+|--------|------|------|------|
+| `VITE_API_BASE_URL` | 是 | 后端 API 地址 | `http://127.0.0.1:8000/api` |
+
+#### 环境变量文件示例
+
+后端 (`src/backend/.env.example`):
+```env
+MINIMAX_API_KEY=your_api_key_here
+DATABASE_URL=sqlite+aiosqlite:///./data/writer.db
+```
+
+前端 (`src/frontend/.env`):
+```env
+VITE_API_BASE_URL=http://127.0.0.1:8000/api
+```
+
+### 生产构建
+
+#### 前端生产构建
+
+```bash
+cd src/frontend
+npm install
+npm run build
+```
+
+构建产物输出到 `src/frontend/dist/`，使用 `vite preview` 可本地预览生产版本。
+
+#### 后端生产启动
+
+```bash
+cd src/backend
+pip install -r requirements.txt
+python start.py
+# 或使用 uvicorn
+uvicorn main:app --host 0.0.0.0 --port 8000
+```
+
+### Docker 部署（可选）
+
+如需使用 Docker Compose 部署，请创建以下文件：
+
+#### `docker-compose.yml`
+
+```yaml
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: ./src/backend
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    environment:
+      - MINIMAX_API_KEY=${MINIMAX_API_KEY}
+      - DATABASE_URL=sqlite+aiosqlite:///./data/writer.db
+    volumes:
+      - ./data:/app/data
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./src/frontend
+      dockerfile: Dockerfile
+    ports:
+      - "5173:80"
+    depends_on:
+      - backend
+    restart: unless-stopped
+```
+
+### 生产环境检查清单
+
+- [ ] 配置 `MINIMAX_API_KEY` 环境变量
+- [ ] 确认 `DATABASE_URL` 指向正确的数据库路径
+- [ ] 前端 `VITE_API_BASE_URL` 指向正确的后端地址
+- [ ] 生产构建 `npm run build` 无错误
+- [ ] 数据库目录 `data/` 存在且有写入权限
+- [ ] 确认后端 CORS 配置允许前端域名（如需远程访问）
+
+### 目录结构
+
+```
+writer/
+├── data/                    # 数据目录 (SQLite DB)
+│   └── writer.db           # 自动创建
+├── src/
+│   ├── backend/
+│   │   ├── .env            # 环境变量（需手动创建）
+│   │   ├── .env.example    # 环境变量示例
+│   │   └── ...
+│   └── frontend/
+│       ├── .env            # 前端环境变量
+│       └── dist/           # 生产构建产物（构建后生成）
+├── docker-compose.yml      # 可选 Docker 部署
+└── README.md
+```
 
 ## License
 
