@@ -49,9 +49,16 @@
   --color-paper: #f5f0e6;
   --color-vermillion: #c45c5c;
 
-  /* 写作背景 */
+  /* 写作背景 - 温暖护眼色 */
   --color-writing-light: #faf6e8;
   --color-writing-dark: #1a1a2e;
+
+  /* 写作文字颜色 */
+  --color-text-writing: #3d3d3d;
+  --color-text-writing-muted: #6d6d6d;
+
+  /* 分隔线颜色 */
+  --color-divider: #d4c8a8;
 
   /* 选中高亮 */
   --color-highlight: rgba(91, 142, 232, 0.2);
@@ -158,10 +165,19 @@ body {
   font-size: 17px;
   line-height: 1.85;
   letter-spacing: 0.05em;
+  transition: color var(--transition-normal);
 }
 
 .writing-area p {
   margin-bottom: 1.5em;
+  transition: color var(--transition-fast);
+}
+
+/* 标题过渡动画 */
+.writing-area h1,
+.writing-area h2,
+.writing-area h3 {
+  transition: color var(--transition-normal), opacity var(--transition-fast);
 }
 
 /* ========================================
@@ -173,20 +189,23 @@ body {
   font-size: 17px;
   line-height: 1.85;
   letter-spacing: 0.03em;
-  color: #3d3d3d;
-  caret-color: #c45c5c;
+  color: var(--color-text-writing);
+  caret-color: var(--color-vermillion);
+  transition: color var(--transition-normal);
 }
 
 .writing-area .tiptap p {
   margin-bottom: 1.2em;
+  transition: color var(--transition-fast);
 }
 
 .writing-area .tiptap p.is-editor-empty:first-child::before {
   content: attr(data-placeholder);
-  color: #a09080;
+  color: var(--color-text-writing-muted);
   pointer-events: none;
   float: left;
   height: 0;
+  transition: color var(--transition-fast);
 }
 
 .writing-area .tiptap h1,
@@ -194,9 +213,10 @@ body {
 .writing-area .tiptap h3 {
   font-family: 'Source Serif 4', 'Noto Serif SC', Georgia, serif;
   font-weight: 500;
-  color: #2d2d2d;
+  color: var(--color-text-writing);
   line-height: 1.5;
   letter-spacing: -0.02em;
+  transition: color var(--transition-normal);
 }
 
 .writing-area .tiptap h1 { font-size: 1.5em; }
@@ -205,19 +225,20 @@ body {
 
 .writing-area .tiptap strong {
   font-weight: 600;
-  color: #2d2d2d;
+  color: var(--color-text-writing);
 }
 
 .writing-area .tiptap em {
   font-style: italic;
+  color: var(--color-text-writing);
 }
 
 .writing-area .tiptap u {
-  text-decoration-color: #d4c8a8;
+  text-decoration-color: var(--color-divider);
 }
 
 .writing-area .tiptap s {
-  text-decoration-color: #c45c5c;
+  text-decoration-color: var(--color-vermillion);
   opacity: 0.6;
 }
 
@@ -273,15 +294,21 @@ body {
 }
 
 /* ========================================
-   纸张纹理（可选）
+   纸张纹理（可选）- 温暖宣纸效果
    ======================================== */
 
 .paper-texture-light {
-  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+  background-color: var(--color-writing-light);
+  background-image:
+    url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
   background-blend-mode: overlay;
+  transition: background-color var(--transition-normal);
 }
 
 .paper-texture-dark {
-  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+  background-color: var(--color-writing-dark);
+  background-image:
+    url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
   background-blend-mode: soft-light;
+  transition: background-color var(--transition-normal);
 }
