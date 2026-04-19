@@ -16,14 +16,14 @@ export function Toast({ message, type = 'info', duration = 3000, onClose }: Toas
 
   const bgColors = {
     info: 'bg-var-accent',
-    success: 'bg-green-600',
+    success: 'bg-[#10b981]',
     warning: 'bg-var-vermillion',
     error: 'bg-red-600',
   }
 
   return (
     <div
-      className={`fixed bottom-4 right-4 px-4 py-3 rounded-lg shadow-lg border border-var-border ${bgColors[type]} text-white flex items-center gap-3 z-50 animate-slide-in`}
+      className={`fixed bottom-4 right-4 px-4 py-3 rounded-lg border border-var-border ${bgColors[type]} text-white flex items-center gap-3 z-50 animate-slide-in`}
     >
       <span className="text-sm">{message}</span>
       <button

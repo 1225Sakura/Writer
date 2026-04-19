@@ -68,6 +68,10 @@ export function WritingCanvas() {
     editorProps: {
       attributes: {
         class: 'writing-area max-w-none focus:outline-none min-h-full px-8 py-6',
+        style: {
+          scrollPaddingTop: '33vh',
+          scrollPaddingBottom: '67vh',
+        },
       },
     },
   })

@@ -79,6 +79,9 @@ export default {
         sans: ['Source Han Sans', 'Noto Sans SC', 'Inter', 'sans-serif'],
         mono: ['JetBrains Mono', 'iA Writer Quattro', 'monospace'],
       },
+      fontWeight: {
+        510: '510',
+      },
       spacing: {
         'xs': '4px',
         'sm': '8px',
@@ -94,9 +97,10 @@ export default {
         'input': '6px',
       },
       boxShadow: {
-        'card': '0 2px 8px rgba(0,0,0,0.08)',
-        'drawer': '0 4px 20px rgba(0,0,0,0.15)',
-        'float': '0 8px 30px rgba(0,0,0,0.2)',
+        /* Linear design system uses luminance stepping, not shadows on dark surfaces */
+        'card': '0 0 0 1px rgba(255,255,255,0.06)',
+        'drawer': '0 0 0 1px rgba(255,255,255,0.06)',
+        'float': '0 0 0 1px rgba(255,255,255,0.08)',
       },
       transitionDuration: {
         'fast': '150ms',
