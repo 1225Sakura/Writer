@@ -169,9 +169,11 @@ def build_error_response(
 
 async def app_exception_handler(request: Request, exc: AppException) -> JSONResponse:
     """Handle AppException and its subclasses."""
+    # Get request_id from logging middleware if available
+    request_id = getattr(request.state, "request_id", None)
     logger.warning(
         f"AppException: {exc.error_code} - {exc.message}",
-        extra={"path": request.url.path, "details": exc.details},
+        extra={"path": request.url.path, "details": exc.details, "request_id": request_id},
     )
     return JSONResponse(
         status_code=exc.status_code,
@@ -179,6 +181,7 @@ async def app_exception_handler(request: Request, exc: AppException) -> JSONResp
             message=exc.message,
             error_code=exc.error_code,
             details=exc.details,
+            request_id=request_id,
         ),
     )
 
@@ -220,9 +223,10 @@ async def external_service_exception_handler(
     request: Request, exc: ExternalServiceError
 ) -> JSONResponse:
     """Handle ExternalServiceError."""
+    request_id = getattr(request.state, "request_id", None)
     logger.error(
         f"ExternalServiceError: {exc.message}",
-        extra={"path": request.url.path, "details": exc.details},
+        extra={"path": request.url.path, "details": exc.details, "request_id": request_id},
     )
     return await app_exception_handler(request, exc)
 
@@ -231,9 +235,10 @@ async def database_exception_handler(
     request: Request, exc: DatabaseError
 ) -> JSONResponse:
     """Handle DatabaseError."""
+    request_id = getattr(request.state, "request_id", None)
     logger.error(
         f"DatabaseError: {exc.message}",
-        extra={"path": request.url.path, "details": exc.details},
+        extra={"path": request.url.path, "details": exc.details, "request_id": request_id},
     )
     return await app_exception_handler(request, exc)
 
@@ -242,15 +247,18 @@ async def generic_exception_handler(
     request: Request, exc: Exception
 ) -> JSONResponse:
     """Handle unhandled exceptions."""
+    # Get request_id from logging middleware if available
+    request_id = getattr(request.state, "request_id", None)
     logger.error(
         f"Unhandled exception: {exc}",
-        extra={"path": request.url.path},
+        extra={"path": request.url.path, "request_id": request_id},
     )
     return JSONResponse(
         status_code=500,
         content=build_error_response(
             message="Internal server error",
             error_code="INTERNAL_ERROR",
+            request_id=request_id,
         ),
     )
 

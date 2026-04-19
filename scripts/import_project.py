@@ -10,8 +10,8 @@ import sys
 import os
 from datetime import datetime
 
-# Add parent directory to path for imports
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+# Add src/backend to path for imports (project root is parent of parent)
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'src'))
 
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session

@@ -1,6 +1,7 @@
 # Auto Novel Writer - Chat Routes
 # Interface 1: Chat initialization
 
+import time
 from fastapi import APIRouter, HTTPException, Depends, Request
 from pydantic import BaseModel, field_validator
 from typing import List, Optional
@@ -36,8 +37,6 @@ def check_rate_limit(client_ip: str, max_requests: int = 30, window_seconds: flo
 
     rate_limit_store[client_ip].append(now)
     return True
-
-import time
 
 # Pydantic models
 class ChatMessageCreate(BaseModel):

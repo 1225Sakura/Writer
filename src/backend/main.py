@@ -4,6 +4,7 @@
 import logging
 import json
 from fastapi import FastAPI, Request, WebSocket, WebSocketDisconnect
+from sqlalchemy import text
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from typing import Dict, List
@@ -90,7 +91,71 @@ async def root():
 
 @app.get("/health")
 async def health_check():
-    return {"status": "healthy"}
+    """
+    Comprehensive health check endpoint for monitoring.
+    Verifies database connectivity and dependency status.
+    """
+    import sys
+    import platform
+    import importlib
+
+    health_status = {
+        "status": "healthy",
+        "app": {
+            "name": settings.app_name,
+            "version": settings.app_version,
+        },
+        "dependencies": {},
+        "database": {"status": "unknown"},
+        "system": {
+            "python_version": sys.version,
+            "platform": platform.platform(),
+        }
+    }
+
+    # Check database connection
+    try:
+        from database import engine
+        async with engine.connect() as conn:
+            await conn.execute(text("SELECT 1"))
+        health_status["database"] = {"status": "connected"}
+    except Exception as e:
+        health_status["database"] = {"status": "error", "detail": str(e)}
+        health_status["status"] = "degraded"
+
+    # Check key dependencies
+    dependencies = [
+        ("fastapi", "FastAPI"),
+        ("sqlalchemy", "SQLAlchemy"),
+        ("aiosqlite", "aiosqlite"),
+        ("pydantic_settings", "pydantic-settings"),
+    ]
+
+    for module_name, display_name in dependencies:
+        try:
+            mod = importlib.import_module(module_name)
+            version = getattr(mod, "__version__", "unknown")
+            health_status["dependencies"][display_name] = {"status": "available", "version": version}
+        except ImportError:
+            health_status["dependencies"][display_name] = {"status": "missing"}
+            health_status["status"] = "degraded"
+
+    # Check AI service availability (if configured)
+    try:
+        from services.ai_service import ai_service
+        if settings.minimax_api_key:
+            health_status["dependencies"]["minimax_api"] = {
+                "status": "configured",
+                "url": settings.minimax_api_url,
+            }
+        else:
+            health_status["dependencies"]["minimax_api"] = {
+                "status": "not_configured",
+            }
+    except Exception:
+        pass
+
+    return health_status
 
 
 # WebSocket endpoint for real-time chat

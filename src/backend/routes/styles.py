@@ -1,7 +1,7 @@
 # Auto Novel Writer - Styles Routes
 # Writing style management
 
-from fastapi import APIRouter
+from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 from typing import List
 
@@ -51,4 +51,4 @@ async def get_style(style_id: str):
     for style in WRITING_STYLES:
         if style.id == style_id:
             return style
-    return {"error": "Style not found"}, 404
+    raise HTTPException(status_code=404, detail="Style not found")

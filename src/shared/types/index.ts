@@ -116,7 +116,7 @@ export interface ExtractedEntity {
   type: string;
   name: string;
   description?: string;
-  confirmed: boolean;
+  confirmed: number;
   created_at: string;
 }
 
@@ -145,7 +145,7 @@ export interface AIInspectionResult {
   inspection_type: string;
   issues_json?: string;
   suggestions_json?: string;
-  auto_fixed: boolean;
+  auto_fixed: number;
   created_at: string;
 }
 
