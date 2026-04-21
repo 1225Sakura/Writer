@@ -1,0 +1,220 @@
+/**
+ * SmartSkeleton — Enhanced skeleton loading component with shimmer animation
+ * Based on shadcn/ui Skeleton with CSS shimmer sweep effect
+ *
+ * Variants:
+ *   text    — Text lines skeleton (for paragraphs, messages)
+ *   card    — Card skeleton (for entity cards, panels)
+ *   avatar  — Avatar skeleton (for user/AI avatars, profile images)
+ *   chart   — Chart/area skeleton (for relation graphs, stats)
+ */
+
+import { cn } from '@/lib/utils'
+
+interface SmartSkeletonProps {
+  variant?: 'text' | 'card' | 'avatar' | 'chart'
+  className?: string
+  lines?: number
+  width?: string | number
+  height?: string | number
+}
+
+/** Base shimmer skeleton block */
+function ShimmerBlock({
+  className,
+  width,
+  height,
+  rounded = true,
+}: {
+  className?: string
+  width?: string | number
+  height?: string | number
+  rounded?: boolean
+}) {
+  return (
+    <div
+      className={cn(
+        'animate-shimmer',
+        rounded && 'rounded-md',
+        className
+      )}
+      style={{
+        width: typeof width === 'number' ? `${width}px` : width,
+        height: typeof height === 'number' ? `${height}px` : height,
+      }}
+    />
+  )
+}
+
+/** Text variant — multiple lines with staggered widths */
+function TextSkeleton({ lines = 3, className }: { lines?: number; className?: string }) {
+  return (
+    <div className={cn('space-y-2', className)}>
+      {Array.from({ length: lines }).map((_, i) => (
+        <ShimmerBlock
+          key={i}
+          height={16}
+          className={cn(
+            i === lines - 1 ? 'w-3/4' : 'w-full',
+            'rounded-md'
+          )}
+        />
+      ))}
+    </div>
+  )
+}
+
+/** Card variant — card with header and body */
+function CardSkeleton({ className }: { className?: string }) {
+  return (
+    <div
+      className={cn(
+        'rounded-lg p-4 space-y-3 border',
+        className
+      )}
+      style={{
+        backgroundColor: 'rgba(255, 255, 255, 0.02)',
+        borderColor: 'rgba(255, 255, 255, 0.06)',
+      }}
+    >
+      <ShimmerBlock height={20} width="60%" />
+      <TextSkeleton lines={3} />
+    </div>
+  )
+}
+
+/** Avatar variant — circular or rounded avatar */
+function AvatarSkeleton({ size = 40, className }: { size?: number; className?: string }) {
+  return (
+    <ShimmerBlock
+      width={size}
+      height={size}
+      className={cn('rounded-full', className)}
+    />
+  )
+}
+
+/** Chart variant — for graph/stats area loading */
+function ChartSkeleton({ className }: { className?: string }) {
+  return (
+    <div
+      className={cn(
+        'rounded-lg p-4 border space-y-4',
+        className
+      )}
+      style={{
+        backgroundColor: 'rgba(255, 255, 255, 0.02)',
+        borderColor: 'rgba(255, 255, 255, 0.06)',
+      }}
+    >
+      <ShimmerBlock height={16} width="40%" />
+      <div className="flex items-end gap-2 h-32">
+        {Array.from({ length: 8 }).map((_, i) => (
+          <ShimmerBlock
+            key={i}
+            className="flex-1 rounded-t-md"
+            height={`${30 + Math.random() * 60}%`}
+          />
+        ))}
+      </div>
+    </div>
+  )
+}
+
+/** Chat message skeleton — avatar + text lines */
+function ChatMessageSkeleton({ className }: { className?: string }) {
+  return (
+    <div className={cn('flex items-start gap-3 p-4', className)}>
+      <AvatarSkeleton size={36} />
+      <div className="flex-1 space-y-2 min-w-0">
+        <ShimmerBlock height={14} width="30%" />
+        <TextSkeleton lines={2} />
+      </div>
+    </div>
+  )
+}
+
+/** Entity list item skeleton — avatar + title + description */
+function EntityListSkeleton({ items = 5, className }: { items?: number; className?: string }) {
+  return (
+    <div className={cn('space-y-2', className)}>
+      {Array.from({ length: items }).map((_, i) => (
+        <div
+          key={i}
+          className="flex items-center gap-3 p-3"
+        >
+          <AvatarSkeleton size={32} />
+          <div className="flex-1 space-y-1.5 min-w-0">
+            <ShimmerBlock height={14} width="40%" />
+            <ShimmerBlock height={12} width="60%" />
+          </div>
+        </div>
+      ))}
+    </div>
+  )
+}
+
+/** Writing area skeleton — title + paragraphs */
+function WritingAreaSkeleton({ className }: { className?: string }) {
+  return (
+    <div className={cn('space-y-6 p-8', className)}>
+      <ShimmerBlock height={32} width="60%" className="rounded-lg" />
+      <div className="h-px bg-gradient-to-r from-transparent via-[rgba(255,255,255,0.08)] to-transparent" />
+      <div className="space-y-4">
+        <TextSkeleton lines={4} />
+        <TextSkeleton lines={3} />
+        <TextSkeleton lines={5} />
+      </div>
+    </div>
+  )
+}
+
+/** Main SmartSkeleton component */
+export function SmartSkeleton({
+  variant = 'text',
+  className,
+  lines = 3,
+  width,
+}: SmartSkeletonProps) {
+  switch (variant) {
+    case 'text':
+      return <TextSkeleton lines={lines} className={className} />
+    case 'card':
+      return <CardSkeleton className={className} />
+    case 'avatar':
+      return <AvatarSkeleton size={typeof width === 'number' ? width : 40} className={className} />
+    case 'chart':
+      return <ChartSkeleton className={className} />
+    default:
+      return <TextSkeleton lines={lines} className={className} />
+  }
+}
+
+/** Preset skeleton layouts for common use cases */
+export function ChatSkeleton({ count = 3, className }: { count?: number; className?: string }) {
+  return (
+    <div className={cn('space-y-1', className)}>
+      {Array.from({ length: count }).map((_, i) => (
+        <ChatMessageSkeleton key={i} />
+      ))}
+    </div>
+  )
+}
+
+export function EntityListSkeletonPreset({ items = 5, className }: { items?: number; className?: string }) {
+  return <EntityListSkeleton items={items} className={className} />
+}
+
+export function WritingSkeleton({ className }: { className?: string }) {
+  return <WritingAreaSkeleton className={className} />
+}
+
+export function CardGridSkeleton({ count = 6, className }: { count?: number; className?: string }) {
+  return (
+    <div className={cn('grid grid-cols-1 md:grid-cols-2 gap-3', className)}>
+      {Array.from({ length: count }).map((_, i) => (
+        <CardSkeleton key={i} />
+      ))}
+    </div>
+  )
+}

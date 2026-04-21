@@ -8,6 +8,9 @@ import { ChapterNotesPanel } from './ChapterNotesPanel'
 import { WritingSprintTimer } from './WritingSprintTimer'
 import { Button } from '@/components/ui/Button'
 import { X } from 'lucide-react'
+import { motion, AnimatePresence } from 'framer-motion'
+import { WritingSkeleton } from '@/components/shared/SmartSkeleton'
+import { SectionLoadingOverlay } from '@/components/shared/LoadingOverlay'
 
 const IMMERSIVE_HIDE_DELAY = 3000 // 3 seconds
 
@@ -20,7 +23,7 @@ export function WritingEditorPage() {
     immersiveMode,
     setImmersiveMode
   } = useUIStore()
-  const { init } = useWritingStore()
+  const { init, loading } = useWritingStore()
 
   const [chromeVisible, setChromeVisible] = useState(true)
   const hideTimeoutRef = useRef<NodeJS.Timeout | null>(null)
@@ -143,81 +146,95 @@ export function WritingEditorPage() {
     }
   }, [immersiveMode, chromeVisible, showChrome, scheduleHideChrome, setImmersiveMode])
 
-  // Transition classes for smooth animations
-  const toolbarTransition = immersiveMode
-    ? 'transition-all duration-300 ease-out'
-    : ''
-  const toolbarOpacity = immersiveMode
-    ? (chromeVisible ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-2 pointer-events-none')
-    : ''
-
   return (
     <div className="h-full flex flex-col bg-[#08090a]">
-      {/* 工具栏 - hides in immersive mode */}
-      <div className={`${toolbarTransition} ${toolbarOpacity}`}>
-        <WritingToolbar />
-      </div>
+      {/* 工具栏 - Framer Motion AnimatePresence for smooth show/hide */}
+      <AnimatePresence initial={false}>
+        {(!immersiveMode || chromeVisible) && (
+          <motion.div
+            key="toolbar"
+            initial={immersiveMode ? { opacity: 0, y: -12 } : false}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -12 }}
+            transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
+          >
+            <WritingToolbar />
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* 主内容区 */}
       <div className="flex-1 flex overflow-hidden">
         {/* 写作区域 */}
         <div className="flex-1 overflow-hidden relative">
-          <WritingCanvas />
+          <SectionLoadingOverlay
+            visible={loading.chapters || loading.outlines}
+            message="加载章节数据..."
+          />
+          {(loading.chapters || loading.outlines) ? (
+            <div className="h-full bg-[var(--color-writing-dark)] overflow-y-auto">
+              <WritingSkeleton />
+            </div>
+          ) : (
+            <WritingCanvas />
+          )}
         </div>
 
         {/* Floating components */}
         <ChapterNotesPanel />
         <WritingSprintTimer />
 
-        {/* AI操作抽屉 - 右侧 280px - slides in immersive mode */}
-        {aiDrawerOpen && (
-          <div
-            className={`border-l border-[rgba(255,255,255,0.08)] bg-[#191a1b] flex flex-col transition-all duration-300 ${
-              immersiveMode
-                ? chromeVisible
-                  ? 'w-[280px] opacity-100'
-                  : 'w-0 opacity-0 overflow-hidden'
-                : 'w-[280px]'
-            }`}
-          >
-            <div className="p-3 border-b border-[rgba(255,255,255,0.08)] flex items-center justify-between min-w-[280px]">
-              <span className="font-medium text-sm text-[#f7f8f8]">写作操作</span>
-              <Button
-                onClick={toggleAIDrawer}
-                variant="ghost"
-                size="icon"
-              >
-                <X className="w-4 h-4 text-[#d0d6e0]" />
-              </Button>
-            </div>
-            <AIOperationDrawer />
-          </div>
-        )}
+        {/* AI操作抽屉 - Framer Motion */}
+        <AnimatePresence initial={false}>
+          {aiDrawerOpen && (!immersiveMode || chromeVisible) && (
+            <motion.div
+              key="ai-drawer"
+              initial={{ width: 0, opacity: 0 }}
+              animate={{ width: 280, opacity: 1 }}
+              exit={{ width: 0, opacity: 0 }}
+              transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
+              className="border-l border-[rgba(255,255,255,0.08)] bg-[#191a1b] flex flex-col overflow-hidden"
+            >
+              <div className="p-3 border-b border-[rgba(255,255,255,0.08)] flex items-center justify-between min-w-[280px]">
+                <span className="font-medium text-sm text-[#f7f8f8]">写作操作</span>
+                <Button
+                  onClick={toggleAIDrawer}
+                  variant="ghost"
+                  size="icon"
+                >
+                  <X className="w-4 h-4 text-[#d0d6e0]" />
+                </Button>
+              </div>
+              <AIOperationDrawer />
+            </motion.div>
+          )}
+        </AnimatePresence>
 
-        {/* 协作面板 - 右侧 260px - slides in immersive mode */}
-        {collaborationDrawerOpen && (
-          <div
-            className={`border-l border-[rgba(255,255,255,0.08)] bg-[#191a1b] flex flex-col transition-all duration-300 ${
-              immersiveMode
-                ? chromeVisible
-                  ? 'w-[260px] opacity-100'
-                  : 'w-0 opacity-0 overflow-hidden'
-                : 'w-[260px]'
-            }`}
-          >
-            <div className="p-3 border-b border-[rgba(255,255,255,0.08)] flex items-center justify-between min-w-[260px]">
-              <span className="font-medium text-sm text-[#f7f8f8]">协作面板</span>
-              <Button
-                onClick={toggleCollaborationDrawer}
-                variant="ghost"
-                size="icon"
-              >
-                <X className="w-4 h-4 text-[#d0d6e0]" />
-              </Button>
-            </div>
-            <CollaborationPanel />
-          </div>
-        )}
+        {/* 协作面板 - Framer Motion */}
+        <AnimatePresence initial={false}>
+          {collaborationDrawerOpen && (!immersiveMode || chromeVisible) && (
+            <motion.div
+              key="collab-drawer"
+              initial={{ width: 0, opacity: 0 }}
+              animate={{ width: 260, opacity: 1 }}
+              exit={{ width: 0, opacity: 0 }}
+              transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
+              className="border-l border-[rgba(255,255,255,0.08)] bg-[#191a1b] flex flex-col overflow-hidden"
+            >
+              <div className="p-3 border-b border-[rgba(255,255,255,0.08)] flex items-center justify-between min-w-[260px]">
+                <span className="font-medium text-sm text-[#f7f8f8]">协作面板</span>
+                <Button
+                  onClick={toggleCollaborationDrawer}
+                  variant="ghost"
+                  size="icon"
+                >
+                  <X className="w-4 h-4 text-[#d0d6e0]" />
+                </Button>
+              </div>
+              <CollaborationPanel />
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
     </div>
   )

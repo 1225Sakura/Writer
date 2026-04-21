@@ -2,11 +2,13 @@ import * as React from 'react'
 import { clsx } from 'clsx'
 import { twMerge } from 'tailwind-merge'
 import { Slot } from '@radix-ui/react-slot'
+import { Loader2 } from 'lucide-react'
 
 export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: 'default' | 'primary' | 'outline' | 'ghost' | 'subtle' | 'destructive' | 'secondary'
   size?: 'sm' | 'md' | 'lg' | 'icon'
   asChild?: boolean
+  loading?: boolean
 }
 
 const variantStyles = {
@@ -27,24 +29,69 @@ const sizeStyles = {
 }
 
 export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
-  ({ className, variant = 'default', size = 'md', asChild = false, disabled, ...props }, ref) => {
+  ({ className, variant = 'default', size = 'md', asChild = false, disabled, loading, children, onClick, ...props }, ref) => {
     const Comp = asChild ? Slot : 'button'
+    const [ripples, setRipples] = React.useState<Array<{ id: number; x: number; y: number }>>([])
+    const buttonRef = React.useRef<HTMLButtonElement>(null)
+
+    const handleClick = React.useCallback((e: React.MouseEvent<HTMLButtonElement>) => {
+      if (loading || disabled) return
+
+      const button = buttonRef.current
+      if (button) {
+        const rect = button.getBoundingClientRect()
+        const x = e.clientX - rect.left
+        const y = e.clientY - rect.top
+        const id = Date.now()
+        setRipples(prev => [...prev, { id, x, y }])
+        setTimeout(() => {
+          setRipples(prev => prev.filter(r => r.id !== id))
+        }, 600)
+      }
+
+      onClick?.(e)
+    }, [loading, disabled, onClick])
+
     return (
       <Comp
-        ref={ref}
-        disabled={disabled}
+        ref={(node: HTMLButtonElement | null) => {
+          (buttonRef as React.MutableRefObject<HTMLButtonElement | null>).current = node
+          if (typeof ref === 'function') ref(node)
+          else if (ref) (ref as React.MutableRefObject<HTMLButtonElement | null>).current = node
+        }}
+        disabled={disabled || loading}
         className={twMerge(
           clsx(
-            'inline-flex items-center justify-center font-[510] transition-all duration-200 cursor-pointer',
+            'relative inline-flex items-center justify-center font-[510] transition-all duration-200 cursor-pointer overflow-hidden',
             'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-var-accent focus-visible:ring-offset-2 focus-visible:ring-offset-var-bg',
             'disabled:pointer-events-none disabled:opacity-50',
+            'hover:scale-[1.02] active:scale-[0.98]',
             variantStyles[variant],
             sizeStyles[size]
           ),
           className
         )}
+        onClick={handleClick}
         {...props}
-      />
+      >
+        {loading && (
+          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+        )}
+        {children}
+
+        {/* Ripple effects */}
+        {ripples.map(ripple => (
+          <span
+            key={ripple.id}
+            className="absolute rounded-full bg-white/30 pointer-events-none animate-ripple"
+            style={{
+              left: ripple.x,
+              top: ripple.y,
+              transform: 'translate(-50%, -50%)',
+            }}
+          />
+        ))}
+      </Comp>
     )
   }
 )

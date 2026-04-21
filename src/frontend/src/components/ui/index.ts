@@ -70,6 +70,9 @@ export {
 
 export { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from './tooltip'
 
+export { HoverCard } from './HoverCard'
+export type { HoverCardProps } from './HoverCard'
+
 export { Slider } from './slider'
 
 export { Switch } from './switch'
@@ -83,3 +86,22 @@ export { ScrollArea, ScrollBar } from './scroll-area'
 export { Skeleton } from './skeleton'
 
 export { Avatar, AvatarImage, AvatarFallback } from './avatar'
+
+// New UI components
+export { WritingStatsChart } from './WritingStatsChart'
+export type { WritingStatsChartProps } from './WritingStatsChart'
+
+export { CircularProgress } from './CircularProgress'
+export type { CircularProgressProps } from './CircularProgress'
+
+export { AnimatedCounter } from './AnimatedCounter'
+export type { AnimatedCounterProps } from './AnimatedCounter'
+
+export { GlowCard } from './GlowCard'
+export type { GlowCardProps } from './GlowCard'
+
+export { TypewriterText } from './TypewriterText'
+export type { TypewriterTextProps } from './TypewriterText'
+
+export { MagneticButton } from './MagneticButton'
+export type { MagneticButtonProps } from './MagneticButton'

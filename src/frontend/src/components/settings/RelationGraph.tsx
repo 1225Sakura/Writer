@@ -52,6 +52,7 @@ export function RelationGraph() {
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 })
   const [showLegend, setShowLegend] = useState(true)
   const [highlightedConnections, setHighlightedConnections] = useState<Set<number>>(new Set())
+  const [isLoaded, setIsLoaded] = useState(false)
 
   // 计算节点和连线 - 使用useMemo优化
   const nodes: GraphNode[] = useMemo(() =>
@@ -122,6 +123,12 @@ export function RelationGraph() {
     })
     setHighlightedConnections(connected)
   }, [hoveredNode, links])
+
+  // 加载动画
+  useEffect(() => {
+    const timer = setTimeout(() => setIsLoaded(true), 100)
+    return () => clearTimeout(timer)
+  }, [])
 
   useEffect(() => {
     if (containerRef.current) {
@@ -272,6 +279,40 @@ export function RelationGraph() {
         onMouseUp={handleMouseUp}
         onMouseLeave={handleMouseUp}
       >
+        {/* SVG Definitions for glow filters and gradients */}
+        <defs>
+          {/* Node glow filter */}
+          <filter id="node-glow" x="-50%" y="-50%" width="200%" height="200%">
+            <feGaussianBlur stdDeviation="4" result="blur" />
+            <feMerge>
+              <feMergeNode in="blur" />
+              <feMergeNode in="blur" />
+              <feMergeNode in="SourceGraphic" />
+            </feMerge>
+          </filter>
+          {/* Stronger glow for hover */}
+          <filter id="node-glow-strong" x="-50%" y="-50%" width="200%" height="200%">
+            <feGaussianBlur stdDeviation="8" result="blur" />
+            <feMerge>
+              <feMergeNode in="blur" />
+              <feMergeNode in="blur" />
+              <feMergeNode in="blur" />
+              <feMergeNode in="SourceGraphic" />
+            </feMerge>
+          </filter>
+          {/* Flowing line gradient mask */}
+          <linearGradient id="line-flow-gradient" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" stopColor="white" stopOpacity="0" />
+            <stop offset="50%" stopColor="white" stopOpacity="1" />
+            <stop offset="100%" stopColor="white" stopOpacity="0" />
+          </linearGradient>
+          {/* Animated dash pattern */}
+          <pattern id="flowing-dash" width="20" height="4" patternUnits="userSpaceOnUse">
+            <rect width="20" height="4" fill="none" />
+            <line x1="0" y1="2" x2="12" y2="2" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+          </pattern>
+        </defs>
+
         <g transform={`translate(${pan.x}, ${pan.y}) scale(${zoom})`}>
           {/* 连线 */}
           {links.map((link, i) => {
@@ -281,19 +322,46 @@ export function RelationGraph() {
 
             const isHovered = hoveredNode === link.source || hoveredNode === link.target
             const isDimmed = hoveredNode !== null && !isHovered
+            const linkColor = RELATION_TYPE_COLORS[link.type] || RELATION_TYPE_COLORS.other
 
             return (
               <g key={`link-${i}`}>
+                {/* Base line */}
                 <line
                   x1={sourcePos.x}
                   y1={sourcePos.y}
                   x2={targetPos.x}
                   y2={targetPos.y}
-                  stroke={RELATION_TYPE_COLORS[link.type] || RELATION_TYPE_COLORS.other}
+                  stroke={linkColor}
                   strokeWidth={isHovered ? 2.5 : 1}
                   opacity={isDimmed ? 0.1 : isHovered ? 0.9 : 0.4}
                   style={{ transition: 'all 0.2s ease' }}
                 />
+                {/* Flowing dash animation overlay (visible on hover) */}
+                {isHovered && (
+                  <line
+                    x1={sourcePos.x}
+                    y1={sourcePos.y}
+                    x2={targetPos.x}
+                    y2={targetPos.y}
+                    stroke={linkColor}
+                    strokeWidth={2}
+                    strokeDasharray="6 10"
+                    strokeLinecap="round"
+                    opacity={0.8}
+                    style={{
+                      animation: 'flowing-dash 1s linear infinite',
+                    }}
+                  >
+                    <animate
+                      attributeName="stroke-dashoffset"
+                      from="0"
+                      to="-16"
+                      dur="0.8s"
+                      repeatCount="indefinite"
+                    />
+                  </line>
+                )}
                 {/* 关系类型标签（仅在hover时显示） */}
                 {isHovered && (
                   <text
@@ -320,6 +388,7 @@ export function RelationGraph() {
             const isIsolated = isolatedNodes.some((n) => n.id === node.id)
             const isConnected = highlightedConnections.has(node.id)
             const isDimmed = hoveredNode !== null && !isConnected
+            const nodeRadius = isHovered ? 28 : 22 + Math.min(node.val * 1.5, 8)
 
             return (
               <g
@@ -328,35 +397,57 @@ export function RelationGraph() {
                 onMouseEnter={() => setHoveredNode(node.id)}
                 onMouseLeave={() => setHoveredNode(null)}
                 style={{ cursor: 'pointer' }}
+                opacity={isLoaded ? 1 : 0}
               >
-                {/* 外发光（hover时） */}
+                {/* 外发光（hover时）- 增强版 */}
                 {isHovered && (
                   <circle
-                    r={36}
+                    r={nodeRadius + 12}
                     fill="none"
                     stroke={node.color}
-                    strokeWidth={1}
-                    opacity={0.3}
+                    strokeWidth={2}
+                    opacity={0.2}
+                    filter="url(#node-glow-strong)"
                   >
-                    <animate attributeName="r" values="32;38;32" dur="2s" repeatCount="indefinite" />
+                    <animate attributeName="r" values={`${nodeRadius + 8};${nodeRadius + 16};${nodeRadius + 8}`} dur="2s" repeatCount="indefinite" />
                     <animate attributeName="opacity" values="0.3;0.1;0.3" dur="2s" repeatCount="indefinite" />
                   </circle>
                 )}
+                {/* 次级光晕（hover时） */}
+                {isHovered && (
+                  <circle
+                    r={nodeRadius + 6}
+                    fill={node.color}
+                    opacity={0.08}
+                    filter="url(#node-glow)"
+                  />
+                )}
                 {/* 主圆 */}
                 <circle
-                  r={isHovered ? 28 : 22 + Math.min(node.val * 1.5, 8)}
+                  r={nodeRadius}
                   fill={node.color}
                   opacity={isDimmed ? 0.15 : isIsolated ? 0.4 : 0.85}
                   style={{ transition: 'all 0.2s ease' }}
+                  filter={isHovered ? 'url(#node-glow)' : undefined}
                 />
                 {/* 边框 */}
                 <circle
-                  r={isHovered ? 28 : 22 + Math.min(node.val * 1.5, 8)}
+                  r={nodeRadius}
                   fill="none"
-                  stroke="rgba(255,255,255,0.3)"
-                  strokeWidth={isHovered ? 2 : 1}
+                  stroke={isHovered ? 'rgba(255,255,255,0.5)' : 'rgba(255,255,255,0.3)'}
+                  strokeWidth={isHovered ? 2.5 : 1}
                   opacity={isDimmed ? 0.1 : 1}
+                  style={{ transition: 'all 0.2s ease' }}
                 />
+                {/* Hover时内部高光 */}
+                {isHovered && (
+                  <circle
+                    r={nodeRadius - 4}
+                    fill="none"
+                    stroke="rgba(255,255,255,0.15)"
+                    strokeWidth={1}
+                  />
+                )}
                 {/* 关系数量指示 */}
                 {node.val > 1 && (
                   <circle

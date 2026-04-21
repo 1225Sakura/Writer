@@ -1,8 +1,8 @@
 /* ============================================================
    Auto Novel Writer — Global CSS Variables
    Based on Linear Design System + Writing-Specific UX
-   Version: 1.0
-   Date: 2026-04-18
+   Version: 1.1
+   Date: 2026-04-21
    ============================================================ */
 
 /* ============================================================
@@ -175,6 +175,30 @@
   --layout-topbar-height:       48px;
   --layout-content-max-width:   1200px;
   --writing-max-width:          720px;
+
+  /* === Ink Texture (水墨纹理) === */
+  --ink-texture-opacity:        0.03;
+  --ink-texture-color:          #1a1a2e;
+  --paper-texture-opacity:      0.04;
+  --paper-texture-color:        #f5f0e6;
+  --grain-size:                 0.5px;
+
+  /* === Glassmorphism (玻璃拟态) === */
+  --glass-bg:                   rgba(15, 16, 17, 0.65);
+  --glass-bg-strong:            rgba(15, 16, 17, 0.85);
+  --glass-border:               rgba(255, 255, 255, 0.08);
+  --glass-blur:                 16px;
+
+  /* === Extended Shadows === */
+  --shadow-elevated:            0 4px 12px rgba(0, 0, 0, 0.25);
+  --shadow-elevated-lg:         0 8px 24px rgba(0, 0, 0, 0.35);
+  --shadow-glow-sm:             0 0 8px rgba(94, 106, 210, 0.25);
+  --shadow-glow:                0 0 16px rgba(94, 106, 210, 0.35);
+  --shadow-inner-glow:          inset 0 0 12px rgba(94, 106, 210, 0.15);
+
+  /* === Selection Colors === */
+  --selection-bg:               rgba(94, 106, 210, 0.35);
+  --selection-color:            #f7f8f8;
 }
 
 /* ============================================================
@@ -244,7 +268,7 @@ code, pre {
 }
 
 /* ============================================================
-   SCROLLBAR STYLING
+   SCROLLBAR STYLING — Dark Mode Optimized
    ============================================================ */
 
 ::-webkit-scrollbar {
@@ -263,6 +287,27 @@ code, pre {
 
 ::-webkit-scrollbar-thumb:hover {
   background: var(--text-tertiary);
+}
+
+::-webkit-scrollbar-corner {
+  background: var(--color-surface-base);
+}
+
+/* Firefox scrollbar */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-strong) var(--color-surface-base);
+}
+
+/* Selection styling */
+::selection {
+  background: var(--selection-bg);
+  color: var(--selection-color);
+}
+
+::-moz-selection {
+  background: var(--selection-bg);
+  color: var(--selection-color);
 }
 
 /* ============================================================
@@ -516,6 +561,13 @@ code, pre {
 .writing-area .tiptap em {
   font-style: italic;
   color: var(--writing-text);
+}
+
+/* Current line highlight (typewriter mode feel) */
+.writing-area .tiptap .current-line-highlight {
+  background: linear-gradient(90deg, rgba(94, 106, 210, 0.06) 0%, rgba(232, 184, 125, 0.04) 100%);
+  border-radius: 4px;
+  transition: background 0.3s ease;
 }
 
 /* ============================================================
@@ -855,6 +907,90 @@ code, pre {
   to { transform: rotate(360deg); }
 }
 
+@keyframes ripple {
+  0% {
+    width: 0;
+    height: 0;
+    opacity: 0.4;
+  }
+  100% {
+    width: 300px;
+    height: 300px;
+    opacity: 0;
+  }
+}
+
+@keyframes glow-pulse {
+  0%, 100% {
+    box-shadow: 0 0 4px rgba(94, 106, 210, 0.3), 0 0 8px rgba(94, 106, 210, 0.15);
+  }
+  50% {
+    box-shadow: 0 0 8px rgba(94, 106, 210, 0.5), 0 0 16px rgba(94, 106, 210, 0.25);
+  }
+}
+
+/* ============================================================
+   SHIMMER ANIMATION — Enhanced skeleton loading effect
+   ============================================================ */
+
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+@keyframes pulse-ring {
+  0% {
+    transform: scale(0.8);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(2);
+    opacity: 0;
+  }
+}
+
+@keyframes dot-bounce {
+  0%, 80%, 100% {
+    transform: translateY(0);
+  }
+  40% {
+    transform: translateY(-6px);
+  }
+}
+
+.animate-shimmer {
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.06) 25%,
+    rgba(255, 255, 255, 0.12) 50%,
+    rgba(255, 255, 255, 0.06) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s ease-in-out infinite;
+}
+
+.animate-pulse-ring {
+  animation: pulse-ring 1.5s cubic-bezier(0.16, 1, 0.3, 1) infinite;
+}
+
+.animate-dot-bounce {
+  animation: dot-bounce 1.4s ease-in-out infinite both;
+}
+
+.animate-dot-bounce-delay-1 {
+  animation: dot-bounce 1.4s ease-in-out infinite both;
+  animation-delay: 0.16s;
+}
+
+.animate-dot-bounce-delay-2 {
+  animation: dot-bounce 1.4s ease-in-out infinite both;
+  animation-delay: 0.32s;
+}
+
 /* Animation utility classes */
 .animate-slide-in {
   animation: slide-in-from-bottom 200ms var(--ease-out) forwards;
@@ -882,6 +1018,11 @@ code, pre {
 
 .animate-spin {
   animation: spin 1s linear infinite;
+}
+
+/* Ripple effect for buttons */
+.animate-ripple {
+  animation: ripple 600ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
 /* Animation delays for stagger effects */
@@ -916,3 +1057,166 @@ code, pre {
 .rounded-2xl { border-radius: var(--radius-2xl); }
 .rounded-pill { border-radius: var(--radius-pill); }
 .rounded-full { border-radius: var(--radius-full); }
+
+/* ============================================================
+   INTERACTION FEEDBACK — Micro-motion utility classes
+   ============================================================ */
+
+/* Hover lift: subtle upward movement with shadow enhancement */
+.hover-lift {
+  transition: transform 200ms var(--ease-out), box-shadow 200ms var(--ease-out);
+}
+
+.hover-lift:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15), 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Press down: subtle downward movement on active/press */
+.press-down {
+  transition: transform 100ms var(--ease-out);
+}
+
+.press-down:active {
+  transform: translateY(1px);
+}
+
+/* Glow border: animated border glow effect */
+.glow-border {
+  position: relative;
+  border: 1px solid transparent;
+}
+
+.glow-border::before {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  padding: 1px;
+  background: linear-gradient(135deg, rgba(94, 106, 210, 0.5), rgba(94, 181, 166, 0.3), rgba(232, 184, 125, 0.4));
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  animation: glow-pulse 2s ease-in-out infinite;
+  pointer-events: none;
+}
+
+/* Static glow border (no animation) */
+.glow-border-static {
+  position: relative;
+  border: 1px solid transparent;
+}
+
+.glow-border-static::before {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  padding: 1px;
+  background: linear-gradient(135deg, rgba(94, 106, 210, 0.5), rgba(94, 181, 166, 0.3), rgba(232, 184, 125, 0.4));
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+}
+
+/* ============================================================
+   TEXTURE & GLASSMORPHISM EFFECTS
+   ============================================================ */
+
+/* Paper texture — CSS gradient simulation */
+.paper-texture {
+  background-color: var(--writing-bg);
+  background-image:
+    radial-gradient(ellipse at 20% 30%, rgba(245, 240, 230, 0.03) 0%, transparent 50%),
+    radial-gradient(ellipse at 80% 70%, rgba(245, 240, 230, 0.02) 0%, transparent 50%),
+    linear-gradient(180deg, rgba(245, 240, 230, 0.01) 0%, transparent 100%);
+  position: relative;
+}
+
+.paper-texture::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.025'/%3E%3C/svg%3E");
+  opacity: var(--paper-texture-opacity);
+  pointer-events: none;
+  mix-blend-mode: overlay;
+}
+
+/* Ink texture overlay */
+.ink-texture {
+  position: relative;
+}
+
+.ink-texture::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image:
+    radial-gradient(ellipse at 10% 20%, rgba(26, 26, 46, 0.04) 0%, transparent 40%),
+    radial-gradient(ellipse at 90% 80%, rgba(26, 26, 46, 0.03) 0%, transparent 40%);
+  pointer-events: none;
+  mix-blend-mode: multiply;
+}
+
+/* Glass morphism */
+.glass {
+  background: var(--glass-bg);
+  backdrop-filter: blur(var(--glass-blur)) saturate(1.2);
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(1.2);
+  border: 1px solid var(--glass-border);
+}
+
+.glass-strong {
+  background: var(--glass-bg-strong);
+  backdrop-filter: blur(calc(var(--glass-blur) * 1.5)) saturate(1.2);
+  -webkit-backdrop-filter: blur(calc(var(--glass-blur) * 1.5)) saturate(1.2);
+  border: 1px solid var(--glass-border);
+}
+
+/* Glow text effect */
+.glow-text {
+  text-shadow: 0 0 8px rgba(94, 106, 210, 0.4);
+}
+
+.glow-text-vermillion {
+  text-shadow: 0 0 8px rgba(196, 92, 92, 0.4);
+}
+
+/* ============================================================
+   ENHANCED ANIMATIONS — Additional keyframes & utilities
+   ============================================================ */
+
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-6px); }
+}
+
+@keyframes breathe {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.02); opacity: 0.85; }
+}
+
+@keyframes typing-dot-bounce {
+  0%, 60%, 100% { transform: translateY(0); }
+  30% { transform: translateY(-4px); }
+}
+
+/* Animation utility classes */
+.animate-float {
+  animation: float 3s ease-in-out infinite;
+}
+
+.animate-breathe {
+  animation: breathe 4s ease-in-out infinite;
+}
+
+.animate-typing-dot-bounce {
+  animation: typing-dot-bounce 1.4s ease-in-out infinite;
+}
+
+.animate-typing-dot-bounce:nth-child(2) { animation-delay: 0.2s; }
+.animate-typing-dot-bounce:nth-child(3) { animation-delay: 0.4s; }

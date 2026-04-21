@@ -1,7 +1,8 @@
 import { useSettingsStore, type CharacterLocal, UIState, Chapter } from '@/store'
-import { Trash2, Edit2, Users, Plus, FileText, X, Sparkles } from 'lucide-react'
-import { useState } from 'react'
+import { Trash2, Edit2, Users, Plus, FileText, X, Sparkles, Check } from 'lucide-react'
+import { useState, useCallback } from 'react'
 import { TagInput, TagChips } from './TagInput'
+import { motion, AnimatePresence } from 'framer-motion'
 
 interface EntityEditorProps {
   category: UIState['settingsCategory']
@@ -32,6 +33,132 @@ const inputStyle = {
   color: '#f7f8f8',
 }
 
+// Floating label input component
+function FloatingLabelInput({
+  value,
+  onChange,
+  placeholder,
+  label,
+  autoFocus,
+  onKeyDown,
+}: {
+  value: string
+  onChange: (value: string) => void
+  placeholder?: string
+  label: string
+  autoFocus?: boolean
+  onKeyDown?: (e: React.KeyboardEvent) => void
+}) {
+  const [isFocused, setIsFocused] = useState(false)
+  const isActive = isFocused || value.length > 0
+
+  return (
+    <div className="relative">
+      <motion.label
+        className="absolute left-3 pointer-events-none origin-left"
+        style={{ color: '#8a8f98' }}
+        animate={{
+          y: isActive ? -22 : 10,
+          scale: isActive ? 0.85 : 1,
+          color: isFocused ? '#5e6ad2' : '#8a8f98',
+        }}
+        transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
+      >
+        {label}
+      </motion.label>
+      <input
+        type="text"
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        onFocus={() => setIsFocused(true)}
+        onBlur={() => setIsFocused(false)}
+        onKeyDown={onKeyDown}
+        placeholder={isActive ? placeholder : ''}
+        autoFocus={autoFocus}
+        className="w-full px-3 pt-5 pb-2 rounded-md text-sm transition-all focus:outline-none"
+        style={{
+          ...inputStyle,
+          borderColor: isFocused ? 'rgba(94,106,210,0.5)' : 'rgba(255,255,255,0.1)',
+        }}
+      />
+    </div>
+  )
+}
+
+// Floating label textarea component
+function FloatingLabelTextarea({
+  value,
+  onChange,
+  placeholder,
+  label,
+  rows = 3,
+}: {
+  value: string
+  onChange: (value: string) => void
+  placeholder?: string
+  label: string
+  rows?: number
+}) {
+  const [isFocused, setIsFocused] = useState(false)
+  const isActive = isFocused || value.length > 0
+
+  return (
+    <div className="relative">
+      <motion.label
+        className="absolute left-3 pointer-events-none origin-left"
+        style={{ color: '#8a8f98' }}
+        animate={{
+          y: isActive ? -22 : 10,
+          scale: isActive ? 0.85 : 1,
+          color: isFocused ? '#5e6ad2' : '#8a8f98',
+        }}
+        transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
+      >
+        {label}
+      </motion.label>
+      <textarea
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        onFocus={() => setIsFocused(true)}
+        onBlur={() => setIsFocused(false)}
+        placeholder={isActive ? placeholder : ''}
+        rows={rows}
+        className="w-full px-3 pt-5 pb-2 rounded-md text-sm transition-all focus:outline-none resize-none"
+        style={{
+          ...inputStyle,
+          borderColor: isFocused ? 'rgba(94,106,210,0.5)' : 'rgba(255,255,255,0.1)',
+        }}
+      />
+    </div>
+  )
+}
+
+// Save success feedback animation
+function SaveSuccessFeedback({ show }: { show: boolean }) {
+  return (
+    <AnimatePresence>
+      {show && (
+        <motion.div
+          className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1.5"
+          initial={{ opacity: 0, scale: 0.5, x: 10 }}
+          animate={{ opacity: 1, scale: 1, x: 0 }}
+          exit={{ opacity: 0, scale: 0.5, x: 10 }}
+          transition={{ type: 'spring', stiffness: 400, damping: 25 }}
+        >
+          <motion.div
+            initial={{ scale: 0 }}
+            animate={{ scale: 1 }}
+            transition={{ type: 'spring', stiffness: 500, damping: 20, delay: 0.1 }}
+          >
+            <Check className="w-4 h-4" style={{ color: '#7eb84a' }} />
+          </motion.div>
+          <span className="text-xs" style={{ color: '#7eb84a' }}>已保存</span>
+        </motion.div>
+      )}
+    </AnimatePresence>
+  )
+}
+
 // Generic entity card for simple CRUD entities
 function EntityCard({
   name,
@@ -55,8 +182,8 @@ function EntityCard({
   const [isHovered, setIsHovered] = useState(false)
 
   return (
-    <div
-      className="p-4 rounded-lg transition-all cursor-pointer"
+    <motion.div
+      className="p-4 rounded-lg cursor-pointer"
       style={{
         ...cardStyle,
         backgroundColor: isHovered ? 'rgba(255,255,255,0.04)' : 'rgba(255,255,255,0.02)',
@@ -64,6 +191,8 @@ function EntityCard({
       }}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
+      whileHover={{ y: -1 }}
+      transition={{ duration: 0.15 }}
     >
       <div className="flex items-start justify-between">
         <div className="flex-1 min-w-0">
@@ -109,7 +238,7 @@ function EntityCard({
           <Trash2 className="w-4 h-4" />
         </button>
       </div>
-    </div>
+    </motion.div>
   )
 }
 
@@ -124,32 +253,33 @@ function AddEntityForm({
   onCancel: () => void
 }) {
   const [name, setName] = useState('')
+  const [showSuccess, setShowSuccess] = useState(false)
+
+  const handleAdd = useCallback(() => {
+    if (name.trim()) {
+      onAdd(name.trim())
+      setShowSuccess(true)
+      setTimeout(() => setShowSuccess(false), 1500)
+    }
+  }, [name, onAdd])
 
   return (
     <div className="p-3 rounded-lg" style={cardStyle}>
-      <input
-        type="text"
-        value={name}
-        onChange={(e) => setName(e.target.value)}
-        onKeyDown={(e) => {
-          if (e.key === 'Enter' && name.trim()) onAdd(name.trim())
-          if (e.key === 'Escape') onCancel()
-        }}
-        placeholder={placeholder}
-        autoFocus
-        className="w-full px-3 py-2 rounded-md text-sm mb-3 transition-all focus:outline-none"
-        style={{
-          ...inputStyle,
-          borderColor: 'rgba(94,106,210,0.3)',
-        }}
-        onFocus={(e) => {
-          e.currentTarget.style.borderColor = 'rgba(94,106,210,0.5)'
-        }}
-        onBlur={(e) => {
-          e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)'
-        }}
-      />
-      <div className="flex gap-2 justify-end">
+      <div className="relative">
+        <FloatingLabelInput
+          value={name}
+          onChange={setName}
+          placeholder={placeholder}
+          label="名称"
+          autoFocus
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' && name.trim()) handleAdd()
+            if (e.key === 'Escape') onCancel()
+          }}
+        />
+        <SaveSuccessFeedback show={showSuccess} />
+      </div>
+      <div className="flex gap-2 justify-end mt-3">
         <button
           onClick={onCancel}
           className="px-3 py-1.5 rounded-md text-xs font-medium transition-all"
@@ -167,10 +297,10 @@ function AddEntityForm({
         >
           取消
         </button>
-        <button
-          onClick={() => name.trim() && onAdd(name.trim())}
+        <motion.button
+          onClick={handleAdd}
           disabled={!name.trim()}
-          className="px-3 py-1.5 rounded-md text-xs font-medium transition-all disabled:opacity-40"
+          className="px-3 py-1.5 rounded-md text-xs font-medium disabled:opacity-40 relative overflow-hidden"
           style={{
             backgroundColor: '#5e6ad2',
             color: '#fff',
@@ -181,9 +311,10 @@ function AddEntityForm({
           onMouseLeave={(e) => {
             e.currentTarget.style.backgroundColor = '#5e6ad2'
           }}
+          whileTap={{ scale: 0.97 }}
         >
           添加
-        </button>
+        </motion.button>
       </div>
     </div>
   )
@@ -216,7 +347,7 @@ function SectionHeader({
       </div>
       <div className="flex items-center gap-2">
         {onGenerate && (
-          <button
+          <motion.button
             onClick={onGenerate}
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-all"
             style={{
@@ -230,12 +361,14 @@ function SectionHeader({
             onMouseLeave={(e) => {
               e.currentTarget.style.backgroundColor = 'rgba(94,106,210,0.15)'
             }}
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
           >
             <Sparkles className="w-3.5 h-3.5" />
             AI生成
-          </button>
+          </motion.button>
         )}
-        <button
+        <motion.button
           onClick={onAdd}
           className="flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-all"
           style={{
@@ -249,10 +382,12 @@ function SectionHeader({
           onMouseLeave={(e) => {
             e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.05)'
           }}
+          whileHover={{ scale: 1.02 }}
+          whileTap={{ scale: 0.98 }}
         >
           <Plus className="w-3.5 h-3.5" />
           新增
-        </button>
+        </motion.button>
       </div>
     </div>
   )
@@ -275,61 +410,42 @@ function EntityForm<T extends { name: string; description?: string }>({
     const empty = {} as T
     return empty
   })
+  const [showSuccess, setShowSuccess] = useState(false)
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     onSave(formData)
+    setShowSuccess(true)
+    setTimeout(() => setShowSuccess(false), 1500)
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4 p-4 rounded-lg" style={cardStyle}>
+    <form onSubmit={handleSubmit} className="space-y-4 p-4 rounded-lg relative" style={cardStyle}>
       {fields.map(({ key, label, type }) => (
         <div key={key as string}>
-          <label className="block text-xs font-medium mb-1.5" style={{ color: '#9ca3af' }}>
-            {label}
-          </label>
           {type === 'textarea' ? (
-            <textarea
+            <FloatingLabelTextarea
               value={(formData[key] as string) || ''}
-              onChange={(e) => {
-                const value = e.target.value as T[keyof T]
-                setFormData({ ...formData, [key]: value })
+              onChange={(value) => {
+                setFormData({ ...formData, [key]: value as T[keyof T] })
               }}
-              className="w-full px-3 py-2 rounded-md text-sm transition-all focus:outline-none resize-none"
-              style={{
-                ...inputStyle,
-              }}
-              onFocus={(e) => {
-                e.currentTarget.style.borderColor = 'rgba(94,106,210,0.5)'
-              }}
-              onBlur={(e) => {
-                e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)'
-              }}
-              rows={3}
+              placeholder={`输入${label}...`}
+              label={label}
             />
           ) : (
-            <input
-              type="text"
+            <FloatingLabelInput
               value={(formData[key] as string) || ''}
-              onChange={(e) => {
-                const value = e.target.value as T[keyof T]
-                setFormData({ ...formData, [key]: value })
+              onChange={(value) => {
+                setFormData({ ...formData, [key]: value as T[keyof T] })
               }}
-              className="w-full px-3 py-2 rounded-md text-sm transition-all focus:outline-none"
-              style={{
-                ...inputStyle,
-              }}
-              onFocus={(e) => {
-                e.currentTarget.style.borderColor = 'rgba(94,106,210,0.5)'
-              }}
-              onBlur={(e) => {
-                e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)'
-              }}
+              placeholder={`输入${label}...`}
+              label={label}
             />
           )}
         </div>
       ))}
-      <div className="flex gap-2 justify-end pt-2">
+      <div className="flex gap-2 justify-end pt-2 relative">
+        <SaveSuccessFeedback show={showSuccess} />
         <button
           type="button"
           onClick={onCancel}
@@ -348,7 +464,7 @@ function EntityForm<T extends { name: string; description?: string }>({
         >
           取消
         </button>
-        <button
+        <motion.button
           type="submit"
           className="px-4 py-2 rounded-md text-sm font-medium transition-all"
           style={{
@@ -361,9 +477,10 @@ function EntityForm<T extends { name: string; description?: string }>({
           onMouseLeave={(e) => {
             e.currentTarget.style.backgroundColor = '#5e6ad2'
           }}
+          whileTap={{ scale: 0.97 }}
         >
           保存
-        </button>
+        </motion.button>
       </div>
     </form>
   )
@@ -403,8 +520,8 @@ function CharacterCard({ character }: { character: CharacterLocal }) {
   }
 
   return (
-    <div
-      className="p-4 rounded-lg transition-all"
+    <motion.div
+      className="p-4 rounded-lg"
       style={{
         ...cardStyle,
         backgroundColor: isHovered ? 'rgba(255,255,255,0.04)' : 'rgba(255,255,255,0.02)',
@@ -412,6 +529,8 @@ function CharacterCard({ character }: { character: CharacterLocal }) {
       }}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
+      whileHover={{ y: -1 }}
+      transition={{ duration: 0.15 }}
     >
       <div className="flex items-start justify-between mb-2">
         <div className="flex items-center gap-2">
@@ -474,7 +593,7 @@ function CharacterCard({ character }: { character: CharacterLocal }) {
           {character.relationships.length} 条关系
         </span>
       </div>
-    </div>
+    </motion.div>
   )
 }
 
@@ -502,7 +621,7 @@ function NewCharacterForm() {
   }
 
   return (
-    <button
+    <motion.button
       onClick={() => setShowForm(true)}
       className="w-full p-4 rounded-lg transition-all flex items-center justify-center gap-2"
       style={{
@@ -517,12 +636,14 @@ function NewCharacterForm() {
         e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.02)'
         e.currentTarget.style.borderColor = 'rgba(255,255,255,0.08)'
       }}
+      whileHover={{ scale: 1.005 }}
+      whileTap={{ scale: 0.99 }}
     >
       <Plus className="w-4 h-4" style={{ color: '#5e6ad2' }} />
       <span className="text-sm" style={{ color: '#5e6ad2' }}>
         添加角色
       </span>
-    </button>
+    </motion.button>
   )
 }
 
@@ -613,28 +734,19 @@ function OutlineEditor() {
           </p>
           {isCreatingOutline ? (
             <div className="space-y-3 max-w-sm mx-auto">
-              <input
-                type="text"
-                value={newOutlineTitle}
-                onChange={(e) => setNewOutlineTitle(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') handleCreateOutline()
-                  if (e.key === 'Escape') setIsCreatingOutline(false)
-                }}
-                placeholder="输入大纲标题..."
-                autoFocus
-                className="w-full px-3 py-2 rounded-md text-sm transition-all focus:outline-none"
-                style={{
-                  ...inputStyle,
-                  borderColor: 'rgba(94,106,210,0.3)',
-                }}
-                onFocus={(e) => {
-                  e.currentTarget.style.borderColor = 'rgba(94,106,210,0.5)'
-                }}
-                onBlur={(e) => {
-                  e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)'
-                }}
-              />
+              <div className="relative">
+                <FloatingLabelInput
+                  value={newOutlineTitle}
+                  onChange={setNewOutlineTitle}
+                  placeholder="输入大纲标题..."
+                  label="标题"
+                  autoFocus
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') handleCreateOutline()
+                    if (e.key === 'Escape') setIsCreatingOutline(false)
+                  }}
+                />
+              </div>
               <div className="flex gap-2 justify-center">
                 <button
                   onClick={() => setIsCreatingOutline(false)}
@@ -647,18 +759,19 @@ function OutlineEditor() {
                 >
                   取消
                 </button>
-                <button
+                <motion.button
                   onClick={handleCreateOutline}
                   disabled={!newOutlineTitle.trim()}
                   className="px-4 py-2 rounded-md text-sm font-medium transition-all disabled:opacity-40"
                   style={{ backgroundColor: '#5e6ad2', color: '#fff' }}
+                  whileTap={{ scale: 0.97 }}
                 >
                   创建
-                </button>
+                </motion.button>
               </div>
             </div>
           ) : (
-            <button
+            <motion.button
               onClick={() => setIsCreatingOutline(true)}
               className="px-4 py-2 rounded-md text-sm font-medium transition-all"
               style={{
@@ -672,9 +785,11 @@ function OutlineEditor() {
               onMouseLeave={(e) => {
                 e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.05)'
               }}
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
             >
               创建大纲
-            </button>
+            </motion.button>
           )}
         </div>
       </div>
@@ -695,7 +810,7 @@ function OutlineEditor() {
             {chapters.length} 章节
           </span>
         </div>
-        <button
+        <motion.button
           onClick={() => setShowAddChapter(true)}
           className="flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-all"
           style={{
@@ -709,10 +824,12 @@ function OutlineEditor() {
           onMouseLeave={(e) => {
             e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.05)'
           }}
+          whileHover={{ scale: 1.02 }}
+          whileTap={{ scale: 0.98 }}
         >
           <Plus className="w-3.5 h-3.5" />
           新增章节
-        </button>
+        </motion.button>
       </div>
 
       <div className="mb-4 pb-3" style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
@@ -734,9 +851,9 @@ function OutlineEditor() {
           </div>
         ) : (
           chapters.map((chapter, index) => (
-            <div
+            <motion.div
               key={chapter.id}
-              className="p-3 rounded-lg transition-all group"
+              className="p-3 rounded-lg group"
               style={{
                 ...cardStyle,
                 backgroundColor: 'rgba(255,255,255,0.02)',
@@ -747,6 +864,8 @@ function OutlineEditor() {
               onMouseLeave={(e) => {
                 e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.02)'
               }}
+              whileHover={{ x: 2 }}
+              transition={{ duration: 0.15 }}
             >
               <div className="flex items-start gap-3">
                 {/* 章节序号 */}
@@ -866,65 +985,66 @@ function OutlineEditor() {
                   </button>
                 </div>
               </div>
-            </div>
+            </motion.div>
           ))
         )}
       </div>
 
       {/* 添加章节输入框 */}
-      {showAddChapter && (
-        <div className="mt-3 p-3 rounded-lg" style={cardStyle}>
-          <input
-            type="text"
-            value={newChapterTitle}
-            onChange={(e) => setNewChapterTitle(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter') handleAddChapter()
-              if (e.key === 'Escape') {
-                setShowAddChapter(false)
-                setNewChapterTitle('')
-              }
-            }}
-            placeholder="输入章节标题..."
-            autoFocus
-            className="w-full px-3 py-2 rounded-md text-sm mb-3 transition-all focus:outline-none"
-            style={{
-              ...inputStyle,
-              borderColor: 'rgba(94,106,210,0.3)',
-            }}
-            onFocus={(e) => {
-              e.currentTarget.style.borderColor = 'rgba(94,106,210,0.5)'
-            }}
-            onBlur={(e) => {
-              e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)'
-            }}
-          />
-          <div className="flex gap-2 justify-end">
-            <button
-              onClick={() => {
-                setShowAddChapter(false)
-                setNewChapterTitle('')
-              }}
-              className="px-3 py-1.5 rounded-md text-xs font-medium transition-all"
-              style={{
-                backgroundColor: 'transparent',
-                color: '#9ca3af',
-                border: '1px solid rgba(255,255,255,0.1)',
-              }}
-            >
-              取消
-            </button>
-            <button
-              onClick={handleAddChapter}
-              disabled={!newChapterTitle.trim()}
-              className="px-3 py-1.5 rounded-md text-xs font-medium transition-all disabled:opacity-40"
-              style={{ backgroundColor: '#5e6ad2', color: '#fff' }}
-            >
-              添加
-            </button>
-          </div>
-        </div>
-      )}
+      <AnimatePresence>
+        {showAddChapter && (
+          <motion.div
+            className="mt-3 p-3 rounded-lg"
+            style={cardStyle}
+            initial={{ opacity: 0, y: -10, height: 0 }}
+            animate={{ opacity: 1, y: 0, height: 'auto' }}
+            exit={{ opacity: 0, y: -10, height: 0 }}
+            transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
+          >
+            <div className="relative">
+              <FloatingLabelInput
+                value={newChapterTitle}
+                onChange={setNewChapterTitle}
+                placeholder="输入章节标题..."
+                label="章节标题"
+                autoFocus
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') handleAddChapter()
+                  if (e.key === 'Escape') {
+                    setShowAddChapter(false)
+                    setNewChapterTitle('')
+                  }
+                }}
+              />
+            </div>
+            <div className="flex gap-2 justify-end mt-3">
+              <button
+                onClick={() => {
+                  setShowAddChapter(false)
+                  setNewChapterTitle('')
+                }}
+                className="px-3 py-1.5 rounded-md text-xs font-medium transition-all"
+                style={{
+                  backgroundColor: 'transparent',
+                  color: '#9ca3af',
+                  border: '1px solid rgba(255,255,255,0.1)',
+                }}
+              >
+                取消
+              </button>
+              <motion.button
+                onClick={handleAddChapter}
+                disabled={!newChapterTitle.trim()}
+                className="px-3 py-1.5 rounded-md text-xs font-medium transition-all disabled:opacity-40"
+                style={{ backgroundColor: '#5e6ad2', color: '#fff' }}
+                whileTap={{ scale: 0.97 }}
+              >
+                添加
+              </motion.button>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* 章节摘要编辑 Modal */}
       {summaryModalChapterId && (
@@ -959,10 +1079,14 @@ function ChapterSummaryModal({
       style={{ backgroundColor: 'rgba(0,0,0,0.7)' }}
       onClick={onClose}
     >
-      <div
+      <motion.div
         className="w-full max-w-md rounded-lg p-5"
         style={{ backgroundColor: '#0f1011', border: '1px solid rgba(255,255,255,0.08)' }}
         onClick={(e) => e.stopPropagation()}
+        initial={{ opacity: 0, scale: 0.95, y: 20 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        exit={{ opacity: 0, scale: 0.95, y: 20 }}
+        transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
       >
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-sm font-semibold" style={{ color: '#f7f8f8' }}>
@@ -987,24 +1111,14 @@ function ChapterSummaryModal({
         <p className="text-xs mb-3" style={{ color: '#9ca3af' }}>
           {chapter.title}
         </p>
-        <textarea
+        <FloatingLabelTextarea
           value={summary}
-          onChange={(e) => setSummary(e.target.value)}
+          onChange={setSummary}
           placeholder="编写章节摘要..."
+          label="摘要"
           rows={4}
-          className="w-full px-3 py-2 rounded-md text-sm mb-4 resize-none transition-all focus:outline-none"
-          style={{
-            ...inputStyle,
-          }}
-          onFocus={(e) => {
-            e.currentTarget.style.borderColor = 'rgba(94,106,210,0.5)'
-          }}
-          onBlur={(e) => {
-            e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)'
-          }}
-          autoFocus
         />
-        <div className="flex gap-2 justify-end">
+        <div className="flex gap-2 justify-end mt-4">
           <button
             onClick={onClose}
             className="px-4 py-2 rounded-md text-sm font-medium transition-all"
@@ -1016,15 +1130,16 @@ function ChapterSummaryModal({
           >
             取消
           </button>
-          <button
+          <motion.button
             onClick={() => onSave(summary)}
             className="px-4 py-2 rounded-md text-sm font-medium transition-all"
             style={{ backgroundColor: '#5e6ad2', color: '#fff' }}
+            whileTap={{ scale: 0.97 }}
           >
             保存
-          </button>
+          </motion.button>
         </div>
-      </div>
+      </motion.div>
     </div>
   )
 }

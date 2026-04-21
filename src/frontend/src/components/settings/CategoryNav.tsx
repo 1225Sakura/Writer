@@ -1,6 +1,7 @@
 import { useUIStore, useSettingsStore, UIState } from '@/store'
 import { Button } from '@/components/ui/Button'
 import { Globe, Users, Package, MapPin, Shield, BookOpen, FileText, GitBranch, Feather } from 'lucide-react'
+import { motion } from 'framer-motion'
 
 const categories: Array<{ key: UIState['settingsCategory']; label: string; icon: typeof Globe }> = [
   { key: 'world', label: '世界观', icon: Globe },
@@ -26,6 +27,17 @@ const categoryColors: Record<string, string> = {
   rule: '#7eb84a',
   outline: '#5e6ad2',
   ifline: '#7eb84a',
+}
+
+const categoryGlowColors: Record<string, string> = {
+  world: 'rgba(94,106,210,0.15)',
+  character: 'rgba(232,184,125,0.15)',
+  item: 'rgba(155,126,217,0.15)',
+  location: 'rgba(94,181,166,0.15)',
+  faction: 'rgba(212,93,93,0.15)',
+  rule: 'rgba(126,184,74,0.15)',
+  outline: 'rgba(94,106,210,0.15)',
+  ifline: 'rgba(126,184,74,0.15)',
 }
 
 export function CategoryNav() {
@@ -57,50 +69,69 @@ export function CategoryNav() {
         {categories.map(({ key, label, icon: Icon }) => {
           const isActive = settingsCategory === key
           const color = categoryColors[key]
+          const glowColor = categoryGlowColors[key]
 
           return (
-            <button
+            <motion.button
               key={key}
               onClick={() => handleCategoryChange(key)}
-              className="w-full flex items-center gap-3 px-4 py-2.5 mb-0.5 text-left transition-all relative"
-              style={{
-                backgroundColor: isActive ? 'rgba(94,106,210,0.1)' : 'transparent',
-              }}
-              onMouseEnter={(e) => {
-                if (!isActive) {
-                  e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.04)'
-                }
-              }}
-              onMouseLeave={(e) => {
-                if (!isActive) {
-                  e.currentTarget.style.backgroundColor = 'transparent'
-                }
-              }}
+              className="w-full flex items-center gap-3 px-4 py-2.5 mb-0.5 text-left relative overflow-hidden"
+              initial={false}
+              animate={isActive ? { backgroundColor: glowColor } : { backgroundColor: 'transparent' }}
+              transition={{ duration: 0.2 }}
+              whileHover={!isActive ? { backgroundColor: 'rgba(255,255,255,0.04)' } : {}}
             >
-              {/* Active left border - Linear accent bar */}
+              {/* Active left border - Linear accent bar with glow */}
               {isActive && (
-                <div
+                <motion.div
                   className="absolute left-0 top-1/2 -translate-y-1/2"
+                  layoutId="category-active-indicator"
                   style={{
                     width: '3px',
                     height: '20px',
                     backgroundColor: color,
                     borderRadius: '0 2px 2px 0',
+                    boxShadow: `0 0 8px ${color}`,
+                  }}
+                  transition={{ type: 'spring', stiffness: 400, damping: 30 }}
+                />
+              )}
+
+              {/* Hover slide indicator - appears on hover when not active */}
+              {!isActive && (
+                <motion.div
+                  className="absolute left-0 top-1/2 -translate-y-1/2"
+                  initial={{ opacity: 0, x: -4 }}
+                  whileHover={{ opacity: 1, x: 0 }}
+                  style={{
+                    width: '3px',
+                    height: '12px',
+                    backgroundColor: 'rgba(255,255,255,0.15)',
+                    borderRadius: '0 2px 2px 0',
                   }}
                 />
               )}
 
-              <Icon
-                className="w-4 h-4 flex-shrink-0 transition-colors"
-                style={{ color: isActive ? color : 'var(--color-text-muted)' }}
-              />
-              <span
-                className="text-sm font-medium transition-colors"
+              <motion.div
+                initial={false}
+                animate={isActive ? { scale: 1.1 } : { scale: 1 }}
+                transition={{ type: 'spring', stiffness: 400, damping: 25 }}
+              >
+                <Icon
+                  className="w-4 h-4 flex-shrink-0"
+                  style={{ color: isActive ? color : 'var(--color-text-muted)' }}
+                />
+              </motion.div>
+              <motion.span
+                className="text-sm font-medium"
                 style={{ color: isActive ? 'var(--text-primary)' : 'var(--color-text-secondary)' }}
+                initial={false}
+                animate={isActive ? { x: 2 } : { x: 0 }}
+                transition={{ type: 'spring', stiffness: 400, damping: 25 }}
               >
                 {label}
-              </span>
-            </button>
+              </motion.span>
+            </motion.button>
           )
         })}
       </nav>

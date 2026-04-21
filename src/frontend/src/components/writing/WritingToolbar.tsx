@@ -104,16 +104,18 @@ export function WritingToolbar() {
 
       {/* 右侧：字数统计、警告和主题切换 */}
       <div className="ml-auto flex items-center gap-2">
-        {/* 今日进度 */}
+        {/* 今日进度 - gradient fill */}
         <div className="flex items-center gap-1.5 mr-2"
           title="今日写作进度"
         >
           <BarChart3 className="w-3.5 h-3.5 text-[#5e6ad2]" />
           <div className="w-20 h-1.5 bg-[rgba(255,255,255,0.06)] rounded-full overflow-hidden">
             <div
-              className="h-full bg-[#5e6ad2] rounded-full transition-all duration-500"
+              className="h-full rounded-full transition-all duration-500"
               style={{
                 width: `${Math.min(100, (todayWordCount / Math.max(1, targetWordCount)) * 100)}%`,
+                background: 'linear-gradient(90deg, #5e6ad2 0%, #7eb84a 100%)',
+                boxShadow: '0 0 6px rgba(94, 106, 210, 0.3)',
               }}
             />
           </div>
@@ -209,9 +211,17 @@ const ToolbarButton = memo(function ToolbarButton({
       onClick={onClick}
       variant={isActive ? 'primary' : 'ghost'}
       size="sm"
+      className={`relative overflow-hidden transition-all duration-200 ${
+        isActive
+          ? ''
+          : 'hover:scale-[1.03] hover:bg-gradient-to-b hover:from-[rgba(255,255,255,0.06)] hover:to-[rgba(255,255,255,0.02)]'
+      }`}
     >
       {icon}
       <span>{label}</span>
+      {isActive && (
+        <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-3/4 h-[2px] rounded-full bg-gradient-to-r from-[#5e6ad2] to-[#7eb84a] opacity-80" />
+      )}
       {badge && (
         <span className="absolute -top-1 -right-1 w-2 h-2 bg-[#c45c5c] rounded-full" />
       )}

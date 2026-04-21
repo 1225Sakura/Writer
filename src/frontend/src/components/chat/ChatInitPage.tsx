@@ -4,10 +4,12 @@ import { AIGuidePanel } from './AIGuidePanel'
 import { UserInputPanel } from './UserInputPanel'
 import { CollectedInfoPanel } from './CollectedInfoPanel'
 import { Button } from '@/components/ui/Button'
-import { ArrowRight, Settings } from 'lucide-react'
+import { ArrowRight, Settings, PenTool } from 'lucide-react'
+import { motion } from 'framer-motion'
+import { ChatSkeleton } from '@/components/shared/SmartSkeleton'
 
 export function ChatInitPage() {
-  const { extractedEntities, sessionId, createSession, loadExtractedEntities, loadMessages, confirmEntity, messages } = useChatStore()
+  const { extractedEntities, sessionId, createSession, loadExtractedEntities, loadMessages, confirmEntity, messages, isLoading } = useChatStore()
   const { setCurrentInterface } = useUIStore()
 
   // Initialize session on mount
@@ -28,23 +30,64 @@ export function ChatInitPage() {
   const hasMessages = messages.length > 0
 
   return (
-    <div className="flex h-full bg-[#08090a]">
+    <motion.div
+      className="flex h-full bg-[#08090a]"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
+    >
       {/* 左侧：AI聊天区域 */}
       <div className="flex-1 flex flex-col border-r border-[rgba(255,255,255,0.08)]">
-        {/* 顶部导航栏 */}
-        <div className="h-12 border-b border-[rgba(255,255,255,0.08)] bg-[#0f1011] flex items-center justify-between px-4">
+        {/* 顶部导航栏 - 毛玻璃效果 */}
+        <div
+          className="h-12 border-b border-[rgba(255,255,255,0.08)] flex items-center justify-between px-4 z-10 relative"
+          style={{
+            backgroundColor: 'rgba(15, 16, 17, 0.75)',
+            backdropFilter: 'blur(12px) saturate(1.2)',
+            WebkitBackdropFilter: 'blur(12px) saturate(1.2)',
+          }}
+        >
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-lg bg-[#5e6ad2] flex items-center justify-center">
-              <span className="text-white text-sm font-semibold">写</span>
-            </div>
-            <h1 className="font-medium text-[#f7f8f8] text-sm">自动化写作软件</h1>
+            <motion.div
+              className="w-8 h-8 rounded-lg flex items-center justify-center"
+              style={{ backgroundColor: 'var(--accent-primary)' }}
+              initial={{ scale: 0.8, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ delay: 0.1, duration: 0.3, ease: [0.34, 1.56, 0.64, 1] }}
+            >
+              <PenTool className="w-4 h-4 text-white" />
+            </motion.div>
+            <motion.h1
+              className="font-medium text-sm"
+              style={{ color: 'var(--text-primary)' }}
+              initial={{ x: -8, opacity: 0 }}
+              animate={{ x: 0, opacity: 1 }}
+              transition={{ delay: 0.15, duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
+            >
+              自动化写作软件
+            </motion.h1>
             {hasMessages && (
-              <span className="text-xs text-[#d0d6e0] ml-2 px-2 py-0.5 rounded-full bg-[rgba(255,255,255,0.04)] border border-[rgba(255,255,255,0.06)]">
+              <motion.span
+                className="text-xs ml-2 px-2 py-0.5 rounded-full border"
+                style={{
+                  color: 'var(--text-secondary)',
+                  backgroundColor: 'rgba(255,255,255,0.04)',
+                  borderColor: 'rgba(255,255,255,0.06)',
+                }}
+                initial={{ scale: 0.8, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                transition={{ delay: 0.2, duration: 0.25 }}
+              >
                 {messages.length} 条消息
-              </span>
+              </motion.span>
             )}
           </div>
-          <div className="flex items-center gap-2">
+          <motion.div
+            className="flex items-center gap-2"
+            initial={{ x: 8, opacity: 0 }}
+            animate={{ x: 0, opacity: 1 }}
+            transition={{ delay: 0.2, duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
+          >
             <Button
               onClick={() => setCurrentInterface('settings')}
               variant="primary"
@@ -54,20 +97,32 @@ export function ChatInitPage() {
               <span>进入设定</span>
               <ArrowRight className="w-3 h-3" />
             </Button>
-          </div>
+          </motion.div>
         </div>
 
         {/* 聊天内容 */}
-        <div className="flex-1 overflow-hidden">
-          <AIGuidePanel />
+        <div className="flex-1 overflow-hidden relative">
+          {isLoading && messages.length === 0 ? (
+            <div className="h-full overflow-y-auto p-4">
+              <ChatSkeleton count={3} />
+            </div>
+          ) : (
+            <AIGuidePanel />
+          )}
         </div>
         <UserInputPanel />
       </div>
 
       {/* 右侧：已收集信息面板 - 320px */}
-      <div className="w-80 bg-[#0f1011] overflow-y-auto">
+      <motion.div
+        className="w-80 overflow-y-auto"
+        style={{ backgroundColor: 'var(--color-bg-surface)' }}
+        initial={{ x: 24, opacity: 0 }}
+        animate={{ x: 0, opacity: 1 }}
+        transition={{ delay: 0.15, duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+      >
         <CollectedInfoPanel entities={extractedEntities} onConfirmEntity={confirmEntity} />
-      </div>
-    </div>
+      </motion.div>
+    </motion.div>
   )
 }

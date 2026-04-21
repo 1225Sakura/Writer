@@ -1,6 +1,7 @@
 import { useState } from 'react'
-import { ChevronDown, ChevronUp, Check, X, Sparkles } from 'lucide-react'
+import { ChevronDown, Check, X, Sparkles } from 'lucide-react'
 import { useSettingsStore } from '@/store'
+import { motion, AnimatePresence } from 'framer-motion'
 
 interface Suggestion {
   id: string
@@ -25,10 +26,55 @@ const typeColors: Record<string, { bg: string; text: string; border: string }> =
   warning: { bg: 'rgba(196,92,92,0.15)', text: '#d45d5d', border: 'rgba(196,92,92,0.3)' },
 }
 
+// Stagger animation variants for suggestion cards
+const containerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.06,
+      delayChildren: 0.05,
+    },
+  },
+  exit: {
+    opacity: 0,
+    transition: {
+      staggerChildren: 0.03,
+      staggerDirection: -1,
+    },
+  },
+}
+
+const cardVariants = {
+  hidden: {
+    opacity: 0,
+    y: 12,
+    scale: 0.97,
+  },
+  visible: {
+    opacity: 1,
+    y: 0,
+    scale: 1,
+    transition: {
+      duration: 0.25,
+      ease: [0.16, 1, 0.3, 1] as const,
+    },
+  },
+  exit: {
+    opacity: 0,
+    y: -8,
+    scale: 0.97,
+    transition: {
+      duration: 0.15,
+    },
+  },
+}
+
 export function AISuggestionPanel() {
   const [isExpanded, setIsExpanded] = useState(true)
   const aiReviewResult = useSettingsStore((state) => state.aiReviewResult)
   const [dismissed, setDismissed] = useState<Set<string>>(new Set())
+  const [appliedIds, setAppliedIds] = useState<Set<string>>(new Set())
 
   const suggestions: Suggestion[] = aiReviewResult?.issues.map((issue, index) => ({
     id: String(index),
@@ -45,7 +91,16 @@ export function AISuggestionPanel() {
   }
 
   const handleApplyFix = (id: string) => {
-    handleDismiss(id)
+    setAppliedIds((prev) => new Set([...prev, id]))
+    // Delay dismissal to show the applied feedback
+    setTimeout(() => {
+      handleDismiss(id)
+      setAppliedIds((prev) => {
+        const next = new Set(prev)
+        next.delete(id)
+        return next
+      })
+    }, 800)
   }
 
   return (
@@ -68,158 +123,243 @@ export function AISuggestionPanel() {
             AI 审查建议
           </span>
           {visibleSuggestions.length > 0 && (
-            <span
+            <motion.span
               className="text-xs px-1.5 py-0.5 rounded"
               style={{ backgroundColor: 'rgba(196,92,92,0.15)', color: '#d45d5d' }}
+              initial={{ scale: 0 }}
+              animate={{ scale: 1 }}
+              transition={{ type: 'spring', stiffness: 500, damping: 25 }}
             >
               {visibleSuggestions.length}
-            </span>
+            </motion.span>
           )}
         </div>
-        {isExpanded ? (
+        <motion.div
+          animate={{ rotate: isExpanded ? 0 : 180 }}
+          transition={{ duration: 0.2 }}
+        >
           <ChevronDown className="w-4 h-4" style={{ color: '#6b7280' }} />
-        ) : (
-          <ChevronUp className="w-4 h-4" style={{ color: '#6b7280' }} />
-        )}
+        </motion.div>
       </button>
 
       {/* 内容 */}
-      {isExpanded && (
-        <div className="px-4 pb-4 space-y-2">
-          {visibleSuggestions.length === 0 ? (
-            <div className="text-center py-6">
-              <Check className="w-8 h-8 mx-auto mb-2" style={{ color: '#7eb84a' }} />
-              <p className="text-sm" style={{ color: '#6b7280' }}>
-                设定一致，暂无建议
-              </p>
-            </div>
-          ) : (
-            visibleSuggestions.map((suggestion) => {
-              const colors = typeColors[suggestion.type]
-              return (
-                <div
-                  key={suggestion.id}
-                  className="p-3 rounded-lg transition-all"
-                  style={{
-                    backgroundColor: 'rgba(255,255,255,0.02)',
-                    border: '1px solid rgba(255,255,255,0.06)',
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.04)'
-                    e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)'
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.02)'
-                    e.currentTarget.style.borderColor = 'rgba(255,255,255,0.06)'
-                  }}
+      <AnimatePresence mode="wait">
+        {isExpanded && (
+          <motion.div
+            className="px-4 pb-4 space-y-2 overflow-hidden"
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: 'auto', opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
+          >
+            {visibleSuggestions.length === 0 ? (
+              <motion.div
+                className="text-center py-6"
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
+              >
+                <motion.div
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                  transition={{ type: 'spring', stiffness: 400, damping: 20, delay: 0.1 }}
                 >
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 mb-1.5">
-                        <span
-                          className="text-xs px-2 py-0.5 rounded font-medium"
-                          style={{
-                            backgroundColor: colors.bg,
-                            color: colors.text,
-                          }}
-                        >
-                          {typeLabels[suggestion.type]}
-                        </span>
-                        <span className="text-sm font-medium" style={{ color: '#f7f8f8' }}>
-                          {suggestion.title}
-                        </span>
-                      </div>
-                      <p className="text-xs line-clamp-2" style={{ color: '#6b7280' }}>
-                        {suggestion.description}
-                      </p>
-                    </div>
-                    <div className="flex gap-1 ml-2 flex-shrink-0">
-                      {suggestion.autoFixable && (
-                        <button
-                          onClick={() => handleApplyFix(suggestion.id)}
-                          className="p-1.5 rounded transition-all"
-                          style={{ color: '#6b7280' }}
-                          onMouseEnter={(e) => {
-                            e.currentTarget.style.backgroundColor = 'rgba(126,184,74,0.15)'
-                            e.currentTarget.style.color = '#7eb84a'
-                          }}
-                          onMouseLeave={(e) => {
-                            e.currentTarget.style.backgroundColor = 'transparent'
-                            e.currentTarget.style.color = '#6b7280'
-                          }}
-                          title="自动修复"
-                        >
-                          <Check className="w-4 h-4" />
-                        </button>
-                      )}
-                      <button
-                        onClick={() => handleDismiss(suggestion.id)}
-                        className="p-1.5 rounded transition-all"
-                        style={{ color: '#6b7280' }}
+                  <Check className="w-8 h-8 mx-auto mb-2" style={{ color: '#7eb84a' }} />
+                </motion.div>
+                <p className="text-sm" style={{ color: '#6b7280' }}>
+                  设定一致，暂无建议
+                </p>
+              </motion.div>
+            ) : (
+              <motion.div
+                variants={containerVariants}
+                initial="hidden"
+                animate="visible"
+                exit="exit"
+              >
+                <AnimatePresence>
+                  {visibleSuggestions.map((suggestion) => {
+                    const colors = typeColors[suggestion.type]
+                    const isApplied = appliedIds.has(suggestion.id)
+
+                    return (
+                      <motion.div
+                        key={suggestion.id}
+                        variants={cardVariants}
+                        layout
+                        className="p-3 rounded-lg"
+                        style={{
+                          backgroundColor: isApplied ? 'rgba(126,184,74,0.08)' : 'rgba(255,255,255,0.02)',
+                          border: `1px solid ${isApplied ? 'rgba(126,184,74,0.2)' : 'rgba(255,255,255,0.06)'}`,
+                        }}
                         onMouseEnter={(e) => {
-                          e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.08)'
-                          e.currentTarget.style.color = '#9ca3af'
+                          if (!isApplied) {
+                            e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.04)'
+                            e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)'
+                          }
                         }}
                         onMouseLeave={(e) => {
-                          e.currentTarget.style.backgroundColor = 'transparent'
-                          e.currentTarget.style.color = '#6b7280'
+                          if (!isApplied) {
+                            e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.02)'
+                            e.currentTarget.style.borderColor = 'rgba(255,255,255,0.06)'
+                          }
                         }}
-                        title="忽略"
+                        exit={{ opacity: 0, x: -20, height: 0, marginBottom: 0, paddingTop: 0, paddingBottom: 0 }}
+                        transition={{ duration: 0.2 }}
                       >
-                        <X className="w-4 h-4" />
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              )
-            })
-          )}
+                        <div className="flex items-start justify-between">
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2 mb-1.5">
+                              <span
+                                className="text-xs px-2 py-0.5 rounded font-medium"
+                                style={{
+                                  backgroundColor: colors.bg,
+                                  color: colors.text,
+                                }}
+                              >
+                                {typeLabels[suggestion.type]}
+                              </span>
+                              <span className="text-sm font-medium" style={{ color: '#f7f8f8' }}>
+                                {suggestion.title}
+                              </span>
+                            </div>
+                            <p className="text-xs line-clamp-2" style={{ color: '#6b7280' }}>
+                              {suggestion.description}
+                            </p>
+                          </div>
+                          <div className="flex gap-1 ml-2 flex-shrink-0">
+                            {suggestion.autoFixable && (
+                              <motion.button
+                                onClick={() => handleApplyFix(suggestion.id)}
+                                className="p-1.5 rounded transition-all relative overflow-hidden"
+                                style={{
+                                  color: isApplied ? '#7eb84a' : '#6b7280',
+                                  backgroundColor: isApplied ? 'rgba(126,184,74,0.15)' : 'transparent',
+                                }}
+                                onMouseEnter={(e) => {
+                                  if (!isApplied) {
+                                    e.currentTarget.style.backgroundColor = 'rgba(126,184,74,0.15)'
+                                    e.currentTarget.style.color = '#7eb84a'
+                                  }
+                                }}
+                                onMouseLeave={(e) => {
+                                  if (!isApplied) {
+                                    e.currentTarget.style.backgroundColor = 'transparent'
+                                    e.currentTarget.style.color = '#6b7280'
+                                  }
+                                }}
+                                title="自动修复"
+                                whileTap={{ scale: 0.85 }}
+                                disabled={isApplied}
+                              >
+                                <AnimatePresence mode="wait">
+                                  {isApplied ? (
+                                    <motion.div
+                                      key="applied"
+                                      initial={{ scale: 0, rotate: -45 }}
+                                      animate={{ scale: 1, rotate: 0 }}
+                                      exit={{ scale: 0, rotate: 45 }}
+                                      transition={{ type: 'spring', stiffness: 500, damping: 25 }}
+                                    >
+                                      <Check className="w-4 h-4" />
+                                    </motion.div>
+                                  ) : (
+                                    <motion.div
+                                      key="apply"
+                                      initial={{ scale: 0 }}
+                                      animate={{ scale: 1 }}
+                                      exit={{ scale: 0 }}
+                                    >
+                                      <Check className="w-4 h-4" />
+                                    </motion.div>
+                                  )}
+                                </AnimatePresence>
+                              </motion.button>
+                            )}
+                            <motion.button
+                              onClick={() => handleDismiss(suggestion.id)}
+                              className="p-1.5 rounded transition-all"
+                              style={{ color: '#6b7280' }}
+                              onMouseEnter={(e) => {
+                                e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.08)'
+                                e.currentTarget.style.color = '#9ca3af'
+                              }}
+                              onMouseLeave={(e) => {
+                                e.currentTarget.style.backgroundColor = 'transparent'
+                                e.currentTarget.style.color = '#6b7280'
+                              }}
+                              title="忽略"
+                              whileTap={{ scale: 0.85 }}
+                            >
+                              <X className="w-4 h-4" />
+                            </motion.button>
+                          </div>
+                        </div>
+                      </motion.div>
+                    )
+                  })}
+                </AnimatePresence>
+              </motion.div>
+            )}
 
-          {/* 批量操作 */}
-          {visibleSuggestions.length > 0 && (
-            <div className="flex gap-2 pt-3">
-              <button
-                onClick={() => {
-                  visibleSuggestions
-                    .filter((s) => s.autoFixable)
-                    .forEach((s) => handleApplyFix(s.id))
-                }}
-                className="flex-1 py-2 rounded-lg text-xs font-medium transition-all"
-                style={{
-                  backgroundColor: 'rgba(255,255,255,0.05)',
-                  color: '#d0d6e0',
-                  border: '1px solid rgba(255,255,255,0.08)',
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.08)'
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.05)'
-                }}
-              >
-                应用所有修复
-              </button>
-              <button
-                onClick={() => setDismissed(new Set(visibleSuggestions.map((s) => s.id)))}
-                className="flex-1 py-2 rounded-lg text-xs font-medium transition-all"
-                style={{
-                  backgroundColor: 'transparent',
-                  color: '#9ca3af',
-                  border: '1px solid rgba(255,255,255,0.08)',
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.05)'
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.backgroundColor = 'transparent'
-                }}
-              >
-                仅记录问题
-              </button>
-            </div>
-          )}
-        </div>
-      )}
+            {/* 批量操作 */}
+            <AnimatePresence>
+              {visibleSuggestions.length > 0 && (
+                <motion.div
+                  className="flex gap-2 pt-3"
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: 10 }}
+                  transition={{ delay: Math.min(visibleSuggestions.length * 0.06 + 0.1, 0.4) }}
+                >
+                  <motion.button
+                    onClick={() => {
+                      visibleSuggestions
+                        .filter((s) => s.autoFixable)
+                        .forEach((s) => handleApplyFix(s.id))
+                    }}
+                    className="flex-1 py-2 rounded-lg text-xs font-medium transition-all"
+                    style={{
+                      backgroundColor: 'rgba(255,255,255,0.05)',
+                      color: '#d0d6e0',
+                      border: '1px solid rgba(255,255,255,0.08)',
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.08)'
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.05)'
+                    }}
+                    whileHover={{ scale: 1.01 }}
+                    whileTap={{ scale: 0.98 }}
+                  >
+                    应用所有修复
+                  </motion.button>
+                  <motion.button
+                    onClick={() => setDismissed(new Set(visibleSuggestions.map((s) => s.id)))}
+                    className="flex-1 py-2 rounded-lg text-xs font-medium transition-all"
+                    style={{
+                      backgroundColor: 'transparent',
+                      color: '#9ca3af',
+                      border: '1px solid rgba(255,255,255,0.08)',
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.05)'
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.backgroundColor = 'transparent'
+                    }}
+                    whileHover={{ scale: 1.01 }}
+                    whileTap={{ scale: 0.98 }}
+                  >
+                    仅记录问题
+                  </motion.button>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   )
 }

@@ -9,9 +9,8 @@ import { useUIStore } from '@/store'
 import { setEditorInstance } from '@/store/editorRegistry'
 import { useEffect, useRef, useCallback, useState } from 'react'
 import { Save, CheckCircle, AlertCircle } from 'lucide-react'
-import * as Tiptap from '@tiptap/core'
-import { Plugin, PluginKey } from '@tiptap/pm/state'
-import { Decoration, DecorationSet } from '@tiptap/pm/view'
+import { FocusModeExtension } from './extensions'
+import { EditorToolbar } from './EditorToolbar'
 
 const WRITING_STYLE_NAMES: Record<string, string> = {
   default: '默认',
@@ -65,54 +64,8 @@ function SaveStatusIndicator({ status, lastSavedAt }: { status: string; lastSave
   return null
 }
 
-// Focus mode extension - dims non-active paragraphs
-const focusModePluginKey = new PluginKey('focusMode')
-
-function createFocusModeExtension() {
-  return Tiptap.Extension.create({
-    name: 'focusMode',
-    addOptions() {
-      return {
-        enabled: false,
-        dimOpacity: 0.4,
-      }
-    },
-    addProseMirrorPlugins() {
-      const options = this.options
-      return [
-        new Plugin({
-          key: focusModePluginKey,
-          props: {
-            decorations(state: any) {
-              if (!options.enabled) {
-                return DecorationSet.empty
-              }
-              const { doc, selection } = state
-              const decorations: Decoration[] = []
-              const selFrom = selection.from
-              const selTo = selection.to
-
-              doc.forEach((node: any, nodePos: number) => {
-                if (node.isBlock && node.isTextblock) {
-                  const nodeEnd = nodePos + node.nodeSize
-                  if (nodeEnd <= selFrom || nodePos >= selTo) {
-                    decorations.push(
-                      Decoration.node(nodePos, nodeEnd, {
-                        style: `opacity: ${options.dimOpacity}; transition: opacity 0.3s ease;`,
-                      })
-                    )
-                  }
-                }
-              })
-
-              return DecorationSet.create(doc, decorations)
-            },
-          },
-        }),
-      ]
-    },
-  })
-}
+// FocusModeExtension is now imported from './extensions'
+// EditorToolbar is now imported from './EditorToolbar'
 
 export function WritingCanvas() {
   const {
@@ -138,7 +91,6 @@ export function WritingCanvas() {
   } = useWritingStore()
 
   const { focusModeEnabled } = useUIStore()
-  const focusModeExtension = createFocusModeExtension()
   const currentChapter = chapters.find((c) => c.id === currentChapterId)
   const chapterTitle = currentChapter?.title || '未选择章节'
   const isSavingRef = useRef(false)
@@ -165,7 +117,7 @@ export function WritingCanvas() {
       Highlight.configure({
         multicolor: true,
       }),
-      focusModeExtension.configure({ enabled: focusModeEnabled }),
+      FocusModeExtension.configure({ enabled: focusModeEnabled }),
     ],
     content: currentContent,
     onUpdate: ({ editor }) => {
@@ -189,6 +141,7 @@ export function WritingCanvas() {
     editorProps: {
       attributes: {
         class: 'writing-area max-w-none focus:outline-none min-h-full px-8 py-6',
+        style: 'caret-color: #e8b87d;',
       },
     },
   })
@@ -302,8 +255,19 @@ export function WritingCanvas() {
 
   return (
     <div className="h-full flex flex-col bg-[var(--color-writing-dark)]">
-      {/* 写作区域 - Linear paper/elevation model with translucent card */}
-      <div className="flex-1 overflow-y-auto paper-texture-light">
+      {/* 写作区域 - subtle paper texture background */}
+      <div className="flex-1 overflow-y-auto relative"
+        style={{
+          backgroundImage: `
+            radial-gradient(ellipse 80% 50% at 50% 0%, rgba(94, 106, 210, 0.03) 0%, transparent 60%),
+            radial-gradient(ellipse 60% 40% at 80% 100%, rgba(232, 184, 125, 0.02) 0%, transparent 50%),
+            linear-gradient(180deg, rgba(255,255,255,0.01) 0%, transparent 30%, rgba(0,0,0,0.02) 100%)
+          `,
+        }}
+      >
+        {/* 浮动工具栏 */}
+        <EditorToolbar editor={editor} />
+
         {/* 卡片化容器 - Linear elevation-2 with semi-transparent border */}
         <div className="mx-8 my-6 rounded-xl" style={{
           backgroundColor: 'rgba(245, 240, 230, 0.03)',
@@ -334,46 +298,55 @@ export function WritingCanvas() {
         </div>
       </div>
 
-      {/* 底部状态栏 - Linear深色风格 with elevation stepping */}
-      <div className="h-9 flex items-center px-4 text-xs font-medium"
-           style={{
-             backgroundColor: 'var(--color-bg-surface)',
-             borderTop: '1px solid var(--color-border-subtle)',
-             color: 'var(--color-text-muted)',
-             fontFamily: 'var(--font-sans)',
-           }}>
-        <span style={{ color: 'var(--color-text-secondary)' }}>{chapterTitle}</span>
-        <span className="mx-2 opacity-30">|</span>
-        <span>{wordCount} 字</span>
-        <span className="mx-2 opacity-30">|</span>
-        <span>今日: {todayWordCount} / {targetWordCount} 字</span>
-        <span className="mx-2 opacity-30">|</span>
-        <span>时长: {formatDuration(sessionDuration)}</span>
-        <span className="mx-2 opacity-30">|</span>
-        <span>速度: {sessionWPM} 字/分</span>
-        <span className="mx-2 opacity-30">|</span>
-        <span>人机比例: {humanAIRatio}%</span>
-        <span className="mx-2 opacity-30">|</span>
-        <span style={{ color: 'var(--color-character)' }}>文笔风格: {WRITING_STYLE_NAMES[writingStyle] || writingStyle}</span>
-        <span className="mx-2 opacity-30">|</span>
+      {/* 底部状态栏 - refined visual design */}
+      <div
+        className="flex items-center px-5 py-2 text-xs font-medium"
+        style={{
+          backgroundColor: 'var(--color-bg-surface)',
+          borderTop: '1px solid var(--color-border-subtle)',
+          color: 'var(--color-text-muted)',
+          fontFamily: 'var(--font-sans)',
+          minHeight: '36px',
+          gap: '2px',
+        }}
+      >
+        <span className="px-2 py-0.5 rounded-md" style={{ color: 'var(--color-text-secondary)', background: 'rgba(255,255,255,0.03)' }}>
+          {chapterTitle}
+        </span>
+        <span className="mx-1.5 opacity-20">|</span>
+        <span className="px-1.5">{wordCount} 字</span>
+        <span className="mx-1.5 opacity-20">|</span>
+        <span className="px-1.5">今日: {todayWordCount} / {targetWordCount} 字</span>
+        <span className="mx-1.5 opacity-20">|</span>
+        <span className="px-1.5">时长: {formatDuration(sessionDuration)}</span>
+        <span className="mx-1.5 opacity-20">|</span>
+        <span className="px-1.5">速度: {sessionWPM} 字/分</span>
+        <span className="mx-1.5 opacity-20">|</span>
+        <span className="px-1.5">人机比例: {humanAIRatio}%</span>
+        <span className="mx-1.5 opacity-20">|</span>
+        <span className="px-1.5" style={{ color: 'var(--color-character)' }}>文笔: {WRITING_STYLE_NAMES[writingStyle] || writingStyle}</span>
+        <span className="mx-1.5 opacity-20">|</span>
         <button
           onClick={() => useUIStore.getState().toggleFocusMode()}
-          className={`px-1.5 py-0.5 rounded text-xs transition-all ${
+          className={`px-2 py-0.5 rounded-md text-xs transition-all duration-200 ${
             focusModeEnabled
-              ? 'bg-[var(--color-outline)]/20 text-[var(--color-outline)]'
-              : 'hover:bg-[rgba(255,255,255,0.08)] text-[var(--color-text-muted)]'
+              ? 'bg-[var(--color-outline)]/15 text-[var(--color-outline)]'
+              : 'hover:bg-[rgba(255,255,255,0.06)] text-[var(--color-text-muted)]'
           }`}
           title="聚焦模式 (Ctrl+Shift+F)"
         >
-          聚焦
+          {focusModeEnabled ? '聚焦中' : '聚焦'}
         </button>
 
-        <div className="ml-auto flex items-center gap-2">
+        <div className="ml-auto flex items-center gap-3">
           {/* Auto-save indicator */}
           <SaveStatusIndicator status={saveStatus} lastSavedAt={lastSavedAt} />
 
           {loading.ai && (
-            <span style={{ color: 'var(--accent-primary)' }}>AI处理中...</span>
+            <span className="flex items-center gap-1" style={{ color: 'var(--accent-primary)' }}>
+              <span className="w-1.5 h-1.5 rounded-full bg-[var(--accent-primary)] animate-pulse" />
+              AI处理中...
+            </span>
           )}
         </div>
       </div>
