@@ -2,12 +2,38 @@
 # Mapped to schema.sql
 
 from datetime import datetime
+from typing import Optional
 from sqlalchemy import (
     Column, Integer, String, Text, Float, DateTime, ForeignKey, Index
 )
 from sqlalchemy.orm import relationship
 
 from database import Base
+
+
+# ============================================
+# Project & Genre Configuration
+# ============================================
+
+class Project(Base):
+    __tablename__ = "projects"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    name = Column(String(255), nullable=False)
+    description = Column(Text)
+    genre = Column(String(100))
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+
+class GenreConfiguration(Base):
+    __tablename__ = "genre_configurations"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    genre = Column(String(100), nullable=False, unique=True)
+    config_json = Column(Text, nullable=False)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
 
 # ============================================
@@ -18,6 +44,7 @@ class Character(Base):
     __tablename__ = "characters"
 
     id = Column(Integer, primary_key=True, autoincrement=True)
+    project_id = Column(Integer, ForeignKey("projects.id"), nullable=True, index=True)
     name = Column(String, nullable=False)
     gender = Column(String)
     personality = Column(Text)
@@ -46,6 +73,7 @@ class CharacterRelationship(Base):
     __tablename__ = "character_relationships"
 
     id = Column(Integer, primary_key=True, autoincrement=True)
+    project_id = Column(Integer, ForeignKey("projects.id"), nullable=True, index=True)
     character_id = Column(Integer, ForeignKey("characters.id", ondelete="CASCADE"), nullable=False)
     target_id = Column(Integer, ForeignKey("characters.id", ondelete="CASCADE"), nullable=False)
     type = Column(String, nullable=False)
@@ -58,6 +86,7 @@ class CharacterStoryline(Base):
     __tablename__ = "character_storylines"
 
     id = Column(Integer, primary_key=True, autoincrement=True)
+    project_id = Column(Integer, ForeignKey("projects.id"), nullable=True, index=True)
     character_id = Column(Integer, ForeignKey("characters.id", ondelete="CASCADE"), nullable=False)
     title = Column(String, nullable=False)
     arc = Column(Text)
@@ -74,6 +103,7 @@ class Item(Base):
     __tablename__ = "items"
 
     id = Column(Integer, primary_key=True, autoincrement=True)
+    project_id = Column(Integer, ForeignKey("projects.id"), nullable=True, index=True)
     name = Column(String, nullable=False)
     description = Column(Text)
     owner = Column(String)
@@ -84,6 +114,7 @@ class Location(Base):
     __tablename__ = "locations"
 
     id = Column(Integer, primary_key=True, autoincrement=True)
+    project_id = Column(Integer, ForeignKey("projects.id"), nullable=True, index=True)
     name = Column(String, nullable=False)
     description = Column(Text)
     importance = Column(String)
@@ -93,6 +124,7 @@ class Faction(Base):
     __tablename__ = "factions"
 
     id = Column(Integer, primary_key=True, autoincrement=True)
+    project_id = Column(Integer, ForeignKey("projects.id"), nullable=True, index=True)
     name = Column(String, nullable=False)
     description = Column(Text)
     type = Column(String)
@@ -102,6 +134,7 @@ class WorldSetting(Base):
     __tablename__ = "world_settings"
 
     id = Column(Integer, primary_key=True, autoincrement=True)
+    project_id = Column(Integer, ForeignKey("projects.id"), nullable=True, index=True)
     name = Column(String, nullable=False)
     description = Column(Text)
     details_json = Column(Text)
@@ -111,6 +144,7 @@ class Rule(Base):
     __tablename__ = "rules"
 
     id = Column(Integer, primary_key=True, autoincrement=True)
+    project_id = Column(Integer, ForeignKey("projects.id"), nullable=True, index=True)
     name = Column(String, nullable=False)
     description = Column(Text)
     type = Column(String)
@@ -124,6 +158,7 @@ class Outline(Base):
     __tablename__ = "outlines"
 
     id = Column(Integer, primary_key=True, autoincrement=True)
+    project_id = Column(Integer, ForeignKey("projects.id"), nullable=True, index=True)
     title = Column(String, nullable=False)
     description = Column(Text)
 
@@ -134,12 +169,14 @@ class Chapter(Base):
     __tablename__ = "chapters"
 
     id = Column(Integer, primary_key=True, autoincrement=True)
+    project_id = Column(Integer, ForeignKey("projects.id"), nullable=True, index=True)
     outline_id = Column(Integer, ForeignKey("outlines.id", ondelete="SET NULL"))
     title = Column(String)
     summary = Column(Text)
     status = Column(String, default="pending")
     word_count = Column(Integer, default=0)
     chapter_order = Column(Integer, default=0)
+    content_storage_id = Column(String(64), nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
@@ -152,6 +189,7 @@ class IFLine(Base):
     __tablename__ = "if_lines"
 
     id = Column(Integer, primary_key=True, autoincrement=True)
+    project_id = Column(Integer, ForeignKey("projects.id"), nullable=True, index=True)
     title = Column(String, nullable=False)
     linked_character_id = Column(Integer, ForeignKey("characters.id", ondelete="SET NULL"))
     description = Column(Text)
@@ -168,6 +206,7 @@ class ChatSession(Base):
     __tablename__ = "chat_sessions"
 
     id = Column(Integer, primary_key=True, autoincrement=True)
+    project_id = Column(Integer, ForeignKey("projects.id"), nullable=True, index=True)
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
@@ -179,6 +218,7 @@ class ChatMessage(Base):
     __tablename__ = "chat_messages"
 
     id = Column(Integer, primary_key=True, autoincrement=True)
+    project_id = Column(Integer, ForeignKey("projects.id"), nullable=True, index=True)
     session_id = Column(Integer, ForeignKey("chat_sessions.id", ondelete="CASCADE"), nullable=False)
     role = Column(String, nullable=False)
     content = Column(Text, nullable=False)
@@ -191,6 +231,7 @@ class ExtractedEntity(Base):
     __tablename__ = "extracted_entities"
 
     id = Column(Integer, primary_key=True, autoincrement=True)
+    project_id = Column(Integer, ForeignKey("projects.id"), nullable=True, index=True)
     session_id = Column(Integer, ForeignKey("chat_sessions.id", ondelete="CASCADE"), nullable=False)
     type = Column(String, nullable=False)
     name = Column(String, nullable=False)
@@ -209,8 +250,10 @@ class DraftVersion(Base):
     __tablename__ = "draft_versions"
 
     id = Column(Integer, primary_key=True, autoincrement=True)
+    project_id = Column(Integer, ForeignKey("projects.id"), nullable=True, index=True)
     chapter_id = Column(Integer, ForeignKey("chapters.id", ondelete="CASCADE"), nullable=False)
     content = Column(Text, nullable=False)
+    content_storage_id = Column(String(64), nullable=True)
     version_number = Column(Integer, nullable=False)
     created_at = Column(DateTime, default=datetime.utcnow)
 
@@ -221,6 +264,7 @@ class PlotThread(Base):
     __tablename__ = "plot_threads"
 
     id = Column(Integer, primary_key=True, autoincrement=True)
+    project_id = Column(Integer, ForeignKey("projects.id"), nullable=True, index=True)
     title = Column(String, nullable=False)
     description = Column(Text)
     status = Column(String, default="active")
@@ -233,6 +277,7 @@ class AIInspectionResult(Base):
     __tablename__ = "ai_inspection_results"
 
     id = Column(Integer, primary_key=True, autoincrement=True)
+    project_id = Column(Integer, ForeignKey("projects.id"), nullable=True, index=True)
     chapter_id = Column(Integer, ForeignKey("chapters.id", ondelete="CASCADE"), nullable=False)
     inspection_type = Column(String, nullable=False)
     issues_json = Column(Text)
@@ -247,6 +292,7 @@ class WritingSettings(Base):
     __tablename__ = "writing_settings"
 
     id = Column(Integer, primary_key=True, autoincrement=True)
+    project_id = Column(Integer, ForeignKey("projects.id"), nullable=True, index=True)
     human_ai_ratio = Column(Float, default=0.5)
     writing_style = Column(String, default="default")
     target_word_count = Column(Integer, default=3000)

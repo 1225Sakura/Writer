@@ -15,6 +15,8 @@ from backend.models.entities import (
     WritingSettings
 )
 from backend.services.cache_service import cache_service
+from backend.services.character_service import CharacterService
+from backend.utils.event_bus import AsyncEventBus
 from backend.middleware.auth import require_auth
 from backend.schemas.request_schemas import (
     CharacterCreateRequest,
@@ -47,6 +49,15 @@ from backend.schemas.response_schemas import (
     ExportDataResponse,
 )
 
+# Global event bus instance
+event_bus = AsyncEventBus()
+
+
+def get_character_service(db: AsyncSession = Depends(get_db)) -> CharacterService:
+    """Dependency to inject CharacterService with event bus."""
+    return CharacterService(db, event_bus)
+
+
 router = APIRouter(prefix="/settings", tags=["settings"], dependencies=[require_auth])
 
 
@@ -56,35 +67,28 @@ async def list_characters(
     skip: int = 0,
     limit: int = 100,
     tier: Optional[str] = None,
-    db: AsyncSession = Depends(get_db)
+    service: CharacterService = Depends(get_character_service)
 ):
     """List all characters with optional filtering."""
-    query = select(Character)
-    if tier:
-        query = query.where(Character.tier == tier)
-    result = await db.execute(query.offset(skip).limit(limit))
-    return result.scalars().all()
+    return await service.list_characters(skip=skip, limit=limit, tier=tier)
 
 
 @router.post("/characters", response_model=CharacterResponse)
 async def create_character(
     character: CharacterCreateRequest,
-    db: AsyncSession = Depends(get_db)
+    service: CharacterService = Depends(get_character_service)
 ):
     """Create a new character."""
-    db_character = Character(**character.model_dump())
-    db.add(db_character)
-    await db.flush()
-    await db.refresh(db_character)
-    cache_service.clear_entity_cache("character")
-    return db_character
+    return await service.create_character(character.model_dump())
 
 
 @router.get("/characters/{character_id}", response_model=CharacterResponse)
-async def get_character(character_id: int, db: AsyncSession = Depends(get_db)):
+async def get_character(
+    character_id: int,
+    service: CharacterService = Depends(get_character_service)
+):
     """Get a specific character."""
-    result = await db.execute(select(Character).where(Character.id == character_id))
-    character = result.scalar_one_or_none()
+    character = await service.get_character(character_id)
     if not character:
         raise HTTPException(status_code=404, detail="Character not found")
     return character
@@ -94,34 +98,26 @@ async def get_character(character_id: int, db: AsyncSession = Depends(get_db)):
 async def update_character(
     character_id: int,
     character: CharacterUpdateRequest,
-    db: AsyncSession = Depends(get_db)
+    service: CharacterService = Depends(get_character_service)
 ):
     """Update a character."""
-    result = await db.execute(select(Character).where(Character.id == character_id))
-    db_character = result.scalar_one_or_none()
+    db_character = await service.update_character(
+        character_id, character.model_dump(exclude_unset=True)
+    )
     if not db_character:
         raise HTTPException(status_code=404, detail="Character not found")
-
-    update_data = character.model_dump(exclude_unset=True)
-    for key, value in update_data.items():
-        setattr(db_character, key, value)
-
-    db_character.updated_at = datetime.utcnow()
-    await db.flush()
-    await db.refresh(db_character)
-    cache_service.clear_entity_cache("character")
     return db_character
 
 
 @router.delete("/characters/{character_id}")
-async def delete_character(character_id: int, db: AsyncSession = Depends(get_db)):
+async def delete_character(
+    character_id: int,
+    service: CharacterService = Depends(get_character_service)
+):
     """Delete a character."""
-    result = await db.execute(select(Character).where(Character.id == character_id))
-    character = result.scalar_one_or_none()
-    if not character:
+    deleted = await service.delete_character(character_id)
+    if not deleted:
         raise HTTPException(status_code=404, detail="Character not found")
-    await db.delete(character)
-    cache_service.clear_entity_cache("character")
     return {"message": "Character deleted"}
 
 
@@ -129,56 +125,40 @@ async def delete_character(character_id: int, db: AsyncSession = Depends(get_db)
 @router.get("/characters/{character_id}/relationships", response_model=List[CharacterRelationshipResponse])
 async def list_character_relationships(
     character_id: int,
-    db: AsyncSession = Depends(get_db)
+    service: CharacterService = Depends(get_character_service)
 ):
     """List all relationships for a character."""
-    result = await db.execute(
-        select(CharacterRelationship).where(CharacterRelationship.character_id == character_id)
-    )
-    return result.scalars().all()
+    return await service.get_relationships(character_id)
 
 
 @router.post("/characters/{character_id}/relationships", response_model=CharacterRelationshipResponse)
 async def create_character_relationship(
     character_id: int,
     relationship: CharacterRelationshipCreateRequest,
-    db: AsyncSession = Depends(get_db)
+    service: CharacterService = Depends(get_character_service)
 ):
     """Create a relationship for a character."""
-    db_relationship = CharacterRelationship(**relationship.model_dump())
-    db.add(db_relationship)
-    await db.flush()
-    await db.refresh(db_relationship)
-    cache_service.clear_entity_cache("character")
-    return db_relationship
+    return await service.create_relationship(relationship.model_dump())
 
 
 # Character storylines
 @router.get("/characters/{character_id}/storylines", response_model=List[CharacterStorylineResponse])
 async def list_character_storylines(
     character_id: int,
-    db: AsyncSession = Depends(get_db)
+    service: CharacterService = Depends(get_character_service)
 ):
     """List all storylines for a character."""
-    result = await db.execute(
-        select(CharacterStoryline).where(CharacterStoryline.character_id == character_id)
-    )
-    return result.scalars().all()
+    return await service.get_storylines(character_id)
 
 
 @router.post("/characters/{character_id}/storylines", response_model=CharacterStorylineResponse)
 async def create_character_storyline(
     character_id: int,
     storyline: CharacterStorylineCreateRequest,
-    db: AsyncSession = Depends(get_db)
+    service: CharacterService = Depends(get_character_service)
 ):
     """Create a storyline for a character."""
-    db_storyline = CharacterStoryline(**storyline.model_dump())
-    db.add(db_storyline)
-    await db.flush()
-    await db.refresh(db_storyline)
-    cache_service.clear_entity_cache("character")
-    return db_storyline
+    return await service.create_storyline(storyline.model_dump())
 
 
 # Items

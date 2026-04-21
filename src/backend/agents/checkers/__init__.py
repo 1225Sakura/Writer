@@ -1,17 +1,28 @@
-"""AI Checkers for novel writing quality assurance."""
+"""AI Checkers for novel writing quality assurance.
 
-from .consistency_checker import ConsistencyChecker
-from .pacing_checker import PacingChecker
-from .ooc_checker import OOCChecker
-from .continuity_checker import ContinuityChecker
-from .high_point_checker import HighPointChecker
-from .reader_pull_checker import ReaderPullChecker
+This package provides quality checkers for various dimensions of
+novel writing, plus a pipeline for orchestrating them.
+"""
+
+from .base import BaseChecker, CheckerResult
+from .pipeline import CheckerPipeline
+
+# Checker type constants
+CONSISTENCY = "consistency"
+CONTINUITY = "continuity"
+PACING = "pacing"
+OOC = "ooc"
+HIGH_POINT = "high_point"
+READER_PULL = "reader_pull"
 
 __all__ = [
-    "ConsistencyChecker",
-    "PacingChecker",
-    "OOCChecker",
-    "ContinuityChecker",
-    "HighPointChecker",
-    "ReaderPullChecker",
+    "BaseChecker",
+    "CheckerResult",
+    "CheckerPipeline",
+    "CONSISTENCY",
+    "CONTINUITY",
+    "PACING",
+    "OOC",
+    "HIGH_POINT",
+    "READER_PULL",
 ]

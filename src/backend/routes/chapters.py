@@ -14,6 +14,9 @@ from backend.models.entities import (
 )
 from backend.middleware.auth import require_auth
 from backend.services.cache_service import cached, cache_service
+from backend.services.chapter_service import ChapterService
+from backend.services.outline_service import OutlineService
+from backend.utils.event_bus import AsyncEventBus
 from backend.config import settings
 
 # Import centralized schemas for enhanced validation
@@ -27,6 +30,20 @@ from backend.schemas import (
     MessageResponse,
 )
 
+# Global event bus instance
+event_bus = AsyncEventBus()
+
+
+def get_chapter_service(db: AsyncSession = Depends(get_db)) -> ChapterService:
+    """Dependency to inject ChapterService with event bus."""
+    return ChapterService(db, event_bus)
+
+
+def get_outline_service(db: AsyncSession = Depends(get_db)) -> OutlineService:
+    """Dependency to inject OutlineService with event bus."""
+    return OutlineService(db, event_bus)
+
+
 router = APIRouter(prefix="/chapters", tags=["chapters"], dependencies=[require_auth])
 
 
@@ -36,30 +53,29 @@ router = APIRouter(prefix="/chapters", tags=["chapters"], dependencies=[require_
 async def list_outlines(
     skip: int = 0,
     limit: int = 50,
-    db: AsyncSession = Depends(get_db)
+    service: OutlineService = Depends(get_outline_service)
 ):
     """List all outlines."""
-    result = await db.execute(select(Outline).offset(skip).limit(limit))
-    return result.scalars().all()
+    return await service.list_outlines(skip=skip, limit=limit)
 
 
 @router.post("/outlines", response_model=OutlineResponse)
-async def create_outline(outline: OutlineCreateRequest, db: AsyncSession = Depends(get_db)):
+async def create_outline(
+    outline: OutlineCreateRequest,
+    service: OutlineService = Depends(get_outline_service)
+):
     """Create a new outline."""
-    db_outline = Outline(**outline.model_dump())
-    db.add(db_outline)
-    await db.flush()
-    await db.refresh(db_outline)
-    await cache_service.ainvalidate_tag("outlines")
-    return db_outline
+    return await service.create_outline(outline.model_dump())
 
 
 @router.get("/outlines/{outline_id}", response_model=OutlineResponse)
 @cached(ttl=settings.cache_default_ttl, key_prefix="chapters:outlines:detail", invalidate_on=["outlines"])
-async def get_outline(outline_id: int, db: AsyncSession = Depends(get_db)):
+async def get_outline(
+    outline_id: int,
+    service: OutlineService = Depends(get_outline_service)
+):
     """Get a specific outline."""
-    result = await db.execute(select(Outline).where(Outline.id == outline_id))
-    outline = result.scalar_one_or_none()
+    outline = await service.get_outline(outline_id)
     if not outline:
         raise HTTPException(status_code=404, detail="Outline not found")
     return outline
@@ -69,33 +85,24 @@ async def get_outline(outline_id: int, db: AsyncSession = Depends(get_db)):
 async def update_outline(
     outline_id: int,
     outline: OutlineUpdateRequest,
-    db: AsyncSession = Depends(get_db)
+    service: OutlineService = Depends(get_outline_service)
 ):
     """Update an outline."""
-    result = await db.execute(select(Outline).where(Outline.id == outline_id))
-    db_outline = result.scalar_one_or_none()
+    db_outline = await service.update_outline(outline_id, outline.model_dump(exclude_unset=True))
     if not db_outline:
         raise HTTPException(status_code=404, detail="Outline not found")
-
-    update_data = outline.model_dump(exclude_unset=True)
-    for key, value in update_data.items():
-        setattr(db_outline, key, value)
-
-    await db.flush()
-    await db.refresh(db_outline)
-    await cache_service.ainvalidate_tag("outlines")
     return db_outline
 
 
 @router.delete("/outlines/{outline_id}")
-async def delete_outline(outline_id: int, db: AsyncSession = Depends(get_db)):
+async def delete_outline(
+    outline_id: int,
+    service: OutlineService = Depends(get_outline_service)
+):
     """Delete an outline."""
-    result = await db.execute(select(Outline).where(Outline.id == outline_id))
-    outline = result.scalar_one_or_none()
-    if not outline:
+    deleted = await service.delete_outline(outline_id)
+    if not deleted:
         raise HTTPException(status_code=404, detail="Outline not found")
-    await db.delete(outline)
-    await cache_service.ainvalidate_tag("outlines")
     return {"message": "Outline deleted"}
 
 
@@ -107,38 +114,29 @@ async def list_chapters(
     limit: int = 100,
     outline_id: Optional[int] = None,
     status: Optional[str] = None,
-    db: AsyncSession = Depends(get_db)
+    service: ChapterService = Depends(get_chapter_service)
 ):
     """List all chapters with optional filtering."""
-    query = select(Chapter)
-    if outline_id is not None:
-        query = query.where(Chapter.outline_id == outline_id)
-    if status:
-        query = query.where(Chapter.status == status)
-
-    result = await db.execute(
-        query.order_by(Chapter.chapter_order.asc()).offset(skip).limit(limit)
-    )
-    return result.scalars().all()
+    return await service.list_chapters(skip=skip, limit=limit, outline_id=outline_id, status=status)
 
 
 @router.post("/", response_model=ChapterResponse)
-async def create_chapter(chapter: ChapterCreateRequest, db: AsyncSession = Depends(get_db)):
+async def create_chapter(
+    chapter: ChapterCreateRequest,
+    service: ChapterService = Depends(get_chapter_service)
+):
     """Create a new chapter."""
-    db_chapter = Chapter(**chapter.model_dump())
-    db.add(db_chapter)
-    await db.flush()
-    await db.refresh(db_chapter)
-    await cache_service.ainvalidate_tag("chapters")
-    return db_chapter
+    return await service.create_chapter(chapter.model_dump())
 
 
 @router.get("/{chapter_id}", response_model=ChapterResponse)
 @cached(ttl=settings.cache_default_ttl, key_prefix="chapters:detail", invalidate_on=["chapters"])
-async def get_chapter(chapter_id: int, db: AsyncSession = Depends(get_db)):
+async def get_chapter(
+    chapter_id: int,
+    service: ChapterService = Depends(get_chapter_service)
+):
     """Get a specific chapter."""
-    result = await db.execute(select(Chapter).where(Chapter.id == chapter_id))
-    chapter = result.scalar_one_or_none()
+    chapter = await service.get_chapter(chapter_id)
     if not chapter:
         raise HTTPException(status_code=404, detail="Chapter not found")
     return chapter
@@ -148,34 +146,24 @@ async def get_chapter(chapter_id: int, db: AsyncSession = Depends(get_db)):
 async def update_chapter(
     chapter_id: int,
     chapter: ChapterUpdateRequest,
-    db: AsyncSession = Depends(get_db)
+    service: ChapterService = Depends(get_chapter_service)
 ):
     """Update a chapter."""
-    result = await db.execute(select(Chapter).where(Chapter.id == chapter_id))
-    db_chapter = result.scalar_one_or_none()
+    db_chapter = await service.update_chapter(chapter_id, chapter.model_dump(exclude_unset=True))
     if not db_chapter:
         raise HTTPException(status_code=404, detail="Chapter not found")
-
-    update_data = chapter.model_dump(exclude_unset=True)
-    for key, value in update_data.items():
-        setattr(db_chapter, key, value)
-
-    db_chapter.updated_at = datetime.utcnow()
-    await db.flush()
-    await db.refresh(db_chapter)
-    await cache_service.ainvalidate_tag("chapters")
     return db_chapter
 
 
 @router.delete("/{chapter_id}")
-async def delete_chapter(chapter_id: int, db: AsyncSession = Depends(get_db)):
+async def delete_chapter(
+    chapter_id: int,
+    service: ChapterService = Depends(get_chapter_service)
+):
     """Delete a chapter."""
-    result = await db.execute(select(Chapter).where(Chapter.id == chapter_id))
-    chapter = result.scalar_one_or_none()
-    if not chapter:
+    deleted = await service.delete_chapter(chapter_id)
+    if not deleted:
         raise HTTPException(status_code=404, detail="Chapter not found")
-    await db.delete(chapter)
-    await cache_service.ainvalidate_tag("chapters")
     return {"message": "Chapter deleted"}
 
 
@@ -186,35 +174,22 @@ async def list_draft_versions(
     chapter_id: int,
     skip: int = 0,
     limit: int = 20,
-    db: AsyncSession = Depends(get_db)
+    service: ChapterService = Depends(get_chapter_service)
 ):
     """List all draft versions for a chapter."""
-    result = await db.execute(
-        select(DraftVersion)
-        .where(DraftVersion.chapter_id == chapter_id)
-        .order_by(DraftVersion.version_number.desc())
-        .offset(skip)
-        .limit(limit)
-    )
-    return result.scalars().all()
+    return await service.list_draft_versions(chapter_id, skip=skip, limit=limit)
 
 
 @router.post("/{chapter_id}/drafts", response_model=DraftVersionResponse)
 async def create_draft_version(
     chapter_id: int,
     draft: DraftVersionCreateRequest,
-    db: AsyncSession = Depends(get_db)
+    service: ChapterService = Depends(get_chapter_service)
 ):
     """Create a new draft version for a chapter."""
     if draft.chapter_id != chapter_id:
         raise HTTPException(status_code=400, detail="Chapter ID mismatch")
-
-    db_draft = DraftVersion(**draft.model_dump())
-    db.add(db_draft)
-    await db.flush()
-    await db.refresh(db_draft)
-    await cache_service.ainvalidate_tag("drafts")
-    return db_draft
+    return await service.create_draft_version(draft.model_dump())
 
 
 @router.get("/{chapter_id}/drafts/{version_number}", response_model=DraftVersionResponse)
@@ -222,15 +197,10 @@ async def create_draft_version(
 async def get_draft_version(
     chapter_id: int,
     version_number: int,
-    db: AsyncSession = Depends(get_db)
+    service: ChapterService = Depends(get_chapter_service)
 ):
     """Get a specific draft version."""
-    result = await db.execute(
-        select(DraftVersion)
-        .where(DraftVersion.chapter_id == chapter_id)
-        .where(DraftVersion.version_number == version_number)
-    )
-    draft = result.scalar_one_or_none()
+    draft = await service.get_draft_version(chapter_id, version_number)
     if not draft:
         raise HTTPException(status_code=404, detail="Draft version not found")
     return draft
