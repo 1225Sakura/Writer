@@ -11,7 +11,7 @@ from sqlalchemy import select
 
 from backend.database import get_db
 from backend.models.entities import WritingSettings, Chapter
-from backend.services.ai_service import AIService
+from backend.services.ai_service import AIService, ai_service
 from backend.config import settings
 from backend.agents.context_agent import ContextAgent
 from backend.agents.data_agent import DataAgent
@@ -35,16 +35,18 @@ MAX_CONTENT_LENGTH = 100000
 
 
 def get_ai_service() -> AIService:
-    """Get AI service instance."""
+    """Get AI service singleton instance."""
     if not settings.minimax_api_key:
         raise HTTPException(
             status_code=500,
             detail="MiniMax API key not configured. Set MINIMAX_API_KEY in environment."
         )
-    return AIService(
-        api_key=settings.minimax_api_key,
-        base_url=settings.minimax_api_url
-    )
+    # Update singleton with current settings if needed
+    if ai_service.api_key != settings.minimax_api_key:
+        ai_service.api_key = settings.minimax_api_key
+    if ai_service.base_url != settings.minimax_api_url.rstrip("/"):
+        ai_service.base_url = settings.minimax_api_url.rstrip("/")
+    return ai_service
 
 
 def require_checker_rate_limit(request) -> None:

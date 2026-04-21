@@ -5,6 +5,7 @@ from typing import Optional, List
 from fastapi import APIRouter, HTTPException, Query
 from pydantic import BaseModel, Field, field_validator
 
+from middleware.auth import require_auth
 from services.task_queue import (
     TaskQueue,
     TaskType,
@@ -12,7 +13,7 @@ from services.task_queue import (
     task_queue,
 )
 
-router = APIRouter(prefix="/tasks", tags=["tasks"])
+router = APIRouter(prefix="/tasks", tags=["tasks"], dependencies=[require_auth])
 
 
 # ============================================================

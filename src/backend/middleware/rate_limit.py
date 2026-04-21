@@ -2,7 +2,7 @@
 # Per-IP rate limiting for API endpoints
 
 import time
-import threading
+import asyncio
 from fastapi import Request
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.responses import JSONResponse
@@ -17,17 +17,17 @@ class RateLimitStore:
 
     def __init__(self):
         self._store: dict[str, list[float]] = {}
-        self._lock = threading.Lock()
+        self._lock = asyncio.Lock()
         self._last_cleanup = time.time()
         self._cleanup_interval = 60.0  # Cleanup every 60 seconds
 
-    def _cleanup_expired(self, max_age: float = 300.0):
+    async def _cleanup_expired(self, max_age: float = 300.0):
         """Remove expired entries older than max_age seconds."""
         now = time.time()
         if now - self._last_cleanup < self._cleanup_interval:
             return
 
-        with self._lock:
+        async with self._lock:
             self._last_cleanup = now
             expired_ips = [
                 ip for ip, timestamps in self._store.items()
@@ -36,7 +36,7 @@ class RateLimitStore:
             for ip in expired_ips:
                 del self._store[ip]
 
-    def check_rate_limit(
+    async def check_rate_limit(
         self,
         client_ip: str,
         max_requests: int,
@@ -46,10 +46,10 @@ class RateLimitStore:
         Check if client is within rate limit.
         Returns (allowed, limit, remaining).
         """
-        self._cleanup_expired(max_age=window_seconds * 5)
+        await self._cleanup_expired(max_age=window_seconds * 5)
 
         now = time.time()
-        with self._lock:
+        async with self._lock:
             if client_ip not in self._store:
                 self._store[client_ip] = []
 
@@ -85,13 +85,15 @@ async def rate_limit_middleware(request: Request, call_next):
     path = request.url.path
 
     # Only apply rate limiting to specified routes
-    if not (path.startswith("/api/v1/chat") or path.startswith("/api/v1/ai")):
+    if not (path.startswith("/api/v1/chat") or
+            path.startswith("/api/v1/ai") or
+            path.startswith("/ws")):
         return await call_next(request)
 
     client_ip = request.client.host if request.client else "unknown"
 
     # Use default limits (can be made configurable per-route)
-    allowed, limit, remaining = _rate_limit_store.check_rate_limit(
+    allowed, limit, remaining = await _rate_limit_store.check_rate_limit(
         client_ip,
         max_requests=DEFAULT_RATE_LIMIT,
         window_seconds=DEFAULT_WINDOW
@@ -150,12 +152,12 @@ CHECKER_RATE_LIMIT = 10  # requests per window
 CHECKER_WINDOW = 60.0  # window in seconds
 
 
-def check_checker_rate_limit(client_ip: str) -> tuple[bool, int, int]:
+async def check_checker_rate_limit(client_ip: str) -> tuple[bool, int, int]:
     """Check rate limit for AI checker endpoints.
 
     Returns (allowed, limit, remaining).
     """
-    return _checker_rate_limit_store.check_rate_limit(
+    return await _checker_rate_limit_store.check_rate_limit(
         client_ip,
         max_requests=CHECKER_RATE_LIMIT,
         window_seconds=CHECKER_WINDOW

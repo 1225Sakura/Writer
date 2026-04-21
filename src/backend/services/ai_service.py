@@ -223,3 +223,10 @@ class AIService:
             # Cache the result
             set_cached_ai_result(prompt_hash, {"entities": entities}, ttl=AI_CACHE_TTL)
             return entities
+
+
+# Module-level singleton instance
+ai_service = AIService(
+    api_key="",  # Will be configured via settings at runtime
+    base_url="https://api.minimax.chat/v1",
+)

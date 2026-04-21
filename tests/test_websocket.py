@@ -4,13 +4,14 @@ Tests for WebSocket connection handling.
 
 import pytest
 import json
+import time
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import sys
 import os
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'src', 'backend'))
 
-from main import app, manager, ConnectionManager
+from main import app, manager, ConnectionManager, QueuedMessage
 
 
 class TestConnectionManager:
@@ -139,6 +140,156 @@ class TestConnectionManager:
         assert status["connections"] == 0
 
 
+class TestWebSocketRateLimiting:
+    """Test WebSocket rate limiting functionality."""
+
+    @pytest.fixture
+    def connection_manager(self):
+        """Create a ConnectionManager with known rate limits."""
+        return ConnectionManager(
+            rate_limit_window=60.0,
+            rate_limit_max_messages=5
+        )
+
+    def test_rate_limit_allows_under_limit(self, connection_manager):
+        """Test rate limit allows messages under the limit."""
+        allowed, info = connection_manager.check_rate_limit(1)
+        assert allowed is True
+        assert info["remaining"] == 4
+
+    def test_rate_limit_blocks_over_limit(self, connection_manager):
+        """Test rate limit blocks messages over the limit."""
+        # Exhaust the limit
+        for _ in range(5):
+            connection_manager.check_rate_limit(1)
+
+        allowed, info = connection_manager.check_rate_limit(1)
+        assert allowed is False
+        assert info["remaining"] == 0
+
+    def test_rate_limit_resets_after_window(self, connection_manager):
+        """Test rate limit resets after the window expires."""
+        # Exhaust the limit
+        for _ in range(5):
+            connection_manager.check_rate_limit(1)
+
+        # Manually clear rate tracking to simulate time passing
+        connection_manager.rate_limit_tracking[1] = []
+
+        allowed, info = connection_manager.check_rate_limit(1)
+        assert allowed is True
+
+
+class TestWebSocketMessageQueuing:
+    """Test message queuing for disconnected clients."""
+
+    @pytest.fixture
+    def connection_manager(self):
+        """Create a ConnectionManager."""
+        return ConnectionManager()
+
+    def test_queue_message(self, connection_manager):
+        """Test queuing a message for a session."""
+        message = {"type": "test", "content": "hello"}
+        connection_manager.queue_message(1, message)
+
+        assert connection_manager.has_queued_messages(1)
+        assert connection_manager.get_queue_size(1) == 1
+
+    def test_get_queued_messages(self, connection_manager):
+        """Test retrieving and clearing queued messages."""
+        message1 = {"type": "test", "content": "hello"}
+        message2 = {"type": "test", "content": "world"}
+        connection_manager.queue_message(1, message1)
+        connection_manager.queue_message(1, message2)
+
+        messages = connection_manager.get_queued_messages(1)
+
+        assert len(messages) == 2
+        assert messages[0]["content"] == "hello"
+        assert messages[1]["content"] == "world"
+        assert not connection_manager.has_queued_messages(1)
+
+    def test_queue_size_limit(self, connection_manager):
+        """Test queue respects max size limit."""
+        # connection_manager.max_queue_size defaults to 100
+        for i in range(105):
+            connection_manager.queue_message(1, {"type": "test", "content": f"msg{i}"})
+
+        # Should have removed oldest messages
+        assert connection_manager.get_queue_size(1) == 100
+
+    def test_has_queued_messages_false_for_unknown_session(self, connection_manager):
+        """Test has_queued_messages returns False for unknown session."""
+        assert connection_manager.has_queued_messages(999) is False
+
+
+class TestWebSocketHeartbeat:
+    """Test heartbeat/ping-pong functionality."""
+
+    @pytest.fixture
+    def connection_manager(self):
+        """Create a ConnectionManager."""
+        return ConnectionManager(
+            heartbeat_interval=30.0,
+            heartbeat_timeout=90.0
+        )
+
+    @pytest.mark.asyncio
+    async def test_update_pong(self, connection_manager):
+        """Test updating last pong timestamp."""
+        websocket = AsyncMock()
+        await connection_manager.connect(websocket, session_id=1)
+
+        ws_id = id(websocket)
+        initial_time = connection_manager.connection_last_pong[ws_id]
+
+        # Small delay to ensure time changes
+        time.sleep(0.01)
+        connection_manager.update_pong(websocket)
+
+        assert connection_manager.connection_last_pong[ws_id] > initial_time
+
+    @pytest.mark.asyncio
+    async def test_is_stale_false_recent_pong(self, connection_manager):
+        """Test connection is not stale when pong is recent."""
+        websocket = AsyncMock()
+        await connection_manager.connect(websocket, session_id=1)
+
+        assert connection_manager.is_stale(websocket, session_id=1) is False
+
+    def test_is_stale_true_no_pong(self, connection_manager):
+        """Test connection is stale when no pong recorded."""
+        websocket = AsyncMock()
+
+        # Mark connection as stale by setting last_pong to old time
+        connection_manager.connection_last_pong[id(websocket)] = time.time() - 100
+
+        assert connection_manager.is_stale(websocket, session_id=1) is True
+
+
+class TestWebSocketMessageValidation:
+    """Test message validation."""
+
+    @pytest.fixture
+    def connection_manager(self):
+        """Create a ConnectionManager with known message size limit."""
+        return ConnectionManager(max_message_size=1000)
+
+    def test_validate_message_size_valid(self, connection_manager):
+        """Test valid message size passes validation."""
+        valid, msg = connection_manager.validate_message_size("hello world")
+        assert valid is True
+        assert msg == ""
+
+    def test_validate_message_size_too_large(self, connection_manager):
+        """Test oversized message fails validation."""
+        large_message = "x" * 2000
+        valid, msg = connection_manager.validate_message_size(large_message)
+        assert valid is False
+        assert "exceeds limit" in msg
+
+
 class TestWebSocketEndpoints:
     """Test WebSocket endpoints via TestClient."""
 
@@ -195,6 +346,32 @@ class TestWebSocketEndpoints:
         assert status["status"] == "unknown"
         assert status["connections"] == 0
 
+    def test_websocket_chat_invalid_json(self):
+        """Test chat WebSocket handles invalid JSON gracefully."""
+        from starlette.testclient import TestClient
+
+        with TestClient(app) as test_client:
+            with test_client.websocket_connect("/ws/chat/1") as websocket:
+                websocket.send_text("not valid json {")
+                data = websocket.receive_json()
+                assert data["type"] == "error"
+                assert data["code"] == "invalid_json"
+
+    def test_websocket_chat_message_too_large(self):
+        """Test chat WebSocket rejects oversized messages."""
+        from starlette.testclient import TestClient
+
+        # Create a message larger than default 64KB limit
+        large_content = "x" * 100000
+        message = json.dumps({"content": large_content, "role": "user"})
+
+        with TestClient(app) as test_client:
+            with test_client.websocket_connect("/ws/chat/1") as websocket:
+                websocket.send_text(message)
+                data = websocket.receive_json()
+                assert data["type"] == "error"
+                assert data["code"] == "message_too_large"
+
 
 class TestWebSocketErrorHandling:
     """Test WebSocket error handling."""
@@ -215,3 +392,32 @@ class TestWebSocketErrorHandling:
         manager.disconnect(ws2, session_id=1)
 
         assert len(manager.active_connections[1]) == 1
+
+    def test_close_all_cleans_all_state(self):
+        """Test close_all properly cleans up all state."""
+        import asyncio
+
+        ws1 = AsyncMock()
+        ws2 = AsyncMock()
+
+        asyncio.run(manager.connect(ws1, session_id=1))
+        asyncio.run(manager.connect(ws2, session_id=2))
+
+        asyncio.run(manager.close_all())
+
+        assert len(manager.active_connections) == 0
+        assert len(manager.connection_status) == 0
+        assert len(manager.connection_last_pong) == 0
+        assert len(manager.message_queues) == 0
+
+    def test_get_all_status(self):
+        """Test getting status of all sessions."""
+        import asyncio
+
+        ws1 = AsyncMock()
+        asyncio.run(manager.connect(ws1, session_id=1))
+
+        all_status = manager.get_all_status()
+        assert "total_sessions" in all_status
+        assert "total_connections" in all_status
+        assert "sessions" in all_status

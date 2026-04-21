@@ -12,6 +12,29 @@ from pathlib import Path
 from middleware.request_context import get_request_id, get_correlation_id, get_user_id
 
 
+class TimedRotatingFileHandler(logging.handlers.TimedRotatingFileHandler):
+    """Enhanced timed rotating handler that also supports size-based rotation."""
+
+    def __init__(self, filename, when='midnight', interval=1, backup_count=7,
+                 encoding='utf-8', max_bytes=10*1024*1024, **kwargs):
+        self.max_bytes = max_bytes
+        self._size_handler = logging.handlers.RotatingFileHandler(
+            filename, maxBytes=max_bytes, backupCount=backup_count, encoding=encoding
+        )
+        super().__init__(filename, when=when, interval=interval,
+                         backupCount=backup_count, encoding=encoding, **kwargs)
+
+    def emit(self, record):
+        # Check size before emitting
+        if self.max_bytes > 0:
+            msg = self.format(record)
+            if self._size_handler.stream.tell() + len(msg.encode('utf-8')) > self.max_bytes:
+                self._size_handler.shouldRollover(self._size_handler.makeRecord(
+                    self._size_handler.name, logging.INFO, "", 0, msg, (), None
+                ))
+        super().emit(record)
+
+
 class JSONFormatter(logging.Formatter):
     """Format log records as structured JSON with correlation IDs."""
 
@@ -140,15 +163,16 @@ def setup_logging(
     log_file: Optional[str] = None,
     log_dir: Optional[str] = None,
     max_bytes: int = 10 * 1024 * 1024,  # 10MB
-    backup_count: int = 5,
+    backup_count: int = 7,
     separate_error_logs: bool = True,
     separate_access_logs: bool = True,
+    module_levels: Optional[Dict[str, str]] = None,
 ) -> logging.Logger:
     """
     Configure application logging with rotation and structured output.
 
     Args:
-        level: Log level (DEBUG, INFO, WARNING, ERROR, CRITICAL)
+        level: Global log level (DEBUG, INFO, WARNING, ERROR, CRITICAL)
         json_logs: Use JSON formatting for structured logs
         log_file: Optional file path to write logs to
         log_dir: Directory for log files (used if log_file not specified)
@@ -156,6 +180,7 @@ def setup_logging(
         backup_count: Number of backup files to keep
         separate_error_logs: Write error logs to separate file
         separate_access_logs: Write access logs to separate file
+        module_levels: Dict mapping module prefixes to log levels
 
     Returns:
         Configured root logger
@@ -165,6 +190,12 @@ def setup_logging(
 
     # Remove existing handlers
     root_logger.handlers.clear()
+
+    # Configure module-specific log levels
+    if module_levels:
+        for module_prefix, module_level in module_levels.items():
+            module_logger = logging.getLogger(module_prefix)
+            module_logger.setLevel(getattr(logging, module_level.upper(), logging.INFO))
 
     # Choose formatter
     if json_logs:
@@ -189,11 +220,12 @@ def setup_logging(
     if log_path:
         log_path.mkdir(parents=True, exist_ok=True)
 
-    # Main file handler with rotation
+    # Main file handler with daily rotation + size backup
     if log_file:
-        file_handler = logging.handlers.RotatingFileHandler(
+        file_handler = logging.handlers.TimedRotatingFileHandler(
             log_file,
-            maxBytes=max_bytes,
+            when='midnight',
+            interval=1,
             backupCount=backup_count,
             encoding="utf-8",
         )
@@ -204,9 +236,10 @@ def setup_logging(
     # Separate error log file
     if separate_error_logs and log_path:
         error_log_file = log_path / "error.log"
-        error_handler = logging.handlers.RotatingFileHandler(
+        error_handler = logging.handlers.TimedRotatingFileHandler(
             str(error_log_file),
-            maxBytes=max_bytes,
+            when='midnight',
+            interval=1,
             backupCount=backup_count,
             encoding="utf-8",
         )
@@ -217,9 +250,10 @@ def setup_logging(
     # Separate access log file
     if separate_access_logs and log_path:
         access_log_file = log_path / "access.log"
-        access_handler = logging.handlers.RotatingFileHandler(
+        access_handler = logging.handlers.TimedRotatingFileHandler(
             str(access_log_file),
-            maxBytes=max_bytes,
+            when='midnight',
+            interval=1,
             backupCount=backup_count,
             encoding="utf-8",
         )

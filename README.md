@@ -69,8 +69,11 @@ pip install -r requirements.txt
 # 配置环境变量 (.env)
 MINIMAX_API_KEY=your_api_key_here
 
-# 初始化数据库
+# 初始化数据库（首次运行）
 python init_db.py
+
+# 或应用数据库迁移（推荐）
+python cli.py db upgrade
 
 # 启动服务器
 python start.py
@@ -704,13 +707,67 @@ GET /api/styles/江南
 | 续写 | Ctrl+Shift+W |
 | 润色 | Ctrl+Shift+P |
 
+## 数据库迁移
+
+本项目使用 [Alembic](https://alembic.sqlalchemy.org/) 管理数据库迁移。
+
+### 常用命令
+
+```bash
+cd src/backend
+
+# 查看当前迁移版本
+python cli.py db current
+
+# 查看迁移历史
+python cli.py db history
+
+# 自动生成分支迁移（修改模型后执行）
+python cli.py db migrate "add new table"
+
+# 应用所有待执行的迁移
+python cli.py db upgrade
+
+# 回滚到上一个版本
+python cli.py db downgrade
+
+# 回滚到指定版本
+python cli.py db downgrade --revision base
+```
+
+### 手动使用 Alembic
+
+```bash
+cd src/backend
+
+# 生成迁移
+.venv/Scripts/python -m alembic revision --autogenerate -m "description"
+
+# 应用迁移
+.venv/Scripts/python -m alembic upgrade head
+
+# 回滚
+.venv/Scripts/python -m alembic downgrade -1
+```
+
+### 首次部署
+
+对于已有数据库（从旧版 schema.sql 迁移），需要标记当前版本为已应用：
+
+```bash
+cd src/backend
+.venv/Scripts/python -m alembic stamp head
+```
+
 ## 项目结构
 
 ```
 writer/
 ├── src/
 │   ├── backend/
-│   │   ├── app/              # 备用应用目录
+│   │   ├── alembic/          # Alembic 迁移目录
+│   │   │   ├── versions/     # 迁移脚本
+│   │   │   └── env.py        # Alembic 环境配置
 │   │   ├── models/           # SQLAlchemy 模型
 │   │   │   └── entities.py   # 实体模型定义
 │   │   ├── routes/           # API 路由
@@ -723,17 +780,18 @@ writer/
 │   │   │   ├── ai_service.py
 │   │   │   └── database_service.py
 │   │   ├── config.py         # 配置
-│   │   ├── database.py      # 数据库连接
-│   │   ├── init_db.py       # 数据库初始化
-│   │   ├── main.py          # FastAPI 入口
+│   │   ├── database.py       # 数据库连接
+│   │   ├── init_db.py        # 数据库初始化（旧版）
+│   │   ├── cli.py            # CLI 工具
+│   │   ├── main.py           # FastAPI 入口
 │   │   ├── requirements.txt  # Python 依赖
-│   │   ├── schema.sql       # 数据库 schema
-│   │   └── start.py         # 启动脚本
+│   │   ├── schema.sql        # 数据库 schema（参考）
+│   │   └── start.py          # 启动脚本
 │   └── frontend/
 │       ├── src/
 │       │   ├── components/   # React 组件
-│       │   ├── pages/       # 页面组件
-│       │   ├── stores/      # Zustand 状态
+│       │   ├── pages/        # 页面组件
+│       │   ├── stores/       # Zustand 状态
 │       │   └── ...
 │       ├── package.json
 │       └── vite.config.ts

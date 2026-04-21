@@ -1,0 +1,265 @@
+name: CD - Build & Release
+
+on:
+  push:
+    branches: [main, master]
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Deployment environment'
+        required: true
+        default: 'staging'
+        type: choice
+        options:
+          - staging
+          - production
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_PREFIX: ${{ github.repository_owner }}/writer
+
+jobs:
+  # ============================================================
+  # Job 1: Version determination
+  # ============================================================
+  version:
+    name: Determine Version
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+      is_release: ${{ steps.version.outputs.is_release }}
+      short_sha: ${{ steps.version.outputs.short_sha }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Calculate version
+        id: version
+        run: |
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            echo "version=debug-${{ github.run_id }}" >> $GITHUB_OUTPUT
+            echo "is_release=false" >> $GITHUB_OUTPUT
+          elif [[ "${{ github.ref }}" == refs/tags/* ]]; then
+            echo "version=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+            echo "is_release=true" >> $GITHUB_OUTPUT
+          else
+            COMMIT_MSG=$(git log -1 --format=%s)
+            echo "version=dev-$COMMIT_MSG" >> $GITHUB_OUTPUT
+            echo "is_release=false" >> $GITHUB_OUTPUT
+          fi
+          echo "short_sha=${GITHUB_SHA::8}" >> $GITHUB_OUTPUT
+
+  # ============================================================
+  # Job 2: Build Docker images
+  # ============================================================
+  build-docker:
+    name: Build Docker Images
+    needs: [version]
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+          - component: backend
+            path: src/backend
+            dockerfile: src/backend/Dockerfile
+          - component: frontend
+            path: src/frontend
+            dockerfile: src/frontend/Dockerfile
+    outputs:
+      backend_image: ${{ steps.meta.outputs.backend_tags }}
+      frontend_image: ${{ steps.meta.outputs.frontend_tags }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to Container Registry
+        if: needs.version.outputs.is_release == 'true'
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata
+        id: meta
+        env:
+          COMPONENT: ${{ matrix.component }}
+        run: |
+          TAGS=""
+
+          # Version tag (for releases)
+          if [[ "${{ needs.version.outputs.is_release }}" == "true" ]]; then
+            TAGS="${TAGS},${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}-${COMPONENT}:${{ needs.version.outputs.version }}"
+            TAGS="${TAGS},${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}-${COMPONENT}:latest"
+          fi
+
+          # SHA tag (for all builds)
+          TAGS="${TAGS},${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}-${COMPONENT}:${{ needs.version.outputs.short_sha }}"
+
+          # Remove leading comma
+          TAGS=${TAGS#,}
+
+          echo "${COMPONENT}_tags=$TAGS" >> $GITHUB_OUTPUT
+          echo "tags=$TAGS" >> $GITHUB_OUTPUT
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: ${{ matrix.path }}
+          file: ${{ matrix.dockerfile }}
+          platforms: linux/amd64
+          push: ${{ needs.version.outputs.is_release == 'true' }}
+          tags: ${{ needs.version.outputs.is_release == 'true' && steps.meta.outputs.tags || 'dummy' }}
+          cache-from: type=gha,scope=${{ matrix.component }}
+          cache-to: type=gha,mode=max
+
+  # ============================================================
+  # Job 3: Build Electron desktop app
+  # ============================================================
+  build-electron:
+    name: Build Electron (${{ matrix.platform }})
+    needs: [version]
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - platform: windows
+            os: windows-latest
+            artifact_name: Writer-Setup
+          - platform: mac
+            os: macos-latest
+            artifact_name: Writer-mac
+          - platform: linux
+            os: ubuntu-latest
+            artifact_name: Writer-linux
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: electron/package-lock.json
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install backend dependencies
+        run: |
+          cd src/backend
+          pip install -r requirements.txt
+
+      - name: Get npm dependencies
+        working-directory: ./electron
+        run: npm ci
+
+      - name: Build frontend
+        run: |
+          cd src/frontend
+          npm ci
+          npm run build
+
+      - name: Build Electron app
+        working-directory: ./electron
+        run: |
+          cd ../src/frontend
+          npm run build
+          cd ../electron
+          npm run build:electron
+          npm run dist:${{ matrix.platform }}
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.artifact_name }}-${{ matrix.platform }}
+          path: electron/release/${{ matrix.platform }}
+          if-no-files-found: error
+
+      - name: Create Release
+        if: needs.version.outputs.is_release == 'true'
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ github.ref_name }}
+          files: electron/release/${{ matrix.platform }}/*
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  # ============================================================
+  # Job 4: Deploy to server (SSH)
+  # ============================================================
+  deploy-server:
+    name: Deploy to Server
+    needs: [build-docker, version]
+    if: needs.version.outputs.is_release == 'true' || github.event.inputs.environment != ''
+    runs-on: ubuntu-latest
+    environment: ${{ github.event.inputs.environment || 'staging' }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Docker
+        run: |
+          curl -fsSL https://get.docker.com -o get-docker.sh
+          sudo sh get-docker.sh
+
+      - name: Configure SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SERVER_SSH_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan -H ${{ secrets.SERVER_HOST }} >> ~/.ssh/known_hosts
+
+      - name: Deploy with Docker Compose
+        env:
+          VERSION: ${{ needs.version.outputs.version }}
+          BACKEND_IMAGE: ${{ needs.build-docker.outputs.backend_image }}
+          FRONTEND_IMAGE: ${{ needs.build-docker.outputs.frontend_image }}
+          MINIMAX_API_KEY: ${{ secrets.MINIMAX_API_KEY }}
+        run: |
+          ssh ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} << 'ENDSSH'
+            set -e
+
+            # Create deployment directory
+            mkdir -p ~/writer-deploy
+            cd ~/writer-deploy
+
+            # Pull latest code
+            git pull origin main
+
+            # Restart services
+            docker compose pull
+            docker compose up -d
+
+            # Health check
+            sleep 10
+            curl -f http://localhost:8000/health || exit 1
+
+            echo "Deployment completed successfully!"
+          ENDSSH
+
+  # ============================================================
+  # Job 5: Build Summary
+  # ============================================================
+  summary:
+    name: Build Summary
+    needs: [version, build-docker, build-electron, deploy-server]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Summary
+        run: |
+          echo "## CI/CD Build Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Version:** \`${{ needs.version.outputs.version }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "**SHA:** \`${{ needs.version.outputs.short_sha }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "**Release:** ${{ needs.version.outputs.is_release }}" >> $GITHUB_STEP_SUMMARY

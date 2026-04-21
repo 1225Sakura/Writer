@@ -2,7 +2,6 @@
 # Interface 2: World settings management
 
 from fastapi import APIRouter, HTTPException, Depends
-from pydantic import BaseModel, field_validator
 from typing import List, Optional
 from datetime import datetime
 
@@ -16,304 +15,39 @@ from backend.models.entities import (
     WritingSettings
 )
 from backend.services.cache_service import cache_service
-from backend.config import settings
 from backend.middleware.auth import require_auth
+from backend.schemas.request_schemas import (
+    CharacterCreateRequest,
+    CharacterUpdateRequest,
+    CharacterRelationshipCreateRequest,
+    CharacterStorylineCreateRequest,
+    ItemCreateRequest,
+    ItemUpdateRequest,
+    LocationCreateRequest,
+    LocationUpdateRequest,
+    FactionCreateRequest,
+    FactionUpdateRequest,
+    WorldSettingCreateRequest,
+    WorldSettingUpdateRequest,
+    RuleCreateRequest,
+    RuleUpdateRequest,
+    WritingSettingsUpdateRequest,
+    ExportDataRequest,
+)
+from backend.schemas.response_schemas import (
+    CharacterResponse,
+    CharacterRelationshipResponse,
+    CharacterStorylineResponse,
+    ItemResponse,
+    LocationResponse,
+    FactionResponse,
+    WorldSettingResponse,
+    RuleResponse,
+    WritingSettingsResponse,
+    ExportDataResponse,
+)
 
 router = APIRouter(prefix="/settings", tags=["settings"], dependencies=[require_auth])
-
-MAX_NAME_LENGTH = 200
-MAX_DESCRIPTION_LENGTH = 5000
-MAX_TEXT_FIELD_LENGTH = 10000
-
-
-# Pydantic models
-class CharacterBase(BaseModel):
-    name: str
-    gender: Optional[str] = None
-    personality: Optional[str] = None
-    desires: Optional[str] = None
-    flaws: Optional[str] = None
-    description: Optional[str] = None
-    tier: Optional[str] = None
-    cultivation_realm: Optional[str] = None
-
-    @field_validator('name')
-    @classmethod
-    def validate_name(cls, v: str) -> str:
-        if not v or not v.strip():
-            raise ValueError('Name cannot be empty')
-        if len(v) > MAX_NAME_LENGTH:
-            raise ValueError(f'Name exceeds maximum length of {MAX_NAME_LENGTH}')
-        return v.strip()
-
-    @field_validator('description', 'personality', 'desires', 'flaws')
-    @classmethod
-    def validate_text_fields(cls, v: Optional[str]) -> Optional[str]:
-        if v is not None and len(v) > MAX_TEXT_FIELD_LENGTH:
-            raise ValueError(f'Text field exceeds maximum length of {MAX_TEXT_FIELD_LENGTH}')
-        return v
-
-
-class CharacterCreate(CharacterBase):
-    pass
-
-
-class CharacterUpdate(BaseModel):
-    name: Optional[str] = None
-    gender: Optional[str] = None
-    personality: Optional[str] = None
-    desires: Optional[str] = None
-    flaws: Optional[str] = None
-    description: Optional[str] = None
-    tier: Optional[str] = None
-    cultivation_realm: Optional[str] = None
-
-
-class CharacterResponse(CharacterBase):
-    id: int
-    created_at: datetime
-    updated_at: datetime
-
-    class Config:
-        from_attributes = True
-
-
-class CharacterRelationshipCreate(BaseModel):
-    character_id: int
-    target_id: int
-    type: str
-    description: Optional[str] = None
-
-    @field_validator('character_id', 'target_id')
-    @classmethod
-    def validate_ids(cls, v: int) -> int:
-        if v <= 0:
-            raise ValueError('ID must be a positive integer')
-        return v
-
-    @field_validator('type')
-    @classmethod
-    def validate_type(cls, v: str) -> str:
-        if not v or not v.strip():
-            raise ValueError('Relationship type cannot be empty')
-        return v.strip()
-
-    @field_validator('description')
-    @classmethod
-    def validate_description(cls, v: Optional[str]) -> Optional[str]:
-        if v is not None and len(v) > MAX_DESCRIPTION_LENGTH:
-            raise ValueError(f'Description exceeds maximum length of {MAX_DESCRIPTION_LENGTH}')
-        return v
-
-
-class CharacterRelationshipResponse(BaseModel):
-    id: int
-    character_id: int
-    target_id: int
-    type: str
-    description: Optional[str]
-
-    class Config:
-        from_attributes = True
-
-
-class CharacterStorylineCreate(BaseModel):
-    character_id: int
-    title: str
-    arc: Optional[str] = None
-    progress: int = 0
-
-    @field_validator('character_id')
-    @classmethod
-    def validate_character_id(cls, v: int) -> int:
-        if v <= 0:
-            raise ValueError('character_id must be a positive integer')
-        return v
-
-    @field_validator('title')
-    @classmethod
-    def validate_title(cls, v: str) -> str:
-        if not v or not v.strip():
-            raise ValueError('Title cannot be empty')
-        if len(v) > MAX_NAME_LENGTH:
-            raise ValueError(f'Title exceeds maximum length of {MAX_NAME_LENGTH}')
-        return v.strip()
-
-    @field_validator('progress')
-    @classmethod
-    def validate_progress(cls, v: int) -> int:
-        if v < 0 or v > 100:
-            raise ValueError('Progress must be between 0 and 100')
-        return v
-
-
-class CharacterStorylineResponse(BaseModel):
-    id: int
-    character_id: int
-    title: str
-    arc: Optional[str]
-    progress: int
-
-    class Config:
-        from_attributes = True
-
-
-# World entity models
-class ItemCreate(BaseModel):
-    name: str
-    description: Optional[str] = None
-    owner: Optional[str] = None
-    location: Optional[str] = None
-
-    @field_validator('name')
-    @classmethod
-    def validate_name(cls, v: str) -> str:
-        if not v or not v.strip():
-            raise ValueError('Name cannot be empty')
-        if len(v) > MAX_NAME_LENGTH:
-            raise ValueError(f'Name exceeds maximum length of {MAX_NAME_LENGTH}')
-        return v.strip()
-
-
-class ItemResponse(BaseModel):
-    id: int
-    name: str
-    description: Optional[str]
-    owner: Optional[str]
-    location: Optional[str]
-
-    class Config:
-        from_attributes = True
-
-
-class LocationCreate(BaseModel):
-    name: str
-    description: Optional[str] = None
-    importance: Optional[str] = None
-
-    @field_validator('name')
-    @classmethod
-    def validate_name(cls, v: str) -> str:
-        if not v or not v.strip():
-            raise ValueError('Name cannot be empty')
-        if len(v) > MAX_NAME_LENGTH:
-            raise ValueError(f'Name exceeds maximum length of {MAX_NAME_LENGTH}')
-        return v.strip()
-
-
-class LocationResponse(BaseModel):
-    id: int
-    name: str
-    description: Optional[str]
-    importance: Optional[str]
-
-    class Config:
-        from_attributes = True
-
-
-class FactionCreate(BaseModel):
-    name: str
-    description: Optional[str] = None
-    type: Optional[str] = None
-
-    @field_validator('name')
-    @classmethod
-    def validate_name(cls, v: str) -> str:
-        if not v or not v.strip():
-            raise ValueError('Name cannot be empty')
-        if len(v) > MAX_NAME_LENGTH:
-            raise ValueError(f'Name exceeds maximum length of {MAX_NAME_LENGTH}')
-        return v.strip()
-
-
-class FactionResponse(BaseModel):
-    id: int
-    name: str
-    description: Optional[str]
-    type: Optional[str]
-
-    class Config:
-        from_attributes = True
-
-
-class WorldSettingCreate(BaseModel):
-    name: str
-    description: Optional[str] = None
-    details_json: Optional[str] = None
-
-    @field_validator('name')
-    @classmethod
-    def validate_name(cls, v: str) -> str:
-        if not v or not v.strip():
-            raise ValueError('Name cannot be empty')
-        if len(v) > MAX_NAME_LENGTH:
-            raise ValueError(f'Name exceeds maximum length of {MAX_NAME_LENGTH}')
-        return v.strip()
-
-
-class WorldSettingResponse(BaseModel):
-    id: int
-    name: str
-    description: Optional[str]
-    details_json: Optional[str]
-
-    class Config:
-        from_attributes = True
-
-
-class RuleCreate(BaseModel):
-    name: str
-    description: Optional[str] = None
-    type: Optional[str] = None
-
-    @field_validator('name')
-    @classmethod
-    def validate_name(cls, v: str) -> str:
-        if not v or not v.strip():
-            raise ValueError('Name cannot be empty')
-        if len(v) > MAX_NAME_LENGTH:
-            raise ValueError(f'Name exceeds maximum length of {MAX_NAME_LENGTH}')
-        return v.strip()
-
-
-class RuleResponse(BaseModel):
-    id: int
-    name: str
-    description: Optional[str]
-    type: Optional[str]
-
-    class Config:
-        from_attributes = True
-
-
-class WritingSettingsUpdate(BaseModel):
-    human_ai_ratio: Optional[float] = None
-    writing_style: Optional[str] = None
-    target_word_count: Optional[int] = None
-
-    @field_validator('human_ai_ratio')
-    @classmethod
-    def validate_human_ai_ratio(cls, v: Optional[float]) -> Optional[float]:
-        if v is not None and (v < 0.0 or v > 1.0):
-            raise ValueError('human_ai_ratio must be between 0.0 and 1.0')
-        return v
-
-    @field_validator('target_word_count')
-    @classmethod
-    def validate_target_word_count(cls, v: Optional[int]) -> Optional[int]:
-        if v is not None and v <= 0:
-            raise ValueError('target_word_count must be a positive integer')
-        return v
-
-
-class WritingSettingsResponse(BaseModel):
-    id: int
-    human_ai_ratio: float
-    writing_style: str
-    target_word_count: int
-
-    class Config:
-        from_attributes = True
 
 
 # Character endpoints
@@ -334,7 +68,7 @@ async def list_characters(
 
 @router.post("/characters", response_model=CharacterResponse)
 async def create_character(
-    character: CharacterCreate,
+    character: CharacterCreateRequest,
     db: AsyncSession = Depends(get_db)
 ):
     """Create a new character."""
@@ -359,7 +93,7 @@ async def get_character(character_id: int, db: AsyncSession = Depends(get_db)):
 @router.patch("/characters/{character_id}", response_model=CharacterResponse)
 async def update_character(
     character_id: int,
-    character: CharacterUpdate,
+    character: CharacterUpdateRequest,
     db: AsyncSession = Depends(get_db)
 ):
     """Update a character."""
@@ -407,7 +141,7 @@ async def list_character_relationships(
 @router.post("/characters/{character_id}/relationships", response_model=CharacterRelationshipResponse)
 async def create_character_relationship(
     character_id: int,
-    relationship: CharacterRelationshipCreate,
+    relationship: CharacterRelationshipCreateRequest,
     db: AsyncSession = Depends(get_db)
 ):
     """Create a relationship for a character."""
@@ -435,7 +169,7 @@ async def list_character_storylines(
 @router.post("/characters/{character_id}/storylines", response_model=CharacterStorylineResponse)
 async def create_character_storyline(
     character_id: int,
-    storyline: CharacterStorylineCreate,
+    storyline: CharacterStorylineCreateRequest,
     db: AsyncSession = Depends(get_db)
 ):
     """Create a storyline for a character."""
@@ -464,7 +198,7 @@ async def list_items(
 
 
 @router.post("/items", response_model=ItemResponse)
-async def create_item(item: ItemCreate, db: AsyncSession = Depends(get_db)):
+async def create_item(item: ItemCreateRequest, db: AsyncSession = Depends(get_db)):
     """Create a new item."""
     db_item = Item(**item.model_dump())
     db.add(db_item)
@@ -477,7 +211,7 @@ async def create_item(item: ItemCreate, db: AsyncSession = Depends(get_db)):
 @router.patch("/items/{item_id}", response_model=ItemResponse)
 async def update_item(
     item_id: int,
-    item: ItemCreate,
+    item: ItemUpdateRequest,
     db: AsyncSession = Depends(get_db)
 ):
     """Update an item."""
@@ -524,7 +258,7 @@ async def list_locations(
 
 
 @router.post("/locations", response_model=LocationResponse)
-async def create_location(location: LocationCreate, db: AsyncSession = Depends(get_db)):
+async def create_location(location: LocationCreateRequest, db: AsyncSession = Depends(get_db)):
     """Create a new location."""
     db_location = Location(**location.model_dump())
     db.add(db_location)
@@ -537,7 +271,7 @@ async def create_location(location: LocationCreate, db: AsyncSession = Depends(g
 @router.patch("/locations/{location_id}", response_model=LocationResponse)
 async def update_location(
     location_id: int,
-    location: LocationCreate,
+    location: LocationUpdateRequest,
     db: AsyncSession = Depends(get_db)
 ):
     """Update a location."""
@@ -584,7 +318,7 @@ async def list_factions(
 
 
 @router.post("/factions", response_model=FactionResponse)
-async def create_faction(faction: FactionCreate, db: AsyncSession = Depends(get_db)):
+async def create_faction(faction: FactionCreateRequest, db: AsyncSession = Depends(get_db)):
     """Create a new faction."""
     db_faction = Faction(**faction.model_dump())
     db.add(db_faction)
@@ -597,7 +331,7 @@ async def create_faction(faction: FactionCreate, db: AsyncSession = Depends(get_
 @router.patch("/factions/{faction_id}", response_model=FactionResponse)
 async def update_faction(
     faction_id: int,
-    faction: FactionCreate,
+    faction: FactionUpdateRequest,
     db: AsyncSession = Depends(get_db)
 ):
     """Update a faction."""
@@ -641,7 +375,7 @@ async def list_world_settings(
 
 @router.post("/world", response_model=WorldSettingResponse)
 async def create_world_setting(
-    setting: WorldSettingCreate,
+    setting: WorldSettingCreateRequest,
     db: AsyncSession = Depends(get_db)
 ):
     """Create a new world setting."""
@@ -656,7 +390,7 @@ async def create_world_setting(
 @router.patch("/world/{setting_id}", response_model=WorldSettingResponse)
 async def update_world_setting(
     setting_id: int,
-    setting: WorldSettingCreate,
+    setting: WorldSettingUpdateRequest,
     db: AsyncSession = Depends(get_db)
 ):
     """Update a world setting."""
@@ -703,7 +437,7 @@ async def list_rules(
 
 
 @router.post("/rules", response_model=RuleResponse)
-async def create_rule(rule: RuleCreate, db: AsyncSession = Depends(get_db)):
+async def create_rule(rule: RuleCreateRequest, db: AsyncSession = Depends(get_db)):
     """Create a new rule."""
     db_rule = Rule(**rule.model_dump())
     db.add(db_rule)
@@ -716,7 +450,7 @@ async def create_rule(rule: RuleCreate, db: AsyncSession = Depends(get_db)):
 @router.patch("/rules/{rule_id}", response_model=RuleResponse)
 async def update_rule(
     rule_id: int,
-    rule: RuleCreate,
+    rule: RuleUpdateRequest,
     db: AsyncSession = Depends(get_db)
 ):
     """Update a rule."""
@@ -763,7 +497,7 @@ async def get_writing_settings(db: AsyncSession = Depends(get_db)):
 
 @router.patch("/writing", response_model=WritingSettingsResponse)
 async def update_writing_settings(
-    updates: WritingSettingsUpdate,
+    updates: WritingSettingsUpdateRequest,
     db: AsyncSession = Depends(get_db)
 ):
     """Update writing settings."""
@@ -784,22 +518,7 @@ async def update_writing_settings(
 
 
 # Export/Import for backup and migration
-class ExportData(BaseModel):
-    """Complete project data for export."""
-    version: str = "1.0"
-    exported_at: str
-    characters: list
-    character_relationships: list
-    character_storylines: list
-    items: list
-    locations: list
-    factions: list
-    world_settings: list
-    rules: list
-    writing_settings: Optional[dict] = None
-
-
-@router.get("/export", response_model=ExportData)
+@router.get("/export", response_model=ExportDataResponse)
 async def export_data(db: AsyncSession = Depends(get_db)):
     """Export all project data as JSON."""
     # Get all entities
@@ -813,7 +532,7 @@ async def export_data(db: AsyncSession = Depends(get_db)):
     rules = (await db.execute(select(Rule))).scalars().all()
     writing_settings = (await db.execute(select(WritingSettings))).scalars().one_or_none()
 
-    return ExportData(
+    return ExportDataResponse(
         version="1.0",
         exported_at=datetime.utcnow().isoformat(),
         characters=[{**c.__dict__, '_type': 'character'} for c in characters],
@@ -829,7 +548,7 @@ async def export_data(db: AsyncSession = Depends(get_db)):
 
 
 @router.post("/import")
-async def import_data(data: ExportData, db: AsyncSession = Depends(get_db)):
+async def import_data(data: ExportDataRequest, db: AsyncSession = Depends(get_db)):
     """Import project data from JSON with relationship support."""
     imported_count = {
         'characters': 0,

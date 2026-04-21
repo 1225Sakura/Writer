@@ -2,7 +2,6 @@
 # Interface 3: Chapter and story structure management
 
 from fastapi import APIRouter, HTTPException, Depends
-from pydantic import BaseModel
 from typing import List, Optional
 from datetime import datetime
 
@@ -19,154 +18,16 @@ from backend.config import settings
 
 # Import centralized schemas for enhanced validation
 from backend.schemas import (
-    OutlineCreateRequest, OutlineUpdateRequest,
-    ChapterCreateRequest, ChapterUpdateRequest,
-    IFLineCreateRequest, IFLineUpdateRequest,
-    DraftVersionCreateRequest,
-    PlotThreadCreateRequest, PlotThreadUpdateRequest,
+    OutlineCreateRequest, OutlineUpdateRequest, OutlineResponse,
+    ChapterCreateRequest, ChapterUpdateRequest, ChapterResponse,
+    IFLineCreateRequest, IFLineUpdateRequest, IFLineResponse,
+    DraftVersionCreateRequest, DraftVersionResponse,
+    PlotThreadCreateRequest, PlotThreadUpdateRequest, PlotThreadResponse,
+    AIInspectionResultResponse,
     MessageResponse,
 )
 
 router = APIRouter(prefix="/chapters", tags=["chapters"], dependencies=[require_auth])
-
-
-# Pydantic models
-class OutlineCreate(BaseModel):
-    title: str
-    description: Optional[str] = None
-
-
-class OutlineUpdate(BaseModel):
-    title: Optional[str] = None
-    description: Optional[str] = None
-
-
-class OutlineResponse(BaseModel):
-    id: int
-    title: str
-    description: Optional[str]
-
-    class Config:
-        from_attributes = True
-
-
-class ChapterCreate(BaseModel):
-    outline_id: Optional[int] = None
-    title: Optional[str] = None
-    summary: Optional[str] = None
-    status: str = "pending"
-    word_count: int = 0
-    chapter_order: int = 0
-
-
-class ChapterUpdate(BaseModel):
-    outline_id: Optional[int] = None
-    title: Optional[str] = None
-    summary: Optional[str] = None
-    status: Optional[str] = None
-    word_count: Optional[int] = None
-    chapter_order: Optional[int] = None
-
-
-class ChapterResponse(BaseModel):
-    id: int
-    outline_id: Optional[int]
-    title: Optional[str]
-    summary: Optional[str]
-    status: str
-    word_count: int
-    chapter_order: int
-    created_at: datetime
-    updated_at: datetime
-
-    class Config:
-        from_attributes = True
-
-
-class IFLineCreate(BaseModel):
-    title: str
-    linked_character_id: Optional[int] = None
-    description: Optional[str] = None
-    sync_mode: str = "auto"
-
-
-class IFLineUpdate(BaseModel):
-    title: Optional[str] = None
-    linked_character_id: Optional[int] = None
-    description: Optional[str] = None
-    sync_mode: Optional[str] = None
-
-
-class IFLineResponse(BaseModel):
-    id: int
-    title: str
-    linked_character_id: Optional[int]
-    description: Optional[str]
-    sync_mode: str
-    created_at: datetime
-    updated_at: datetime
-
-    class Config:
-        from_attributes = True
-
-
-class DraftVersionCreate(BaseModel):
-    chapter_id: int
-    content: str
-    version_number: int
-
-
-class DraftVersionResponse(BaseModel):
-    id: int
-    chapter_id: int
-    content: str
-    version_number: int
-    created_at: datetime
-
-    class Config:
-        from_attributes = True
-
-
-class PlotThreadCreate(BaseModel):
-    title: str
-    description: Optional[str] = None
-    status: str = "active"
-    created_chapter_id: Optional[int] = None
-    reveal_chapter_id: Optional[int] = None
-
-
-class PlotThreadUpdate(BaseModel):
-    title: Optional[str] = None
-    description: Optional[str] = None
-    status: Optional[str] = None
-    created_chapter_id: Optional[int] = None
-    reveal_chapter_id: Optional[int] = None
-
-
-class PlotThreadResponse(BaseModel):
-    id: int
-    title: str
-    description: Optional[str]
-    status: str
-    created_chapter_id: Optional[int]
-    reveal_chapter_id: Optional[int]
-    created_at: datetime
-
-    class Config:
-        from_attributes = True
-
-
-class AIInspectionResultResponse(BaseModel):
-    id: int
-    chapter_id: int
-    inspection_type: str
-    issues_json: Optional[str]
-    suggestions_json: Optional[str]
-    auto_fixed: bool
-    created_at: datetime
-
-    class Config:
-        from_attributes = True
 
 
 # Outline endpoints

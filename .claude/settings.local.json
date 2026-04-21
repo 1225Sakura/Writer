@@ -5,7 +5,9 @@
       "Bash(mkdir -p \"D:/writer/src/backend/app/agents\")",
       "Bash(mkdir -p \"D:/writer/src/backend/app/services\")",
       "Bash(mkdir -p \"D:/writer/src/backend/app/models\")",
-      "Bash(mkdir -p \"D:/writer/src/backend/app/db\")"
+      "Bash(mkdir -p \"D:/writer/src/backend/app/db\")",
+      "Bash(rm -rf \"C:/Users/36084/.claude/teams/writer-backend-frontend-v1/\")",
+      "Bash(rm -rf \"C:/Users/36084/.claude/tasks/writer-backend-frontend-v1/\")"
     ]
   }
 }

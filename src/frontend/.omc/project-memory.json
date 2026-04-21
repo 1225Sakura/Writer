@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "lastScanned": 1776355388637,
+  "lastScanned": 1776760822873,
   "projectRoot": "D:\\writer\\src\\frontend",
   "techStack": {
     "languages": [
@@ -63,6 +63,7 @@
     "isMonorepo": false,
     "workspaces": [],
     "mainDirectories": [
+      "public",
       "src"
     ],
     "gitBranches": null
@@ -72,19 +73,30 @@
     "dist": {
       "path": "dist",
       "purpose": "Distribution/build output",
-      "fileCount": 1,
-      "lastAccessed": 1776355388604,
+      "fileCount": 2,
+      "lastAccessed": 1776760822835,
       "keyFiles": [
-        "index.html"
+        "index.html",
+        "manifest.json"
+      ]
+    },
+    "public": {
+      "path": "public",
+      "purpose": "Public files",
+      "fileCount": 1,
+      "lastAccessed": 1776760822836,
+      "keyFiles": [
+        "manifest.json"
       ]
     },
     "src": {
       "path": "src",
       "purpose": "Source code",
-      "fileCount": 3,
-      "lastAccessed": 1776355388604,
+      "fileCount": 4,
+      "lastAccessed": 1776760822844,
       "keyFiles": [
         "App.tsx",
+        "index.css",
         "main.tsx",
         "vite-env.d.ts"
       ]
@@ -92,269 +104,122 @@
     "dist\\assets": {
       "path": "dist\\assets",
       "purpose": "Static assets",
-      "fileCount": 2,
-      "lastAccessed": 1776355388612,
+      "fileCount": 14,
+      "lastAccessed": 1776760822845,
       "keyFiles": [
-        "index-jRNbEV57.js",
-        "index-tOIr55pn.css"
+        "ChatInitPage-C5cnbQLS.js",
+        "index-CvnADYqO.js",
+        "index-DH_RoxNZ.css"
+      ]
+    },
+    "src\\api": {
+      "path": "src\\api",
+      "purpose": "API routes",
+      "fileCount": 8,
+      "lastAccessed": 1776760822846,
+      "keyFiles": [
+        "aiReview.ts",
+        "auth.ts",
+        "chat.ts"
       ]
     },
     "src\\components": {
       "path": "src\\components",
       "purpose": "UI components",
       "fileCount": 1,
-      "lastAccessed": 1776355388613,
+      "lastAccessed": 1776760822846,
       "keyFiles": [
         "index.ts"
+      ]
+    },
+    "src\\lib": {
+      "path": "src\\lib",
+      "purpose": "Library code",
+      "fileCount": 1,
+      "lastAccessed": 1776760822846,
+      "keyFiles": [
+        "utils.ts"
       ]
     },
     "src\\pages": {
       "path": "src\\pages",
       "purpose": "Page components",
       "fileCount": 0,
-      "lastAccessed": 1776355388614,
+      "lastAccessed": 1776760822847,
       "keyFiles": []
     }
   },
   "hotPaths": [
     {
-      "path": "src\\components\\settings\\EntityEditor.tsx",
-      "accessCount": 42,
-      "lastAccessed": 1776430001159,
-      "type": "file"
+      "path": "src",
+      "accessCount": 12,
+      "lastAccessed": 1776768015834,
+      "type": "directory"
     },
     {
-      "path": "src\\store\\settingsStore.ts",
-      "accessCount": 41,
-      "lastAccessed": 1776429989053,
-      "type": "file"
-    },
-    {
-      "path": "src\\components\\settings\\SettingEditorPage.tsx",
-      "accessCount": 20,
-      "lastAccessed": 1776429034384,
-      "type": "file"
-    },
-    {
-      "path": "src\\components\\writing\\CollaborationPanel.tsx",
-      "accessCount": 16,
-      "lastAccessed": 1776428909831,
-      "type": "file"
-    },
-    {
-      "path": "src\\store\\writingStore.ts",
-      "accessCount": 16,
-      "lastAccessed": 1776429156394,
+      "path": "src\\styles\\globals.css",
+      "accessCount": 6,
+      "lastAccessed": 1776767909212,
       "type": "file"
     },
     {
       "path": "src\\components\\settings\\RelationGraph.tsx",
-      "accessCount": 15,
-      "lastAccessed": 1776441806580,
-      "type": "file"
-    },
-    {
-      "path": "src\\components\\settings\\CategoryNav.tsx",
-      "accessCount": 13,
-      "lastAccessed": 1776429033865,
-      "type": "file"
-    },
-    {
-      "path": "src\\components\\writing\\AIOperationDrawer.tsx",
-      "accessCount": 10,
-      "lastAccessed": 1776356020428,
-      "type": "file"
-    },
-    {
-      "path": "src\\components\\writing\\WritingToolbar.tsx",
-      "accessCount": 7,
-      "lastAccessed": 1776356806344,
-      "type": "file"
-    },
-    {
-      "path": "src\\components\\writing\\WritingCanvas.tsx",
-      "accessCount": 7,
-      "lastAccessed": 1776357078665,
-      "type": "file"
-    },
-    {
-      "path": "src\\api\\types.ts",
-      "accessCount": 7,
-      "lastAccessed": 1776446102529,
-      "type": "directory"
-    },
-    {
-      "path": "src\\components\\chat\\UserInputPanel.tsx",
-      "accessCount": 6,
-      "lastAccessed": 1776428876399,
-      "type": "file"
-    },
-    {
-      "path": "src\\store\\index.ts",
-      "accessCount": 6,
-      "lastAccessed": 1776429312971,
-      "type": "file"
-    },
-    {
-      "path": "src\\components\\settings\\AISuggestionPanel.tsx",
-      "accessCount": 5,
-      "lastAccessed": 1776356982432,
-      "type": "file"
-    },
-    {
-      "path": "src\\components\\ui\\Button.tsx",
-      "accessCount": 5,
-      "lastAccessed": 1776428923665,
-      "type": "file"
-    },
-    {
-      "path": "",
       "accessCount": 4,
-      "lastAccessed": 1776355626589,
-      "type": "directory"
-    },
-    {
-      "path": "src\\components\\ui\\Toast.tsx",
-      "accessCount": 4,
-      "lastAccessed": 1776355688520,
-      "type": "file"
-    },
-    {
-      "path": "src\\components\\ui\\Badge.tsx",
-      "accessCount": 4,
-      "lastAccessed": 1776355688534,
+      "lastAccessed": 1776767897161,
       "type": "file"
     },
     {
       "path": "tailwind.config.js",
       "accessCount": 3,
-      "lastAccessed": 1776355629163,
+      "lastAccessed": 1776768394492,
       "type": "file"
     },
     {
-      "path": "src\\components\\ui\\Card.tsx",
-      "accessCount": 3,
-      "lastAccessed": 1776355688481,
-      "type": "file"
-    },
-    {
-      "path": "src\\components\\ui\\Input.tsx",
-      "accessCount": 3,
-      "lastAccessed": 1776355688642,
-      "type": "file"
-    },
-    {
-      "path": "src\\components\\writing\\WritingEditorPage.tsx",
-      "accessCount": 3,
-      "lastAccessed": 1776356579277,
-      "type": "file"
-    },
-    {
-      "path": "tsconfig.node.json",
-      "accessCount": 3,
-      "lastAccessed": 1776423921441,
-      "type": "file"
-    },
-    {
-      "path": "src\\api\\settings.ts",
-      "accessCount": 3,
-      "lastAccessed": 1776428749570,
-      "type": "file"
-    },
-    {
-      "path": "src\\store\\chatStore.ts",
-      "accessCount": 3,
-      "lastAccessed": 1776428854547,
-      "type": "file"
-    },
-    {
-      "path": "src",
-      "accessCount": 3,
-      "lastAccessed": 1776429798701,
-      "type": "directory"
-    },
-    {
-      "path": "src\\components\\chat\\ChatInitPage.tsx",
-      "accessCount": 3,
-      "lastAccessed": 1776441175992,
-      "type": "file"
-    },
-    {
-      "path": "src\\api\\writing.ts",
-      "accessCount": 3,
-      "lastAccessed": 1776446108297,
-      "type": "file"
-    },
-    {
-      "path": "tsconfig.json",
+      "path": "C:\\Users\\36084\\.claude\\teams\\writer-backend-frontend-v1\\config.json",
       "accessCount": 2,
-      "lastAccessed": 1776441463021,
+      "lastAccessed": 1776760978288,
       "type": "file"
     },
     {
-      "path": "src\\utils\\performance.ts",
+      "path": "src\\components\\settings\\AISuggestionPanel.tsx",
       "accessCount": 2,
-      "lastAccessed": 1776441614244,
+      "lastAccessed": 1776767895360,
       "type": "file"
     },
     {
-      "path": "src\\hooks\\useTheme.ts",
-      "accessCount": 1,
-      "lastAccessed": 1776355610396,
+      "path": "src\\components\\settings\\CategoryNav.tsx",
+      "accessCount": 2,
+      "lastAccessed": 1776767895969,
       "type": "file"
-    },
-    {
-      "path": "src\\components\\shared\\ThemeProvider.tsx",
-      "accessCount": 1,
-      "lastAccessed": 1776355610419,
-      "type": "file"
-    },
-    {
-      "path": "src\\styles\\globals.css",
-      "accessCount": 1,
-      "lastAccessed": 1776356589542,
-      "type": "file"
-    },
-    {
-      "path": "C:\\Users\\36084\\AppData\\Local\\Temp\\claude\\D--writer\\5e549d04-4452-45dd-befc-a5945bb93ee5\\tasks\\bt5oewlrv.output",
-      "accessCount": 1,
-      "lastAccessed": 1776360180495,
-      "type": "file"
-    },
-    {
-      "path": "C:\\Users\\36084\\AppData\\Local\\Temp\\claude\\D--writer\\5e549d04-4452-45dd-befc-a5945bb93ee5\\tasks\\b4p3n006h.output",
-      "accessCount": 1,
-      "lastAccessed": 1776360222820,
-      "type": "file"
-    },
-    {
-      "path": "src\\store\\uiStore.ts",
-      "accessCount": 1,
-      "lastAccessed": 1776428919219,
-      "type": "directory"
     },
     {
       "path": "src\\store",
       "accessCount": 1,
-      "lastAccessed": 1776429450147,
+      "lastAccessed": 1776768015866,
       "type": "directory"
     },
     {
-      "path": "src\\App.tsx",
+      "path": "src\\store\\index.ts",
       "accessCount": 1,
-      "lastAccessed": 1776441187613,
+      "lastAccessed": 1776768018363,
       "type": "file"
     },
     {
-      "path": "vite.config.ts",
+      "path": "src\\components",
       "accessCount": 1,
-      "lastAccessed": 1776441208426,
+      "lastAccessed": 1776768023911,
+      "type": "directory"
+    },
+    {
+      "path": "src\\styles\\globals.css.new",
+      "accessCount": 1,
+      "lastAccessed": 1776768240443,
       "type": "file"
     },
     {
-      "path": "src\\api\\chat.ts",
+      "path": "src\\index.css",
       "accessCount": 1,
-      "lastAccessed": 1776446108271,
+      "lastAccessed": 1776768303548,
       "type": "file"
     }
   ],
