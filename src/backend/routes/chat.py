@@ -1,12 +1,11 @@
 # Auto Novel Writer - Chat Routes
-# Interface 1: Chat initialization
+# Interface 1: Chat initialization with ChatAgent integration
 
 import time
 from fastapi import APIRouter, HTTPException, Depends, Request
 from pydantic import BaseModel, field_validator
-from typing import List, Optional
+from typing import List, Optional, Any
 from datetime import datetime
-import re
 
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
@@ -21,13 +20,17 @@ from backend.schemas import (
     ChatMessageResponse,
     ChatSessionResponse,
     ExtractedEntityResponse,
-    MessageResponse,
 )
+from backend.services.chat_service import ChatSessionService, ChatMessageService
+from backend.agents.chat_agent import ChatAgent
+from backend.services.ai.provider import AIProvider
+from backend.utils.event_bus import AsyncEventBus
 
-router = APIRouter(prefix="/chat", tags=["chat"], dependencies=[require_auth])
+router = APIRouter(prefix="/chat", tags=["chat"])
 
 # Simple in-memory rate limiting (for production use Redis)
 rate_limit_store: dict[str, list[float]] = {}
+
 
 def check_rate_limit(client_ip: str, max_requests: int = 30, window_seconds: float = 60.0) -> bool:
     """Check if client exceeds rate limit. Returns True if allowed."""
@@ -47,82 +50,45 @@ def check_rate_limit(client_ip: str, max_requests: int = 30, window_seconds: flo
     rate_limit_store[client_ip].append(now)
     return True
 
-# Pydantic models
-class ChatMessageCreate(BaseModel):
-    role: str
-    content: str
 
-    @field_validator('role')
-    @classmethod
-    def validate_role(cls, v: str) -> str:
-        if v not in ('user', 'assistant', 'system'):
-            raise ValueError('Role must be user, assistant, or system')
-        return v
+# ---------------------------------------------------------------------------
+# Dependencies
+# ---------------------------------------------------------------------------
 
-    @field_validator('content')
-    @classmethod
-    def validate_content(cls, v: str) -> str:
-        if not v or not v.strip():
-            raise ValueError('Content cannot be empty')
-        if len(v) > 50000:  # Max 50k characters per message
-            raise ValueError('Content exceeds maximum length')
-        return v.strip()
+async def get_chat_session_service(db: AsyncSession = Depends(get_db)) -> ChatSessionService:
+    """Dependency to provide ChatSessionService."""
+    return ChatSessionService(db)
 
 
-class ChatMessageResponse(BaseModel):
-    id: int
-    session_id: int
-    role: str
-    content: str
-    created_at: datetime
+async def get_chat_message_service(db: AsyncSession = Depends(get_db)) -> ChatMessageService:
+    """Dependency to provide ChatMessageService.
 
-    class Config:
-        from_attributes = True
-
-
-class ChatSessionCreate(BaseModel):
-    pass
+    Note: ChatAgent integration requires AIProvider and EventBus.
+    In a full setup these would be provided via app state or a DI container.
+    For now, the service works without an agent (generic responses).
+    """
+    return ChatMessageService(db)
 
 
-class ChatSessionResponse(BaseModel):
-    id: int
-    created_at: datetime
-    updated_at: datetime
+# ---------------------------------------------------------------------------
+# Session endpoints
+# ---------------------------------------------------------------------------
 
-    class Config:
-        from_attributes = True
-
-
-class ExtractedEntityResponse(BaseModel):
-    id: int
-    session_id: int
-    type: str
-    name: str
-    description: Optional[str]
-    confirmed: bool
-    created_at: datetime
-
-    class Config:
-        from_attributes = True
-
-
-# Endpoints
-@router.post("/sessions", response_model=ChatSessionResponse)
-async def create_session(db: AsyncSession = Depends(get_db)):
+@router.post("/sessions", response_model=ChatSessionResponse, dependencies=[require_auth])
+async def create_session(
+    service: ChatSessionService = Depends(get_chat_session_service),
+):
     """Create a new chat session."""
-    session = ChatSession()
-    db.add(session)
-    await db.flush()
-    await db.refresh(session)
+    session = await service.create()
     return session
 
 
-@router.get("/sessions", response_model=List[ChatSessionResponse])
+@router.get("/sessions", response_model=List[ChatSessionResponse], dependencies=[require_auth])
 async def list_sessions(
     request: Request,
     skip: int = 0,
     limit: int = 20,
-    db: AsyncSession = Depends(get_db)
+    service: ChatSessionService = Depends(get_chat_session_service),
 ):
     """List all chat sessions with pagination."""
     # Rate limiting
@@ -130,122 +96,244 @@ async def list_sessions(
     if not check_rate_limit(client_ip, max_requests=60, window_seconds=60):
         raise HTTPException(status_code=429, detail="Too many requests")
 
-    result = await db.execute(
-        select(ChatSession)
-        .order_by(ChatSession.updated_at.desc())
-        .offset(skip)
-        .limit(min(limit, 100))  # Cap at 100
-    )
-    sessions = result.scalars().all()
+    sessions = await service.list_sessions(skip=skip, limit=min(limit, 100))
     return sessions
 
 
-@router.get("/sessions/{session_id}", response_model=ChatSessionResponse)
-async def get_session(session_id: int, db: AsyncSession = Depends(get_db)):
+@router.get("/sessions/{session_id}", response_model=ChatSessionResponse, dependencies=[require_auth])
+async def get_session(
+    session_id: int,
+    service: ChatSessionService = Depends(get_chat_session_service),
+):
     """Get a specific chat session."""
-    result = await db.execute(select(ChatSession).where(ChatSession.id == session_id))
-    session = result.scalar_one_or_none()
+    session = await service.get(session_id)
     if not session:
         raise HTTPException(status_code=404, detail="Session not found")
     return session
 
 
-@router.delete("/sessions/{session_id}")
-async def delete_session(session_id: int, db: AsyncSession = Depends(get_db)):
+@router.delete("/sessions/{session_id}", dependencies=[require_auth])
+async def delete_session(
+    session_id: int,
+    service: ChatSessionService = Depends(get_chat_session_service),
+):
     """Delete a chat session and all its messages."""
-    result = await db.execute(select(ChatSession).where(ChatSession.id == session_id))
-    session = result.scalar_one_or_none()
-    if not session:
+    deleted = await service.end(session_id)
+    if not deleted:
         raise HTTPException(status_code=404, detail="Session not found")
-    await db.delete(session)
     return {"message": "Session deleted"}
 
 
-@router.post("/sessions/{session_id}/messages", response_model=ChatMessageResponse)
+# ---------------------------------------------------------------------------
+# Message endpoints
+# ---------------------------------------------------------------------------
+
+@router.post(
+    "/sessions/{session_id}/messages",
+    response_model=ChatMessageResponse,
+    dependencies=[require_auth],
+)
 async def create_message(
     request: Request,
     session_id: int,
     message: ChatMessageCreateRequest,
-    db: AsyncSession = Depends(get_db)
+    msg_service: ChatMessageService = Depends(get_chat_message_service),
+    session_service: ChatSessionService = Depends(get_chat_session_service),
 ):
-    """Add a message to a chat session."""
+    """Add a message to a chat session.
+
+    This stores the user message. For AI auto-reply, use the
+    /sessions/{session_id}/send endpoint.
+    """
     # Rate limiting
     client_ip = request.client.host if request.client else "unknown"
     if not check_rate_limit(client_ip, max_requests=30, window_seconds=60):
         raise HTTPException(status_code=429, detail="Too many requests")
 
     # Verify session exists
-    result = await db.execute(select(ChatSession).where(ChatSession.id == session_id))
-    session = result.scalar_one_or_none()
+    session = await session_service.get(session_id)
     if not session:
         raise HTTPException(status_code=404, detail="Session not found")
 
-    chat_message = ChatMessage(
+    chat_message = await msg_service.send(
         session_id=session_id,
         role=message.role,
-        content=message.content
+        content=message.content,
     )
-    db.add(chat_message)
-
-    # Update session timestamp
-    session.updated_at = datetime.utcnow()
-
-    await db.flush()
-    await db.refresh(chat_message)
     return chat_message
 
 
-@router.get("/sessions/{session_id}/messages", response_model=List[ChatMessageResponse])
+@router.get(
+    "/sessions/{session_id}/messages",
+    response_model=List[ChatMessageResponse],
+    dependencies=[require_auth],
+)
 async def get_messages(
     session_id: int,
     skip: int = 0,
     limit: int = 100,
-    db: AsyncSession = Depends(get_db)
+    msg_service: ChatMessageService = Depends(get_chat_message_service),
+    session_service: ChatSessionService = Depends(get_chat_session_service),
 ):
     """Get all messages for a chat session."""
-    result = await db.execute(
-        select(ChatMessage)
-        .where(ChatMessage.session_id == session_id)
-        .order_by(ChatMessage.created_at.asc())
-        .offset(skip)
-        .limit(limit)
-    )
-    messages = result.scalars().all()
+    # Verify session exists
+    session = await session_service.get(session_id)
+    if not session:
+        raise HTTPException(status_code=404, detail="Session not found")
+
+    messages = await msg_service.get_history(session_id, skip=skip, limit=limit)
     return messages
 
 
-@router.get("/sessions/{session_id}/entities", response_model=List[ExtractedEntityResponse])
+# ---------------------------------------------------------------------------
+# AI-powered chat endpoint
+# ---------------------------------------------------------------------------
+
+class ChatSendRequest(BaseModel):
+    """Request to send a message and get AI reply."""
+    content: str
+    collected_settings: Optional[dict[str, Any]] = None
+    current_category: str = "genre"
+
+    @field_validator("content")
+    @classmethod
+    def validate_content(cls, v: str) -> str:
+        if not v or not v.strip():
+            raise ValueError("Content cannot be empty")
+        if len(v) > 50000:
+            raise ValueError("Content exceeds maximum length of 50000")
+        return v.strip()
+
+    @field_validator("current_category")
+    @classmethod
+    def validate_category(cls, v: str) -> str:
+        valid = {
+            "genre", "worldview", "power_system", "protagonist",
+            "golden_finger", "villain", "supporting_characters",
+            "key_items", "key_locations", "factions", "rules", "plot_direction",
+        }
+        if v not in valid:
+            raise ValueError(f"Invalid category: {v}")
+        return v
+
+
+class ChatSendResponse(BaseModel):
+    """Response containing user message, AI reply, and agent metadata."""
+    user_message: ChatMessageResponse
+    ai_message: ChatMessageResponse
+    agent_result: Optional[dict[str, Any]] = None
+
+
+@router.post(
+    "/sessions/{session_id}/send",
+    response_model=ChatSendResponse,
+    dependencies=[require_auth],
+)
+async def send_and_reply(
+    request: Request,
+    session_id: int,
+    req: ChatSendRequest,
+    msg_service: ChatMessageService = Depends(get_chat_message_service),
+    session_service: ChatSessionService = Depends(get_chat_session_service),
+):
+    """Send a user message and get an AI-generated reply.
+
+    The ChatAgent analyzes the conversation context and decides the
+    next optimal question to ask, driving the setting collection process.
+    """
+    # Rate limiting
+    client_ip = request.client.host if request.client else "unknown"
+    if not check_rate_limit(client_ip, max_requests=20, window_seconds=60):
+        raise HTTPException(status_code=429, detail="Too many requests")
+
+    # Verify session exists
+    session = await session_service.get(session_id)
+    if not session:
+        raise HTTPException(status_code=404, detail="Session not found")
+
+    # Process message with AI
+    result = await msg_service.process_user_message(
+        session_id=session_id,
+        content=req.content,
+        collected_settings=req.collected_settings,
+        current_category=req.current_category,
+    )
+
+    # Build agent_result dict if available
+    agent_result_dict = None
+    agent_result = result.get("agent_result")
+    if agent_result:
+        agent_result_dict = {
+            "confidence": agent_result.confidence,
+            "metadata": agent_result.metadata,
+            "warnings": agent_result.warnings,
+            "content": agent_result.content if isinstance(agent_result.content, dict) else str(agent_result.content),
+        }
+
+    return ChatSendResponse(
+        user_message=result["user_message"],
+        ai_message=result["ai_message"],
+        agent_result=agent_result_dict,
+    )
+
+
+# ---------------------------------------------------------------------------
+# Extracted entity endpoints
+# ---------------------------------------------------------------------------
+
+@router.get(
+    "/sessions/{session_id}/entities",
+    response_model=List[ExtractedEntityResponse],
+    dependencies=[require_auth],
+)
 async def get_extracted_entities(
     session_id: int,
-    type: Optional[str] = None,
+    entity_type: Optional[str] = None,
     confirmed: Optional[bool] = None,
-    db: AsyncSession = Depends(get_db)
+    msg_service: ChatMessageService = Depends(get_chat_message_service),
+    session_service: ChatSessionService = Depends(get_chat_session_service),
 ):
     """Get extracted entities from a chat session."""
-    query = select(ExtractedEntity).where(ExtractedEntity.session_id == session_id)
+    # Verify session exists
+    session = await session_service.get(session_id)
+    if not session:
+        raise HTTPException(status_code=404, detail="Session not found")
 
-    if type is not None:
-        query = query.where(ExtractedEntity.type == type)
-    if confirmed is not None:
-        query = query.where(ExtractedEntity.confirmed == (1 if confirmed else 0))
-
-    result = await db.execute(query.order_by(ExtractedEntity.created_at.desc()))
-    entities = result.scalars().all()
+    entities = await msg_service.get_extracted_entities(
+        session_id=session_id,
+        entity_type=entity_type,
+        confirmed=confirmed,
+    )
     return entities
 
 
-@router.patch("/entities/{entity_id}/confirm")
+@router.patch("/entities/{entity_id}/confirm", dependencies=[require_auth])
 async def confirm_entity(
     entity_id: int,
     confirmed: bool = True,
-    db: AsyncSession = Depends(get_db)
+    msg_service: ChatMessageService = Depends(get_chat_message_service),
 ):
     """Confirm or unconfirm an extracted entity."""
-    result = await db.execute(select(ExtractedEntity).where(ExtractedEntity.id == entity_id))
-    entity = result.scalar_one_or_none()
-    if not entity:
+    updated = await msg_service.confirm_entity(entity_id, confirmed)
+    if not updated:
         raise HTTPException(status_code=404, detail="Entity not found")
-
-    entity.confirmed = 1 if confirmed else 0
-    await db.flush()
     return {"message": "Entity updated"}
+
+
+# ---------------------------------------------------------------------------
+# Session summary endpoint
+# ---------------------------------------------------------------------------
+
+@router.get("/sessions/{session_id}/summary", dependencies=[require_auth])
+async def get_session_summary(
+    session_id: int,
+    msg_service: ChatMessageService = Depends(get_chat_message_service),
+    session_service: ChatSessionService = Depends(get_chat_session_service),
+):
+    """Get a text summary of all collected settings from a session."""
+    session = await session_service.get(session_id)
+    if not session:
+        raise HTTPException(status_code=404, detail="Session not found")
+
+    summary = await msg_service.generate_summary(session_id)
+    return {"session_id": session_id, "summary": summary}

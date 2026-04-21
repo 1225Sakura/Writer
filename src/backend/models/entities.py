@@ -298,3 +298,44 @@ class WritingSettings(Base):
     target_word_count = Column(Integer, default=3000)
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+
+# ============================================
+# Workflow Execution Tracking
+# ============================================
+
+class WorkflowExecution(Base):
+    __tablename__ = "workflow_executions"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    workflow_name = Column(String, nullable=False)
+    status = Column(String, default="pending")
+    started_at = Column(DateTime, default=datetime.utcnow)
+    completed_at = Column(DateTime, nullable=True)
+    results_json = Column(Text, nullable=True)
+    error_message = Column(Text, nullable=True)
+
+    agent_logs = relationship(
+        "AgentExecutionLog",
+        back_populates="workflow_execution",
+        cascade="all, delete-orphan",
+    )
+
+
+class AgentExecutionLog(Base):
+    __tablename__ = "agent_execution_logs"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    workflow_execution_id = Column(
+        Integer,
+        ForeignKey("workflow_executions.id", ondelete="CASCADE"),
+        nullable=False,
+    )
+    agent_name = Column(String, nullable=False)
+    stage_name = Column(String, nullable=False)
+    status = Column(String, default="pending")
+    result_json = Column(Text, nullable=True)
+    started_at = Column(DateTime, default=datetime.utcnow)
+    completed_at = Column(DateTime, nullable=True)
+
+    workflow_execution = relationship("WorkflowExecution", back_populates="agent_logs")

@@ -13,6 +13,9 @@ from .auth import router as auth_router
 from .tasks import router as tasks_router
 from .health import router as health_router
 from .cache import router as cache_router
+from .workflows import router as workflows_router
+from .agents import router as agents_router
+from .stats import router as stats_router
 
 # Main API router with version prefix
 api_router = APIRouter(prefix="/api/v1")
@@ -27,3 +30,6 @@ api_router.include_router(export_import_router)
 api_router.include_router(tasks_router)
 api_router.include_router(health_router)
 api_router.include_router(cache_router)
+api_router.include_router(workflows_router)
+api_router.include_router(agents_router)
+api_router.include_router(stats_router)

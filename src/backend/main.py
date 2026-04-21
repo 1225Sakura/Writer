@@ -404,6 +404,31 @@ async def lifespan(app: FastAPI):
     except Exception as e:
         logger.warning(f"Failed to start task queue: {e}")
 
+    # Initialize workflow orchestrator and register core workflows
+    try:
+        from agents.orchestrator import AgentOrchestrator, StageConfig
+        from agents.workflows import WORKFLOW_REGISTRY
+        from routes.workflows import set_orchestrator
+        from utils.event_bus import AsyncEventBus
+
+        event_bus = AsyncEventBus()
+        orchestrator = AgentOrchestrator(event_bus)
+
+        # Register all core workflows
+        for wf_name, stages in WORKFLOW_REGISTRY.items():
+            orchestrator.register_workflow(
+                name=wf_name,
+                stages=stages,
+                description=f"Core workflow: {wf_name}",
+            )
+
+        set_orchestrator(orchestrator)
+        logger.info("Workflow orchestrator initialized with %d workflows", len(WORKFLOW_REGISTRY))
+    except ImportError as e:
+        logger.debug("Workflow orchestrator not available: %s", e)
+    except Exception as e:
+        logger.warning(f"Failed to initialize workflow orchestrator: {e}")
+
     logger.info("Application startup complete")
 
     yield

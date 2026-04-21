@@ -13,6 +13,7 @@ ENTITY_CREATED = "entity.created"
 ENTITY_UPDATED = "entity.updated"
 ENTITY_DELETED = "entity.deleted"
 CACHE_INVALIDATE = "cache.invalidate"
+AGENT_EXECUTED = "agent.executed"
 
 
 class AsyncEventBus:
