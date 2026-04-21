@@ -5,7 +5,11 @@ from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 from typing import List
 
-router = APIRouter(prefix="/styles", tags=["styles"])
+from backend.services.cache_service import cached, cache_service
+from backend.config import settings
+from backend.middleware.auth import require_auth
+
+router = APIRouter(prefix="/styles", tags=["styles"], dependencies=[require_auth])
 
 
 class WritingStyle(BaseModel):
@@ -40,12 +44,14 @@ WRITING_STYLES = [
 
 
 @router.get("/", response_model=List[WritingStyle])
+@cached(ttl=settings.cache_styles_ttl, key_prefix="styles:list")
 async def list_styles():
     """List all available writing styles."""
     return WRITING_STYLES
 
 
 @router.get("/{style_id}", response_model=WritingStyle)
+@cached(ttl=settings.cache_styles_ttl, key_prefix="styles:detail")
 async def get_style(style_id: str):
     """Get a specific writing style by ID."""
     for style in WRITING_STYLES:

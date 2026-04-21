@@ -795,3 +795,259 @@ class TestHealthCheck:
         data = response.json()
         assert "message" in data
         assert "version" in data
+
+
+# ============================================
+# AI Checker API Tests (/api/v1/ai/check/*)
+# ============================================
+
+class TestAICheckers:
+    """Test AI checker endpoints with mocked AI service."""
+
+    @pytest.fixture
+    async def outline_and_chapter(self, client):
+        """Create an outline and chapter for checker tests."""
+        outline_resp = await client.post(
+            "/api/v1/chapters/outlines",
+            json={"title": "Checker Test Outline"}
+        )
+        outline_id = outline_resp.json()["id"]
+
+        chapter_resp = await client.post(
+            "/api/v1/chapters/chapters",
+            json={
+                "outline_id": outline_id,
+                "title": "Checker Test Chapter",
+                "summary": "Test chapter for checker endpoints",
+                "status": "pending"
+            }
+        )
+        chapter_id = chapter_resp.json()["id"]
+        return outline_id, chapter_id
+
+    @pytest.mark.asyncio
+    async def test_check_consistency(self, client, outline_and_chapter):
+        """Test consistency checker endpoint."""
+        _, chapter_id = outline_and_chapter
+
+        mock_result = {
+            "score": 85,
+            "issues": ["Location description mismatch"],
+            "suggestions": ["Update location details"]
+        }
+
+        with patch('routes.ai.ConsistencyChecker') as mock_checker_cls:
+            mock_checker = MagicMock()
+            mock_checker.check = AsyncMock(return_value=mock_result)
+            mock_checker_cls.return_value = mock_checker
+
+            response = await client.post(
+                "/api/v1/ai/check/consistency",
+                json={"chapter_id": chapter_id}
+            )
+            assert response.status_code == 200
+            data = response.json()
+            assert data["chapter_id"] == chapter_id
+            assert data["score"] == 85
+            assert isinstance(data["issues"], list)
+            assert isinstance(data["suggestions"], list)
+
+    @pytest.mark.asyncio
+    async def test_check_continuity(self, client, outline_and_chapter):
+        """Test continuity checker endpoint."""
+        _, chapter_id = outline_and_chapter
+
+        mock_result = {
+            "score": 90,
+            "issues": [],
+            "suggestions": ["Add transition scene"],
+            "plot_thread_status": {
+                "fulfilled": ["Thread A"],
+                "continued": ["Thread B"],
+                "new_setup": ["Thread C"]
+            }
+        }
+
+        with patch('routes.ai.ContinuityChecker') as mock_checker_cls:
+            mock_checker = MagicMock()
+            mock_checker.check = AsyncMock(return_value=mock_result)
+            mock_checker_cls.return_value = mock_checker
+
+            response = await client.post(
+                "/api/v1/ai/check/continuity",
+                json={"chapter_id": chapter_id}
+            )
+            assert response.status_code == 200
+            data = response.json()
+            assert data["chapter_id"] == chapter_id
+            assert data["score"] == 90
+            assert "plot_thread_status" in data
+
+    @pytest.mark.asyncio
+    async def test_check_pacing(self, client, outline_and_chapter):
+        """Test pacing checker endpoint."""
+        _, chapter_id = outline_and_chapter
+
+        mock_result = {
+            "score": 75,
+            "issues": ["Quest strand too dominant"],
+            "suggestions": ["Add more character moments"],
+            "strand_ratios": {"quest": 0.7, "fire": 0.15, "constellation": 0.15},
+            "analysis": "Quest-heavy chapter"
+        }
+
+        with patch('routes.ai.PacingChecker') as mock_checker_cls:
+            mock_checker = MagicMock()
+            mock_checker.check = AsyncMock(return_value=mock_result)
+            mock_checker_cls.return_value = mock_checker
+
+            response = await client.post(
+                "/api/v1/ai/check/pacing",
+                json={"chapter_id": chapter_id}
+            )
+            assert response.status_code == 200
+            data = response.json()
+            assert data["chapter_id"] == chapter_id
+            assert data["score"] == 75
+            assert "strand_ratios" in data
+            assert "analysis" in data
+
+    @pytest.mark.asyncio
+    async def test_check_ooc(self, client, outline_and_chapter):
+        """Test OOC checker endpoint."""
+        _, chapter_id = outline_and_chapter
+
+        # Create a character first
+        char_resp = await client.post(
+            "/api/v1/settings/characters",
+            json={"name": "Test Character", "personality": "Brave"}
+        )
+        character_id = char_resp.json()["id"]
+
+        mock_result = {
+            "score": 95,
+            "issues": [],
+            "suggestions": [],
+            "violations": []
+        }
+
+        with patch('routes.ai.OOCChecker') as mock_checker_cls:
+            mock_checker = MagicMock()
+            mock_checker.check = AsyncMock(return_value=mock_result)
+            mock_checker_cls.return_value = mock_checker
+
+            response = await client.post(
+                "/api/v1/ai/check/ooc",
+                json={"chapter_id": chapter_id, "character_id": character_id}
+            )
+            assert response.status_code == 200
+            data = response.json()
+            assert data["chapter_id"] == chapter_id
+            assert data["character_id"] == character_id
+            assert data["score"] == 95
+            assert isinstance(data["violations"], list)
+
+    @pytest.mark.asyncio
+    async def test_check_high_point(self, client, outline_and_chapter):
+        """Test high point checker endpoint."""
+        _, chapter_id = outline_and_chapter
+
+        mock_result = {
+            "score": 80,
+            "issues": ["Climax too early"],
+            "suggestions": ["Delay climax"],
+            "high_points": [
+                {"location": "Middle", "type": "battle", "intensity": 8, "pacing": "fast"}
+            ],
+            "excitement_density": "moderate",
+            "ending_hook": "Strong cliffhanger"
+        }
+
+        with patch('routes.ai.HighPointChecker') as mock_checker_cls:
+            mock_checker = MagicMock()
+            mock_checker.check = AsyncMock(return_value=mock_result)
+            mock_checker_cls.return_value = mock_checker
+
+            response = await client.post(
+                "/api/v1/ai/check/high-point",
+                json={"chapter_id": chapter_id}
+            )
+            assert response.status_code == 200
+            data = response.json()
+            assert data["chapter_id"] == chapter_id
+            assert data["score"] == 80
+            assert "high_points" in data
+            assert "excitement_density" in data
+
+    @pytest.mark.asyncio
+    async def test_check_reader_pull(self, client, outline_and_chapter):
+        """Test reader pull checker endpoint."""
+        _, chapter_id = outline_and_chapter
+
+        mock_result = {
+            "score": 88,
+            "issues": ["Weak opening hook"],
+            "suggestions": ["Start with action"],
+            "hooks": [
+                {"location": "end", "type": "suspense", "description": "Cliffhanger", "effectiveness": 9}
+            ],
+            "opening_hook": "Weak",
+            "ending_hook": "Strong",
+            "curiosity_gaps": ["Why did he leave?"]
+        }
+
+        with patch('routes.ai.ReaderPullChecker') as mock_checker_cls:
+            mock_checker = MagicMock()
+            mock_checker.check = AsyncMock(return_value=mock_result)
+            mock_checker_cls.return_value = mock_checker
+
+            response = await client.post(
+                "/api/v1/ai/check/reader-pull",
+                json={"chapter_id": chapter_id}
+            )
+            assert response.status_code == 200
+            data = response.json()
+            assert data["chapter_id"] == chapter_id
+            assert data["score"] == 88
+            assert "hooks" in data
+            assert "curiosity_gaps" in data
+
+    @pytest.mark.asyncio
+    async def test_checker_chapter_not_found(self, client):
+        """Test checker returns 404 for non-existent chapter."""
+        response = await client.post(
+            "/api/v1/ai/check/consistency",
+            json={"chapter_id": 99999}
+        )
+        assert response.status_code == 404
+
+    @pytest.mark.asyncio
+    async def test_checker_invalid_chapter_id(self, client):
+        """Test checker validates chapter_id."""
+        response = await client.post(
+            "/api/v1/ai/check/consistency",
+            json={"chapter_id": 0}
+        )
+        assert response.status_code == 422
+
+    @pytest.mark.asyncio
+    async def test_checker_ooc_missing_character_id(self, client, outline_and_chapter):
+        """Test OOC checker requires character_id."""
+        _, chapter_id = outline_and_chapter
+
+        response = await client.post(
+            "/api/v1/ai/check/ooc",
+            json={"chapter_id": chapter_id}
+        )
+        assert response.status_code == 422
+
+    @pytest.mark.asyncio
+    async def test_checker_ooc_invalid_character_id(self, client, outline_and_chapter):
+        """Test OOC checker validates character_id."""
+        _, chapter_id = outline_and_chapter
+
+        response = await client.post(
+            "/api/v1/ai/check/ooc",
+            json={"chapter_id": chapter_id, "character_id": 0}
+        )
+        assert response.status_code == 422

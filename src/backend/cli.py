@@ -5,13 +5,7 @@ import sys
 import os
 import json
 import asyncio
-import click
-from pathlib import Path
-
-import sys
-import os
-import json
-import asyncio
+import subprocess
 import click
 from pathlib import Path
 
@@ -33,6 +27,20 @@ from services.export_import import (
     import_from_json,
     import_from_zip,
 )
+
+# Alembic config path (now inside src/backend/)
+ALEMBIC_INI = BASE_DIR / "src" / "backend" / "alembic.ini"
+
+
+def _get_alembic_cmd():
+    """Resolve the alembic executable (venv first, then PATH)."""
+    venv_alembic = BASE_DIR / "src" / "backend" / ".venv" / "Scripts" / "alembic.exe"
+    if venv_alembic.exists():
+        return str(venv_alembic)
+    venv_alembic_unix = BASE_DIR / "src" / "backend" / ".venv" / "bin" / "alembic"
+    if venv_alembic_unix.exists():
+        return str(venv_alembic_unix)
+    return "alembic"
 
 
 @click.group()
@@ -201,6 +209,174 @@ def db_status():
         click.echo(f"Database: Connected ({settings.database_url})")
     else:
         click.echo(f"Database: Error - {result}", err=True)
+        sys.exit(1)
+
+
+@writer.group()
+def db():
+    """Database migration commands."""
+    pass
+
+
+@db.command(name="migrate")
+@click.argument("message")
+@click.option("--apply", is_flag=True, default=True, help="Apply the migration after generation")
+def db_migrate(message, apply):
+    """Auto-generate a migration from model changes and optionally apply it.
+
+    Example: writer db migrate "add user preferences table"
+    """
+    click.echo(f"Auto-generating migration: '{message}'...")
+
+    if not ALEMBIC_INI.exists():
+        click.echo(f"Error: alembic.ini not found at {ALEMBIC_INI}", err=True)
+        sys.exit(1)
+
+    alembic = _get_alembic_cmd()
+    try:
+        result = subprocess.run(
+            [alembic, "-c", str(ALEMBIC_INI), "revision", "--autogenerate", "-m", message],
+            cwd=BASE_DIR,
+            capture_output=True,
+            text=True,
+            check=True,
+        )
+        click.echo(result.stdout)
+        if result.stderr:
+            click.echo(result.stderr)
+
+        click.echo("[OK] Migration generated successfully")
+
+        if apply:
+            click.echo("Applying migration...")
+            result = subprocess.run(
+                [alembic, "-c", str(ALEMBIC_INI), "upgrade", "head"],
+                cwd=BASE_DIR,
+                capture_output=True,
+                text=True,
+                check=True,
+            )
+            click.echo(result.stdout)
+            click.echo("[OK] Migration applied")
+    except subprocess.CalledProcessError as e:
+        click.echo(f"Migration generation failed:\n{e.stdout}\n{e.stderr}", err=True)
+        sys.exit(1)
+    except FileNotFoundError:
+        click.echo("Error: 'alembic' command not found. Install with: pip install alembic", err=True)
+        sys.exit(1)
+
+
+@db.command(name="upgrade")
+@click.option("--revision", "-r", default="head", help="Target revision (default: head)")
+def db_upgrade(revision):
+    """Apply database migrations up to the target revision."""
+    click.echo(f"Applying migrations to {revision}...")
+
+    if not ALEMBIC_INI.exists():
+        click.echo(f"Error: alembic.ini not found at {ALEMBIC_INI}", err=True)
+        sys.exit(1)
+
+    alembic = _get_alembic_cmd()
+    try:
+        result = subprocess.run(
+            [alembic, "-c", str(ALEMBIC_INI), "upgrade", revision],
+            cwd=BASE_DIR,
+            capture_output=True,
+            text=True,
+            check=True,
+        )
+        click.echo(result.stdout)
+        click.echo(f"[OK] Migrations applied successfully to {revision}")
+    except subprocess.CalledProcessError as e:
+        click.echo(f"Migration failed:\n{e.stdout}\n{e.stderr}", err=True)
+        sys.exit(1)
+    except FileNotFoundError:
+        click.echo("Error: 'alembic' command not found. Install with: pip install alembic", err=True)
+        sys.exit(1)
+
+
+@db.command(name="downgrade")
+@click.option("--revision", "-r", default="-1", help="Target revision (default: -1)")
+def db_downgrade(revision):
+    """Rollback database migrations to the target revision."""
+    click.echo(f"Rolling back migrations to {revision}...")
+
+    if not ALEMBIC_INI.exists():
+        click.echo(f"Error: alembic.ini not found at {ALEMBIC_INI}", err=True)
+        sys.exit(1)
+
+    alembic = _get_alembic_cmd()
+    try:
+        result = subprocess.run(
+            [alembic, "-c", str(ALEMBIC_INI), "downgrade", revision],
+            cwd=BASE_DIR,
+            capture_output=True,
+            text=True,
+            check=True,
+        )
+        click.echo(result.stdout)
+        click.echo(f"[OK] Migrations rolled back to {revision}")
+    except subprocess.CalledProcessError as e:
+        click.echo(f"Rollback failed:\n{e.stdout}\n{e.stderr}", err=True)
+        sys.exit(1)
+    except FileNotFoundError:
+        click.echo("Error: 'alembic' command not found. Install with: pip install alembic", err=True)
+        sys.exit(1)
+
+
+@db.command(name="current")
+def db_current():
+    """Show current migration version."""
+    if not ALEMBIC_INI.exists():
+        click.echo(f"Error: alembic.ini not found at {ALEMBIC_INI}", err=True)
+        sys.exit(1)
+
+    alembic = _get_alembic_cmd()
+    try:
+        result = subprocess.run(
+            [alembic, "-c", str(ALEMBIC_INI), "current"],
+            cwd=BASE_DIR,
+            capture_output=True,
+            text=True,
+            check=True,
+        )
+        click.echo(result.stdout)
+    except subprocess.CalledProcessError as e:
+        click.echo(f"Failed to get current version:\n{e.stdout}\n{e.stderr}", err=True)
+        sys.exit(1)
+    except FileNotFoundError:
+        click.echo("Error: 'alembic' command not found. Install with: pip install alembic", err=True)
+        sys.exit(1)
+
+
+@db.command(name="history")
+@click.option("--verbose", "-v", is_flag=True, help="Show verbose output")
+def db_history(verbose):
+    """Show migration history."""
+    if not ALEMBIC_INI.exists():
+        click.echo(f"Error: alembic.ini not found at {ALEMBIC_INI}", err=True)
+        sys.exit(1)
+
+    alembic = _get_alembic_cmd()
+    try:
+        cmd = [alembic, "-c", str(ALEMBIC_INI), "history"]
+        if verbose:
+            cmd.append("--verbose")
+        result = subprocess.run(
+            cmd,
+            cwd=BASE_DIR,
+            capture_output=True,
+            text=True,
+            check=True,
+        )
+        click.echo(result.stdout)
+        if result.stderr:
+            click.echo(result.stderr)
+    except subprocess.CalledProcessError as e:
+        click.echo(f"Failed to get history:\n{e.stdout}\n{e.stderr}", err=True)
+        sys.exit(1)
+    except FileNotFoundError:
+        click.echo("Error: 'alembic' command not found. Install with: pip install alembic", err=True)
         sys.exit(1)
 
 

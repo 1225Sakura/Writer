@@ -1,8 +1,10 @@
-"""Logging utilities for structured logging."""
+"""Logging utilities for structured logging with correlation IDs."""
 
 import logging
 import sys
 from typing import Optional
+
+from middleware.request_context import get_request_id, get_correlation_id
 
 
 def setup_logging(
@@ -56,3 +58,36 @@ def get_logger(name: str) -> logging.Logger:
         Configured logger instance
     """
     return logging.getLogger(name)
+
+
+def log_with_context(
+    logger: logging.Logger,
+    level: int,
+    message: str,
+    extra: Optional[dict] = None,
+    **kwargs
+) -> None:
+    """Log a message with automatic request context injection.
+
+    Args:
+        logger: Logger instance
+        level: Logging level (e.g., logging.INFO)
+        message: Log message
+        extra: Additional extra fields
+        **kwargs: Additional fields to include in extra
+    """
+    merged_extra = extra or {}
+    merged_extra.update(kwargs)
+
+    # Inject request context
+    try:
+        req_id = get_request_id()
+        if req_id:
+            merged_extra["request_id"] = req_id
+        corr_id = get_correlation_id()
+        if corr_id:
+            merged_extra["correlation_id"] = corr_id
+    except Exception:
+        pass
+
+    logger.log(level, message, extra=merged_extra)

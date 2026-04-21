@@ -14,8 +14,17 @@ from sqlalchemy.orm import selectinload
 
 from backend.database import get_db
 from backend.models.entities import ChatSession, ChatMessage, ExtractedEntity
+from backend.middleware.auth import require_auth
+from backend.schemas import (
+    ChatMessageCreateRequest,
+    ChatSessionCreateRequest,
+    ChatMessageResponse,
+    ChatSessionResponse,
+    ExtractedEntityResponse,
+    MessageResponse,
+)
 
-router = APIRouter(prefix="/chat", tags=["chat"])
+router = APIRouter(prefix="/chat", tags=["chat"], dependencies=[require_auth])
 
 # Simple in-memory rate limiting (for production use Redis)
 rate_limit_store: dict[str, list[float]] = {}
@@ -156,7 +165,7 @@ async def delete_session(session_id: int, db: AsyncSession = Depends(get_db)):
 async def create_message(
     request: Request,
     session_id: int,
-    message: ChatMessageCreate,
+    message: ChatMessageCreateRequest,
     db: AsyncSession = Depends(get_db)
 ):
     """Add a message to a chat session."""

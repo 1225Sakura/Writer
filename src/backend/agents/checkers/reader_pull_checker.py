@@ -1,44 +1,54 @@
 """Reader pull checker for hooks and reader engagement."""
 
+import json
 from typing import Any
 
-import httpx
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from ...services.ai_service import AIService
+from ..utils import MiniMaxAPIClient
 
 
 class ReaderPullChecker:
     """Checks hooks and reader engagement."""
 
-    def __init__(self, ai_service):
-        self.ai_service = ai_service
+    def __init__(self, ai_service: AIService):
+        self.api_client = MiniMaxAPIClient(ai_service)
 
-    async def check(self, chapter_id: int, db: Any) -> dict:
+    async def check(self, chapter_id: int, db: AsyncSession) -> dict:
         """Check reader engagement for a chapter.
 
         Args:
             chapter_id: The chapter ID to check
-            db: Database session
+            db: Async database session
 
         Returns:
             Dict with engagement analysis
         """
         from ...models.entities import Chapter, DraftVersion
 
-        chapter = db.query(Chapter).filter(Chapter.id == chapter_id).first()
+        result = await db.execute(select(Chapter).where(Chapter.id == chapter_id))
+        chapter = result.scalar_one_or_none()
         if not chapter:
             return {"issues": [], "suggestions": [], "score": 100, "hooks": []}
 
-        draft = db.query(DraftVersion).filter(
-            DraftVersion.chapter_id == chapter_id
-        ).order_by(DraftVersion.version_number.desc()).first()
+        result = await db.execute(
+            select(DraftVersion)
+            .where(DraftVersion.chapter_id == chapter_id)
+            .order_by(DraftVersion.version_number.desc())
+        )
+        draft = result.scalar_one_or_none()
 
         content = draft.content if draft else chapter.summary or ""
 
-        # Get next chapter title for context
-        from ...models.entities import Chapter as ChapterModel
-        next_chapter = db.query(ChapterModel).filter(
-            ChapterModel.outline_id == chapter.outline_id,
-            ChapterModel.chapter_order == chapter.chapter_order + 1
-        ).first()
+        result = await db.execute(
+            select(Chapter).where(
+                Chapter.outline_id == chapter.outline_id,
+                Chapter.chapter_order == chapter.chapter_order + 1
+            )
+        )
+        next_chapter = result.scalar_one_or_none()
 
         prompt = f"""分析以下章节的读者吸引力/钩子效果：
 
@@ -79,48 +89,33 @@ class ReaderPullChecker:
         )
 
         try:
-            async with httpx.AsyncClient(timeout=60.0) as client:
-                response = await client.post(
-                    f"{self.ai_service.base_url}/text/chatcompletion_v2",
-                    headers={
-                        "Authorization": f"Bearer {self.ai_service.api_key}",
-                        "Content-Type": "application/json",
-                    },
-                    json={
-                        "model": "MiniMax-Text-01",
-                        "messages": [
-                            {"role": "system", "content": system_prompt},
-                            {"role": "user", "content": prompt},
-                        ],
-                        "temperature": 0.5,
-                    },
-                )
-                response.raise_for_status()
-                result = response.json()
-                content_result = result.get("choices", [{}])[0].get("message", {}).get("content", "")
+            content_result = await self.api_client.call(
+                system_prompt=system_prompt,
+                user_content=prompt,
+                temperature=0.5,
+            )
 
-                import json
-                try:
-                    parsed = json.loads(content_result)
-                    return {
-                        "issues": parsed.get("issues", []),
-                        "suggestions": parsed.get("suggestions", []),
-                        "score": parsed.get("score", 80),
-                        "hooks": parsed.get("hooks", []),
-                        "opening_hook": parsed.get("opening_hook", ""),
-                        "ending_hook": parsed.get("ending_hook", ""),
-                        "curiosity_gaps": parsed.get("curiosity_gaps", []),
-                    }
-                except json.JSONDecodeError:
-                    return {
-                        "issues": ["返回格式错误"],
-                        "suggestions": [],
-                        "score": 70,
-                        "hooks": [],
-                        "opening_hook": "",
-                        "ending_hook": "",
-                        "curiosity_gaps": [],
-                    }
+            try:
+                parsed = json.loads(content_result)
+                return {
+                    "issues": parsed.get("issues", []),
+                    "suggestions": parsed.get("suggestions", []),
+                    "score": parsed.get("score", 80),
+                    "hooks": parsed.get("hooks", []),
+                    "opening_hook": parsed.get("opening_hook", ""),
+                    "ending_hook": parsed.get("ending_hook", ""),
+                    "curiosity_gaps": parsed.get("curiosity_gaps", []),
+                }
+            except json.JSONDecodeError:
+                return {
+                    "issues": ["返回格式错误"],
+                    "suggestions": [],
+                    "score": 70,
+                    "hooks": [],
+                    "opening_hook": "",
+                    "ending_hook": "",
+                    "curiosity_gaps": [],
+                }
         except Exception as e:
             return {
                 "issues": [f"读者吸引力检查失败: {str(e)}"],

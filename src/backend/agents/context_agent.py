@@ -1,11 +1,10 @@
 """Context Agent - Generates writing execution packages for chapters."""
 
-import asyncio
-import json
 import logging
 from typing import Any
 
-import httpx
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from ..models.entities import (
     Chapter,
@@ -16,130 +15,17 @@ from ..models.entities import (
     IFLine,
 )
 from ..services.ai_service import AIService
+from .utils import (
+    BaseAgent,
+    MiniMaxAPIClient,
+    extract_json_from_response,
+    validate_context_response,
+)
 
 logger = logging.getLogger(__name__)
 
-# Retry configuration
-MAX_RETRIES = 3
-INITIAL_RETRY_DELAY = 1.0  # seconds
-MAX_RETRY_DELAY = 10.0  # seconds
-RETRY_MULTIPLIER = 2.0
 
-
-async def retry_with_exponential_backoff(
-    func,
-    *args,
-    max_retries: int = MAX_RETRIES,
-    initial_delay: float = INITIAL_RETRY_DELAY,
-    max_delay: float = MAX_RETRY_DELAY,
-    multiplier: float = RETRY_MULTIPLIER,
-    **kwargs
-):
-    """Execute async function with exponential backoff retry logic.
-
-    Args:
-        func: Async function to retry
-        *args: Positional arguments for func
-        max_retries: Maximum number of retry attempts
-        initial_delay: Initial delay in seconds
-        max_delay: Maximum delay cap in seconds
-        multiplier: Exponential multiplier for delay growth
-        **kwargs: Keyword arguments for func
-
-    Returns:
-        Result from successful function execution
-
-    Raises:
-        Last exception if all retries fail
-    """
-    last_exception = None
-    delay = initial_delay
-
-    for attempt in range(max_retries + 1):
-        try:
-            return await func(*args, **kwargs)
-        except (httpx.HTTPStatusError, httpx.ConnectError, httpx.TimeoutException) as e:
-            last_exception = e
-            if attempt < max_retries:
-                logger.warning(
-                    f"Attempt {attempt + 1}/{max_retries + 1} failed: {e}. "
-                    f"Retrying in {delay}s..."
-                )
-                await asyncio.sleep(delay)
-                delay = min(delay * multiplier, max_delay)
-            else:
-                logger.error(f"All {max_retries + 1} attempts failed for {func.__name__}")
-        except json.JSONDecodeError as e:
-            # Don't retry JSON parsing errors
-            raise ValueError(f"Invalid JSON response: {e}") from e
-
-    raise last_exception
-
-
-def validate_context_response(data: Any, required_fields: list[str]) -> bool:
-    """Validate that response data contains required fields.
-
-    Args:
-        data: Parsed JSON response data
-        required_fields: List of required field names
-
-    Returns:
-        True if all required fields present
-
-    Raises:
-        ValueError if validation fails
-    """
-    if not isinstance(data, dict):
-        raise ValueError(f"Expected dict response, got {type(data).__name__}")
-
-    missing = [f for f in required_fields if f not in data]
-    if missing:
-        raise ValueError(f"Missing required fields: {', '.join(missing)}")
-
-    return True
-
-
-def extract_json_from_response(content: str) -> dict[str, Any]:
-    """Extract JSON from AI response content, handling markdown code blocks.
-
-    Args:
-        content: Raw response content string
-
-    Returns:
-        Parsed JSON dictionary
-
-    Raises:
-        ValueError if JSON cannot be extracted or parsed
-    """
-    content = content.strip()
-
-    # Handle markdown code blocks: ```json ... ``` or ``` ...
-    if content.startswith("```"):
-        # Remove first line (```json or ```)
-        lines = content.split("\n")
-        if lines[0].strip().startswith("```"):
-            content = "\n".join(lines[1:])
-        # Remove closing ```
-        if content.strip().endswith("```"):
-            content = content.strip()[:-3]
-
-    content = content.strip()
-
-    try:
-        return json.loads(content)
-    except json.JSONDecodeError as e:
-        # Try to extract just the JSON portion
-        json_start = content.find("{")
-        json_end = content.rfind("}") + 1
-        if json_start >= 0 and json_end > json_start:
-            try:
-                return json.loads(content[json_start:json_end])
-            except json.JSONDecodeError:
-                pass
-        raise ValueError(f"Cannot parse JSON from response: {e}") from e
-
-
-class ContextAgent:
+class ContextAgent(BaseAgent):
     """Generates structured context packages for chapter writing.
 
     A "创作执行包" (writing execution package) contains:
@@ -166,56 +52,57 @@ class ContextAgent:
     ]
 
     def __init__(self, ai_service: AIService):
-        self.ai_service = ai_service
+        super().__init__(ai_service)
+        self.api_client = MiniMaxAPIClient(ai_service)
 
     async def generate_chapter_context(
-        self, chapter_id: int, db: Any
+        self, chapter_id: int, db: AsyncSession
     ) -> dict[str, Any]:
         """Generate a complete writing execution package for a chapter.
 
         Args:
             chapter_id: The chapter ID to generate context for
-            db: Database session
+            db: Async database session
 
         Returns:
             Structured context dict containing all writing guidance
         """
-        chapter = db.query(Chapter).filter(Chapter.id == chapter_id).first()
+        result = await db.execute(select(Chapter).where(Chapter.id == chapter_id))
+        chapter = result.scalar_one_or_none()
         if not chapter:
             raise ValueError(f"Chapter {chapter_id} not found")
 
         outline = None
         if chapter.outline_id:
-            outline = db.query(Outline).filter(Outline.id == chapter.outline_id).first()
+            result = await db.execute(select(Outline).where(Outline.id == chapter.outline_id))
+            outline = result.scalar_one_or_none()
 
         previous_chapter = None
         if chapter.chapter_order > 0:
-            previous_chapter = (
-                db.query(Chapter)
-                .filter(
+            result = await db.execute(
+                select(Chapter).where(
                     Chapter.outline_id == chapter.outline_id,
                     Chapter.chapter_order == chapter.chapter_order - 1,
                 )
-                .first()
             )
+            previous_chapter = result.scalar_one_or_none()
 
-        active_plot_threads = (
-            db.query(PlotThread)
-            .filter(
+        result = await db.execute(
+            select(PlotThread).where(
                 PlotThread.created_chapter_id <= chapter_id,
                 PlotThread.status == "active",
             )
-            .all()
         )
+        active_plot_threads = result.scalars().all()
 
-        character_storylines = (
-            db.query(CharacterStoryline)
-            .join(Character)
-            .filter(Character.id == CharacterStoryline.character_id)
-            .all()
+        result = await db.execute(
+            select(CharacterStoryline).join(Character)
+            .where(Character.id == CharacterStoryline.character_id)
         )
+        character_storylines = result.scalars().all()
 
-        if_lines = db.query(IFLine).all()
+        result = await db.execute(select(IFLine))
+        if_lines = result.scalars().all()
 
         context = await self._build_context_prompt(
             chapter=chapter,
@@ -227,52 +114,6 @@ class ContextAgent:
         )
 
         return context
-
-    async def _call_minimax_api(
-        self,
-        system_prompt: str,
-        user_content: str,
-        temperature: float = 0.6,
-    ) -> str:
-        """Call MiniMax API with retry logic.
-
-        Args:
-            system_prompt: System prompt for the AI
-            user_content: User message content
-            temperature: Sampling temperature
-
-        Returns:
-            Raw response content string
-
-        Raises:
-            ValueError if response cannot be parsed after retries
-        """
-        async def _make_request():
-            async with httpx.AsyncClient(timeout=60.0) as client:
-                response = await client.post(
-                    f"{self.ai_service.base_url}/text/chatcompletion_v2",
-                    headers={
-                        "Authorization": f"Bearer {self.ai_service.api_key}",
-                        "Content-Type": "application/json",
-                    },
-                    json={
-                        "model": "MiniMax-Text-01",
-                        "messages": [
-                            {"role": "system", "content": system_prompt},
-                            {"role": "user", "content": user_content},
-                        ],
-                        "temperature": temperature,
-                    },
-                )
-                response.raise_for_status()
-                result = response.json()
-
-                content = result.get("choices", [{}])[0].get("message", {}).get("content", "")
-                if not content:
-                    raise ValueError("Empty response content from API")
-                return content
-
-        return await retry_with_exponential_backoff(_make_request)
 
     async def _build_context_prompt(
         self,
@@ -352,7 +193,7 @@ JSON格式要求：
         }
 
         try:
-            content = await self._call_minimax_api(
+            content = await self.api_client.call(
                 system_prompt=system_prompt,
                 user_content=str(context_data),
                 temperature=0.6,

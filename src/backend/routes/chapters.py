@@ -13,8 +13,21 @@ from backend.database import get_db
 from backend.models.entities import (
     Outline, Chapter, IFLine, DraftVersion, PlotThread, AIInspectionResult
 )
+from backend.middleware.auth import require_auth
+from backend.services.cache_service import cached, cache_service
+from backend.config import settings
 
-router = APIRouter(prefix="/chapters", tags=["chapters"])
+# Import centralized schemas for enhanced validation
+from backend.schemas import (
+    OutlineCreateRequest, OutlineUpdateRequest,
+    ChapterCreateRequest, ChapterUpdateRequest,
+    IFLineCreateRequest, IFLineUpdateRequest,
+    DraftVersionCreateRequest,
+    PlotThreadCreateRequest, PlotThreadUpdateRequest,
+    MessageResponse,
+)
+
+router = APIRouter(prefix="/chapters", tags=["chapters"], dependencies=[require_auth])
 
 
 # Pydantic models
@@ -158,6 +171,7 @@ class AIInspectionResultResponse(BaseModel):
 
 # Outline endpoints
 @router.get("/outlines", response_model=List[OutlineResponse])
+@cached(ttl=settings.cache_default_ttl, key_prefix="chapters:outlines:list", invalidate_on=["outlines"])
 async def list_outlines(
     skip: int = 0,
     limit: int = 50,
@@ -169,16 +183,18 @@ async def list_outlines(
 
 
 @router.post("/outlines", response_model=OutlineResponse)
-async def create_outline(outline: OutlineCreate, db: AsyncSession = Depends(get_db)):
+async def create_outline(outline: OutlineCreateRequest, db: AsyncSession = Depends(get_db)):
     """Create a new outline."""
     db_outline = Outline(**outline.model_dump())
     db.add(db_outline)
     await db.flush()
     await db.refresh(db_outline)
+    await cache_service.ainvalidate_tag("outlines")
     return db_outline
 
 
 @router.get("/outlines/{outline_id}", response_model=OutlineResponse)
+@cached(ttl=settings.cache_default_ttl, key_prefix="chapters:outlines:detail", invalidate_on=["outlines"])
 async def get_outline(outline_id: int, db: AsyncSession = Depends(get_db)):
     """Get a specific outline."""
     result = await db.execute(select(Outline).where(Outline.id == outline_id))
@@ -191,7 +207,7 @@ async def get_outline(outline_id: int, db: AsyncSession = Depends(get_db)):
 @router.patch("/outlines/{outline_id}", response_model=OutlineResponse)
 async def update_outline(
     outline_id: int,
-    outline: OutlineUpdate,
+    outline: OutlineUpdateRequest,
     db: AsyncSession = Depends(get_db)
 ):
     """Update an outline."""
@@ -206,6 +222,7 @@ async def update_outline(
 
     await db.flush()
     await db.refresh(db_outline)
+    await cache_service.ainvalidate_tag("outlines")
     return db_outline
 
 
@@ -217,11 +234,13 @@ async def delete_outline(outline_id: int, db: AsyncSession = Depends(get_db)):
     if not outline:
         raise HTTPException(status_code=404, detail="Outline not found")
     await db.delete(outline)
+    await cache_service.ainvalidate_tag("outlines")
     return {"message": "Outline deleted"}
 
 
 # Chapter endpoints
 @router.get("/", response_model=List[ChapterResponse])
+@cached(ttl=settings.cache_default_ttl, key_prefix="chapters:list", invalidate_on=["chapters"])
 async def list_chapters(
     skip: int = 0,
     limit: int = 100,
@@ -243,16 +262,18 @@ async def list_chapters(
 
 
 @router.post("/", response_model=ChapterResponse)
-async def create_chapter(chapter: ChapterCreate, db: AsyncSession = Depends(get_db)):
+async def create_chapter(chapter: ChapterCreateRequest, db: AsyncSession = Depends(get_db)):
     """Create a new chapter."""
     db_chapter = Chapter(**chapter.model_dump())
     db.add(db_chapter)
     await db.flush()
     await db.refresh(db_chapter)
+    await cache_service.ainvalidate_tag("chapters")
     return db_chapter
 
 
 @router.get("/{chapter_id}", response_model=ChapterResponse)
+@cached(ttl=settings.cache_default_ttl, key_prefix="chapters:detail", invalidate_on=["chapters"])
 async def get_chapter(chapter_id: int, db: AsyncSession = Depends(get_db)):
     """Get a specific chapter."""
     result = await db.execute(select(Chapter).where(Chapter.id == chapter_id))
@@ -265,7 +286,7 @@ async def get_chapter(chapter_id: int, db: AsyncSession = Depends(get_db)):
 @router.patch("/{chapter_id}", response_model=ChapterResponse)
 async def update_chapter(
     chapter_id: int,
-    chapter: ChapterUpdate,
+    chapter: ChapterUpdateRequest,
     db: AsyncSession = Depends(get_db)
 ):
     """Update a chapter."""
@@ -281,6 +302,7 @@ async def update_chapter(
     db_chapter.updated_at = datetime.utcnow()
     await db.flush()
     await db.refresh(db_chapter)
+    await cache_service.ainvalidate_tag("chapters")
     return db_chapter
 
 
@@ -292,11 +314,13 @@ async def delete_chapter(chapter_id: int, db: AsyncSession = Depends(get_db)):
     if not chapter:
         raise HTTPException(status_code=404, detail="Chapter not found")
     await db.delete(chapter)
+    await cache_service.ainvalidate_tag("chapters")
     return {"message": "Chapter deleted"}
 
 
 # Draft versions
 @router.get("/{chapter_id}/drafts", response_model=List[DraftVersionResponse])
+@cached(ttl=settings.cache_default_ttl, key_prefix="chapters:drafts:list", invalidate_on=["drafts"])
 async def list_draft_versions(
     chapter_id: int,
     skip: int = 0,
@@ -317,7 +341,7 @@ async def list_draft_versions(
 @router.post("/{chapter_id}/drafts", response_model=DraftVersionResponse)
 async def create_draft_version(
     chapter_id: int,
-    draft: DraftVersionCreate,
+    draft: DraftVersionCreateRequest,
     db: AsyncSession = Depends(get_db)
 ):
     """Create a new draft version for a chapter."""
@@ -328,10 +352,12 @@ async def create_draft_version(
     db.add(db_draft)
     await db.flush()
     await db.refresh(db_draft)
+    await cache_service.ainvalidate_tag("drafts")
     return db_draft
 
 
 @router.get("/{chapter_id}/drafts/{version_number}", response_model=DraftVersionResponse)
+@cached(ttl=settings.cache_default_ttl, key_prefix="chapters:drafts:detail", invalidate_on=["drafts"])
 async def get_draft_version(
     chapter_id: int,
     version_number: int,
@@ -351,6 +377,7 @@ async def get_draft_version(
 
 # AI Inspection results
 @router.get("/{chapter_id}/inspections", response_model=List[AIInspectionResultResponse])
+@cached(ttl=settings.cache_default_ttl, key_prefix="chapters:inspections:list", invalidate_on=["inspections"])
 async def list_inspections(
     chapter_id: int,
     skip: int = 0,
@@ -386,11 +413,13 @@ async def create_inspection_result(
     db.add(db_inspection)
     await db.flush()
     await db.refresh(db_inspection)
+    await cache_service.ainvalidate_tag("inspections")
     return db_inspection
 
 
 # IF Lines - MUST be registered BEFORE /{chapter_id} to avoid route conflicts
 @router.get("/if-lines", response_model=List[IFLineResponse])
+@cached(ttl=settings.cache_default_ttl, key_prefix="chapters:iflines:list", invalidate_on=["iflines"])
 async def list_if_lines(
     skip: int = 0,
     limit: int = 50,
@@ -407,16 +436,18 @@ async def list_if_lines(
 
 
 @router.post("/if-lines", response_model=IFLineResponse)
-async def create_if_line(if_line: IFLineCreate, db: AsyncSession = Depends(get_db)):
+async def create_if_line(if_line: IFLineCreateRequest, db: AsyncSession = Depends(get_db)):
     """Create a new IF line."""
     db_if_line = IFLine(**if_line.model_dump())
     db.add(db_if_line)
     await db.flush()
     await db.refresh(db_if_line)
+    await cache_service.ainvalidate_tag("iflines")
     return db_if_line
 
 
 @router.get("/if-lines/{if_line_id}", response_model=IFLineResponse)
+@cached(ttl=settings.cache_default_ttl, key_prefix="chapters:iflines:detail", invalidate_on=["iflines"])
 async def get_if_line(if_line_id: int, db: AsyncSession = Depends(get_db)):
     """Get a specific IF line."""
     result = await db.execute(select(IFLine).where(IFLine.id == if_line_id))
@@ -429,7 +460,7 @@ async def get_if_line(if_line_id: int, db: AsyncSession = Depends(get_db)):
 @router.patch("/if-lines/{if_line_id}", response_model=IFLineResponse)
 async def update_if_line(
     if_line_id: int,
-    if_line: IFLineUpdate,
+    if_line: IFLineUpdateRequest,
     db: AsyncSession = Depends(get_db)
 ):
     """Update an IF line."""
@@ -445,6 +476,7 @@ async def update_if_line(
     db_if_line.updated_at = datetime.utcnow()
     await db.flush()
     await db.refresh(db_if_line)
+    await cache_service.ainvalidate_tag("iflines")
     return db_if_line
 
 
@@ -456,11 +488,13 @@ async def delete_if_line(if_line_id: int, db: AsyncSession = Depends(get_db)):
     if not if_line:
         raise HTTPException(status_code=404, detail="IF line not found")
     await db.delete(if_line)
+    await cache_service.ainvalidate_tag("iflines")
     return {"message": "IF line deleted"}
 
 
 # Plot Threads - MUST be registered BEFORE /{chapter_id} to avoid route conflicts
 @router.get("/plot-threads", response_model=List[PlotThreadResponse])
+@cached(ttl=settings.cache_default_ttl, key_prefix="chapters:plotthreads:list", invalidate_on=["plotthreads"])
 async def list_plot_threads(
     skip: int = 0,
     limit: int = 100,
@@ -478,7 +512,7 @@ async def list_plot_threads(
 
 @router.post("/plot-threads", response_model=PlotThreadResponse)
 async def create_plot_thread(
-    plot_thread: PlotThreadCreate,
+    plot_thread: PlotThreadCreateRequest,
     db: AsyncSession = Depends(get_db)
 ):
     """Create a new plot thread."""
@@ -486,10 +520,12 @@ async def create_plot_thread(
     db.add(db_plot_thread)
     await db.flush()
     await db.refresh(db_plot_thread)
+    await cache_service.ainvalidate_tag("plotthreads")
     return db_plot_thread
 
 
 @router.get("/plot-threads/{plot_thread_id}", response_model=PlotThreadResponse)
+@cached(ttl=settings.cache_default_ttl, key_prefix="chapters:plotthreads:detail", invalidate_on=["plotthreads"])
 async def get_plot_thread(plot_thread_id: int, db: AsyncSession = Depends(get_db)):
     """Get a specific plot thread."""
     result = await db.execute(select(PlotThread).where(PlotThread.id == plot_thread_id))
@@ -502,7 +538,7 @@ async def get_plot_thread(plot_thread_id: int, db: AsyncSession = Depends(get_db
 @router.patch("/plot-threads/{plot_thread_id}", response_model=PlotThreadResponse)
 async def update_plot_thread(
     plot_thread_id: int,
-    plot_thread: PlotThreadUpdate,
+    plot_thread: PlotThreadUpdateRequest,
     db: AsyncSession = Depends(get_db)
 ):
     """Update a plot thread."""
@@ -517,6 +553,7 @@ async def update_plot_thread(
 
     await db.flush()
     await db.refresh(db_plot_thread)
+    await cache_service.ainvalidate_tag("plotthreads")
     return db_plot_thread
 
 
@@ -528,4 +565,5 @@ async def delete_plot_thread(plot_thread_id: int, db: AsyncSession = Depends(get
     if not plot_thread:
         raise HTTPException(status_code=404, detail="Plot thread not found")
     await db.delete(plot_thread)
+    await cache_service.ainvalidate_tag("plotthreads")
     return {"message": "Plot thread deleted"}

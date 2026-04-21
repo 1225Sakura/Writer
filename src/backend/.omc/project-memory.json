@@ -117,15 +117,15 @@
       "type": "directory"
     },
     {
-      "path": "config.py",
-      "accessCount": 6,
-      "lastAccessed": 1776428170788,
+      "path": "models\\entities.py",
+      "accessCount": 7,
+      "lastAccessed": 1776759589183,
       "type": "file"
     },
     {
-      "path": "models\\entities.py",
+      "path": "config.py",
       "accessCount": 6,
-      "lastAccessed": 1776428191382,
+      "lastAccessed": 1776428170788,
       "type": "file"
     },
     {
@@ -177,6 +177,12 @@
       "type": "file"
     },
     {
+      "path": "database.py",
+      "accessCount": 2,
+      "lastAccessed": 1776759580318,
+      "type": "file"
+    },
+    {
       "path": "init_db.py",
       "accessCount": 1,
       "lastAccessed": 1776427245934,
@@ -204,6 +210,12 @@
       "path": "services\\ai_service.py",
       "accessCount": 1,
       "lastAccessed": 1776428159371,
+      "type": "file"
+    },
+    {
+      "path": "C:\\Users\\36084\\AppData\\Local\\Temp\\claude\\D--writer\\6c49e907-0cce-47ee-a5fa-3f2060493ba9\\tasks\\bt6qf67h5.output",
+      "accessCount": 1,
+      "lastAccessed": 1776759544146,
       "type": "file"
     }
   ],

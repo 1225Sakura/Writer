@@ -193,13 +193,67 @@ CREATE TABLE IF NOT EXISTS writing_settings (
 -- Indexes
 -- ============================================
 
+-- Character indexes
 CREATE INDEX IF NOT EXISTS idx_character_relationships_character_id ON character_relationships(character_id);
 CREATE INDEX IF NOT EXISTS idx_character_relationships_target_id ON character_relationships(target_id);
 CREATE INDEX IF NOT EXISTS idx_character_storylines_character_id ON character_storylines(character_id);
+
+-- Composite index for character lookups by tier + cultivation realm (common filter pattern)
+CREATE INDEX IF NOT EXISTS idx_characters_tier_realm ON characters(tier, cultivation_realm);
+
+-- Chapter indexes
 CREATE INDEX IF NOT EXISTS idx_chapters_outline_id ON chapters(outline_id);
+-- Composite index for chapter status + order (common list query)
+CREATE INDEX IF NOT EXISTS idx_chapters_status_order ON chapters(status, chapter_order);
+-- Index for chapter updated_at (sorting by recent)
+CREATE INDEX IF NOT EXISTS idx_chapters_updated_at ON chapters(updated_at DESC);
+
+-- Chat indexes
 CREATE INDEX IF NOT EXISTS idx_chat_messages_session_id ON chat_messages(session_id);
+-- Composite index for chat messages by session + created (ordered retrieval)
+CREATE INDEX IF NOT EXISTS idx_chat_messages_session_created ON chat_messages(session_id, created_at);
+
+-- Entity indexes
 CREATE INDEX IF NOT EXISTS idx_extracted_entities_session_id ON extracted_entities(session_id);
+-- Composite index for entity type filtering within a session
+CREATE INDEX IF NOT EXISTS idx_extracted_entities_session_type ON extracted_entities(session_id, type);
+
+-- Draft version indexes
 CREATE INDEX IF NOT EXISTS idx_draft_versions_chapter_id ON draft_versions(chapter_id);
+-- Composite index for latest draft lookup
+CREATE INDEX IF NOT EXISTS idx_draft_versions_chapter_version ON draft_versions(chapter_id, version_number DESC);
+
+-- Plot thread indexes
 CREATE INDEX IF NOT EXISTS idx_plot_threads_created_chapter_id ON plot_threads(created_chapter_id);
 CREATE INDEX IF NOT EXISTS idx_plot_threads_reveal_chapter_id ON plot_threads(reveal_chapter_id);
+-- Composite index for active plot threads by status + created chapter
+CREATE INDEX IF NOT EXISTS idx_plot_threads_status_created ON plot_threads(status, created_chapter_id);
+
+-- AI inspection indexes
 CREATE INDEX IF NOT EXISTS idx_ai_inspection_results_chapter_id ON ai_inspection_results(chapter_id);
+-- Composite index for inspection type filtering within a chapter
+CREATE INDEX IF NOT EXISTS idx_ai_inspection_chapter_type ON ai_inspection_results(chapter_id, inspection_type);
+
+-- IF line indexes
+CREATE INDEX IF NOT EXISTS idx_if_lines_character ON if_lines(linked_character_id);
+-- Composite index for IF line sync mode filtering
+CREATE INDEX IF NOT EXISTS idx_if_lines_character_sync ON if_lines(linked_character_id, sync_mode);
+
+-- World setting index for name lookups
+CREATE INDEX IF NOT EXISTS idx_world_settings_name ON world_settings(name);
+
+-- Writing settings index (singleton table, small but consistent)
+CREATE INDEX IF NOT EXISTS idx_writing_settings_updated ON writing_settings(updated_at DESC);
+
+-- Item indexes for owner/location filtering
+CREATE INDEX IF NOT EXISTS idx_items_owner ON items(owner);
+CREATE INDEX IF NOT EXISTS idx_items_location ON items(location);
+
+-- Location index for importance filtering
+CREATE INDEX IF NOT EXISTS idx_locations_importance ON locations(importance);
+
+-- Faction index for type filtering
+CREATE INDEX IF NOT EXISTS idx_factions_type ON factions(type);
+
+-- Rule index for type filtering
+CREATE INDEX IF NOT EXISTS idx_rules_type ON rules(type);

@@ -1,10 +1,10 @@
 # Auto Novel Writer - AI Routes
 # AI generation and review endpoints
 
-from fastapi import APIRouter, HTTPException, Depends
+from fastapi import APIRouter, HTTPException, Depends, status
 from fastapi.responses import StreamingResponse
-from pydantic import BaseModel, field_validator
-from typing import Optional, AsyncIterator
+from pydantic import BaseModel, Field, field_validator
+from typing import Optional, AsyncIterator, List
 
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
@@ -13,8 +13,21 @@ from backend.database import get_db
 from backend.models.entities import WritingSettings, Chapter
 from backend.services.ai_service import AIService
 from backend.config import settings
+from backend.agents.context_agent import ContextAgent
+from backend.agents.data_agent import DataAgent
+from backend.agents.checkers import (
+    ConsistencyChecker,
+    ContinuityChecker,
+    PacingChecker,
+    OOCChecker,
+    HighPointChecker,
+    ReaderPullChecker,
+)
 
-router = APIRouter(prefix="/ai", tags=["ai"])
+from backend.middleware.auth import require_auth
+from backend.middleware.rate_limit import check_checker_rate_limit
+
+router = APIRouter(prefix="/ai", tags=["ai"], dependencies=[require_auth])
 
 VALID_OPERATIONS = {"continue", "expand", "condense", "rewrite", "polish", "optimize"}
 MAX_PROMPT_LENGTH = 10000
@@ -32,6 +45,21 @@ def get_ai_service() -> AIService:
         api_key=settings.minimax_api_key,
         base_url=settings.minimax_api_url
     )
+
+
+def require_checker_rate_limit(request) -> None:
+    """Dependency to enforce stricter rate limits on AI checker endpoints."""
+    client_ip = request.client.host if request.client else "unknown"
+    allowed, limit, remaining = check_checker_rate_limit(client_ip)
+    if not allowed:
+        raise HTTPException(
+            status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+            detail="Checker rate limit exceeded. Please wait before running another check.",
+            headers={"Retry-After": "60"}
+        )
+    # Store remaining in request state for response headers
+    request.state.rate_limit_remaining = remaining
+    request.state.rate_limit_limit = limit
 
 
 # Request/Response models
@@ -99,6 +127,99 @@ class ExtractEntitiesRequest(BaseModel):
         if not v:
             raise ValueError('chat_messages cannot be empty')
         return v
+
+
+# ============================================
+# Checker Request/Response Models
+# ============================================
+
+class CheckerBaseRequest(BaseModel):
+    chapter_id: int = Field(..., description="Chapter ID to check")
+
+    @field_validator('chapter_id')
+    @classmethod
+    def validate_chapter_id(cls, v: int) -> int:
+        if v <= 0:
+            raise ValueError('chapter_id must be a positive integer')
+        return v
+
+
+class OOCCheckerRequest(BaseModel):
+    chapter_id: int = Field(..., description="Chapter ID to check")
+    character_id: int = Field(..., description="Character ID to verify")
+
+    @field_validator('chapter_id')
+    @classmethod
+    def validate_chapter_id(cls, v: int) -> int:
+        if v <= 0:
+            raise ValueError('chapter_id must be a positive integer')
+        return v
+
+    @field_validator('character_id')
+    @classmethod
+    def validate_character_id(cls, v: int) -> int:
+        if v <= 0:
+            raise ValueError('character_id must be a positive integer')
+        return v
+
+
+class CheckerBaseResponse(BaseModel):
+    chapter_id: int
+    score: int = Field(..., ge=0, le=100, description="Quality score 0-100")
+    issues: List[str] = Field(default_factory=list)
+    suggestions: List[str] = Field(default_factory=list)
+
+
+class ConsistencyCheckResponse(CheckerBaseResponse):
+    pass
+
+
+class ContinuityCheckResponse(CheckerBaseResponse):
+    plot_thread_status: dict = Field(default_factory=dict)
+
+
+class PacingCheckResponse(CheckerBaseResponse):
+    strand_ratios: dict = Field(default_factory=dict)
+    analysis: str = ""
+
+
+class OOCViolation(BaseModel):
+    location: str = ""
+    expected_behavior: str = ""
+    actual_behavior: str = ""
+    reason: str = ""
+
+
+class OOCCheckResponse(CheckerBaseResponse):
+    character_id: int
+    violations: List[OOCViolation] = Field(default_factory=list)
+
+
+class HighPoint(BaseModel):
+    location: str = ""
+    type: str = ""
+    intensity: int = Field(5, ge=1, le=10)
+    pacing: str = ""
+
+
+class HighPointCheckResponse(CheckerBaseResponse):
+    high_points: List[HighPoint] = Field(default_factory=list)
+    excitement_density: str = ""
+    ending_hook: str = ""
+
+
+class Hook(BaseModel):
+    location: str = ""
+    type: str = ""
+    description: str = ""
+    effectiveness: int = Field(5, ge=1, le=10)
+
+
+class ReaderPullCheckResponse(CheckerBaseResponse):
+    hooks: List[Hook] = Field(default_factory=list)
+    opening_hook: str = ""
+    ending_hook: str = ""
+    curiosity_gaps: List[str] = Field(default_factory=list)
 
 
 # Endpoints
@@ -233,3 +354,389 @@ async def inspect_chapter(chapter_id: int, db: AsyncSession = Depends(get_db)) -
         "review_content": review_result["review_content"],
         "raw_response": review_result["raw_response"]
     }
+
+
+# ============================================
+# Agent Endpoints (consolidated from agents.py)
+# ============================================
+
+class ContextRequest(BaseModel):
+    chapter_id: int
+
+    @field_validator('chapter_id')
+    @classmethod
+    def validate_chapter_id(cls, v: int) -> int:
+        if v <= 0:
+            raise ValueError('chapter_id must be a positive integer')
+        return v
+
+
+class ExtractRequest(BaseModel):
+    content: str
+    chapter_id: Optional[int] = None
+
+    @field_validator('content')
+    @classmethod
+    def validate_content(cls, v: str) -> str:
+        if not v or not v.strip():
+            raise ValueError('Content cannot be empty')
+        if len(v) > MAX_CONTENT_LENGTH:
+            raise ValueError(f'Content exceeds maximum length of {MAX_CONTENT_LENGTH} characters')
+        return v.strip()
+
+    @field_validator('chapter_id')
+    @classmethod
+    def validate_chapter_id(cls, v: Optional[int]) -> Optional[int]:
+        if v is not None and v <= 0:
+            raise ValueError('chapter_id must be a positive integer')
+        return v
+
+
+class ContextResponse(BaseModel):
+    chapter_id: int
+    chapter_title: Optional[str] = None
+    core_task: dict
+    承接上文: dict
+    active_characters: list
+    scene_constraints: dict
+    time_constraints: str
+    style_guidance: str
+    continuity: dict
+    engagement_strategy: str
+    raw_ai_response: Optional[str] = None
+
+
+class ExtractResponse(BaseModel):
+    chapter_id: Optional[int] = None
+    entities: list
+    relationships: list
+    state_changes: list
+    scenes: list
+    summary: str
+
+
+@router.post("/context", response_model=ContextResponse)
+async def build_execution_package(
+    request: ContextRequest,
+    db: AsyncSession = Depends(get_db)
+) -> ContextResponse:
+    """Build a writing execution package for a chapter.
+
+    Generates a complete context package containing:
+    - Core task (goal/obstacle/cost)
+    - Previous chapter hooks
+    - Active characters with states
+    - Scene and power constraints
+    - Time constraints
+    - Style guidance
+    - Continuity and foreshadowing
+    - Engagement strategy
+    """
+    ai_service = get_ai_service()
+    context_agent = ContextAgent(ai_service)
+
+    try:
+        context = await context_agent.generate_chapter_context(
+            chapter_id=request.chapter_id,
+            db=db
+        )
+        return ContextResponse(**context)
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to build context: {str(e)}")
+
+
+@router.post("/extract", response_model=ExtractResponse)
+async def extract_structured_entities(
+    request: ExtractRequest,
+    db: AsyncSession = Depends(get_db)
+) -> ExtractResponse:
+    """Extract structured entities from chapter content.
+
+    Extracts:
+    - Characters, locations, items, factions
+    - Relationships between entities
+    - State changes
+    - Scene segmentation
+    - Summary
+    """
+    ai_service = get_ai_service()
+    data_agent = DataAgent(ai_service)
+
+    result = await data_agent.process_chapter(
+        chapter_id=request.chapter_id or 0,
+        content=request.content,
+        db=db
+    )
+
+    return ExtractResponse(**result)
+
+
+# ============================================
+# Checker Endpoints
+# ============================================
+
+@router.post("/check/consistency", response_model=ConsistencyCheckResponse)
+async def check_consistency(
+    request: CheckerBaseRequest,
+    db: AsyncSession = Depends(get_db),
+    _rate_limit=Depends(require_checker_rate_limit)
+) -> ConsistencyCheckResponse:
+    """Check world consistency for a chapter.
+
+    Validates locations, timelines, power levels, item ownership,
+    and faction relationships against established world settings.
+    """
+    ai_service = get_ai_service()
+    checker = ConsistencyChecker(ai_service)
+
+    # Verify chapter exists
+    result = await db.execute(select(Chapter).where(Chapter.id == request.chapter_id))
+    chapter = result.scalar_one_or_none()
+    if not chapter:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Chapter {request.chapter_id} not found"
+        )
+
+    try:
+        result = await checker.check(request.chapter_id, db)
+        return ConsistencyCheckResponse(
+            chapter_id=request.chapter_id,
+            score=result.get("score", 0),
+            issues=result.get("issues", []),
+            suggestions=result.get("suggestions", []),
+        )
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Consistency check failed: {str(e)}"
+        )
+
+
+@router.post("/check/continuity", response_model=ContinuityCheckResponse)
+async def check_continuity(
+    request: CheckerBaseRequest,
+    db: AsyncSession = Depends(get_db),
+    _rate_limit=Depends(require_checker_rate_limit)
+) -> ContinuityCheckResponse:
+    """Check scene and narrative continuity for a chapter.
+
+    Validates scene transitions, event consistency, character state continuity,
+    plot thread fulfillment, and detail coherence with previous chapters.
+    """
+    ai_service = get_ai_service()
+    checker = ContinuityChecker(ai_service)
+
+    result = await db.execute(select(Chapter).where(Chapter.id == request.chapter_id))
+    chapter = result.scalar_one_or_none()
+    if not chapter:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Chapter {request.chapter_id} not found"
+        )
+
+    try:
+        result = await checker.check(request.chapter_id, db)
+        return ContinuityCheckResponse(
+            chapter_id=request.chapter_id,
+            score=result.get("score", 0),
+            issues=result.get("issues", []),
+            suggestions=result.get("suggestions", []),
+            plot_thread_status=result.get("plot_thread_status", {}),
+        )
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Continuity check failed: {str(e)}"
+        )
+
+
+@router.post("/check/pacing", response_model=PacingCheckResponse)
+async def check_pacing(
+    request: CheckerBaseRequest,
+    db: AsyncSession = Depends(get_db),
+    _rate_limit=Depends(require_checker_rate_limit)
+) -> PacingCheckResponse:
+    """Check narrative pacing and strand ratios for a chapter.
+
+    Analyzes quest/fire/constellation strand ratios against the
+    target 60%/20%/20% distribution.
+    """
+    ai_service = get_ai_service()
+    checker = PacingChecker(ai_service)
+
+    result = await db.execute(select(Chapter).where(Chapter.id == request.chapter_id))
+    chapter = result.scalar_one_or_none()
+    if not chapter:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Chapter {request.chapter_id} not found"
+        )
+
+    try:
+        result = await checker.check(request.chapter_id, db)
+        return PacingCheckResponse(
+            chapter_id=request.chapter_id,
+            score=result.get("score", 0),
+            issues=result.get("issues", []),
+            suggestions=result.get("suggestions", []),
+            strand_ratios=result.get("strand_ratios", {}),
+            analysis=result.get("analysis", ""),
+        )
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Pacing check failed: {str(e)}"
+        )
+
+
+@router.post("/check/ooc", response_model=OOCCheckResponse)
+async def check_ooc(
+    request: OOCCheckerRequest,
+    db: AsyncSession = Depends(get_db),
+    _rate_limit=Depends(require_checker_rate_limit)
+) -> OOCCheckResponse:
+    """Check for Out-Of-Character behavior.
+
+    Validates that a character's actions in the chapter are consistent
+    with their established personality, desires, and flaws.
+    """
+    ai_service = get_ai_service()
+    checker = OOCChecker(ai_service)
+
+    result = await db.execute(select(Chapter).where(Chapter.id == request.chapter_id))
+    chapter = result.scalar_one_or_none()
+    if not chapter:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Chapter {request.chapter_id} not found"
+        )
+
+    try:
+        result = await checker.check(request.chapter_id, request.character_id, db)
+        violations_raw = result.get("violations", [])
+        violations = [
+            OOCViolation(
+                location=v.get("location", ""),
+                expected_behavior=v.get("expected_behavior", ""),
+                actual_behavior=v.get("actual_behavior", ""),
+                reason=v.get("reason", ""),
+            )
+            for v in violations_raw
+        ]
+        return OOCCheckResponse(
+            chapter_id=request.chapter_id,
+            character_id=request.character_id,
+            score=result.get("score", 0),
+            issues=result.get("issues", []),
+            suggestions=result.get("suggestions", []),
+            violations=violations,
+        )
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"OOC check failed: {str(e)}"
+        )
+
+
+@router.post("/check/high-point", response_model=HighPointCheckResponse)
+async def check_high_point(
+    request: CheckerBaseRequest,
+    db: AsyncSession = Depends(get_db),
+    _rate_limit=Depends(require_checker_rate_limit)
+) -> HighPointCheckResponse:
+    """Check excitement density and high points for a chapter.
+
+    Analyzes climax distribution, emotional pacing, buildup adequacy,
+    and chapter-ending hook strength.
+    """
+    ai_service = get_ai_service()
+    checker = HighPointChecker(ai_service)
+
+    result = await db.execute(select(Chapter).where(Chapter.id == request.chapter_id))
+    chapter = result.scalar_one_or_none()
+    if not chapter:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Chapter {request.chapter_id} not found"
+        )
+
+    try:
+        result = await checker.check(request.chapter_id, db)
+        high_points_raw = result.get("high_points", [])
+        high_points = [
+            HighPoint(
+                location=hp.get("location", ""),
+                type=hp.get("type", ""),
+                intensity=hp.get("intensity", 5),
+                pacing=hp.get("pacing", ""),
+            )
+            for hp in high_points_raw
+        ]
+        return HighPointCheckResponse(
+            chapter_id=request.chapter_id,
+            score=result.get("score", 0),
+            issues=result.get("issues", []),
+            suggestions=result.get("suggestions", []),
+            high_points=high_points,
+            excitement_density=result.get("excitement_density", ""),
+            ending_hook=result.get("ending_hook", ""),
+        )
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"High point check failed: {str(e)}"
+        )
+
+
+@router.post("/check/reader-pull", response_model=ReaderPullCheckResponse)
+async def check_reader_pull(
+    request: CheckerBaseRequest,
+    db: AsyncSession = Depends(get_db),
+    _rate_limit=Depends(require_checker_rate_limit)
+) -> ReaderPullCheckResponse:
+    """Check reader engagement and hooks for a chapter.
+
+    Analyzes opening hooks, ending suspense, conflict drivers,
+    curiosity gaps, and emotional resonance points.
+    """
+    ai_service = get_ai_service()
+    checker = ReaderPullChecker(ai_service)
+
+    result = await db.execute(select(Chapter).where(Chapter.id == request.chapter_id))
+    chapter = result.scalar_one_or_none()
+    if not chapter:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Chapter {request.chapter_id} not found"
+        )
+
+    try:
+        result = await checker.check(request.chapter_id, db)
+        hooks_raw = result.get("hooks", [])
+        hooks = [
+            Hook(
+                location=h.get("location", ""),
+                type=h.get("type", ""),
+                description=h.get("description", ""),
+                effectiveness=h.get("effectiveness", 5),
+            )
+            for h in hooks_raw
+        ]
+        return ReaderPullCheckResponse(
+            chapter_id=request.chapter_id,
+            score=result.get("score", 0),
+            issues=result.get("issues", []),
+            suggestions=result.get("suggestions", []),
+            hooks=hooks,
+            opening_hook=result.get("opening_hook", ""),
+            ending_hook=result.get("ending_hook", ""),
+            curiosity_gaps=result.get("curiosity_gaps", []),
+        )
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Reader pull check failed: {str(e)}"
+        )

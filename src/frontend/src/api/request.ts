@@ -136,9 +136,10 @@ export const getErrorMessage = (error: ApiError): string => {
 
 apiClient.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
-    const token = localStorage.getItem('auth_token')
-    if (token && config.headers) {
-      config.headers.Authorization = `Bearer ${token}`
+    // Local API key auth for desktop app
+    const apiKey = localStorage.getItem('writer_api_key')
+    if (apiKey && config.headers) {
+      config.headers['X-API-Key'] = apiKey
     }
     // Add timestamp for GET requests to avoid caching
     if (config.method === 'get' && config.params) {

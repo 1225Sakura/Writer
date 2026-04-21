@@ -5,8 +5,6 @@
 // Re-export all shared types
 export type {
 	Character,
-	CharacterRelationship,
-	CharacterStoryline,
 	Item,
 	Location,
 	Faction,

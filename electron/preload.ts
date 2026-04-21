@@ -11,6 +11,10 @@ contextBridge.exposeInMainWorld('electronAPI', {
   // Backend
   getBackendUrl: () => ipcRenderer.invoke('get-backend-url'),
 
+  // Auth - API key management for local desktop auth
+  getApiKey: () => ipcRenderer.invoke('get-api-key'),
+  setApiKey: (key: string) => ipcRenderer.invoke('set-api-key', key),
+
   // External links
   openExternal: (url: string) => ipcRenderer.invoke('open-external', url),
 
@@ -43,6 +47,8 @@ declare global {
   interface Window {
     electronAPI: {
       getBackendUrl: () => Promise<string>;
+      getApiKey: () => Promise<string | null>;
+      setApiKey: (key: string) => Promise<void>;
       openExternal: (url: string) => Promise<void>;
       showSaveDialog: (options: Electron.SaveDialogOptions) => Promise<string | null>;
       showOpenDialog: (options: Electron.OpenDialogOptions) => Promise<string[] | null>;

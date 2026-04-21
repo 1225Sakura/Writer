@@ -342,6 +342,28 @@ export const aiApi = {
 		});
 		return new Response(response.stream).text();
 	},
+
+	context: async (chapterId: number): Promise<{
+		chapter_id: number;
+		chapter_title?: string;
+		core_task: Record<string, unknown>;
+		active_characters: unknown[];
+		scene_constraints: Record<string, unknown>;
+		style_guidance: string;
+	}> => {
+		return api.post("/ai/context", { chapter_id: chapterId });
+	},
+
+	extract: async (content: string, chapterId?: number): Promise<{
+		chapter_id?: number;
+		entities: unknown[];
+		relationships: unknown[];
+		state_changes: unknown[];
+		scenes: unknown[];
+		summary: string;
+	}> => {
+		return api.post("/ai/extract", { content, chapter_id: chapterId });
+	},
 };
 
 // Export all APIs

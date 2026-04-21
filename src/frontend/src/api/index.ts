@@ -2,6 +2,18 @@
 export * from "./request"
 export * from "./types"
 
+// Auth API
+export {
+  fetchApiKey,
+  refreshApiKey,
+  getAuthStatus,
+  initAuth,
+  getStoredApiKey,
+  clearApiKey,
+  type AuthStatus,
+  type AuthKeyResponse,
+} from "./auth"
+
 // Chat API
 export {
   chatApi,

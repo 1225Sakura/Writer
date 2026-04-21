@@ -18,6 +18,9 @@ const isDev = process.env.NODE_ENV === 'development' || !app.isPackaged;
 let mainWindow: BrowserWindow | null = null;
 let backendProcess: ChildProcess | null = null;
 
+// In-memory API key storage (persists for app lifetime)
+let cachedApiKey: string | null = null;
+
 /**
  * Start the Python backend process
  */
@@ -156,6 +159,15 @@ function registerIpcHandlers(): void {
   // Get backend URL for API calls
   ipcMain.handle('get-backend-url', () => {
     return `http://${BACKEND_HOST}:${BACKEND_PORT}`;
+  });
+
+  // API key management for local auth
+  ipcMain.handle('get-api-key', () => {
+    return cachedApiKey;
+  });
+
+  ipcMain.handle('set-api-key', (_, key: string) => {
+    cachedApiKey = key;
   });
 
   // Open external URL in browser

@@ -15,8 +15,11 @@ from backend.models.entities import (
     Item, Location, Faction, WorldSetting, Rule,
     WritingSettings
 )
+from backend.services.cache_service import cache_service
+from backend.config import settings
+from backend.middleware.auth import require_auth
 
-router = APIRouter(prefix="/settings", tags=["settings"])
+router = APIRouter(prefix="/settings", tags=["settings"], dependencies=[require_auth])
 
 MAX_NAME_LENGTH = 200
 MAX_DESCRIPTION_LENGTH = 5000
@@ -339,6 +342,7 @@ async def create_character(
     db.add(db_character)
     await db.flush()
     await db.refresh(db_character)
+    cache_service.clear_entity_cache("character")
     return db_character
 
 
@@ -371,6 +375,7 @@ async def update_character(
     db_character.updated_at = datetime.utcnow()
     await db.flush()
     await db.refresh(db_character)
+    cache_service.clear_entity_cache("character")
     return db_character
 
 
@@ -382,6 +387,7 @@ async def delete_character(character_id: int, db: AsyncSession = Depends(get_db)
     if not character:
         raise HTTPException(status_code=404, detail="Character not found")
     await db.delete(character)
+    cache_service.clear_entity_cache("character")
     return {"message": "Character deleted"}
 
 
@@ -409,6 +415,7 @@ async def create_character_relationship(
     db.add(db_relationship)
     await db.flush()
     await db.refresh(db_relationship)
+    cache_service.clear_entity_cache("character")
     return db_relationship
 
 
@@ -436,6 +443,7 @@ async def create_character_storyline(
     db.add(db_storyline)
     await db.flush()
     await db.refresh(db_storyline)
+    cache_service.clear_entity_cache("character")
     return db_storyline
 
 
@@ -462,6 +470,7 @@ async def create_item(item: ItemCreate, db: AsyncSession = Depends(get_db)):
     db.add(db_item)
     await db.flush()
     await db.refresh(db_item)
+    cache_service.clear_entity_cache("item")
     return db_item
 
 
@@ -482,6 +491,7 @@ async def update_item(
 
     await db.flush()
     await db.refresh(db_item)
+    cache_service.clear_entity_cache("item")
     return db_item
 
 
@@ -493,6 +503,7 @@ async def delete_item(item_id: int, db: AsyncSession = Depends(get_db)):
     if not item:
         raise HTTPException(status_code=404, detail="Item not found")
     await db.delete(item)
+    cache_service.clear_entity_cache("item")
     return {"message": "Item deleted"}
 
 
@@ -519,6 +530,7 @@ async def create_location(location: LocationCreate, db: AsyncSession = Depends(g
     db.add(db_location)
     await db.flush()
     await db.refresh(db_location)
+    cache_service.clear_entity_cache("location")
     return db_location
 
 
@@ -539,6 +551,7 @@ async def update_location(
 
     await db.flush()
     await db.refresh(db_location)
+    cache_service.clear_entity_cache("location")
     return db_location
 
 
@@ -550,6 +563,7 @@ async def delete_location(location_id: int, db: AsyncSession = Depends(get_db)):
     if not location:
         raise HTTPException(status_code=404, detail="Location not found")
     await db.delete(location)
+    cache_service.clear_entity_cache("location")
     return {"message": "Location deleted"}
 
 
@@ -576,6 +590,7 @@ async def create_faction(faction: FactionCreate, db: AsyncSession = Depends(get_
     db.add(db_faction)
     await db.flush()
     await db.refresh(db_faction)
+    cache_service.clear_entity_cache("faction")
     return db_faction
 
 
@@ -596,6 +611,7 @@ async def update_faction(
 
     await db.flush()
     await db.refresh(db_faction)
+    cache_service.clear_entity_cache("faction")
     return db_faction
 
 
@@ -607,6 +623,7 @@ async def delete_faction(faction_id: int, db: AsyncSession = Depends(get_db)):
     if not faction:
         raise HTTPException(status_code=404, detail="Faction not found")
     await db.delete(faction)
+    cache_service.clear_entity_cache("faction")
     return {"message": "Faction deleted"}
 
 
@@ -632,6 +649,7 @@ async def create_world_setting(
     db.add(db_setting)
     await db.flush()
     await db.refresh(db_setting)
+    cache_service.clear_entity_cache("world_setting")
     return db_setting
 
 
@@ -652,6 +670,7 @@ async def update_world_setting(
 
     await db.flush()
     await db.refresh(db_setting)
+    cache_service.clear_entity_cache("world_setting")
     return db_setting
 
 
@@ -663,6 +682,7 @@ async def delete_world_setting(setting_id: int, db: AsyncSession = Depends(get_d
     if not setting:
         raise HTTPException(status_code=404, detail="World setting not found")
     await db.delete(setting)
+    cache_service.clear_entity_cache("world_setting")
     return {"message": "World setting deleted"}
 
 
@@ -689,6 +709,7 @@ async def create_rule(rule: RuleCreate, db: AsyncSession = Depends(get_db)):
     db.add(db_rule)
     await db.flush()
     await db.refresh(db_rule)
+    cache_service.clear_entity_cache("rule")
     return db_rule
 
 
@@ -709,6 +730,7 @@ async def update_rule(
 
     await db.flush()
     await db.refresh(db_rule)
+    cache_service.clear_entity_cache("rule")
     return db_rule
 
 
@@ -720,6 +742,7 @@ async def delete_rule(rule_id: int, db: AsyncSession = Depends(get_db)):
     if not rule:
         raise HTTPException(status_code=404, detail="Rule not found")
     await db.delete(rule)
+    cache_service.clear_entity_cache("rule")
     return {"message": "Rule deleted"}
 
 
@@ -728,14 +751,14 @@ async def delete_rule(rule_id: int, db: AsyncSession = Depends(get_db)):
 async def get_writing_settings(db: AsyncSession = Depends(get_db)):
     """Get current writing settings."""
     result = await db.execute(select(WritingSettings))
-    settings = result.scalar_one_or_none()
-    if not settings:
+    settings_obj = result.scalar_one_or_none()
+    if not settings_obj:
         # Create default if not exists
-        settings = WritingSettings()
-        db.add(settings)
+        settings_obj = WritingSettings()
+        db.add(settings_obj)
         await db.flush()
-        await db.refresh(settings)
-    return settings
+        await db.refresh(settings_obj)
+    return settings_obj
 
 
 @router.patch("/writing", response_model=WritingSettingsResponse)
@@ -745,18 +768,19 @@ async def update_writing_settings(
 ):
     """Update writing settings."""
     result = await db.execute(select(WritingSettings))
-    settings = result.scalar_one_or_none()
-    if not settings:
-        settings = WritingSettings()
-        db.add(settings)
+    settings_obj = result.scalar_one_or_none()
+    if not settings_obj:
+        settings_obj = WritingSettings()
+        db.add(settings_obj)
 
     update_data = updates.model_dump(exclude_unset=True)
     for key, value in update_data.items():
-        setattr(settings, key, value)
+        setattr(settings_obj, key, value)
 
     await db.flush()
-    await db.refresh(settings)
-    return settings
+    await db.refresh(settings_obj)
+    cache_service.clear_entity_cache("writing_settings")
+    return settings_obj
 
 
 # Export/Import for backup and migration

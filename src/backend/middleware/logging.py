@@ -1,4 +1,5 @@
-# Request logging middleware with timing, request ID tracking, and structured logging
+# Request logging middleware with timing, request ID tracking, structured logging,
+# and correlation ID propagation across async boundaries.
 
 import time
 import uuid
@@ -9,6 +10,7 @@ from fastapi.responses import JSONResponse
 from starlette.middleware.base import BaseHTTPMiddleware
 
 from utils.logging import get_logger
+from middleware.request_context import set_request_context, get_request_id
 
 logger = get_logger("writer-api.middleware")
 
@@ -17,15 +19,27 @@ class RequestLoggingMiddleware(BaseHTTPMiddleware):
     """
     Middleware for comprehensive request logging with:
     - Request ID tracking (X-Request-ID header)
+    - Correlation ID tracking (X-Correlation-ID header)
     - Timing information
     - Structured JSON logging
     - Proper log levels based on status codes
+    - Request context propagation via contextvars
     """
 
     async def dispatch(self, request: Request, call_next: Callable) -> Response:
-        # Generate or extract request ID
+        # Generate or extract request ID and correlation ID
         request_id = request.headers.get("X-Request-ID", str(uuid.uuid4()))
+        correlation_id = request.headers.get("X-Correlation-ID")
+
+        # Set request context for this async scope (propagates to all awaits)
+        set_request_context(
+            request_id=request_id,
+            correlation_id=correlation_id,
+        )
+
+        # Store on request state for handlers
         request.state.request_id = request_id
+        request.state.correlation_id = correlation_id
 
         # Start timing
         start_time = time.perf_counter()
@@ -37,10 +51,11 @@ class RequestLoggingMiddleware(BaseHTTPMiddleware):
 
         # Log incoming request
         logger.info(
-            f"Request started",
+            "Request started",
             extra={
                 "event": "request_start",
                 "request_id": request_id,
+                "correlation_id": correlation_id,
                 "method": method,
                 "path": path,
                 "query_params": query_params,
@@ -55,10 +70,11 @@ class RequestLoggingMiddleware(BaseHTTPMiddleware):
         except Exception as e:
             status_code = 500
             logger.error(
-                f"Request failed with exception",
+                "Request failed with exception",
                 extra={
                     "event": "request_error",
                     "request_id": request_id,
+                    "correlation_id": correlation_id,
                     "method": method,
                     "path": path,
                     "error": str(e),
@@ -83,6 +99,7 @@ class RequestLoggingMiddleware(BaseHTTPMiddleware):
         log_data = {
             "event": "request_complete",
             "request_id": request_id,
+            "correlation_id": correlation_id,
             "method": method,
             "path": path,
             "status_code": status_code,
@@ -95,8 +112,10 @@ class RequestLoggingMiddleware(BaseHTTPMiddleware):
             extra=log_data
         )
 
-        # Add request ID to response headers
+        # Add request ID and correlation ID to response headers
         response.headers["X-Request-ID"] = request_id
+        if correlation_id:
+            response.headers["X-Correlation-ID"] = correlation_id
 
         return response
 

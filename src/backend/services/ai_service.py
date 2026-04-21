@@ -1,7 +1,19 @@
-"""MiniMax AI Service for novel writing assistant."""
+"""MiniMax AI Service for novel writing assistant with result caching."""
 
+import hashlib
 import httpx
 from typing import AsyncIterator
+
+from .cache_service import (
+    get_cached_ai_result,
+    set_cached_ai_result,
+    cache_service,
+)
+
+
+def hash_prompt(prompt: str, operation: str, style: str = "default", human_ai_ratio: int = 70) -> str:
+    """Create a hash key for an AI prompt."""
+    return cache_service.hash_prompt(prompt, operation, style, human_ai_ratio)
 
 # Writing style system prompts
 STYLE_PROMPTS = {
@@ -10,6 +22,9 @@ STYLE_PROMPTS = {
     "加缪": "你是一位存在主义作家，文风冷峻深刻，擅长哲学思辨和对生命意义的探索。",
     "default": "你是一位专业的中文网络小说作家，文笔流畅，情节紧凑，可读性强。",
 }
+
+# Cache AI non-streaming results to avoid duplicate API calls
+AI_CACHE_TTL = 3600  # 1 hour
 
 
 class AIService:
@@ -112,6 +127,14 @@ class AIService:
         Returns:
             Dictionary with review results including consistency issues and suggestions
         """
+        # Check cache for identical review requests
+        prompt_hash = hash_prompt(
+            str(settings_data), "review_settings", "default", 50
+        )
+        cached = get_cached_ai_result(prompt_hash)
+        if cached is not None:
+            return cached
+
         system_prompt = (
             "你是一位专业的小说设定审核专家。仔细审查以下设定数据，"
             "检查世界观、角色、势力、地点等之间的一致性和逻辑性。"
@@ -137,10 +160,14 @@ class AIService:
             response.raise_for_status()
             result = response.json()
 
-            return {
+            review_result = {
                 "review_content": result.get("choices", [{}])[0].get("message", {}).get("content", ""),
                 "raw_response": result,
             }
+
+            # Cache the result
+            set_cached_ai_result(prompt_hash, review_result, ttl=AI_CACHE_TTL)
+            return review_result
 
     async def extract_entities(self, chat_messages: list) -> list:
         """Extract entities from chat messages.
@@ -151,6 +178,14 @@ class AIService:
         Returns:
             List of extracted entities (characters, locations, items, etc.)
         """
+        # Check cache for identical extraction requests
+        prompt_hash = hash_prompt(
+            str(chat_messages), "extract_entities", "default", 50
+        )
+        cached = get_cached_ai_result(prompt_hash)
+        if cached is not None and "entities" in cached:
+            return cached["entities"]
+
         system_prompt = (
             "你是一位实体提取专家。从以下对话中提取所有实体信息，"
             "包括角色、地点、物品、势力等。以JSON数组格式返回。"
@@ -181,6 +216,10 @@ class AIService:
             import json
             try:
                 entities = json.loads(content)
-                return entities if isinstance(entities, list) else []
+                entities = entities if isinstance(entities, list) else []
             except json.JSONDecodeError:
-                return [{"raw_content": content}]
+                entities = [{"raw_content": content}]
+
+            # Cache the result
+            set_cached_ai_result(prompt_hash, {"entities": entities}, ttl=AI_CACHE_TTL)
+            return entities

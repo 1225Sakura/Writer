@@ -1,35 +1,44 @@
 """High point checker for excitement and excitement density."""
 
+import json
 from typing import Any
 
-import httpx
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from ...services.ai_service import AIService
+from ..utils import MiniMaxAPIClient
 
 
 class HighPointChecker:
     """Checks excitement/excitement density in chapters."""
 
-    def __init__(self, ai_service):
-        self.ai_service = ai_service
+    def __init__(self, ai_service: AIService):
+        self.api_client = MiniMaxAPIClient(ai_service)
 
-    async def check(self, chapter_id: int, db: Any) -> dict:
+    async def check(self, chapter_id: int, db: AsyncSession) -> dict:
         """Check excitement density for a chapter.
 
         Args:
             chapter_id: The chapter ID to check
-            db: Database session
+            db: Async database session
 
         Returns:
             Dict with excitement analysis
         """
         from ...models.entities import Chapter, DraftVersion
 
-        chapter = db.query(Chapter).filter(Chapter.id == chapter_id).first()
+        result = await db.execute(select(Chapter).where(Chapter.id == chapter_id))
+        chapter = result.scalar_one_or_none()
         if not chapter:
             return {"issues": [], "suggestions": [], "score": 100, "high_points": []}
 
-        draft = db.query(DraftVersion).filter(
-            DraftVersion.chapter_id == chapter_id
-        ).order_by(DraftVersion.version_number.desc()).first()
+        result = await db.execute(
+            select(DraftVersion)
+            .where(DraftVersion.chapter_id == chapter_id)
+            .order_by(DraftVersion.version_number.desc())
+        )
+        draft = result.scalar_one_or_none()
 
         content = draft.content if draft else chapter.summary or ""
 
@@ -68,46 +77,31 @@ class HighPointChecker:
         )
 
         try:
-            async with httpx.AsyncClient(timeout=60.0) as client:
-                response = await client.post(
-                    f"{self.ai_service.base_url}/text/chatcompletion_v2",
-                    headers={
-                        "Authorization": f"Bearer {self.ai_service.api_key}",
-                        "Content-Type": "application/json",
-                    },
-                    json={
-                        "model": "MiniMax-Text-01",
-                        "messages": [
-                            {"role": "system", "content": system_prompt},
-                            {"role": "user", "content": prompt},
-                        ],
-                        "temperature": 0.5,
-                    },
-                )
-                response.raise_for_status()
-                result = response.json()
-                content_result = result.get("choices", [{}])[0].get("message", {}).get("content", "")
+            content_result = await self.api_client.call(
+                system_prompt=system_prompt,
+                user_content=prompt,
+                temperature=0.5,
+            )
 
-                import json
-                try:
-                    parsed = json.loads(content_result)
-                    return {
-                        "issues": parsed.get("issues", []),
-                        "suggestions": parsed.get("suggestions", []),
-                        "score": parsed.get("score", 80),
-                        "high_points": parsed.get("high_points", []),
-                        "excitement_density": parsed.get("excitement_density", "适中"),
-                        "ending_hook": parsed.get("ending_hook", ""),
-                    }
-                except json.JSONDecodeError:
-                    return {
-                        "issues": ["返回格式错误"],
-                        "suggestions": [],
-                        "score": 70,
-                        "high_points": [],
-                        "excitement_density": "适中",
-                        "ending_hook": "",
-                    }
+            try:
+                parsed = json.loads(content_result)
+                return {
+                    "issues": parsed.get("issues", []),
+                    "suggestions": parsed.get("suggestions", []),
+                    "score": parsed.get("score", 80),
+                    "high_points": parsed.get("high_points", []),
+                    "excitement_density": parsed.get("excitement_density", "适中"),
+                    "ending_hook": parsed.get("ending_hook", ""),
+                }
+            except json.JSONDecodeError:
+                return {
+                    "issues": ["返回格式错误"],
+                    "suggestions": [],
+                    "score": 70,
+                    "high_points": [],
+                    "excitement_density": "适中",
+                    "ending_hook": "",
+                }
         except Exception as e:
             return {
                 "issues": [f"兴奋点检查失败: {str(e)}"],

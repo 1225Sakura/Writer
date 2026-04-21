@@ -142,3 +142,21 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
 def get_rate_limit_store() -> RateLimitStore:
     """Get the global rate limit store instance."""
     return _rate_limit_store
+
+
+# Stricter rate limit store for AI checker endpoints (they call external APIs)
+_checker_rate_limit_store = RateLimitStore()
+CHECKER_RATE_LIMIT = 10  # requests per window
+CHECKER_WINDOW = 60.0  # window in seconds
+
+
+def check_checker_rate_limit(client_ip: str) -> tuple[bool, int, int]:
+    """Check rate limit for AI checker endpoints.
+
+    Returns (allowed, limit, remaining).
+    """
+    return _checker_rate_limit_store.check_rate_limit(
+        client_ip,
+        max_requests=CHECKER_RATE_LIMIT,
+        window_seconds=CHECKER_WINDOW
+    )

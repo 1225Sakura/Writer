@@ -2,9 +2,9 @@
 
 from fastapi import APIRouter, HTTPException
 from fastapi.responses import Response
-from pydantic import BaseModel, field_validator
-from typing import Optional, Any
 
+from backend.middleware.auth import require_auth
+from backend.schemas import ImportRequest, ImportZipRequest
 from services.export_import import (
     export_project,
     export_to_json,
@@ -14,34 +14,9 @@ from services.export_import import (
     import_from_zip,
 )
 
-router = APIRouter(prefix="/api/project", tags=["project"])
+router = APIRouter(prefix="/api/project", tags=["project"], dependencies=[require_auth])
 
 MAX_IMPORT_SIZE = 50 * 1024 * 1024  # 50MB max import size
-
-
-class ImportRequest(BaseModel):
-    """Validated import request."""
-    data: dict
-    mode: str = "merge"
-
-    @field_validator('mode')
-    @classmethod
-    def validate_mode(cls, v: str) -> str:
-        if v not in ("merge", "replace"):
-            raise ValueError("Mode must be 'merge' or 'replace'")
-        return v
-
-
-class ImportZipRequest(BaseModel):
-    """Validated ZIP import request."""
-    mode: str = "merge"
-
-    @field_validator('mode')
-    @classmethod
-    def validate_mode(cls, v: str) -> str:
-        if v not in ("merge", "replace"):
-            raise ValueError("Mode must be 'merge' or 'replace'")
-        return v
 
 
 @router.get("/export")
