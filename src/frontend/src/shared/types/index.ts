@@ -36,6 +36,7 @@ export interface Item {
   description?: string;
   owner?: string;
   location?: string;
+  tags?: string[];
 }
 
 export interface Location {
@@ -43,6 +44,7 @@ export interface Location {
   name: string;
   description?: string;
   importance?: string;
+  tags?: string[];
 }
 
 export interface Faction {
@@ -50,6 +52,7 @@ export interface Faction {
   name: string;
   description?: string;
   type?: string;
+  tags?: string[];
 }
 
 export interface WorldSetting {
@@ -57,6 +60,7 @@ export interface WorldSetting {
   name: string;
   description?: string;
   details_json?: string;
+  tags?: string[];
 }
 
 export interface Rule {
@@ -64,6 +68,7 @@ export interface Rule {
   name: string;
   description?: string;
   type?: string;
+  tags?: string[];
 }
 
 // Story structure
@@ -93,6 +98,7 @@ export interface IFLine {
   sync_mode: string;
   created_at: string;
   updated_at: string;
+  tags?: string[];
 }
 
 // Chat

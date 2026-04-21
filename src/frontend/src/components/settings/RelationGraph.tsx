@@ -1,12 +1,13 @@
-import { useEffect, useRef, useState, useMemo } from 'react'
+import { useEffect, useRef, useState, useMemo, useCallback } from 'react'
 import { useSettingsStore } from '@/store'
-import { LinkIcon, Filter, Box, Grid2x2 } from 'lucide-react'
+import { LinkIcon, Filter, Box, Grid2x2, ZoomIn, ZoomOut, RotateCcw, Eye } from 'lucide-react'
 
 interface GraphNode {
   id: number
   name: string
   type: string
   color: string
+  val: number
 }
 
 interface GraphLink {
@@ -26,13 +27,31 @@ const RELATION_TYPE_COLORS: Record<string, string> = {
   other: '#6b7280',
 }
 
+const RELATION_TYPE_LABELS: Record<string, string> = {
+  family: '家人',
+  friend: '朋友',
+  enemy: '敌人',
+  master: '师父',
+  disciple: '徒弟',
+  rival: '竞争',
+  romantic: '恋人',
+  other: '其他',
+}
+
 export function RelationGraph() {
   const containerRef = useRef<HTMLDivElement>(null)
+  const svgRef = useRef<SVGSVGElement>(null)
   const { characters } = useSettingsStore()
   const [dimensions, setDimensions] = useState({ width: 300, height: 400 })
   const [filterType, setFilterType] = useState<string>('all')
   const [hoveredNode, setHoveredNode] = useState<number | null>(null)
   const [viewMode, setViewMode] = useState<'2d' | '3d'>('2d')
+  const [zoom, setZoom] = useState(1)
+  const [pan, setPan] = useState({ x: 0, y: 0 })
+  const [isDragging, setIsDragging] = useState(false)
+  const [dragStart, setDragStart] = useState({ x: 0, y: 0 })
+  const [showLegend, setShowLegend] = useState(true)
+  const [highlightedConnections, setHighlightedConnections] = useState<Set<number>>(new Set())
 
   // 计算节点和连线 - 使用useMemo优化
   const nodes: GraphNode[] = useMemo(() =>
@@ -41,6 +60,7 @@ export function RelationGraph() {
       name: char.name,
       type: 'character',
       color: '#e8b87d',
+      val: char.relationships.length + 1,
     })),
   [characters])
 
@@ -88,6 +108,21 @@ export function RelationGraph() {
     return ids
   }, [links])
 
+  // 计算与当前hover节点相连的节点
+  useEffect(() => {
+    if (hoveredNode === null) {
+      setHighlightedConnections(new Set())
+      return
+    }
+    const connected = new Set<number>()
+    connected.add(hoveredNode)
+    links.forEach((link) => {
+      if (link.source === hoveredNode) connected.add(link.target)
+      if (link.target === hoveredNode) connected.add(link.source)
+    })
+    setHighlightedConnections(connected)
+  }, [hoveredNode, links])
+
   useEffect(() => {
     if (containerRef.current) {
       const { width, height } = containerRef.current.getBoundingClientRect()
@@ -106,6 +141,31 @@ export function RelationGraph() {
     window.addEventListener('resize', handleResize)
     return () => window.removeEventListener('resize', handleResize)
   }, [])
+
+  // 鼠标拖拽平移
+  const handleMouseDown = useCallback((e: React.MouseEvent) => {
+    if (e.target === svgRef.current || (e.target as HTMLElement).tagName === 'svg') {
+      setIsDragging(true)
+      setDragStart({ x: e.clientX - pan.x, y: e.clientY - pan.y })
+    }
+  }, [pan])
+
+  const handleMouseMove = useCallback((e: React.MouseEvent) => {
+    if (isDragging) {
+      setPan({ x: e.clientX - dragStart.x, y: e.clientY - dragStart.y })
+    }
+  }, [isDragging, dragStart])
+
+  const handleMouseUp = useCallback(() => {
+    setIsDragging(false)
+  }, [])
+
+  const handleZoomIn = () => setZoom((z) => Math.min(z * 1.2, 3))
+  const handleZoomOut = () => setZoom((z) => Math.max(z / 1.2, 0.3))
+  const handleReset = () => {
+    setZoom(1)
+    setPan({ x: 0, y: 0 })
+  }
 
   if (characters.length === 0) {
     return (
@@ -172,78 +232,174 @@ export function RelationGraph() {
         </select>
       </div>
 
+      {/* Zoom controls */}
+      <div
+        className="absolute top-3 left-3 z-10 flex flex-col gap-1"
+      >
+        <button
+          onClick={handleZoomIn}
+          className="p-1.5 rounded hover:bg-white/10 transition-colors"
+          title="放大"
+        >
+          <ZoomIn className="w-4 h-4" style={{ color: '#6b7280' }} />
+        </button>
+        <button
+          onClick={handleZoomOut}
+          className="p-1.5 rounded hover:bg-white/10 transition-colors"
+          title="缩小"
+        >
+          <ZoomOut className="w-4 h-4" style={{ color: '#6b7280' }} />
+        </button>
+        <button
+          onClick={handleReset}
+          className="p-1.5 rounded hover:bg-white/10 transition-colors"
+          title="重置视图"
+        >
+          <RotateCcw className="w-4 h-4" style={{ color: '#6b7280' }} />
+        </button>
+      </div>
+
       <svg
+        ref={svgRef}
         width={dimensions.width}
         height={dimensions.height}
-        style={{ backgroundColor: 'transparent' }}
+        style={{
+          backgroundColor: 'transparent',
+          cursor: isDragging ? 'grabbing' : 'grab',
+        }}
+        onMouseDown={handleMouseDown}
+        onMouseMove={handleMouseMove}
+        onMouseUp={handleMouseUp}
+        onMouseLeave={handleMouseUp}
       >
-        {/* 连线 */}
-        {links.map((link, i) => {
-          const sourcePos = positions.get(link.source)
-          const targetPos = positions.get(link.target)
-          if (!sourcePos || !targetPos) return null
+        <g transform={`translate(${pan.x}, ${pan.y}) scale(${zoom})`}>
+          {/* 连线 */}
+          {links.map((link, i) => {
+            const sourcePos = positions.get(link.source)
+            const targetPos = positions.get(link.target)
+            if (!sourcePos || !targetPos) return null
 
-          const isHovered = hoveredNode === link.source || hoveredNode === link.target
+            const isHovered = hoveredNode === link.source || hoveredNode === link.target
+            const isDimmed = hoveredNode !== null && !isHovered
 
-          return (
-            <g key={`link-${i}`}>
-              <line
-                x1={sourcePos.x}
-                y1={sourcePos.y}
-                x2={targetPos.x}
-                y2={targetPos.y}
-                stroke={RELATION_TYPE_COLORS[link.type] || RELATION_TYPE_COLORS.other}
-                strokeWidth={isHovered ? 2 : 1}
-                opacity={isHovered ? 0.8 : 0.3}
-              />
-            </g>
-          )
-        })}
+            return (
+              <g key={`link-${i}`}>
+                <line
+                  x1={sourcePos.x}
+                  y1={sourcePos.y}
+                  x2={targetPos.x}
+                  y2={targetPos.y}
+                  stroke={RELATION_TYPE_COLORS[link.type] || RELATION_TYPE_COLORS.other}
+                  strokeWidth={isHovered ? 2.5 : 1}
+                  opacity={isDimmed ? 0.1 : isHovered ? 0.9 : 0.4}
+                  style={{ transition: 'all 0.2s ease' }}
+                />
+                {/* 关系类型标签（仅在hover时显示） */}
+                {isHovered && (
+                  <text
+                    x={(sourcePos.x + targetPos.x) / 2}
+                    y={(sourcePos.y + targetPos.y) / 2 - 5}
+                    textAnchor="middle"
+                    fill="#9ca3af"
+                    fontSize={9}
+                    style={{ fontFamily: 'Inter, sans-serif', pointerEvents: 'none' }}
+                  >
+                    {RELATION_TYPE_LABELS[link.type] || link.type}
+                  </text>
+                )}
+              </g>
+            )
+          })}
 
-        {/* 节点 */}
-        {nodes.map((node) => {
-          const pos = positions.get(node.id)
-          if (!pos) return null
+          {/* 节点 */}
+          {nodes.map((node) => {
+            const pos = positions.get(node.id)
+            if (!pos) return null
 
-          const isHovered = hoveredNode === node.id
-          const isIsolated = isolatedNodes.some((n) => n.id === node.id)
+            const isHovered = hoveredNode === node.id
+            const isIsolated = isolatedNodes.some((n) => n.id === node.id)
+            const isConnected = highlightedConnections.has(node.id)
+            const isDimmed = hoveredNode !== null && !isConnected
 
-          return (
-            <g
-              key={node.id}
-              transform={`translate(${pos.x}, ${pos.y})`}
-              onMouseEnter={() => setHoveredNode(node.id)}
-              onMouseLeave={() => setHoveredNode(null)}
-              style={{ cursor: 'pointer' }}
-            >
-              <circle
-                r={isHovered ? 28 : 24}
-                fill={node.color}
-                opacity={isIsolated ? 0.4 : 0.9}
-              />
-              <circle
-                r={isHovered ? 28 : 24}
-                fill="none"
-                stroke="rgba(255,255,255,0.3)"
-                strokeWidth={isHovered ? 2 : 1}
-              />
-              <text
-                textAnchor="middle"
-                dy={40}
-                fill="#9ca3af"
-                fontSize={11}
-                style={{ fontFamily: 'Inter, sans-serif' }}
+            return (
+              <g
+                key={node.id}
+                transform={`translate(${pos.x}, ${pos.y})`}
+                onMouseEnter={() => setHoveredNode(node.id)}
+                onMouseLeave={() => setHoveredNode(null)}
+                style={{ cursor: 'pointer' }}
               >
-                {node.name.length > 6 ? node.name.slice(0, 6) + '...' : node.name}
-              </text>
-            </g>
-          )
-        })}
+                {/* 外发光（hover时） */}
+                {isHovered && (
+                  <circle
+                    r={36}
+                    fill="none"
+                    stroke={node.color}
+                    strokeWidth={1}
+                    opacity={0.3}
+                  >
+                    <animate attributeName="r" values="32;38;32" dur="2s" repeatCount="indefinite" />
+                    <animate attributeName="opacity" values="0.3;0.1;0.3" dur="2s" repeatCount="indefinite" />
+                  </circle>
+                )}
+                {/* 主圆 */}
+                <circle
+                  r={isHovered ? 28 : 22 + Math.min(node.val * 1.5, 8)}
+                  fill={node.color}
+                  opacity={isDimmed ? 0.15 : isIsolated ? 0.4 : 0.85}
+                  style={{ transition: 'all 0.2s ease' }}
+                />
+                {/* 边框 */}
+                <circle
+                  r={isHovered ? 28 : 22 + Math.min(node.val * 1.5, 8)}
+                  fill="none"
+                  stroke="rgba(255,255,255,0.3)"
+                  strokeWidth={isHovered ? 2 : 1}
+                  opacity={isDimmed ? 0.1 : 1}
+                />
+                {/* 关系数量指示 */}
+                {node.val > 1 && (
+                  <circle
+                    r={8}
+                    cx={14}
+                    cy={-14}
+                    fill="#0a0b0d"
+                    stroke={node.color}
+                    strokeWidth={1}
+                  />
+                )}
+                {node.val > 1 && (
+                  <text
+                    x={14}
+                    y={-11}
+                    textAnchor="middle"
+                    fill={node.color}
+                    fontSize={8}
+                    style={{ fontFamily: 'Inter, sans-serif', pointerEvents: 'none' }}
+                  >
+                    {node.val - 1}
+                  </text>
+                )}
+                {/* 名称 */}
+                <text
+                  textAnchor="middle"
+                  dy={isHovered ? 44 : 40}
+                  fill={isHovered ? '#f7f8f8' : '#9ca3af'}
+                  fontSize={isHovered ? 12 : 11}
+                  fontWeight={isHovered ? 600 : 400}
+                  style={{ fontFamily: 'Inter, sans-serif', pointerEvents: 'none', transition: 'all 0.2s ease' }}
+                >
+                  {node.name.length > 6 ? node.name.slice(0, 6) + '...' : node.name}
+                </text>
+              </g>
+            )
+          })}
+        </g>
       </svg>
 
       {/* 统计信息 */}
       <div
-        className="absolute bottom-3 left-4 text-xs px-2 py-1 rounded flex items-center gap-3"
+        className="absolute bottom-3 left-3 text-xs px-2 py-1 rounded flex items-center gap-3"
         style={{
           backgroundColor: 'rgba(255,255,255,0.05)',
           color: '#6b7280',
@@ -266,35 +422,53 @@ export function RelationGraph() {
       </div>
 
       {/* 关系类型图例 */}
-      {filterType === 'all' && links.length > 0 && (
+      {showLegend && links.length > 0 && (
         <div
-          className="absolute bottom-3 right-4 text-xs px-2 py-1 rounded"
+          className="absolute bottom-3 right-3 text-xs px-3 py-2 rounded"
           style={{
             backgroundColor: 'rgba(255,255,255,0.05)',
             color: '#6b7280',
+            border: '1px solid rgba(255,255,255,0.06)',
           }}
         >
-          <div className="grid grid-cols-2 gap-x-2 gap-y-0.5">
+          <div className="flex items-center justify-between mb-1.5">
+            <span className="text-xs font-medium" style={{ color: '#9ca3af' }}>图例</span>
+            <button
+              onClick={() => setShowLegend(false)}
+              className="p-0.5 rounded hover:bg-white/10 transition-colors"
+            >
+              <Eye className="w-3 h-3" />
+            </button>
+          </div>
+          <div className="grid grid-cols-2 gap-x-3 gap-y-1">
             {Object.entries(RELATION_TYPE_COLORS).map(([type, color]) => (
-              <div key={type} className="flex items-center gap-1">
+              <div key={type} className="flex items-center gap-1.5">
                 <div
-                  className="w-2 h-2 rounded-full"
+                  className="w-2.5 h-2.5 rounded-full"
                   style={{ backgroundColor: color }}
                 />
-                <span>
-                  {type === 'family' && '家人'}
-                  {type === 'friend' && '朋友'}
-                  {type === 'enemy' && '敌人'}
-                  {type === 'master' && '师父'}
-                  {type === 'disciple' && '徒弟'}
-                  {type === 'rival' && '竞争'}
-                  {type === 'romantic' && '恋人'}
-                  {type === 'other' && '其他'}
+                <span style={{ fontSize: '11px' }}>
+                  {RELATION_TYPE_LABELS[type]}
                 </span>
               </div>
             ))}
           </div>
         </div>
+      )}
+
+      {/* 显示图例按钮（当图例隐藏时） */}
+      {!showLegend && (
+        <button
+          onClick={() => setShowLegend(true)}
+          className="absolute bottom-3 right-3 p-1.5 rounded hover:bg-white/10 transition-colors"
+          style={{
+            backgroundColor: 'rgba(255,255,255,0.05)',
+            color: '#6b7280',
+          }}
+          title="显示图例"
+        >
+          <Eye className="w-4 h-4" />
+        </button>
       )}
     </div>
   )

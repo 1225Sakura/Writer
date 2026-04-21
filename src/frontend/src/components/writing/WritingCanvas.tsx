@@ -8,6 +8,7 @@ import { useWritingStore } from '@/store'
 import { useUIStore } from '@/store'
 import { setEditorInstance } from '@/store/editorRegistry'
 import { useEffect, useRef, useCallback, useState } from 'react'
+import { Save, CheckCircle, AlertCircle } from 'lucide-react'
 import * as Tiptap from '@tiptap/core'
 import { Plugin, PluginKey } from '@tiptap/pm/state'
 import { Decoration, DecorationSet } from '@tiptap/pm/view'
@@ -18,6 +19,50 @@ const WRITING_STYLE_NAMES: Record<string, string> = {
   kafka: '卡夫卡',
   camus: '加缪',
   custom: '自定义',
+}
+
+function formatDuration(seconds: number): string {
+  if (seconds < 60) return `${seconds}秒`
+  const mins = Math.floor(seconds / 60)
+  const secs = seconds % 60
+  if (mins < 60) return `${mins}分${secs > 0 ? `${secs}秒` : ''}`
+  const hours = Math.floor(mins / 60)
+  const remainingMins = mins % 60
+  return `${hours}时${remainingMins > 0 ? `${remainingMins}分` : ''}`
+}
+
+function formatTime(timestamp: number | null): string {
+  if (!timestamp) return ''
+  const date = new Date(timestamp)
+  return date.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' })
+}
+
+function SaveStatusIndicator({ status, lastSavedAt }: { status: string; lastSavedAt: number | null }) {
+  if (status === 'saving') {
+    return (
+      <span className="flex items-center gap-1 text-[#d0d6e0]">
+        <Save className="w-3 h-3 animate-pulse" />
+        保存中...
+      </span>
+    )
+  }
+  if (status === 'saved') {
+    return (
+      <span className="flex items-center gap-1 text-[#7eb84a]" title={`上次保存: ${formatTime(lastSavedAt)}`}>
+        <CheckCircle className="w-3 h-3" />
+        已保存 {lastSavedAt ? formatTime(lastSavedAt) : ''}
+      </span>
+    )
+  }
+  if (status === 'unsaved') {
+    return (
+      <span className="flex items-center gap-1 text-[#c45c5c]">
+        <AlertCircle className="w-3 h-3" />
+        未保存
+      </span>
+    )
+  }
+  return null
 }
 
 // Focus mode extension - dims non-active paragraphs
@@ -81,6 +126,15 @@ export function WritingCanvas() {
     saveCurrentChapter,
     saveDraftVersion,
     loading,
+    saveStatus,
+    lastSavedAt,
+    markSaved,
+    markUnsaved,
+    setSaveStatus,
+    getSessionDuration,
+    getSessionWPM,
+    getTodayWordCount,
+    targetWordCount,
   } = useWritingStore()
 
   const { focusModeEnabled } = useUIStore()
@@ -94,7 +148,9 @@ export function WritingCanvas() {
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null)
   const isTypingRef = useRef(false)
 
-  const [sessionStats, setSessionStats] = useState({ startTime: Date.now(), charactersWritten: 0 })
+  const [sessionDuration, setSessionDuration] = useState(0)
+  const [sessionWPM, setSessionWPM] = useState(0)
+  const [todayWordCount, setTodayWordCount] = useState(0)
 
   const editor = useEditor({
     extensions: [
@@ -115,13 +171,6 @@ export function WritingCanvas() {
     onUpdate: ({ editor }) => {
       const text = editor.getText()
       updateContent(text)
-      // Track characters written in session
-      if (wordCount > lastWordCountRef.current) {
-        setSessionStats(prev => ({
-          ...prev,
-          charactersWritten: prev.charactersWritten + (wordCount - lastWordCountRef.current)
-        }))
-      }
       lastWordCountRef.current = wordCount
 
       // Immersive mode: emit typing events
@@ -191,11 +240,23 @@ export function WritingCanvas() {
     }
   }, [])
 
+  // Session stats timer - update every 5 seconds
+  useEffect(() => {
+    if (!currentChapterId) return
+    const interval = setInterval(() => {
+      setSessionDuration(getSessionDuration())
+      setSessionWPM(getSessionWPM())
+      setTodayWordCount(getTodayWordCount())
+    }, 5000)
+    return () => clearInterval(interval)
+  }, [currentChapterId, getSessionDuration, getSessionWPM, getTodayWordCount])
+
   // 自动保存 - debounce 3秒
   const debouncedSave = useCallback(async () => {
     if (!currentChapterId || isSavingRef.current) return
     if (currentContent === lastSavedContentRef.current) return
 
+    setSaveStatus('saving')
     isSavingRef.current = true
     try {
       await saveCurrentChapter()
@@ -204,14 +265,19 @@ export function WritingCanvas() {
       if (currentContent.trim()) {
         await saveDraftVersion(currentChapterId, currentContent)
       }
+      markSaved()
     } catch (error) {
       console.error('自动保存失败:', error)
+      setSaveStatus('unsaved')
     } finally {
       isSavingRef.current = false
     }
-  }, [currentChapterId, currentContent, saveCurrentChapter, saveDraftVersion])
+  }, [currentChapterId, currentContent, saveCurrentChapter, saveDraftVersion, setSaveStatus, markSaved])
 
   useEffect(() => {
+    if (currentContent !== lastSavedContentRef.current) {
+      markUnsaved()
+    }
     if (saveTimeoutRef.current) {
       clearTimeout(saveTimeoutRef.current)
     }
@@ -221,7 +287,7 @@ export function WritingCanvas() {
         clearTimeout(saveTimeoutRef.current)
       }
     }
-  }, [currentContent, debouncedSave])
+  }, [currentContent, debouncedSave, markUnsaved])
 
   // 快捷键处理
   useEffect(() => {
@@ -280,7 +346,11 @@ export function WritingCanvas() {
         <span className="mx-2 opacity-30">|</span>
         <span>{wordCount} 字</span>
         <span className="mx-2 opacity-30">|</span>
-        <span>本次写作: {sessionStats.charactersWritten} 字</span>
+        <span>今日: {todayWordCount} / {targetWordCount} 字</span>
+        <span className="mx-2 opacity-30">|</span>
+        <span>时长: {formatDuration(sessionDuration)}</span>
+        <span className="mx-2 opacity-30">|</span>
+        <span>速度: {sessionWPM} 字/分</span>
         <span className="mx-2 opacity-30">|</span>
         <span>人机比例: {humanAIRatio}%</span>
         <span className="mx-2 opacity-30">|</span>
@@ -297,12 +367,15 @@ export function WritingCanvas() {
         >
           聚焦
         </button>
-        {loading.ai && (
-          <>
-            <span className="mx-2 opacity-30">|</span>
+
+        <div className="ml-auto flex items-center gap-2">
+          {/* Auto-save indicator */}
+          <SaveStatusIndicator status={saveStatus} lastSavedAt={lastSavedAt} />
+
+          {loading.ai && (
             <span style={{ color: 'var(--accent-primary)' }}>AI处理中...</span>
-          </>
-        )}
+          )}
+        </div>
       </div>
     </div>
   )

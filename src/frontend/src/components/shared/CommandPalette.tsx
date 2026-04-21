@@ -1,9 +1,7 @@
 import { useEffect, useState, useCallback, useRef, useMemo } from 'react'
 import { createPortal } from 'react-dom'
-import { useUIStore, useWritingStore } from '@/store'
-import { Input } from '@/components/ui/Input'
+import { useUIStore } from '@/store'
 import {
-  Save,
   FilePlus,
   MessageCircle,
   Users,
@@ -82,11 +80,7 @@ export function useCommandPalette() {
     immersiveMode,
     toggleFocusMode,
     focusModeEnabled,
-    currentChapterId,
-    saveCurrentChapter,
   } = useUIStore()
-
-  const { currentContent } = useWritingStore()
 
   const inputRef = useRef<HTMLInputElement>(null)
 
@@ -120,19 +114,6 @@ export function useCommandPalette() {
   }, [isOpen])
 
   const commands: Command[] = useMemo(() => [
-    {
-      id: 'save',
-      label: '保存',
-      shortcut: 'Ctrl+S',
-      icon: <Save className="w-4 h-4" />,
-      category: 'file',
-      action: () => {
-        if (currentChapterId) {
-          saveCurrentChapter()
-        }
-        setIsOpen(false)
-      },
-    },
     {
       id: 'new-chapter',
       label: '新建章节',
@@ -206,8 +187,6 @@ export function useCommandPalette() {
       },
     },
   ], [
-    currentChapterId,
-    saveCurrentChapter,
     toggleAIDrawer,
     toggleCollaborationDrawer,
     toggleOutlineDrawer,
@@ -258,6 +237,7 @@ export function useCommandPalette() {
     search,
     setSearch,
     selectedIndex,
+    setSelectedIndex,
     filteredCommands,
     inputRef,
     handleKeyDown,
@@ -272,6 +252,7 @@ export function CommandPalette() {
     search,
     setSearch,
     selectedIndex,
+    setSelectedIndex,
     filteredCommands,
     inputRef,
     handleKeyDown,

@@ -9,6 +9,7 @@ export {
   type Relationship,
   type EntityType,
   type CharacterLocal,
+  type Tag,
 } from './settingsStore'
 export type {
   Character,

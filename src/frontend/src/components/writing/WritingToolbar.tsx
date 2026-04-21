@@ -13,6 +13,7 @@ import {
   Minimize2,
   Eye,
   EyeOff,
+  BarChart3,
 } from 'lucide-react'
 import { memo, useCallback } from 'react'
 import { showToast } from '@/components/ui/Toast'
@@ -34,7 +35,8 @@ export function WritingToolbar() {
     focusModeEnabled,
     toggleFocusMode,
   } = useUIStore()
-  const { oocWarnings, powerImbalanceWarnings, wordCount, targetWordCount } = useWritingStore()
+  const { oocWarnings, powerImbalanceWarnings, wordCount, targetWordCount, getTodayWordCount } = useWritingStore()
+  const todayWordCount = getTodayWordCount()
 
   const handleWarningClick = useCallback(() => {
     const oocMsg = oocWarnings.length > 0 ? `OOC警告:\n${oocWarnings.join('\n')}` : ''
@@ -102,9 +104,29 @@ export function WritingToolbar() {
 
       {/* 右侧：字数统计、警告和主题切换 */}
       <div className="ml-auto flex items-center gap-2">
+        {/* 今日进度 */}
+        <div className="flex items-center gap-1.5 mr-2"
+          title="今日写作进度"
+        >
+          <BarChart3 className="w-3.5 h-3.5 text-[#5e6ad2]" />
+          <div className="w-20 h-1.5 bg-[rgba(255,255,255,0.06)] rounded-full overflow-hidden">
+            <div
+              className="h-full bg-[#5e6ad2] rounded-full transition-all duration-500"
+              style={{
+                width: `${Math.min(100, (todayWordCount / Math.max(1, targetWordCount)) * 100)}%`,
+              }}
+            />
+          </div>
+          <span className="text-[10px] text-[#d0d6e0]/70">
+            {todayWordCount}/{targetWordCount}
+          </span>
+        </div>
+
+        <div className="w-px h-5" style={{ backgroundColor: 'var(--color-border)' }} />
+
         {/* 字数统计 */}
         <span className="text-xs" style={{ color: 'var(--color-text-muted)' }}>
-          {wordCount} / {targetWordCount} 字
+          {wordCount} 字
         </span>
 
         {/* OOC/战力警告 */}

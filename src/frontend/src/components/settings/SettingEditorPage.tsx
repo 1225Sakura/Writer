@@ -3,11 +3,12 @@ import { CategoryNav } from './CategoryNav'
 import { EntityEditor } from './EntityEditor'
 import { RelationGraph } from './RelationGraph'
 import { AISuggestionPanel } from './AISuggestionPanel'
+import { EntitySearch } from './EntitySearch'
 import { Button } from '@/components/ui/Button'
 import { Settings, Feather, RefreshCw, PenTool, ArrowLeft } from 'lucide-react'
 
 export function SettingEditorPage() {
-  const { settingsCategory, setCurrentInterface } = useUIStore()
+  const { settingsCategory, setCurrentInterface, setSettingsCategory } = useUIStore()
   const generateRelations = useSettingsStore((state) => state.generateRelations)
   const generate = useSettingsStore((state) => state.generate)
 
@@ -42,6 +43,7 @@ export function SettingEditorPage() {
             </span>
           </div>
           <div className="flex items-center gap-2">
+            <EntitySearch onResultClick={(type) => setSettingsCategory(type)} />
             <Button
               onClick={() => setCurrentInterface('chat')}
               variant="ghost"

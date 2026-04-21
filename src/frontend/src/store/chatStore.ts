@@ -7,6 +7,8 @@ export interface ChatMessage {
   role: 'user' | 'assistant'
   content: string
   createdAt: number
+  editedAt?: number
+  entities?: ExtractedEntity[]
 }
 
 export interface ExtractedEntity {
@@ -40,6 +42,13 @@ interface ChatActions {
   updateExtractedEntity: (id: string, updates: Partial<ExtractedEntity>) => void
   removeExtractedEntity: (id: string) => void
   confirmEntity: (id: string) => Promise<void>
+  // Message editing
+  editMessage: (id: string, newContent: string) => void
+  deleteMessage: (id: string) => void
+  // Entity extraction visualization
+  extractEntitiesFromMessage: (messageId: string) => void
+  // Export to outline
+  exportToOutline: () => { title: string; entries: { type: string; name: string; description?: string }[] }
 }
 
 // Id counters persisted in session storage to avoid collisions on refresh
@@ -217,6 +226,89 @@ export const useChatStore = create<ChatState & ChatActions>()(
       } catch (error) {
         set({ error: (error as Error).message })
       }
+    },
+
+    editMessage: (id: string, newContent: string) => {
+      set((state) => ({
+        messages: state.messages.map((m) =>
+          m.id === id ? { ...m, content: newContent, editedAt: Date.now() } : m
+        ),
+      }))
+    },
+
+    deleteMessage: (id: string) => {
+      set((state) => ({
+        messages: state.messages.filter((m) => m.id !== id),
+      }))
+    },
+
+    extractEntitiesFromMessage: (messageId: string) => {
+      const { messages, extractedEntities } = get()
+      const message = messages.find((m) => m.id === messageId)
+      if (!message) return
+
+      // Simple heuristic extraction - in production this would call an API
+      const entityPatterns: { type: ExtractedEntity['type']; regex: RegExp }[] = [
+        { type: 'character', regex: /[\"']([^\"']+?)[\"'](?:\s*[，,]\s*.*?角色|.*?主角|.*?人物)/g },
+        { type: 'location', regex: /([\u4e00-\u9fa5]{2,}(?:大陆|城|国|岛|山|森林|海))/g },
+        { type: 'faction', regex: /([\u4e00-\u9fa5]{2,}(?:门|派|宗|教|盟|会|族))/g },
+        { type: 'item', regex: /([\u4e00-\u9fa5]{2,}(?:剑|刀|法宝|秘籍|丹药))/g },
+      ]
+
+      const foundEntities: ExtractedEntity[] = []
+      entityPatterns.forEach(({ type, regex }) => {
+        let match
+        while ((match = regex.exec(message.content)) !== null) {
+          const name = match[1]
+          if (name && !extractedEntities.some((e) => e.name === name)) {
+            foundEntities.push({
+              id: `entity-${++entityIdCounter}`,
+              type,
+              name,
+              description: `从对话中提取的${type === 'character' ? '角色' : type === 'location' ? '地点' : type === 'faction' ? '势力' : '物品'}`,
+              confirmed: false,
+            })
+          }
+        }
+      })
+
+      if (foundEntities.length > 0) {
+        set((state) => ({
+          extractedEntities: [...state.extractedEntities, ...foundEntities],
+          messages: state.messages.map((m) =>
+            m.id === messageId ? { ...m, entities: foundEntities } : m
+          ),
+        }))
+      }
+    },
+
+    exportToOutline: () => {
+      const { messages, extractedEntities } = get()
+      const confirmedEntities = extractedEntities.filter((e) => e.confirmed)
+
+      // Extract key plot points from user messages
+      const plotPoints = messages
+        .filter((m) => m.role === 'user')
+        .map((m) => m.content)
+        .filter((c) => c.length > 10)
+        .slice(0, 5)
+
+      const entries = [
+        ...confirmedEntities.map((e) => ({
+          type: e.type,
+          name: e.name,
+          description: e.description,
+        })),
+        ...plotPoints.map((content, i) => ({
+          type: 'plot_point',
+          name: `情节要点 ${i + 1}`,
+          description: content.slice(0, 100),
+        })),
+      ]
+
+      const title = plotPoints[0]?.slice(0, 20) || '未命名故事'
+
+      return { title, entries }
     },
   }),
     {

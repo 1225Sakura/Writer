@@ -1,6 +1,7 @@
 import { useSettingsStore, type CharacterLocal, UIState, Chapter } from '@/store'
 import { Trash2, Edit2, Users, Plus, FileText, X, Sparkles } from 'lucide-react'
 import { useState } from 'react'
+import { TagInput, TagChips } from './TagInput'
 
 interface EntityEditorProps {
   category: UIState['settingsCategory']
@@ -37,12 +38,18 @@ function EntityCard({
   description,
   badge,
   badgeColor,
+  tags,
+  entityType,
+  entityId,
   onDelete,
 }: {
   name: string
   description?: string
   badge?: string
   badgeColor?: { bg: string; text: string }
+  tags?: string[]
+  entityType?: 'character' | 'item' | 'location' | 'faction' | 'world' | 'rule' | 'ifline'
+  entityId?: number
   onDelete: () => void
 }) {
   const [isHovered, setIsHovered] = useState(false)
@@ -78,6 +85,10 @@ function EntityCard({
               {description}
             </p>
           )}
+          {entityType && entityId !== undefined && (
+            <TagInput entityType={entityType} entityId={entityId} tags={tags || []} />
+          )}
+          {!entityType && tags && tags.length > 0 && <TagChips tags={tags} />}
         </div>
         <button
           onClick={(e) => {
@@ -457,6 +468,7 @@ function CharacterCard({ character }: { character: CharacterLocal }) {
           境界: {character.cultivationRealm}
         </p>
       )}
+      <TagInput entityType="character" entityId={character.id} tags={character.tags} />
       <div className="flex items-center gap-2 mt-2">
         <span className="text-xs" style={{ color: '#6b7280' }}>
           {character.relationships.length} 条关系
@@ -472,7 +484,7 @@ function NewCharacterForm() {
   const [showForm, setShowForm] = useState(false)
 
   const handleSave = (data: { name: string; description?: string }) => {
-    addCharacter({ ...data, tier: 'supporting' })
+    addCharacter({ ...data, tier: 'supporting', tags: [] })
     setShowForm(false)
   }
 
@@ -1077,6 +1089,9 @@ export function EntityEditor({ category }: EntityEditorProps) {
                 description={item.description}
                 badge={item.owner ? `持有者: ${item.owner}` : undefined}
                 badgeColor={entityColors.item}
+                tags={item.tags}
+                entityType="item"
+                entityId={item.id}
                 onDelete={() => useSettingsStore.getState().deleteItem(item.id)}
               />
             ))}
@@ -1111,6 +1126,9 @@ export function EntityEditor({ category }: EntityEditorProps) {
                 description={loc.description}
                 badge={loc.importance === 'major' ? '重要地点' : '次要地点'}
                 badgeColor={entityColors.location}
+                tags={loc.tags}
+                entityType="location"
+                entityId={loc.id}
                 onDelete={() => useSettingsStore.getState().deleteLocation(loc.id)}
               />
             ))}
@@ -1145,6 +1163,9 @@ export function EntityEditor({ category }: EntityEditorProps) {
                 description={fac.description}
                 badge={fac.type}
                 badgeColor={entityColors.faction}
+                tags={fac.tags}
+                entityType="faction"
+                entityId={fac.id}
                 onDelete={() => useSettingsStore.getState().deleteFaction(fac.id)}
               />
             ))}
@@ -1178,6 +1199,9 @@ export function EntityEditor({ category }: EntityEditorProps) {
                 name={world.name}
                 description={world.description}
                 badgeColor={entityColors.world}
+                tags={world.tags}
+                entityType="world"
+                entityId={world.id}
                 onDelete={() => useSettingsStore.getState().deleteWorldSetting(world.id)}
               />
             ))}
@@ -1212,6 +1236,9 @@ export function EntityEditor({ category }: EntityEditorProps) {
                 description={rule.description}
                 badge={rule.type}
                 badgeColor={entityColors.rule}
+                tags={rule.tags}
+                entityType="rule"
+                entityId={rule.id}
                 onDelete={() => useSettingsStore.getState().deleteRule(rule.id)}
               />
             ))}
@@ -1249,6 +1276,9 @@ export function EntityEditor({ category }: EntityEditorProps) {
                 description={ifline.description}
                 badge={ifline.sync_mode === 'auto' ? '自动同步' : '手动同步'}
                 badgeColor={entityColors.ifline}
+                tags={ifline.tags}
+                entityType="ifline"
+                entityId={ifline.id}
                 onDelete={() => useSettingsStore.getState().deleteIFLine(ifline.id)}
               />
             ))}

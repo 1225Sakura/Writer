@@ -52,6 +52,7 @@ export interface CharacterLocal {
   cultivationRealm?: string;
   relationships: Relationship[];
   storylines: CharacterStorylineLocal[];
+  tags: string[];
 }
 
 // 本地剧情线类型
@@ -60,6 +61,18 @@ export interface CharacterStorylineLocal {
   title: string;
   arc: string;
   progress: number;
+}
+
+// 标签类型
+export interface Tag {
+  id: string;
+  name: string;
+  color?: string;
+}
+
+// 带标签的实体基础接口
+export interface TaggedEntity {
+  tags: string[];
 }
 
 interface SettingsState {
@@ -87,6 +100,9 @@ interface SettingsState {
 
   // AI审查结果
   aiReviewResult: AIReviewResult | null;
+
+  // 标签系统
+  tags: Tag[];
 }
 
 interface SettingsActions {
@@ -145,6 +161,15 @@ interface SettingsActions {
 
   // 批量导入（从聊天提取的实体）
   importFromChat: (entities: Array<{ type: EntityType; name: string; description?: string }>) => Promise<void>;
+
+  // 标签管理
+  addTag: (name: string, color?: string) => void;
+  removeTag: (tagId: string) => void;
+  addTagToEntity: (entityType: EntityType, entityId: number, tagName: string) => void;
+  removeTagFromEntity: (entityType: EntityType, entityId: number, tagName: string) => void;
+
+  // 搜索
+  searchEntities: (query: string, type?: EntityType | 'all') => Array<{ type: EntityType; id: number; name: string; description?: string; matchScore: number }>;
 }
 
 // 将API Character转换为本地Character
@@ -160,6 +185,7 @@ const toLocalCharacter = (apiChar: Character): CharacterLocal => ({
   cultivationRealm: apiChar.cultivation_realm,
   relationships: [],
   storylines: [],
+  tags: [],
 });
 
 export const useSettingsStore = create<SettingsState & SettingsActions>()(
@@ -178,6 +204,7 @@ export const useSettingsStore = create<SettingsState & SettingsActions>()(
     isLoading: false,
     error: null,
     aiReviewResult: null,
+    tags: [],
 
     // 加载所有数据
     loadAll: async () => {
@@ -624,7 +651,7 @@ export const useSettingsStore = create<SettingsState & SettingsActions>()(
       for (const { type, name, description } of entities) {
         switch (type) {
           case 'character':
-            await get().addCharacter({ name, description, tier: 'supporting' });
+            await get().addCharacter({ name, description, tier: 'supporting', tags: [] });
             break;
           case 'item':
             await get().addItem({ name, description });
@@ -643,6 +670,170 @@ export const useSettingsStore = create<SettingsState & SettingsActions>()(
             break;
         }
       }
+    },
+
+    // 标签管理
+    addTag: (name, color) => {
+      const newTag: Tag = { id: `tag_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`, name, color };
+      set((state) => ({ tags: [...state.tags, newTag] }));
+    },
+
+    removeTag: (tagId) => {
+      set((state) => ({ tags: state.tags.filter((t) => t.id !== tagId) }));
+    },
+
+    addTagToEntity: (entityType, entityId, tagName) => {
+      set((state) => {
+        const newState = { ...state };
+        switch (entityType) {
+          case 'character':
+            newState.characters = state.characters.map((c) =>
+              c.id === entityId ? { ...c, tags: [...c.tags, tagName] } : c
+            );
+            break;
+          case 'item':
+            newState.items = state.items.map((i) =>
+              i.id === entityId ? { ...i, tags: [...(i.tags || []), tagName] } : i
+            );
+            break;
+          case 'location':
+            newState.locations = state.locations.map((l) =>
+              l.id === entityId ? { ...l, tags: [...(l.tags || []), tagName] } : l
+            );
+            break;
+          case 'faction':
+            newState.factions = state.factions.map((f) =>
+              f.id === entityId ? { ...f, tags: [...(f.tags || []), tagName] } : f
+            );
+            break;
+          case 'world':
+            newState.worldSettings = state.worldSettings.map((w) =>
+              w.id === entityId ? { ...w, tags: [...(w.tags || []), tagName] } : w
+            );
+            break;
+          case 'rule':
+            newState.rules = state.rules.map((r) =>
+              r.id === entityId ? { ...r, tags: [...(r.tags || []), tagName] } : r
+            );
+            break;
+          case 'ifline':
+            newState.ifLines = state.ifLines.map((i) =>
+              i.id === entityId ? { ...i, tags: [...(i.tags || []), tagName] } : i
+            );
+            break;
+        }
+        return newState;
+      });
+    },
+
+    removeTagFromEntity: (entityType, entityId, tagName) => {
+      set((state) => {
+        const newState = { ...state };
+        switch (entityType) {
+          case 'character':
+            newState.characters = state.characters.map((c) =>
+              c.id === entityId ? { ...c, tags: c.tags.filter((t) => t !== tagName) } : c
+            );
+            break;
+          case 'item':
+            newState.items = state.items.map((i) =>
+              i.id === entityId ? { ...i, tags: (i.tags || []).filter((t) => t !== tagName) } : i
+            );
+            break;
+          case 'location':
+            newState.locations = state.locations.map((l) =>
+              l.id === entityId ? { ...l, tags: (l.tags || []).filter((t) => t !== tagName) } : l
+            );
+            break;
+          case 'faction':
+            newState.factions = state.factions.map((f) =>
+              f.id === entityId ? { ...f, tags: (f.tags || []).filter((t) => t !== tagName) } : f
+            );
+            break;
+          case 'world':
+            newState.worldSettings = state.worldSettings.map((w) =>
+              w.id === entityId ? { ...w, tags: (w.tags || []).filter((t) => t !== tagName) } : w
+            );
+            break;
+          case 'rule':
+            newState.rules = state.rules.map((r) =>
+              r.id === entityId ? { ...r, tags: (r.tags || []).filter((t) => t !== tagName) } : r
+            );
+            break;
+          case 'ifline':
+            newState.ifLines = state.ifLines.map((i) =>
+              i.id === entityId ? { ...i, tags: (i.tags || []).filter((t) => t !== tagName) } : i
+            );
+            break;
+        }
+        return newState;
+      });
+    },
+
+    // 搜索
+    searchEntities: (query, type = 'all') => {
+      const state = get();
+      const results: Array<{ type: EntityType; id: number; name: string; description?: string; matchScore: number }> = [];
+      const q = query.toLowerCase().trim();
+      if (!q) return results;
+
+      const searchInNamed = (entities: Array<{ id: number; name: string; description?: string; tags?: string[] }>, entityType: EntityType) => {
+        entities.forEach((entity) => {
+          let score = 0;
+          const nameLower = entity.name.toLowerCase();
+          const descLower = entity.description?.toLowerCase() || '';
+          const tagsLower = entity.tags?.map((t) => t.toLowerCase()) || [];
+
+          if (nameLower === q) score += 100;
+          else if (nameLower.startsWith(q)) score += 80;
+          else if (nameLower.includes(q)) score += 60;
+
+          if (descLower.includes(q)) score += 30;
+
+          tagsLower.forEach((tag) => {
+            if (tag === q) score += 50;
+            else if (tag.includes(q)) score += 25;
+          });
+
+          if (score > 0) {
+            results.push({ type: entityType, id: entity.id, name: entity.name, description: entity.description, matchScore: score });
+          }
+        });
+      };
+
+      const searchInIFLines = () => {
+        state.ifLines.forEach((entity) => {
+          let score = 0;
+          const nameLower = entity.title.toLowerCase();
+          const descLower = entity.description?.toLowerCase() || '';
+          const tagsLower = entity.tags?.map((t) => t.toLowerCase()) || [];
+
+          if (nameLower === q) score += 100;
+          else if (nameLower.startsWith(q)) score += 80;
+          else if (nameLower.includes(q)) score += 60;
+
+          if (descLower.includes(q)) score += 30;
+
+          tagsLower.forEach((tag) => {
+            if (tag === q) score += 50;
+            else if (tag.includes(q)) score += 25;
+          });
+
+          if (score > 0) {
+            results.push({ type: 'ifline' as EntityType, id: entity.id, name: entity.title, description: entity.description, matchScore: score });
+          }
+        });
+      };
+
+      if (type === 'all' || type === 'character') searchInNamed(state.characters, 'character');
+      if (type === 'all' || type === 'item') searchInNamed(state.items, 'item');
+      if (type === 'all' || type === 'location') searchInNamed(state.locations, 'location');
+      if (type === 'all' || type === 'faction') searchInNamed(state.factions, 'faction');
+      if (type === 'all' || type === 'world') searchInNamed(state.worldSettings, 'world');
+      if (type === 'all' || type === 'rule') searchInNamed(state.rules, 'rule');
+      if (type === 'all' || type === 'ifline') searchInIFLines();
+
+      return results.sort((a, b) => b.matchScore - a.matchScore);
     },
   }),
     {

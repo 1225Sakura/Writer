@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/Button'
 import { ArrowRight, Settings } from 'lucide-react'
 
 export function ChatInitPage() {
-  const { extractedEntities, sessionId, createSession, loadExtractedEntities, loadMessages, confirmEntity } = useChatStore()
+  const { extractedEntities, sessionId, createSession, loadExtractedEntities, loadMessages, confirmEntity, messages } = useChatStore()
   const { setCurrentInterface } = useUIStore()
 
   // Initialize session on mount
@@ -25,6 +25,8 @@ export function ChatInitPage() {
     }
   }, [sessionId, loadExtractedEntities, loadMessages])
 
+  const hasMessages = messages.length > 0
+
   return (
     <div className="flex h-full bg-[#08090a]">
       {/* 左侧：AI聊天区域 */}
@@ -36,6 +38,11 @@ export function ChatInitPage() {
               <span className="text-white text-sm font-semibold">写</span>
             </div>
             <h1 className="font-medium text-[#f7f8f8] text-sm">自动化写作软件</h1>
+            {hasMessages && (
+              <span className="text-xs text-[#d0d6e0] ml-2 px-2 py-0.5 rounded-full bg-[rgba(255,255,255,0.04)] border border-[rgba(255,255,255,0.06)]">
+                {messages.length} 条消息
+              </span>
+            )}
           </div>
           <div className="flex items-center gap-2">
             <Button

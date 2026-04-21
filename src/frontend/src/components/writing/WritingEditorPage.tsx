@@ -4,6 +4,8 @@ import { WritingToolbar } from './WritingToolbar'
 import { WritingCanvas } from './WritingCanvas'
 import { AIOperationDrawer } from './AIOperationDrawer'
 import { CollaborationPanel } from './CollaborationPanel'
+import { ChapterNotesPanel } from './ChapterNotesPanel'
+import { WritingSprintTimer } from './WritingSprintTimer'
 import { Button } from '@/components/ui/Button'
 import { X } from 'lucide-react'
 
@@ -93,7 +95,7 @@ export function WritingEditorPage() {
 
     let moveTimeout: NodeJS.Timeout | null = null
 
-    const handleMouseMove = (e: MouseEvent) => {
+    const handleMouseMove = (_e: MouseEvent) => {
       // Only show chrome if it's hidden
       if (!chromeVisible) {
         // Show chrome on mouse move, then schedule hide again
@@ -162,6 +164,10 @@ export function WritingEditorPage() {
         <div className="flex-1 overflow-hidden relative">
           <WritingCanvas />
         </div>
+
+        {/* Floating components */}
+        <ChapterNotesPanel />
+        <WritingSprintTimer />
 
         {/* AI操作抽屉 - 右侧 280px - slides in immersive mode */}
         {aiDrawerOpen && (

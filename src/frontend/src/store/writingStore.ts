@@ -22,6 +22,29 @@ export interface DraftVersionLocal {
 	createdAt: number
 }
 
+export interface ChapterNote {
+	id: string
+	chapterId: number
+	content: string
+	createdAt: number
+	updatedAt: number
+}
+
+export interface WritingSession {
+	startTime: number
+	endTime?: number
+	wordCountStart: number
+	wordCountEnd: number
+	chapterId: number
+}
+
+export interface DailyStats {
+	date: string // YYYY-MM-DD
+	wordCount: number
+	sessionCount: number
+	sessionMinutes: number
+}
+
 export interface PlotThreadLocal {
 	id: string
 	title: string
@@ -70,6 +93,16 @@ interface WritingState {
 	powerImbalanceWarnings: string[]
 	// Separate loading flags for granular updates
 	loading: LoadingState
+	// Chapter notes
+	chapterNotes: ChapterNote[]
+	// Writing session tracking
+	sessionStartTime: number | null
+	sessionWordCountStart: number
+	// Daily stats
+	dailyStats: DailyStats[]
+	// Auto-save status
+	saveStatus: 'idle' | 'saving' | 'saved' | 'unsaved'
+	lastSavedAt: number | null
 }
 
 interface WritingActions {
@@ -112,6 +145,22 @@ interface WritingActions {
 	setOOCWarnings: (warnings: string[]) => void
 	setPowerImbalanceWarnings: (warnings: string[]) => void
 	clearWarnings: () => void
+	// Chapter notes
+	getChapterNote: (chapterId: number) => ChapterNote | undefined
+	setChapterNote: (chapterId: number, content: string) => void
+	deleteChapterNote: (chapterId: number) => void
+	// Session tracking
+	startWritingSession: (chapterId: number, wordCount: number) => void
+	endWritingSession: () => WritingSession | null
+	getSessionDuration: () => number
+	getSessionWPM: () => number
+	// Daily stats
+	getDailyStats: (date?: string) => DailyStats | undefined
+	getTodayWordCount: () => number
+	// Save status
+	setSaveStatus: (status: WritingState['saveStatus']) => void
+	markSaved: () => void
+	markUnsaved: () => void
 }
 
 // Helper to create loading action with proper state merge
@@ -147,6 +196,12 @@ export const useWritingStore = create<WritingState & WritingActions>()(
 				drafts: false,
 				ai: false,
 			},
+			chapterNotes: [],
+			sessionStartTime: null,
+			sessionWordCountStart: 0,
+			dailyStats: [],
+			saveStatus: 'idle',
+			lastSavedAt: null,
 
 			init: async () => {
 				setLoading(set, 'chapters', true)
@@ -166,6 +221,11 @@ export const useWritingStore = create<WritingState & WritingActions>()(
 			},
 
 			setCurrentChapter: (chapterId) => {
+				const state = get()
+				// End previous session if exists
+				if (state.sessionStartTime && state.currentChapterId) {
+					state.endWritingSession()
+				}
 				set({
 					currentChapterId: chapterId,
 					currentContent: '',
@@ -173,6 +233,8 @@ export const useWritingStore = create<WritingState & WritingActions>()(
 				})
 				if (chapterId) {
 					get().fetchDrafts(chapterId)
+					// Start new session
+					get().startWritingSession(chapterId, 0)
 				}
 			},
 
@@ -451,6 +513,131 @@ export const useWritingStore = create<WritingState & WritingActions>()(
 			setOOCWarnings: (warnings) => set({ oocWarnings: warnings }),
 			setPowerImbalanceWarnings: (warnings) => set({ powerImbalanceWarnings: warnings }),
 			clearWarnings: () => set({ oocWarnings: [], powerImbalanceWarnings: [] }),
+
+			// Chapter notes
+			getChapterNote: (chapterId) => {
+				return get().chapterNotes.find((n) => n.chapterId === chapterId)
+			},
+			setChapterNote: (chapterId, content) => {
+				set((state) => {
+					const existing = state.chapterNotes.find((n) => n.chapterId === chapterId)
+					const now = Date.now()
+					if (existing) {
+						return {
+							chapterNotes: state.chapterNotes.map((n) =>
+								n.chapterId === chapterId
+									? { ...n, content, updatedAt: now }
+									: n
+							),
+						}
+					}
+					return {
+						chapterNotes: [
+							...state.chapterNotes,
+							{
+								id: `note-${chapterId}-${now}`,
+								chapterId,
+								content,
+								createdAt: now,
+								updatedAt: now,
+							},
+						],
+					}
+				})
+			},
+			deleteChapterNote: (chapterId) => {
+				set((state) => ({
+					chapterNotes: state.chapterNotes.filter((n) => n.chapterId !== chapterId),
+				}))
+			},
+
+			// Session tracking
+			startWritingSession: (_chapterId, wordCount) => {
+				set({
+					sessionStartTime: Date.now(),
+					sessionWordCountStart: wordCount,
+				})
+			},
+			endWritingSession: () => {
+				const state = get()
+				if (!state.sessionStartTime || !state.currentChapterId) return null
+
+				const endTime = Date.now()
+				const session: WritingSession = {
+					startTime: state.sessionStartTime,
+					endTime,
+					wordCountStart: state.sessionWordCountStart,
+					wordCountEnd: state.wordCount,
+					chapterId: state.currentChapterId,
+				}
+
+				// Update daily stats
+				const today = new Date().toISOString().split('T')[0]
+				const wordsWritten = Math.max(0, session.wordCountEnd - session.wordCountStart)
+				const sessionMinutes = Math.max(1, Math.round((endTime - session.startTime) / 60000))
+
+				set((s) => {
+					const existing = s.dailyStats.find((d) => d.date === today)
+					let dailyStats: DailyStats[]
+					if (existing) {
+						dailyStats = s.dailyStats.map((d) =>
+							d.date === today
+								? {
+										...d,
+										wordCount: d.wordCount + wordsWritten,
+										sessionCount: d.sessionCount + 1,
+										sessionMinutes: d.sessionMinutes + sessionMinutes,
+									}
+								: d
+						)
+					} else {
+						dailyStats = [
+							...s.dailyStats,
+							{
+								date: today,
+								wordCount: wordsWritten,
+								sessionCount: 1,
+								sessionMinutes,
+							},
+						]
+					}
+					return {
+						sessionStartTime: null,
+						dailyStats,
+					}
+				})
+
+				return session
+			},
+			getSessionDuration: () => {
+				const { sessionStartTime } = get()
+				if (!sessionStartTime) return 0
+				return Math.floor((Date.now() - sessionStartTime) / 1000)
+			},
+			getSessionWPM: () => {
+				const { sessionStartTime, sessionWordCountStart, wordCount } = get()
+				if (!sessionStartTime) return 0
+				const minutes = (Date.now() - sessionStartTime) / 60000
+				if (minutes < 0.5) return 0
+				const wordsWritten = wordCount - sessionWordCountStart
+				return Math.round(wordsWritten / minutes)
+			},
+
+			// Daily stats
+			getDailyStats: (date) => {
+				const targetDate = date || new Date().toISOString().split('T')[0]
+				return get().dailyStats.find((d) => d.date === targetDate)
+			},
+			getTodayWordCount: () => {
+				const today = new Date().toISOString().split('T')[0]
+				const stats = get().dailyStats.find((d) => d.date === today)
+				return stats?.wordCount || 0
+			},
+
+			// Save status
+			setSaveStatus: (status) => set({ saveStatus: status }),
+			markSaved: () => set({ saveStatus: 'saved', lastSavedAt: Date.now() }),
+			markUnsaved: () => set({ saveStatus: 'unsaved' }),
 		}),
 		{
 			name: 'writer-writing-store',
@@ -458,7 +645,9 @@ export const useWritingStore = create<WritingState & WritingActions>()(
 				humanAIRatio: state.humanAIRatio,
 				writingStyle: state.writingStyle,
 				targetWordCount: state.targetWordCount,
-				// Explicitly exclude editor from persistence
+				chapterNotes: state.chapterNotes,
+				dailyStats: state.dailyStats,
+				// Explicitly exclude editor and transient state from persistence
 			}),
 		}
 	)

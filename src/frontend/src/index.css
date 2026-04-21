@@ -1,0 +1,52 @@
+/* shadcn/ui CSS variables mapped to Linear design system */
+/* This file is loaded alongside styles/globals.css for full Linear theme support */
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* Linear design system colors - using hsl for shadcn compatibility */
+    --background: 0 0% 3.5%;
+    --foreground: 0 0% 98%;
+    --card: 0 0% 5%;
+    --card-foreground: 0 0% 98%;
+    --popover: 0 0% 5%;
+    --popover-foreground: 0 0% 98%;
+    --primary: 238 83% 66%;
+    --primary-foreground: 0 0% 98%;
+    --secondary: 240 3.7% 15.9%;
+    --secondary-foreground: 0 0% 98%;
+    --muted: 240 3.7% 15.9%;
+    --muted-foreground: 240 5% 64.9%;
+    --accent: 240 3.7% 15.9%;
+    --accent-foreground: 0 0% 98%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 240 3.7% 15.9%;
+    --input: 240 3.7% 15.9%;
+    --ring: 238 83% 66%;
+    --radius: 0.5rem;
+
+    /* Entity type colors for novel writing */
+    --character: 33 76% 64%;
+    --item: 264 45% 72%;
+    --location: 166 45% 53%;
+    --faction: 0 52% 60%;
+    --outline: 217 81% 59%;
+    --ifline: 94 45% 54%;
+    --success: 142 71% 45%;
+    --warning: 33 76% 64%;
+  }
+}
+
+@layer base {
+  * {
+    border-color: hsl(var(--border));
+  }
+  body {
+    background-color: hsl(var(--background));
+    color: hsl(var(--foreground));
+  }
+}
