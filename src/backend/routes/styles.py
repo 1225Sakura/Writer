@@ -13,9 +13,14 @@ router = APIRouter(prefix="/styles", tags=["styles"], dependencies=[require_auth
 
 
 class WritingStyle(BaseModel):
-    id: str
-    name: str
-    description: str
+    """Available writing style definition."""
+    model_config = {"json_schema_extra": {
+        "example": {"id": "江南", "name": "江南风格", "description": "东方玄幻风格，文笔细腻柔美"}
+    }}
+
+    id: str = Field(..., description="风格唯一标识符")
+    name: str = Field(..., description="风格显示名称")
+    description: str = Field(..., description="风格详细描述")
 
 
 # Available writing styles

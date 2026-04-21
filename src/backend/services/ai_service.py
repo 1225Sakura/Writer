@@ -2,18 +2,21 @@
 
 import hashlib
 import httpx
-from typing import AsyncIterator
+from typing import AsyncIterator, Optional
 
-from .cache_service import (
+from backend.services.ai import ProviderRouter, MiniMaxProvider, OpenAICompatibleProvider
+from backend.services.cache_service import (
     get_cached_ai_result,
     set_cached_ai_result,
     cache_service,
 )
+from backend.config import settings
 
 
 def hash_prompt(prompt: str, operation: str, style: str = "default", human_ai_ratio: int = 70) -> str:
     """Create a hash key for an AI prompt."""
     return cache_service.hash_prompt(prompt, operation, style, human_ai_ratio)
+
 
 # Writing style system prompts
 STYLE_PROMPTS = {
@@ -28,11 +31,83 @@ AI_CACHE_TTL = 3600  # 1 hour
 
 
 class AIService:
-    """Service for interacting with MiniMax AI API."""
+    """Service for interacting with AI providers via ProviderRouter.
 
-    def __init__(self, api_key: str, base_url: str = "https://api.minimax.chat/v1"):
-        self.api_key = api_key
-        self.base_url = base_url.rstrip("/")
+    Supports multiple backends with automatic failover, health tracking,
+    and latency metrics collection.
+    """
+
+    def __init__(self, router: Optional[ProviderRouter] = None):
+        self._router = router
+        self._api_key: str = ""
+        self._base_url: str = "https://api.minimax.chat/v1"
+
+    # ------------------------------------------------------------------
+    # Provider router lifecycle
+    # ------------------------------------------------------------------
+
+    def set_router(self, router: ProviderRouter) -> None:
+        """Set the provider router (called from app lifespan)."""
+        self._router = router
+
+    @property
+    def router(self) -> Optional[ProviderRouter]:
+        """Get the current provider router."""
+        return self._router
+
+    def _ensure_router(self) -> ProviderRouter:
+        """Ensure router is available, falling back to a single-provider router."""
+        if self._router is not None:
+            return self._router
+        # Fallback: create a single-provider router with current config
+        if not self._api_key:
+            raise RuntimeError("No AI provider configured. Set MINIMAX_API_KEY or configure a provider.")
+        provider = MiniMaxProvider(api_key=self._api_key, base_url=self._base_url)
+        self._router = ProviderRouter(providers=[provider])
+        return self._router
+
+    # ------------------------------------------------------------------
+    # Provider health
+    # ------------------------------------------------------------------
+
+    def get_provider_health(self) -> dict:
+        """Return health status and metrics for all AI providers."""
+        router = self._router
+        if router is None:
+            return {
+                "status": "uninitialized",
+                "providers": [],
+                "message": "Provider router not initialized",
+            }
+
+        health = router.health_status()
+        metrics = router.get_metrics()
+        recommended = router.get_recommended_provider()
+
+        providers = []
+        for name in health:
+            h = health[name]
+            m = metrics.get(name, {})
+            providers.append({
+                "name": name,
+                "is_degraded": h["is_degraded"],
+                "error_rate": round(h["error_rate"], 4),
+                "recent_requests": h["recent_requests"],
+                "total_calls": m.get("total_calls", 0),
+                "success_rate": m.get("success_rate", 1.0),
+                "avg_latency_ms": m.get("avg_latency_ms", 0.0),
+                "is_recommended": name == recommended.name,
+            })
+
+        return {
+            "status": "healthy" if any(not p["is_degraded"] for p in providers) else "degraded",
+            "recommended_provider": recommended.name,
+            "providers": providers,
+        }
+
+    # ------------------------------------------------------------------
+    # Internal helpers
+    # ------------------------------------------------------------------
 
     def _get_system_prompt(self, style: str) -> str:
         """Get system prompt based on writing style."""
@@ -61,6 +136,10 @@ class AIService:
         # 100 (full human) -> 0.3 (max consistency)
         return 0.3 + (1.0 - 0.3) * (1 - human_ai_ratio / 100)
 
+    # ------------------------------------------------------------------
+    # Core generation (delegated to router)
+    # ------------------------------------------------------------------
+
     async def generate(
         self,
         prompt: str,
@@ -85,38 +164,13 @@ class AIService:
 
         full_prompt = f"{system_prompt}\n\n{operation_instruction}\n\n{prompt}"
 
-        async with httpx.AsyncClient(timeout=60.0) as client:
-            async with client.stream(
-                "POST",
-                f"{self.base_url}/text/chatcompletion_v2",
-                headers={
-                    "Authorization": f"Bearer {self.api_key}",
-                    "Content-Type": "application/json",
-                },
-                json={
-                    "model": "MiniMax-Text-01",
-                    "messages": [
-                        {"role": "user", "content": full_prompt}
-                    ],
-                    "temperature": temperature,
-                    "stream": True,
-                },
-            ) as response:
-                response.raise_for_status()
-                async for line in response.aiter_lines():
-                    if line.startswith("data: "):
-                        data = line[6:]
-                        if data == "[DONE]":
-                            break
-                        try:
-                            import json
-                            chunk = json.loads(data)
-                            if "choices" in chunk and len(chunk["choices"]) > 0:
-                                delta = chunk["choices"][0].get("delta", {})
-                                if "content" in delta:
-                                    yield delta["content"]
-                        except (json.JSONDecodeError, KeyError):
-                            continue
+        router = self._ensure_router()
+        async for chunk in router.generate_stream(
+            prompt=full_prompt,
+            style="default",
+            operation="continue",
+        ):
+            yield chunk
 
     async def review_settings(self, settings_data: dict) -> dict:
         """Review settings for consistency using AI.
@@ -135,39 +189,12 @@ class AIService:
         if cached is not None:
             return cached
 
-        system_prompt = (
-            "你是一位专业的小说设定审核专家。仔细审查以下设定数据，"
-            "检查世界观、角色、势力、地点等之间的一致性和逻辑性。"
-            "指出潜在的矛盾之处，并提供优化建议。"
-        )
+        router = self._ensure_router()
+        review_result = await router.review(content=settings_data)
 
-        async with httpx.AsyncClient(timeout=60.0) as client:
-            response = await client.post(
-                f"{self.base_url}/text/chatcompletion_v2",
-                headers={
-                    "Authorization": f"Bearer {self.api_key}",
-                    "Content-Type": "application/json",
-                },
-                json={
-                    "model": "MiniMax-Text-01",
-                    "messages": [
-                        {"role": "system", "content": system_prompt},
-                        {"role": "user", "content": str(settings_data)},
-                    ],
-                    "temperature": 0.5,
-                },
-            )
-            response.raise_for_status()
-            result = response.json()
-
-            review_result = {
-                "review_content": result.get("choices", [{}])[0].get("message", {}).get("content", ""),
-                "raw_response": result,
-            }
-
-            # Cache the result
-            set_cached_ai_result(prompt_hash, review_result, ttl=AI_CACHE_TTL)
-            return review_result
+        # Cache the result
+        set_cached_ai_result(prompt_hash, review_result, ttl=AI_CACHE_TTL)
+        return review_result
 
     async def extract_entities(self, chat_messages: list) -> list:
         """Extract entities from chat messages.
@@ -186,47 +213,13 @@ class AIService:
         if cached is not None and "entities" in cached:
             return cached["entities"]
 
-        system_prompt = (
-            "你是一位实体提取专家。从以下对话中提取所有实体信息，"
-            "包括角色、地点、物品、势力等。以JSON数组格式返回。"
-        )
+        router = self._ensure_router()
+        entities = await router.extract_entities(content=chat_messages)
 
-        async with httpx.AsyncClient(timeout=60.0) as client:
-            response = await client.post(
-                f"{self.base_url}/text/chatcompletion_v2",
-                headers={
-                    "Authorization": f"Bearer {self.api_key}",
-                    "Content-Type": "application/json",
-                },
-                json={
-                    "model": "MiniMax-Text-01",
-                    "messages": [
-                        {"role": "system", "content": system_prompt},
-                        {"role": "user", "content": str(chat_messages)},
-                    ],
-                    "temperature": 0.3,
-                },
-            )
-            response.raise_for_status()
-            result = response.json()
-
-            content = result.get("choices", [{}])[0].get("message", {}).get("content", "")
-
-            # Try to parse as JSON
-            import json
-            try:
-                entities = json.loads(content)
-                entities = entities if isinstance(entities, list) else []
-            except json.JSONDecodeError:
-                entities = [{"raw_content": content}]
-
-            # Cache the result
-            set_cached_ai_result(prompt_hash, {"entities": entities}, ttl=AI_CACHE_TTL)
-            return entities
+        # Cache the result
+        set_cached_ai_result(prompt_hash, {"entities": entities}, ttl=AI_CACHE_TTL)
+        return entities
 
 
 # Module-level singleton instance
-ai_service = AIService(
-    api_key="",  # Will be configured via settings at runtime
-    base_url="https://api.minimax.chat/v1",
-)
+ai_service = AIService()

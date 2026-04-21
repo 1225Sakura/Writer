@@ -24,6 +24,7 @@ from middleware.rate_limit import RateLimitMiddleware
 from middleware.performance import setup_performance_middleware
 from middleware.request_context import set_request_context
 from utils.logging import setup_logging, get_logger
+from services.metrics_service import metrics_service
 
 # WebSocket auth - verify API key from query param
 async def verify_websocket_auth(api_key: Optional[str]) -> bool:
@@ -133,6 +134,11 @@ class ConnectionManager:
         # Track connection metadata
         self.connection_metadata: Dict[tuple, dict] = {}
 
+    @property
+    def total_connections(self) -> int:
+        """Total number of active WebSocket connections across all sessions."""
+        return sum(len(conns) for conns in self.active_connections.values())
+
     async def connect(self, websocket: WebSocket, session_id: int, metadata: Optional[dict] = None):
         """Accept WebSocket connection and register it."""
         await websocket.accept()
@@ -147,6 +153,10 @@ class ConnectionManager:
             self.connection_metadata[(id(websocket), session_id)] = metadata
 
         logger.info(f"WebSocket connected: session={session_id}, total={len(self.active_connections[session_id])}")
+        # Update metrics async-safe via asyncio.create_task
+        asyncio.create_task(
+            metrics_service.set_active_websocket_connections(self.total_connections)
+        )
 
     def disconnect(self, websocket: WebSocket, session_id: int):
         """Remove WebSocket from active connections and clean up."""
@@ -166,6 +176,10 @@ class ConnectionManager:
         # Clean up metadata
         self.connection_metadata.pop((ws_id, session_id), None)
         logger.info(f"WebSocket disconnected: session={session_id}")
+        # Update metrics async-safe
+        asyncio.create_task(
+            metrics_service.set_active_websocket_connections(self.total_connections)
+        )
 
     async def close_all(self):
         """Close all WebSocket connections gracefully."""
@@ -404,6 +418,74 @@ async def lifespan(app: FastAPI):
     except Exception as e:
         logger.warning(f"Failed to start task queue: {e}")
 
+    # Preload hot data into cache
+    try:
+        from services.preload_service import preload_service
+        preload_start = time.time()
+        preload_summary = await preload_service.preload_all()
+        preload_elapsed = (time.time() - preload_start) * 1000
+        logger.info(
+            "Preload complete: %d items in %.2f ms (%s)",
+            preload_summary.get("total_items", 0),
+            preload_elapsed,
+            ", ".join(
+                f"{k}={v['count']}" for k, v in preload_summary.get("categories", {}).items() if v.get("count", 0) > 0
+            ) or "none",
+        )
+        if preload_summary.get("errors"):
+            for err in preload_summary["errors"]:
+                logger.warning("Preload error: %s", err)
+    except ImportError:
+        logger.debug("Preload service not available")
+    except Exception as e:
+        logger.warning(f"Failed to preload cache data: {e}")
+
+    # Initialize AI ProviderRouter and wire to AIService
+    try:
+        from services.ai import ProviderRouter, MiniMaxProvider, OpenAICompatibleProvider
+        from services.ai_service import ai_service
+
+        providers = []
+
+        # MiniMax provider (primary)
+        if settings.minimax_api_key:
+            providers.append(
+                MiniMaxProvider(
+                    api_key=settings.minimax_api_key,
+                    base_url=settings.minimax_api_url,
+                )
+            )
+            logger.info("MiniMax provider registered")
+
+        # OpenAI-compatible fallback (optional)
+        openai_key = getattr(settings, 'openai_api_key', None)
+        openai_url = getattr(settings, 'openai_api_url', 'https://api.openai.com/v1')
+        openai_model = getattr(settings, 'openai_model', 'gpt-4o')
+        if openai_key:
+            providers.append(
+                OpenAICompatibleProvider(
+                    api_key=openai_key,
+                    base_url=openai_url,
+                    model=openai_model,
+                )
+            )
+            logger.info("OpenAI-compatible provider registered")
+
+        if providers:
+            router = ProviderRouter(providers=providers, primary_index=0)
+            ai_service.set_router(router)
+            logger.info(
+                "ProviderRouter initialized with %d provider(s), primary=%s",
+                len(providers),
+                providers[0].name,
+            )
+        else:
+            logger.warning("No AI providers configured. AI features will not work.")
+    except ImportError as e:
+        logger.debug("ProviderRouter not available: %s", e)
+    except Exception as e:
+        logger.warning(f"Failed to initialize ProviderRouter: {e}")
+
     # Initialize workflow orchestrator and register core workflows
     try:
         from agents.orchestrator import AgentOrchestrator, StageConfig
@@ -429,12 +511,26 @@ async def lifespan(app: FastAPI):
     except Exception as e:
         logger.warning(f"Failed to initialize workflow orchestrator: {e}")
 
+    # Initialize metrics service
+    try:
+        await metrics_service.start()
+        logger.info("Metrics service started")
+    except Exception as e:
+        logger.warning(f"Failed to start metrics service: {e}")
+
     logger.info("Application startup complete")
 
     yield
 
     # Shutdown
     logger.info("Application shutting down...")
+
+    # Stop metrics service
+    try:
+        await metrics_service.stop()
+        logger.info("Metrics service stopped")
+    except Exception as e:
+        logger.warning(f"Failed to stop metrics service: {e}")
 
     # Close all WebSocket connections
     await manager.close_all()
@@ -455,15 +551,87 @@ async def lifespan(app: FastAPI):
     logger.info("Application shutdown complete")
 
 
+# OpenAPI tag metadata for organized API documentation
+OPENAPI_TAGS = [
+    {
+        "name": "auth",
+        "description": "本地API密钥管理 - 获取、刷新和验证API密钥",
+    },
+    {
+        "name": "chat",
+        "description": "聊天会话管理 - 创建会话、发送消息、AI对话、实体提取",
+    },
+    {
+        "name": "settings",
+        "description": "设定管理 - 角色、物品、地点、势力、世界观、规则等世界设定",
+    },
+    {
+        "name": "chapters",
+        "description": "章节与故事结构 - 大纲、章节、IF线、草稿版本、伏笔追踪",
+    },
+    {
+        "name": "ai",
+        "description": "AI生成与审查 - 内容生成、设定审查、章节检查、上下文构建",
+    },
+    {
+        "name": "styles",
+        "description": "文笔风格 - 获取可用的写作风格列表",
+    },
+    {
+        "name": "project",
+        "description": "项目导出导入 - JSON/YAML/ZIP格式的数据导出和导入",
+    },
+    {
+        "name": "tasks",
+        "description": "后台任务 - 提交、查询、取消异步任务",
+    },
+    {
+        "name": "health",
+        "description": "健康检查 - 数据库、AI服务、磁盘空间、依赖项状态",
+    },
+    {
+        "name": "cache",
+        "description": "缓存管理 - 统计、刷新、按标签失效缓存",
+    },
+    {
+        "name": "workflows",
+        "description": "工作流执行 - 执行、监控和列出现有工作流",
+    },
+    {
+        "name": "agents",
+        "description": "AI智能体 - 风格分析、质量审查、剧情分析、检查器",
+    },
+    {
+        "name": "stats",
+        "description": "统计信息 - 项目概览统计数据",
+    },
+]
+
+
 # Create FastAPI app with lifespan
 app = FastAPI(
     title=settings.app_name,
     version=settings.app_version,
     lifespan=lifespan,
-    description="Auto Novel Writer API - AI-powered Chinese web novel writing assistant",
+    description="""
+    **自动写作软件 API** - AI辅助中文网络小说创作平台
+
+    提供三界面架构的完整后端支持：
+    - **聊天初始化**：AI主动提问收集世界观设定
+    - **设定编辑**：角色、物品、地点、势力等世界设定管理
+    - **正文写作**：章节创作、AI辅助、质量检查
+
+    核心功能：
+    - AI内容生成（续写/扩写/缩写/改写/润色/优化）
+    - 世界设定一致性检查
+    - 多文笔风格支持
+    - IF线同步写作
+    - 项目数据导出导入
+    """,
     docs_url="/docs",
     redoc_url="/redoc",
     openapi_url="/openapi.json",
+    openapi_tags=OPENAPI_TAGS,
 )
 
 # Configure CORS

@@ -23,7 +23,11 @@ router = APIRouter(prefix="/project", tags=["project"], dependencies=[require_au
 MAX_IMPORT_SIZE = 50 * 1024 * 1024  # 50MB max import size
 
 
-@router.get("/export")
+@router.get(
+    "/export",
+    summary="导出项目数据",
+    description="导出所有项目数据为JSON格式，支持增量导出。",
+)
 async def export_project_data(
     incremental: bool = Query(False, description="Export only changed data"),
     since: str = Query(None, description="ISO datetime for incremental export"),
@@ -42,7 +46,11 @@ async def export_project_data(
     return data
 
 
-@router.get("/export/json")
+@router.get(
+    "/export/json",
+    summary="导出为JSON文件",
+    description="导出所有项目数据为JSON文件下载。",
+)
 async def export_as_json():
     """Export all project data as standalone JSON file."""
     data = await export_project()
@@ -54,7 +62,11 @@ async def export_as_json():
     )
 
 
-@router.get("/export/yaml")
+@router.get(
+    "/export/yaml",
+    summary="导出为YAML文件",
+    description="导出所有项目数据为YAML文件下载。",
+)
 async def export_as_yaml():
     """Export all project data as standalone YAML file."""
     data = await export_project()
@@ -66,7 +78,11 @@ async def export_as_yaml():
     )
 
 
-@router.get("/export/zip")
+@router.get(
+    "/export/zip",
+    summary="导出为ZIP压缩包",
+    description="导出所有项目数据为ZIP压缩包下载，内含JSON或YAML格式数据。",
+)
 async def export_as_zip(
     format: str = Query("json", description="Export format: 'json' or 'yaml'")
 ):
@@ -84,7 +100,11 @@ async def export_as_zip(
     )
 
 
-@router.post("/import")
+@router.post(
+    "/import",
+    summary="导入项目数据",
+    description="从JSON数据导入项目数据，支持merge和replace两种模式。",
+)
 async def import_project_data(request: ImportRequest):
     """
     Import project data from JSON.
@@ -119,7 +139,11 @@ async def import_project_data(request: ImportRequest):
         raise HTTPException(status_code=500, detail=f"Import failed: {str(e)}")
 
 
-@router.post("/import/yaml")
+@router.post(
+    "/import/yaml",
+    summary="从YAML导入",
+    description="从YAML字符串导入项目数据。",
+)
 async def import_from_yaml_file(
     yaml_data: str,
     mode: str = "merge",
@@ -164,7 +188,11 @@ async def import_from_yaml_file(
         raise HTTPException(status_code=500, detail=f"Import failed: {str(e)}")
 
 
-@router.post("/import/zip")
+@router.post(
+    "/import/zip",
+    summary="从ZIP导入",
+    description="从ZIP压缩包导入项目数据。",
+)
 async def import_from_zip_file(
     zip_data: bytes,
     request: ImportZipRequest,

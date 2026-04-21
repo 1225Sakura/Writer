@@ -8,6 +8,7 @@ from repositories.base import BaseRepository
 from repositories.character_repository import CharacterRepository
 from repositories.chapter_repository import ChapterRepository
 from repositories.outline_repository import OutlineRepository
+from repositories.workflow_repository import WorkflowExecutionRepository, AgentExecutionLogRepository
 
 from models.entities import (
     Character,
@@ -28,6 +29,8 @@ from models.entities import (
     AIInspectionResult,
     CharacterRelationship,
     CharacterStoryline,
+    WorkflowExecution,
+    AgentExecutionLog,
 )
 
 __all__ = [
@@ -35,6 +38,8 @@ __all__ = [
     "CharacterRepository",
     "ChapterRepository",
     "OutlineRepository",
+    "WorkflowExecutionRepository",
+    "AgentExecutionLogRepository",
     "get_repository",
 ]
 
@@ -44,6 +49,8 @@ _REPOSITORY_REGISTRY: Dict[str, Type[BaseRepository]] = {
     "character": CharacterRepository,
     "chapter": ChapterRepository,
     "outline": OutlineRepository,
+    "workflow_execution": WorkflowExecutionRepository,
+    "agent_execution_log": AgentExecutionLogRepository,
 }
 
 # Mapping from model class to its repository class.
@@ -51,6 +58,8 @@ _MODEL_REGISTRY: Dict[Type, Type[BaseRepository]] = {
     Character: CharacterRepository,
     Chapter: ChapterRepository,
     Outline: OutlineRepository,
+    WorkflowExecution: WorkflowExecutionRepository,
+    AgentExecutionLog: AgentExecutionLogRepository,
 }
 
 

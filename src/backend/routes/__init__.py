@@ -16,6 +16,7 @@ from .cache import router as cache_router
 from .workflows import router as workflows_router
 from .agents import router as agents_router
 from .stats import router as stats_router
+from .metrics import router as metrics_router
 
 # Main API router with version prefix
 api_router = APIRouter(prefix="/api/v1")
@@ -33,3 +34,4 @@ api_router.include_router(cache_router)
 api_router.include_router(workflows_router)
 api_router.include_router(agents_router)
 api_router.include_router(stats_router)
+api_router.include_router(metrics_router)

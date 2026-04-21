@@ -12,6 +12,7 @@ from ..agents.orchestrator import AgentOrchestrator, StageConfig
 from ..agents.workflows import WORKFLOW_REGISTRY
 from ..database import get_db
 from ..middleware.auth import require_auth
+from ..services.workflow_service import WorkflowExecutionService
 
 router = APIRouter(prefix="/workflows", tags=["workflows"])
 
@@ -41,57 +42,137 @@ def get_orchestrator() -> AgentOrchestrator:
 
 class ExecuteWorkflowRequest(BaseModel):
     """Request body for workflow execution."""
+    model_config = {"json_schema_extra": {
+        "example": {
+            "context": {"genre": "修仙", "protagonist": "废柴少年", "style": "热血"}
+        }
+    }}
 
     context: dict[str, Any] = Field(default_factory=dict, description="Workflow input data")
 
 
 class ExecuteWorkflowResponse(BaseModel):
     """Response for workflow execution start."""
+    model_config = {"json_schema_extra": {
+        "example": {
+            "execution_id": "exec-001",
+            "workflow_name": "initialization",
+            "status": "completed",
+            "message": "Workflow execution completed"
+        }
+    }}
 
-    execution_id: str
-    workflow_name: str
-    status: str
-    message: str
+    execution_id: str = Field(..., description="Unique execution identifier")
+    workflow_name: str = Field(..., description="Executed workflow name")
+    status: str = Field(..., description="Execution status")
+    message: str = Field(..., description="Status message")
 
 
 class WorkflowStatusResponse(BaseModel):
     """Response for workflow status query."""
+    model_config = {"json_schema_extra": {
+        "example": {
+            "execution_id": "exec-001",
+            "workflow_name": "initialization",
+            "status": "completed",
+            "stage_results": {},
+            "input_data": {}
+        }
+    }}
 
-    execution_id: str
-    workflow_name: str
-    status: str
-    stage_results: dict[str, Any]
-    input_data: dict[str, Any]
+    execution_id: str = Field(..., description="Execution identifier")
+    workflow_name: str = Field(..., description="Workflow name")
+    status: str = Field(..., description="Current status")
+    stage_results: dict[str, Any] = Field(..., description="Results from completed stages")
+    input_data: dict[str, Any] = Field(..., description="Original input data")
 
 
 class WorkflowInfo(BaseModel):
     """Workflow metadata."""
+    model_config = {"json_schema_extra": {
+        "example": {
+            "name": "initialization",
+            "description": "Initialize novel project",
+            "stage_count": 3,
+            "stages": []
+        }
+    }}
 
-    name: str
-    description: str
-    stage_count: int
-    stages: list[dict[str, Any]]
+    name: str = Field(..., description="Workflow identifier")
+    description: str = Field(..., description="Workflow description")
+    stage_count: int = Field(..., description="Number of stages")
+    stages: list[dict[str, Any]] = Field(..., description="Stage definitions")
 
 
 class WorkflowListResponse(BaseModel):
     """Response for listing workflows."""
+    model_config = {"json_schema_extra": {
+        "example": {"workflows": []}
+    }}
 
-    workflows: list[WorkflowInfo]
+    workflows: list[WorkflowInfo] = Field(..., description="Available workflows")
 
 
 class ExecutionSummary(BaseModel):
     """Summary of a workflow execution."""
+    model_config = {"json_schema_extra": {
+        "example": {
+            "execution_id": "exec-001",
+            "workflow_name": "initialization",
+            "status": "completed",
+            "stage_count": 3
+        }
+    }}
 
-    execution_id: str
-    workflow_name: str
-    status: str
-    stage_count: int
+    execution_id: str = Field(..., description="Execution identifier")
+    workflow_name: str = Field(..., description="Workflow name")
+    status: str = Field(..., description="Execution status")
+    stage_count: int = Field(..., description="Number of stages")
 
 
 class ExecutionListResponse(BaseModel):
     """Response for listing executions."""
+    model_config = {"json_schema_extra": {
+        "example": {"executions": []}
+    }}
 
-    executions: list[ExecutionSummary]
+    executions: list[ExecutionSummary] = Field(..., description="List of executions")
+
+
+class AgentLogEntry(BaseModel):
+    """Single agent execution log entry."""
+    model_config = {"json_schema_extra": {
+        "example": {
+            "id": 1,
+            "agent_name": "ChatAgent",
+            "stage_name": "collect_settings",
+            "status": "completed",
+            "result_json": None,
+            "started_at": "2026-04-21T10:00:00",
+            "completed_at": "2026-04-21T10:05:00"
+        }
+    }}
+
+    id: int = Field(..., description="Log entry ID")
+    agent_name: str = Field(..., description="Agent name")
+    stage_name: str = Field(..., description="Stage name")
+    status: str = Field(..., description="Execution status")
+    result_json: str | None = Field(None, description="JSON result data")
+    started_at: str | None = Field(None, description="Start timestamp")
+    completed_at: str | None = Field(None, description="Completion timestamp")
+
+
+class ExecutionLogsResponse(BaseModel):
+    """Response for agent execution logs."""
+    model_config = {"json_schema_extra": {
+        "example": {
+            "workflow_execution_id": 1,
+            "logs": []
+        }
+    }}
+
+    workflow_execution_id: int = Field(..., description="Workflow execution ID")
+    logs: list[AgentLogEntry] = Field(..., description="Agent execution logs")
 
 
 # ---------------------------------------------------------------------------
@@ -103,6 +184,8 @@ class ExecutionListResponse(BaseModel):
     response_model=ExecuteWorkflowResponse,
     status_code=status.HTTP_202_ACCEPTED,
     dependencies=[require_auth],
+    summary="执行工作流",
+    description="启动指定名称的工作流执行。工作流名称如: initialization, writing, review。",
 )
 async def execute_workflow(
     name: str,
@@ -152,6 +235,8 @@ async def execute_workflow(
     "/{name}/status/{execution_id}",
     response_model=WorkflowStatusResponse,
     dependencies=[require_auth],
+    summary="获取工作流执行状态",
+    description="查询指定工作流执行的当前状态和已完成的阶段结果。",
 )
 async def get_workflow_status(
     name: str,
@@ -191,6 +276,8 @@ async def get_workflow_status(
     "/",
     response_model=WorkflowListResponse,
     dependencies=[require_auth],
+    summary="列出所有工作流",
+    description="获取所有可用工作流及其阶段配置的列表。",
 )
 async def list_workflows(
     orchestrator: AgentOrchestrator = Depends(get_orchestrator),
@@ -208,19 +295,98 @@ async def list_workflows(
     "/executions",
     response_model=ExecutionListResponse,
     dependencies=[require_auth],
+    summary="列出工作流执行记录",
+    description="获取所有工作流执行记录的摘要列表，可按工作流名称过滤。",
 )
 async def list_executions(
     workflow_name: str | None = None,
     orchestrator: AgentOrchestrator = Depends(get_orchestrator),
+    db: Any = Depends(get_db),
 ) -> dict[str, Any]:
     """List workflow executions.
 
     Args:
         workflow_name: Optional filter by workflow name
         orchestrator: AgentOrchestrator instance
+        db: Database session
 
     Returns:
-        List of execution summaries
+        List of execution summaries from both memory and persistence
     """
+    # Get in-memory executions
     executions = orchestrator.list_executions(workflow_name=workflow_name)
+
+    # Get persisted executions
+    try:
+        service = WorkflowExecutionService(db)
+        persisted = await service.get_execution_history(limit=100)
+        for record in persisted:
+            if workflow_name and record.workflow_name != workflow_name:
+                continue
+            exec_id = f"db_{record.id}_{record.workflow_name}"
+            # Avoid duplicates with in-memory executions
+            if not any(e["execution_id"] == exec_id for e in executions):
+                executions.append({
+                    "execution_id": exec_id,
+                    "workflow_name": record.workflow_name,
+                    "status": record.status,
+                    "stage_count": 0,
+                    "started_at": record.started_at.isoformat() if record.started_at else None,
+                    "completed_at": record.completed_at.isoformat() if record.completed_at else None,
+                })
+    except Exception:
+        # Persistence is optional; ignore errors
+        pass
+
     return {"executions": executions}
+
+
+@router.get(
+    "/executions/{execution_id}/logs",
+    response_model=ExecutionLogsResponse,
+    dependencies=[require_auth],
+    summary="获取执行日志",
+    description="获取指定工作流执行的智能体执行日志详情。",
+)
+async def get_execution_logs(
+    execution_id: int,
+    db: Any = Depends(get_db),
+) -> dict[str, Any]:
+    """Get agent execution logs for a workflow execution.
+
+    Args:
+        execution_id: Workflow execution ID (database ID)
+        db: Database session
+
+    Returns:
+        List of agent execution log entries
+
+    Raises:
+        HTTPException: 404 if execution not found
+    """
+    service = WorkflowExecutionService(db)
+
+    # Verify execution exists
+    execution = await service.workflow_repo.get_by_id(execution_id)
+    if execution is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Execution '{execution_id}' not found",
+        )
+
+    logs = await service.get_execution_logs(execution_id)
+    return {
+        "workflow_execution_id": execution_id,
+        "logs": [
+            {
+                "id": log.id,
+                "agent_name": log.agent_name,
+                "stage_name": log.stage_name,
+                "status": log.status,
+                "result_json": log.result_json,
+                "started_at": log.started_at.isoformat() if log.started_at else None,
+                "completed_at": log.completed_at.isoformat() if log.completed_at else None,
+            }
+            for log in logs
+        ],
+    }

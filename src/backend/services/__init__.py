@@ -5,6 +5,7 @@ from . import database_service
 from .character_service import CharacterService
 from .chapter_service import ChapterService
 from .outline_service import OutlineService
+from .workflow_service import WorkflowExecutionService
 
 __all__ = [
     "AIService",
@@ -12,4 +13,5 @@ __all__ = [
     "CharacterService",
     "ChapterService",
     "OutlineService",
+    "WorkflowExecutionService",
 ]

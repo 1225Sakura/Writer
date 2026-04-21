@@ -191,9 +191,17 @@ async def get_messages(
 
 class ChatSendRequest(BaseModel):
     """Request to send a message and get AI reply."""
-    content: str
-    collected_settings: Optional[dict[str, Any]] = None
-    current_category: str = "genre"
+    model_config = {"json_schema_extra": {
+        "example": {
+            "content": "我想写一个修仙小说，主角是一个废柴少年",
+            "collected_settings": {"genre": "修仙", "protagonist": "废柴少年"},
+            "current_category": "genre"
+        }
+    }}
+
+    content: str = Field(..., description="用户消息内容", max_length=50000)
+    collected_settings: Optional[dict[str, Any]] = Field(None, description="已收集的设定信息")
+    current_category: str = Field("genre", description="当前收集的设定类别")
 
     @field_validator("content")
     @classmethod
@@ -219,6 +227,14 @@ class ChatSendRequest(BaseModel):
 
 class ChatSendResponse(BaseModel):
     """Response containing user message, AI reply, and agent metadata."""
+    model_config = {"json_schema_extra": {
+        "example": {
+            "user_message": {"id": 1, "session_id": 1, "role": "user", "content": "我想写一个修仙小说"},
+            "ai_message": {"id": 2, "session_id": 1, "role": "assistant", "content": "太好了！请告诉我主角的性格特点？"},
+            "agent_result": {"confidence": 0.95, "metadata": {}, "warnings": []}
+        }
+    }}
+
     user_message: ChatMessageResponse
     ai_message: ChatMessageResponse
     agent_result: Optional[dict[str, Any]] = None

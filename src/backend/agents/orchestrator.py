@@ -19,6 +19,12 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from ..utils.event_bus import AsyncEventBus
 from .base import AgentContext, AgentResult, BaseAgent
 
+# Optional workflow persistence service
+try:
+    from ..services.workflow_service import WorkflowExecutionService
+except ImportError:
+    WorkflowExecutionService = None  # type: ignore[misc, assignment]
+
 logger = logging.getLogger(__name__)
 
 # Event type constants
@@ -115,13 +121,19 @@ class AgentOrchestrator:
     - Event bus integration for decoupled monitoring
     """
 
-    def __init__(self, event_bus: AsyncEventBus) -> None:
+    def __init__(
+        self,
+        event_bus: AsyncEventBus,
+        workflow_service: Optional[Any] = None,
+    ) -> None:
         """Initialize the orchestrator.
 
         Args:
             event_bus: Async event bus for publishing workflow events
+            workflow_service: Optional WorkflowExecutionService for persistence
         """
         self._event_bus = event_bus
+        self._workflow_service = workflow_service
         self._workflows: dict[str, WorkflowConfig] = {}
         self._agent_registry: dict[str, BaseAgent] = {}
         self._executions: dict[str, WorkflowContext] = {}
@@ -266,6 +278,14 @@ class AgentOrchestrator:
             self._executions[execution_id] = wf_context
             self._execution_status[execution_id] = WorkflowStatus.RUNNING
 
+        # Optional: persist workflow execution start
+        db_execution = None
+        if self._workflow_service is not None:
+            try:
+                db_execution = await self._workflow_service.create_execution(name)
+            except Exception as persist_exc:
+                logger.warning("Failed to persist workflow start: %s", persist_exc)
+
         logger.info("Starting workflow '%s' (execution_id=%s)", name, execution_id)
 
         # Publish workflow started event
@@ -297,6 +317,7 @@ class AgentOrchestrator:
                     stage=stage,
                     wf_context=wf_context,
                     db=db,
+                    db_execution_id=db_execution.id if db_execution else None,
                 )
 
                 wf_context.stage_results[stage.name] = stage_result
@@ -317,6 +338,16 @@ class AgentOrchestrator:
             # Mark completed
             async with self._lock:
                 self._execution_status[execution_id] = WorkflowStatus.COMPLETED
+
+            # Persist completion
+            if db_execution is not None and self._workflow_service is not None:
+                try:
+                    await self._workflow_service.complete_execution(
+                        db_execution.id,
+                        results=wf_context.stage_results,
+                    )
+                except Exception as persist_exc:
+                    logger.warning("Failed to persist workflow completion: %s", persist_exc)
 
             # Publish workflow completed event
             await self._event_bus.publish(
@@ -344,6 +375,17 @@ class AgentOrchestrator:
             async with self._lock:
                 self._execution_status[execution_id] = WorkflowStatus.FAILED
 
+            # Persist failure
+            if db_execution is not None and self._workflow_service is not None:
+                try:
+                    await self._workflow_service.complete_execution(
+                        db_execution.id,
+                        results=wf_context.stage_results,
+                        error=str(exc),
+                    )
+                except Exception as persist_exc:
+                    logger.warning("Failed to persist workflow failure: %s", persist_exc)
+
             # Publish workflow failed event
             await self._event_bus.publish(
                 WORKFLOW_FAILED,
@@ -369,6 +411,7 @@ class AgentOrchestrator:
         stage: StageConfig,
         wf_context: WorkflowContext,
         db: Optional[AsyncSession] = None,
+        db_execution_id: Optional[int] = None,
     ) -> dict[str, Any]:
         """Execute a single workflow stage.
 
@@ -400,6 +443,7 @@ class AgentOrchestrator:
                     agent_name=agent_name,
                     wf_context=wf_context,
                     db=db,
+                    db_execution_id=db_execution_id,
                 )
                 for agent_name in stage.agents
             ]
@@ -430,6 +474,7 @@ class AgentOrchestrator:
                         agent_name=agent_name,
                         wf_context=wf_context,
                         db=db,
+                        db_execution_id=db_execution_id,
                     )
                     agent_results[agent_name] = result
                 except Exception as exc:
@@ -458,6 +503,7 @@ class AgentOrchestrator:
         agent_name: str,
         wf_context: WorkflowContext,
         db: Optional[AsyncSession] = None,
+        db_execution_id: Optional[int] = None,
     ) -> dict[str, Any]:
         """Execute a single agent within a workflow stage.
 
@@ -467,6 +513,7 @@ class AgentOrchestrator:
             agent_name: Agent to execute
             wf_context: Workflow execution context
             db: Optional database session
+            db_execution_id: Optional persisted workflow execution ID for logging
 
         Returns:
             Agent execution result dict
@@ -505,6 +552,18 @@ class AgentOrchestrator:
                 "completed_at": completed_at.isoformat(),
             }
 
+            # Persist agent execution log
+            if db_execution_id is not None and self._workflow_service is not None:
+                try:
+                    await self._workflow_service.log_agent_execution(
+                        workflow_execution_id=db_execution_id,
+                        agent_name=agent_name,
+                        stage_name=stage_name,
+                        result=result_dict,
+                    )
+                except Exception as persist_exc:
+                    logger.warning("Failed to persist agent execution log: %s", persist_exc)
+
             # Publish agent executed event
             await self._event_bus.publish(
                 AGENT_EXECUTED,
@@ -522,6 +581,23 @@ class AgentOrchestrator:
 
         except Exception as exc:
             completed_at = datetime.utcnow()
+
+            # Persist failed agent execution log
+            if db_execution_id is not None and self._workflow_service is not None:
+                try:
+                    await self._workflow_service.log_agent_execution(
+                        workflow_execution_id=db_execution_id,
+                        agent_name=agent_name,
+                        stage_name=stage_name,
+                        result={
+                            "status": AgentExecutionStatus.FAILED.value,
+                            "error": str(exc),
+                            "started_at": started_at.isoformat(),
+                            "completed_at": completed_at.isoformat(),
+                        },
+                    )
+                except Exception as persist_exc:
+                    logger.warning("Failed to persist agent execution log: %s", persist_exc)
 
             # Publish agent failed event
             await self._event_bus.publish(

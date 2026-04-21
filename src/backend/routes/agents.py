@@ -111,7 +111,11 @@ def require_checker_rate_limit(request: Request) -> None:
 
 class StyleAnalysisRequest(BaseModel):
     """Request model for StyleAgent analysis."""
-    content: str = Field(..., description="Text content to analyze style")
+    model_config = {"json_schema_extra": {
+        "example": {"content": "风云变幻，天地失色...", "style_reference": "江南"}
+    }}
+
+    content: str = Field(..., description="Text content to analyze style", max_length=100000)
     style_reference: Optional[str] = Field(None, description="Reference style name (e.g., '江南', '卡夫卡')")
 
     @field_validator('content')
@@ -126,14 +130,22 @@ class StyleAnalysisRequest(BaseModel):
 
 class StyleAnalysisResponse(BaseModel):
     """Response model for StyleAgent analysis."""
+    model_config = {"json_schema_extra": {
+        "example": {"style_match_score": 75, "detected_style": "江南", "suggestions": [], "analysis": ""}
+    }}
+
     style_match_score: int = Field(..., ge=0, le=100, description="How well content matches target style")
     detected_style: str = Field("", description="Detected writing style")
-    suggestions: list[str] = Field(default_factory=list)
+    suggestions: list[str] = Field(default_factory=list, description="Improvement suggestions")
     analysis: str = Field("", description="Detailed style analysis")
 
 
 class ReviewRequest(BaseModel):
     """Request model for ReviewAgent execution."""
+    model_config = {"json_schema_extra": {
+        "example": {"content": "章节内容...", "context": {}, "settings": {}}
+    }}
+
     content: str = Field(..., description="Chapter content to review")
     context: dict[str, Any] = Field(default_factory=dict, description="Additional context for deep analysis")
     settings: dict[str, Any] = Field(default_factory=dict, description="Review settings and constraints")
@@ -148,20 +160,32 @@ class ReviewRequest(BaseModel):
 
 class ReviewResponse(BaseModel):
     """Response model for ReviewAgent execution."""
-    overall_score: int = Field(..., ge=0, le=100)
-    severity: str
-    total_issues: int
-    issues: list[dict[str, Any]]
-    suggestions: list[str]
-    checker_scores: dict[str, int]
-    phase_results: dict[str, Any]
-    disagreements: list[dict[str, Any]]
-    confidence: float = Field(..., ge=0.0, le=1.0)
-    metadata: dict[str, Any]
+    model_config = {"json_schema_extra": {
+        "example": {
+            "overall_score": 85, "severity": "low", "total_issues": 2,
+            "issues": [], "suggestions": [], "checker_scores": {},
+            "phase_results": {}, "disagreements": [], "confidence": 0.9, "metadata": {}
+        }
+    }}
+
+    overall_score: int = Field(..., ge=0, le=100, description="Overall quality score")
+    severity: str = Field(..., description="Issue severity: low/medium/high/critical")
+    total_issues: int = Field(..., description="Total number of issues found")
+    issues: list[dict[str, Any]] = Field(..., description="Detailed issues")
+    suggestions: list[str] = Field(..., description="Improvement suggestions")
+    checker_scores: dict[str, int] = Field(..., description="Per-checker scores")
+    phase_results: dict[str, Any] = Field(..., description="Phase-by-phase results")
+    disagreements: list[dict[str, Any]] = Field(..., description="Checker disagreements")
+    confidence: float = Field(..., ge=0.0, le=1.0, description="Result confidence")
+    metadata: dict[str, Any] = Field(..., description="Additional metadata")
 
 
 class PlotRequest(BaseModel):
     """Request model for PlotAgent execution."""
+    model_config = {"json_schema_extra": {
+        "example": {"task_type": "full", "content": "", "outline": {}, "chapters": [], "active_threads": [], "progress": 0.5}
+    }}
+
     task_type: str = Field("full", description="Analysis type: foreshadowing, climax, rhythm, full")
     content: str = Field("", description="Current chapter content")
     outline: dict[str, Any] = Field(default_factory=dict, description="Story outline")
@@ -180,29 +204,39 @@ class PlotRequest(BaseModel):
 
 class PlotResponse(BaseModel):
     """Response model for PlotAgent execution."""
-    results: dict[str, Any]
-    confidence: float = Field(..., ge=0.0, le=1.0)
-    metadata: dict[str, Any]
+    model_config = {"json_schema_extra": {"example": {"results": {}, "confidence": 0.85, "metadata": {}}}}
+
+    results: dict[str, Any] = Field(..., description="Plot analysis results")
+    confidence: float = Field(..., ge=0.0, le=1.0, description="Result confidence")
+    metadata: dict[str, Any] = Field(..., description="Additional metadata")
 
 
 class CheckerInfo(BaseModel):
     """Info about an available checker."""
-    name: str
-    description: str
-    supports_quick_scan: bool = True
-    supports_deep_analyze: bool = True
+    model_config = {"json_schema_extra": {
+        "example": {"name": "consistency", "description": "检查一致性", "supports_quick_scan": True, "supports_deep_analyze": True}
+    }}
+
+    name: str = Field(..., description="Checker identifier")
+    description: str = Field(..., description="Checker description")
+    supports_quick_scan: bool = Field(True, description="Supports quick scan mode")
+    supports_deep_analyze: bool = Field(True, description="Supports deep analyze mode")
 
 
 class CheckerListResponse(BaseModel):
     """Response listing all available checkers."""
-    checkers: list[CheckerInfo]
-    total: int
+    model_config = {"json_schema_extra": {"example": {"checkers": [], "total": 0}}}
+
+    checkers: list[CheckerInfo] = Field(..., description="Available checkers")
+    total: int = Field(..., description="Total number of checkers")
 
 
 class CheckerRunRequest(BaseModel):
     """Request to run a specific checker."""
+    model_config = {"json_schema_extra": {"example": {"checker_name": "consistency", "chapter_id": 1, "mode": "quick"}}}
+
     checker_name: str = Field(..., description="Name of checker to run")
-    chapter_id: int = Field(..., description="Chapter ID to check")
+    chapter_id: int = Field(..., description="Chapter ID to check", gt=0)
     mode: str = Field("quick", description="Run mode: 'quick' or 'deep'")
 
     @field_validator('checker_name')
@@ -233,17 +267,23 @@ class CheckerRunRequest(BaseModel):
 
 class CheckerRunResponse(BaseModel):
     """Response from running a checker."""
-    checker_name: str
-    chapter_id: int
-    mode: str
-    score: int = Field(..., ge=0, le=100)
-    issues: list[dict[str, Any]]
-    suggestions: list[str]
+    model_config = {"json_schema_extra": {
+        "example": {"checker_name": "consistency", "chapter_id": 1, "mode": "quick", "score": 85, "issues": [], "suggestions": []}
+    }}
+
+    checker_name: str = Field(..., description="Checker name")
+    chapter_id: int = Field(..., description="Checked chapter ID")
+    mode: str = Field(..., description="Run mode")
+    score: int = Field(..., ge=0, le=100, description="Quality score 0-100")
+    issues: list[dict[str, Any]] = Field(..., description="Found issues")
+    suggestions: list[str] = Field(..., description="Improvement suggestions")
 
 
 class PipelineRequest(BaseModel):
     """Request to run all checkers via pipeline."""
-    chapter_id: int = Field(..., description="Chapter ID to check")
+    model_config = {"json_schema_extra": {"example": {"chapter_id": 1, "mode": "quick"}}}
+
+    chapter_id: int = Field(..., description="Chapter ID to check", gt=0)
     mode: str = Field("quick", description="Run mode: 'quick' or 'deep'")
 
     @field_validator('chapter_id')
@@ -263,15 +303,23 @@ class PipelineRequest(BaseModel):
 
 class PipelineResponse(BaseModel):
     """Response from running all checkers via pipeline."""
-    chapter_id: int
-    mode: str
-    overall_score: int = Field(..., ge=0, le=100)
-    severity: str = Field(..., description="low|medium|high|critical")
-    total_issues: int
-    issue_breakdown: dict[str, int]
-    all_suggestions: list[str]
-    checker_scores: dict[str, int]
-    results: dict[str, CheckerRunResponse]
+    model_config = {"json_schema_extra": {
+        "example": {
+            "chapter_id": 1, "mode": "quick", "overall_score": 80,
+            "severity": "low", "total_issues": 3, "issue_breakdown": {},
+            "all_suggestions": [], "checker_scores": {}, "results": {}
+        }
+    }}
+
+    chapter_id: int = Field(..., description="Checked chapter ID")
+    mode: str = Field(..., description="Run mode")
+    overall_score: int = Field(..., ge=0, le=100, description="Overall quality score")
+    severity: str = Field(..., description="Issue severity: low|medium|high|critical")
+    total_issues: int = Field(..., description="Total issues found")
+    issue_breakdown: dict[str, int] = Field(..., description="Issues by checker")
+    all_suggestions: list[str] = Field(..., description="All suggestions")
+    checker_scores: dict[str, int] = Field(..., description="Scores by checker")
+    results: dict[str, CheckerRunResponse] = Field(..., description="Individual checker results")
 
 
 # ------------------------------------------------------------------
@@ -383,7 +431,13 @@ async def _build_checker_context(
 # ------------------------------------------------------------------
 
 
-@router.post("/style", response_model=StyleAnalysisResponse, dependencies=[require_auth])
+@router.post(
+    "/style",
+    response_model=StyleAnalysisResponse,
+    dependencies=[require_auth],
+    summary="分析写作风格",
+    description="分析提供的文本内容，检测其风格倾向并与参考风格进行对比。",
+)
 async def analyze_style(request: StyleAnalysisRequest):
     """Analyze writing style of provided content.
 
@@ -431,7 +485,13 @@ async def analyze_style(request: StyleAnalysisRequest):
     )
 
 
-@router.post("/review", response_model=ReviewResponse, dependencies=[require_auth])
+@router.post(
+    "/review",
+    response_model=ReviewResponse,
+    dependencies=[require_auth],
+    summary="执行质量审查",
+    description="执行三轮质量审查：快速扫描、深度分析、交叉验证，返回结构化审查报告。",
+)
 async def run_review_agent(request: ReviewRequest) -> ReviewResponse:
     """Execute ReviewAgent for multi-round quality review.
 
@@ -480,7 +540,13 @@ async def run_review_agent(request: ReviewRequest) -> ReviewResponse:
     )
 
 
-@router.post("/plot", response_model=PlotResponse, dependencies=[require_auth])
+@router.post(
+    "/plot",
+    response_model=PlotResponse,
+    dependencies=[require_auth],
+    summary="剧情分析与设计",
+    description="分析剧情节奏、高潮分布、伏笔设计和张力曲线。支持foreshadowing/climax/rhythm/full四种模式。",
+)
 async def run_plot_agent(request: PlotRequest) -> PlotResponse:
     """Execute PlotAgent for plot design and rhythm analysis.
 
@@ -526,7 +592,12 @@ async def run_plot_agent(request: PlotRequest) -> PlotResponse:
     )
 
 
-@router.get("/checkers", response_model=CheckerListResponse)
+@router.get(
+    "/checkers",
+    response_model=CheckerListResponse,
+    summary="列出所有检查器",
+    description="获取所有可用质量检查器的列表及其功能说明。",
+)
 async def list_checkers():
     """Get list of all available quality checkers."""
     checkers = [
@@ -583,7 +654,13 @@ async def list_checkers():
     return CheckerListResponse(checkers=checkers, total=len(checkers))
 
 
-@router.post("/check", response_model=CheckerRunResponse, dependencies=[require_auth])
+@router.post(
+    "/check",
+    response_model=CheckerRunResponse,
+    dependencies=[require_auth],
+    summary="运行指定检查器",
+    description="在章节上运行指定的质量检查器。支持quick（启发式）和deep（AI驱动）两种模式。",
+)
 async def run_checker(
     request: CheckerRunRequest,
     db: AsyncSession = Depends(get_db),
@@ -663,7 +740,13 @@ async def run_checker(
         )
 
 
-@router.post("/check-all", response_model=PipelineResponse, dependencies=[require_auth])
+@router.post(
+    "/check-all",
+    response_model=PipelineResponse,
+    dependencies=[require_auth],
+    summary="运行全部检查器",
+    description="使用CheckerPipeline并行运行所有可用的质量检查器，并聚合结果。",
+)
 async def run_all_checkers(
     request: PipelineRequest,
     db: AsyncSession = Depends(get_db),

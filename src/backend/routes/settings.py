@@ -62,7 +62,12 @@ router = APIRouter(prefix="/settings", tags=["settings"], dependencies=[require_
 
 
 # Character endpoints
-@router.get("/characters", response_model=List[CharacterResponse])
+@router.get(
+    "/characters",
+    response_model=List[CharacterResponse],
+    summary="列出所有角色",
+    description="获取所有角色的列表，支持按等级过滤。",
+)
 async def list_characters(
     skip: int = 0,
     limit: int = 100,
@@ -73,7 +78,12 @@ async def list_characters(
     return await service.list_characters(skip=skip, limit=limit, tier=tier)
 
 
-@router.post("/characters", response_model=CharacterResponse)
+@router.post(
+    "/characters",
+    response_model=CharacterResponse,
+    summary="创建角色",
+    description="创建新的角色设定。",
+)
 async def create_character(
     character: CharacterCreateRequest,
     service: CharacterService = Depends(get_character_service)
@@ -82,7 +92,12 @@ async def create_character(
     return await service.create_character(character.model_dump())
 
 
-@router.get("/characters/{character_id}", response_model=CharacterResponse)
+@router.get(
+    "/characters/{character_id}",
+    response_model=CharacterResponse,
+    summary="获取角色详情",
+    description="获取指定ID的角色详细信息。",
+)
 async def get_character(
     character_id: int,
     service: CharacterService = Depends(get_character_service)
@@ -94,7 +109,12 @@ async def get_character(
     return character
 
 
-@router.patch("/characters/{character_id}", response_model=CharacterResponse)
+@router.patch(
+    "/characters/{character_id}",
+    response_model=CharacterResponse,
+    summary="更新角色",
+    description="更新指定ID的角色信息。",
+)
 async def update_character(
     character_id: int,
     character: CharacterUpdateRequest,
@@ -109,7 +129,11 @@ async def update_character(
     return db_character
 
 
-@router.delete("/characters/{character_id}")
+@router.delete(
+    "/characters/{character_id}",
+    summary="删除角色",
+    description="删除指定ID的角色。",
+)
 async def delete_character(
     character_id: int,
     service: CharacterService = Depends(get_character_service)
@@ -122,7 +146,12 @@ async def delete_character(
 
 
 # Character relationships
-@router.get("/characters/{character_id}/relationships", response_model=List[CharacterRelationshipResponse])
+@router.get(
+    "/characters/{character_id}/relationships",
+    response_model=List[CharacterRelationshipResponse],
+    summary="列出角色关系",
+    description="获取指定角色的所有关系列表。",
+)
 async def list_character_relationships(
     character_id: int,
     service: CharacterService = Depends(get_character_service)
@@ -131,7 +160,12 @@ async def list_character_relationships(
     return await service.get_relationships(character_id)
 
 
-@router.post("/characters/{character_id}/relationships", response_model=CharacterRelationshipResponse)
+@router.post(
+    "/characters/{character_id}/relationships",
+    response_model=CharacterRelationshipResponse,
+    summary="创建角色关系",
+    description="为指定角色创建新的关系。",
+)
 async def create_character_relationship(
     character_id: int,
     relationship: CharacterRelationshipCreateRequest,
@@ -142,7 +176,12 @@ async def create_character_relationship(
 
 
 # Character storylines
-@router.get("/characters/{character_id}/storylines", response_model=List[CharacterStorylineResponse])
+@router.get(
+    "/characters/{character_id}/storylines",
+    response_model=List[CharacterStorylineResponse],
+    summary="列出角色故事线",
+    description="获取指定角色的所有故事线列表。",
+)
 async def list_character_storylines(
     character_id: int,
     service: CharacterService = Depends(get_character_service)
@@ -151,7 +190,12 @@ async def list_character_storylines(
     return await service.get_storylines(character_id)
 
 
-@router.post("/characters/{character_id}/storylines", response_model=CharacterStorylineResponse)
+@router.post(
+    "/characters/{character_id}/storylines",
+    response_model=CharacterStorylineResponse,
+    summary="创建角色故事线",
+    description="为指定角色创建新的故事线。",
+)
 async def create_character_storyline(
     character_id: int,
     storyline: CharacterStorylineCreateRequest,
@@ -162,7 +206,12 @@ async def create_character_storyline(
 
 
 # Items
-@router.get("/items", response_model=List[ItemResponse])
+@router.get(
+    "/items",
+    response_model=List[ItemResponse],
+    summary="列出所有物品",
+    description="获取所有物品的列表，支持按所有者过滤。",
+)
 async def list_items(
     skip: int = 0,
     limit: int = 100,
@@ -177,7 +226,12 @@ async def list_items(
     return result.scalars().all()
 
 
-@router.post("/items", response_model=ItemResponse)
+@router.post(
+    "/items",
+    response_model=ItemResponse,
+    summary="创建物品",
+    description="创建新的物品设定。",
+)
 async def create_item(item: ItemCreateRequest, db: AsyncSession = Depends(get_db)):
     """Create a new item."""
     db_item = Item(**item.model_dump())
@@ -188,7 +242,12 @@ async def create_item(item: ItemCreateRequest, db: AsyncSession = Depends(get_db
     return db_item
 
 
-@router.patch("/items/{item_id}", response_model=ItemResponse)
+@router.patch(
+    "/items/{item_id}",
+    response_model=ItemResponse,
+    summary="更新物品",
+    description="更新指定ID的物品信息。",
+)
 async def update_item(
     item_id: int,
     item: ItemUpdateRequest,
@@ -209,7 +268,11 @@ async def update_item(
     return db_item
 
 
-@router.delete("/items/{item_id}")
+@router.delete(
+    "/items/{item_id}",
+    summary="删除物品",
+    description="删除指定ID的物品。",
+)
 async def delete_item(item_id: int, db: AsyncSession = Depends(get_db)):
     """Delete an item."""
     result = await db.execute(select(Item).where(Item.id == item_id))
@@ -222,7 +285,12 @@ async def delete_item(item_id: int, db: AsyncSession = Depends(get_db)):
 
 
 # Locations
-@router.get("/locations", response_model=List[LocationResponse])
+@router.get(
+    "/locations",
+    response_model=List[LocationResponse],
+    summary="列出所有地点",
+    description="获取所有地点的列表，支持按重要性过滤。",
+)
 async def list_locations(
     skip: int = 0,
     limit: int = 100,
@@ -237,7 +305,12 @@ async def list_locations(
     return result.scalars().all()
 
 
-@router.post("/locations", response_model=LocationResponse)
+@router.post(
+    "/locations",
+    response_model=LocationResponse,
+    summary="创建地点",
+    description="创建新的地点设定。",
+)
 async def create_location(location: LocationCreateRequest, db: AsyncSession = Depends(get_db)):
     """Create a new location."""
     db_location = Location(**location.model_dump())
@@ -248,7 +321,12 @@ async def create_location(location: LocationCreateRequest, db: AsyncSession = De
     return db_location
 
 
-@router.patch("/locations/{location_id}", response_model=LocationResponse)
+@router.patch(
+    "/locations/{location_id}",
+    response_model=LocationResponse,
+    summary="更新地点",
+    description="更新指定ID的地点信息。",
+)
 async def update_location(
     location_id: int,
     location: LocationUpdateRequest,
@@ -269,7 +347,11 @@ async def update_location(
     return db_location
 
 
-@router.delete("/locations/{location_id}")
+@router.delete(
+    "/locations/{location_id}",
+    summary="删除地点",
+    description="删除指定ID的地点。",
+)
 async def delete_location(location_id: int, db: AsyncSession = Depends(get_db)):
     """Delete a location."""
     result = await db.execute(select(Location).where(Location.id == location_id))
@@ -282,7 +364,12 @@ async def delete_location(location_id: int, db: AsyncSession = Depends(get_db)):
 
 
 # Factions
-@router.get("/factions", response_model=List[FactionResponse])
+@router.get(
+    "/factions",
+    response_model=List[FactionResponse],
+    summary="列出所有势力",
+    description="获取所有势力的列表，支持按类型过滤。",
+)
 async def list_factions(
     skip: int = 0,
     limit: int = 100,
@@ -297,7 +384,12 @@ async def list_factions(
     return result.scalars().all()
 
 
-@router.post("/factions", response_model=FactionResponse)
+@router.post(
+    "/factions",
+    response_model=FactionResponse,
+    summary="创建势力",
+    description="创建新的势力设定。",
+)
 async def create_faction(faction: FactionCreateRequest, db: AsyncSession = Depends(get_db)):
     """Create a new faction."""
     db_faction = Faction(**faction.model_dump())
@@ -308,7 +400,12 @@ async def create_faction(faction: FactionCreateRequest, db: AsyncSession = Depen
     return db_faction
 
 
-@router.patch("/factions/{faction_id}", response_model=FactionResponse)
+@router.patch(
+    "/factions/{faction_id}",
+    response_model=FactionResponse,
+    summary="更新势力",
+    description="更新指定ID的势力信息。",
+)
 async def update_faction(
     faction_id: int,
     faction: FactionUpdateRequest,
@@ -329,7 +426,11 @@ async def update_faction(
     return db_faction
 
 
-@router.delete("/factions/{faction_id}")
+@router.delete(
+    "/factions/{faction_id}",
+    summary="删除势力",
+    description="删除指定ID的势力。",
+)
 async def delete_faction(faction_id: int, db: AsyncSession = Depends(get_db)):
     """Delete a faction."""
     result = await db.execute(select(Faction).where(Faction.id == faction_id))
@@ -342,7 +443,12 @@ async def delete_faction(faction_id: int, db: AsyncSession = Depends(get_db)):
 
 
 # World Settings
-@router.get("/world", response_model=List[WorldSettingResponse])
+@router.get(
+    "/world",
+    response_model=List[WorldSettingResponse],
+    summary="列出所有世界观设定",
+    description="获取所有世界观设定的列表。",
+)
 async def list_world_settings(
     skip: int = 0,
     limit: int = 100,
@@ -353,7 +459,12 @@ async def list_world_settings(
     return result.scalars().all()
 
 
-@router.post("/world", response_model=WorldSettingResponse)
+@router.post(
+    "/world",
+    response_model=WorldSettingResponse,
+    summary="创建世界观设定",
+    description="创建新的世界观设定。",
+)
 async def create_world_setting(
     setting: WorldSettingCreateRequest,
     db: AsyncSession = Depends(get_db)
@@ -367,7 +478,12 @@ async def create_world_setting(
     return db_setting
 
 
-@router.patch("/world/{setting_id}", response_model=WorldSettingResponse)
+@router.patch(
+    "/world/{setting_id}",
+    response_model=WorldSettingResponse,
+    summary="更新世界观设定",
+    description="更新指定ID的世界观设定。",
+)
 async def update_world_setting(
     setting_id: int,
     setting: WorldSettingUpdateRequest,
@@ -388,7 +504,11 @@ async def update_world_setting(
     return db_setting
 
 
-@router.delete("/world/{setting_id}")
+@router.delete(
+    "/world/{setting_id}",
+    summary="删除世界观设定",
+    description="删除指定ID的世界观设定。",
+)
 async def delete_world_setting(setting_id: int, db: AsyncSession = Depends(get_db)):
     """Delete a world setting."""
     result = await db.execute(select(WorldSetting).where(WorldSetting.id == setting_id))
@@ -401,7 +521,12 @@ async def delete_world_setting(setting_id: int, db: AsyncSession = Depends(get_d
 
 
 # Rules
-@router.get("/rules", response_model=List[RuleResponse])
+@router.get(
+    "/rules",
+    response_model=List[RuleResponse],
+    summary="列出所有规则",
+    description="获取所有规则的列表，支持按类型过滤。",
+)
 async def list_rules(
     skip: int = 0,
     limit: int = 100,
@@ -416,7 +541,12 @@ async def list_rules(
     return result.scalars().all()
 
 
-@router.post("/rules", response_model=RuleResponse)
+@router.post(
+    "/rules",
+    response_model=RuleResponse,
+    summary="创建规则",
+    description="创建新的规则设定。",
+)
 async def create_rule(rule: RuleCreateRequest, db: AsyncSession = Depends(get_db)):
     """Create a new rule."""
     db_rule = Rule(**rule.model_dump())
@@ -427,7 +557,12 @@ async def create_rule(rule: RuleCreateRequest, db: AsyncSession = Depends(get_db
     return db_rule
 
 
-@router.patch("/rules/{rule_id}", response_model=RuleResponse)
+@router.patch(
+    "/rules/{rule_id}",
+    response_model=RuleResponse,
+    summary="更新规则",
+    description="更新指定ID的规则信息。",
+)
 async def update_rule(
     rule_id: int,
     rule: RuleUpdateRequest,
@@ -448,7 +583,11 @@ async def update_rule(
     return db_rule
 
 
-@router.delete("/rules/{rule_id}")
+@router.delete(
+    "/rules/{rule_id}",
+    summary="删除规则",
+    description="删除指定ID的规则。",
+)
 async def delete_rule(rule_id: int, db: AsyncSession = Depends(get_db)):
     """Delete a rule."""
     result = await db.execute(select(Rule).where(Rule.id == rule_id))
@@ -461,7 +600,12 @@ async def delete_rule(rule_id: int, db: AsyncSession = Depends(get_db)):
 
 
 # Writing Settings
-@router.get("/writing", response_model=WritingSettingsResponse)
+@router.get(
+    "/writing",
+    response_model=WritingSettingsResponse,
+    summary="获取写作设定",
+    description="获取当前的写作设定配置。如不存在则创建默认值。",
+)
 async def get_writing_settings(db: AsyncSession = Depends(get_db)):
     """Get current writing settings."""
     result = await db.execute(select(WritingSettings))
@@ -475,7 +619,12 @@ async def get_writing_settings(db: AsyncSession = Depends(get_db)):
     return settings_obj
 
 
-@router.patch("/writing", response_model=WritingSettingsResponse)
+@router.patch(
+    "/writing",
+    response_model=WritingSettingsResponse,
+    summary="更新写作设定",
+    description="更新写作设定配置。",
+)
 async def update_writing_settings(
     updates: WritingSettingsUpdateRequest,
     db: AsyncSession = Depends(get_db)
@@ -498,7 +647,12 @@ async def update_writing_settings(
 
 
 # Export/Import for backup and migration
-@router.get("/export", response_model=ExportDataResponse)
+@router.get(
+    "/export",
+    response_model=ExportDataResponse,
+    summary="导出项目数据",
+    description="将所有项目数据导出为JSON格式，用于备份和迁移。",
+)
 async def export_data(db: AsyncSession = Depends(get_db)):
     """Export all project data as JSON."""
     # Get all entities
@@ -527,7 +681,11 @@ async def export_data(db: AsyncSession = Depends(get_db)):
     )
 
 
-@router.post("/import")
+@router.post(
+    "/import",
+    summary="导入项目数据",
+    description="从JSON格式导入项目数据，支持关系映射和循环引用处理。",
+)
 async def import_data(data: ExportDataRequest, db: AsyncSession = Depends(get_db)):
     """Import project data from JSON with relationship support."""
     imported_count = {

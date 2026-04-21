@@ -110,7 +110,11 @@ async def _check_dependencies() -> dict:
     return results
 
 
-@router.get("")
+@router.get(
+    "",
+    summary="综合健康检查",
+    description="全面健康检查端点，验证数据库连接、AI服务状态、磁盘空间和依赖项可用性。",
+)
 async def health_check():
     """
     Comprehensive health check endpoint for monitoring.
@@ -149,7 +153,11 @@ async def health_check():
     }
 
 
-@router.get("/ready")
+@router.get(
+    "/ready",
+    summary="就绪探针",
+    description="Kubernetes风格的就绪探针。仅在应用准备好接收流量时返回200。",
+)
 async def readiness_check():
     """
     Kubernetes-style readiness probe.
@@ -165,7 +173,11 @@ async def readiness_check():
     return {"status": "ready"}
 
 
-@router.get("/live")
+@router.get(
+    "/live",
+    summary="存活探针",
+    description="Kubernetes风格的存活探针。应用进程存活时返回200。",
+)
 async def liveness_check():
     """
     Kubernetes-style liveness probe.

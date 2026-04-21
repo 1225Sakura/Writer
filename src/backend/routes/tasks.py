@@ -22,6 +22,14 @@ router = APIRouter(prefix="/tasks", tags=["tasks"], dependencies=[require_auth])
 
 class SubmitTaskRequest(BaseModel):
     """Request to submit a background task."""
+    model_config = {"json_schema_extra": {
+        "example": {
+            "type": "ai_generate",
+            "payload": {"prompt": "续写下一章", "operation": "continue", "style": "default"},
+            "task_id": None
+        }
+    }}
+
     type: str = Field(..., description="Task type: ai_generate, export_project, batch_operation, cleanup")
     payload: dict = Field(default_factory=dict, description="Task-specific payload")
     task_id: Optional[str] = Field(None, description="Optional custom task ID")
@@ -39,15 +47,29 @@ class SubmitTaskRequest(BaseModel):
 
 class TaskResponse(BaseModel):
     """Task response model."""
-    id: str
-    type: str
-    status: str
-    payload: Optional[dict] = None
-    result: Optional[dict] = None
-    error: Optional[str] = None
-    retries: int = 0
-    created_at: Optional[str] = None
-    updated_at: Optional[str] = None
+    model_config = {"json_schema_extra": {
+        "example": {
+            "id": "task-001",
+            "type": "ai_generate",
+            "status": "completed",
+            "payload": {"prompt": "续写"},
+            "result": {"content": "生成的内容..."},
+            "error": None,
+            "retries": 0,
+            "created_at": "2026-04-21T10:00:00",
+            "updated_at": "2026-04-21T10:05:00"
+        }
+    }}
+
+    id: str = Field(..., description="Task unique identifier")
+    type: str = Field(..., description="Task type")
+    status: str = Field(..., description="Task status: pending, running, completed, failed, cancelled")
+    payload: Optional[dict] = Field(None, description="Task input payload")
+    result: Optional[dict] = Field(None, description="Task execution result")
+    error: Optional[str] = Field(None, description="Error message if failed")
+    retries: int = Field(0, description="Number of retry attempts")
+    created_at: Optional[str] = Field(None, description="Creation timestamp ISO format")
+    updated_at: Optional[str] = Field(None, description="Last update timestamp ISO format")
 
     @staticmethod
     def from_task(task) -> "TaskResponse":
@@ -66,39 +88,61 @@ class TaskResponse(BaseModel):
 
 class TaskListResponse(BaseModel):
     """Paginated task list response."""
-    tasks: List[TaskResponse]
-    total: int
-    limit: int
-    offset: int
+    model_config = {"json_schema_extra": {
+        "example": {
+            "tasks": [],
+            "total": 0,
+            "limit": 100,
+            "offset": 0
+        }
+    }}
+
+    tasks: List[TaskResponse] = Field(..., description="List of tasks")
+    total: int = Field(..., description="Total number of tasks")
+    limit: int = Field(..., description="Query limit")
+    offset: int = Field(..., description="Query offset")
 
 
 class TaskSubmitResponse(BaseModel):
     """Task submission response."""
-    task_id: str
-    status: str
-    message: str
+    model_config = {"json_schema_extra": {
+        "example": {"task_id": "task-001", "status": "pending", "message": "Task task-001 submitted successfully"}
+    }}
+
+    task_id: str = Field(..., description="Submitted task ID")
+    status: str = Field(..., description="Initial task status")
+    message: str = Field(..., description="Status message")
 
 
 class TaskCancelResponse(BaseModel):
     """Task cancellation response."""
-    success: bool
-    message: str
+    model_config = {"json_schema_extra": {
+        "example": {"success": True, "message": "Task task-001 cancelled successfully"}
+    }}
+
+    success: bool = Field(..., description="Whether cancellation succeeded")
+    message: str = Field(..., description="Result message")
 
 
 # ============================================================
 # API Endpoints
 # ============================================================
 
-@router.post("")
-async def submit_task(request: SubmitTaskRequest) -> TaskSubmitResponse:
-    """Submit a new background task.
+@router.post(
+    "",
+    summary="提交后台任务",
+    description="""
+    提交新的后台异步任务。
 
-    Task types:
-    - ai_generate: AI content generation (payload: prompt, operation, style, human_ai_ratio)
-    - export_project: Export project data (payload: format=json|zip)
-    - batch_operation: Batch operations (payload: operations list)
-    - cleanup: Cleanup old tasks (payload: max_age_hours)
-    """
+    任务类型:
+    - **ai_generate**: AI内容生成 (payload: prompt, operation, style, human_ai_ratio)
+    - **export_project**: 导出项目数据 (payload: format=json|zip)
+    - **batch_operation**: 批量操作 (payload: operations list)
+    - **cleanup**: 清理旧任务 (payload: max_age_hours)
+    """,
+)
+async def submit_task(request: SubmitTaskRequest) -> TaskSubmitResponse:
+    """Submit a new background task."""
     task_type = TaskType(request.type)
     task = await task_queue.submit(
         task_type=task_type,
@@ -112,7 +156,11 @@ async def submit_task(request: SubmitTaskRequest) -> TaskSubmitResponse:
     )
 
 
-@router.get("/{task_id}")
+@router.get(
+    "/{task_id}",
+    summary="获取任务状态",
+    description="通过任务ID查询任务当前状态和执行结果。",
+)
 async def get_task(task_id: str) -> TaskResponse:
     """Get task status and result by ID."""
     task = await task_queue.get_task(task_id)
@@ -121,7 +169,11 @@ async def get_task(task_id: str) -> TaskResponse:
     return TaskResponse.from_task(task)
 
 
-@router.get("")
+@router.get(
+    "",
+    summary="列出后台任务",
+    description="列出所有后台任务，支持按状态、类型过滤和分页。",
+)
 async def list_tasks(
     status: Optional[str] = Query(None, description="Filter by status: pending, running, completed, failed, cancelled"),
     type: Optional[str] = Query(None, description="Filter by type: ai_generate, export_project, batch_operation, cleanup"),
@@ -161,7 +213,11 @@ async def list_tasks(
     )
 
 
-@router.delete("/{task_id}")
+@router.delete(
+    "/{task_id}",
+    summary="取消后台任务",
+    description="取消处于pending状态的后台任务。运行中的任务无法取消。",
+)
 async def cancel_task(task_id: str) -> TaskCancelResponse:
     """Cancel a pending background task.
 

@@ -11,6 +11,7 @@ from fastapi import Request, Response
 from starlette.middleware.base import BaseHTTPMiddleware
 
 from backend.utils.logging import get_logger
+from backend.services.metrics_service import metrics_service
 
 logger = get_logger("writer-api.performance")
 
@@ -47,6 +48,12 @@ class PerformanceMiddleware(BaseHTTPMiddleware):
         query_count = getattr(request.state, "query_count", 0)
         query_times = getattr(request.state, "query_times", [])
 
+        # Count slow queries
+        slow_query_count = len([
+            q for q in query_times
+            if q.get("duration_ms", 0) > self.slow_query_threshold_ms
+        ])
+
         # Build performance data
         perf_data = {
             "event": "request_performance",
@@ -54,10 +61,7 @@ class PerformanceMiddleware(BaseHTTPMiddleware):
             "path": request.url.path,
             "duration_ms": round(duration_ms, 2),
             "query_count": query_count,
-            "slow_queries": [
-                q for q in query_times
-                if q.get("duration_ms", 0) > self.slow_query_threshold_ms
-            ],
+            "slow_queries": slow_query_count,
         }
 
         # Log slow requests
@@ -73,6 +77,17 @@ class PerformanceMiddleware(BaseHTTPMiddleware):
                 f"{duration_ms:.2f}ms, {query_count} queries",
                 extra=perf_data,
             )
+
+        # Record metrics
+        status_code = response.status_code
+        await metrics_service.record_request(
+            method=request.method,
+            path=request.url.path,
+            duration_ms=duration_ms,
+            query_count=query_count,
+            slow_query_count=slow_query_count,
+            status_code=status_code,
+        )
 
         # Add performance headers to response
         response.headers["X-Request-Duration-Ms"] = str(round(duration_ms, 2))

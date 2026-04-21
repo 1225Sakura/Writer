@@ -13,7 +13,12 @@ from backend.middleware.auth import (
 router = APIRouter(prefix="/auth", tags=["auth"])
 
 
-@router.post("/key", response_model=AuthResponse)
+@router.post(
+    "/key",
+    response_model=AuthResponse,
+    summary="获取API密钥",
+    description="获取或创建本地API密钥。桌面应用首次调用会生成新密钥，后续调用返回已有密钥。",
+)
 async def get_api_key():
     """
     Get or create the local API key.
@@ -28,7 +33,12 @@ async def get_api_key():
     )
 
 
-@router.post("/key/refresh", response_model=AuthResponse)
+@router.post(
+    "/key/refresh",
+    response_model=AuthResponse,
+    summary="刷新API密钥",
+    description="生成新的API密钥，使旧密钥失效。仅在怀疑密钥泄露时使用。",
+)
 async def refresh_api_key():
     """
     Generate a new API key, invalidating the old one.
@@ -43,7 +53,11 @@ async def refresh_api_key():
     )
 
 
-@router.get("/status")
+@router.get(
+    "/status",
+    summary="获取认证状态",
+    description="检查认证系统是否已配置并正常运行。",
+)
 async def auth_status():
     """Check if authentication is configured."""
     key = await get_or_create_api_key()

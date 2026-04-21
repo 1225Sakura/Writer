@@ -24,7 +24,7 @@ from backend.agents.checkers import (
     ReaderPullChecker,
 )
 
-from backend.middleware.auth import require_auth
+from backend.middleware.auth import require_auth, verify_api_key
 from backend.middleware.rate_limit import check_checker_rate_limit
 
 router = APIRouter(prefix="/ai", tags=["ai"], dependencies=[require_auth])
@@ -41,11 +41,6 @@ def get_ai_service() -> AIService:
             status_code=500,
             detail="MiniMax API key not configured. Set MINIMAX_API_KEY in environment."
         )
-    # Update singleton with current settings if needed
-    if ai_service.api_key != settings.minimax_api_key:
-        ai_service.api_key = settings.minimax_api_key
-    if ai_service.base_url != settings.minimax_api_url.rstrip("/"):
-        ai_service.base_url = settings.minimax_api_url.rstrip("/")
     return ai_service
 
 
@@ -66,11 +61,22 @@ def require_checker_rate_limit(request) -> None:
 
 # Request/Response models
 class GenerateRequest(BaseModel):
-    prompt: str
-    operation: str
-    chapter_id: Optional[int] = None
-    human_ai_ratio: Optional[int] = None
-    style: Optional[str] = None
+    """Request for AI content generation."""
+    model_config = {"json_schema_extra": {
+        "example": {
+            "prompt": "主角在山洞中发现了上古秘籍",
+            "operation": "continue",
+            "chapter_id": 1,
+            "human_ai_ratio": 70,
+            "style": "default"
+        }
+    }}
+
+    prompt: str = Field(..., description="写作提示/上下文内容", max_length=10000)
+    operation: str = Field(..., description="操作类型: continue/expand/condense/rewrite/polish/optimize")
+    chapter_id: Optional[int] = Field(None, description="关联章节ID")
+    human_ai_ratio: Optional[int] = Field(None, description="人机比例 0-100", ge=0, le=100)
+    style: Optional[str] = Field(None, description="文笔风格")
 
     @field_validator('prompt')
     @classmethod
@@ -105,7 +111,14 @@ class GenerateRequest(BaseModel):
 
 
 class ReviewRequest(BaseModel):
-    settings_data: dict
+    """Request for AI setting review."""
+    model_config = {"json_schema_extra": {
+        "example": {
+            "settings_data": {"characters": [{"name": "主角", "personality": "冷静"}]}
+        }
+    }}
+
+    settings_data: dict = Field(..., description="设定数据字典")
 
     @field_validator('settings_data')
     @classmethod
@@ -116,12 +129,27 @@ class ReviewRequest(BaseModel):
 
 
 class ReviewResponse(BaseModel):
-    review_content: str
-    raw_response: dict
+    """Response for AI review."""
+    model_config = {"json_schema_extra": {
+        "example": {
+            "review_content": "设定审查结果...",
+            "raw_response": {}
+        }
+    }}
+
+    review_content: str = Field(..., description="审查结果文本")
+    raw_response: dict = Field(..., description="原始AI响应")
 
 
 class ExtractEntitiesRequest(BaseModel):
-    chat_messages: list
+    """Request to extract entities from chat messages."""
+    model_config = {"json_schema_extra": {
+        "example": {
+            "chat_messages": [{"role": "user", "content": "主角叫张三"}]
+        }
+    }}
+
+    chat_messages: list = Field(..., description="聊天消息列表")
 
     @field_validator('chat_messages')
     @classmethod
@@ -136,7 +164,10 @@ class ExtractEntitiesRequest(BaseModel):
 # ============================================
 
 class CheckerBaseRequest(BaseModel):
-    chapter_id: int = Field(..., description="Chapter ID to check")
+    """Base request for checker endpoints."""
+    model_config = {"json_schema_extra": {"example": {"chapter_id": 1}}}
+
+    chapter_id: int = Field(..., description="Chapter ID to check", gt=0)
 
     @field_validator('chapter_id')
     @classmethod
@@ -147,8 +178,11 @@ class CheckerBaseRequest(BaseModel):
 
 
 class OOCCheckerRequest(BaseModel):
-    chapter_id: int = Field(..., description="Chapter ID to check")
-    character_id: int = Field(..., description="Character ID to verify")
+    """Request for OOC (Out-Of-Character) check."""
+    model_config = {"json_schema_extra": {"example": {"chapter_id": 1, "character_id": 2}}}
+
+    chapter_id: int = Field(..., description="Chapter ID to check", gt=0)
+    character_id: int = Field(..., description="Character ID to verify", gt=0)
 
     @field_validator('chapter_id')
     @classmethod
@@ -166,66 +200,94 @@ class OOCCheckerRequest(BaseModel):
 
 
 class CheckerBaseResponse(BaseModel):
-    chapter_id: int
+    """Base response for checker endpoints."""
+    model_config = {"json_schema_extra": {
+        "example": {"chapter_id": 1, "score": 85, "issues": [], "suggestions": []}
+    }}
+
+    chapter_id: int = Field(..., description="Checked chapter ID")
     score: int = Field(..., ge=0, le=100, description="Quality score 0-100")
-    issues: List[str] = Field(default_factory=list)
-    suggestions: List[str] = Field(default_factory=list)
+    issues: List[str] = Field(default_factory=list, description="Found issues")
+    suggestions: List[str] = Field(default_factory=list, description="Improvement suggestions")
 
 
 class ConsistencyCheckResponse(CheckerBaseResponse):
+    """Consistency check response."""
     pass
 
 
 class ContinuityCheckResponse(CheckerBaseResponse):
-    plot_thread_status: dict = Field(default_factory=dict)
+    """Continuity check response."""
+    plot_thread_status: dict = Field(default_factory=dict, description="Plot thread fulfillment status")
 
 
 class PacingCheckResponse(CheckerBaseResponse):
-    strand_ratios: dict = Field(default_factory=dict)
-    analysis: str = ""
+    """Pacing check response."""
+    strand_ratios: dict = Field(default_factory=dict, description="Story strand ratios")
+    analysis: str = Field("", description="Pacing analysis text")
 
 
 class OOCViolation(BaseModel):
-    location: str = ""
-    expected_behavior: str = ""
-    actual_behavior: str = ""
-    reason: str = ""
+    """Single OOC violation detail."""
+    location: str = Field("", description="Location in text")
+    expected_behavior: str = Field("", description="Expected character behavior")
+    actual_behavior: str = Field("", description="Actual character behavior")
+    reason: str = Field("", description="Why this is a violation")
 
 
 class OOCCheckResponse(CheckerBaseResponse):
-    character_id: int
-    violations: List[OOCViolation] = Field(default_factory=list)
+    """OOC check response."""
+    character_id: int = Field(..., description="Checked character ID")
+    violations: List[OOCViolation] = Field(default_factory=list, description="OOC violations found")
 
 
 class HighPoint(BaseModel):
-    location: str = ""
-    type: str = ""
-    intensity: int = Field(5, ge=1, le=10)
-    pacing: str = ""
+    """High point detail."""
+    location: str = Field("", description="Location in text")
+    type: str = Field("", description="High point type")
+    intensity: int = Field(5, ge=1, le=10, description="Intensity 1-10")
+    pacing: str = Field("", description="Pacing at this point")
 
 
 class HighPointCheckResponse(CheckerBaseResponse):
-    high_points: List[HighPoint] = Field(default_factory=list)
-    excitement_density: str = ""
-    ending_hook: str = ""
+    """High point check response."""
+    high_points: List[HighPoint] = Field(default_factory=list, description="Found high points")
+    excitement_density: str = Field("", description="Excitement density analysis")
+    ending_hook: str = Field("", description="Ending hook strength")
 
 
 class Hook(BaseModel):
-    location: str = ""
-    type: str = ""
-    description: str = ""
-    effectiveness: int = Field(5, ge=1, le=10)
+    """Reader hook detail."""
+    location: str = Field("", description="Location in text")
+    type: str = Field("", description="Hook type")
+    description: str = Field("", description="Hook description")
+    effectiveness: int = Field(5, ge=1, le=10, description="Effectiveness 1-10")
 
 
 class ReaderPullCheckResponse(CheckerBaseResponse):
-    hooks: List[Hook] = Field(default_factory=list)
-    opening_hook: str = ""
-    ending_hook: str = ""
-    curiosity_gaps: List[str] = Field(default_factory=list)
+    """Reader pull check response."""
+    hooks: List[Hook] = Field(default_factory=list, description="Found hooks")
+    opening_hook: str = Field("", description="Opening hook analysis")
+    ending_hook: str = Field("", description="Ending hook analysis")
+    curiosity_gaps: List[str] = Field(default_factory=list, description="Curiosity gaps")
 
 
 # Endpoints
-@router.post("/generate")
+@router.post(
+    "/generate",
+    summary="AI内容生成",
+    description="""
+    使用AI生成内容，支持流式响应。
+
+    操作类型:
+    - **continue**: 续写后续内容
+    - **expand**: 扩写当前内容
+    - **condense**: 缩写当前内容
+    - **rewrite**: 改写当前内容
+    - **polish**: 润色当前内容
+    - **optimize**: 优化当前内容
+    """,
+)
 async def generate_content(
     request: GenerateRequest,
     db: AsyncSession = Depends(get_db)
@@ -277,7 +339,11 @@ async def generate_content(
     )
 
 
-@router.post("/review")
+@router.post(
+    "/review",
+    summary="AI审查设定",
+    description="使用AI审查世界设定的一致性，分析角色、地点、物品、势力、规则之间的逻辑一致性。",
+)
 async def review_settings(request: ReviewRequest) -> ReviewResponse:
     """Review world settings for consistency using AI.
 
@@ -293,7 +359,11 @@ async def review_settings(request: ReviewRequest) -> ReviewResponse:
     )
 
 
-@router.post("/extract-entities")
+@router.post(
+    "/extract-entities",
+    summary="从聊天中提取实体",
+    description="从聊天消息中提取角色、地点、物品、势力等实体信息。",
+)
 async def extract_entities(request: ExtractEntitiesRequest) -> dict:
     """Extract entities from chat messages.
 
@@ -305,7 +375,11 @@ async def extract_entities(request: ExtractEntitiesRequest) -> dict:
     return {"entities": entities}
 
 
-@router.post("/chapters/{chapter_id}/inspect")
+@router.post(
+    "/chapters/{chapter_id}/inspect",
+    summary="AI审查章节",
+    description="对指定章节进行AI审查，检查角色一致性、情节逻辑、世界观一致性、伏笔运用等。",
+)
 async def inspect_chapter(chapter_id: int, db: AsyncSession = Depends(get_db)) -> dict:
     """Run AI inspection on a chapter.
 
@@ -363,7 +437,10 @@ async def inspect_chapter(chapter_id: int, db: AsyncSession = Depends(get_db)) -
 # ============================================
 
 class ContextRequest(BaseModel):
-    chapter_id: int
+    """Request for building chapter execution context."""
+    model_config = {"json_schema_extra": {"example": {"chapter_id": 1}}}
+
+    chapter_id: int = Field(..., description="Chapter ID", gt=0)
 
     @field_validator('chapter_id')
     @classmethod
@@ -374,8 +451,13 @@ class ContextRequest(BaseModel):
 
 
 class ExtractRequest(BaseModel):
-    content: str
-    chapter_id: Optional[int] = None
+    """Request for extracting structured entities."""
+    model_config = {"json_schema_extra": {
+        "example": {"content": "章节正文内容...", "chapter_id": 1}
+    }}
+
+    content: str = Field(..., description="Chapter content text", max_length=100000)
+    chapter_id: Optional[int] = Field(None, description="Optional chapter ID", gt=0)
 
     @field_validator('content')
     @classmethod
@@ -395,29 +477,63 @@ class ExtractRequest(BaseModel):
 
 
 class ContextResponse(BaseModel):
-    chapter_id: int
-    chapter_title: Optional[str] = None
-    core_task: dict
-    承接上文: dict
-    active_characters: list
-    scene_constraints: dict
-    time_constraints: str
-    style_guidance: str
-    continuity: dict
-    engagement_strategy: str
-    raw_ai_response: Optional[str] = None
+    """Response containing chapter execution context."""
+    model_config = {"json_schema_extra": {
+        "example": {
+            "chapter_id": 1,
+            "chapter_title": "第一章",
+            "core_task": {},
+            "承接上文": {},
+            "active_characters": [],
+            "scene_constraints": {},
+            "time_constraints": "",
+            "style_guidance": "",
+            "continuity": {},
+            "engagement_strategy": "",
+            "raw_ai_response": None
+        }
+    }}
+
+    chapter_id: int = Field(..., description="Chapter ID")
+    chapter_title: Optional[str] = Field(None, description="Chapter title")
+    core_task: dict = Field(..., description="Core writing task")
+    承接上文: dict = Field(..., description="Previous chapter hooks")
+    active_characters: list = Field(..., description="Active characters with states")
+    scene_constraints: dict = Field(..., description="Scene and power constraints")
+    time_constraints: str = Field(..., description="Time constraints")
+    style_guidance: str = Field(..., description="Style guidance")
+    continuity: dict = Field(..., description="Continuity and foreshadowing")
+    engagement_strategy: str = Field(..., description="Engagement strategy")
+    raw_ai_response: Optional[str] = Field(None, description="Raw AI response")
 
 
 class ExtractResponse(BaseModel):
-    chapter_id: Optional[int] = None
-    entities: list
-    relationships: list
-    state_changes: list
-    scenes: list
-    summary: str
+    """Response containing extracted structured entities."""
+    model_config = {"json_schema_extra": {
+        "example": {
+            "chapter_id": 1,
+            "entities": [],
+            "relationships": [],
+            "state_changes": [],
+            "scenes": [],
+            "summary": ""
+        }
+    }}
+
+    chapter_id: Optional[int] = Field(None, description="Chapter ID")
+    entities: list = Field(..., description="Extracted entities")
+    relationships: list = Field(..., description="Entity relationships")
+    state_changes: list = Field(..., description="State changes")
+    scenes: list = Field(..., description="Scene segmentation")
+    summary: str = Field(..., description="Content summary")
 
 
-@router.post("/context", response_model=ContextResponse)
+@router.post(
+    "/context",
+    response_model=ContextResponse,
+    summary="构建写作执行包",
+    description="为指定章节构建完整的写作上下文包，包含核心任务、角色状态、场景约束、风格指导等。",
+)
 async def build_execution_package(
     request: ContextRequest,
     db: AsyncSession = Depends(get_db)
@@ -449,7 +565,12 @@ async def build_execution_package(
         raise HTTPException(status_code=500, detail=f"Failed to build context: {str(e)}")
 
 
-@router.post("/extract", response_model=ExtractResponse)
+@router.post(
+    "/extract",
+    response_model=ExtractResponse,
+    summary="提取结构化实体",
+    description="从章节内容中提取角色、地点、物品、关系、状态变化、场景分段和摘要。",
+)
 async def extract_structured_entities(
     request: ExtractRequest,
     db: AsyncSession = Depends(get_db)
@@ -479,7 +600,12 @@ async def extract_structured_entities(
 # Checker Endpoints
 # ============================================
 
-@router.post("/check/consistency", response_model=ConsistencyCheckResponse)
+@router.post(
+    "/check/consistency",
+    response_model=ConsistencyCheckResponse,
+    summary="检查世界一致性",
+    description="验证章节的地点、时间线、实力等级、物品归属和势力关系是否符合已建立的世界设定。",
+)
 async def check_consistency(
     request: CheckerBaseRequest,
     db: AsyncSession = Depends(get_db),
@@ -517,7 +643,12 @@ async def check_consistency(
         )
 
 
-@router.post("/check/continuity", response_model=ContinuityCheckResponse)
+@router.post(
+    "/check/continuity",
+    response_model=ContinuityCheckResponse,
+    summary="检查叙事连续性",
+    description="验证场景转换、事件连贯性、角色状态连续性、伏笔呼应和与前章细节的一致性。",
+)
 async def check_continuity(
     request: CheckerBaseRequest,
     db: AsyncSession = Depends(get_db),
@@ -555,7 +686,12 @@ async def check_continuity(
         )
 
 
-@router.post("/check/pacing", response_model=PacingCheckResponse)
+@router.post(
+    "/check/pacing",
+    response_model=PacingCheckResponse,
+    summary="检查叙事节奏",
+    description="分析章节的任务线/燃情线/星座线比例是否符合目标60%/20%/20%分布。",
+)
 async def check_pacing(
     request: CheckerBaseRequest,
     db: AsyncSession = Depends(get_db),
@@ -594,7 +730,12 @@ async def check_pacing(
         )
 
 
-@router.post("/check/ooc", response_model=OOCCheckResponse)
+@router.post(
+    "/check/ooc",
+    response_model=OOCCheckResponse,
+    summary="检查角色OOC",
+    description="验证章节中角色的行为是否符合其已建立的性格、欲望和缺陷设定。",
+)
 async def check_ooc(
     request: OOCCheckerRequest,
     db: AsyncSession = Depends(get_db),
@@ -643,7 +784,12 @@ async def check_ooc(
         )
 
 
-@router.post("/check/high-point", response_model=HighPointCheckResponse)
+@router.post(
+    "/check/high-point",
+    response_model=HighPointCheckResponse,
+    summary="检查高潮分布",
+    description="分析章节的高潮分布、情感节奏、铺垫充分性和结尾钩子强度。",
+)
 async def check_high_point(
     request: CheckerBaseRequest,
     db: AsyncSession = Depends(get_db),
@@ -693,7 +839,12 @@ async def check_high_point(
         )
 
 
-@router.post("/check/reader-pull", response_model=ReaderPullCheckResponse)
+@router.post(
+    "/check/reader-pull",
+    response_model=ReaderPullCheckResponse,
+    summary="检查读者吸引力",
+    description="分析开头钩子、结尾悬念、冲突驱动力、好奇心缺口和情感共鸣点。",
+)
 async def check_reader_pull(
     request: CheckerBaseRequest,
     db: AsyncSession = Depends(get_db),
@@ -741,4 +892,83 @@ async def check_reader_pull(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Reader pull check failed: {str(e)}"
+        )
+
+
+# ============================================
+# Provider Health & Failover Endpoints
+# ============================================
+
+class FailoverRequest(BaseModel):
+    """Request for manual provider failover."""
+    model_config = {"json_schema_extra": {"example": {"target_provider": None}}}
+
+    target_provider: Optional[str] = Field(
+        None,
+        description="Specific provider name to promote to primary. If omitted, cycles to next healthy provider."
+    )
+
+
+class FailoverResponse(BaseModel):
+    """Response for provider failover."""
+    model_config = {"json_schema_extra": {
+        "example": {"success": True, "new_primary": "minimax", "message": "Failover complete"}
+    }}
+
+    success: bool = Field(..., description="Whether failover succeeded")
+    new_primary: str = Field(..., description="New primary provider name")
+    message: str = Field(..., description="Status message")
+
+
+@router.get(
+    "/health",
+    summary="AI提供商健康状态",
+    description="返回各AI提供商的健康状态、降级状态、错误率、调用次数、成功率和平均延迟。",
+)
+async def get_ai_provider_health() -> dict:
+    """Return AI provider health status and metrics.
+
+    Shows each provider's degradation status, error rate, call counts,
+    success rate, and average latency. Also indicates the currently
+    recommended (best) provider.
+    """
+    health = ai_service.get_provider_health()
+    return health
+
+
+@router.post(
+    "/failover",
+    response_model=FailoverResponse,
+    summary="手动触发提供商故障转移",
+    description="手动切换到下一个健康的AI提供商，或提升指定的提供商为主提供商。",
+)
+async def trigger_failover(request: FailoverRequest) -> FailoverResponse:
+    """Manually trigger a provider failover (admin use).
+
+    Cycles to the next healthy provider, or promotes a specific
+    provider if target_provider is given.
+    """
+    router = ai_service.router
+    if router is None:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Provider router not initialized"
+        )
+
+    try:
+        new_primary = router.force_failover(target_name=request.target_provider)
+        return FailoverResponse(
+            success=True,
+            new_primary=new_primary,
+            message=f"Failover complete. New primary provider: {new_primary}"
+        )
+    except ValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(e)
+        )
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failover failed: {str(e)}"
         )
