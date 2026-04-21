@@ -9,6 +9,10 @@ import {
   AlertTriangle,
   Moon,
   Sun,
+  Maximize2,
+  Minimize2,
+  Eye,
+  EyeOff,
 } from 'lucide-react'
 import { memo, useCallback } from 'react'
 import { showToast } from '@/components/ui/Toast'
@@ -25,6 +29,10 @@ export function WritingToolbar() {
     toggleOutlineDrawer,
     setCurrentInterface,
     currentInterface,
+    immersiveMode,
+    toggleImmersiveMode,
+    focusModeEnabled,
+    toggleFocusMode,
   } = useUIStore()
   const { oocWarnings, powerImbalanceWarnings, wordCount, targetWordCount } = useWritingStore()
 
@@ -124,6 +132,36 @@ export function WritingToolbar() {
             <Sun className="w-4 h-4" />
           ) : (
             <Moon className="w-4 h-4" />
+          )}
+        </Button>
+
+        {/* 沉浸模式切换 */}
+        <Button
+          onClick={toggleImmersiveMode}
+          variant={immersiveMode ? 'primary' : 'ghost'}
+          size="icon"
+          title={immersiveMode ? '退出沉浸模式' : '进入沉浸模式'}
+          className="!rounded-full"
+        >
+          {immersiveMode ? (
+            <Minimize2 className="w-4 h-4" />
+          ) : (
+            <Maximize2 className="w-4 h-4" />
+          )}
+        </Button>
+
+        {/* 专注模式切换 */}
+        <Button
+          onClick={toggleFocusMode}
+          variant={focusModeEnabled ? 'primary' : 'ghost'}
+          size="icon"
+          title={focusModeEnabled ? '退出专注模式' : '进入专注模式'}
+          className="!rounded-full"
+        >
+          {focusModeEnabled ? (
+            <EyeOff className="w-4 h-4" />
+          ) : (
+            <Eye className="w-4 h-4" />
           )}
         </Button>
       </div>

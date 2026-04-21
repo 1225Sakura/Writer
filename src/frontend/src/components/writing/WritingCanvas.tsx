@@ -5,8 +5,12 @@ import Underline from '@tiptap/extension-underline'
 import TextAlign from '@tiptap/extension-text-align'
 import Highlight from '@tiptap/extension-highlight'
 import { useWritingStore } from '@/store'
+import { useUIStore } from '@/store'
 import { setEditorInstance } from '@/store/editorRegistry'
 import { useEffect, useRef, useCallback, useState } from 'react'
+import * as Tiptap from '@tiptap/core'
+import { Plugin, PluginKey } from '@tiptap/pm/state'
+import { Decoration, DecorationSet } from '@tiptap/pm/view'
 
 const WRITING_STYLE_NAMES: Record<string, string> = {
   default: '默认',
@@ -14,6 +18,55 @@ const WRITING_STYLE_NAMES: Record<string, string> = {
   kafka: '卡夫卡',
   camus: '加缪',
   custom: '自定义',
+}
+
+// Focus mode extension - dims non-active paragraphs
+const focusModePluginKey = new PluginKey('focusMode')
+
+function createFocusModeExtension() {
+  return Tiptap.Extension.create({
+    name: 'focusMode',
+    addOptions() {
+      return {
+        enabled: false,
+        dimOpacity: 0.4,
+      }
+    },
+    addProseMirrorPlugins() {
+      const options = this.options
+      return [
+        new Plugin({
+          key: focusModePluginKey,
+          props: {
+            decorations(state: any) {
+              if (!options.enabled) {
+                return DecorationSet.empty
+              }
+              const { doc, selection } = state
+              const decorations: Decoration[] = []
+              const selFrom = selection.from
+              const selTo = selection.to
+
+              doc.forEach((node: any, nodePos: number) => {
+                if (node.isBlock && node.isTextblock) {
+                  const nodeEnd = nodePos + node.nodeSize
+                  if (nodeEnd <= selFrom || nodePos >= selTo) {
+                    decorations.push(
+                      Decoration.node(nodePos, nodeEnd, {
+                        style: `opacity: ${options.dimOpacity}; transition: opacity 0.3s ease;`,
+                      })
+                    )
+                  }
+                }
+              })
+
+              return DecorationSet.create(doc, decorations)
+            },
+          },
+        }),
+      ]
+    },
+  })
 }
 
 export function WritingCanvas() {
@@ -30,13 +83,18 @@ export function WritingCanvas() {
     loading,
   } = useWritingStore()
 
-  const [sessionStats, setSessionStats] = useState({ startTime: Date.now(), charactersWritten: 0 })
+  const { focusModeEnabled } = useUIStore()
+  const focusModeExtension = createFocusModeExtension()
   const currentChapter = chapters.find((c) => c.id === currentChapterId)
   const chapterTitle = currentChapter?.title || '未选择章节'
   const isSavingRef = useRef(false)
   const lastSavedContentRef = useRef('')
   const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null)
   const lastWordCountRef = useRef(wordCount)
+  const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null)
+  const isTypingRef = useRef(false)
+
+  const [sessionStats, setSessionStats] = useState({ startTime: Date.now(), charactersWritten: 0 })
 
   const editor = useEditor({
     extensions: [
@@ -51,6 +109,7 @@ export function WritingCanvas() {
       Highlight.configure({
         multicolor: true,
       }),
+      focusModeExtension.configure({ enabled: focusModeEnabled }),
     ],
     content: currentContent,
     onUpdate: ({ editor }) => {
@@ -64,17 +123,35 @@ export function WritingCanvas() {
         }))
       }
       lastWordCountRef.current = wordCount
+
+      // Immersive mode: emit typing events
+      if (!isTypingRef.current) {
+        isTypingRef.current = true
+        document.dispatchEvent(new CustomEvent('immersive-typing-start'))
+      }
+      if (typingTimeoutRef.current) {
+        clearTimeout(typingTimeoutRef.current)
+      }
+      typingTimeoutRef.current = setTimeout(() => {
+        isTypingRef.current = false
+        document.dispatchEvent(new CustomEvent('immersive-typing-stop'))
+      }, 1000)
     },
     editorProps: {
       attributes: {
         class: 'writing-area max-w-none focus:outline-none min-h-full px-8 py-6',
-        style: {
-          scrollPaddingTop: '33vh',
-          scrollPaddingBottom: '67vh',
-        },
       },
     },
   })
+
+  // Apply typewriter mode scroll padding via CSS class
+  useEffect(() => {
+    if (editor?.view?.dom) {
+      const dom = editor.view.dom
+      dom.style.scrollPaddingTop = '33vh'
+      dom.style.scrollPaddingBottom = '67vh'
+    }
+  }, [editor])
 
   // 同步外部内容变化
   useEffect(() => {
@@ -82,6 +159,18 @@ export function WritingCanvas() {
       editor.commands.setContent(currentContent)
     }
   }, [currentContent, editor])
+
+  // Sync focus mode state to extension
+  useEffect(() => {
+    if (editor) {
+      const focusModeExt = editor.extensionManager.extensions.find(
+        (ext: any) => ext.name === 'focusMode'
+      )
+      if (focusModeExt && focusModeExt.options) {
+        focusModeExt.options.enabled = focusModeEnabled
+      }
+    }
+  }, [focusModeEnabled, editor])
 
   // 注册编辑器实例供快捷键使用
   useEffect(() => {
@@ -92,6 +181,15 @@ export function WritingCanvas() {
       setEditorInstance(null)
     }
   }, [editor])
+
+  // Cleanup typing timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (typingTimeoutRef.current) {
+        clearTimeout(typingTimeoutRef.current)
+      }
+    }
+  }, [])
 
   // 自动保存 - debounce 3秒
   const debouncedSave = useCallback(async () => {
@@ -187,6 +285,18 @@ export function WritingCanvas() {
         <span>人机比例: {humanAIRatio}%</span>
         <span className="mx-2 opacity-30">|</span>
         <span style={{ color: 'var(--color-character)' }}>文笔风格: {WRITING_STYLE_NAMES[writingStyle] || writingStyle}</span>
+        <span className="mx-2 opacity-30">|</span>
+        <button
+          onClick={() => useUIStore.getState().toggleFocusMode()}
+          className={`px-1.5 py-0.5 rounded text-xs transition-all ${
+            focusModeEnabled
+              ? 'bg-[var(--color-outline)]/20 text-[var(--color-outline)]'
+              : 'hover:bg-[rgba(255,255,255,0.08)] text-[var(--color-text-muted)]'
+          }`}
+          title="聚焦模式 (Ctrl+Shift+F)"
+        >
+          聚焦
+        </button>
         {loading.ai && (
           <>
             <span className="mx-2 opacity-30">|</span>

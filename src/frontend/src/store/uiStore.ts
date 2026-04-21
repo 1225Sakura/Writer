@@ -12,6 +12,10 @@ export interface UIState {
   outlineDrawerOpen: boolean
   // 全屏写作
   fullscreenWriting: boolean
+  // 沉浸模式
+  immersiveMode: boolean
+  // 专注模式
+  focusModeEnabled: boolean
   // 主题
   theme: 'light' | 'dark'
   // 设置面板
@@ -29,6 +33,12 @@ interface UIActions {
   setCollaborationDrawerOpen: (open: boolean) => void
   // 全屏写作
   toggleFullscreenWriting: () => void
+  // 沉浸模式
+  toggleImmersiveMode: () => void
+  setImmersiveMode: (immersive: boolean) => void
+  // 专注模式
+  toggleFocusMode: () => void
+  setFocusMode: (focusMode: boolean) => void
   // 主题
   setTheme: (theme: 'light' | 'dark') => void
   toggleTheme: () => void
@@ -45,6 +55,8 @@ export const useUIStore = create<UIState & UIActions>()(
       collaborationDrawerOpen: false,
       outlineDrawerOpen: false,
       fullscreenWriting: false,
+      immersiveMode: false,
+      focusModeEnabled: false,
       theme: 'dark',
       settingsCategory: 'world',
 
@@ -60,6 +72,14 @@ export const useUIStore = create<UIState & UIActions>()(
 
       // 全屏写作
       toggleFullscreenWriting: () => set((state) => ({ fullscreenWriting: !state.fullscreenWriting })),
+
+      // 沉浸模式
+      toggleImmersiveMode: () => set((state) => ({ immersiveMode: !state.immersiveMode })),
+      setImmersiveMode: (immersive) => set({ immersiveMode: immersive }),
+
+      // 专注模式
+      toggleFocusMode: () => set((state) => ({ focusModeEnabled: !state.focusModeEnabled })),
+      setFocusMode: (focusMode) => set({ focusModeEnabled: focusMode }),
 
       // 主题
       setTheme: (theme) => set({ theme }),

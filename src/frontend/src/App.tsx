@@ -3,6 +3,7 @@ import { useUIStore } from '@/store'
 import { ThemeProvider } from '@/components/shared/ThemeProvider'
 import { ShortcutManager } from '@/components/shared/ShortcutManager'
 import { ErrorBoundary } from '@/components/shared/ErrorBoundary'
+import { CommandPalette } from '@/components/shared/CommandPalette'
 import { ToastContainer } from '@/components/ui/Toast'
 import { Loader2 } from 'lucide-react'
 
@@ -56,6 +57,7 @@ export default function App() {
     <ErrorBoundary>
       <ThemeProvider>
         <ShortcutManager />
+        <CommandPalette />
         <AppContent />
         <ToastContainer />
       </ThemeProvider>

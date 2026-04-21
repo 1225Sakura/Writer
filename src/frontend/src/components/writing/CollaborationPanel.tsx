@@ -40,14 +40,14 @@ function IFLinesSection() {
         ) : (
           ifLines.map((line) => (
             <div key={line.id} className="flex items-center gap-2 p-2 rounded-md bg-[#0f1011]">
-              <span className="w-2 h-2 rounded-full bg-[#7eb84a]" />
+              <span className="w-2 h-2 rounded-full bg-[var(--color-ifline)]" />
               <div className="flex-1 min-w-0">
                 <div className="text-sm text-[#f7f8f8] truncate">{line.title}</div>
                 {line.description && (
                   <div className="text-xs text-[#d0d6e0] truncate">{line.description}</div>
                 )}
               </div>
-              <span className="text-xs px-1.5 py-0.5 rounded bg-[#7eb84a]/20 text-[#7eb84a]">
+              <span className="text-xs px-1.5 py-0.5 rounded bg-[var(--color-ifline)]/20 text-[var(--color-ifline)]">
                 {line.sync_mode === 'auto' ? '自动' : '手动'}
               </span>
             </div>
@@ -183,7 +183,7 @@ function PlotTracker() {
               key={thread.id}
               className="flex items-start gap-2 p-2 rounded-md bg-[#0f1011]"
             >
-              <span className="text-[#7eb84a] font-bold">❶</span>
+              <span className="text-[var(--color-ifline)] font-bold">❶</span>
               <div className="flex-1 min-w-0">
                 <div className="font-medium text-sm text-[#f7f8f8] truncate">{thread.title}</div>
                 {thread.description && (
@@ -268,7 +268,7 @@ function CharacterStatus() {
           activeCharacters.map((char) => (
             <div key={char.id} className="flex items-center gap-2">
               <span
-                className="w-2 h-2 rounded-full bg-[#e8b87d]"
+                className="w-2 h-2 rounded-full bg-[var(--color-character)]"
               />
               <span className="flex-1 text-sm text-[#f7f8f8] truncate">{char.name}</span>
               <span className="text-xs text-[#5eb5a6]">{char.state}</span>
@@ -276,9 +276,9 @@ function CharacterStatus() {
           ))
         )}
         {activeCharacters.length > 0 && (
-          <div className="flex items-center gap-2 p-2 rounded-md bg-[#e8b87d]/10 mt-2">
-            <AlertCircle className="w-3 h-3 text-[#e8b87d]" />
-            <span className="text-xs text-[#e8b87d]">OOC 警告</span>
+          <div className="flex items-center gap-2 p-2 rounded-md bg-[var(--color-character)]/10 mt-2">
+            <AlertCircle className="w-3 h-3 text-[var(--color-character)]" />
+            <span className="text-xs text-[var(--color-character)]">OOC 警告</span>
           </div>
         )}
       </div>

@@ -60,6 +60,8 @@
   --color-faction:    #d45d5d;
   --color-outline:    #5b8ee8;
   --color-ifline:     #7eb74a;
+  --color-world:      #5e6ad2;
+  --color-rule:       #7eb74a;
 
   /* === Colors: Writing Surface === */
   --writing-bg:       #1a1a2e;
@@ -471,6 +473,8 @@ code, pre {
   color: var(--writing-text);
   caret-color: var(--color-character);
   transition: color var(--transition-normal);
+  scroll-padding-top: 33vh;
+  scroll-padding-bottom: 67vh;
 }
 
 .writing-area .tiptap p {

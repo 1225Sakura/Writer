@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { persist } from 'zustand/middleware';
 import {
   characterApi,
   relationshipApi,
@@ -162,7 +163,8 @@ const toLocalCharacter = (apiChar: Character): CharacterLocal => ({
 });
 
 export const useSettingsStore = create<SettingsState & SettingsActions>()(
-  (set, get) => ({
+  persist(
+    (set, get) => ({
     // 初始状态
     characters: [],
     items: [],
@@ -642,5 +644,12 @@ export const useSettingsStore = create<SettingsState & SettingsActions>()(
         }
       }
     },
-  })
+  }),
+    {
+      name: 'writer-settings-store',
+      partialize: () => ({
+        // Only persist user preferences, not all data (which is loaded from backend)
+      }),
+    }
+  )
 );

@@ -9,43 +9,43 @@ interface EntityTagProps {
 const typeConfig: Record<EntityType, { label: string; bgColor: string; textColor: string }> = {
   character: {
     label: '角色',
-    bgColor: '#e8b87d',
-    textColor: '#1a1a2e',
+    bgColor: 'var(--color-character)',
+    textColor: 'var(--writing-text)',
   },
   item: {
     label: '物品',
-    bgColor: '#9b7ed9',
+    bgColor: 'var(--color-item)',
     textColor: '#ffffff',
   },
   location: {
     label: '地点',
-    bgColor: '#5eb5a6',
+    bgColor: 'var(--color-location)',
     textColor: '#ffffff',
   },
   faction: {
     label: '势力',
-    bgColor: '#d45d5d',
+    bgColor: 'var(--color-faction)',
     textColor: '#ffffff',
   },
   world: {
     label: '世界观',
-    bgColor: '#5e6ad2',
+    bgColor: 'var(--color-world)',
     textColor: '#ffffff',
   },
   rule: {
     label: '规则',
-    bgColor: '#7eb84a',
-    textColor: '#1a1a2e',
+    bgColor: 'var(--color-rule)',
+    textColor: 'var(--writing-text)',
   },
   outline: {
     label: '大纲',
-    bgColor: '#5b8ee8',
+    bgColor: 'var(--color-outline)',
     textColor: '#ffffff',
   },
   ifline: {
     label: 'IF线',
-    bgColor: '#7eb84a',
-    textColor: '#1a1a2e',
+    bgColor: 'var(--color-ifline)',
+    textColor: 'var(--writing-text)',
   },
 }
 
