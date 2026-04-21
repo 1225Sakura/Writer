@@ -9,7 +9,7 @@ class Settings(BaseSettings):
     """Application settings."""
 
     # Database
-    database_url: str = f"sqlite+aiosqlite:///{Path(__file__).parent.parent.parent / 'data' / 'writer.db'}"
+    database_url: str = f"sqlite+aiosqlite:///{(Path(__file__).parent.parent.parent / 'data' / 'writer.db').resolve()}"
 
     # API Keys
     minimax_api_key: str | None = None

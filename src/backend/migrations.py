@@ -8,8 +8,9 @@ import asyncio
 import sys
 from pathlib import Path
 
-# Add parent to path for imports
-sys.path.insert(0, str(Path(__file__).parent.parent / "src" / "backend"))
+# Add src to path so 'from backend.models.entities' works
+_src_dir = Path(__file__).parent.parent / "src"
+sys.path.insert(0, str(_src_dir))
 
 from sqlalchemy import text
 from database import engine, async_session_maker, Base
@@ -95,30 +96,32 @@ async def apply_migration(session, migration: dict):
 
 
 def init_db():
-    """Initialize database - create all tables."""
+    """Initialize database - create all tables using schema.sql."""
     import sqlite3
     from pathlib import Path
 
-    data_dir = Path(__file__).parent / "db"
+    # Use the data directory at project root (D:/writer/data/)
+    data_dir = Path(__file__).parent.parent.parent / "data"
     data_dir.mkdir(exist_ok=True)
     db_path = data_dir / "writer.db"
+
+    # Read schema.sql from db directory
+    schema_path = Path(__file__).parent / "db" / "schema.sql"
+    if not schema_path.exists():
+        print(f"Error: Schema file not found at {schema_path}")
+        return
+
+    schema_sql = schema_path.read_text(encoding="utf-8")
 
     # Create connection and enable foreign keys
     conn = sqlite3.connect(str(db_path))
     conn.execute("PRAGMA foreign_keys = ON")
+    conn.executescript(schema_sql)
 
-    # Create all tables using SQLAlchemy metadata
-    Base.metadata.create_all(conn)
-
-    # Initialize migrations table
-    conn.execute("""
-        CREATE TABLE IF NOT EXISTS schema_migrations (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            version INTEGER NOT NULL UNIQUE,
-            name TEXT NOT NULL,
-            applied_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-        )
-    """)
+    # Record the initial migration as applied
+    conn.execute(
+        "INSERT OR IGNORE INTO schema_migrations (version, name) VALUES (1, 'initial_schema')"
+    )
 
     conn.commit()
     conn.close()
@@ -180,7 +183,11 @@ async def rollback(steps: int = 1):
         for migration in migrations_to_rollback:
             print(f"  -> Rolling back: {migration['name']}")
             if migration.get('down'):
-                await session.execute(text(migration['down']))
+                # Split statements and execute one at a time
+                for stmt in migration['down'].split(';'):
+                    stmt = stmt.strip()
+                    if stmt:
+                        await session.execute(text(stmt))
             await session.execute(text(
                 "DELETE FROM schema_migrations WHERE version = :version"
             ), {"version": migration["version"]})

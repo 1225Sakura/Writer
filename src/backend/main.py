@@ -13,6 +13,7 @@ from config import settings
 from routes import api_router
 from middleware.logging import setup_logging_middleware
 from middleware.errors import register_exception_handlers
+from middleware.rate_limit import RateLimitMiddleware
 from utils.logging import setup_logging, get_logger
 
 # Setup structured logging
@@ -24,11 +25,13 @@ class ConnectionManager:
     """Manage WebSocket connections for real-time chat."""
     def __init__(self):
         self.active_connections: Dict[int, List[WebSocket]] = {}
+        self.connection_status: Dict[int, str] = {}  # Track connection status per session
 
     async def connect(self, websocket: WebSocket, session_id: int):
         await websocket.accept()
         if session_id not in self.active_connections:
             self.active_connections[session_id] = []
+            self.connection_status[session_id] = "connected"
         self.active_connections[session_id].append(websocket)
         logger.info(f"WebSocket connected: session={session_id}, total={len(self.active_connections[session_id])}")
 
@@ -38,6 +41,8 @@ class ConnectionManager:
                 self.active_connections[session_id].remove(websocket)
             if not self.active_connections[session_id]:
                 del self.active_connections[session_id]
+                self.connection_status[session_id] = "disconnected"
+                del self.connection_status[session_id]
         logger.info(f"WebSocket disconnected: session={session_id}")
 
     async def send_to_session(self, session_id: int, message: dict):
@@ -56,6 +61,14 @@ class ConnectionManager:
                 except Exception:
                     pass
 
+    def get_status(self, session_id: int) -> dict:
+        """Get connection status for a session."""
+        return {
+            "session_id": session_id,
+            "status": self.connection_status.get(session_id, "unknown"),
+            "connections": len(self.active_connections.get(session_id, []))
+        }
+
 manager = ConnectionManager()
 
 # Create FastAPI app
@@ -72,6 +85,9 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Add rate limiting middleware for /api/v1/chat and /api/v1/ai routes
+app.add_middleware(RateLimitMiddleware, rate_limit=60, window_seconds=60.0)
 
 # Include API routes
 app.include_router(api_router)
@@ -158,15 +174,42 @@ async def health_check():
     return health_status
 
 
+# WebSocket status endpoint
+@app.get("/ws/status/{session_id}")
+async def websocket_status(session_id: int):
+    """Get WebSocket connection status for a session."""
+    return manager.get_status(session_id)
+
+
 # WebSocket endpoint for real-time chat
 @app.websocket("/ws/chat/{session_id}")
 async def websocket_chat(websocket: WebSocket, session_id: int):
     """WebSocket endpoint for real-time chat streaming."""
     await manager.connect(websocket, session_id)
+    import asyncio
+    ping_task = None
+
+    async def send_ping():
+        """Send ping every 30 seconds to keep connection alive."""
+        while True:
+            await asyncio.sleep(30)
+            try:
+                await websocket.send_json({"type": "ping", "timestamp": __import__("time").time()})
+            except Exception:
+                break
+
     try:
+        # Start ping task
+        ping_task = asyncio.create_task(send_ping())
+
         while True:
             # Receive message from client
             data = await websocket.receive_text()
+
+            # Handle pong response from client
+            if data == "pong":
+                continue
+
             message_data = json.loads(data)
 
             # Broadcast to all connections in this session
@@ -180,15 +223,33 @@ async def websocket_chat(websocket: WebSocket, session_id: int):
     except Exception as e:
         logger.error(f"WebSocket error: {e}")
         manager.disconnect(websocket, session_id)
+    finally:
+        if ping_task:
+            ping_task.cancel()
 
 
 @app.websocket("/ws")
 async def websocket_general(websocket: WebSocket):
     """General WebSocket endpoint for real-time updates."""
     await websocket.accept()
+    import asyncio
+
+    async def send_ping():
+        """Send ping every 30 seconds to keep connection alive."""
+        while True:
+            await asyncio.sleep(30)
+            try:
+                await websocket.send_json({"type": "ping", "timestamp": __import__("time").time()})
+            except Exception:
+                break
+
+    ping_task = asyncio.create_task(send_ping())
     try:
         while True:
             data = await websocket.receive_text()
+            # Handle pong response from client
+            if data == "pong":
+                continue
             message_data = json.loads(data)
             # Handle general messages (could be expanded)
             await websocket.send_json({"type": "ack", "received": True})
@@ -196,3 +257,5 @@ async def websocket_general(websocket: WebSocket):
         pass
     except Exception as e:
         logger.error(f"WebSocket error: {e}")
+    finally:
+        ping_task.cancel()

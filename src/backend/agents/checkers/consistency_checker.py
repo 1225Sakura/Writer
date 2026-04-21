@@ -2,6 +2,8 @@
 
 from typing import Any
 
+import httpx
+
 from ...services.ai_service import AIService
 
 
@@ -77,7 +79,6 @@ class ConsistencyChecker:
             "检查地点、时间线、实力等级、物品归属、势力关系等方面的逻辑矛盾。"
         )
 
-        import httpx
         try:
             async with httpx.AsyncClient(timeout=60.0) as client:
                 response = await client.post(

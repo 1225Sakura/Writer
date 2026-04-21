@@ -2,6 +2,8 @@
 
 from fastapi import APIRouter, HTTPException
 from fastapi.responses import Response
+from pydantic import BaseModel, field_validator
+from typing import Optional, Any
 
 from services.export_import import (
     export_project,
@@ -13,6 +15,33 @@ from services.export_import import (
 )
 
 router = APIRouter(prefix="/api/project", tags=["project"])
+
+MAX_IMPORT_SIZE = 50 * 1024 * 1024  # 50MB max import size
+
+
+class ImportRequest(BaseModel):
+    """Validated import request."""
+    data: dict
+    mode: str = "merge"
+
+    @field_validator('mode')
+    @classmethod
+    def validate_mode(cls, v: str) -> str:
+        if v not in ("merge", "replace"):
+            raise ValueError("Mode must be 'merge' or 'replace'")
+        return v
+
+
+class ImportZipRequest(BaseModel):
+    """Validated ZIP import request."""
+    mode: str = "merge"
+
+    @field_validator('mode')
+    @classmethod
+    def validate_mode(cls, v: str) -> str:
+        if v not in ("merge", "replace"):
+            raise ValueError("Mode must be 'merge' or 'replace'")
+        return v
 
 
 @router.get("/export")
@@ -35,19 +64,15 @@ async def export_project_as_zip():
 
 
 @router.post("/import")
-async def import_project_data(data: dict, mode: str = "merge"):
+async def import_project_data(request: ImportRequest):
     """
     Import project data from JSON.
 
     Args:
-        data: Project data dictionary
-        mode: "merge" (add to existing) or "replace" (clear and load)
+        request: ImportRequest with data dictionary and mode
     """
-    if mode not in ("merge", "replace"):
-        raise HTTPException(status_code=400, detail="Mode must be 'merge' or 'replace'")
-
     try:
-        summary = await import_project(data, mode=mode)
+        summary = await import_project(request.data, mode=request.mode)
         return {"success": True, "summary": summary}
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
@@ -56,16 +81,13 @@ async def import_project_data(data: dict, mode: str = "merge"):
 
 
 @router.post("/import/zip")
-async def import_from_zip_file(data: bytes, mode: str = "merge"):
+async def import_from_zip_file(data: bytes, request: ImportZipRequest):
     """
     Import project data from a ZIP archive.
     """
-    if mode not in ("merge", "replace"):
-        raise HTTPException(status_code=400, detail="Mode must be 'merge' or 'replace'")
-
     try:
         project_data = import_from_zip(data)
-        summary = await import_project(project_data, mode=mode)
+        summary = await import_project(project_data, mode=request.mode)
         return {"success": True, "summary": summary}
     except Exception as e:
         raise HTTPException(status_code=400, detail=f"Import failed: {str(e)}")

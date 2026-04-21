@@ -7,7 +7,7 @@ from sqlalchemy import (
 )
 from sqlalchemy.orm import relationship
 
-from ..database import Base
+from database import Base
 
 
 # ============================================

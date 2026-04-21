@@ -3,7 +3,7 @@
 
 from fastapi import APIRouter, HTTPException, Depends
 from fastapi.responses import StreamingResponse
-from pydantic import BaseModel
+from pydantic import BaseModel, field_validator
 from typing import Optional, AsyncIterator
 
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -15,6 +15,10 @@ from backend.services.ai_service import AIService
 from backend.config import settings
 
 router = APIRouter(prefix="/ai", tags=["ai"])
+
+VALID_OPERATIONS = {"continue", "expand", "condense", "rewrite", "polish", "optimize"}
+MAX_PROMPT_LENGTH = 10000
+MAX_CONTENT_LENGTH = 100000
 
 
 def get_ai_service() -> AIService:
@@ -33,19 +37,68 @@ def get_ai_service() -> AIService:
 # Request/Response models
 class GenerateRequest(BaseModel):
     prompt: str
-    operation: str  # continue, expand, condense, rewrite, polish, optimize
+    operation: str
     chapter_id: Optional[int] = None
     human_ai_ratio: Optional[int] = None
     style: Optional[str] = None
+
+    @field_validator('prompt')
+    @classmethod
+    def validate_prompt(cls, v: str) -> str:
+        if not v or not v.strip():
+            raise ValueError('Prompt cannot be empty')
+        if len(v) > MAX_PROMPT_LENGTH:
+            raise ValueError(f'Prompt exceeds maximum length of {MAX_PROMPT_LENGTH} characters')
+        return v.strip()
+
+    @field_validator('operation')
+    @classmethod
+    def validate_operation(cls, v: str) -> str:
+        if v not in VALID_OPERATIONS:
+            raise ValueError(f'Operation must be one of: {", ".join(sorted(VALID_OPERATIONS))}')
+        return v
+
+    @field_validator('human_ai_ratio')
+    @classmethod
+    def validate_human_ai_ratio(cls, v: Optional[int]) -> Optional[int]:
+        if v is not None:
+            if v < 0 or v > 100:
+                raise ValueError('human_ai_ratio must be between 0 and 100')
+        return v
+
+    @field_validator('chapter_id')
+    @classmethod
+    def validate_chapter_id(cls, v: Optional[int]) -> Optional[int]:
+        if v is not None and v <= 0:
+            raise ValueError('chapter_id must be a positive integer')
+        return v
 
 
 class ReviewRequest(BaseModel):
     settings_data: dict
 
+    @field_validator('settings_data')
+    @classmethod
+    def validate_settings_data(cls, v: dict) -> dict:
+        if not v:
+            raise ValueError('settings_data cannot be empty')
+        return v
+
 
 class ReviewResponse(BaseModel):
     review_content: str
     raw_response: dict
+
+
+class ExtractEntitiesRequest(BaseModel):
+    chat_messages: list
+
+    @field_validator('chat_messages')
+    @classmethod
+    def validate_chat_messages(cls, v: list) -> list:
+        if not v:
+            raise ValueError('chat_messages cannot be empty')
+        return v
 
 
 # Endpoints
@@ -118,14 +171,14 @@ async def review_settings(request: ReviewRequest) -> ReviewResponse:
 
 
 @router.post("/extract-entities")
-async def extract_entities(chat_messages: list) -> dict:
+async def extract_entities(request: ExtractEntitiesRequest) -> dict:
     """Extract entities from chat messages.
 
     Returns extracted characters, locations, items, factions, etc.
     """
     ai_service = get_ai_service()
 
-    entities = await ai_service.extract_entities(chat_messages)
+    entities = await ai_service.extract_entities(request.chat_messages)
     return {"entities": entities}
 
 

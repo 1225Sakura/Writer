@@ -2,7 +2,7 @@
 # Context Agent and Data Agent endpoints
 
 from fastapi import APIRouter, HTTPException, Depends
-from pydantic import BaseModel
+from pydantic import BaseModel, field_validator
 from typing import Optional
 
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -14,6 +14,8 @@ from backend.agents.data_agent import DataAgent
 from backend.config import settings
 
 router = APIRouter(prefix="/ai", tags=["ai"])
+
+MAX_CONTENT_LENGTH = 100000
 
 
 def get_ai_service() -> AIService:
@@ -33,10 +35,33 @@ def get_ai_service() -> AIService:
 class ContextRequest(BaseModel):
     chapter_id: int
 
+    @field_validator('chapter_id')
+    @classmethod
+    def validate_chapter_id(cls, v: int) -> int:
+        if v <= 0:
+            raise ValueError('chapter_id must be a positive integer')
+        return v
+
 
 class ExtractRequest(BaseModel):
     content: str
     chapter_id: Optional[int] = None
+
+    @field_validator('content')
+    @classmethod
+    def validate_content(cls, v: str) -> str:
+        if not v or not v.strip():
+            raise ValueError('Content cannot be empty')
+        if len(v) > MAX_CONTENT_LENGTH:
+            raise ValueError(f'Content exceeds maximum length of {MAX_CONTENT_LENGTH} characters')
+        return v.strip()
+
+    @field_validator('chapter_id')
+    @classmethod
+    def validate_chapter_id(cls, v: Optional[int]) -> Optional[int]:
+        if v is not None and v <= 0:
+            raise ValueError('chapter_id must be a positive integer')
+        return v
 
 
 class ContextResponse(BaseModel):

@@ -2,7 +2,7 @@
 # Interface 2: World settings management
 
 from fastapi import APIRouter, HTTPException, Depends
-from pydantic import BaseModel
+from pydantic import BaseModel, field_validator
 from typing import List, Optional
 from datetime import datetime
 
@@ -18,6 +18,10 @@ from backend.models.entities import (
 
 router = APIRouter(prefix="/settings", tags=["settings"])
 
+MAX_NAME_LENGTH = 200
+MAX_DESCRIPTION_LENGTH = 5000
+MAX_TEXT_FIELD_LENGTH = 10000
+
 
 # Pydantic models
 class CharacterBase(BaseModel):
@@ -29,6 +33,22 @@ class CharacterBase(BaseModel):
     description: Optional[str] = None
     tier: Optional[str] = None
     cultivation_realm: Optional[str] = None
+
+    @field_validator('name')
+    @classmethod
+    def validate_name(cls, v: str) -> str:
+        if not v or not v.strip():
+            raise ValueError('Name cannot be empty')
+        if len(v) > MAX_NAME_LENGTH:
+            raise ValueError(f'Name exceeds maximum length of {MAX_NAME_LENGTH}')
+        return v.strip()
+
+    @field_validator('description', 'personality', 'desires', 'flaws')
+    @classmethod
+    def validate_text_fields(cls, v: Optional[str]) -> Optional[str]:
+        if v is not None and len(v) > MAX_TEXT_FIELD_LENGTH:
+            raise ValueError(f'Text field exceeds maximum length of {MAX_TEXT_FIELD_LENGTH}')
+        return v
 
 
 class CharacterCreate(CharacterBase):
@@ -61,6 +81,27 @@ class CharacterRelationshipCreate(BaseModel):
     type: str
     description: Optional[str] = None
 
+    @field_validator('character_id', 'target_id')
+    @classmethod
+    def validate_ids(cls, v: int) -> int:
+        if v <= 0:
+            raise ValueError('ID must be a positive integer')
+        return v
+
+    @field_validator('type')
+    @classmethod
+    def validate_type(cls, v: str) -> str:
+        if not v or not v.strip():
+            raise ValueError('Relationship type cannot be empty')
+        return v.strip()
+
+    @field_validator('description')
+    @classmethod
+    def validate_description(cls, v: Optional[str]) -> Optional[str]:
+        if v is not None and len(v) > MAX_DESCRIPTION_LENGTH:
+            raise ValueError(f'Description exceeds maximum length of {MAX_DESCRIPTION_LENGTH}')
+        return v
+
 
 class CharacterRelationshipResponse(BaseModel):
     id: int
@@ -78,6 +119,29 @@ class CharacterStorylineCreate(BaseModel):
     title: str
     arc: Optional[str] = None
     progress: int = 0
+
+    @field_validator('character_id')
+    @classmethod
+    def validate_character_id(cls, v: int) -> int:
+        if v <= 0:
+            raise ValueError('character_id must be a positive integer')
+        return v
+
+    @field_validator('title')
+    @classmethod
+    def validate_title(cls, v: str) -> str:
+        if not v or not v.strip():
+            raise ValueError('Title cannot be empty')
+        if len(v) > MAX_NAME_LENGTH:
+            raise ValueError(f'Title exceeds maximum length of {MAX_NAME_LENGTH}')
+        return v.strip()
+
+    @field_validator('progress')
+    @classmethod
+    def validate_progress(cls, v: int) -> int:
+        if v < 0 or v > 100:
+            raise ValueError('Progress must be between 0 and 100')
+        return v
 
 
 class CharacterStorylineResponse(BaseModel):
@@ -98,6 +162,15 @@ class ItemCreate(BaseModel):
     owner: Optional[str] = None
     location: Optional[str] = None
 
+    @field_validator('name')
+    @classmethod
+    def validate_name(cls, v: str) -> str:
+        if not v or not v.strip():
+            raise ValueError('Name cannot be empty')
+        if len(v) > MAX_NAME_LENGTH:
+            raise ValueError(f'Name exceeds maximum length of {MAX_NAME_LENGTH}')
+        return v.strip()
+
 
 class ItemResponse(BaseModel):
     id: int
@@ -115,6 +188,15 @@ class LocationCreate(BaseModel):
     description: Optional[str] = None
     importance: Optional[str] = None
 
+    @field_validator('name')
+    @classmethod
+    def validate_name(cls, v: str) -> str:
+        if not v or not v.strip():
+            raise ValueError('Name cannot be empty')
+        if len(v) > MAX_NAME_LENGTH:
+            raise ValueError(f'Name exceeds maximum length of {MAX_NAME_LENGTH}')
+        return v.strip()
+
 
 class LocationResponse(BaseModel):
     id: int
@@ -130,6 +212,15 @@ class FactionCreate(BaseModel):
     name: str
     description: Optional[str] = None
     type: Optional[str] = None
+
+    @field_validator('name')
+    @classmethod
+    def validate_name(cls, v: str) -> str:
+        if not v or not v.strip():
+            raise ValueError('Name cannot be empty')
+        if len(v) > MAX_NAME_LENGTH:
+            raise ValueError(f'Name exceeds maximum length of {MAX_NAME_LENGTH}')
+        return v.strip()
 
 
 class FactionResponse(BaseModel):
@@ -147,6 +238,15 @@ class WorldSettingCreate(BaseModel):
     description: Optional[str] = None
     details_json: Optional[str] = None
 
+    @field_validator('name')
+    @classmethod
+    def validate_name(cls, v: str) -> str:
+        if not v or not v.strip():
+            raise ValueError('Name cannot be empty')
+        if len(v) > MAX_NAME_LENGTH:
+            raise ValueError(f'Name exceeds maximum length of {MAX_NAME_LENGTH}')
+        return v.strip()
+
 
 class WorldSettingResponse(BaseModel):
     id: int
@@ -163,6 +263,15 @@ class RuleCreate(BaseModel):
     description: Optional[str] = None
     type: Optional[str] = None
 
+    @field_validator('name')
+    @classmethod
+    def validate_name(cls, v: str) -> str:
+        if not v or not v.strip():
+            raise ValueError('Name cannot be empty')
+        if len(v) > MAX_NAME_LENGTH:
+            raise ValueError(f'Name exceeds maximum length of {MAX_NAME_LENGTH}')
+        return v.strip()
+
 
 class RuleResponse(BaseModel):
     id: int
@@ -178,6 +287,20 @@ class WritingSettingsUpdate(BaseModel):
     human_ai_ratio: Optional[float] = None
     writing_style: Optional[str] = None
     target_word_count: Optional[int] = None
+
+    @field_validator('human_ai_ratio')
+    @classmethod
+    def validate_human_ai_ratio(cls, v: Optional[float]) -> Optional[float]:
+        if v is not None and (v < 0.0 or v > 1.0):
+            raise ValueError('human_ai_ratio must be between 0.0 and 1.0')
+        return v
+
+    @field_validator('target_word_count')
+    @classmethod
+    def validate_target_word_count(cls, v: Optional[int]) -> Optional[int]:
+        if v is not None and v <= 0:
+            raise ValueError('target_word_count must be a positive integer')
+        return v
 
 
 class WritingSettingsResponse(BaseModel):
