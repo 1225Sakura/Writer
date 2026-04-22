@@ -74,7 +74,13 @@ async def get_chat_message_service(db: AsyncSession = Depends(get_db)) -> ChatMe
 # Session endpoints
 # ---------------------------------------------------------------------------
 
-@router.post("/sessions", response_model=ChatSessionResponse, dependencies=[require_auth])
+@router.post(
+    "/sessions",
+    response_model=ChatSessionResponse,
+    dependencies=[require_auth],
+    summary="创建聊天会话",
+    description="创建新的聊天会话，用于收集小说设定。",
+)
 async def create_session(
     service: ChatSessionService = Depends(get_chat_session_service),
 ):
@@ -83,7 +89,13 @@ async def create_session(
     return session
 
 
-@router.get("/sessions", response_model=List[ChatSessionResponse], dependencies=[require_auth])
+@router.get(
+    "/sessions",
+    response_model=List[ChatSessionResponse],
+    dependencies=[require_auth],
+    summary="列出所有会话",
+    description="获取所有聊天会话的列表，支持分页。",
+)
 async def list_sessions(
     request: Request,
     skip: int = 0,
@@ -100,7 +112,13 @@ async def list_sessions(
     return sessions
 
 
-@router.get("/sessions/{session_id}", response_model=ChatSessionResponse, dependencies=[require_auth])
+@router.get(
+    "/sessions/{session_id}",
+    response_model=ChatSessionResponse,
+    dependencies=[require_auth],
+    summary="获取会话详情",
+    description="获取指定ID的聊天会话详细信息。",
+)
 async def get_session(
     session_id: int,
     service: ChatSessionService = Depends(get_chat_session_service),
@@ -112,7 +130,12 @@ async def get_session(
     return session
 
 
-@router.delete("/sessions/{session_id}", dependencies=[require_auth])
+@router.delete(
+    "/sessions/{session_id}",
+    dependencies=[require_auth],
+    summary="删除会话",
+    description="删除指定ID的聊天会话及其所有消息。",
+)
 async def delete_session(
     session_id: int,
     service: ChatSessionService = Depends(get_chat_session_service),
