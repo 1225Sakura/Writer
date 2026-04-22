@@ -2,15 +2,52 @@
 # Python 3.11+
 
 import logging
+import os
 from pydantic_settings import BaseSettings
 from pathlib import Path
+
+
+def _get_database_url() -> str:
+    """Get database URL, handling both dev and packaged paths."""
+    # Check backend/data/ first (for dev and packaged fallback)
+    db_path = Path(__file__).parent / 'data' / 'writer.db'
+    if not db_path.exists():
+        # In packaged app, launcher creates DB at resources/data/writer.db
+        alt_path = Path(__file__).parent.parent / 'data' / 'writer.db'
+        if alt_path.exists():
+            db_path = alt_path
+    return f"sqlite+aiosqlite:///{db_path.resolve()}"
+
+
+def _get_cache_dir() -> Path:
+    """Get cache directory, handling both dev and packaged paths."""
+    cache_path = Path(__file__).parent / 'data' / 'cache'
+    if not cache_path.exists():
+        # Try resources/data path for packaged app
+        alt_path = Path(__file__).parent.parent / 'data' / 'cache'
+        if alt_path.exists() or Path(__file__).parent.parent.exists():
+            cache_path = alt_path
+    cache_path.mkdir(parents=True, exist_ok=True)
+    return cache_path.resolve()
+
+
+def _get_log_dir() -> Path:
+    """Get log directory, handling both dev and packaged paths."""
+    log_path = Path(__file__).parent / 'logs'
+    if not log_path.exists():
+        # Try resources path for packaged app
+        alt_path = Path(__file__).parent.parent / 'logs'
+        if alt_path.exists() or Path(__file__).parent.parent.exists():
+            log_path = alt_path
+    log_path.mkdir(parents=True, exist_ok=True)
+    return log_path.resolve()
 
 
 class Settings(BaseSettings):
     """Application settings."""
 
     # Database
-    database_url: str = f"sqlite+aiosqlite:///{(Path(__file__).parent.parent.parent / 'data' / 'writer.db').resolve()}"
+    database_url: str = _get_database_url()
 
     # API Keys — read from .env first (pydantic-settings), then override with
     # keyring if available so the system keyring always takes precedence.
@@ -29,9 +66,7 @@ class Settings(BaseSettings):
     app_version: str = "1.0.0"
 
     # Cache
-    cache_dir: Path = (
-        Path(__file__).parent.parent.parent / "data" / "cache"
-    ).resolve()
+    cache_dir: Path = _get_cache_dir()
     cache_default_ttl: int = 300  # 5 minutes
     cache_styles_ttl: int = 3600  # 1 hour (static data)
 
@@ -58,7 +93,7 @@ class Settings(BaseSettings):
     # Logging
     log_level: str = "INFO"
     log_json_format: bool = False
-    log_dir: Path = (Path(__file__).parent.parent.parent / "logs").resolve()
+    log_dir: Path = _get_log_dir()
     log_max_bytes: int = 10 * 1024 * 1024  # 10MB per file
     log_backup_count: int = 7  # Number of backup files
     log_slow_request_threshold_ms: int = 1000  # Log requests > 1s as slow

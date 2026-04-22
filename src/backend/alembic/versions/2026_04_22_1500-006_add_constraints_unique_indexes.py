@@ -31,32 +31,32 @@ def upgrade() -> None:
 
     Foreign key improvements:
     - Ensure project_id FK exists on all entity tables
+
+    Note: All constraint-creating operations are wrapped in batch_alter_table
+    because SQLite does not support ALTER TABLE for adding constraints
+    outside of batch mode.
     """
 
     # ============================================
-    # Unique Constraints
+    # Unique Constraints (SQLite requires batch mode)
     # ============================================
 
-    # Unique character name per project
-    # Only add if project_id column exists (it does via 22d0ce migration)
-    op.create_unique_constraint(
-        'uq_character_name_project',
-        'characters',
-        ['name', 'project_id']
-    )
+    with op.batch_alter_table('characters', schema=None) as batch_op:
+        batch_op.create_unique_constraint(
+            'uq_character_name_project',
+            ['name', 'project_id']
+        )
 
-    # Unique chapter title per outline
-    op.create_unique_constraint(
-        'uq_chapter_title_outline',
-        'chapters',
-        ['title', 'outline_id']
-    )
+    with op.batch_alter_table('chapters', schema=None) as batch_op:
+        batch_op.create_unique_constraint(
+            'uq_chapter_title_outline',
+            ['title', 'outline_id']
+        )
 
     # ============================================
     # Additional Indexes for Query Optimization
     # ============================================
 
-    # Chat message queries by role (AI/user classification)
     op.create_index(
         'ix_chat_messages_session_role',
         'chat_messages',
@@ -64,7 +64,6 @@ def upgrade() -> None:
         unique=False
     )
 
-    # Entity deduplication: same session+type+name should be unique
     op.create_index(
         'ix_extracted_entities_session_type_name',
         'extracted_entities',
@@ -72,7 +71,6 @@ def upgrade() -> None:
         unique=False
     )
 
-    # IF lines lookup by sync mode
     op.create_index(
         'ix_if_lines_sync_mode',
         'if_lines',
@@ -80,7 +78,6 @@ def upgrade() -> None:
         unique=False
     )
 
-    # Plot threads by status for dashboard queries
     op.create_index(
         'ix_plot_threads_status',
         'plot_threads',
@@ -89,15 +86,8 @@ def upgrade() -> None:
     )
 
     # ============================================
-    # Foreign Key Constraints (ensure ON DELETE behavior)
+    # Foreign Key Constraints (batch mode required)
     # ============================================
-
-    # Characters project_id already has FK from 22d0ce migration
-    # Verify and ensure proper cascade behavior
-    with op.batch_alter_table('characters', schema=None) as batch_op:
-        # SQLite doesn't support ALTER TABLE to add FK with ON DELETE
-        # This is informational - FK already exists via prior migration
-        pass
 
     # Chat sessions project_id
     with op.batch_alter_table('chat_sessions', schema=None) as batch_op:
@@ -130,51 +120,57 @@ def upgrade() -> None:
         )
 
     # ============================================
-    # Check Constraints for Data Validation
+    # Check Constraints for Data Validation (batch mode required)
     # ============================================
 
-    # Ensure chapter word_count is non-negative
-    op.create_check_constraint(
-        'ck_chapter_word_count_positive',
-        'chapters',
-        sa.CheckConstraint('word_count >= 0', name='ck_chapter_word_count_positive')
-    )
-
-    # Ensure draft version number is positive
-    op.create_check_constraint(
-        'ck_draft_version_number_positive',
-        'draft_versions',
-        sa.CheckConstraint('version_number > 0', name='ck_draft_version_number_positive')
-    )
-
-    # Ensure human_ai_ratio is between 0 and 1
-    op.create_check_constraint(
-        'ck_writing_settings_ratio_range',
-        'writing_settings',
-        sa.CheckConstraint('human_ai_ratio >= 0 AND human_ai_ratio <= 1', name='ck_writing_settings_ratio_range')
-    )
-
-    # Ensure IF line sync_mode is valid
-    op.create_check_constraint(
-        'ck_if_lines_sync_mode_valid',
-        'if_lines',
-        sa.CheckConstraint(
-            "sync_mode IN ('auto', 'manual', 'paused')",
-            name='ck_if_lines_sync_mode_valid'
+    with op.batch_alter_table('chapters', schema=None) as batch_op:
+        batch_op.create_check_constraint(
+            'ck_chapter_word_count_positive',
+            sa.text('word_count >= 0')
         )
-    )
+
+    with op.batch_alter_table('draft_versions', schema=None) as batch_op:
+        batch_op.create_check_constraint(
+            'ck_draft_version_number_positive',
+            sa.text('version_number > 0')
+        )
+
+    with op.batch_alter_table('writing_settings', schema=None) as batch_op:
+        batch_op.create_check_constraint(
+            'ck_writing_settings_ratio_range',
+            sa.text('human_ai_ratio >= 0 AND human_ai_ratio <= 1')
+        )
+
+    with op.batch_alter_table('if_lines', schema=None) as batch_op:
+        batch_op.create_check_constraint(
+            'ck_if_lines_sync_mode_valid',
+            sa.text("sync_mode IN ('auto', 'manual', 'paused')")
+        )
 
 
 def downgrade() -> None:
     """Remove constraints and indexes."""
 
-    # Drop check constraints
-    op.drop_constraint('ck_if_lines_sync_mode_valid', 'if_lines', type_='check')
-    op.drop_constraint('ck_writing_settings_ratio_range', 'writing_settings', type_='check')
-    op.drop_constraint('ck_draft_version_number_positive', 'draft_versions', type_='check')
-    op.drop_constraint('ck_chapter_word_count_positive', 'chapters', type_='check')
+    # ============================================
+    # Drop Check Constraints (batch mode required)
+    # ============================================
 
-    # Drop foreign keys (SQLite requires recreating table, but batch alter handles it)
+    with op.batch_alter_table('if_lines', schema=None) as batch_op:
+        batch_op.drop_constraint('ck_if_lines_sync_mode_valid', type_='check')
+
+    with op.batch_alter_table('writing_settings', schema=None) as batch_op:
+        batch_op.drop_constraint('ck_writing_settings_ratio_range', type_='check')
+
+    with op.batch_alter_table('draft_versions', schema=None) as batch_op:
+        batch_op.drop_constraint('ck_draft_version_number_positive', type_='check')
+
+    with op.batch_alter_table('chapters', schema=None) as batch_op:
+        batch_op.drop_constraint('ck_chapter_word_count_positive', type_='check')
+
+    # ============================================
+    # Drop Foreign Keys (batch mode required)
+    # ============================================
+
     with op.batch_alter_table('extracted_entities', schema=None) as batch_op:
         batch_op.drop_constraint(batch_op.f('fk_extracted_entities_project_id_projects'), type_='foreignkey')
 
@@ -184,12 +180,21 @@ def downgrade() -> None:
     with op.batch_alter_table('chat_sessions', schema=None) as batch_op:
         batch_op.drop_constraint(batch_op.f('fk_chat_sessions_project_id_projects'), type_='foreignkey')
 
-    # Drop indexes
+    # ============================================
+    # Drop Indexes
+    # ============================================
+
     op.drop_index('ix_plot_threads_status', table_name='plot_threads')
     op.drop_index('ix_if_lines_sync_mode', table_name='if_lines')
     op.drop_index('ix_extracted_entities_session_type_name', table_name='extracted_entities')
     op.drop_index('ix_chat_messages_session_role', table_name='chat_messages')
 
-    # Drop unique constraints
-    op.drop_constraint('uq_chapter_title_outline', 'chapters', type_='unique')
-    op.drop_constraint('uq_character_name_project', 'characters', type_='unique')
+    # ============================================
+    # Drop Unique Constraints (batch mode required)
+    # ============================================
+
+    with op.batch_alter_table('chapters', schema=None) as batch_op:
+        batch_op.drop_constraint('uq_chapter_title_outline', type_='unique')
+
+    with op.batch_alter_table('characters', schema=None) as batch_op:
+        batch_op.drop_constraint('uq_character_name_project', type_='unique')
