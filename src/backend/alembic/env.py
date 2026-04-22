@@ -11,12 +11,17 @@ from sqlalchemy.ext.asyncio import create_async_engine
 
 from alembic import context
 
-# Add backend directory to path so imports work
+# Add backend directory and its parent to path so imports work
 backend_dir = Path(__file__).parent.parent
+parent_dir = backend_dir.parent
 sys.path.insert(0, str(backend_dir))
+sys.path.insert(0, str(parent_dir))
 
 from database import Base
-from models.entities import (
+from core.domain.entities import (
+    Project,
+    GenreConfiguration,
+    BackgroundTask,
     Character,
     CharacterRelationship,
     CharacterStoryline,
@@ -35,6 +40,8 @@ from models.entities import (
     ExtractedEntity,
     WritingSettings,
     AIInspectionResult,
+    WorkflowExecution,
+    AgentExecutionLog,
 )
 
 # this is the Alembic Config object, which provides

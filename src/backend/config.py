@@ -35,6 +35,26 @@ class Settings(BaseSettings):
     cache_default_ttl: int = 300  # 5 minutes
     cache_styles_ttl: int = 3600  # 1 hour (static data)
 
+    # AI Settings
+    ai_temperature: float = 0.7  # Default sampling temperature
+    ai_timeout: int = 30  # API request timeout in seconds
+
+    # Review Settings
+    review_score_threshold: int = 20
+    review_issue_count_threshold: int = 3
+
+    # Agent Settings
+    agent_max_retries: int = 3
+    agent_retry_delay: float = 1.0
+
+    # Rate Limiting
+    rate_limit_storage: str = "memory"  # "memory" or "redis"
+    redis_url: str | None = None
+    rate_limit_default: int = 60  # requests per window
+    rate_limit_window: float = 60.0  # window in seconds
+    rate_limit_checker: int = 10  # stricter limit for AI checker endpoints
+    rate_limit_checker_window: float = 60.0
+
     # Logging
     log_level: str = "INFO"
     log_json_format: bool = False

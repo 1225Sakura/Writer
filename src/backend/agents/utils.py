@@ -16,7 +16,7 @@ from typing import Any, Callable, TypeVar
 
 import httpx
 
-from ..services.ai_service import AIService
+from backend.core.services.ai.ai_service import AIService
 
 logger = logging.getLogger(__name__)
 

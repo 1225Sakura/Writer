@@ -10,7 +10,7 @@ from repositories.chapter_repository import ChapterRepository
 from repositories.outline_repository import OutlineRepository
 from repositories.workflow_repository import WorkflowExecutionRepository, AgentExecutionLogRepository
 
-from models.entities import (
+from core.domain.entities import (
     Character,
     Chapter,
     Outline,

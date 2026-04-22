@@ -11,7 +11,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Any
 
-from ..models.entities import Chapter, IFLine, Outline
+from backend.core.domain.entities import Chapter, IFLine, Outline
 
 
 # ---------------------------------------------------------------------------

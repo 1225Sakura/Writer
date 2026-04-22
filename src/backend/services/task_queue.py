@@ -16,8 +16,7 @@ from sqlalchemy import select, update, delete, and_
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from database import async_session_maker
-from models.entities import Base
-from sqlalchemy import Column, Integer, String, Text, DateTime
+from core.domain.entities import BackgroundTask
 
 logger = logging.getLogger(__name__)
 
@@ -37,21 +36,6 @@ class TaskType(str, Enum):
     EXPORT_PROJECT = "export_project"
     BATCH_OPERATION = "batch_operation"
     CLEANUP = "cleanup"
-
-
-# Database model for background tasks
-class BackgroundTask(Base):
-    __tablename__ = "background_tasks"
-
-    id = Column(String, primary_key=True)
-    type = Column(String, nullable=False)
-    status = Column(String, nullable=False, default=TaskStatus.PENDING)
-    payload = Column(Text)
-    result = Column(Text)
-    error = Column(Text)
-    retries = Column(Integer, default=0)
-    created_at = Column(DateTime, default=datetime.utcnow)
-    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
 
 @dataclass

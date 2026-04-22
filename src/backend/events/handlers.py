@@ -3,7 +3,7 @@
 import logging
 from typing import Any, Dict
 
-from backend.services.cache_service import cache_service
+from backend.services.cache_service import get_cache_service
 from backend.utils.event_bus import (
     CACHE_INVALIDATE,
     ENTITY_DELETED,
@@ -38,7 +38,7 @@ async def cache_invalidation_handler(payload: Dict[str, Any]) -> None:
         return
 
     try:
-        cache_service.clear_entity_cache(entity_type)
+        get_cache_service().clear_entity_cache(entity_type)
         logger.debug("Cleared cache for entity type: %s", entity_type)
     except Exception:
         logger.exception("Failed to clear cache for entity type: %s", entity_type)

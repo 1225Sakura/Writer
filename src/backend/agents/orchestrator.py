@@ -21,7 +21,7 @@ from .base import AgentContext, AgentResult, BaseAgent
 
 # Optional workflow persistence service
 try:
-    from ..services.workflow_service import WorkflowExecutionService
+    from backend.services.workflow_service import WorkflowExecutionService
 except ImportError:
     WorkflowExecutionService = None  # type: ignore[misc, assignment]
 
@@ -70,6 +70,7 @@ class StageConfig:
     agents: list[str]
     mode: str = "sequential"  # "parallel" or "sequential"
     depends_on: list[str] = field(default_factory=list)
+    description: str = ""
 
     def __post_init__(self) -> None:
         if self.mode not in ("parallel", "sequential"):

@@ -7,7 +7,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import selectinload
 
 from repositories.base import BaseRepository
-from models.entities import Outline
+from core.domain.entities import Outline
 
 
 class OutlineRepository(BaseRepository[Outline]):

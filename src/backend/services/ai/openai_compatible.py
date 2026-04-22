@@ -18,7 +18,7 @@ from .provider import AIProvider
 from backend.services.cache_service import (
     get_cached_ai_result,
     set_cached_ai_result,
-    cache_service,
+    get_cache_service,
 )
 
 # Writing style system prompts (mirrors minimax.py)
@@ -175,7 +175,7 @@ class OpenAICompatibleProvider(AIProvider):
         settings: dict | None = None,
     ) -> dict:
         """Review settings for consistency using AI."""
-        prompt_hash = cache_service.hash_prompt(
+        prompt_hash = get_cache_service().hash_prompt(
             str(content), "review_settings", "default", 50
         )
         cached = get_cached_ai_result(prompt_hash)
@@ -225,7 +225,7 @@ class OpenAICompatibleProvider(AIProvider):
 
     async def extract_entities(self, content: str | list) -> list:
         """Extract entities from text or chat messages."""
-        prompt_hash = cache_service.hash_prompt(
+        prompt_hash = get_cache_service().hash_prompt(
             str(content), "extract_entities", "default", 50
         )
         cached = get_cached_ai_result(prompt_hash)

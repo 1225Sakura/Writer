@@ -3,10 +3,13 @@
 
 import time
 import asyncio
+from typing import Optional
+
 from fastapi import Request
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.responses import JSONResponse
 
+from config import settings
 from utils.logging import get_logger
 
 logger = get_logger('writer-api')
@@ -72,9 +75,9 @@ class RateLimitStore:
 # Global rate limit store
 _rate_limit_store = RateLimitStore()
 
-# Default rate limit configuration
-DEFAULT_RATE_LIMIT = 60  # requests per window
-DEFAULT_WINDOW = 60.0  # window in seconds
+# Default rate limit configuration from settings
+DEFAULT_RATE_LIMIT = settings.rate_limit_default
+DEFAULT_WINDOW = settings.rate_limit_window
 
 
 async def rate_limit_middleware(request: Request, call_next):
@@ -148,8 +151,8 @@ def get_rate_limit_store() -> RateLimitStore:
 
 # Stricter rate limit store for AI checker endpoints (they call external APIs)
 _checker_rate_limit_store = RateLimitStore()
-CHECKER_RATE_LIMIT = 10  # requests per window
-CHECKER_WINDOW = 60.0  # window in seconds
+CHECKER_RATE_LIMIT = settings.rate_limit_checker
+CHECKER_WINDOW = settings.rate_limit_checker_window
 
 
 async def check_checker_rate_limit(client_ip: str) -> tuple[bool, int, int]:

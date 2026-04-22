@@ -393,8 +393,26 @@ class CacheService:
         return 0
 
 
-# Singleton instance
-cache_service = CacheService()
+# Singleton instance - kept for backward compatibility with module-level convenience functions
+_cache_service_instance: Optional[CacheService] = None
+
+
+def get_cache_service() -> CacheService:
+    """Get the global CacheService instance (for dependency injection).
+
+    Returns:
+        The singleton CacheService instance
+    """
+    global _cache_service_instance
+    if _cache_service_instance is None:
+        _cache_service_instance = CacheService()
+    return _cache_service_instance
+
+
+def _set_cache_service_instance(cache: CacheService) -> None:
+    """Set the global CacheService instance (for testing or custom configurations)."""
+    global _cache_service_instance
+    _cache_service_instance = cache
 
 
 # Backward-compatible module-level cached decorator
@@ -411,113 +429,129 @@ def cached(
         key_prefix: Static prefix for the cache key.
         invalidate_on: List of tag strings for invalidation (ignored in simple implementation).
     """
-    return cache_service.cached(
+    return get_cache_service().cached(
         entity_type="character",  # Default entity type
         ttl=ttl,
         key_prefix=key_prefix,
     )
 
 
-# Convenience functions for common patterns
+# Convenience functions for common patterns (use get_cache_service() for DI)
 def get_cached_character(character_id: int) -> Optional[dict]:
     """Get character from cache."""
-    key = cache_service.make_key("char", character_id)
-    return cache_service.get("character", key)
+    cache = get_cache_service()
+    key = cache.make_key("char", character_id)
+    return cache.get("character", key)
 
 
 def set_cached_character(character_id: int, data: dict, ttl: Optional[int] = None) -> None:
     """Cache a character."""
-    key = cache_service.make_key("char", character_id)
-    cache_service.set("character", key, data, ttl=ttl)
+    cache = get_cache_service()
+    key = cache.make_key("char", character_id)
+    cache.set("character", key, data, ttl=ttl)
 
 
 def invalidate_character_cache(character_id: Optional[int] = None) -> None:
     """Invalidate character cache entries."""
+    cache = get_cache_service()
     if character_id is not None:
-        key = cache_service.make_key("char", character_id)
-        cache_service.delete("character", key)
-    cache_service.delete_pattern("character", "char_list")
-    cache_service.delete_pattern("character", "char")
+        key = cache.make_key("char", character_id)
+        cache.delete("character", key)
+    cache.delete_pattern("character", "char_list")
+    cache.delete_pattern("character", "char")
 
 
 def get_cached_character_list() -> Optional[list]:
     """Get character list from cache."""
-    key = cache_service.make_key("char_list")
-    return cache_service.get("character", key)
+    cache = get_cache_service()
+    key = cache.make_key("char_list")
+    return cache.get("character", key)
 
 
 def set_cached_character_list(data: list, ttl: Optional[int] = None) -> None:
     """Cache character list."""
-    key = cache_service.make_key("char_list")
-    cache_service.set("character", key, data, ttl=ttl)
+    cache = get_cache_service()
+    key = cache.make_key("char_list")
+    cache.set("character", key, data, ttl=ttl)
 
 
 def get_cached_world_setting(setting_id: int) -> Optional[dict]:
     """Get world setting from cache."""
-    key = cache_service.make_key("world", setting_id)
-    return cache_service.get("world_setting", key)
+    cache = get_cache_service()
+    key = cache.make_key("world", setting_id)
+    return cache.get("world_setting", key)
 
 
 def set_cached_world_setting(setting_id: int, data: dict, ttl: Optional[int] = None) -> None:
     """Cache a world setting."""
-    key = cache_service.make_key("world", setting_id)
-    cache_service.set("world_setting", key, data, ttl=ttl)
+    cache = get_cache_service()
+    key = cache.make_key("world", setting_id)
+    cache.set("world_setting", key, data, ttl=ttl)
 
 
 def invalidate_world_setting_cache(setting_id: Optional[int] = None) -> None:
     """Invalidate world setting cache."""
+    cache = get_cache_service()
     if setting_id is not None:
-        key = cache_service.make_key("world", setting_id)
-        cache_service.delete("world_setting", key)
-    cache_service.delete_pattern("world_setting", "world")
+        key = cache.make_key("world", setting_id)
+        cache.delete("world_setting", key)
+    cache.delete_pattern("world_setting", "world")
 
 
 def get_cached_world_setting_list() -> Optional[list]:
     """Get world setting list from cache."""
-    key = cache_service.make_key("world_list")
-    return cache_service.get("world_setting", key)
+    cache = get_cache_service()
+    key = cache.make_key("world_list")
+    return cache.get("world_setting", key)
 
 
 def set_cached_world_setting_list(data: list, ttl: Optional[int] = None) -> None:
     """Cache world setting list."""
-    key = cache_service.make_key("world_list")
-    cache_service.set("world_setting", key, data, ttl=ttl)
+    cache = get_cache_service()
+    key = cache.make_key("world_list")
+    cache.set("world_setting", key, data, ttl=ttl)
 
 
 def get_cached_writing_settings() -> Optional[dict]:
     """Get writing settings from cache."""
-    key = cache_service.make_key("write_settings")
-    return cache_service.get("writing_settings", key)
+    cache = get_cache_service()
+    key = cache.make_key("write_settings")
+    return cache.get("writing_settings", key)
 
 
 def set_cached_writing_settings(data: dict, ttl: Optional[int] = None) -> None:
     """Cache writing settings."""
-    key = cache_service.make_key("write_settings")
-    cache_service.set("writing_settings", key, data, ttl=ttl)
+    cache = get_cache_service()
+    key = cache.make_key("write_settings")
+    cache.set("writing_settings", key, data, ttl=ttl)
 
 
 def invalidate_writing_settings_cache() -> None:
     """Invalidate writing settings cache."""
-    key = cache_service.make_key("write_settings")
-    cache_service.delete("writing_settings", key)
+    cache = get_cache_service()
+    key = cache.make_key("write_settings")
+    cache.delete("writing_settings", key)
 
 
 def get_cached_ai_result(prompt_hash: str) -> Optional[dict]:
     """Get cached AI result."""
-    key = cache_service.make_key("ai", prompt_hash)
-    return cache_service.get("ai_result", key)
+    cache = get_cache_service()
+    key = cache.make_key("ai", prompt_hash)
+    return cache.get("ai_result", key)
 
 
 def set_cached_ai_result(prompt_hash: str, data: dict, ttl: Optional[int] = None) -> None:
     """Cache AI result."""
-    key = cache_service.make_key("ai", prompt_hash)
-    cache_service.set("ai_result", key, data, ttl=ttl)
+    cache = get_cache_service()
+    key = cache.make_key("ai", prompt_hash)
+    cache.set("ai_result", key, data, ttl=ttl)
 
 
 def invalidate_ai_result_cache(prompt_hash: Optional[str] = None) -> None:
     """Invalidate AI result cache."""
+    cache = get_cache_service()
     if prompt_hash:
-        key = cache_service.make_key("ai", prompt_hash)
-        cache_service.delete("ai_result", key)
+        key = cache.make_key("ai", prompt_hash)
+        cache.delete("ai_result", key)
     else:
-        cache_service.clear_entity_cache("ai_result")
+        cache.clear_entity_cache("ai_result")

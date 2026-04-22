@@ -9,7 +9,7 @@ from sqlalchemy import select, desc
 from sqlalchemy.orm import selectinload
 
 from database import async_session_maker
-from models.entities import (
+from core.domain.entities import (
     WorldSetting,
     Character,
     Outline,
@@ -21,7 +21,7 @@ from models.entities import (
     Faction,
 )
 from services.tiered_cache import TieredCache
-from services.cache_service import cache_service
+from services.cache_service import get_cache_service
 
 logger = logging.getLogger(__name__)
 
@@ -295,7 +295,7 @@ class PreloadService:
 
     def _cache_set(self, entity_type: str, key: str, value: Any, ttl: int) -> None:
         """Store value in cache_service (and optionally TieredCache)."""
-        cache_service.set(entity_type, key, value, ttl=ttl)
+        get_cache_service().set(entity_type, key, value, ttl=ttl)
         if self._tiered_cache is not None:
             try:
                 self._tiered_cache.set(key, value, ttl=ttl, tier="l1")

@@ -9,7 +9,7 @@ from typing import Any, Dict, List, Optional
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from repositories.workflow_repository import WorkflowExecutionRepository, AgentExecutionLogRepository
-from models.entities import WorkflowExecution, AgentExecutionLog
+from core.domain.entities import WorkflowExecution, AgentExecutionLog
 
 logger = logging.getLogger(__name__)
 

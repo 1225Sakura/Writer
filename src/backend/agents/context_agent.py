@@ -10,7 +10,7 @@ from typing import Any
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from ..models.entities import (
+from backend.core.domain.entities import (
     Chapter,
     Character,
     CharacterStoryline,
@@ -23,8 +23,9 @@ from ..models.entities import (
     Rule,
     WorldSetting,
 )
-from ..services.ai_service import AIService
-from .utils import BaseAgent, MiniMaxAPIClient, extract_json_from_response, validate_context_response
+from backend.core.services.ai.ai_service import AIService
+from .base import BaseAgent, DatabaseMixin, AgentContext, AgentResult
+from .utils import extract_json_from_response, validate_context_response
 
 logger = logging.getLogger(__name__)
 
@@ -76,7 +77,7 @@ class HierarchicalContext:
         }
 
 
-class ContextAgent(BaseAgent):
+class ContextAgent(BaseAgent, DatabaseMixin):
     """Generates structured context packages for chapter writing.
 
     A "创作执行包" (writing execution package) contains:
@@ -107,9 +108,9 @@ class ContextAgent(BaseAgent):
         "engagement_strategy",
     ]
 
-    def __init__(self, ai_service: AIService):
-        super().__init__(ai_service)
-        self.api_client = MiniMaxAPIClient(ai_service)
+    def __init__(self, provider: AIProvider, event_bus: AsyncEventBus, ai_service: AIService):
+        BaseAgent.__init__(self, provider, event_bus)
+        DatabaseMixin.__init__(self, ai_service)
 
     # ------------------------------------------------------------------
     # Existing public API (backward compatible)

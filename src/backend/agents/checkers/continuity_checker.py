@@ -1,23 +1,271 @@
-"""Continuity checker for scene and narrative continuity."""
+"""Continuity checker for scene and narrative continuity.
+
+quick_scan: Heuristic check for obvious continuity breaks (scene transitions,
+            timeline markers, character state inconsistencies).
+deep_analyze: AI-powered analysis for subtle continuity issues across chapters.
+"""
+
+from __future__ import annotations
 
 import json
+import re
 from typing import Any
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from ...services.ai_service import AIService
+from .base import BaseChecker, CheckerResult
+from backend.core.services.ai.ai_service import AIService
+from backend.config import settings
 from ..utils import MiniMaxAPIClient
 
 
-class ContinuityChecker:
+class ContinuityChecker(BaseChecker):
     """Checks scene and narrative continuity."""
 
-    def __init__(self, ai_service: AIService):
-        self.api_client = MiniMaxAPIClient(ai_service)
+    def __init__(self, ai_service: AIService | None = None) -> None:
+        super().__init__(
+            name="continuity",
+            description="检查叙事连续性（场景转换、角色状态、伏笔呼应、时间线等）",
+        )
+        self._ai_service = ai_service
+        self._api_client = MiniMaxAPIClient(ai_service) if ai_service else None
 
+    async def quick_scan(self, content: str) -> CheckerResult:
+        """Heuristic scan for obvious continuity breaks.
+
+        Detects:
+        - Scene transition issues (abrupt jumps without markers)
+        - Timeline contradiction markers
+        - Character state inconsistencies
+        -重复描述/矛盾描述
+        """
+        issues: list[dict[str, Any]] = []
+        suggestions: list[str] = []
+        score = 100
+
+        text = content or ""
+
+        # 1. Detect scene transition issues (abrupt location/time changes)
+        abrupt_transition_patterns = [
+            (r"(?:突然|忽然).*(?:到了|来到|出现在).{0,20}$", "场景突然跳转缺少过渡"),
+            (r"^(?:他|她|它|他们).{0,20}然后.{0,20}$", "场景转换缺少时间/过渡标记"),
+        ]
+        for pattern, desc in abrupt_transition_patterns:
+            if re.search(pattern, text, re.MULTILINE):
+                issues.append({
+                    "type": "abrupt_scene_transition",
+                    "severity": "medium",
+                    "message": desc,
+                })
+                suggestions.append("场景转换应有合理的过渡描写（时间标记、地点标记、过渡句等）")
+                score -= 10
+
+        # 2. Timeline markers contradiction
+        timeline_issues = [
+            (r"一会儿.{0,20}几天后", "时间跨度描述矛盾：一会儿与几天后"),
+            (r"刚才.{0,20}后来", "时间顺序矛盾：刚才之后又后来"),
+            (r"当时.{0,20}现在", "时间状态矛盾：当时与现在混淆"),
+        ]
+        for pattern, desc in timeline_issues:
+            if re.search(pattern, text):
+                issues.append({
+                    "type": "timeline_marker_contradiction",
+                    "severity": "high",
+                    "message": desc,
+                })
+                suggestions.append("请检查时间描述的先后顺序，确保时间线清晰")
+                score -= 15
+
+        # 3. Character state inconsistency detection
+        state_contradictions = [
+            (r"(?:伤[势病]|受[伤损]).*?(?:完好无损|完全恢复|好了)", "角色状态矛盾：受伤与痊愈同时描述"),
+            (r"(?:愤怒|生气|暴怒).*?(?:平静|冷静|微笑)", "情绪状态矛盾：愤怒与平静同时出现"),
+            (r"(?:穿着|身披).*?脱下", "装备状态矛盾：穿着与脱下同时描述"),
+        ]
+        for pattern, desc in state_contradictions:
+            if re.search(pattern, text):
+                issues.append({
+                    "type": "character_state_inconsistency",
+                    "severity": "high",
+                    "message": desc,
+                })
+                suggestions.append("请确保角色状态描述前后一致，避免矛盾")
+                score -= 20
+
+        # 4. Duplicate description detection (same thing described twice differently)
+        duplicate_patterns = [
+            r"(.{5,15})\s*又\s*\1",
+            r"(.{5,15})\s*再次\s*\1",
+        ]
+        for pattern in duplicate_patterns:
+            matches = re.findall(pattern, text)
+            if matches:
+                issues.append({
+                    "type": "duplicate_description",
+                    "severity": "low",
+                    "message": f"检测到可能的重复描述: {matches[:3]}",
+                })
+                suggestions.append("避免对同一事物进行重复描述")
+                score -= 5
+
+        # 5. Referenced undefined items/characters
+        referenced_but_not_defined = [
+            (r'(?:那个|此|这).{2,6}(?:人|物|事|地方)', "引用了未明确定义的指代"),
+        ]
+        for pattern, desc in referenced_but_not_defined:
+            if re.search(pattern, text):
+                # Check if preceding context defines it
+                matches = re.finditer(pattern, text)
+                for m in matches:
+                    start = max(0, m.start() - 200)
+                    preceding = text[start:m.start()]
+                    if not any(defined in preceding for defined in ["名为", "叫", "是", "这个人", "这个东西"]):
+                        issues.append({
+                            "type": "undefined_reference",
+                            "severity": "low",
+                            "message": f"检测到可能未定义的指代: {m.group(0)}",
+                        })
+                        score -= 5
+                        break
+
+        score = max(0, score)
+        return CheckerResult(score=score, issues=issues, suggestions=suggestions)
+
+    async def deep_analyze(
+        self, content: str, context: dict[str, Any]
+    ) -> CheckerResult:
+        """Deep AI analysis for subtle continuity issues.
+
+        Args:
+            content: Chapter text to analyze.
+            context: Must contain 'previous_chapters' and optionally
+                     'plot_threads', 'characters', 'world_settings'.
+        """
+        if not self._api_client:
+            return CheckerResult(
+                score=0,
+                issues=[{
+                    "type": "configuration_error",
+                    "message": "ContinuityChecker 未配置 AI 服务",
+                }],
+                suggestions=["请在初始化时传入 ai_service 参数"],
+            )
+
+        previous_chapters = context.get("previous_chapters", [])
+        prev_text = (
+            previous_chapters if isinstance(previous_chapters, str)
+            else json.dumps(previous_chapters, ensure_ascii=False, indent=2)
+        )
+
+        plot_threads = context.get("plot_threads", [])
+        threads_text = (
+            plot_threads if isinstance(plot_threads, str)
+            else json.dumps(plot_threads, ensure_ascii=False, indent=2)
+        )
+
+        characters = context.get("characters", [])
+        chars_text = (
+            characters if isinstance(characters, str)
+            else json.dumps(characters, ensure_ascii=False, indent=2)
+        )
+
+        world_settings = context.get("world_settings", {})
+        world_text = (
+            world_settings if isinstance(world_settings, str)
+            else json.dumps(world_settings, ensure_ascii=False, indent=2)
+        )
+
+        prompt = f"""请深度分析以下章节的叙事连续性问题。
+
+【章节内容】
+{content}
+
+【前文摘要】
+{prev_text}
+
+【活跃的伏笔/情节线】
+{threads_text}
+
+【角色设定】
+{chars_text}
+
+【世界观设定】
+{world_text}
+
+请从以下维度分析连续性：
+1. **场景转换连续性**：场景转换是否平滑（时间流逝、地点跳转是否有合理过渡）
+2. **角色状态连续性**：角色的情绪、服装、伤势、位置等状态是否与前文延续
+3. **事件因果连续性**：事件之间的因果关系是否合理（前因后果是否矛盾）
+4. **伏笔呼应连续性**：之前埋下的伏笔是否得到适当揭示或延续
+5. **细节一致性**：前后描述的细节是否一致（如物品外观、人物外貌等）
+6. **时间逻辑连续性**：时间流逝是否合理（对话时长、旅途时间、修炼时间等）
+
+请以JSON格式返回：
+{{
+    "score": 0-100的评分,
+    "issues": [
+        {{
+            "type": "问题类型",
+            "severity": "critical|high|medium|low",
+            "message": "问题描述",
+            "evidence": "正文中的证据片段",
+            "previous_context": "与前文矛盾的具体描述"
+        }}
+    ],
+    "suggestions": ["改进建议列表"],
+    "plot_thread_status": {{
+        "fulfilled": ["已完成的伏笔列表"],
+        "continued": ["延续中的伏笔列表"],
+        "new_setup": ["本章新埋下的伏笔列表"]
+    }}
+}}"""
+
+        system_prompt = (
+            "你是一位严格的叙事连续性审核专家。你的任务是确保正文内容与前文完全连贯，"
+            "任何场景转换突兀、状态不一致、因果矛盾、伏笔未呼应等问题都应被标记。"
+            "评分标准：100=完全连贯，80=轻微不连贯，60=明显不连贯，40=严重不连贯，20=重大矛盾，0=完全断裂。"
+        )
+
+        try:
+            ai_result = await self._api_client.call(
+                system_prompt=system_prompt,
+                user_content=prompt,
+                temperature=settings.ai_temperature,
+            )
+
+            try:
+                parsed = json.loads(ai_result)
+                return CheckerResult(
+                    score=parsed.get("score", 70),
+                    issues=parsed.get("issues", []),
+                    suggestions=parsed.get("suggestions", []),
+                )
+            except json.JSONDecodeError:
+                return CheckerResult(
+                    score=70,
+                    issues=[{
+                        "type": "parse_error",
+                        "severity": "low",
+                        "message": f"AI返回格式错误，原始响应: {ai_result[:200]}",
+                    }],
+                    suggestions=["请重试深度分析"],
+                )
+
+        except Exception as e:
+            return CheckerResult(
+                score=0,
+                issues=[{
+                    "type": "analysis_error",
+                    "severity": "critical",
+                    "message": f"连续性检查分析失败: {str(e)}",
+                }],
+                suggestions=["请检查AI服务配置或稍后重试"],
+            )
+
+    # Legacy check method for backward compatibility
     async def check(self, chapter_id: int, db: AsyncSession) -> dict:
-        """Check continuity for a chapter.
+        """Check continuity for a chapter (legacy method).
 
         Args:
             chapter_id: The chapter ID to check
@@ -107,7 +355,7 @@ class ContinuityChecker:
         )
 
         try:
-            content_result = await self.api_client.call(
+            content_result = await self._api_client.call(
                 system_prompt=system_prompt,
                 user_content=prompt,
                 temperature=0.5,

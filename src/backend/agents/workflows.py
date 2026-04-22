@@ -84,7 +84,7 @@ WRITING_WORKFLOW = [
 REVIEW_WORKFLOW = [
     StageConfig(
         name="comprehensive_review",
-        agents=["review_agent", "consistency_checker", "style_checker", "plot_checker"],
+        agents=["review_agent", "consistency_checker"],
         mode="parallel",
         description="Run review agent and multiple checkers in parallel for quality assessment",
     ),

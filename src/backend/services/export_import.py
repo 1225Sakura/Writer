@@ -12,7 +12,7 @@ from typing import Any, Optional, Callable
 from uuid import UUID
 
 from backend.database import async_session_maker
-from backend.models.entities import (
+from backend.core.domain import (
     Character, CharacterRelationship, CharacterStoryline,
     Item, Location, Faction, WorldSetting, Rule,
     Outline, Chapter, IFLine,

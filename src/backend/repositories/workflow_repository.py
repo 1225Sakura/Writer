@@ -6,7 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, desc
 
 from repositories.base import BaseRepository
-from models.entities import WorkflowExecution, AgentExecutionLog
+from core.domain.entities import WorkflowExecution, AgentExecutionLog
 
 
 class WorkflowExecutionRepository(BaseRepository[WorkflowExecution]):

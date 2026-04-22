@@ -102,3 +102,7 @@ class ContentStorage:
                     parent.rmdir()
         except OSError:
             pass
+
+
+# Module-level singleton for convenient imports
+content_storage = ContentStorage()

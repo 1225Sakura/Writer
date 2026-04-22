@@ -14,6 +14,7 @@ from typing import Any
 from .base import BaseAgent, AgentContext, AgentResult
 from .checkers.pipeline import CheckerPipeline
 from .checkers.base import CheckerResult
+from backend.config import settings
 
 logger = logging.getLogger(__name__)
 
@@ -223,9 +224,6 @@ class ReviewAgent(BaseAgent):
         disagreements: list[dict[str, Any]] = []
         all_checkers = set(quick_results.keys()) | set(deep_results.keys())
 
-        SCORE_THRESHOLD = 20
-        ISSUE_COUNT_THRESHOLD = 3
-
         for checker_name in all_checkers:
             quick = quick_results.get(checker_name)
             deep = deep_results.get(checker_name)
@@ -254,7 +252,7 @@ class ReviewAgent(BaseAgent):
 
             # Score disagreement
             score_diff = abs(quick.score - deep.score)
-            if score_diff > SCORE_THRESHOLD:
+            if score_diff > settings.review_score_threshold:
                 disagreements.append(
                     {
                         "checker": checker_name,
@@ -273,7 +271,7 @@ class ReviewAgent(BaseAgent):
             quick_issue_count = len(quick.issues)
             deep_issue_count = len(deep.issues)
             issue_diff = abs(quick_issue_count - deep_issue_count)
-            if issue_diff > ISSUE_COUNT_THRESHOLD:
+            if issue_diff > settings.review_issue_count_threshold:
                 disagreements.append(
                     {
                         "checker": checker_name,

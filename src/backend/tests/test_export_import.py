@@ -11,7 +11,7 @@ from sqlalchemy.orm import Session
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..'))
 os.chdir(os.path.join(os.path.dirname(__file__), '..', '..'))
 
-from backend.models.entities import (
+from backend.core.domain import (
     Character, CharacterRelationship, CharacterStoryline,
     Item, Location, Faction, WorldSetting, Rule, WritingSettings,
     Outline, Chapter

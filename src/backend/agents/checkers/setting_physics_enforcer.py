@@ -12,7 +12,8 @@ import re
 from typing import Any
 
 from .base import BaseChecker, CheckerResult
-from ...services.ai_service import AIService
+from backend.core.services.ai.ai_service import AIService
+from backend.config import settings
 from ..utils import MiniMaxAPIClient
 
 
@@ -280,7 +281,7 @@ class SettingPhysicsEnforcer(BaseChecker):
             ai_result = await self._api_client.call(
                 system_prompt=system_prompt,
                 user_content=prompt,
-                temperature=0.3,
+                temperature=settings.ai_temperature,
             )
 
             try:

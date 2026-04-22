@@ -1,37 +1,50 @@
-# Auto Novel Writer - API Routes
-# Router aggregation
+# Auto Novel Writer - API Routes (Legacy)
+# This module is deprecated. Routes have been moved to backend.api.v1.endpoints.
+# Use `from backend.api.v1.endpoints import chat, settings, ...` instead.
+# This file is kept for backward compatibility during migration.
 
-from fastapi import APIRouter
+from __future__ import annotations
 
-from .chat import router as chat_router
-from .settings import router as settings_router
-from .chapters import router as chapters_router
-from .ai import router as ai_router
-from .styles import router as styles_router
-from .export_import import router as export_import_router
-from .auth import router as auth_router
-from .tasks import router as tasks_router
-from .health import router as health_router
-from .cache import router as cache_router
-from .workflows import router as workflows_router
-from .agents import router as agents_router
-from .stats import router as stats_router
-from .metrics import router as metrics_router
+import importlib
 
-# Main API router with version prefix
-api_router = APIRouter(prefix="/api/v1")
+# Lazy import wrapper for backward compatibility (for * imports and unknown attributes)
+def __getattr__(name: str):
+    """Lazy import from new location for backward compatibility."""
+    mapping = {
+        "chat_router": "backend.api.v1.endpoints.chat",
+        "settings_router": "backend.api.v1.endpoints.settings",
+        "chapters_router": "backend.api.v1.endpoints.chapters",
+        "ai_router": "backend.api.v1.endpoints.ai",
+        "styles_router": "backend.api.v1.endpoints.styles",
+        "export_import_router": "backend.api.v1.endpoints.export_import",
+        "auth_router": "backend.api.v1.endpoints.auth",
+        "tasks_router": "backend.api.v1.endpoints.tasks",
+        "cache_router": "backend.api.v1.endpoints.cache",
+        "workflows_router": "backend.api.v1.endpoints.workflows",
+        "agents_router": "backend.api.v1.endpoints.agents",
+        "stats_router": "backend.api.v1.endpoints.stats",
+        "metrics_router": "backend.api.v1.endpoints.metrics",
+        "context_rank_router": "backend.api.v1.endpoints.context_rank",
+        "snapshots_router": "backend.api.v1.endpoints.snapshots",
+        "pacing_router": "backend.api.v1.endpoints.pacing",
+        "genres_router": "backend.api.v1.endpoints.genres",
+        "graph_router": "backend.api.v1.endpoints.graph",
+        "context_router": "backend.api.v1.endpoints.context",
+        "constraints_router": "backend.api.v1.endpoints.constraints",
+        "observability_router": "backend.api.v1.endpoints.observability",
+        "engagement_router": "backend.api.v1.endpoints.engagement",
+    }
 
-api_router.include_router(auth_router)
-api_router.include_router(chat_router)
-api_router.include_router(settings_router)
-api_router.include_router(chapters_router)
-api_router.include_router(ai_router)
-api_router.include_router(styles_router)
-api_router.include_router(export_import_router)
-api_router.include_router(tasks_router)
-api_router.include_router(health_router)
-api_router.include_router(cache_router)
-api_router.include_router(workflows_router)
-api_router.include_router(agents_router)
-api_router.include_router(stats_router)
-api_router.include_router(metrics_router)
+    if name in mapping:
+        module = importlib.import_module(mapping[name])
+        return getattr(module, "router")
+
+    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
+
+
+# Re-export api_router from the new location for backward compatibility
+# This is what main.py imports: from routes import api_router
+from backend.api.v1.router import api_router
+
+# Re-export health_router since health.py is now a proxy module
+from backend.api.v1.endpoints.health import router as health_router

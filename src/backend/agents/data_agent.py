@@ -10,7 +10,7 @@ from typing import Any
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from ..models.entities import (
+from backend.core.domain.entities import (
     Character,
     CharacterRelationship,
     Faction,
@@ -19,10 +19,11 @@ from ..models.entities import (
     Location,
     PlotThread,
 )
-from ..services.ai_service import AIService
+from backend.core.services.ai.ai_service import AIService
+from backend.services.ai.provider import AIProvider
+from ..utils.event_bus import AsyncEventBus
+from .base import BaseAgent, DatabaseMixin, AgentContext, AgentResult
 from .utils import (
-    BaseAgent,
-    MiniMaxAPIClient,
     extract_json_from_response,
     validate_list_response,
 )
@@ -104,7 +105,7 @@ class RelationGraph:
         }
 
 
-class DataAgent(BaseAgent):
+class DataAgent(BaseAgent, DatabaseMixin):
     """Extracts structured information from chapter content.
 
     Capabilities:
@@ -123,9 +124,9 @@ class DataAgent(BaseAgent):
     # Similarity threshold for alias detection
     ALIAS_SIMILARITY_THRESHOLD = 0.75
 
-    def __init__(self, ai_service: AIService):
-        super().__init__(ai_service)
-        self.api_client = MiniMaxAPIClient(ai_service)
+    def __init__(self, provider: AIProvider, event_bus: AsyncEventBus, ai_service: AIService):
+        BaseAgent.__init__(self, provider, event_bus)
+        DatabaseMixin.__init__(self, ai_service)
 
     # ------------------------------------------------------------------
     # Existing public API (backward compatible)

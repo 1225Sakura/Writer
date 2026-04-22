@@ -14,7 +14,7 @@ import pytest_asyncio
 from httpx import AsyncClient, ASGITransport
 from unittest.mock import AsyncMock, patch, MagicMock
 
-from main import app
+from interface.web.main import app
 
 
 @pytest.fixture
@@ -191,13 +191,13 @@ class TestPreloadService:
     @pytest.mark.asyncio
     async def test_app_has_lifespan(self, client):
         """Test app has lifespan context manager for startup/shutdown."""
-        from main import lifespan
+        from interface.web.main import lifespan
         assert lifespan is not None
 
     @pytest.mark.asyncio
     async def test_lifespan_is_async_context_manager(self):
         """Test lifespan is an async context manager."""
-        from main import lifespan, app
+        from interface.web.main import lifespan, app
         import inspect
         assert inspect.isasyncgenfunction(lifespan)
 
@@ -375,7 +375,7 @@ class TestRouteRegistration:
     @pytest.mark.asyncio
     async def test_main_app_includes_api_router(self):
         """Test main.py includes api_router."""
-        from main import app
+        from interface.web.main import app
         routes = app.routes
         # Check that the API router is included
         api_route_paths = [r.path for r in routes if hasattr(r, "path")]

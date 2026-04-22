@@ -20,8 +20,8 @@ os.environ.setdefault("API_KEY", "test_api_key_for_tests")
 
 # Use the same import style as existing tests
 from database import Base, get_db
-from main import app
-from middleware.auth import set_api_key, clear_auth_key_cache
+from interface.web.main import app
+from middleware.auth import set_api_key, clear_api_key_cache
 from services.cache_service import cache_service
 
 

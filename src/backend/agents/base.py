@@ -4,16 +4,21 @@ This module defines the foundational abstractions for all AI agents:
 - AgentContext: input context for agent execution
 - AgentResult: structured output from agent execution
 - BaseAgent: abstract base class all agents must extend
+- DatabaseMixin: optional mixin for agents needing AIService/MiniMaxAPIClient
 """
 
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
-from ..services.ai.provider import AIProvider
+from backend.services.ai.provider import AIProvider
 from ..utils.event_bus import AsyncEventBus
+
+if TYPE_CHECKING:
+    from backend.core.services.ai.ai_service import AIService
+    from .utils import MiniMaxAPIClient
 
 
 @dataclass
@@ -97,3 +102,37 @@ class BaseAgent(ABC):
             Structured AgentResult with content, confidence, metadata,
             and any warnings.
         """
+
+
+class DatabaseMixin:
+    """Optional mixin for agents that need AIService/MiniMaxAPIClient.
+
+    Agents like DataAgent and ContextAgent need direct API access via
+    MiniMaxAPIClient while also supporting event-driven execution via BaseAgent.
+    Use multiple inheritance: class MyAgent(BaseAgent, DatabaseMixin).
+    """
+
+    def __init__(self, ai_service: AIService, **kwargs: Any) -> None:
+        """Initialize with AIService.
+
+        Args:
+            ai_service: The AI service for API calls
+            **kwargs: Additional arguments for other mixins/base classes
+        """
+        self._ai_service = ai_service
+        # Store remaining kwargs for other mixins
+        self._mixin_kwargs = kwargs
+
+    @property
+    def ai_service(self) -> AIService:
+        """Access the AI service."""
+        return self._ai_service
+
+    @property
+    def api_client(self) -> MiniMaxAPIClient:
+        """Get or create MiniMaxAPIClient instance."""
+        # Lazily create API client
+        if not hasattr(self, "_api_client"):
+            from .utils import MiniMaxAPIClient
+            self._api_client = MiniMaxAPIClient(self._ai_service)
+        return self._api_client

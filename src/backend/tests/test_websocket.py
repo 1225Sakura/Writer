@@ -8,7 +8,7 @@ from fastapi import FastAPI, WebSocket
 from starlette.testclient import TestClient
 from starlette.websockets import WebSocketDisconnect
 
-from backend.main import ConnectionManager, manager
+from backend.interface.web.main import ConnectionManager, manager
 
 
 # =============================================================================
@@ -267,8 +267,8 @@ class TestGlobalManager:
 
     def test_global_manager_is_singleton(self):
         """Global manager is a singleton instance."""
-        from backend.main import manager as manager1
-        from backend.main import manager as manager2
+        from backend.interface.web.main import manager as manager1
+        from backend.interface.web.main import manager as manager2
         assert manager1 is manager2
 
     def test_global_manager_has_empty_connections_initially(self):

@@ -8,13 +8,13 @@ import asyncio
 import sys
 from pathlib import Path
 
-# Add src to path so 'from backend.models.entities' works
+# Add src to path so 'from backend.core.domain' works
 _src_dir = Path(__file__).parent.parent / "src"
 sys.path.insert(0, str(_src_dir))
 
 from sqlalchemy import text
 from database import engine, async_session_maker, Base
-from models.entities import (
+from backend.core.domain import (
     Character, CharacterRelationship, CharacterStoryline,
     Item, Location, Faction, WorldSetting, Rule,
     Outline, Chapter, IFLine, DraftVersion, PlotThread,

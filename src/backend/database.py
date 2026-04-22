@@ -69,8 +69,17 @@ async_session_maker = async_sessionmaker(
     expire_on_commit=False,
 )
 
-# Base class for models
-Base = declarative_base()
+# Base class for models — singleton so re-imports under different names
+# (e.g. 'database' vs 'backend.database') share the same metadata.
+import sys as _sys
+
+if "_writer_base_singleton" in _sys.modules:
+    Base = _sys.modules["_writer_base_singleton"].Base
+else:
+    Base = declarative_base()
+    _mod = type(_sys)("_writer_base_singleton")
+    _mod.Base = Base
+    _sys.modules["_writer_base_singleton"] = _mod
 
 
 async def get_db() -> AsyncSession:

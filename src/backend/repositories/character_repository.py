@@ -7,7 +7,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import selectinload
 
 from repositories.base import BaseRepository
-from models.entities import Character, CharacterRelationship, CharacterStoryline
+from core.domain.entities import Character, CharacterRelationship, CharacterStoryline
 
 
 class CharacterRepository(BaseRepository[Character]):

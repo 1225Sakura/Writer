@@ -1,4 +1,21 @@
-"""Database CRUD service using SQLAlchemy async with caching."""
+"""Database CRUD service using SQLAlchemy async with caching.
+
+.. deprecated::
+    database_service is a legacy functional module that doesn't follow DDD patterns.
+    Use the service classes in backend.core.services instead:
+    - CharacterService (backend.core.services.character.character_service)
+    - ChapterService (backend.core.services.chapter.chapter_service)
+    - ChatService (backend.core.services.chat.chat_service)
+    - OutlineService (backend.core.services.outline.outline_service)
+"""
+
+import warnings
+
+warnings.warn(
+    "database_service is deprecated. Use CharacterService/ChapterService/ChatService/OutlineService instead.",
+    DeprecationWarning,
+    stacklevel=2
+)
 
 from datetime import datetime
 from typing import Any
@@ -7,7 +24,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.database import async_session_maker
-from backend.models.entities import (
+from backend.core.domain import (
     Character, CharacterRelationship, CharacterStoryline,
     Item, Location, Faction, WorldSetting, Rule,
     Outline, Chapter, IFLine,
