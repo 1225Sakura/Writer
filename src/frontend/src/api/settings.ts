@@ -1,4 +1,4 @@
-import { api } from "./request";
+import { api } from "./request"
 import type {
   Character,
   CharacterRelationship,
@@ -11,222 +11,306 @@ import type {
   Outline,
   Chapter,
   IFLine,
-} from "./types";
+  WritingSettings,
+  WritingSettingsUpdateRequest,
+  PaginationParams,
+  CharacterFilters,
+  ItemFilters,
+  LocationFilters,
+  FactionFilters,
+  RuleFilters,
+  ExportDataResponse,
+  ImportSummaryResponse,
+} from "./types"
 
 // ============================================
 // Characters
 // ============================================
 
 export const characterApi = {
-  list: () => api.get<Character[]>("/settings/characters"),
+  /** List all characters with optional tier filter. */
+  list: async (
+    params: PaginationParams & CharacterFilters = {}
+  ): Promise<Character[]> => {
+    const { skip = 0, limit = 100, tier } = params
+    return api.get<Character[]>("/settings/characters", { skip, limit, tier })
+  },
 
-  get: (id: number) =>
+  /** Get a specific character by ID. */
+  get: async (id: number): Promise<Character> =>
     api.get<Character>(`/settings/characters/${id}`),
 
-  create: (data: Partial<Character>) =>
+  /** Create a new character. */
+  create: async (data: Partial<Character>): Promise<Character> =>
     api.post<Character>("/settings/characters", data),
 
-  update: (id: number, data: Partial<Character>) =>
+  /** Update an existing character. */
+  update: async (id: number, data: Partial<Character>): Promise<Character> =>
     api.patch<Character>(`/settings/characters/${id}`, data),
 
-  delete: (id: number) =>
-    api.delete(`/settings/characters/${id}`),
-};
+  /** Delete a character. */
+  delete: async (id: number): Promise<{ message: string }> =>
+    api.delete<{ message: string }>(`/settings/characters/${id}`),
+}
 
 // ============================================
 // Character Relationships
 // ============================================
 
 export const relationshipApi = {
-  getByCharacter: (characterId: number) =>
+  /** Get all relationships for a character. */
+  getByCharacter: async (characterId: number): Promise<CharacterRelationship[]> =>
     api.get<CharacterRelationship[]>(`/settings/characters/${characterId}/relationships`),
 
-  create: (characterId: number, data: Partial<CharacterRelationship>) =>
+  /** Create a relationship for a character. */
+  create: async (
+    characterId: number,
+    data: Partial<CharacterRelationship>
+  ): Promise<CharacterRelationship> =>
     api.post<CharacterRelationship>(
       `/settings/characters/${characterId}/relationships`,
       data
     ),
 
-  delete: (characterId: number, relationshipId: number) =>
-    api.delete(`/settings/characters/${characterId}/relationships/${relationshipId}`),
-};
+  /** Delete a relationship. */
+  delete: async (
+    characterId: number,
+    relationshipId: number
+  ): Promise<{ message: string }> =>
+    api.delete<{ message: string }>(
+      `/settings/characters/${characterId}/relationships/${relationshipId}`
+    ),
+}
 
 // ============================================
 // Character Storylines
 // ============================================
 
 export const storylineApi = {
-  getByCharacter: (characterId: number) =>
+  /** Get all storylines for a character. */
+  getByCharacter: async (characterId: number): Promise<CharacterStoryline[]> =>
     api.get<CharacterStoryline[]>(`/settings/characters/${characterId}/storylines`),
 
-  create: (characterId: number, data: Partial<CharacterStoryline>) =>
+  /** Create a storyline for a character. */
+  create: async (
+    characterId: number,
+    data: Partial<CharacterStoryline>
+  ): Promise<CharacterStoryline> =>
     api.post<CharacterStoryline>(
       `/settings/characters/${characterId}/storylines`,
       data
     ),
 
-  update: (characterId: number, storylineId: number, data: Partial<CharacterStoryline>) =>
+  /** Update a storyline. */
+  update: async (
+    characterId: number,
+    storylineId: number,
+    data: Partial<CharacterStoryline>
+  ): Promise<CharacterStoryline> =>
     api.patch<CharacterStoryline>(
       `/settings/characters/${characterId}/storylines/${storylineId}`,
       data
     ),
 
-  delete: (characterId: number, storylineId: number) =>
-    api.delete(`/settings/characters/${characterId}/storylines/${storylineId}`),
-};
+  /** Delete a storyline. */
+  delete: async (
+    characterId: number,
+    storylineId: number
+  ): Promise<{ message: string }> =>
+    api.delete<{ message: string }>(
+      `/settings/characters/${characterId}/storylines/${storylineId}`
+    ),
+}
 
 // ============================================
 // Items
 // ============================================
 
 export const itemApi = {
-  list: () => api.get<Item[]>("/settings/items"),
+  /** List all items with optional owner filter. */
+  list: async (
+    params: PaginationParams & ItemFilters = {}
+  ): Promise<Item[]> => {
+    const { skip = 0, limit = 100, owner } = params
+    return api.get<Item[]>("/settings/items", { skip, limit, owner })
+  },
 
-  get: (id: number) => api.get<Item>(`/settings/items/${id}`),
+  /** Get a specific item by ID. */
+  get: async (id: number): Promise<Item> =>
+    api.get<Item>(`/settings/items/${id}`),
 
-  create: (data: Partial<Item>) => api.post<Item>("/settings/items", data),
+  /** Create a new item. */
+  create: async (data: Partial<Item>): Promise<Item> =>
+    api.post<Item>("/settings/items", data),
 
-  update: (id: number, data: Partial<Item>) =>
+  /** Update an existing item. */
+  update: async (id: number, data: Partial<Item>): Promise<Item> =>
     api.patch<Item>(`/settings/items/${id}`, data),
 
-  delete: (id: number) => api.delete(`/settings/items/${id}`),
-};
+  /** Delete an item. */
+  delete: async (id: number): Promise<{ message: string }> =>
+    api.delete<{ message: string }>(`/settings/items/${id}`),
+}
 
 // ============================================
 // Locations
 // ============================================
 
 export const locationApi = {
-  list: () => api.get<Location[]>("/settings/locations"),
+  /** List all locations with optional importance filter. */
+  list: async (
+    params: PaginationParams & LocationFilters = {}
+  ): Promise<Location[]> => {
+    const { skip = 0, limit = 100, importance } = params
+    return api.get<Location[]>("/settings/locations", { skip, limit, importance })
+  },
 
-  get: (id: number) => api.get<Location>(`/settings/locations/${id}`),
+  /** Get a specific location by ID. */
+  get: async (id: number): Promise<Location> =>
+    api.get<Location>(`/settings/locations/${id}`),
 
-  create: (data: Partial<Location>) =>
+  /** Create a new location. */
+  create: async (data: Partial<Location>): Promise<Location> =>
     api.post<Location>("/settings/locations", data),
 
-  update: (id: number, data: Partial<Location>) =>
+  /** Update an existing location. */
+  update: async (id: number, data: Partial<Location>): Promise<Location> =>
     api.patch<Location>(`/settings/locations/${id}`, data),
 
-  delete: (id: number) => api.delete(`/settings/locations/${id}`),
-};
+  /** Delete a location. */
+  delete: async (id: number): Promise<{ message: string }> =>
+    api.delete<{ message: string }>(`/settings/locations/${id}`),
+}
 
 // ============================================
 // Factions
 // ============================================
 
 export const factionApi = {
-  list: () => api.get<Faction[]>("/settings/factions"),
+  /** List all factions with optional type filter. */
+  list: async (
+    params: PaginationParams & FactionFilters = {}
+  ): Promise<Faction[]> => {
+    const { skip = 0, limit = 100, type } = params
+    return api.get<Faction[]>("/settings/factions", { skip, limit, type })
+  },
 
-  get: (id: number) => api.get<Faction>(`/settings/factions/${id}`),
+  /** Get a specific faction by ID. */
+  get: async (id: number): Promise<Faction> =>
+    api.get<Faction>(`/settings/factions/${id}`),
 
-  create: (data: Partial<Faction>) =>
+  /** Create a new faction. */
+  create: async (data: Partial<Faction>): Promise<Faction> =>
     api.post<Faction>("/settings/factions", data),
 
-  update: (id: number, data: Partial<Faction>) =>
+  /** Update an existing faction. */
+  update: async (id: number, data: Partial<Faction>): Promise<Faction> =>
     api.patch<Faction>(`/settings/factions/${id}`, data),
 
-  delete: (id: number) => api.delete(`/settings/factions/${id}`),
-};
+  /** Delete a faction. */
+  delete: async (id: number): Promise<{ message: string }> =>
+    api.delete<{ message: string }>(`/settings/factions/${id}`),
+}
 
 // ============================================
 // World Settings
 // ============================================
 
 export const worldSettingApi = {
-  list: () => api.get<WorldSetting[]>("/settings/world"),
+  /** List all world settings. */
+  list: async (params: PaginationParams = {}): Promise<WorldSetting[]> => {
+    const { skip = 0, limit = 100 } = params
+    return api.get<WorldSetting[]>("/settings/world", { skip, limit })
+  },
 
-  get: (id: number) => api.get<WorldSetting>(`/settings/world/${id}`),
+  /** Get a specific world setting by ID. */
+  get: async (id: number): Promise<WorldSetting> =>
+    api.get<WorldSetting>(`/settings/world/${id}`),
 
-  create: (data: Partial<WorldSetting>) =>
+  /** Create a new world setting. */
+  create: async (data: Partial<WorldSetting>): Promise<WorldSetting> =>
     api.post<WorldSetting>("/settings/world", data),
 
-  update: (id: number, data: Partial<WorldSetting>) =>
+  /** Update an existing world setting. */
+  update: async (id: number, data: Partial<WorldSetting>): Promise<WorldSetting> =>
     api.patch<WorldSetting>(`/settings/world/${id}`, data),
 
-  delete: (id: number) => api.delete(`/settings/world/${id}`),
-};
+  /** Delete a world setting. */
+  delete: async (id: number): Promise<{ message: string }> =>
+    api.delete<{ message: string }>(`/settings/world/${id}`),
+}
 
 // ============================================
 // Rules
 // ============================================
 
 export const ruleApi = {
-  list: () => api.get<Rule[]>("/settings/rules"),
+  /** List all rules with optional type filter. */
+  list: async (
+    params: PaginationParams & RuleFilters = {}
+  ): Promise<Rule[]> => {
+    const { skip = 0, limit = 100, type } = params
+    return api.get<Rule[]>("/settings/rules", { skip, limit, type })
+  },
 
-  get: (id: number) => api.get<Rule>(`/settings/rules/${id}`),
+  /** Get a specific rule by ID. */
+  get: async (id: number): Promise<Rule> =>
+    api.get<Rule>(`/settings/rules/${id}`),
 
-  create: (data: Partial<Rule>) => api.post<Rule>("/settings/rules", data),
+  /** Create a new rule. */
+  create: async (data: Partial<Rule>): Promise<Rule> =>
+    api.post<Rule>("/settings/rules", data),
 
-  update: (id: number, data: Partial<Rule>) =>
+  /** Update an existing rule. */
+  update: async (id: number, data: Partial<Rule>): Promise<Rule> =>
     api.patch<Rule>(`/settings/rules/${id}`, data),
 
-  delete: (id: number) => api.delete(`/settings/rules/${id}`),
-};
+  /** Delete a rule. */
+  delete: async (id: number): Promise<{ message: string }> =>
+    api.delete<{ message: string }>(`/settings/rules/${id}`),
+}
 
 // ============================================
-// Outlines & Chapters
+// Writing Settings
 // ============================================
 
-export const outlineApi = {
-  list: () => api.get<Outline[]>("/settings/outlines"),
+export const writingSettingsApi = {
+  /** Get current writing settings (creates default if not exists). */
+  get: async (): Promise<WritingSettings> =>
+    api.get<WritingSettings>("/settings/writing"),
 
-  get: (id: number) => api.get<Outline>(`/settings/outlines/${id}`),
-
-  create: (data: Partial<Outline>) =>
-    api.post<Outline>("/settings/outlines", data),
-
-  update: (id: number, data: Partial<Outline>) =>
-    api.patch<Outline>(`/settings/outlines/${id}`, data),
-
-  delete: (id: number) => api.delete(`/settings/outlines/${id}`),
-};
-
-export const chapterApi = {
-  list: (outlineId?: number) =>
-    api.get<Chapter[]>("/settings/chapters", outlineId ? { outline_id: outlineId } : undefined),
-
-  get: (id: number) => api.get<Chapter>(`/settings/chapters/${id}`),
-
-  create: (data: Partial<Chapter>) =>
-    api.post<Chapter>("/settings/chapters", data),
-
-  update: (id: number, data: Partial<Chapter>) =>
-    api.patch<Chapter>(`/settings/chapters/${id}`, data),
-
-  delete: (id: number) => api.delete(`/settings/chapters/${id}`),
-};
+  /** Update writing settings. */
+  update: async (data: WritingSettingsUpdateRequest): Promise<WritingSettings> =>
+    api.patch<WritingSettings>("/settings/writing", data),
+}
 
 // ============================================
-// IF Lines
+// Export / Import
 // ============================================
 
-export const ifLineApi = {
-  list: () => api.get<IFLine[]>("/settings/iflines"),
+export const backupApi = {
+  /** Export all project data as JSON for backup and migration. */
+  export: async (): Promise<ExportDataResponse> =>
+    api.get<ExportDataResponse>("/settings/export"),
 
-  get: (id: number) => api.get<IFLine>(`/settings/iflines/${id}`),
-
-  create: (data: Partial<IFLine>) =>
-    api.post<IFLine>("/settings/iflines", data),
-
-  update: (id: number, data: Partial<IFLine>) =>
-    api.patch<IFLine>(`/settings/iflines/${id}`, data),
-
-  delete: (id: number) => api.delete(`/settings/iflines/${id}`),
-};
+  /** Import project data from JSON. */
+  import: async (data: ExportDataResponse): Promise<ImportSummaryResponse> =>
+    api.post<ImportSummaryResponse>("/settings/import", data),
+}
 
 // ============================================
-// AI Generation
+// Default Export
 // ============================================
 
-export const aiGenerateApi = {
-  generateRelations: (characters: Character[]) =>
-    api.post<{ relationships: CharacterRelationship[] }>("/ai/generate-relations", {
-      characters,
-    }),
-
-  generate: (context: {
-    type: "character" | "item" | "location" | "faction" | "world" | "rule";
-    context?: string;
-  }) =>
-    api.post<{ content: unknown }>("/ai/generate", context),
-};
+export default {
+  character: characterApi,
+  relationship: relationshipApi,
+  storyline: storylineApi,
+  item: itemApi,
+  location: locationApi,
+  faction: factionApi,
+  worldSetting: worldSettingApi,
+  rule: ruleApi,
+  writingSettings: writingSettingsApi,
+  backup: backupApi,
+}

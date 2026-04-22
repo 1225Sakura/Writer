@@ -1,25 +1,23 @@
-import { AnimatePresence, motion, Variants } from 'framer-motion'
+/**
+ * PageTransition - 三界面切换时的平滑过渡
+ *
+ * 使用 Framer Motion 的 AnimatePresence + motion.div
+ * 实现当前页面向左滑出+淡出，新页面从右侧滑入+淡入
+ * 支持双向滑动（根据界面顺序决定滑动方向）
+ *
+ * 动画仅使用 transform 和 opacity，避免 layout 属性动画
+ * 确保写作性能不受影响
+ */
+
+import { useState, useEffect } from 'react'
+import { AnimatePresence, motion, type Variants } from 'framer-motion'
 import type { ReactNode } from 'react'
 import type { InterfaceType } from '@/store/uiStore'
 
 interface PageTransitionProps {
   children: ReactNode
   interfaceType: InterfaceType
-}
-
-const pageVariants: Variants = {
-  enter: (direction: number) => ({
-    x: direction > 0 ? '100%' : '-100%',
-    opacity: 0,
-  }),
-  center: {
-    x: 0,
-    opacity: 1,
-  },
-  exit: (direction: number) => ({
-    x: direction > 0 ? '-100%' : '100%',
-    opacity: 0,
-  }),
+  className?: string
 }
 
 const interfaceOrder: Record<InterfaceType, number> = {
@@ -29,16 +27,51 @@ const interfaceOrder: Record<InterfaceType, number> = {
 }
 
 /**
- * PageTransition - 三界面切换时的平滑过渡
- *
- * 使用 Framer Motion 的 AnimatePresence + motion.div
- * 实现当前页面向左滑出+淡出，新页面从右侧滑入+淡入
- *
- * 动画仅使用 transform 和 opacity，避免 layout 属性动画
- * 确保写作性能不受影响
+ * 计算滑动方向
+ * 正数 = 向右（新界面在右侧，从右往左滑入）
+ * 负数 = 向左（新界面在左侧，从左往右滑入）
  */
-export function PageTransition({ children, interfaceType }: PageTransitionProps) {
-  const direction = interfaceOrder[interfaceType]
+function getDirection(from: InterfaceType, to: InterfaceType): number {
+  return interfaceOrder[to] - interfaceOrder[from]
+}
+
+const pageVariants: Variants = {
+  enter: (direction: number) => ({
+    x: direction > 0 ? '30%' : '-30%',
+    opacity: 0,
+    scale: 0.98,
+  }),
+  center: {
+    x: 0,
+    opacity: 1,
+    scale: 1,
+  },
+  exit: (direction: number) => ({
+    x: direction > 0 ? '-30%' : '30%',
+    opacity: 0,
+    scale: 0.98,
+  }),
+}
+
+/**
+ * PageTransition - 三界面切换动画
+ *
+ * 特性：
+ * - 双向滑动：根据界面顺序自动判断滑动方向
+ * - 淡入淡出 + 微缩放：更自然的视觉过渡
+ * - 使用 spring 物理动画：更流畅的手感
+ * - GPU 加速：仅使用 transform 和 opacity
+ */
+export function PageTransition({ children, interfaceType, className }: PageTransitionProps) {
+  const [prevInterface, setPrevInterface] = useState<InterfaceType>(interfaceType)
+
+  useEffect(() => {
+    if (interfaceType !== prevInterface) {
+      setPrevInterface(interfaceType)
+    }
+  }, [interfaceType, prevInterface])
+
+  const direction = getDirection(prevInterface, interfaceType)
 
   return (
     <AnimatePresence mode="wait" custom={direction}>
@@ -50,8 +83,9 @@ export function PageTransition({ children, interfaceType }: PageTransitionProps)
         animate="center"
         exit="exit"
         transition={{
-          x: { type: 'tween', duration: 0.3, ease: [0.16, 1, 0.3, 1] },
-          opacity: { duration: 0.2, ease: 'easeInOut' },
+          x: { type: 'spring', stiffness: 400, damping: 35, mass: 0.8 },
+          opacity: { duration: 0.25, ease: 'easeInOut' },
+          scale: { duration: 0.25, ease: 'easeInOut' },
         }}
         style={{
           willChange: 'transform, opacity',
@@ -61,6 +95,7 @@ export function PageTransition({ children, interfaceType }: PageTransitionProps)
           right: 0,
           bottom: 0,
         }}
+        className={className}
       >
         {children}
       </motion.div>

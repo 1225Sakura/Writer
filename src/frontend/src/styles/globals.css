@@ -571,6 +571,173 @@ code, pre {
 }
 
 /* ============================================================
+   TIPTAP EDITOR ENHANCEMENTS — Cursor, Selection, Paragraphs
+   ============================================================ */
+
+/* Animated cursor */
+.writing-area .tiptap .ProseMirror-focused {
+  outline: none;
+}
+
+.writing-area .tiptap {
+  caret-color: #e8b87d;
+  caret-shape: bar;
+}
+
+/* Custom cursor animation using a pseudo-element approach on the contenteditable */
+.writing-area .tiptap[contenteditable="true"] {
+  caret-color: transparent;
+}
+
+.writing-area .tiptap[contenteditable="true"]::after {
+  content: '';
+  position: absolute;
+  width: 2px;
+  height: 1.2em;
+  background: linear-gradient(180deg, #e8b87d 0%, #c45c5c 100%);
+  animation: cursor-blink 1.1s ease-in-out infinite;
+  pointer-events: none;
+  margin-left: -1px;
+  border-radius: 1px;
+  opacity: 0;
+}
+
+@keyframes cursor-blink {
+  0%, 100% { opacity: 0; }
+  50% { opacity: 1; }
+}
+
+/* Selection styling — warm ink-like selection */
+.writing-area .tiptap ::selection {
+  background: rgba(196, 92, 92, 0.25) !important;
+  color: #f5f0e6 !important;
+}
+
+.writing-area .tiptap ::-moz-selection {
+  background: rgba(196, 92, 92, 0.25) !important;
+  color: #f5f0e6 !important;
+}
+
+/* Paragraph spacing optimization */
+.writing-area .tiptap p {
+  margin-bottom: 1.2em;
+  text-indent: 2em;
+  transition: all 0.2s ease;
+  position: relative;
+}
+
+/* Paragraph hover subtle indicator */
+.writing-area .tiptap p:hover::before {
+  content: '';
+  position: absolute;
+  left: -12px;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background: linear-gradient(180deg, rgba(232, 184, 125, 0.15) 0%, transparent 100%);
+  border-radius: 2px;
+  opacity: 0;
+  animation: paragraph-indicator-fade-in 0.2s ease forwards;
+}
+
+@keyframes paragraph-indicator-fade-in {
+  from { opacity: 0; transform: translateX(-2px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+/* Active paragraph (where cursor is) enhanced styling */
+.writing-area .tiptap p.has-focus {
+  position: relative;
+}
+
+.writing-area .tiptap p.has-focus::after {
+  content: '';
+  position: absolute;
+  left: -8px;
+  right: -8px;
+  top: -4px;
+  bottom: -4px;
+  background: linear-gradient(90deg, rgba(94, 106, 210, 0.04) 0%, rgba(232, 184, 125, 0.03) 50%, rgba(94, 106, 210, 0.04) 100%);
+  border-radius: 6px;
+  pointer-events: none;
+  z-index: -1;
+}
+
+/* Heading spacing */
+.writing-area .tiptap h1,
+.writing-area .tiptap h2,
+.writing-area .tiptap h3 {
+  margin-top: 1.5em;
+  margin-bottom: 0.6em;
+}
+
+.writing-area .tiptap h1:first-child,
+.writing-area .tiptap h2:first-child,
+.writing-area .tiptap h3:first-child {
+  margin-top: 0;
+}
+
+/* Blockquote styling */
+.writing-area .tiptap blockquote {
+  border-left: 3px solid rgba(232, 184, 125, 0.3);
+  padding-left: 1em;
+  margin: 1em 0;
+  color: rgba(245, 240, 230, 0.75);
+  font-style: italic;
+}
+
+/* Horizontal rule */
+.writing-area .tiptap hr {
+  border: none;
+  height: 1px;
+  background: linear-gradient(90deg, transparent 0%, rgba(245, 240, 230, 0.1) 50%, transparent 100%);
+  margin: 2em 0;
+}
+
+/* List styling */
+.writing-area .tiptap ul,
+.writing-area .tiptap ol {
+  padding-left: 1.5em;
+  margin-bottom: 1.2em;
+}
+
+.writing-area .tiptap li {
+  margin-bottom: 0.4em;
+  line-height: var(--writing-line-height);
+}
+
+.writing-area .tiptap li::marker {
+  color: rgba(232, 184, 125, 0.5);
+}
+
+/* Code inline */
+.writing-area .tiptap code {
+  background: rgba(255, 255, 255, 0.05);
+  padding: 0.15em 0.4em;
+  border-radius: 4px;
+  font-size: 0.9em;
+  color: rgba(245, 240, 230, 0.85);
+}
+
+/* Highlight colors adapted for dark theme */
+.writing-area .tiptap mark {
+  background: rgba(232, 184, 125, 0.2);
+  color: #f5f0e6;
+  padding: 0.1em 0.2em;
+  border-radius: 2px;
+}
+
+/* Focus mode dimmed paragraphs */
+.writing-area .tiptap [data-focus-mode-dim] {
+  transition: opacity 0.4s ease, filter 0.4s ease;
+}
+
+/* Smooth scroll behavior */
+.writing-area .tiptap {
+  scroll-behavior: smooth;
+}
+
+/* ============================================================
    ENTITY HIGHLIGHTS — Color-coded inline markers
    ============================================================ */
 
