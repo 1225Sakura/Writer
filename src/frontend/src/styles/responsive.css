@@ -1,0 +1,550 @@
+/**
+ * Responsive Layout System
+ * Breakpoints and responsive utilities for all three interfaces
+ */
+
+/* ============================================================
+   BREAKPOINT DEFINITIONS
+   ============================================================ */
+
+:root {
+  /* Breakpoints */
+  --breakpoint-mobile: 480px;
+  --breakpoint-tablet: 768px;
+  --breakpoint-desktop: 1024px;
+  --breakpoint-desktop-xl: 1440px;
+
+  /* Container max-widths */
+  --container-sm: 640px;
+  --container-md: 768px;
+  --container-lg: 1024px;
+  --container-xl: 1280px;
+  --container-2xl: 1536px;
+
+  /* Writing area widths */
+  --writing-width-compact: 600px;
+  --writing-width-normal: 720px;
+  --writing-width-wide: 900px;
+}
+
+/* ============================================================
+   RESPONSIVE UTILITY CLASSES
+   ============================================================ */
+
+/* Mobile First Breakpoints */
+/* @media (min-width: 480px) - Mobile landscape */
+/* @media (min-width: 768px) - Tablet */
+/* @media (min-width: 1024px) - Desktop */
+/* @media (min-width: 1440px) - Desktop XL */
+
+/* ===== Breakpoint visibility ===== */
+.show-mobile { display: none; }
+.show-tablet { display: none; }
+.show-desktop { display: none; }
+.show-desktop-xl { display: none; }
+
+.hide-mobile { display: block; }
+.hide-tablet { display: block; }
+.hide-desktop { display: block; }
+.hide-desktop-xl { display: block; }
+
+/* Mobile (default < 768px) */
+@media (max-width: 767px) {
+  .show-mobile { display: block; }
+  .hide-mobile { display: none; }
+
+  .hide-tablet { display: block; }
+  .hide-desktop { display: block; }
+  .hide-desktop-xl { display: block; }
+}
+
+/* Tablet (768px - 1023px) */
+@media (min-width: 768px) and (max-width: 1023px) {
+  .show-tablet { display: block; }
+  .hide-tablet { display: none; }
+
+  .show-mobile { display: none; }
+  .show-desktop { display: none; }
+  .show-desktop-xl { display: none; }
+
+  .hide-mobile { display: block; }
+  .hide-desktop { display: block; }
+  .hide-desktop-xl { display: block; }
+}
+
+/* Desktop (1024px - 1439px) */
+@media (min-width: 1024px) and (max-width: 1439px) {
+  .show-desktop { display: block; }
+  .hide-desktop { display: none; }
+
+  .show-mobile { display: none; }
+  .show-tablet { display: none; }
+  .show-desktop-xl { display: none; }
+
+  .hide-mobile { display: block; }
+  .hide-tablet { display: block; }
+  .hide-desktop-xl { display: block; }
+}
+
+/* Desktop XL (>= 1440px) */
+@media (min-width: 1440px) {
+  .show-desktop-xl { display: block; }
+  .hide-desktop-xl { display: none; }
+
+  .show-mobile { display: none; }
+  .show-tablet { display: none; }
+  .show-desktop { display: none; }
+
+  .hide-mobile { display: block; }
+  .hide-tablet { display: block; }
+  .hide-desktop { display: block; }
+}
+
+/* ============================================================
+   DRAWER RESPONSIVE STYLES
+   ============================================================ */
+
+.drawer-responsive {
+  transition: width 0.3s ease, transform 0.3s ease;
+}
+
+/* Mobile: drawers are full-width or hidden */
+@media (max-width: 767px) {
+  .drawer-responsive.drawer-right,
+  .drawer-responsive.drawer-left {
+    width: 100% !important;
+    max-width: 100%;
+  }
+
+  .drawer-collapsed-mobile {
+    transform: translateX(0);
+  }
+
+  .drawer-hidden-mobile {
+    transform: translateX(100%);
+  }
+
+  .drawer-left.drawer-hidden-mobile {
+    transform: translateX(-100%);
+  }
+}
+
+/* Tablet: drawers are 280px or hidden */
+@media (min-width: 768px) and (max-width: 1023px) {
+  .drawer-responsive.drawer-right,
+  .drawer-responsive.drawer-left {
+    width: 280px;
+    max-width: 280px;
+  }
+
+  .drawer-collapsed-tablet {
+    width: 0;
+    overflow: hidden;
+  }
+}
+
+/* Desktop: normal drawer behavior (360px) */
+@media (min-width: 1024px) {
+  .drawer-responsive.drawer-right,
+  .drawer-responsive.drawer-left {
+    width: var(--layout-rightpanel-width, 360px);
+    max-width: var(--layout-rightpanel-width, 360px);
+  }
+}
+
+/* ============================================================
+   WRITING AREA RESPONSIVE
+   ============================================================ */
+
+.writing-responsive {
+  transition: max-width 0.3s ease, padding 0.3s ease;
+}
+
+/* Mobile: full width with minimal padding */
+@media (max-width: 767px) {
+  .writing-responsive {
+    padding-left: 16px;
+    padding-right: 16px;
+    max-width: 100%;
+  }
+
+  .writing-text-container {
+    font-size: 15px;
+    line-height: 1.8;
+  }
+}
+
+/* Tablet: centered with moderate padding */
+@media (min-width: 768px) and (max-width: 1023px) {
+  .writing-responsive {
+    padding-left: 32px;
+    padding-right: 32px;
+    max-width: 100%;
+  }
+
+  .writing-text-container {
+    font-size: 16px;
+    line-height: 1.85;
+  }
+}
+
+/* Desktop: max-width constrained */
+@media (min-width: 1024px) and (max-width: 1199px) {
+  .writing-responsive {
+    padding-left: 48px;
+    padding-right: 48px;
+    max-width: 100%;
+  }
+
+  .writing-text-container {
+    font-size: 17px;
+    line-height: 1.85;
+  }
+}
+
+/* Desktop XL: full constraint */
+@media (min-width: 1200px) {
+  .writing-responsive {
+    max-width: var(--writing-width-normal, 720px);
+    margin-left: auto;
+    margin-right: auto;
+    padding-left: 48px;
+    padding-right: 48px;
+  }
+
+  .writing-text-container {
+    font-size: 17px;
+    line-height: 1.85;
+  }
+}
+
+/* ============================================================
+   THREE-INTERFACE RESPONSIVE LAYOUTS
+   ============================================================ */
+
+/* === ChatInitPage Responsive === */
+.chat-layout {
+  display: grid;
+  grid-template-columns: 1fr;
+  grid-template-rows: auto 1fr auto;
+  height: 100vh;
+  overflow: hidden;
+}
+
+.chat-layout-panel {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+  padding: 16px;
+  overflow: hidden;
+}
+
+/* Tablet: side-by-side panels */
+@media (min-width: 768px) {
+  .chat-layout-panel {
+    grid-template-columns: 60% 40%;
+    gap: 24px;
+    padding: 24px;
+  }
+}
+
+/* Desktop: larger spacing */
+@media (min-width: 1024px) {
+  .chat-layout-panel {
+    grid-template-columns: 60% 40%;
+    gap: 32px;
+    padding: 32px;
+    max-width: var(--container-xl);
+    margin: 0 auto;
+  }
+}
+
+/* === SettingEditorPage Responsive === */
+.settings-layout {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  height: 100vh;
+  overflow: hidden;
+}
+
+.settings-sidebar {
+  width: var(--layout-sidebar-width, 240px);
+  transition: width 0.3s ease;
+}
+
+.settings-content {
+  flex: 1;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Mobile: sidebar hidden, hamburger menu */
+@media (max-width: 767px) {
+  .settings-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .settings-sidebar {
+    position: fixed;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 280px;
+    z-index: 100;
+    transform: translateX(-100%);
+    background: var(--elevation-1);
+  }
+
+  .settings-sidebar.open {
+    transform: translateX(0);
+  }
+
+  .settings-sidebar-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 99;
+  }
+}
+
+/* Tablet: narrower sidebar */
+@media (min-width: 768px) and (max-width: 1023px) {
+  .settings-sidebar {
+    width: 200px;
+  }
+}
+
+/* === WritingEditorPage Responsive === */
+.writing-layout {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  overflow: hidden;
+}
+
+.writing-main {
+  flex: 1;
+  display: flex;
+  overflow: hidden;
+}
+
+.writing-canvas {
+  flex: 1;
+  overflow: auto;
+}
+
+.writing-toolbar {
+  height: 48px;
+  flex-shrink: 0;
+}
+
+/* Mobile: stacked layout, bottom navigation */
+@media (max-width: 767px) {
+  .writing-toolbar {
+    height: 56px;
+    padding: 8px 12px;
+  }
+
+  .writing-toolbar-main {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .writing-toolbar-secondary {
+    display: none;
+  }
+
+  .writing-toolbar-mobile-nav {
+    display: flex;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 56px;
+    background: var(--elevation-1);
+    border-top: 1px solid var(--border-default);
+    z-index: 50;
+  }
+}
+
+/* Tablet: hide secondary toolbar */
+@media (min-width: 768px) and (max-width: 1023px) {
+  .writing-toolbar-secondary {
+    display: none;
+  }
+}
+
+/* ============================================================
+   PANEL SIZING RESPONSIVE
+   ============================================================ */
+
+.panel-collapsed { width: 0; overflow: hidden; }
+.panel-normal { width: 280px; }
+.panel-wide { width: 360px; }
+.panel-full { width: 100%; }
+
+@media (max-width: 767px) {
+  .panel-normal,
+  .panel-wide {
+    width: 100%;
+  }
+
+  .panel-collapsed {
+    width: 0;
+  }
+}
+
+@media (min-width: 768px) and (max-width: 1023px) {
+  .panel-normal { width: 240px; }
+  .panel-wide { width: 300px; }
+}
+
+@media (min-width: 1024px) {
+  .panel-normal { width: 280px; }
+  .panel-wide { width: 360px; }
+}
+
+/* ============================================================
+   TYPOGRAPHY RESPONSIVE SCALE
+   ============================================================ */
+
+.typography-writing {
+  font-family: var(--font-serif-cn);
+  line-height: var(--writing-line-height);
+  letter-spacing: var(--writing-letter-spacing);
+}
+
+@media (max-width: 767px) {
+  .typography-writing {
+    font-size: 15px;
+    line-height: 1.8;
+    letter-spacing: 0.02em;
+  }
+}
+
+@media (min-width: 768px) and (max-width: 1023px) {
+  .typography-writing {
+    font-size: 16px;
+    line-height: 1.85;
+    letter-spacing: 0.02em;
+  }
+}
+
+@media (min-width: 1024px) {
+  .typography-writing {
+    font-size: var(--writing-font-size, 17px);
+    line-height: var(--writing-line-height, 1.85);
+    letter-spacing: var(--writing-letter-spacing, 0.01em);
+  }
+}
+
+.typography-interface {
+  font-family: var(--font-sans);
+  line-height: var(--leading-normal);
+}
+
+@media (max-width: 767px) {
+  .typography-interface {
+    font-size: 13px;
+    line-height: 1.5;
+    letter-spacing: 0.01em;
+  }
+}
+
+@media (min-width: 768px) {
+  .typography-interface {
+    font-size: 14px;
+    line-height: 1.5;
+    letter-spacing: 0;
+  }
+}
+
+/* ============================================================
+   Z-INDEX RESPONSIVE LAYERS
+   ============================================================ */
+
+.z-base: 0;
+.z-dropdown: 50;
+.z-sticky: 100;
+.z-overlay: 150;
+.z-modal: 200;
+.z-toast: 300;
+
+/* ============================================================
+   ANIMATION RESPONSIVE
+   ============================================================ */
+
+.animation-duration-fast { animation-duration: 150ms; }
+.animation-duration-normal { animation-duration: 250ms; }
+.animation-duration-slow { animation-duration: 400ms; }
+
+@media (max-width: 767px) {
+  .animation-duration-fast { animation-duration: 100ms; }
+  .animation-duration-normal { animation-duration: 150ms; }
+  .animation-duration-slow { animation-duration: 250ms; }
+}
+
+/* ============================================================
+   TOUCH DEVICE OPTIMIZATIONS
+   ============================================================ */
+
+@media (hover: none) and (pointer: coarse) {
+  /* Touch device optimizations */
+  .touch-target-min {
+    min-height: 44px;
+    min-width: 44px;
+  }
+
+  .touch-target-padding {
+    padding: 12px 16px;
+  }
+
+  /* Disable hover effects on touch devices */
+  .hover-lift:hover {
+    transform: none;
+    box-shadow: none;
+  }
+
+  /* Larger touch targets for drawers */
+  .drawer-handle {
+    width: 48px;
+    height: 48px;
+  }
+
+  /* Disable blur effects on mobile for performance */
+  .glass,
+  .glass-strong {
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+}
+
+/* ============================================================
+   PRINT / REDUCED MOTION
+   ============================================================ */
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+@media print {
+  .no-print {
+    display: none !important;
+  }
+
+  .writing-layout {
+    height: auto;
+    overflow: visible;
+  }
+
+  .writing-canvas {
+    overflow: visible;
+  }
+}

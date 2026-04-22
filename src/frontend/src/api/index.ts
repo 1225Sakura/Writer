@@ -21,6 +21,9 @@ export {
   messageApi,
   entityApi,
   streamChat,
+  streamReader,
+  consumeStream,
+  type StreamCallbacks,
 } from "./chat"
 export { default as chatApiDefault } from "./chat"
 
@@ -34,11 +37,10 @@ export {
   factionApi,
   worldSettingApi,
   ruleApi,
-  outlineApi,
-  chapterApi,
-  ifLineApi,
-  aiGenerateApi,
+  writingSettingsApi,
+  backupApi,
 } from "./settings"
+export { default as settingsApiDefault } from "./settings"
 
 // Writing API
 export {
@@ -49,10 +51,15 @@ export {
   plotThreadApi,
   inspectionApi,
   aiApi,
-  type AIOperationType,
-  type AIGenerateRequest,
-  type AIGenerateResponse,
 } from "./writing"
+export { default as writingApiDefault } from "./writing"
+
+// AI Review API
+export {
+  aiReviewApi,
+  checkerApi,
+} from "./aiReview"
+export { default as aiReviewApiDefault } from "./aiReview"
 
 // Agents API
 export {

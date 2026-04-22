@@ -1,5 +1,5 @@
-import { useState, useEffect, useCallback } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
+import { useState, useEffect, useCallback, useRef } from 'react'
+import { motion, AnimatePresence, useSpring } from 'framer-motion'
 import { Type, Clock, BookOpen, ChevronUp, ChevronDown, Zap } from 'lucide-react'
 
 interface WritingStatsOverlayProps {
@@ -50,14 +50,49 @@ export function WritingStatsOverlay({
   const [lastWordCount, setLastWordCount] = useState(wordCount)
   const [burstWPM, setBurstWPM] = useState(0)
   const [wordCountDelta, setWordCountDelta] = useState(0)
+  const [showDelta, setShowDelta] = useState(false)
+  const deltaTimeoutRef = useRef<NodeJS.Timeout | null>(null)
+
+  // Animated word count with spring physics
+  const animatedWordCount = useSpring(wordCount, {
+    stiffness: 100,
+    damping: 30,
+    mass: 1,
+  })
+
+  // Animated today word count
+  const animatedTodayWordCount = useSpring(todayWordCount, {
+    stiffness: 80,
+    damping: 25,
+    mass: 1,
+  })
+
+  // Update spring value when wordCount changes
+  useEffect(() => {
+    animatedWordCount.set(wordCount)
+  }, [wordCount, animatedWordCount])
+
+  useEffect(() => {
+    animatedTodayWordCount.set(todayWordCount)
+  }, [todayWordCount, animatedTodayWordCount])
 
   // Track burst writing speed (words per minute over last 10 seconds)
   useEffect(() => {
     const delta = wordCount - lastWordCount
-    setWordCountDelta(delta)
     if (delta > 0) {
+      setWordCountDelta(delta)
+      setShowDelta(true)
       // Calculate WPM based on 5-second sampling
       setBurstWPM(Math.round(delta * 12))
+
+      // Clear previous timeout
+      if (deltaTimeoutRef.current) {
+        clearTimeout(deltaTimeoutRef.current)
+      }
+      // Hide delta after 2 seconds
+      deltaTimeoutRef.current = setTimeout(() => {
+        setShowDelta(false)
+      }, 2000)
     }
     setLastWordCount(wordCount)
   }, [wordCount])
@@ -161,8 +196,29 @@ export function WritingStatsOverlay({
             <div className="flex items-center gap-3 px-3 py-2">
               <div className="flex items-center gap-1.5">
                 <Type className="w-3 h-3 text-[#5eb5a6]" />
-                <span className="text-xs font-medium text-[#f7f8f8]">{wordCount}</span>
+                <motion.span
+                  className="text-xs font-medium text-[#f7f8f8]"
+                  key={wordCount}
+                  initial={{ scale: 1.1, color: '#7eb84a' }}
+                  animate={{ scale: 1, color: '#f7f8f8' }}
+                  transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
+                >
+                  {Math.round(animatedWordCount.get())}
+                </motion.span>
                 <span className="text-[10px] text-[#8a8f98]">字</span>
+                {/* Delta indicator */}
+                <AnimatePresence>
+                  {showDelta && wordCountDelta > 0 && (
+                    <motion.span
+                      initial={{ opacity: 0, y: 4, scale: 0.8 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      exit={{ opacity: 0, y: -4, scale: 0.8 }}
+                      className="text-[10px] font-medium text-[#7eb84a] ml-0.5"
+                    >
+                      +{wordCountDelta}
+                    </motion.span>
+                  )}
+                </AnimatePresence>
               </div>
               <div className="w-px h-3 bg-[rgba(255,255,255,0.08)]" />
               <div className="flex items-center gap-1.5">
@@ -223,9 +279,13 @@ export function WritingStatsOverlay({
                     <div className="pt-1">
                       <div className="flex items-center justify-between mb-1.5">
                         <span className="text-[11px] text-[#8a8f98]">今日进度</span>
-                        <span className="text-[11px] font-medium" style={{ color: progressColor }}>
-                          {todayWordCount} / {targetWordCount}
-                        </span>
+                        <motion.span
+                          className="text-[11px] font-medium"
+                          style={{ color: progressColor }}
+                          key={todayWordCount}
+                        >
+                          {Math.round(animatedTodayWordCount.get())} / {targetWordCount}
+                        </motion.span>
                       </div>
                       <div className="h-1.5 rounded-full bg-[rgba(255,255,255,0.06)] overflow-hidden">
                         <motion.div

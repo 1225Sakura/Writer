@@ -1,13 +1,12 @@
 import { useEffect, useCallback } from 'react'
-import { useUIStore, useWritingStore, useChatStore, useSettingsStore } from '@/store'
+import { useUIStore, useWritingStore } from '@/store'
 import { getEditorInstance } from '@/store/editorRegistry'
 import {
   AI_SHORTCUT_OPERATIONS,
   AI_OPERATION_LABELS,
   type AIOperationType,
-  formatShortcut,
-  type InterfaceType,
 } from '@/constants/shortcuts'
+import type { InterfaceType } from '@/store/uiStore'
 import { showToast } from '@/components/ui/Toast'
 
 /**
@@ -67,31 +66,6 @@ async function executeAIOperation(operation: AIOperationType, selectedText: stri
 }
 
 /**
- * 检查快捷键是否匹配
- */
-function matchShortcut(
-  e: KeyboardEvent,
-  shortcut: { ctrlKey?: boolean; shiftKey?: boolean; altKey?: boolean; metaKey?: boolean; key: string }
-): boolean {
-  // 特殊处理：当快捷键需要shift时，key应该是大写字母
-  const expectedKey = shortcut.shiftKey ? shortcut.key.toUpperCase() : shortcut.key
-
-  const keyMatch =
-    e.key === expectedKey ||
-    e.key === shortcut.key ||
-    // 兼容处理：F11等功能键
-    (shortcut.key.startsWith('F') && e.key === shortcut.key)
-
-  return (
-    keyMatch &&
-    !!e.ctrlKey === !!shortcut.ctrlKey &&
-    !!e.shiftKey === !!shortcut.shiftKey &&
-    !!e.altKey === !!shortcut.altKey &&
-    !!e.metaKey === !!shortcut.metaKey
-  )
-}
-
-/**
  * 全局快捷键管理器 Hook
  * 处理所有界面的全局快捷键
  */
@@ -119,9 +93,6 @@ export function useGlobalShortcuts() {
     createChapter,
     markSaved,
   } = useWritingStore()
-
-  const { createSession } = useChatStore()
-  const { loadAll } = useSettingsStore()
 
   // ===== 保存功能 =====
   const handleSave = useCallback(async () => {

@@ -1,19 +1,58 @@
-import { useEffect, useRef, useState, useMemo, useCallback } from 'react'
+import { useEffect, useRef, useState, useMemo, useCallback, Suspense, lazy } from 'react'
 import { useSettingsStore } from '@/store'
-import { LinkIcon, Filter, Box, Grid2x2, ZoomIn, ZoomOut, RotateCcw, Eye } from 'lucide-react'
+import {
+  LinkIcon, Filter, Box, Grid2x2, ZoomIn, ZoomOut, RotateCcw,
+  Eye, EyeOff, X, Users, MapPin, Swords, BookOpen, Globe, Scroll,
+  ChevronRight, Maximize2, Minimize2
+} from 'lucide-react'
+import { motion, AnimatePresence } from 'framer-motion'
+
+// Lazy load force graph components to reduce initial bundle
+const ForceGraph2D = lazy(() => import('react-force-graph-2d'))
+const ForceGraph3D = lazy(() => import('react-force-graph-3d'))
+
+// ============================================
+// Types
+// ============================================
 
 interface GraphNode {
-  id: number
+  id: string
   name: string
-  type: string
+  type: EntityNodeType
   color: string
   val: number
+  description?: string
+  entityId: number
 }
 
 interface GraphLink {
-  source: number
-  target: number
+  source: string
+  target: string
   type: string
+  color: string
+}
+
+type EntityNodeType = 'character' | 'item' | 'location' | 'faction' | 'world' | 'rule' | 'outline' | 'ifline'
+
+interface NodeDetail {
+  node: GraphNode
+  x: number
+  y: number
+}
+
+// ============================================
+// Constants
+// ============================================
+
+const ENTITY_TYPE_CONFIG: Record<EntityNodeType, { label: string; color: string; icon: typeof Users }> = {
+  character: { label: '角色', color: '#e8b87d', icon: Users },
+  item: { label: '物品', color: '#9b7ed9', icon: Scroll },
+  location: { label: '地点', color: '#5eb5a6', icon: MapPin },
+  faction: { label: '势力', color: '#d45d5d', icon: Swords },
+  world: { label: '世界观', color: '#5b8ee8', icon: Globe },
+  rule: { label: '规则', color: '#7eb84a', icon: BookOpen },
+  outline: { label: '大纲', color: '#5b8ee8', icon: BookOpen },
+  ifline: { label: 'IF线', color: '#7eb84a', icon: Scroll },
 }
 
 const RELATION_TYPE_COLORS: Record<string, string> = {
@@ -24,6 +63,9 @@ const RELATION_TYPE_COLORS: Record<string, string> = {
   disciple: '#7eb84a',
   rival: '#e8b87d',
   romantic: '#d45d5d',
+  owns: '#9b7ed9',
+  located_at: '#5eb5a6',
+  belongs_to: '#d45d5d',
   other: '#6b7280',
 }
 
@@ -35,532 +77,792 @@ const RELATION_TYPE_LABELS: Record<string, string> = {
   disciple: '徒弟',
   rival: '竞争',
   romantic: '恋人',
+  owns: '拥有',
+  located_at: '位于',
+  belongs_to: '属于',
   other: '其他',
 }
 
-export function RelationGraph() {
-  const containerRef = useRef<HTMLDivElement>(null)
-  const svgRef = useRef<SVGSVGElement>(null)
-  const { characters } = useSettingsStore()
-  const [dimensions, setDimensions] = useState({ width: 300, height: 400 })
-  const [filterType, setFilterType] = useState<string>('all')
-  const [hoveredNode, setHoveredNode] = useState<number | null>(null)
-  const [viewMode, setViewMode] = useState<'2d' | '3d'>('2d')
-  const [zoom, setZoom] = useState(1)
-  const [pan, setPan] = useState({ x: 0, y: 0 })
-  const [isDragging, setIsDragging] = useState(false)
-  const [dragStart, setDragStart] = useState({ x: 0, y: 0 })
-  const [showLegend, setShowLegend] = useState(true)
-  const [highlightedConnections, setHighlightedConnections] = useState<Set<number>>(new Set())
-  const [isLoaded, setIsLoaded] = useState(false)
+// ============================================
+// Helper: Build graph data from store entities
+// ============================================
 
-  // 计算节点和连线 - 使用useMemo优化
-  const nodes: GraphNode[] = useMemo(() =>
-    characters.map((char) => ({
-      id: char.id,
-      name: char.name,
-      type: 'character',
-      color: '#e8b87d',
-      val: char.relationships.length + 1,
-    })),
-  [characters])
+function useGraphData() {
+  const { characters, items, locations, factions, worldSettings, rules, ifLines } = useSettingsStore()
 
-  // 根据筛选类型过滤连线
-  const links: GraphLink[] = useMemo(() => {
-    let filteredLinks = characters.flatMap((char) =>
-      char.relationships.map((rel) => ({
-        source: char.id,
-        target: rel.targetId,
-        type: rel.type,
-      }))
-    )
-    if (filterType !== 'all') {
-      filteredLinks = filteredLinks.filter((link) => link.type === filterType)
-    }
-    return filteredLinks
-  }, [characters, filterType])
+  return useMemo(() => {
+    const nodes: GraphNode[] = []
+    const links: GraphLink[] = []
 
-  // 计算力导向布局 - 使用useMemo优化
-  const positions = useMemo(() => {
-    const map = new Map<number, { x: number; y: number }>()
-    if (characters.length === 0) return map
+    // Character nodes
+    characters.forEach((char) => {
+      nodes.push({
+        id: `char_${char.id}`,
+        name: char.name,
+        type: 'character',
+        color: ENTITY_TYPE_CONFIG.character.color,
+        val: Math.max(char.relationships.length + 1, 1),
+        description: char.description || char.personality || '',
+        entityId: char.id,
+      })
 
-    const centerX = dimensions.width / 2
-    const centerY = dimensions.height / 2
-    const radius = Math.min(centerX, centerY) * 0.6
-
-    characters.forEach((char, i) => {
-      const angle = (i / Math.max(characters.length, 1)) * 2 * Math.PI
-      map.set(char.id, {
-        x: centerX + radius * Math.cos(angle),
-        y: centerY + radius * Math.sin(angle),
+      // Character relationships
+      char.relationships.forEach((rel) => {
+        const targetId = `char_${rel.targetId}`
+        if (nodes.some((n) => n.id === targetId)) {
+          links.push({
+            source: `char_${char.id}`,
+            target: targetId,
+            type: rel.type,
+            color: RELATION_TYPE_COLORS[rel.type] || RELATION_TYPE_COLORS.other,
+          })
+        }
       })
     })
-    return map
-  }, [characters.length, dimensions.width, dimensions.height])
 
-  // 获取有关系的角色ID集合
-  const connectedNodeIds = useMemo(() => {
-    const ids = new Set<number>()
-    links.forEach((link) => {
-      ids.add(link.source)
-      ids.add(link.target)
+    // Item nodes + ownership links
+    items.forEach((item) => {
+      nodes.push({
+        id: `item_${item.id}`,
+        name: item.name,
+        type: 'item',
+        color: ENTITY_TYPE_CONFIG.item.color,
+        val: 1,
+        description: item.description || '',
+        entityId: item.id,
+      })
+      if (item.owner) {
+        const ownerChar = characters.find((c) => c.name === item.owner)
+        if (ownerChar) {
+          links.push({
+            source: `char_${ownerChar.id}`,
+            target: `item_${item.id}`,
+            type: 'owns',
+            color: RELATION_TYPE_COLORS.owns,
+          })
+        }
+      }
+      if (item.location) {
+        const loc = locations.find((l) => l.name === item.location)
+        if (loc) {
+          links.push({
+            source: `item_${item.id}`,
+            target: `loc_${loc.id}`,
+            type: 'located_at',
+            color: RELATION_TYPE_COLORS.located_at,
+          })
+        }
+      }
     })
-    return ids
-  }, [links])
 
-  // 计算与当前hover节点相连的节点
-  useEffect(() => {
-    if (hoveredNode === null) {
-      setHighlightedConnections(new Set())
-      return
-    }
-    const connected = new Set<number>()
-    connected.add(hoveredNode)
-    links.forEach((link) => {
-      if (link.source === hoveredNode) connected.add(link.target)
-      if (link.target === hoveredNode) connected.add(link.source)
+    // Location nodes
+    locations.forEach((loc) => {
+      nodes.push({
+        id: `loc_${loc.id}`,
+        name: loc.name,
+        type: 'location',
+        color: ENTITY_TYPE_CONFIG.location.color,
+        val: 1,
+        description: loc.description || '',
+        entityId: loc.id,
+      })
     })
-    setHighlightedConnections(connected)
-  }, [hoveredNode, links])
 
-  // 加载动画
-  useEffect(() => {
-    const timer = setTimeout(() => setIsLoaded(true), 100)
-    return () => clearTimeout(timer)
-  }, [])
+    // Faction nodes + membership links
+    factions.forEach((fac) => {
+      nodes.push({
+        id: `fac_${fac.id}`,
+        name: fac.name,
+        type: 'faction',
+        color: ENTITY_TYPE_CONFIG.faction.color,
+        val: 1,
+        description: fac.description || '',
+        entityId: fac.id,
+      })
+    })
 
-  useEffect(() => {
-    if (containerRef.current) {
-      const { width, height } = containerRef.current.getBoundingClientRect()
-      setDimensions({ width, height })
+    // World setting nodes
+    worldSettings.forEach((ws) => {
+      nodes.push({
+        id: `world_${ws.id}`,
+        name: ws.name,
+        type: 'world',
+        color: ENTITY_TYPE_CONFIG.world.color,
+        val: 1,
+        description: ws.description || '',
+        entityId: ws.id,
+      })
+    })
+
+    // Rule nodes
+    rules.forEach((rule) => {
+      nodes.push({
+        id: `rule_${rule.id}`,
+        name: rule.name,
+        type: 'rule',
+        color: ENTITY_TYPE_CONFIG.rule.color,
+        val: 1,
+        description: rule.description || '',
+        entityId: rule.id,
+      })
+    })
+
+    // IF line nodes
+    ifLines.forEach((ifl) => {
+      nodes.push({
+        id: `ifl_${ifl.id}`,
+        name: ifl.title,
+        type: 'ifline',
+        color: ENTITY_TYPE_CONFIG.ifline.color,
+        val: 1,
+        description: ifl.description || '',
+        entityId: ifl.id,
+      })
+      if (ifl.linked_character_id) {
+        links.push({
+          source: `char_${ifl.linked_character_id}`,
+          target: `ifl_${ifl.id}`,
+          type: 'other',
+          color: RELATION_TYPE_COLORS.other,
+        })
+      }
+    })
+
+    return { nodes, links }
+  }, [characters, items, locations, factions, worldSettings, rules, ifLines])
+}
+
+// ============================================
+// Component: Graph Fallback Loader
+// ============================================
+
+function GraphFallback() {
+  return (
+    <div className="h-full flex items-center justify-center" style={{ backgroundColor: '#0a0b0d' }}>
+      <div className="text-center">
+        <div className="w-8 h-8 border-2 border-t-transparent rounded-full animate-spin mx-auto mb-3" style={{ borderColor: '#5e6ad2', borderTopColor: 'transparent' }} />
+        <p className="text-xs" style={{ color: '#6b7280' }}>加载图谱引擎...</p>
+      </div>
+    </div>
+  )
+}
+
+// ============================================
+// Component: Node Detail Panel
+// ============================================
+
+function NodeDetailPanel({ detail, onClose }: { detail: NodeDetail; onClose: () => void }) {
+  const config = ENTITY_TYPE_CONFIG[detail.node.type]
+  const Icon = config.icon
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 8, scale: 0.96 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+      exit={{ opacity: 0, y: 8, scale: 0.96 }}
+      transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
+      className="absolute z-20 rounded-lg p-3 min-w-[180px] max-w-[240px]"
+      style={{
+        left: Math.min(detail.x + 16, (typeof window !== 'undefined' ? window.innerWidth : 800) - 260),
+        top: Math.max(detail.y - 16, 8),
+        backgroundColor: 'rgba(15,16,17,0.95)',
+        border: '1px solid rgba(255,255,255,0.08)',
+        backdropFilter: 'blur(12px)',
+        boxShadow: '0 8px 32px rgba(0,0,0,0.4)',
+      }}
+    >
+      <div className="flex items-start justify-between mb-2">
+        <div className="flex items-center gap-2">
+          <div
+            className="w-6 h-6 rounded-full flex items-center justify-center"
+            style={{ backgroundColor: `${config.color}20` }}
+          >
+            <Icon className="w-3 h-3" style={{ color: config.color }} />
+          </div>
+          <div>
+            <p className="text-sm font-medium" style={{ color: '#f7f8f8' }}>{detail.node.name}</p>
+            <p className="text-[10px]" style={{ color: '#6b7280' }}>{config.label}</p>
+          </div>
+        </div>
+        <button
+          onClick={onClose}
+          className="p-0.5 rounded hover:bg-white/10 transition-colors flex-shrink-0"
+        >
+          <X className="w-3 h-3" style={{ color: '#6b7280' }} />
+        </button>
+      </div>
+      {detail.node.description && (
+        <p className="text-xs line-clamp-3 mb-2" style={{ color: '#9ca3af' }}>
+          {detail.node.description}
+        </p>
+      )}
+      <div className="flex items-center gap-1 text-[10px]" style={{ color: '#6b7280' }}>
+        <LinkIcon className="w-3 h-3" />
+        <span>{detail.node.val - 1} 条关系</span>
+      </div>
+    </motion.div>
+  )
+}
+
+// ============================================
+// Component: Filter Controls
+// ============================================
+
+function FilterControls({
+  activeTypes,
+  onToggleType,
+  filterRelation,
+  onSetRelationFilter,
+}: {
+  activeTypes: Set<EntityNodeType>
+  onToggleType: (type: EntityNodeType) => void
+  filterRelation: string
+  onSetRelationFilter: (type: string) => void
+}) {
+  const [isExpanded, setIsExpanded] = useState(false)
+
+  const relationTypes = Object.entries(RELATION_TYPE_LABELS)
+
+  return (
+    <div className="absolute top-3 left-3 z-10 flex flex-col gap-1.5">
+      {/* Zoom controls */}
+      <div
+        className="flex flex-col gap-0.5 rounded-lg p-1"
+        style={{ backgroundColor: 'rgba(15,16,17,0.8)', border: '1px solid rgba(255,255,255,0.06)' }}
+      >
+        <FilterButton icon={ZoomIn} title="放大" />
+        <FilterButton icon={ZoomOut} title="缩小" />
+        <FilterButton icon={RotateCcw} title="重置视图" />
+      </div>
+
+      {/* Entity type filter */}
+      <div
+        className="rounded-lg p-1.5"
+        style={{ backgroundColor: 'rgba(15,16,17,0.8)', border: '1px solid rgba(255,255,255,0.06)' }}
+      >
+        <button
+          onClick={() => setIsExpanded(!isExpanded)}
+          className="flex items-center gap-1.5 px-1.5 py-1 rounded hover:bg-white/5 transition-colors w-full"
+        >
+          <Filter className="w-3 h-3" style={{ color: '#9ca3af' }} />
+          <span className="text-[10px]" style={{ color: '#9ca3af' }}>筛选</span>
+          <ChevronRight
+            className="w-3 h-3 ml-auto transition-transform"
+            style={{ color: '#6b7280', transform: isExpanded ? 'rotate(90deg)' : 'rotate(0deg)' }}
+          />
+        </button>
+
+        <AnimatePresence>
+          {isExpanded && (
+            <motion.div
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: 'auto', opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              className="overflow-hidden"
+            >
+              <div className="pt-1.5 space-y-0.5">
+                {(Object.entries(ENTITY_TYPE_CONFIG) as [EntityNodeType, typeof ENTITY_TYPE_CONFIG['character']][]).map(([type, config]) => {
+                  const isActive = activeTypes.has(type)
+                  return (
+                    <button
+                      key={type}
+                      onClick={() => onToggleType(type)}
+                      className="flex items-center gap-1.5 px-1.5 py-1 rounded w-full transition-colors"
+                      style={{
+                        backgroundColor: isActive ? `${config.color}15` : 'transparent',
+                      }}
+                      onMouseEnter={(e) => {
+                        if (!isActive) e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.04)'
+                      }}
+                      onMouseLeave={(e) => {
+                        if (!isActive) e.currentTarget.style.backgroundColor = 'transparent'
+                      }}
+                    >
+                      <div
+                        className="w-2 h-2 rounded-full"
+                        style={{
+                          backgroundColor: isActive ? config.color : '#4b5563',
+                          opacity: isActive ? 1 : 0.4,
+                        }}
+                      />
+                      <span
+                        className="text-[10px]"
+                        style={{ color: isActive ? config.color : '#6b7280' }}
+                      >
+                        {config.label}
+                      </span>
+                    </button>
+                  )
+                })}
+              </div>
+
+              {/* Relation filter */}
+              <div className="pt-2 mt-1.5" style={{ borderTop: '1px solid rgba(255,255,255,0.06)' }}>
+                <p className="text-[10px] mb-1 px-1.5" style={{ color: '#6b7280' }}>关系类型</p>
+                <select
+                  value={filterRelation}
+                  onChange={(e) => onSetRelationFilter(e.target.value)}
+                  className="w-full text-[10px] px-1.5 py-1 rounded border-none outline-none cursor-pointer"
+                  style={{
+                    backgroundColor: 'rgba(255,255,255,0.05)',
+                    color: '#9ca3af',
+                  }}
+                >
+                  <option value="all">全部关系</option>
+                  {relationTypes.map(([type, label]) => (
+                    <option key={type} value={type}>{label}</option>
+                  ))}
+                </select>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
+    </div>
+  )
+}
+
+function FilterButton({ icon: Icon, title }: { icon: typeof ZoomIn; title: string }) {
+  return (
+    <button
+      className="p-1.5 rounded hover:bg-white/10 transition-colors"
+      title={title}
+    >
+      <Icon className="w-3.5 h-3.5" style={{ color: '#9ca3af' }} />
+    </button>
+  )
+}
+
+// ============================================
+// Component: Legend
+// ============================================
+
+function Legend({
+  showLegend,
+  onToggle,
+  visibleRelationTypes,
+}: {
+  showLegend: boolean
+  onToggle: () => void
+  visibleRelationTypes: string[]
+}) {
+  if (!showLegend) {
+    return (
+      <button
+        onClick={onToggle}
+        className="absolute bottom-3 right-3 z-10 p-1.5 rounded-lg hover:bg-white/10 transition-colors"
+        style={{
+          backgroundColor: 'rgba(15,16,17,0.8)',
+          border: '1px solid rgba(255,255,255,0.06)',
+        }}
+        title="显示图例"
+      >
+        <Eye className="w-3.5 h-3.5" style={{ color: '#9ca3af' }} />
+      </button>
+    )
+  }
+
+  const uniqueTypes = [...new Set(visibleRelationTypes)]
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 8 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="absolute bottom-3 right-3 z-10 rounded-lg p-2.5"
+      style={{
+        backgroundColor: 'rgba(15,16,17,0.9)',
+        border: '1px solid rgba(255,255,255,0.06)',
+        backdropFilter: 'blur(8px)',
+        minWidth: '140px',
+      }}
+    >
+      <div className="flex items-center justify-between mb-2">
+        <span className="text-[10px] font-medium" style={{ color: '#9ca3af' }}>图例</span>
+        <button
+          onClick={onToggle}
+          className="p-0.5 rounded hover:bg-white/10 transition-colors"
+        >
+          <EyeOff className="w-3 h-3" style={{ color: '#6b7280' }} />
+        </button>
+      </div>
+
+      {/* Entity types */}
+      <div className="space-y-1 mb-2 pb-2" style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
+        {(Object.entries(ENTITY_TYPE_CONFIG) as [EntityNodeType, typeof ENTITY_TYPE_CONFIG['character']][]).map(([type, config]) => (
+          <div key={type} className="flex items-center gap-1.5">
+            <div
+              className="w-2 h-2 rounded-full"
+              style={{ backgroundColor: config.color }}
+            />
+            <span className="text-[10px]" style={{ color: '#6b7280' }}>{config.label}</span>
+          </div>
+        ))}
+      </div>
+
+      {/* Relation types */}
+      {uniqueTypes.length > 0 && (
+        <div className="space-y-1">
+          <span className="text-[10px]" style={{ color: '#4b5563' }}>关系</span>
+          {uniqueTypes.map((type) => (
+            <div key={type} className="flex items-center gap-1.5">
+              <div
+                className="w-3 h-[2px] rounded"
+                style={{ backgroundColor: RELATION_TYPE_COLORS[type] || RELATION_TYPE_COLORS.other }}
+              />
+              <span className="text-[10px]" style={{ color: '#6b7280' }}>
+                {RELATION_TYPE_LABELS[type] || type}
+              </span>
+            </div>
+          ))}
+        </div>
+      )}
+    </motion.div>
+  )
+}
+
+// ============================================
+// Component: Stats Bar
+// ============================================
+
+function StatsBar({
+  nodeCount,
+  linkCount,
+  filterRelation,
+  onClearFilter,
+}: {
+  nodeCount: number
+  linkCount: number
+  filterRelation: string
+  onClearFilter: () => void
+}) {
+  return (
+    <div
+      className="absolute bottom-3 left-3 z-10 text-[10px] px-2.5 py-1.5 rounded-lg flex items-center gap-2"
+      style={{
+        backgroundColor: 'rgba(15,16,17,0.9)',
+        border: '1px solid rgba(255,255,255,0.06)',
+        color: '#6b7280',
+        backdropFilter: 'blur(8px)',
+      }}
+    >
+      <span>{nodeCount} 节点</span>
+      <span style={{ color: '#4b5563' }}>·</span>
+      <span>{linkCount} 关系</span>
+      {filterRelation !== 'all' && (
+        <>
+          <span style={{ color: '#4b5563' }}>·</span>
+          <button
+            className="underline hover:text-[#9ca3af] transition-colors"
+            onClick={onClearFilter}
+          >
+            清除筛选
+          </button>
+        </>
+      )}
+    </div>
+  )
+}
+
+// ============================================
+// Main Component: RelationGraph
+// ============================================
+
+export function RelationGraph() {
+  const containerRef = useRef<HTMLDivElement>(null)
+  const fgRef = useRef<any>(null)
+  const { characters } = useSettingsStore()
+
+  const [dimensions, setDimensions] = useState({ width: 300, height: 400 })
+  const [viewMode, setViewMode] = useState<'2d' | '3d'>('2d')
+  const [activeNodeTypes, setActiveNodeTypes] = useState<Set<EntityNodeType>>(new Set(Object.keys(ENTITY_TYPE_CONFIG) as EntityNodeType[]))
+  const [filterRelation, setFilterRelation] = useState<string>('all')
+  const [showLegend, setShowLegend] = useState(true)
+  const [selectedNode, setSelectedNode] = useState<NodeDetail | null>(null)
+  const [hoveredNodeId, setHoveredNodeId] = useState<string | null>(null)
+  const [isFullscreen, setIsFullscreen] = useState(false)
+
+  const { nodes: allNodes, links: allLinks } = useGraphData()
+
+  // Filter nodes by type and relations
+  const { nodes, links } = useMemo(() => {
+    const filteredNodes = allNodes.filter((n) => activeNodeTypes.has(n.type))
+    const nodeIds = new Set(filteredNodes.map((n) => n.id))
+    let filteredLinks = allLinks.filter(
+      (l) => nodeIds.has(l.source) && nodeIds.has(l.target)
+    )
+    if (filterRelation !== 'all') {
+      filteredLinks = filteredLinks.filter((l) => l.type === filterRelation)
     }
-  }, [])
+    return { nodes: filteredNodes, links: filteredLinks }
+  }, [allNodes, allLinks, activeNodeTypes, filterRelation])
 
-  // 监听窗口大小变化
+  // Responsive dimensions
   useEffect(() => {
-    const handleResize = () => {
+    const updateDimensions = () => {
       if (containerRef.current) {
         const { width, height } = containerRef.current.getBoundingClientRect()
         setDimensions({ width, height })
       }
     }
-    window.addEventListener('resize', handleResize)
-    return () => window.removeEventListener('resize', handleResize)
+    updateDimensions()
+    const observer = new ResizeObserver(updateDimensions)
+    if (containerRef.current) observer.observe(containerRef.current)
+    window.addEventListener('resize', updateDimensions)
+    return () => {
+      observer.disconnect()
+      window.removeEventListener('resize', updateDimensions)
+    }
   }, [])
 
-  // 鼠标拖拽平移
-  const handleMouseDown = useCallback((e: React.MouseEvent) => {
-    if (e.target === svgRef.current || (e.target as HTMLElement).tagName === 'svg') {
-      setIsDragging(true)
-      setDragStart({ x: e.clientX - pan.x, y: e.clientY - pan.y })
-    }
-  }, [pan])
-
-  const handleMouseMove = useCallback((e: React.MouseEvent) => {
-    if (isDragging) {
-      setPan({ x: e.clientX - dragStart.x, y: e.clientY - dragStart.y })
-    }
-  }, [isDragging, dragStart])
-
-  const handleMouseUp = useCallback(() => {
-    setIsDragging(false)
+  // Toggle entity type filter
+  const toggleNodeType = useCallback((type: EntityNodeType) => {
+    setActiveNodeTypes((prev) => {
+      const next = new Set(prev)
+      if (next.has(type)) {
+        if (next.size > 1) next.delete(type)
+      } else {
+        next.add(type)
+      }
+      return next
+    })
   }, [])
 
-  const handleZoomIn = () => setZoom((z) => Math.min(z * 1.2, 3))
-  const handleZoomOut = () => setZoom((z) => Math.max(z / 1.2, 0.3))
-  const handleReset = () => {
-    setZoom(1)
-    setPan({ x: 0, y: 0 })
-  }
+  // Handle node click
+  const handleNodeClick = useCallback((node: any, event: MouseEvent) => {
+    if (!containerRef.current) return
+    const rect = containerRef.current.getBoundingClientRect()
+    setSelectedNode({
+      node: node as GraphNode,
+      x: event.clientX - rect.left,
+      y: event.clientY - rect.top,
+    })
+  }, [])
 
-  if (characters.length === 0) {
+  // Handle background click
+  const handleBackgroundClick = useCallback(() => {
+    setSelectedNode(null)
+  }, [])
+
+  // Fullscreen toggle
+  const toggleFullscreen = useCallback(() => {
+    setIsFullscreen((prev) => !prev)
+    setTimeout(() => {
+      if (fgRef.current) {
+        fgRef.current.zoomToFit(400, 40)
+      }
+    }, 100)
+  }, [])
+
+  // Empty state
+  if (characters.length === 0 && allNodes.length === 0) {
     return (
       <div
         className="h-full flex items-center justify-center text-center p-4"
         style={{ backgroundColor: '#0a0b0d' }}
       >
         <div>
-          <LinkIcon
-            className="w-10 h-10 mx-auto mb-3"
-            style={{ color: '#4b5563' }}
-          />
-          <p className="text-sm mb-1" style={{ color: '#6b7280' }}>
-            添加角色后
-          </p>
-          <p className="text-xs" style={{ color: '#4b5563' }}>
-            这里将显示关系图谱
-          </p>
+          <LinkIcon className="w-10 h-10 mx-auto mb-3" style={{ color: '#4b5563' }} />
+          <p className="text-sm mb-1" style={{ color: '#6b7280' }}>添加角色后</p>
+          <p className="text-xs" style={{ color: '#4b5563' }}>这里将显示关系图谱</p>
         </div>
       </div>
     )
   }
 
-  // 获取孤立节点（没有关系相连的）
-  const isolatedNodes = nodes.filter((node) => !connectedNodeIds.has(node.id))
+  if (nodes.length === 0) {
+    return (
+      <div
+        className="h-full flex items-center justify-center text-center p-4"
+        style={{ backgroundColor: '#0a0b0d' }}
+      >
+        <div>
+          <Filter className="w-8 h-8 mx-auto mb-3" style={{ color: '#4b5563' }} />
+          <p className="text-sm mb-1" style={{ color: '#6b7280' }}>筛选条件过于严格</p>
+          <p className="text-xs" style={{ color: '#4b5563' }}>没有符合条件的节点</p>
+        </div>
+      </div>
+    )
+  }
+
+  const visibleRelationTypes = [...new Set(links.map((l) => l.type))]
 
   return (
     <div
       ref={containerRef}
-      className="h-full overflow-hidden relative"
+      className={`relative overflow-hidden ${isFullscreen ? 'fixed inset-0 z-50' : 'h-full'}`}
       style={{ backgroundColor: '#0a0b0d' }}
     >
-      {/* 筛选器和视图切换 */}
+      {/* Decorative gradient accent */}
       <div
-        className="absolute top-3 right-3 z-10 flex items-center gap-2"
-      >
-        {/* 视图切换 */}
+        className="absolute top-0 left-0 right-0 h-px"
+        style={{
+          background: 'linear-gradient(90deg, transparent, rgba(94,106,210,0.3), transparent)',
+          zIndex: 10,
+        }}
+      />
+      {/* View mode toggle */}
+      <div className="absolute top-3 right-3 z-10 flex items-center gap-1.5">
+        <button
+          onClick={toggleFullscreen}
+          className="p-1.5 rounded-lg hover:bg-white/10 transition-colors"
+          style={{ backgroundColor: 'rgba(15,16,17,0.8)', border: '1px solid rgba(255,255,255,0.06)' }}
+          title={isFullscreen ? '退出全屏' : '全屏'}
+        >
+          {isFullscreen ? (
+            <Minimize2 className="w-3.5 h-3.5" style={{ color: '#9ca3af' }} />
+          ) : (
+            <Maximize2 className="w-3.5 h-3.5" style={{ color: '#9ca3af' }} />
+          )}
+        </button>
         <button
           onClick={() => setViewMode(viewMode === '2d' ? '3d' : '2d')}
-          className="p-1.5 rounded hover:bg-white/10 transition-colors"
+          className="p-1.5 rounded-lg hover:bg-white/10 transition-colors flex items-center gap-1"
+          style={{ backgroundColor: 'rgba(15,16,17,0.8)', border: '1px solid rgba(255,255,255,0.06)' }}
           title={viewMode === '2d' ? '切换到3D视图' : '切换到2D视图'}
         >
-          {viewMode === '2d' ? <Box className="w-4 h-4" style={{ color: '#6b7280' }} /> : <Grid2x2 className="w-4 h-4" style={{ color: '#6b7280' }} />}
-        </button>
-        <Filter className="w-4 h-4" style={{ color: '#6b7280' }} />
-        <select
-          value={filterType}
-          onChange={(e) => setFilterType(e.target.value)}
-          className="text-xs px-2 py-1 rounded border-none outline-none cursor-pointer"
-          style={{
-            backgroundColor: 'rgba(255,255,255,0.05)',
-            color: '#9ca3af',
-          }}
-        >
-          <option value="all">全部关系</option>
-          <option value="family">家人</option>
-          <option value="friend">朋友</option>
-          <option value="enemy">敌人</option>
-          <option value="master">师父</option>
-          <option value="disciple">徒弟</option>
-          <option value="rival">竞争对手</option>
-          <option value="romantic">恋人</option>
-          <option value="other">其他</option>
-        </select>
-      </div>
-
-      {/* Zoom controls */}
-      <div
-        className="absolute top-3 left-3 z-10 flex flex-col gap-1"
-      >
-        <button
-          onClick={handleZoomIn}
-          className="p-1.5 rounded hover:bg-white/10 transition-colors"
-          title="放大"
-        >
-          <ZoomIn className="w-4 h-4" style={{ color: '#6b7280' }} />
-        </button>
-        <button
-          onClick={handleZoomOut}
-          className="p-1.5 rounded hover:bg-white/10 transition-colors"
-          title="缩小"
-        >
-          <ZoomOut className="w-4 h-4" style={{ color: '#6b7280' }} />
-        </button>
-        <button
-          onClick={handleReset}
-          className="p-1.5 rounded hover:bg-white/10 transition-colors"
-          title="重置视图"
-        >
-          <RotateCcw className="w-4 h-4" style={{ color: '#6b7280' }} />
+          {viewMode === '2d' ? (
+            <Box className="w-3.5 h-3.5" style={{ color: '#9ca3af' }} />
+          ) : (
+            <Grid2x2 className="w-3.5 h-3.5" style={{ color: '#9ca3af' }} />
+          )}
+          <span className="text-[10px]" style={{ color: '#9ca3af' }}>{viewMode.toUpperCase()}</span>
         </button>
       </div>
 
-      <svg
-        ref={svgRef}
-        width={dimensions.width}
-        height={dimensions.height}
-        style={{
-          backgroundColor: 'transparent',
-          cursor: isDragging ? 'grabbing' : 'grab',
-        }}
-        onMouseDown={handleMouseDown}
-        onMouseMove={handleMouseMove}
-        onMouseUp={handleMouseUp}
-        onMouseLeave={handleMouseUp}
-      >
-        {/* SVG Definitions for glow filters and gradients */}
-        <defs>
-          {/* Node glow filter */}
-          <filter id="node-glow" x="-50%" y="-50%" width="200%" height="200%">
-            <feGaussianBlur stdDeviation="4" result="blur" />
-            <feMerge>
-              <feMergeNode in="blur" />
-              <feMergeNode in="blur" />
-              <feMergeNode in="SourceGraphic" />
-            </feMerge>
-          </filter>
-          {/* Stronger glow for hover */}
-          <filter id="node-glow-strong" x="-50%" y="-50%" width="200%" height="200%">
-            <feGaussianBlur stdDeviation="8" result="blur" />
-            <feMerge>
-              <feMergeNode in="blur" />
-              <feMergeNode in="blur" />
-              <feMergeNode in="blur" />
-              <feMergeNode in="SourceGraphic" />
-            </feMerge>
-          </filter>
-          {/* Flowing line gradient mask */}
-          <linearGradient id="line-flow-gradient" x1="0%" y1="0%" x2="100%" y2="0%">
-            <stop offset="0%" stopColor="white" stopOpacity="0" />
-            <stop offset="50%" stopColor="white" stopOpacity="1" />
-            <stop offset="100%" stopColor="white" stopOpacity="0" />
-          </linearGradient>
-          {/* Animated dash pattern */}
-          <pattern id="flowing-dash" width="20" height="4" patternUnits="userSpaceOnUse">
-            <rect width="20" height="4" fill="none" />
-            <line x1="0" y1="2" x2="12" y2="2" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-          </pattern>
-        </defs>
+      {/* Filter controls with zoom */}
+      <FilterControls
+        activeTypes={activeNodeTypes}
+        onToggleType={toggleNodeType}
+        filterRelation={filterRelation}
+        onSetRelationFilter={setFilterRelation}
+      />
 
-        <g transform={`translate(${pan.x}, ${pan.y}) scale(${zoom})`}>
-          {/* 连线 */}
-          {links.map((link, i) => {
-            const sourcePos = positions.get(link.source)
-            const targetPos = positions.get(link.target)
-            if (!sourcePos || !targetPos) return null
+      {/* Force Graph */}
+      <Suspense fallback={<GraphFallback />}>
+        {viewMode === '2d' ? (
+          <ForceGraph2D
+            ref={fgRef}
+            graphData={{ nodes, links }}
+            width={dimensions.width}
+            height={dimensions.height}
+            backgroundColor="#0a0b0d"
+            nodeLabel="name"
+            nodeColor={(node: any) => node.color}
+            nodeVal={(node: any) => Math.sqrt(node.val) * 6 + 4}
+            nodeRelSize={6}
+            linkColor={(link: any) => link.color}
+            linkWidth={(link: any) => {
+              const isHighlighted = hoveredNodeId &&
+                (link.source.id === hoveredNodeId || link.target.id === hoveredNodeId)
+              return isHighlighted ? 2.5 : 1
+            }}
+            {...{
+              linkOpacity: (link: any) => {
+                const isHighlighted = hoveredNodeId &&
+                  (link.source.id === hoveredNodeId || link.target.id === hoveredNodeId)
+                const isDimmed = hoveredNodeId && !isHighlighted
+                return isDimmed ? 0.08 : isHighlighted ? 0.9 : 0.35
+              }
+            }}
+            linkDirectionalParticles={2}
+            linkDirectionalParticleSpeed={0.008}
+            linkDirectionalParticleWidth={(link: any) => {
+              const isHighlighted = hoveredNodeId &&
+                (link.source.id === hoveredNodeId || link.target.id === hoveredNodeId)
+              return isHighlighted ? 2 : 0
+            }}
+            onNodeClick={handleNodeClick}
+            onBackgroundClick={handleBackgroundClick}
+            onNodeHover={(node: any) => setHoveredNodeId(node?.id || null)}
+            cooldownTicks={100}
+            warmupTicks={20}
+            d3AlphaDecay={0.02}
+            d3VelocityDecay={0.3}
+            enableNodeDrag={true}
+            enableZoomInteraction={true}
+            enablePanInteraction={true}
+            nodeCanvasObjectMode={() => 'after'}
+            nodeCanvasObject={(node: any, ctx: CanvasRenderingContext2D, globalScale: number) => {
+              const label = node.name
+              const fontSize = Math.max(10 / globalScale, 8)
+              ctx.font = `${node.id === hoveredNodeId ? '600' : '400'} ${fontSize}px Inter, sans-serif`
+              ctx.textAlign = 'center'
+              ctx.textBaseline = 'middle'
 
-            const isHovered = hoveredNode === link.source || hoveredNode === link.target
-            const isDimmed = hoveredNode !== null && !isHovered
-            const linkColor = RELATION_TYPE_COLORS[link.type] || RELATION_TYPE_COLORS.other
+              const isHovered = node.id === hoveredNodeId
+              const isSelected = selectedNode?.node.id === node.id
+              const yOffset = Math.sqrt(node.val) * 6 + 4 + fontSize * 0.8
 
-            return (
-              <g key={`link-${i}`}>
-                {/* Base line */}
-                <line
-                  x1={sourcePos.x}
-                  y1={sourcePos.y}
-                  x2={targetPos.x}
-                  y2={targetPos.y}
-                  stroke={linkColor}
-                  strokeWidth={isHovered ? 2.5 : 1}
-                  opacity={isDimmed ? 0.1 : isHovered ? 0.9 : 0.4}
-                  style={{ transition: 'all 0.2s ease' }}
-                />
-                {/* Flowing dash animation overlay (visible on hover) */}
-                {isHovered && (
-                  <line
-                    x1={sourcePos.x}
-                    y1={sourcePos.y}
-                    x2={targetPos.x}
-                    y2={targetPos.y}
-                    stroke={linkColor}
-                    strokeWidth={2}
-                    strokeDasharray="6 10"
-                    strokeLinecap="round"
-                    opacity={0.8}
-                    style={{
-                      animation: 'flowing-dash 1s linear infinite',
-                    }}
-                  >
-                    <animate
-                      attributeName="stroke-dashoffset"
-                      from="0"
-                      to="-16"
-                      dur="0.8s"
-                      repeatCount="indefinite"
-                    />
-                  </line>
-                )}
-                {/* 关系类型标签（仅在hover时显示） */}
-                {isHovered && (
-                  <text
-                    x={(sourcePos.x + targetPos.x) / 2}
-                    y={(sourcePos.y + targetPos.y) / 2 - 5}
-                    textAnchor="middle"
-                    fill="#9ca3af"
-                    fontSize={9}
-                    style={{ fontFamily: 'Inter, sans-serif', pointerEvents: 'none' }}
-                  >
-                    {RELATION_TYPE_LABELS[link.type] || link.type}
-                  </text>
-                )}
-              </g>
-            )
-          })}
+              // Glow effect for hovered/selected
+              if (isHovered || isSelected) {
+                ctx.shadowColor = node.color
+                ctx.shadowBlur = 12
+              }
 
-          {/* 节点 */}
-          {nodes.map((node) => {
-            const pos = positions.get(node.id)
-            if (!pos) return null
+              ctx.fillStyle = isHovered ? '#f7f8f8' : '#9ca3af'
+              ctx.fillText(label.length > 6 ? label.slice(0, 6) + '...' : label, node.x, (node.y as number) + yOffset)
 
-            const isHovered = hoveredNode === node.id
-            const isIsolated = isolatedNodes.some((n) => n.id === node.id)
-            const isConnected = highlightedConnections.has(node.id)
-            const isDimmed = hoveredNode !== null && !isConnected
-            const nodeRadius = isHovered ? 28 : 22 + Math.min(node.val * 1.5, 8)
+              ctx.shadowBlur = 0
 
-            return (
-              <g
-                key={node.id}
-                transform={`translate(${pos.x}, ${pos.y})`}
-                onMouseEnter={() => setHoveredNode(node.id)}
-                onMouseLeave={() => setHoveredNode(null)}
-                style={{ cursor: 'pointer' }}
-                opacity={isLoaded ? 1 : 0}
-              >
-                {/* 外发光（hover时）- 增强版 */}
-                {isHovered && (
-                  <circle
-                    r={nodeRadius + 12}
-                    fill="none"
-                    stroke={node.color}
-                    strokeWidth={2}
-                    opacity={0.2}
-                    filter="url(#node-glow-strong)"
-                  >
-                    <animate attributeName="r" values={`${nodeRadius + 8};${nodeRadius + 16};${nodeRadius + 8}`} dur="2s" repeatCount="indefinite" />
-                    <animate attributeName="opacity" values="0.3;0.1;0.3" dur="2s" repeatCount="indefinite" />
-                  </circle>
-                )}
-                {/* 次级光晕（hover时） */}
-                {isHovered && (
-                  <circle
-                    r={nodeRadius + 6}
-                    fill={node.color}
-                    opacity={0.08}
-                    filter="url(#node-glow)"
-                  />
-                )}
-                {/* 主圆 */}
-                <circle
-                  r={nodeRadius}
-                  fill={node.color}
-                  opacity={isDimmed ? 0.15 : isIsolated ? 0.4 : 0.85}
-                  style={{ transition: 'all 0.2s ease' }}
-                  filter={isHovered ? 'url(#node-glow)' : undefined}
-                />
-                {/* 边框 */}
-                <circle
-                  r={nodeRadius}
-                  fill="none"
-                  stroke={isHovered ? 'rgba(255,255,255,0.5)' : 'rgba(255,255,255,0.3)'}
-                  strokeWidth={isHovered ? 2.5 : 1}
-                  opacity={isDimmed ? 0.1 : 1}
-                  style={{ transition: 'all 0.2s ease' }}
-                />
-                {/* Hover时内部高光 */}
-                {isHovered && (
-                  <circle
-                    r={nodeRadius - 4}
-                    fill="none"
-                    stroke="rgba(255,255,255,0.15)"
-                    strokeWidth={1}
-                  />
-                )}
-                {/* 关系数量指示 */}
-                {node.val > 1 && (
-                  <circle
-                    r={8}
-                    cx={14}
-                    cy={-14}
-                    fill="#0a0b0d"
-                    stroke={node.color}
-                    strokeWidth={1}
-                  />
-                )}
-                {node.val > 1 && (
-                  <text
-                    x={14}
-                    y={-11}
-                    textAnchor="middle"
-                    fill={node.color}
-                    fontSize={8}
-                    style={{ fontFamily: 'Inter, sans-serif', pointerEvents: 'none' }}
-                  >
-                    {node.val - 1}
-                  </text>
-                )}
-                {/* 名称 */}
-                <text
-                  textAnchor="middle"
-                  dy={isHovered ? 44 : 40}
-                  fill={isHovered ? '#f7f8f8' : '#9ca3af'}
-                  fontSize={isHovered ? 12 : 11}
-                  fontWeight={isHovered ? 600 : 400}
-                  style={{ fontFamily: 'Inter, sans-serif', pointerEvents: 'none', transition: 'all 0.2s ease' }}
-                >
-                  {node.name.length > 6 ? node.name.slice(0, 6) + '...' : node.name}
-                </text>
-              </g>
-            )
-          })}
-        </g>
-      </svg>
-
-      {/* 统计信息 */}
-      <div
-        className="absolute bottom-3 left-3 text-xs px-2 py-1 rounded flex items-center gap-3"
-        style={{
-          backgroundColor: 'rgba(255,255,255,0.05)',
-          color: '#6b7280',
-        }}
-      >
-        <span>{nodes.length} 个角色</span>
-        <span>·</span>
-        <span>{links.length} 条关系</span>
-        {filterType !== 'all' && (
-          <>
-            <span>·</span>
-            <span
-              className="underline cursor-pointer"
-              onClick={() => setFilterType('all')}
-            >
-              清除筛选
-            </span>
-          </>
+              // Type indicator dot
+              if (isHovered) {
+                const config = ENTITY_TYPE_CONFIG[node.type as EntityNodeType]
+                ctx.beginPath()
+                ctx.arc((node.x as number) - ctx.measureText(label).width / 2 - 6, (node.y as number) + yOffset, 3, 0, 2 * Math.PI)
+                ctx.fillStyle = config?.color || node.color
+                ctx.fill()
+              }
+            }}
+          />
+        ) : (
+          <ForceGraph3D
+            ref={fgRef}
+            graphData={{ nodes, links }}
+            width={dimensions.width}
+            height={dimensions.height}
+            backgroundColor="#0a0b0d"
+            nodeLabel="name"
+            nodeColor={(node: any) => node.color}
+            nodeVal={(node: any) => Math.sqrt(node.val) * 4 + 3}
+            linkColor={(link: any) => link.color}
+            linkWidth={0.5}
+            linkOpacity={0.4}
+            onNodeClick={handleNodeClick}
+            onBackgroundClick={handleBackgroundClick}
+            enableNodeDrag={true}
+            enableNavigationControls={true}
+            showNavInfo={false}
+            cooldownTicks={100}
+            warmupTicks={20}
+          />
         )}
-      </div>
+      </Suspense>
 
-      {/* 关系类型图例 */}
-      {showLegend && links.length > 0 && (
-        <div
-          className="absolute bottom-3 right-3 text-xs px-3 py-2 rounded"
-          style={{
-            backgroundColor: 'rgba(255,255,255,0.05)',
-            color: '#6b7280',
-            border: '1px solid rgba(255,255,255,0.06)',
-          }}
-        >
-          <div className="flex items-center justify-between mb-1.5">
-            <span className="text-xs font-medium" style={{ color: '#9ca3af' }}>图例</span>
-            <button
-              onClick={() => setShowLegend(false)}
-              className="p-0.5 rounded hover:bg-white/10 transition-colors"
-            >
-              <Eye className="w-3 h-3" />
-            </button>
-          </div>
-          <div className="grid grid-cols-2 gap-x-3 gap-y-1">
-            {Object.entries(RELATION_TYPE_COLORS).map(([type, color]) => (
-              <div key={type} className="flex items-center gap-1.5">
-                <div
-                  className="w-2.5 h-2.5 rounded-full"
-                  style={{ backgroundColor: color }}
-                />
-                <span style={{ fontSize: '11px' }}>
-                  {RELATION_TYPE_LABELS[type]}
-                </span>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
+      {/* Node detail panel */}
+      <AnimatePresence>
+        {selectedNode && (
+          <NodeDetailPanel
+            detail={selectedNode}
+            onClose={() => setSelectedNode(null)}
+          />
+        )}
+      </AnimatePresence>
 
-      {/* 显示图例按钮（当图例隐藏时） */}
-      {!showLegend && (
-        <button
-          onClick={() => setShowLegend(true)}
-          className="absolute bottom-3 right-3 p-1.5 rounded hover:bg-white/10 transition-colors"
-          style={{
-            backgroundColor: 'rgba(255,255,255,0.05)',
-            color: '#6b7280',
-          }}
-          title="显示图例"
-        >
-          <Eye className="w-4 h-4" />
-        </button>
-      )}
+      {/* Stats bar */}
+      <StatsBar
+        nodeCount={nodes.length}
+        linkCount={links.length}
+        filterRelation={filterRelation}
+        onClearFilter={() => setFilterRelation('all')}
+      />
+
+      {/* Legend */}
+      <Legend
+        showLegend={showLegend}
+        onToggle={() => setShowLegend(!showLegend)}
+        visibleRelationTypes={visibleRelationTypes}
+      />
     </div>
   )
 }

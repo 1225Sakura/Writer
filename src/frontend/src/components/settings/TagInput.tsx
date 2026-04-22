@@ -90,13 +90,14 @@ export function TagChips({
               transition={{ type: 'spring', stiffness: 500, damping: 30 }}
               className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium transition-all cursor-default group/tag"
               style={{
-                backgroundColor: `${color}18`,
+                backgroundColor: `${color}15`,
                 color: color,
                 border: `1px solid ${color}25`,
               }}
               whileHover={{
-                backgroundColor: `${color}28`,
+                backgroundColor: `${color}25`,
                 borderColor: `${color}40`,
+                boxShadow: `0 0 8px ${color}20`,
               }}
             >
               <Tag className="w-3 h-3 opacity-70" />

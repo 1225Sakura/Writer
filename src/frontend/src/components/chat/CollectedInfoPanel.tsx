@@ -1,7 +1,14 @@
 import { useState } from 'react'
 import { ExtractedEntity, useUIStore } from '@/store'
 import { EntityTag } from './EntityTag'
-import { CheckCircle, Circle, ChevronRight, ArrowRight, Edit3 } from 'lucide-react'
+import {
+  CheckCircle,
+  Circle,
+  ChevronRight,
+  ArrowRight,
+  Edit3,
+  Sparkles,
+} from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 
 interface CollectedInfoPanelProps {
@@ -19,14 +26,62 @@ const categoryLabels: Record<string, string> = {
   ifline: 'IF线',
 }
 
-function EntityItem({ entity, onConfirm }: { entity: ExtractedEntity; onConfirm?: (id: string) => void }) {
+/* ============================================================
+   ENTITY TYPE COLORS (from design system)
+   ============================================================ */
+
+const typeColors: Record<string, string> = {
+  character: '#e8b87d',
+  item: '#9b7ed9',
+  location: '#5eb5a6',
+  faction: '#d45d5d',
+  world: '#5e6ad2',
+  rule: '#7eb84a',
+  outline: '#5b8ee8',
+  ifline: '#7eb84a',
+}
+
+const typeBgColors: Record<string, string> = {
+  character: 'rgba(232, 184, 125, 0.08)',
+  item: 'rgba(155, 126, 217, 0.08)',
+  location: 'rgba(94, 181, 166, 0.08)',
+  faction: 'rgba(212, 93, 93, 0.08)',
+  world: 'rgba(94, 106, 210, 0.08)',
+  rule: 'rgba(126, 184, 74, 0.08)',
+  outline: 'rgba(91, 142, 232, 0.08)',
+  ifline: 'rgba(126, 184, 74, 0.08)',
+}
+
+const typeGlowColors: Record<string, string> = {
+  character: 'rgba(232, 184, 125, 0.3)',
+  item: 'rgba(155, 126, 217, 0.3)',
+  location: 'rgba(94, 181, 166, 0.3)',
+  faction: 'rgba(212, 93, 93, 0.3)',
+  world: 'rgba(94, 106, 210, 0.3)',
+  rule: 'rgba(126, 184, 74, 0.3)',
+  outline: 'rgba(91, 142, 232, 0.3)',
+  ifline: 'rgba(126, 184, 74, 0.3)',
+}
+
+/* ============================================================
+   ENTITY ITEM with confirm animation
+   ============================================================ */
+
+function EntityItem({ entity, onConfirm, index }: {
+  entity: ExtractedEntity
+  onConfirm?: (id: string) => void
+  index: number
+}) {
   const [justConfirmed, setJustConfirmed] = useState(false)
+  const color = typeColors[entity.type] || '#d0d6e0'
+  const bgColor = typeBgColors[entity.type] || 'rgba(255,255,255,0.02)'
+  const glowColor = typeGlowColors[entity.type] || 'rgba(255,255,255,0.1)'
 
   const handleConfirm = () => {
     if (!entity.confirmed && onConfirm) {
       onConfirm(entity.id)
       setJustConfirmed(true)
-      setTimeout(() => setJustConfirmed(false), 800)
+      setTimeout(() => setJustConfirmed(false), 1000)
     } else {
       onConfirm?.(entity.id)
     }
@@ -34,17 +89,30 @@ function EntityItem({ entity, onConfirm }: { entity: ExtractedEntity; onConfirm?
 
   return (
     <motion.div
-      className="flex items-center gap-2 py-2 px-2 -mx-2 rounded-md cursor-pointer group"
+      className="flex items-center gap-2.5 py-2.5 px-3 -mx-1 rounded-lg cursor-pointer group"
       style={{
-        borderBottom: '1px solid rgba(255,255,255,0.04)',
+        borderBottom: '1px solid rgba(255,255,255,0.03)',
       }}
+      initial={{ opacity: 0, x: -8 }}
+      animate={{ opacity: 1, x: 0 }}
+      transition={{ delay: index * 0.04, duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
       whileHover={{
-        backgroundColor: 'rgba(255,255,255,0.03)',
-        y: -1,
+        backgroundColor: bgColor,
+        x: 2,
+        boxShadow: `0 0 20px ${glowColor}`,
       }}
-      transition={{ duration: 0.15 }}
+      whileTap={{ scale: 0.98 }}
     >
+      {/* Color-coded left border */}
+      <motion.div
+        className="w-1 h-8 rounded-full flex-shrink-0"
+        style={{ backgroundColor: color, opacity: 0.5 }}
+        whileHover={{ opacity: 0.8, scaleY: 1.2 }}
+        transition={{ duration: 0.15 }}
+      />
+
       <EntityTag type={entity.type} size="small" />
+
       <div className="flex-1 min-w-0">
         <div className="font-medium text-sm truncate" style={{ color: 'var(--text-primary)' }}>
           {entity.name}
@@ -55,55 +123,142 @@ function EntityItem({ entity, onConfirm }: { entity: ExtractedEntity; onConfirm?
           </div>
         )}
       </div>
+
+      {/* Confirm button with animation */}
       <motion.button
-        onClick={handleConfirm}
-        className="cursor-pointer"
+        onClick={(e) => {
+          e.stopPropagation()
+          handleConfirm()
+        }}
+        className="cursor-pointer flex-shrink-0 relative"
         title={entity.confirmed ? '已确认' : '点击确认'}
-        whileTap={{ scale: 0.85 }}
-        animate={justConfirmed ? { scale: [1, 1.3, 1] } : {}}
-        transition={{ duration: 0.4 }}
+        whileTap={{ scale: 0.75 }}
+        animate={justConfirmed ? {
+          scale: [1, 1.5, 1],
+          rotate: [0, 20, 0],
+          backgroundColor: glowColor,
+        } : {}}
+        transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
       >
-        {entity.confirmed ? (
-          <CheckCircle className="w-4 h-4 flex-shrink-0" style={{ color: 'var(--color-success)' }} />
-        ) : (
-          <Circle className="w-4 h-4 flex-shrink-0 hover:text-[#7eb84a]" style={{ color: 'var(--text-secondary)' }} />
-        )}
+        <AnimatePresence mode="wait">
+          {entity.confirmed ? (
+            <motion.div
+              key="confirmed"
+              initial={{ scale: 0, rotate: -30 }}
+              animate={{ scale: 1, rotate: 0 }}
+              exit={{ scale: 0, rotate: 30 }}
+              transition={{ type: 'spring', stiffness: 400, damping: 15 }}
+            >
+              <CheckCircle className="w-4.5 h-4.5" style={{ color: '#7eb84a' }} />
+            </motion.div>
+          ) : (
+            <motion.div
+              key="unconfirmed"
+              initial={{ scale: 0 }}
+              animate={{ scale: 1 }}
+              exit={{ scale: 0 }}
+              transition={{ type: 'spring', stiffness: 400, damping: 15 }}
+            >
+              <Circle className="w-4.5 h-4.5 hover:text-[#7eb84a]" style={{ color: 'var(--text-secondary)' }} />
+            </motion.div>
+          )}
+        </AnimatePresence>
       </motion.button>
     </motion.div>
   )
 }
 
+/* ============================================================
+   CATEGORY SECTION with collapse/expand
+   ============================================================ */
+
 function CategorySection({
   title,
   entities,
   onConfirm,
+  type,
 }: {
   title: string
   entities: ExtractedEntity[]
   onConfirm?: (id: string) => void
+  type: string
 }) {
+  const [isExpanded, setIsExpanded] = useState(true)
+  const color = typeColors[type] || '#d0d6e0'
+  const confirmedCount = entities.filter((e) => e.confirmed).length
+
   if (entities.length === 0) return null
 
   return (
     <motion.div
-      className="mb-4"
-      initial={{ opacity: 0, y: 8 }}
+      className="mb-3"
+      initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
+      transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
     >
-      <div className="flex items-center gap-2 mb-2">
-        <ChevronRight className="w-3 h-3" style={{ color: 'var(--text-secondary)' }} />
-        <h3 className="font-medium text-sm" style={{ color: 'var(--text-primary)' }}>{title}</h3>
-        <span className="text-xs" style={{ color: 'var(--text-secondary)' }}>({entities.length})</span>
-      </div>
-      <div className="pl-4">
-        {entities.map((entity) => (
-          <EntityItem key={entity.id} entity={entity} onConfirm={onConfirm} />
-        ))}
-      </div>
+      {/* Section header */}
+      <motion.button
+        className="flex items-center gap-2 w-full py-2 px-1 rounded-md group"
+        onClick={() => setIsExpanded(!isExpanded)}
+        whileHover={{ backgroundColor: 'rgba(255,255,255,0.02)' }}
+        whileTap={{ scale: 0.99 }}
+      >
+        <motion.span
+          animate={{ rotate: isExpanded ? 90 : 0 }}
+          transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
+        >
+          <ChevronRight className="w-3.5 h-3.5" style={{ color: 'var(--text-secondary)' }} />
+        </motion.span>
+
+        {/* Color dot */}
+        <span
+          className="w-2 h-2 rounded-full flex-shrink-0"
+          style={{ backgroundColor: color }}
+        />
+
+        <h3 className="font-medium text-sm flex-1 text-left" style={{ color: 'var(--text-primary)' }}>
+          {title}
+        </h3>
+
+        <span className="text-xs flex items-center gap-1" style={{ color: 'var(--text-secondary)' }}>
+          <span style={{ color: confirmedCount === entities.length ? '#7eb84a' : color }}>
+            {confirmedCount}
+          </span>
+          <span>/</span>
+          <span>{entities.length}</span>
+        </span>
+      </motion.button>
+
+      {/* Expandable content */}
+      <AnimatePresence initial={false}>
+        {isExpanded && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: 'auto', opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
+            className="overflow-hidden"
+          >
+            <div className="pl-5 pr-1">
+              {entities.map((entity, i) => (
+                <EntityItem
+                  key={entity.id}
+                  entity={entity}
+                  onConfirm={onConfirm}
+                  index={i}
+                />
+              ))}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </motion.div>
   )
 }
+
+/* ============================================================
+   MAIN COMPONENT
+   ============================================================ */
 
 export function CollectedInfoPanel({ entities, onConfirmEntity }: CollectedInfoPanelProps) {
   const groupedEntities = entities.reduce(
@@ -120,46 +275,69 @@ export function CollectedInfoPanel({ entities, onConfirmEntity }: CollectedInfoP
   const progressPercent = entities.length > 0 ? (confirmedCount / entities.length) * 100 : 0
 
   return (
-    <div className="h-full flex flex-col">
-      {/* 头部 */}
-      <div className="p-4 border-b border-[rgba(255,255,255,0.08)]">
-        <h2 className="font-medium text-sm" style={{ color: 'var(--text-primary)' }}>已收集信息</h2>
-        <div className="text-xs mt-1" style={{ color: 'var(--text-secondary)' }}>
+    <div className="h-full flex flex-col" style={{ backgroundColor: '#0f1011' }}>
+      {/* Header */}
+      <div className="p-4 border-b border-[rgba(255,255,255,0.06)]">
+        <div className="flex items-center gap-2 mb-1">
+          <Sparkles className="w-4 h-4" style={{ color: 'var(--accent-primary)' }} />
+          <h2 className="font-medium text-sm" style={{ color: 'var(--text-primary)' }}>已收集信息</h2>
+        </div>
+        <div className="text-xs" style={{ color: 'var(--text-secondary)' }}>
           {confirmedCount}/{entities.length} 项已确认
         </div>
-        {/* 进度条 */}
-        <div className="mt-2 h-1.5 rounded-full overflow-hidden" style={{ backgroundColor: 'rgba(255,255,255,0.06)' }}>
+        {/* Progress bar */}
+        <div className="mt-2.5 h-1.5 rounded-full overflow-hidden" style={{ backgroundColor: 'rgba(255,255,255,0.04)' }}>
           <motion.div
-            className="h-full rounded-full"
-            style={{ backgroundColor: 'var(--accent-primary)' }}
+            className="h-full rounded-full relative"
+            style={{
+              background: progressPercent === 100
+                ? 'linear-gradient(90deg, #7eb84a, #8ec95a)'
+                : 'linear-gradient(90deg, var(--accent-primary), #7b8ce4)',
+            }}
             initial={{ width: 0 }}
             animate={{ width: `${progressPercent}%` }}
-            transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-          />
+            transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+          >
+            {/* Shimmer effect */}
+            <motion.div
+              className="absolute inset-0 rounded-full"
+              style={{
+                background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent)',
+              }}
+              animate={{ x: ['-100%', '200%'] }}
+              transition={{ duration: 2, repeat: Infinity, repeatDelay: 3, ease: 'easeInOut' }}
+            />
+          </motion.div>
         </div>
       </div>
 
-      {/* 内容 */}
-      <div className="flex-1 overflow-y-auto p-4">
+      {/* Content */}
+      <div className="flex-1 overflow-y-auto p-3">
         <AnimatePresence mode="wait">
           {entities.length === 0 ? (
             <motion.div
-              className="text-center py-8"
+              className="text-center py-10"
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
               transition={{ duration: 0.3 }}
             >
               <motion.div
-                className="w-12 h-12 rounded-full mx-auto mb-3 flex items-center justify-center"
-                style={{ backgroundColor: 'rgba(255,255,255,0.04)' }}
-                animate={{ y: [0, -4, 0] }}
+                className="w-14 h-14 rounded-full mx-auto mb-4 flex items-center justify-center"
+                style={{
+                  backgroundColor: 'rgba(255,255,255,0.03)',
+                  border: '1px solid rgba(255,255,255,0.06)',
+                }}
+                animate={{ y: [0, -5, 0] }}
                 transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
               >
-                <Edit3 className="w-5 h-5" style={{ color: 'var(--text-secondary)' }} />
+                <Edit3 className="w-6 h-6" style={{ color: 'var(--text-secondary)' }} />
               </motion.div>
               <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
                 开始对话后，这里将显示收集到的设定信息
+              </p>
+              <p className="text-xs mt-2" style={{ color: 'var(--text-secondary)', opacity: 0.6 }}>
+                AI 会自动识别并提取关键设定
               </p>
             </motion.div>
           ) : (
@@ -174,6 +352,7 @@ export function CollectedInfoPanel({ entities, onConfirmEntity }: CollectedInfoP
                   title={categoryLabels[type] || type}
                   entities={typeEntities}
                   onConfirm={onConfirmEntity}
+                  type={type}
                 />
               ))}
             </motion.div>
@@ -181,11 +360,11 @@ export function CollectedInfoPanel({ entities, onConfirmEntity }: CollectedInfoP
         </AnimatePresence>
       </div>
 
-      {/* 底部操作 */}
-      <div className="p-4 border-t border-[rgba(255,255,255,0.08)]">
+      {/* Footer actions */}
+      <div className="p-4 border-t border-[rgba(255,255,255,0.06)]">
         <div className="flex gap-2 mb-2">
           <motion.button
-            className="flex-1 px-3 py-2 text-sm rounded-md border border-[rgba(255,255,255,0.08)]
+            className="flex-1 px-3 py-2 text-xs rounded-lg border border-[rgba(255,255,255,0.06)]
                        text-[#d0d6e0] hover:bg-[rgba(255,255,255,0.04)] hover:text-[#f7f8f8]"
             onClick={() => useUIStore.getState().setCurrentInterface('chat')}
             whileHover={{ y: -1 }}
@@ -194,7 +373,7 @@ export function CollectedInfoPanel({ entities, onConfirmEntity }: CollectedInfoP
             继续完善
           </motion.button>
           <motion.button
-            className="flex-1 px-3 py-2 text-sm rounded-md border border-[rgba(255,255,255,0.08)]
+            className="flex-1 px-3 py-2 text-xs rounded-lg border border-[rgba(255,255,255,0.06)]
                        text-[#d0d6e0] hover:bg-[rgba(255,255,255,0.04)] hover:text-[#f7f8f8]"
             onClick={() => useUIStore.getState().setCurrentInterface('settings')}
             whileHover={{ y: -1 }}
@@ -204,18 +383,24 @@ export function CollectedInfoPanel({ entities, onConfirmEntity }: CollectedInfoP
           </motion.button>
         </div>
         <motion.button
-          className="w-full px-4 py-2 text-sm rounded-md
-                     text-white flex items-center justify-center gap-2"
+          className="w-full px-4 py-2.5 text-sm rounded-lg
+                     text-white flex items-center justify-center gap-2 font-medium"
           style={{ backgroundColor: 'var(--accent-primary)' }}
           onClick={() => useUIStore.getState().setCurrentInterface('settings')}
           whileHover={{
             backgroundColor: 'var(--accent-hover)',
             y: -1,
+            boxShadow: '0 4px 16px rgba(94, 106, 210, 0.25)',
           }}
           whileTap={{ scale: 0.97 }}
         >
           <span>进入设定界面</span>
-          <ArrowRight className="w-4 h-4" />
+          <motion.span
+            animate={{ x: [0, 3, 0] }}
+            transition={{ duration: 1.5, repeat: Infinity, ease: 'easeInOut' }}
+          >
+            <ArrowRight className="w-4 h-4" />
+          </motion.span>
         </motion.button>
       </div>
     </div>

@@ -1,103 +1,446 @@
 import { create } from 'zustand'
-import { persist } from 'zustand/middleware'
+import { persist, subscribeWithSelector } from 'zustand/middleware'
+import { immer } from 'zustand/middleware/immer'
 
-export type InterfaceType = 'chat' | 'settings' | 'writing'
+// ============================================
+// Types
+// ============================================
+
+export type InterfaceType = 'chat' | 'settings' | 'writing' | 'global'
+
+export type SettingsCategory =
+  | 'world'
+  | 'character'
+  | 'item'
+  | 'location'
+  | 'faction'
+  | 'rule'
+  | 'outline'
+  | 'ifline'
+
+/** 界面历史记录条目 */
+export interface NavigationHistoryEntry {
+  interface: InterfaceType
+  settingsCategory?: SettingsCategory
+  timestamp: number
+  /** 可选的元数据，用于恢复状态 */
+  meta?: Record<string, unknown>
+}
+
+/** 面板配置 */
+export interface PanelState {
+  width: number
+  height?: number
+  position: 'left' | 'right' | 'bottom'
+  collapsed: boolean
+}
 
 export interface UIState {
-  // 界面状态
+  // Current interface
   currentInterface: InterfaceType
-  // 抽屉状态
+
+  // Navigation history
+  navigationHistory: NavigationHistoryEntry[]
+  canGoBack: boolean
+
+  // Drawer states
   aiDrawerOpen: boolean
   collaborationDrawerOpen: boolean
   outlineDrawerOpen: boolean
-  // 全屏写作
+
+  // Panel states with sizing
+  aiPanel: PanelState
+  collaborationPanel: PanelState
+  outlinePanel: PanelState
+
+  // Fullscreen & modes
   fullscreenWriting: boolean
-  // 沉浸模式
   immersiveMode: boolean
-  // 专注模式
   focusModeEnabled: boolean
-  // 主题
+
+  // Theme
   theme: 'light' | 'dark'
-  // 设置面板
-  settingsCategory: 'world' | 'character' | 'item' | 'location' | 'faction' | 'rule' | 'outline' | 'ifline'
+
+  // Settings category
+  settingsCategory: SettingsCategory
+
+  // Sidebar width (settings editor)
+  settingsSidebarWidth: number
+
+  // Toast/notification queue
+  toasts: Toast[]
+}
+
+export interface Toast {
+  id: string
+  type: 'info' | 'success' | 'warning' | 'error'
+  message: string
+  duration?: number
+  dismissible?: boolean
 }
 
 interface UIActions {
-  // 界面流转
-  setCurrentInterface: (interfaceType: InterfaceType) => void
-  // 抽屉控制
+  // Navigation
+  setCurrentInterface: (interfaceType: InterfaceType, meta?: Record<string, unknown>) => void
+  goBack: () => void
+  canNavigateBack: () => boolean
+  clearHistory: () => void
+
+  // Drawers
   toggleAIDrawer: () => void
   toggleCollaborationDrawer: () => void
   toggleOutlineDrawer: () => void
   setAIDrawerOpen: (open: boolean) => void
   setCollaborationDrawerOpen: (open: boolean) => void
-  // 全屏写作
+  setOutlineDrawerOpen: (open: boolean) => void
+
+  // Panel sizing
+  setAIPanelWidth: (width: number) => void
+  setCollaborationPanelWidth: (width: number) => void
+  setOutlinePanelWidth: (width: number) => void
+  collapsePanel: (panel: 'ai' | 'collaboration' | 'outline') => void
+  expandPanel: (panel: 'ai' | 'collaboration' | 'outline') => void
+
+  // Fullscreen & modes
   toggleFullscreenWriting: () => void
-  // 沉浸模式
+  setFullscreenWriting: (fullscreen: boolean) => void
+
   toggleImmersiveMode: () => void
   setImmersiveMode: (immersive: boolean) => void
-  // 专注模式
+
   toggleFocusMode: () => void
   setFocusMode: (focusMode: boolean) => void
-  // 主题
+
+  // Theme
   setTheme: (theme: 'light' | 'dark') => void
   toggleTheme: () => void
-  // 设置分类
-  setSettingsCategory: (category: UIState['settingsCategory']) => void
+
+  // Settings category
+  setSettingsCategory: (category: SettingsCategory) => void
+
+  // Sidebar
+  setSettingsSidebarWidth: (width: number) => void
+
+  // Toasts
+  addToast: (toast: Omit<Toast, 'id'>) => string
+  removeToast: (id: string) => void
+  clearToasts: () => void
 }
 
+// ============================================
+// Helpers
+// ============================================
+
+const genToastId = () => `toast-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`
+
+const MAX_HISTORY = 20
+
+// ============================================
+// Store
+// ============================================
+
 export const useUIStore = create<UIState & UIActions>()(
-  persist(
-    (set) => ({
-      // 初始状态
-      currentInterface: 'chat',
-      aiDrawerOpen: false,
-      collaborationDrawerOpen: false,
-      outlineDrawerOpen: false,
-      fullscreenWriting: false,
-      immersiveMode: false,
-      focusModeEnabled: false,
-      theme: 'dark',
-      settingsCategory: 'world',
+  immer(
+    subscribeWithSelector(
+      persist(
+        (set, get) => ({
+          // Initial state
+          currentInterface: 'chat',
+          navigationHistory: [],
+          canGoBack: false,
+          aiDrawerOpen: false,
+          collaborationDrawerOpen: false,
+          outlineDrawerOpen: false,
+          aiPanel: { width: 360, position: 'right', collapsed: false },
+          collaborationPanel: { width: 320, position: 'right', collapsed: false },
+          outlinePanel: { width: 280, position: 'left', collapsed: false },
+          fullscreenWriting: false,
+          immersiveMode: false,
+          focusModeEnabled: false,
+          theme: 'dark',
+          settingsCategory: 'world',
+          settingsSidebarWidth: 240,
+          toasts: [],
 
-      // 界面流转
-      setCurrentInterface: (interfaceType) => set({ currentInterface: interfaceType }),
+          // ----------------------------------------
+          // Navigation
+          // ----------------------------------------
 
-      // 抽屉控制
-      toggleAIDrawer: () => set((state) => ({ aiDrawerOpen: !state.aiDrawerOpen })),
-      toggleCollaborationDrawer: () => set((state) => ({ collaborationDrawerOpen: !state.collaborationDrawerOpen })),
-      toggleOutlineDrawer: () => set((state) => ({ outlineDrawerOpen: !state.outlineDrawerOpen })),
-      setAIDrawerOpen: (open) => set({ aiDrawerOpen: open }),
-      setCollaborationDrawerOpen: (open) => set({ collaborationDrawerOpen: open }),
+          setCurrentInterface: (interfaceType, meta) => {
+            const { currentInterface, settingsCategory } = get()
 
-      // 全屏写作
-      toggleFullscreenWriting: () => set((state) => ({ fullscreenWriting: !state.fullscreenWriting })),
+            // Don't push duplicate consecutive entries
+            if (currentInterface === interfaceType && !meta) return
 
-      // 沉浸模式
-      toggleImmersiveMode: () => set((state) => ({ immersiveMode: !state.immersiveMode })),
-      setImmersiveMode: (immersive) => set({ immersiveMode: immersive }),
+            // Push current to history before switching
+            const entry: NavigationHistoryEntry = {
+              interface: currentInterface,
+              settingsCategory,
+              timestamp: Date.now(),
+              meta,
+            }
 
-      // 专注模式
-      toggleFocusMode: () => set((state) => ({ focusModeEnabled: !state.focusModeEnabled })),
-      setFocusMode: (focusMode) => set({ focusModeEnabled: focusMode }),
+            set((state) => {
+              state.navigationHistory.push(entry)
+              if (state.navigationHistory.length > MAX_HISTORY) {
+                state.navigationHistory.shift()
+              }
+              state.currentInterface = interfaceType
+              state.canGoBack = state.navigationHistory.length > 0
 
-      // 主题
-      setTheme: (theme) => set({ theme }),
-      toggleTheme: () => set((state) => ({ theme: state.theme === 'light' ? 'dark' : 'light' })),
+              // Close drawers when switching interfaces
+              if (interfaceType !== 'writing') {
+                state.aiDrawerOpen = false
+                state.collaborationDrawerOpen = false
+                state.outlineDrawerOpen = false
+              }
+            })
+          },
 
-      // 设置分类
-      setSettingsCategory: (category) => set({ settingsCategory: category }),
-    }),
-    {
-      name: 'writer-ui-store',
-      partialize: (state: UIState & UIActions) => ({
-        theme: state.theme,
-        // Only persist theme and current interface - not transient UI state
-        currentInterface: state.currentInterface,
-        settingsCategory: state.settingsCategory,
-      }),
-      // Version for future migrations
-      version: 1,
-    }
+          goBack: () => {
+            const { navigationHistory } = get()
+            if (navigationHistory.length === 0) return
+
+            const previous = navigationHistory[navigationHistory.length - 1]
+            set((state) => {
+              state.navigationHistory.pop()
+              state.currentInterface = previous.interface
+              if (previous.settingsCategory) {
+                state.settingsCategory = previous.settingsCategory
+              }
+              state.canGoBack = state.navigationHistory.length > 0
+            })
+          },
+
+          canNavigateBack: () => {
+            return get().navigationHistory.length > 0
+          },
+
+          clearHistory: () => {
+            set((state) => {
+              state.navigationHistory = []
+              state.canGoBack = false
+            })
+          },
+
+          // ----------------------------------------
+          // Drawers
+          // ----------------------------------------
+
+          toggleAIDrawer: () => {
+            set((state) => {
+              state.aiDrawerOpen = !state.aiDrawerOpen
+              // Mutually exclusive with collaboration
+              if (state.aiDrawerOpen && state.collaborationDrawerOpen) {
+                state.collaborationDrawerOpen = false
+              }
+            })
+          },
+
+          toggleCollaborationDrawer: () => {
+            set((state) => {
+              state.collaborationDrawerOpen = !state.collaborationDrawerOpen
+              if (state.collaborationDrawerOpen && state.aiDrawerOpen) {
+                state.aiDrawerOpen = false
+              }
+            })
+          },
+
+          toggleOutlineDrawer: () => {
+            set((state) => { state.outlineDrawerOpen = !state.outlineDrawerOpen })
+          },
+
+          setAIDrawerOpen: (open) => {
+            set((state) => {
+              state.aiDrawerOpen = open
+              if (open && state.collaborationDrawerOpen) {
+                state.collaborationDrawerOpen = false
+              }
+            })
+          },
+
+          setCollaborationDrawerOpen: (open) => {
+            set((state) => {
+              state.collaborationDrawerOpen = open
+              if (open && state.aiDrawerOpen) {
+                state.aiDrawerOpen = false
+              }
+            })
+          },
+
+          setOutlineDrawerOpen: (open) => {
+            set((state) => { state.outlineDrawerOpen = open })
+          },
+
+          // ----------------------------------------
+          // Panel Sizing
+          // ----------------------------------------
+
+          setAIPanelWidth: (width) => {
+            set((state) => { state.aiPanel.width = Math.max(240, Math.min(600, width)) })
+          },
+
+          setCollaborationPanelWidth: (width) => {
+            set((state) => {
+              state.collaborationPanel.width = Math.max(240, Math.min(500, width))
+            })
+          },
+
+          setOutlinePanelWidth: (width) => {
+            set((state) => {
+              state.outlinePanel.width = Math.max(200, Math.min(400, width))
+            })
+          },
+
+          collapsePanel: (panel) => {
+            set((state) => {
+              switch (panel) {
+                case 'ai':
+                  state.aiPanel.collapsed = true
+                  break
+                case 'collaboration':
+                  state.collaborationPanel.collapsed = true
+                  break
+                case 'outline':
+                  state.outlinePanel.collapsed = true
+                  break
+              }
+            })
+          },
+
+          expandPanel: (panel) => {
+            set((state) => {
+              switch (panel) {
+                case 'ai':
+                  state.aiPanel.collapsed = false
+                  break
+                case 'collaboration':
+                  state.collaborationPanel.collapsed = false
+                  break
+                case 'outline':
+                  state.outlinePanel.collapsed = false
+                  break
+              }
+            })
+          },
+
+          // ----------------------------------------
+          // Fullscreen & Modes
+          // ----------------------------------------
+
+          toggleFullscreenWriting: () => {
+            set((state) => { state.fullscreenWriting = !state.fullscreenWriting })
+          },
+
+          setFullscreenWriting: (fullscreen) => {
+            set((state) => { state.fullscreenWriting = fullscreen })
+          },
+
+          toggleImmersiveMode: () => {
+            set((state) => { state.immersiveMode = !state.immersiveMode })
+          },
+
+          setImmersiveMode: (immersive) => {
+            set((state) => { state.immersiveMode = immersive })
+          },
+
+          toggleFocusMode: () => {
+            set((state) => { state.focusModeEnabled = !state.focusModeEnabled })
+          },
+
+          setFocusMode: (focusMode) => {
+            set((state) => { state.focusModeEnabled = focusMode })
+          },
+
+          // ----------------------------------------
+          // Theme
+          // ----------------------------------------
+
+          setTheme: (theme) => {
+            set((state) => { state.theme = theme })
+          },
+
+          toggleTheme: () => {
+            set((state) => {
+              state.theme = state.theme === 'light' ? 'dark' : 'light'
+            })
+          },
+
+          // ----------------------------------------
+          // Settings Category
+          // ----------------------------------------
+
+          setSettingsCategory: (category) => {
+            set((state) => { state.settingsCategory = category })
+          },
+
+          // ----------------------------------------
+          // Sidebar
+          // ----------------------------------------
+
+          setSettingsSidebarWidth: (width) => {
+            set((state) => {
+              state.settingsSidebarWidth = Math.max(180, Math.min(400, width))
+            })
+          },
+
+          // ----------------------------------------
+          // Toasts
+          // ----------------------------------------
+
+          addToast: (toast) => {
+            const id = genToastId()
+            set((state) => {
+              state.toasts.push({ ...toast, id })
+              if (state.toasts.length > 5) {
+                state.toasts.shift()
+              }
+            })
+            // Auto-dismiss
+            if (toast.duration !== 0) {
+              setTimeout(() => {
+                get().removeToast(id)
+              }, toast.duration || 3000)
+            }
+            return id
+          },
+
+          removeToast: (id) => {
+            set((state) => {
+              state.toasts = state.toasts.filter((t) => t.id !== id)
+            })
+          },
+
+          clearToasts: () => {
+            set((state) => { state.toasts = [] })
+          },
+        }),
+        {
+          name: 'writer-ui-store-v2',
+          partialize: (state) => ({
+            theme: state.theme,
+            currentInterface: state.currentInterface,
+            settingsCategory: state.settingsCategory,
+            aiPanel: state.aiPanel,
+            collaborationPanel: state.collaborationPanel,
+            outlinePanel: state.outlinePanel,
+            settingsSidebarWidth: state.settingsSidebarWidth,
+            immersiveMode: state.immersiveMode,
+            focusModeEnabled: state.focusModeEnabled,
+          }),
+          version: 2,
+        }
+      )
+    )
   )
 )
+
+// ============================================
+// Selectors
+// ============================================
+
+export const selectAnyDrawerOpen = (state: UIState) =>
+  state.aiDrawerOpen || state.collaborationDrawerOpen || state.outlineDrawerOpen
+
+export const selectIsInWritingMode = (state: UIState) =>
+  state.currentInterface === 'writing'

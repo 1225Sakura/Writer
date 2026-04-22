@@ -16,7 +16,7 @@ import {
   Loader2,
   Zap,
   Expand,
-  Compress,
+  Shrink,
   RefreshCw,
   ArrowRight,
   Paintbrush,
@@ -24,7 +24,6 @@ import {
   X,
   Split,
   TrendingUp,
-  MessageSquare,
   Gauge,
 } from 'lucide-react'
 
@@ -69,7 +68,7 @@ const aiOperations: AIOperation[] = [
     key: 'shrink',
     label: '缩写',
     shortcut: 'Ctrl+Shift+S',
-    icon: <Compress className="w-5 h-5" />,
+    icon: <Shrink className="w-5 h-5" />,
     activeIcon: <Loader2 className="w-5 h-5 animate-spin" />,
     description: '精简冗余内容',
     color: '#e8b87d',
@@ -529,13 +528,28 @@ function AIOperationButton({
   isDisabled: boolean
   onClick: () => void
 }) {
+  const [ripple, setRipple] = useState<{ x: number; y: number } | null>(null)
+
+  const handleClick = (e: React.MouseEvent<HTMLButtonElement>) => {
+    if (isDisabled) return
+
+    // Calculate ripple position
+    const rect = e.currentTarget.getBoundingClientRect()
+    const x = e.clientX - rect.left
+    const y = e.clientY - rect.top
+    setRipple({ x, y })
+    setTimeout(() => setRipple(null), 600)
+
+    onClick()
+  }
+
   return (
     <motion.button
-      onClick={onClick}
+      onClick={handleClick}
       disabled={isDisabled}
       whileHover={{ scale: isDisabled ? 1 : 1.03 }}
       whileTap={{ scale: isDisabled ? 1 : 0.97 }}
-      className={`relative flex flex-col items-center gap-1.5 p-3 rounded-xl border transition-all duration-200
+      className={`relative flex flex-col items-center gap-1.5 p-3 rounded-xl border transition-all duration-200 overflow-hidden
         ${isLoading
           ? 'border-[#5e6ad2]/40 bg-[#5e6ad2]/10'
           : 'border-[rgba(255,255,255,0.08)] bg-[#0f1011] hover:border-[rgba(255,255,255,0.15)] hover:bg-[rgba(255,255,255,0.04)]'
@@ -543,6 +557,24 @@ function AIOperationButton({
         ${isDisabled && !isLoading ? 'opacity-40 cursor-not-allowed' : 'cursor-pointer'}
       `}
     >
+      {/* Ripple effect */}
+      <AnimatePresence>
+        {ripple && (
+          <motion.div
+            initial={{ opacity: 0.5, scale: 0 }}
+            animate={{ opacity: 0, scale: 2.5 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.6, ease: 'easeOut' }}
+            className="absolute w-8 h-8 rounded-full"
+            style={{
+              left: ripple.x - 16,
+              top: ripple.y - 16,
+              background: `radial-gradient(circle, ${operation.color}40 0%, transparent 70%)`,
+            }}
+          />
+        )}
+      </AnimatePresence>
+
       {/* Loading overlay */}
       <AnimatePresence>
         {isLoading && (
@@ -562,9 +594,13 @@ function AIOperationButton({
         )}
       </AnimatePresence>
 
-      <span style={{ color: isLoading ? '#5e6ad2' : operation.color }}>
+      <motion.span
+        style={{ color: isLoading ? '#5e6ad2' : operation.color }}
+        animate={isLoading ? { scale: [1, 0.9, 1] } : {}}
+        transition={{ duration: 0.5, repeat: isLoading ? Infinity : 0 }}
+      >
         {isLoading ? operation.activeIcon : operation.icon}
-      </span>
+      </motion.span>
       <span className="text-sm font-medium text-[#f7f8f8]">{operation.label}</span>
       <span className="text-[10px] text-[#d0d6e0]/60">{operation.description}</span>
       <span className="text-[10px] px-1.5 py-0.5 rounded bg-[rgba(255,255,255,0.06)] text-[#d0d6e0]/50">

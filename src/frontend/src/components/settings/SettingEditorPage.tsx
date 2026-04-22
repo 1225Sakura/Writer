@@ -5,10 +5,121 @@ import { RelationGraph } from './RelationGraph'
 import { AISuggestionPanel } from './AISuggestionPanel'
 import { EntitySearch } from './EntitySearch'
 import { Button } from '@/components/ui/Button'
-import { Settings, Feather, RefreshCw, PenTool, ArrowLeft } from 'lucide-react'
-import { motion } from 'framer-motion'
+import { Settings, Feather, RefreshCw, PenTool, ArrowLeft, Check, AlertCircle, Keyboard } from 'lucide-react'
+import { motion, AnimatePresence } from 'framer-motion'
 import { EntityListSkeletonPreset, SmartSkeleton } from '@/components/shared/SmartSkeleton'
 import { SectionLoadingOverlay } from '@/components/shared/LoadingOverlay'
+import { useState, useEffect } from 'react'
+
+// Status bar component showing current editing item, auto-save status, and shortcuts
+function StatusBar() {
+  const [lastSaved, setLastSaved] = useState<Date | null>(null)
+  const [isSaving, setIsSaving] = useState(false)
+  const settingsCategory = useUIStore((state) => state.settingsCategory)
+  const isLoading = useSettingsStore((state) => state.isLoading)
+
+  // Category labels
+  const categoryLabels: Record<string, string> = {
+    world: '世界观',
+    character: '角色',
+    item: '物品',
+    location: '地点',
+    faction: '势力',
+    rule: '规则',
+    outline: '大纲',
+    ifline: 'IF线',
+  }
+
+  // Simulate auto-save status (in real app, this would come from store)
+  useEffect(() => {
+    if (!isLoading) {
+      setIsSaving(true)
+      const timer = setTimeout(() => {
+        setIsSaving(false)
+        setLastSaved(new Date())
+      }, 500)
+      return () => clearTimeout(timer)
+    }
+  }, [isLoading, settingsCategory])
+
+  const formatTime = (date: Date) => {
+    return date.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit', second: '2-digit' })
+  }
+
+  return (
+    <motion.div
+      className="flex items-center justify-between px-4 py-2 text-xs"
+      style={{
+        backgroundColor: 'var(--color-bg-surface)',
+        borderTop: '1px solid var(--color-border)',
+      }}
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: 0.3 }}
+    >
+      {/* Current editing item */}
+      <div className="flex items-center gap-3">
+        <span style={{ color: 'var(--color-text-secondary)' }}>
+          当前编辑：<span className="font-medium" style={{ color: 'var(--color-text)' }}>{categoryLabels[settingsCategory]}</span>
+        </span>
+      </div>
+
+      {/* Auto-save status */}
+      <div className="flex items-center gap-1">
+        <AnimatePresence mode="wait">
+          {isSaving ? (
+            <motion.div
+              key="saving"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="flex items-center gap-1"
+              style={{ color: '#e8b87d' }}
+            >
+              <div className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" />
+              <span>保存中...</span>
+            </motion.div>
+          ) : lastSaved ? (
+            <motion.div
+              key="saved"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="flex items-center gap-1"
+              style={{ color: '#7eb84a' }}
+            >
+              <Check className="w-3 h-3" />
+              <span>已保存 {formatTime(lastSaved)}</span>
+            </motion.div>
+          ) : (
+            <motion.div
+              key="idle"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="flex items-center gap-1"
+              style={{ color: 'var(--color-text-muted)' }}
+            >
+              <AlertCircle className="w-3 h-3" />
+              <span>未保存</span>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
+
+      {/* Keyboard shortcuts hint */}
+      <div className="flex items-center gap-2" style={{ color: 'var(--color-text-muted)' }}>
+        <Keyboard className="w-3 h-3" />
+        <span className="hidden sm:inline">
+          <kbd className="px-1 py-0.5 rounded text-[10px]" style={{ backgroundColor: 'rgba(255,255,255,0.06)' }}>Ctrl</kbd>
+          {' + '}
+          <kbd className="px-1 py-0.5 rounded text-[10px]" style={{ backgroundColor: 'rgba(255,255,255,0.06)' }}>S</kbd>
+          {' 保存'}
+        </span>
+      </div>
+    </motion.div>
+  )
+}
 
 export function SettingEditorPage() {
   const { settingsCategory, setCurrentInterface, setSettingsCategory } = useUIStore()
@@ -18,20 +129,43 @@ export function SettingEditorPage() {
 
   return (
     <motion.div
-      className="flex h-full"
+      className="flex h-full relative"
       style={{ backgroundColor: 'var(--color-bg)' }}
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
     >
-      {/* 左侧：分类导航 - 224px 宽 */}
+      {/* Background decorative elements */}
+      <div
+        className="absolute inset-0 pointer-events-none overflow-hidden"
+        style={{ zIndex: 0 }}
+      >
+        {/* Top-right gradient accent */}
+        <div
+          className="absolute top-0 right-0 w-[400px] h-[400px] opacity-20"
+          style={{
+            background: 'radial-gradient(circle, rgba(94,106,210,0.15) 0%, transparent 70%)',
+            transform: 'translate(30%, -30%)',
+          }}
+        />
+        {/* Bottom-left gradient accent */}
+        <div
+          className="absolute bottom-0 left-0 w-[300px] h-[300px] opacity-15"
+          style={{
+            background: 'radial-gradient(circle, rgba(232,184,125,0.1) 0%, transparent 70%)',
+            transform: 'translate(-30%, 30%)',
+          }}
+        />
+      </div>
+      {/* 左侧：分类导航 - 200px 宽 */}
       <motion.div
-        className="flex-shrink-0 h-full overflow-hidden flex flex-col"
+        className="flex-shrink-0 h-full overflow-hidden flex flex-col relative"
         style={{
-          width: '224px',
+          width: '200px',
           backgroundColor: 'var(--color-bg-surface)',
           borderRight: '1px solid var(--color-border)',
+          zIndex: 1,
         }}
         initial={{ x: -20, opacity: 0 }}
         animate={{ x: 0, opacity: 1 }}
@@ -42,7 +176,8 @@ export function SettingEditorPage() {
 
       {/* 中间：实体编辑器 */}
       <motion.div
-        className="flex-1 overflow-hidden flex flex-col min-w-0"
+        className="flex-1 overflow-hidden flex flex-col min-w-0 relative"
+        style={{ zIndex: 1 }}
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1], delay: 0.1 }}
@@ -115,15 +250,19 @@ export function SettingEditorPage() {
         >
           <AISuggestionPanel />
         </div>
+
+        {/* 底部状态栏 */}
+        <StatusBar />
       </motion.div>
 
       {/* 右侧：关系图谱 - 320px 宽 */}
       <motion.div
-        className="flex-shrink-0 h-full flex flex-col overflow-hidden"
+        className="flex-shrink-0 h-full flex flex-col overflow-hidden relative"
         style={{
           width: '320px',
           backgroundColor: 'var(--color-bg-primary)',
           borderLeft: '1px solid var(--color-border)',
+          zIndex: 1,
         }}
         initial={{ x: 20, opacity: 0 }}
         animate={{ x: 0, opacity: 1 }}

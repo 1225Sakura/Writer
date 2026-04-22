@@ -3,7 +3,7 @@
  * 包含所有界面的快捷键配置、AI操作映射、以及命令面板使用的命令定义
  */
 
-import type { AIOperationType } from './shortcuts'
+// AIOperationType is defined below in this file
 
 // ============ 界面类型 ============
 export type InterfaceType = 'chat' | 'settings' | 'writing' | 'global'

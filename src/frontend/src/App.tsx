@@ -4,6 +4,7 @@ import { ThemeProvider } from '@/components/shared/ThemeProvider'
 import { ShortcutManager } from '@/components/shared/ShortcutManager'
 import { ErrorBoundary } from '@/components/shared/ErrorBoundary'
 import { CommandPalette } from '@/components/shared/CommandPalette'
+import { ShortcutsHelp } from '@/components/shared/ShortcutsHelp'
 import { PageTransition } from '@/components/shared/PageTransition'
 import { ParticleBackground } from '@/components/shared/ParticleBackground'
 import { ToastContainer } from '@/components/ui/Toast'
@@ -69,6 +70,7 @@ export default function App() {
       <ThemeProvider>
         <ShortcutManager />
         <CommandPalette />
+        <ShortcutsHelp />
         <AppContent />
         <ToastContainer />
       </ThemeProvider>

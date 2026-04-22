@@ -1,4 +1,12 @@
 // ============================================
+// Import types from shared types module for local use
+// ============================================
+
+import type {
+  ChatMessage,
+} from "@/shared/types"
+
+// ============================================
 // Re-export types from shared types module
 // ============================================
 
@@ -102,6 +110,7 @@ export interface ChatSendRequest {
 export interface ChatSendResponse {
   user_message: ChatMessage
   ai_message: ChatMessage
+  stream?: ReadableStream<Uint8Array>
   agent_result?: {
     confidence: number
     metadata: Record<string, unknown>

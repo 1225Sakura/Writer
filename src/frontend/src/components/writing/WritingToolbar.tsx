@@ -1,5 +1,7 @@
 import { useUIStore, useWritingStore } from '@/store'
 import { Button } from '@/components/ui/Button'
+import { Slider } from '@/components/ui/slider'
+import { motion, AnimatePresence } from 'framer-motion'
 import {
   Pen,
   List,
@@ -14,9 +16,19 @@ import {
   Eye,
   EyeOff,
   BarChart3,
+  Zap,
+  Expand,
+  Shrink,
+  RefreshCw,
+  ArrowRight,
+  Paintbrush,
+  Bot,
+  User,
+  Sparkles,
 } from 'lucide-react'
-import { memo, useCallback } from 'react'
+import { memo, useCallback, useState } from 'react'
 import { showToast } from '@/components/ui/Toast'
+import { getEditorInstance } from '@/store/editorRegistry'
 
 export function WritingToolbar() {
   const {
@@ -35,8 +47,26 @@ export function WritingToolbar() {
     focusModeEnabled,
     toggleFocusMode,
   } = useUIStore()
-  const { oocWarnings, powerImbalanceWarnings, wordCount, targetWordCount, getTodayWordCount } = useWritingStore()
+  const {
+    oocWarnings,
+    powerImbalanceWarnings,
+    wordCount,
+    targetWordCount,
+    getTodayWordCount,
+    humanAIRatio,
+    setHumanAIRatio,
+    optimize,
+    expand,
+    shrink,
+    rewrite,
+    continue: continueWriting,
+    polish,
+    loading,
+  } = useWritingStore()
   const todayWordCount = getTodayWordCount()
+
+  const [showQuickAIOps, setShowQuickAIOps] = useState(false)
+  const [quickOpLoading, setQuickOpLoading] = useState<string | null>(null)
 
   const handleWarningClick = useCallback(() => {
     const oocMsg = oocWarnings.length > 0 ? `OOC警告:\n${oocWarnings.join('\n')}` : ''
@@ -45,14 +75,75 @@ export function WritingToolbar() {
   }, [oocWarnings, powerImbalanceWarnings])
 
   const hasWarnings = oocWarnings.length > 0 || powerImbalanceWarnings.length > 0
+  const isAIGenerating = loading.ai
+
+  const handleQuickAIOp = async (
+    operation: 'optimize' | 'expand' | 'shrink' | 'rewrite' | 'continue' | 'polish'
+  ) => {
+    const editor = getEditorInstance()
+    const selectedText = editor
+      ? editor.state.doc.textBetween(editor.state.selection.from, editor.state.selection.to, ' ')
+      : ''
+
+    if (!selectedText) {
+      showToast('请先选中需要操作的文字', 'warning')
+      return
+    }
+
+    setQuickOpLoading(operation)
+    try {
+      let result: string
+      switch (operation) {
+        case 'optimize':
+          result = await optimize(selectedText)
+          break
+        case 'expand':
+          result = await expand(selectedText)
+          break
+        case 'shrink':
+          result = await shrink(selectedText)
+          break
+        case 'rewrite':
+          result = await rewrite(selectedText)
+          break
+        case 'continue':
+          result = await continueWriting(selectedText)
+          break
+        case 'polish':
+          result = await polish(selectedText)
+          break
+        default:
+          throw new Error(`Unknown operation: ${operation}`)
+      }
+
+      if (editor && result) {
+        editor.commands.insertContent(result)
+        showToast(`${operation}完成`, 'success')
+      }
+    } catch (error) {
+      console.error(`[快捷AI操作] ${operation} failed:`, error)
+      showToast(`${operation}失败`, 'error')
+    } finally {
+      setQuickOpLoading(null)
+    }
+  }
+
+  const quickAIOperations = [
+    { key: 'optimize', label: '优化', icon: <Zap className="w-3.5 h-3.5" />, shortcut: 'O', color: '#5e6ad2' },
+    { key: 'expand', label: '扩写', icon: <Expand className="w-3.5 h-3.5" />, shortcut: 'E', color: '#7eb84a' },
+    { key: 'shrink', label: '缩写', icon: <Shrink className="w-3.5 h-3.5" />, shortcut: 'S', color: '#e8b87d' },
+    { key: 'rewrite', label: '改写', icon: <RefreshCw className="w-3.5 h-3.5" />, shortcut: 'R', color: '#9b7ed9' },
+    { key: 'continue', label: '续写', icon: <ArrowRight className="w-3.5 h-3.5" />, shortcut: 'W', color: '#5eb5a6' },
+    { key: 'polish', label: '润色', icon: <Paintbrush className="w-3.5 h-3.5" />, shortcut: 'P', color: '#c45c5c' },
+  ] as const
 
   return (
-    <div className="h-12 flex items-center px-4 gap-2"
+    <div className="h-[44px] flex items-center px-4 gap-2"
          style={{
            backgroundColor: 'var(--color-bg-surface)',
            borderBottom: '1px solid var(--color-border)',
          }}>
-      {/* 左侧：返回聊天 + 返回设定 - Linear ghost buttons */}
+      {/* 左侧：返回聊天 + 返回设定 */}
       <Button
         onClick={() => setCurrentInterface('chat')}
         variant="ghost"
@@ -102,21 +193,132 @@ export function WritingToolbar() {
         />
       </div>
 
+      {/* 中间偏右：人机比例快捷滑块 + 快捷AI操作 */}
+      <div className="flex items-center gap-2 ml-2">
+        <div className="w-px h-6" style={{ backgroundColor: 'var(--color-border)' }} />
+
+        {/* Human-AI ratio mini control */}
+        <div className="flex items-center gap-2 px-2 py-1 rounded-lg bg-[rgba(255,255,255,0.03)] border border-[rgba(255,255,255,0.06)]">
+          <Bot className="w-3.5 h-3.5 text-[#5e6ad2]" />
+          <div className="w-16">
+            <Slider
+              value={[humanAIRatio]}
+              min={0}
+              max={100}
+              step={10}
+              onValueChange={(value) => setHumanAIRatio(value[0])}
+              className="w-full"
+            />
+          </div>
+          <User className="w-3.5 h-3.5 text-[#7eb84a]" />
+          <span className="text-[10px] text-[#d0d6e0]/70 w-8 text-center">
+            {humanAIRatio < 30 ? 'AI' : humanAIRatio < 70 ? '协作' : '用户'}
+          </span>
+        </div>
+
+        {/* Quick AI operations dropdown */}
+        <div className="relative">
+          <Button
+            onClick={() => setShowQuickAIOps(!showQuickAIOps)}
+            variant={showQuickAIOps ? 'primary' : 'ghost'}
+            size="sm"
+            className="relative"
+            disabled={isAIGenerating}
+          >
+            {isAIGenerating ? (
+              <motion.div
+                animate={{ rotate: 360 }}
+                transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
+              >
+                <Sparkles className="w-4 h-4" />
+              </motion.div>
+            ) : (
+              <Zap className="w-4 h-4" />
+            )}
+            <span>快捷AI</span>
+            {isAIGenerating && (
+              <span className="absolute -top-1 -right-1 w-2 h-2 bg-[#5e6ad2] rounded-full animate-pulse" />
+            )}
+          </Button>
+
+          <AnimatePresence>
+            {showQuickAIOps && (
+              <motion.div
+                initial={{ opacity: 0, y: -4, scale: 0.95 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, y: -4, scale: 0.95 }}
+                transition={{ duration: 0.15 }}
+                className="absolute top-full left-0 mt-1 z-50 p-1.5 rounded-xl bg-[#191a1b] border border-[rgba(255,255,255,0.08)] shadow-xl min-w-[200px]"
+              >
+                <div className="text-[10px] text-[#d0d6e0]/50 px-2 py-1 uppercase tracking-wider">
+                  选中文字后执行
+                </div>
+                <div className="grid grid-cols-2 gap-1">
+                  {quickAIOperations.map((op) => (
+                    <button
+                      key={op.key}
+                      onClick={() => {
+                        handleQuickAIOp(op.key)
+                        setShowQuickAIOps(false)
+                      }}
+                      disabled={quickOpLoading !== null}
+                      className={`flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-xs transition-all
+                        ${quickOpLoading === op.key
+                          ? 'bg-[#5e6ad2]/20 text-[#5e6ad2]'
+                          : 'text-[#d0d6e0] hover:bg-[rgba(255,255,255,0.06)]'
+                        }
+                        ${quickOpLoading !== null && quickOpLoading !== op.key ? 'opacity-40' : ''}
+                      `}
+                    >
+                      <span style={{ color: op.color }}>{op.icon}</span>
+                      <span className="flex-1 text-left">{op.label}</span>
+                      <span className="text-[10px] text-[#d0d6e0]/40">⇧{op.shortcut}</span>
+                    </button>
+                  ))}
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+      </div>
+
       {/* 右侧：字数统计、警告和主题切换 */}
       <div className="ml-auto flex items-center gap-2">
+        {/* AI生成状态指示 */}
+        <AnimatePresence>
+          {isAIGenerating && (
+            <motion.div
+              initial={{ opacity: 0, x: 8 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: 8 }}
+              className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-[#5e6ad2]/10 border border-[#5e6ad2]/20"
+            >
+              <motion.div
+                animate={{ scale: [1, 1.2, 1] }}
+                transition={{ duration: 1, repeat: Infinity }}
+              >
+                <Sparkles className="w-3 h-3 text-[#5e6ad2]" />
+              </motion.div>
+              <span className="text-[10px] text-[#5e6ad2] font-medium">AI生成中</span>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
         {/* 今日进度 - gradient fill */}
         <div className="flex items-center gap-1.5 mr-2"
           title="今日写作进度"
         >
           <BarChart3 className="w-3.5 h-3.5 text-[#5e6ad2]" />
           <div className="w-20 h-1.5 bg-[rgba(255,255,255,0.06)] rounded-full overflow-hidden">
-            <div
-              className="h-full rounded-full transition-all duration-500"
+            <motion.div
+              className="h-full rounded-full"
               style={{
-                width: `${Math.min(100, (todayWordCount / Math.max(1, targetWordCount)) * 100)}%`,
                 background: 'linear-gradient(90deg, #5e6ad2 0%, #7eb84a 100%)',
                 boxShadow: '0 0 6px rgba(94, 106, 210, 0.3)',
               }}
+              initial={{ width: 0 }}
+              animate={{ width: `${Math.min(100, (todayWordCount / Math.max(1, targetWordCount)) * 100)}%` }}
+              transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
             />
           </div>
           <span className="text-[10px] text-[#d0d6e0]/70">

@@ -8,7 +8,7 @@ import type {
   EntityFilters,
   PaginationParams,
 } from "./types"
-import { api, apiClient } from "./request"
+import { api } from "./request"
 
 // ============================================
 // Chat Sessions

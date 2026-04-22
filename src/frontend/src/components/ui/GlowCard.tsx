@@ -88,11 +88,11 @@ export const GlowCard = React.forwardRef<HTMLDivElement, GlowCardProps>(
           className
         )}
         style={glowStyle}
-        onMouseEnter={(e: React.MouseEvent) => {
+        onMouseEnter={(e: React.MouseEvent<HTMLDivElement>) => {
           setIsHovered(true)
           props.onMouseEnter?.(e)
         }}
-        onMouseLeave={(e: React.MouseEvent) => {
+        onMouseLeave={(e: React.MouseEvent<HTMLDivElement>) => {
           setIsHovered(false)
           props.onMouseLeave?.(e)
         }}

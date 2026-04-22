@@ -105,3 +105,32 @@ export type { TypewriterTextProps } from './TypewriterText'
 
 export { MagneticButton } from './MagneticButton'
 export type { MagneticButtonProps } from './MagneticButton'
+
+export { Divider } from './Divider'
+export type { DividerProps } from './Divider'
+
+export { EmptyState } from './EmptyState'
+export type { EmptyStateProps } from './EmptyState'
+
+export { ProgressRing } from './ProgressRing'
+export type { ProgressRingProps } from './ProgressRing'
+
+// shadcn/ui - newly added
+export { Progress } from './progress'
+
+export { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from './accordion'
+
+export { Collapsible, CollapsibleTrigger, CollapsibleContent } from './collapsible'
+
+export {
+  Select,
+  SelectGroup,
+  SelectValue,
+  SelectTrigger,
+  SelectContent,
+  SelectLabel,
+  SelectItem,
+  SelectSeparator,
+} from './select'
+
+export { Toggle, toggleVariants } from './toggle'

@@ -24,6 +24,7 @@ const interfaceOrder: Record<InterfaceType, number> = {
   chat: 0,
   settings: 1,
   writing: 2,
+  global: 3,
 }
 
 /**

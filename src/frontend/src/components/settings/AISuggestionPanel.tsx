@@ -1,111 +1,873 @@
-import { useState } from 'react'
-import { ChevronDown, Check, X, Sparkles } from 'lucide-react'
+import { useState, useCallback, useMemo } from 'react'
+import {
+  ChevronDown, Check, X, Sparkles, AlertTriangle, AlertCircle,
+  Info, Lightbulb, RotateCw, History, ArrowRight, Clock,
+  ChevronLeft, ChevronRight as ChevronRightIcon
+} from 'lucide-react'
 import { useSettingsStore } from '@/store'
 import { motion, AnimatePresence } from 'framer-motion'
+import type { EntityType } from '@/shared/types'
 
-interface Suggestion {
+// ============================================
+// Types
+// ============================================
+
+type Severity = 'error' | 'warning' | 'suggestion'
+type IssueType = 'consistency' | 'relationship' | 'foreshadowing' | 'suggestion' | 'warning'
+
+interface SuggestionItem {
   id: string
-  type: 'consistency' | 'relationship' | 'foreshadowing' | 'suggestion' | 'warning'
+  type: IssueType
+  severity: Severity
   title: string
   description: string
+  entityIds?: number[]
+  entityType?: EntityType
   autoFixable: boolean
+  lineReference?: string
 }
 
-const typeLabels: Record<string, string> = {
-  inconsistency: '一致性',
+interface ReviewIteration {
+  id: string
+  timestamp: string
+  category: EntityType
+  issueCount: number
+  severityCounts: Record<Severity, number>
+  suggestions: SuggestionItem[]
+}
+
+interface ReviewHistoryState {
+  iterations: ReviewIteration[]
+  currentIterationId: string | null
+}
+
+// ============================================
+// Severity Configuration
+// ============================================
+
+const SEVERITY_CONFIG: Record<Severity, {
+  label: string
+  icon: typeof AlertTriangle
+  colors: { bg: string; text: string; border: string; badge: string }
+  priority: number
+}> = {
+  error: {
+    label: '错误',
+    icon: AlertCircle,
+    colors: {
+      bg: 'rgba(196,92,92,0.12)',
+      text: '#e57373',
+      border: 'rgba(196,92,92,0.25)',
+      badge: '#c45c5c',
+    },
+    priority: 1,
+  },
+  warning: {
+    label: '警告',
+    icon: AlertTriangle,
+    colors: {
+      bg: 'rgba(232,184,125,0.12)',
+      text: '#e8b87d',
+      border: 'rgba(232,184,125,0.25)',
+      badge: '#e8b87d',
+    },
+    priority: 2,
+  },
+  suggestion: {
+    label: '建议',
+    icon: Lightbulb,
+    colors: {
+      bg: 'rgba(91,142,232,0.12)',
+      text: '#7aa3f0',
+      border: 'rgba(91,142,232,0.25)',
+      badge: '#5b8ee8',
+    },
+    priority: 3,
+  },
+}
+
+const ISSUE_TYPE_LABELS: Record<string, string> = {
+  consistency: '一致性',
+  relationship: '关系',
   foreshadowing: '伏笔',
   suggestion: '建议',
   warning: '警告',
 }
 
-const typeColors: Record<string, { bg: string; text: string; border: string }> = {
-  inconsistency: { bg: 'rgba(196,92,92,0.15)', text: '#d45d5d', border: 'rgba(196,92,92,0.3)' },
-  relationship: { bg: 'rgba(232,184,125,0.15)', text: '#e8b87d', border: 'rgba(232,184,125,0.3)' },
-  foreshadowing: { bg: 'rgba(126,184,74,0.15)', text: '#7eb84a', border: 'rgba(126,184,74,0.3)' },
-  suggestion: { bg: 'rgba(94,106,210,0.15)', text: '#5e6ad2', border: 'rgba(94,106,210,0.3)' },
-  warning: { bg: 'rgba(196,92,92,0.15)', text: '#d45d5d', border: 'rgba(196,92,92,0.3)' },
-}
+// ============================================
+// Animation Variants
+// ============================================
 
-// Stagger animation variants for suggestion cards
 const containerVariants = {
   hidden: { opacity: 0 },
   visible: {
     opacity: 1,
-    transition: {
-      staggerChildren: 0.06,
-      delayChildren: 0.05,
-    },
+    transition: { staggerChildren: 0.05, delayChildren: 0.03 },
   },
   exit: {
     opacity: 0,
-    transition: {
-      staggerChildren: 0.03,
-      staggerDirection: -1,
-    },
+    transition: { staggerChildren: 0.02, staggerDirection: -1 },
   },
 }
 
 const cardVariants = {
-  hidden: {
-    opacity: 0,
-    y: 12,
-    scale: 0.97,
-  },
+  hidden: { opacity: 0, y: 10, scale: 0.98 },
   visible: {
-    opacity: 1,
-    y: 0,
-    scale: 1,
-    transition: {
-      duration: 0.25,
-      ease: [0.16, 1, 0.3, 1] as const,
-    },
+    opacity: 1, y: 0, scale: 1,
+    transition: { duration: 0.2, ease: [0.16, 1, 0.3, 1] as const },
   },
   exit: {
-    opacity: 0,
-    y: -8,
-    scale: 0.97,
-    transition: {
-      duration: 0.15,
-    },
+    opacity: 0, y: -6, scale: 0.98,
+    transition: { duration: 0.12 },
   },
 }
 
+// ============================================
+// Helper: Map API severity to local severity
+// ============================================
+
+function mapSeverity(apiSeverity?: string, apiType?: string): Severity {
+  if (apiSeverity === 'high') return 'error'
+  if (apiSeverity === 'medium') return 'warning'
+  if (apiType === 'warning') return 'warning'
+  return 'suggestion'
+}
+
+// ============================================
+// Component: Severity Filter Tabs
+// ============================================
+
+function SeverityFilterTabs({
+  counts,
+  activeFilter,
+  onFilterChange,
+}: {
+  counts: Record<Severity | 'all', number>
+  activeFilter: Severity | 'all'
+  onFilterChange: (filter: Severity | 'all') => void
+}) {
+  const tabs: Array<{ key: Severity | 'all'; label: string; color: string }> = [
+    { key: 'all', label: '全部', color: '#9ca3af' },
+    { key: 'error', label: '错误', color: SEVERITY_CONFIG.error.colors.badge },
+    { key: 'warning', label: '警告', color: SEVERITY_CONFIG.warning.colors.badge },
+    { key: 'suggestion', label: '建议', color: SEVERITY_CONFIG.suggestion.colors.badge },
+  ]
+
+  return (
+    <div className="flex items-center gap-1 px-4 pt-2 pb-1"
+    >
+      {tabs.map((tab) => {
+        const isActive = activeFilter === tab.key
+        const count = counts[tab.key]
+        return (
+          <button
+            key={tab.key}
+            onClick={() => onFilterChange(tab.key)}
+            className="flex items-center gap-1 px-2 py-1 rounded-md text-[11px] font-medium transition-all"
+            style={{
+              backgroundColor: isActive ? `${tab.color}20` : 'transparent',
+              color: isActive ? tab.color : '#6b7280',
+            }}
+            onMouseEnter={(e) => {
+              if (!isActive) e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.04)'
+            }}
+            onMouseLeave={(e) => {
+              if (!isActive) e.currentTarget.style.backgroundColor = 'transparent'
+            }}
+          >
+            {tab.label}
+            {count > 0 && (
+              <span
+                className="text-[9px] px-1 py-0 rounded-full"
+                style={{
+                  backgroundColor: isActive ? `${tab.color}30` : 'rgba(255,255,255,0.06)',
+                  color: isActive ? tab.color : '#4b5563',
+                }}
+              >
+                {count}
+              </span>
+            )}
+          </button>
+        )
+      })}
+    </div>
+  )
+}
+
+// ============================================
+// Component: Review History Drawer
+// ============================================
+
+function ReviewHistoryDrawer({
+  isOpen,
+  onClose,
+  history,
+  currentIterationId,
+  onSelectIteration,
+}: {
+  isOpen: boolean
+  onClose: () => void
+  history: ReviewIteration[]
+  currentIterationId: string | null
+  onSelectIteration: (id: string) => void
+}) {
+  return (
+    <AnimatePresence>
+      {isOpen && (
+        <>
+          {/* Backdrop */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="absolute inset-0 z-30"
+            style={{ backgroundColor: 'rgba(0,0,0,0.3)' }}
+            onClick={onClose}
+          />
+          {/* Drawer */}
+          <motion.div
+            initial={{ x: '100%' }}
+            animate={{ x: 0 }}
+            exit={{ x: '100%' }}
+            transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
+            className="absolute right-0 top-0 bottom-0 z-40 w-[280px] flex flex-col"
+            style={{
+              backgroundColor: '#0f1011',
+              borderLeft: '1px solid rgba(255,255,255,0.06)',
+            }}
+          >
+            <div className="flex items-center justify-between px-4 py-3"
+              style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}
+            >
+              <div className="flex items-center gap-2"
+              >
+                <History className="w-4 h-4" style={{ color: '#9ca3af' }} />
+                <span className="text-sm font-medium" style={{ color: '#f7f8f8' }}>
+                  审查历史
+                </span>
+              </div>
+              <button
+                onClick={onClose}
+                className="p-1 rounded hover:bg-white/10 transition-colors"
+              >
+                <X className="w-4 h-4" style={{ color: '#6b7280' }} />
+              </button>
+            </div>
+
+            <div className="flex-1 overflow-y-auto p-3 space-y-2"
+            >
+              {history.length === 0 ? (
+                <div className="text-center py-8"
+                >
+                  <Clock className="w-8 h-8 mx-auto mb-2" style={{ color: '#4b5563' }} />
+                  <p className="text-xs" style={{ color: '#6b7280' }}>
+                    暂无审查记录
+                  </p>
+                </div>
+              ) : (
+                history.map((iteration, index) => {
+                  const isActive = iteration.id === currentIterationId
+                  const date = new Date(iteration.timestamp)
+                  const timeStr = `${date.getMonth() + 1}/${date.getDate()} ${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}`
+
+                  return (
+                    <motion.button
+                      key={iteration.id}
+                      onClick={() => onSelectIteration(iteration.id)}
+                      className="w-full text-left rounded-lg p-3 transition-all"
+                      style={{
+                        backgroundColor: isActive ? 'rgba(94,106,210,0.1)' : 'rgba(255,255,255,0.02)',
+                        border: `1px solid ${isActive ? 'rgba(94,106,210,0.2)' : 'rgba(255,255,255,0.04)'}`,
+                      }}
+                      whileHover={{ scale: 1.01 }}
+                      whileTap={{ scale: 0.99 }}
+                    >
+                      <div className="flex items-center justify-between mb-1.5"
+                      >
+                        <span className="text-xs font-medium" style={{ color: isActive ? '#5e6ad2' : '#f7f8f8' }}>
+                          第 {history.length - index} 次审查
+                        </span>
+                        <span className="text-[10px]" style={{ color: '#4b5563' }}>
+                          {timeStr}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-2"
+                      >
+                        {iteration.severityCounts.error > 0 && (
+                          <span className="text-[10px] px-1.5 py-0.5 rounded" style={{ backgroundColor: 'rgba(196,92,92,0.15)', color: '#e57373' }}>
+                            {iteration.severityCounts.error} 错误
+                          </span>
+                        )}
+                        {iteration.severityCounts.warning > 0 && (
+                          <span className="text-[10px] px-1.5 py-0.5 rounded" style={{ backgroundColor: 'rgba(232,184,125,0.15)', color: '#e8b87d' }}>
+                            {iteration.severityCounts.warning} 警告
+                          </span>
+                        )}
+                        {iteration.severityCounts.suggestion > 0 && (
+                          <span className="text-[10px] px-1.5 py-0.5 rounded" style={{ backgroundColor: 'rgba(91,142,232,0.15)', color: '#7aa3f0' }}>
+                            {iteration.severityCounts.suggestion} 建议
+                          </span>
+                        )}
+                      </div>
+                    </motion.button>
+                  )
+                })
+              )}
+            </div>
+          </motion.div>
+        </>
+      )}
+    </AnimatePresence>
+  )
+}
+
+// ============================================
+// Component: Iteration Comparison View
+// ============================================
+
+function IterationComparisonView({
+  iterations,
+  onClose,
+}: {
+  iterations: ReviewIteration[]
+  onClose: () => void
+}) {
+  const [leftIndex, setLeftIndex] = useState(Math.max(0, iterations.length - 2))
+  const [rightIndex, setRightIndex] = useState(Math.max(0, iterations.length - 1))
+
+  const leftIter = iterations[leftIndex]
+  const rightIter = iterations[rightIndex]
+
+  if (!leftIter || !rightIter) return null
+
+  // Find changes between iterations
+  const leftIds = new Set(leftIter.suggestions.map((s) => s.id))
+  const rightIds = new Set(rightIter.suggestions.map((s) => s.id))
+  const resolvedIds = [...leftIds].filter((id) => !rightIds.has(id))
+  const newIds = [...rightIds].filter((id) => !leftIds.has(id))
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: 20 }}
+      className="absolute inset-x-0 bottom-0 z-20 rounded-t-xl"
+      style={{
+        backgroundColor: '#0f1011',
+        borderTop: '1px solid rgba(255,255,255,0.08)',
+        maxHeight: '70%',
+        boxShadow: '0 -8px 32px rgba(0,0,0,0.4)',
+      }}
+    >
+      {/* Header */}
+      <div className="flex items-center justify-between px-4 py-3"
+        style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}
+      >
+        <div className="flex items-center gap-2"
+        >
+          <ArrowRight className="w-4 h-4" style={{ color: '#5e6ad2' }} />
+          <span className="text-sm font-medium" style={{ color: '#f7f8f8' }}>
+            审查对比
+          </span>
+        </div>
+        <button
+          onClick={onClose}
+          className="p-1 rounded hover:bg-white/10 transition-colors"
+        >
+          <X className="w-4 h-4" style={{ color: '#6b7280' }} />
+        </button>
+      </div>
+
+      {/* Iteration selectors */}
+      <div className="flex items-center gap-4 px-4 py-2"
+        style={{ borderBottom: '1px solid rgba(255,255,255,0.04)' }}
+      >
+        <div className="flex-1"
+        >
+          <span className="text-[10px]" style={{ color: '#6b7280' }}>较早版本</span>
+          <div className="flex items-center gap-1 mt-0.5"
+          >
+            <button
+              onClick={() => setLeftIndex(Math.max(0, leftIndex - 1))}
+              disabled={leftIndex === 0}
+              className="p-0.5 rounded hover:bg-white/10 disabled:opacity-30 transition-opacity"
+            >
+              <ChevronLeft className="w-3 h-3" style={{ color: '#9ca3af' }} />
+            </button>
+            <span className="text-xs font-medium" style={{ color: '#f7f8f8' }}>
+              第 {leftIndex + 1} 次
+            </span>
+            <button
+              onClick={() => setLeftIndex(Math.min(rightIndex - 1, leftIndex + 1))}
+              disabled={leftIndex >= rightIndex - 1}
+              className="p-0.5 rounded hover:bg-white/10 disabled:opacity-30 transition-opacity"
+            >
+              <ChevronRightIcon className="w-3 h-3" style={{ color: '#9ca3af' }} />
+            </button>
+          </div>
+        </div>
+        <ArrowRight className="w-4 h-4 flex-shrink-0" style={{ color: '#4b5563' }} />
+        <div className="flex-1"
+        >
+          <span className="text-[10px]" style={{ color: '#6b7280' }}>较晚版本</span>
+          <div className="flex items-center gap-1 mt-0.5"
+          >
+            <button
+              onClick={() => setRightIndex(Math.max(leftIndex + 1, rightIndex - 1))}
+              disabled={rightIndex <= leftIndex + 1}
+              className="p-0.5 rounded hover:bg-white/10 disabled:opacity-30 transition-opacity"
+            >
+              <ChevronLeft className="w-3 h-3" style={{ color: '#9ca3af' }} />
+            </button>
+            <span className="text-xs font-medium" style={{ color: '#f7f8f8' }}>
+              第 {rightIndex + 1} 次
+            </span>
+            <button
+              onClick={() => setRightIndex(Math.min(iterations.length - 1, rightIndex + 1))}
+              disabled={rightIndex >= iterations.length - 1}
+              className="p-0.5 rounded hover:bg-white/10 disabled:opacity-30 transition-opacity"
+            >
+              <ChevronRightIcon className="w-3 h-3" style={{ color: '#9ca3af' }} />
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Comparison stats */}
+      <div className="flex items-center gap-4 px-4 py-2"
+        style={{ borderBottom: '1px solid rgba(255,255,255,0.04)' }}
+      >
+        <div className="flex items-center gap-1.5"
+        >
+          <span className="text-[10px]" style={{ color: '#6b7280' }}>已解决:</span>
+          <span className="text-xs font-medium" style={{ color: '#7eb84a' }}>
+            {resolvedIds.length} 项
+          </span>
+        </div>
+        <div className="flex items-center gap-1.5"
+        >
+          <span className="text-[10px]" style={{ color: '#6b7280' }}>新增:</span>
+          <span className="text-xs font-medium" style={{ color: '#e8b87d' }}>
+            {newIds.length} 项
+          </span>
+        </div>
+        <div className="flex items-center gap-1.5"
+        >
+          <span className="text-[10px]" style={{ color: '#6b7280' }}>剩余:</span>
+          <span className="text-xs font-medium" style={{ color: '#f7f8f8' }}>
+            {rightIter.issueCount} 项
+          </span>
+        </div>
+      </div>
+
+      {/* Scrollable content */}
+      <div className="overflow-y-auto p-3 space-y-2" style={{ maxHeight: 'calc(70vh - 140px)' }}
+      >
+        {rightIter.suggestions.map((suggestion) => {
+          const isNew = newIds.includes(suggestion.id)
+          const config = SEVERITY_CONFIG[suggestion.severity]
+          const Icon = config.icon
+
+          return (
+            <div
+              key={suggestion.id}
+              className="p-2.5 rounded-lg"
+              style={{
+                backgroundColor: isNew ? 'rgba(232,184,125,0.06)' : 'rgba(255,255,255,0.02)',
+                border: `1px solid ${isNew ? 'rgba(232,184,125,0.15)' : 'rgba(255,255,255,0.04)'}`,
+              }}
+            >
+              <div className="flex items-center gap-2 mb-1"
+              >
+                {isNew && (
+                  <span className="text-[9px] px-1 py-0.5 rounded" style={{ backgroundColor: 'rgba(232,184,125,0.15)', color: '#e8b87d' }}>
+                    新增
+                  </span>
+                )}
+                <Icon className="w-3 h-3" style={{ color: config.colors.badge }} />
+                <span className="text-xs font-medium" style={{ color: '#f7f8f8' }}>
+                  {suggestion.title}
+                </span>
+              </div>
+              <p className="text-[11px] pl-5" style={{ color: '#6b7280' }}>
+                {suggestion.description}
+              </p>
+            </div>
+          )
+        })}
+
+        {resolvedIds.length > 0 && (
+          <div className="pt-2" style={{ borderTop: '1px solid rgba(255,255,255,0.04)' }}
+          >
+            <p className="text-[10px] mb-2" style={{ color: '#4b5563' }}>已解决的问题</p>
+            {resolvedIds.map((id) => {
+              const suggestion = leftIter.suggestions.find((s) => s.id === id)
+              if (!suggestion) return null
+              return (
+                <div
+                  key={id}
+                  className="p-2.5 rounded-lg opacity-50"
+                  style={{
+                    backgroundColor: 'rgba(126,184,74,0.06)',
+                    border: '1px solid rgba(126,184,74,0.1)',
+                  }}
+                >
+                  <div className="flex items-center gap-2"
+                  >
+                    <Check className="w-3 h-3" style={{ color: '#7eb84a' }} />
+                    <span className="text-xs line-through" style={{ color: '#6b7280' }}>
+                      {suggestion.title}
+                    </span>
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        )}
+      </div>
+    </motion.div>
+  )
+}
+
+// ============================================
+// Component: Suggestion Card
+// ============================================
+
+function SuggestionCard({
+  suggestion,
+  isApplied,
+  onDismiss,
+  onApplyFix,
+  onClickLocate,
+}: {
+  suggestion: SuggestionItem
+  isApplied: boolean
+  onDismiss: () => void
+  onApplyFix: () => void
+  onClickLocate: () => void
+}) {
+  const config = SEVERITY_CONFIG[suggestion.severity]
+  const Icon = config.icon
+
+  return (
+    <motion.div
+      variants={cardVariants}
+      layout
+      className="p-3 rounded-lg group"
+      style={{
+        backgroundColor: isApplied ? 'rgba(126,184,74,0.06)' : 'rgba(255,255,255,0.02)',
+        border: `1px solid ${isApplied ? 'rgba(126,184,74,0.15)' : 'rgba(255,255,255,0.04)'}`,
+      }}
+      onMouseEnter={(e) => {
+        if (!isApplied) {
+          e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.04)'
+          e.currentTarget.style.borderColor = 'rgba(255,255,255,0.08)'
+        }
+      }}
+      onMouseLeave={(e) => {
+        if (!isApplied) {
+          e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.02)'
+          e.currentTarget.style.borderColor = 'rgba(255,255,255,0.04)'
+        }
+      }}
+      exit={{ opacity: 0, x: -16, height: 0, marginBottom: 0, padding: 0 }}
+      transition={{ duration: 0.18 }}
+    >
+      <div className="flex items-start justify-between"
+      >
+        <div className="flex-1 min-w-0"
+        >
+          {/* Severity + Type badges */}
+          <div className="flex items-center gap-1.5 mb-1.5 flex-wrap"
+          >
+            <span
+              className="text-[10px] px-1.5 py-0.5 rounded font-medium flex items-center gap-1"
+              style={{
+                backgroundColor: config.colors.bg,
+                color: config.colors.text,
+              }}
+            >
+              <Icon className="w-2.5 h-2.5" />
+              {config.label}
+            </span>
+            {ISSUE_TYPE_LABELS[suggestion.type] && (
+              <span
+                className="text-[10px] px-1.5 py-0.5 rounded"
+                style={{
+                  backgroundColor: 'rgba(255,255,255,0.04)',
+                  color: '#6b7280',
+                }}
+              >
+                {ISSUE_TYPE_LABELS[suggestion.type]}
+              </span>
+            )}
+            {suggestion.lineReference && (
+              <button
+                onClick={onClickLocate}
+                className="text-[10px] px-1.5 py-0.5 rounded hover:bg-white/10 transition-colors flex items-center gap-1"
+                style={{ backgroundColor: 'rgba(94,106,210,0.1)', color: '#5e6ad2' }}
+                title="定位到相关实体"
+              >
+                <Info className="w-2.5 h-2.5" />
+                定位
+              </button>
+            )}
+          </div>
+
+          {/* Title */}
+          <p className="text-sm font-medium mb-1" style={{ color: '#f7f8f8' }}>
+            {suggestion.title}
+          </p>
+
+          {/* Description */}
+          <p className="text-xs line-clamp-3" style={{ color: '#6b7280' }}>
+            {suggestion.description}
+          </p>
+        </div>
+
+        {/* Action buttons */}
+        <div className="flex gap-0.5 ml-2 flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity"
+        >
+          {suggestion.autoFixable && (
+            <motion.button
+              onClick={onApplyFix}
+              className="p-1.5 rounded transition-all"
+              style={{
+                color: isApplied ? '#7eb84a' : '#6b7280',
+                backgroundColor: isApplied ? 'rgba(126,184,74,0.15)' : 'transparent',
+              }}
+              onMouseEnter={(e) => {
+                if (!isApplied) {
+                  e.currentTarget.style.backgroundColor = 'rgba(126,184,74,0.15)'
+                  e.currentTarget.style.color = '#7eb84a'
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (!isApplied) {
+                  e.currentTarget.style.backgroundColor = 'transparent'
+                  e.currentTarget.style.color = '#6b7280'
+                }
+              }}
+              title="自动修复"
+              whileTap={{ scale: 0.85 }}
+              disabled={isApplied}
+            >
+              {isApplied ? (
+                <Check className="w-3.5 h-3.5" />
+              ) : (
+                <Check className="w-3.5 h-3.5" />
+              )}
+            </motion.button>
+          )}
+          <motion.button
+            onClick={onDismiss}
+            className="p-1.5 rounded transition-all"
+            style={{ color: '#6b7280' }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.08)'
+              e.currentTarget.style.color = '#9ca3af'
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.backgroundColor = 'transparent'
+              e.currentTarget.style.color = '#6b7280'
+            }}
+            title="忽略"
+            whileTap={{ scale: 0.85 }}
+          >
+            <X className="w-3.5 h-3.5" />
+          </motion.button>
+        </div>
+      </div>
+    </motion.div>
+  )
+}
+
+// ============================================
+// Main Component: AISuggestionPanel
+// ============================================
+
 export function AISuggestionPanel() {
   const [isExpanded, setIsExpanded] = useState(true)
-  const aiReviewResult = useSettingsStore((state) => state.aiReviewResult)
+  const [severityFilter, setSeverityFilter] = useState<Severity | 'all'>('all')
   const [dismissed, setDismissed] = useState<Set<string>>(new Set())
   const [appliedIds, setAppliedIds] = useState<Set<string>>(new Set())
+  const [isReviewing, setIsReviewing] = useState(false)
+  const [showHistory, setShowHistory] = useState(false)
+  const [showComparison, setShowComparison] = useState(false)
 
-  const suggestions: Suggestion[] = aiReviewResult?.issues.map((issue, index) => ({
-    id: String(index),
-    type: issue.type === 'inconsistency' ? 'consistency' : issue.type === 'foreshadowing' ? 'foreshadowing' : issue.type === 'warning' ? 'warning' : 'suggestion',
-    title: issue.title,
-    description: issue.description,
-    autoFixable: false,
-  })) || []
+  // Review history state (in-memory for this session)
+  const [reviewHistory, setReviewHistory] = useState<ReviewHistoryState>({
+    iterations: [],
+    currentIterationId: null,
+  })
 
-  const visibleSuggestions = suggestions.filter((s) => !dismissed.has(s.id))
+  const aiReviewResult = useSettingsStore((state) => state.aiReviewResult)
+  const reviewWithAI = useSettingsStore((state) => state.reviewWithAI)
 
-  const handleDismiss = (id: string) => {
+  // Convert API result to local suggestions with severity
+  const currentSuggestions: SuggestionItem[] = useMemo(() => {
+    if (!aiReviewResult) return []
+
+    // Parse raw_response for structured data if available
+    const raw = aiReviewResult.raw_response as {
+      issues?: Array<{
+        type: string
+        severity: string
+        title: string
+        description: string
+        entityIds?: number[]
+      }>
+      suggestions?: Array<{
+        title: string
+        description: string
+        type: string
+      }>
+      category?: string
+    } | undefined
+
+    const issues: SuggestionItem[] = (raw?.issues || []).map((issue, index) => ({
+      id: `issue_${index}`,
+      type: issue.type === 'inconsistency' ? 'consistency' : (issue.type as IssueType),
+      severity: mapSeverity(issue.severity, issue.type),
+      title: issue.title,
+      description: issue.description,
+      entityIds: issue.entityIds,
+      entityType: (raw?.category as EntityType) || 'character',
+      autoFixable: false,
+      lineReference: issue.entityIds?.length ? `实体 #${issue.entityIds[0]}` : undefined,
+    }))
+
+    const suggestions: SuggestionItem[] = (raw?.suggestions || []).map((s, index) => ({
+      id: `suggestion_${index}`,
+      type: 'suggestion',
+      severity: 'suggestion',
+      title: s.title,
+      description: s.description,
+      autoFixable: s.type === 'optimization',
+    }))
+
+    return [...issues, ...suggestions]
+  }, [aiReviewResult])
+
+  // Add current result to history when it changes
+  useMemo(() => {
+    if (currentSuggestions.length > 0 && aiReviewResult) {
+      const iterationId = `iter_${Date.now()}`
+      const severityCounts = {
+        error: currentSuggestions.filter((s) => s.severity === 'error').length,
+        warning: currentSuggestions.filter((s) => s.severity === 'warning').length,
+        suggestion: currentSuggestions.filter((s) => s.severity === 'suggestion').length,
+      }
+
+      // Only add if this is a new result (not already in history)
+      const lastIter = reviewHistory.iterations[reviewHistory.iterations.length - 1]
+      const isNewResult = !lastIter ||
+        lastIter.issueCount !== currentSuggestions.length ||
+        JSON.stringify(lastIter.suggestions.map((s) => s.title)) !== JSON.stringify(currentSuggestions.map((s) => s.title))
+
+      if (isNewResult) {
+        const raw = aiReviewResult.raw_response as { category?: string } | undefined
+        const newIteration: ReviewIteration = {
+          id: iterationId,
+          timestamp: new Date().toISOString(),
+          category: (raw?.category as EntityType) || 'character',
+          issueCount: currentSuggestions.length,
+          severityCounts,
+          suggestions: [...currentSuggestions],
+        }
+        setReviewHistory((prev) => ({
+          iterations: [...prev.iterations, newIteration],
+          currentIterationId: iterationId,
+        }))
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [aiReviewResult?.raw_response])
+
+  // Filter suggestions
+  const filteredSuggestions = useMemo(() => {
+    let filtered = currentSuggestions.filter((s) => !dismissed.has(s.id))
+    if (severityFilter !== 'all') {
+      filtered = filtered.filter((s) => s.severity === severityFilter)
+    }
+    // Sort by severity priority
+    return filtered.sort((a, b) => SEVERITY_CONFIG[a.severity].priority - SEVERITY_CONFIG[b.severity].priority)
+  }, [currentSuggestions, dismissed, severityFilter])
+
+  // Severity counts
+  const severityCounts = useMemo(() => ({
+    all: currentSuggestions.filter((s) => !dismissed.has(s.id)).length,
+    error: currentSuggestions.filter((s) => s.severity === 'error' && !dismissed.has(s.id)).length,
+    warning: currentSuggestions.filter((s) => s.severity === 'warning' && !dismissed.has(s.id)).length,
+    suggestion: currentSuggestions.filter((s) => s.severity === 'suggestion' && !dismissed.has(s.id)).length,
+  }), [currentSuggestions, dismissed])
+
+  // Actions
+  const handleDismiss = useCallback((id: string) => {
     setDismissed((prev) => new Set([...prev, id]))
-  }
+  }, [])
 
-  const handleApplyFix = (id: string) => {
+  const handleApplyFix = useCallback((id: string) => {
     setAppliedIds((prev) => new Set([...prev, id]))
-    // Delay dismissal to show the applied feedback
     setTimeout(() => {
-      handleDismiss(id)
+      setDismissed((prev) => new Set([...prev, id]))
       setAppliedIds((prev) => {
         const next = new Set(prev)
         next.delete(id)
         return next
       })
     }, 800)
-  }
+  }, [])
+
+  const handleReReview = useCallback(async () => {
+    setIsReviewing(true)
+    try {
+      // Use the current category from UI store - default to character for now
+      await reviewWithAI('character')
+    } catch {
+      // Error handled by store
+    } finally {
+      setIsReviewing(false)
+    }
+  }, [reviewWithAI])
+
+  const handleLocate = useCallback((entityIds?: number[]) => {
+    if (entityIds && entityIds.length > 0) {
+      // Emit a custom event that the entity editor can listen to
+      window.dispatchEvent(new CustomEvent('ai-review-locate', {
+        detail: { entityIds },
+      }))
+    }
+  }, [])
+
+  const handleSelectIteration = useCallback((id: string) => {
+    setReviewHistory((prev) => ({ ...prev, currentIterationId: id }))
+  }, [])
+
+  // Get current iteration suggestions (from history if viewing past iteration)
+  const displaySuggestions = useMemo(() => {
+    const currentIter = reviewHistory.iterations.find(
+      (i) => i.id === reviewHistory.currentIterationId
+    )
+    if (currentIter) {
+      return currentIter.suggestions.filter((s) => !dismissed.has(s.id))
+    }
+    return filteredSuggestions
+  }, [reviewHistory, dismissed, filteredSuggestions])
+
+  const hasMultipleIterations = reviewHistory.iterations.length >= 2
 
   return (
-    <div style={{ backgroundColor: '#0f1011' }}>
-      {/* 头部 */}
+    <div className="relative" style={{ backgroundColor: '#0f1011' }}
+    >
+      {/* Decorative gradient accent */}
+      <div
+        className="absolute top-0 left-0 right-0 h-px"
+        style={{
+          background: 'linear-gradient(90deg, transparent, rgba(94,106,210,0.3), transparent)',
+        }}
+      />
+      {/* Header */}
       <button
         onClick={() => setIsExpanded(!isExpanded)}
         className="w-full px-4 py-3 flex items-center justify-between transition-all"
@@ -117,247 +879,270 @@ export function AISuggestionPanel() {
           e.currentTarget.style.backgroundColor = 'transparent'
         }}
       >
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2"
+        >
           <Sparkles className="w-4 h-4" style={{ color: '#5e6ad2' }} />
           <span className="text-sm font-medium" style={{ color: '#f7f8f8' }}>
             AI 审查建议
           </span>
-          {visibleSuggestions.length > 0 && (
-            <motion.span
-              className="text-xs px-1.5 py-0.5 rounded"
-              style={{ backgroundColor: 'rgba(196,92,92,0.15)', color: '#d45d5d' }}
-              initial={{ scale: 0 }}
-              animate={{ scale: 1 }}
-              transition={{ type: 'spring', stiffness: 500, damping: 25 }}
+          {severityCounts.all > 0 && (
+            <div className="flex items-center gap-1"
             >
-              {visibleSuggestions.length}
-            </motion.span>
+              {severityCounts.error > 0 && (
+                <motion.span
+                  className="text-[10px] px-1.5 py-0.5 rounded font-medium"
+                  style={{ backgroundColor: 'rgba(196,92,92,0.15)', color: '#e57373' }}
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                  transition={{ type: 'spring', stiffness: 500, damping: 25 }}
+                >
+                  {severityCounts.error}
+                </motion.span>
+              )}
+              {severityCounts.warning > 0 && (
+                <motion.span
+                  className="text-[10px] px-1.5 py-0.5 rounded font-medium"
+                  style={{ backgroundColor: 'rgba(232,184,125,0.15)', color: '#e8b87d' }}
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                  transition={{ type: 'spring', stiffness: 500, damping: 25, delay: 0.05 }}
+                >
+                  {severityCounts.warning}
+                </motion.span>
+              )}
+              {severityCounts.suggestion > 0 && (
+                <motion.span
+                  className="text-[10px] px-1.5 py-0.5 rounded font-medium"
+                  style={{ backgroundColor: 'rgba(91,142,232,0.15)', color: '#7aa3f0' }}
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                  transition={{ type: 'spring', stiffness: 500, damping: 25, delay: 0.1 }}
+                >
+                  {severityCounts.suggestion}
+                </motion.span>
+              )}
+            </div>
           )}
         </div>
-        <motion.div
-          animate={{ rotate: isExpanded ? 0 : 180 }}
-          transition={{ duration: 0.2 }}
+        <div className="flex items-center gap-1"
         >
-          <ChevronDown className="w-4 h-4" style={{ color: '#6b7280' }} />
-        </motion.div>
+          {/* History button */}
+          {reviewHistory.iterations.length > 0 && (
+            <button
+              onClick={(e) => {
+                e.stopPropagation()
+                setShowHistory(true)
+              }}
+              className="p-1.5 rounded hover:bg-white/10 transition-colors"
+              title="审查历史"
+            >
+              <History className="w-3.5 h-3.5" style={{ color: '#6b7280' }} />
+            </button>
+          )}
+          {/* Comparison button */}
+          {hasMultipleIterations && (
+            <button
+              onClick={(e) => {
+                e.stopPropagation()
+                setShowComparison(true)
+              }}
+              className="p-1.5 rounded hover:bg-white/10 transition-colors"
+              title="审查对比"
+            >
+              <ArrowRight className="w-3.5 h-3.5" style={{ color: '#6b7280' }} />
+            </button>
+          )}
+          <motion.div
+            animate={{ rotate: isExpanded ? 0 : 180 }}
+            transition={{ duration: 0.2 }}
+          >
+            <ChevronDown className="w-4 h-4" style={{ color: '#6b7280' }} />
+          </motion.div>
+        </div>
       </button>
 
-      {/* 内容 */}
+      {/* Content */}
       <AnimatePresence mode="wait">
         {isExpanded && (
           <motion.div
-            className="px-4 pb-4 space-y-2 overflow-hidden"
+            className="overflow-hidden"
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: 'auto', opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
             transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
           >
-            {visibleSuggestions.length === 0 ? (
-              <motion.div
-                className="text-center py-6"
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
-              >
-                <motion.div
-                  initial={{ scale: 0 }}
-                  animate={{ scale: 1 }}
-                  transition={{ type: 'spring', stiffness: 400, damping: 20, delay: 0.1 }}
-                >
-                  <Check className="w-8 h-8 mx-auto mb-2" style={{ color: '#7eb84a' }} />
-                </motion.div>
-                <p className="text-sm" style={{ color: '#6b7280' }}>
-                  设定一致，暂无建议
-                </p>
-              </motion.div>
-            ) : (
-              <motion.div
-                variants={containerVariants}
-                initial="hidden"
-                animate="visible"
-                exit="exit"
-              >
-                <AnimatePresence>
-                  {visibleSuggestions.map((suggestion) => {
-                    const colors = typeColors[suggestion.type]
-                    const isApplied = appliedIds.has(suggestion.id)
-
-                    return (
-                      <motion.div
-                        key={suggestion.id}
-                        variants={cardVariants}
-                        layout
-                        className="p-3 rounded-lg"
-                        style={{
-                          backgroundColor: isApplied ? 'rgba(126,184,74,0.08)' : 'rgba(255,255,255,0.02)',
-                          border: `1px solid ${isApplied ? 'rgba(126,184,74,0.2)' : 'rgba(255,255,255,0.06)'}`,
-                        }}
-                        onMouseEnter={(e) => {
-                          if (!isApplied) {
-                            e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.04)'
-                            e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)'
-                          }
-                        }}
-                        onMouseLeave={(e) => {
-                          if (!isApplied) {
-                            e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.02)'
-                            e.currentTarget.style.borderColor = 'rgba(255,255,255,0.06)'
-                          }
-                        }}
-                        exit={{ opacity: 0, x: -20, height: 0, marginBottom: 0, paddingTop: 0, paddingBottom: 0 }}
-                        transition={{ duration: 0.2 }}
-                      >
-                        <div className="flex items-start justify-between">
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-center gap-2 mb-1.5">
-                              <span
-                                className="text-xs px-2 py-0.5 rounded font-medium"
-                                style={{
-                                  backgroundColor: colors.bg,
-                                  color: colors.text,
-                                }}
-                              >
-                                {typeLabels[suggestion.type]}
-                              </span>
-                              <span className="text-sm font-medium" style={{ color: '#f7f8f8' }}>
-                                {suggestion.title}
-                              </span>
-                            </div>
-                            <p className="text-xs line-clamp-2" style={{ color: '#6b7280' }}>
-                              {suggestion.description}
-                            </p>
-                          </div>
-                          <div className="flex gap-1 ml-2 flex-shrink-0">
-                            {suggestion.autoFixable && (
-                              <motion.button
-                                onClick={() => handleApplyFix(suggestion.id)}
-                                className="p-1.5 rounded transition-all relative overflow-hidden"
-                                style={{
-                                  color: isApplied ? '#7eb84a' : '#6b7280',
-                                  backgroundColor: isApplied ? 'rgba(126,184,74,0.15)' : 'transparent',
-                                }}
-                                onMouseEnter={(e) => {
-                                  if (!isApplied) {
-                                    e.currentTarget.style.backgroundColor = 'rgba(126,184,74,0.15)'
-                                    e.currentTarget.style.color = '#7eb84a'
-                                  }
-                                }}
-                                onMouseLeave={(e) => {
-                                  if (!isApplied) {
-                                    e.currentTarget.style.backgroundColor = 'transparent'
-                                    e.currentTarget.style.color = '#6b7280'
-                                  }
-                                }}
-                                title="自动修复"
-                                whileTap={{ scale: 0.85 }}
-                                disabled={isApplied}
-                              >
-                                <AnimatePresence mode="wait">
-                                  {isApplied ? (
-                                    <motion.div
-                                      key="applied"
-                                      initial={{ scale: 0, rotate: -45 }}
-                                      animate={{ scale: 1, rotate: 0 }}
-                                      exit={{ scale: 0, rotate: 45 }}
-                                      transition={{ type: 'spring', stiffness: 500, damping: 25 }}
-                                    >
-                                      <Check className="w-4 h-4" />
-                                    </motion.div>
-                                  ) : (
-                                    <motion.div
-                                      key="apply"
-                                      initial={{ scale: 0 }}
-                                      animate={{ scale: 1 }}
-                                      exit={{ scale: 0 }}
-                                    >
-                                      <Check className="w-4 h-4" />
-                                    </motion.div>
-                                  )}
-                                </AnimatePresence>
-                              </motion.button>
-                            )}
-                            <motion.button
-                              onClick={() => handleDismiss(suggestion.id)}
-                              className="p-1.5 rounded transition-all"
-                              style={{ color: '#6b7280' }}
-                              onMouseEnter={(e) => {
-                                e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.08)'
-                                e.currentTarget.style.color = '#9ca3af'
-                              }}
-                              onMouseLeave={(e) => {
-                                e.currentTarget.style.backgroundColor = 'transparent'
-                                e.currentTarget.style.color = '#6b7280'
-                              }}
-                              title="忽略"
-                              whileTap={{ scale: 0.85 }}
-                            >
-                              <X className="w-4 h-4" />
-                            </motion.button>
-                          </div>
-                        </div>
-                      </motion.div>
-                    )
-                  })}
-                </AnimatePresence>
-              </motion.div>
+            {/* Severity filter tabs */}
+            {currentSuggestions.length > 0 && (
+              <SeverityFilterTabs
+                counts={severityCounts}
+                activeFilter={severityFilter}
+                onFilterChange={setSeverityFilter}
+              />
             )}
 
-            {/* 批量操作 */}
-            <AnimatePresence>
-              {visibleSuggestions.length > 0 && (
+            <div className="px-4 pb-4 pt-2 space-y-2 max-h-[400px] overflow-y-auto"
+            >
+              {displaySuggestions.length === 0 ? (
                 <motion.div
-                  className="flex gap-2 pt-3"
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: 10 }}
-                  transition={{ delay: Math.min(visibleSuggestions.length * 0.06 + 0.1, 0.4) }}
+                  className="text-center py-6"
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
                 >
-                  <motion.button
-                    onClick={() => {
-                      visibleSuggestions
-                        .filter((s) => s.autoFixable)
-                        .forEach((s) => handleApplyFix(s.id))
-                    }}
-                    className="flex-1 py-2 rounded-lg text-xs font-medium transition-all"
-                    style={{
-                      backgroundColor: 'rgba(255,255,255,0.05)',
-                      color: '#d0d6e0',
-                      border: '1px solid rgba(255,255,255,0.08)',
-                    }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.08)'
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.05)'
-                    }}
-                    whileHover={{ scale: 1.01 }}
-                    whileTap={{ scale: 0.98 }}
+                  <motion.div
+                    initial={{ scale: 0 }}
+                    animate={{ scale: 1 }}
+                    transition={{ type: 'spring', stiffness: 400, damping: 20, delay: 0.1 }}
                   >
-                    应用所有修复
-                  </motion.button>
-                  <motion.button
-                    onClick={() => setDismissed(new Set(visibleSuggestions.map((s) => s.id)))}
-                    className="flex-1 py-2 rounded-lg text-xs font-medium transition-all"
-                    style={{
-                      backgroundColor: 'transparent',
-                      color: '#9ca3af',
-                      border: '1px solid rgba(255,255,255,0.08)',
-                    }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.05)'
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.backgroundColor = 'transparent'
-                    }}
-                    whileHover={{ scale: 1.01 }}
-                    whileTap={{ scale: 0.98 }}
-                  >
-                    仅记录问题
-                  </motion.button>
+                    <Check className="w-8 h-8 mx-auto mb-2" style={{ color: '#7eb84a' }} />
+                  </motion.div>
+                  <p className="text-sm" style={{ color: '#6b7280' }}>
+                    {severityFilter !== 'all'
+                      ? `暂无${SEVERITY_CONFIG[severityFilter].label}级别的问题`
+                      : '设定一致，暂无建议'}
+                  </p>
+                  {severityFilter !== 'all' && (
+                    <button
+                      onClick={() => setSeverityFilter('all')}
+                      className="text-xs mt-1 hover:underline"
+                      style={{ color: '#5e6ad2' }}
+                    >
+                      查看全部
+                    </button>
+                  )}
+                </motion.div>
+              ) : (
+                <motion.div
+                  variants={containerVariants}
+                  initial="hidden"
+                  animate="visible"
+                  exit="exit"
+                >
+                  <AnimatePresence>
+                    {displaySuggestions.map((suggestion) => (
+                      <SuggestionCard
+                        key={suggestion.id}
+                        suggestion={suggestion}
+                        isApplied={appliedIds.has(suggestion.id)}
+                        onDismiss={() => handleDismiss(suggestion.id)}
+                        onApplyFix={() => handleApplyFix(suggestion.id)}
+                        onClickLocate={() => handleLocate(suggestion.entityIds)}
+                      />
+                    ))}
+                  </AnimatePresence>
                 </motion.div>
               )}
-            </AnimatePresence>
+
+              {/* Batch actions */}
+              <AnimatePresence>
+                {displaySuggestions.length > 0 && (
+                  <motion.div
+                    className="flex gap-2 pt-2"
+                    initial={{ opacity: 0, y: 8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: 8 }}
+                    transition={{ delay: Math.min(displaySuggestions.length * 0.05 + 0.05, 0.3) }}
+                  >
+                    <motion.button
+                      onClick={() => {
+                        displaySuggestions
+                          .filter((s) => s.autoFixable)
+                          .forEach((s) => handleApplyFix(s.id))
+                      }}
+                      className="flex-1 py-2 rounded-lg text-xs font-medium transition-all"
+                      style={{
+                        backgroundColor: 'rgba(255,255,255,0.05)',
+                        color: '#d0d6e0',
+                        border: '1px solid rgba(255,255,255,0.08)',
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.08)'
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.05)'
+                      }}
+                      whileHover={{ scale: 1.01 }}
+                      whileTap={{ scale: 0.98 }}
+                    >
+                      应用所有修复
+                    </motion.button>
+                    <motion.button
+                      onClick={() => setDismissed(new Set(displaySuggestions.map((s) => s.id)))}
+                      className="flex-1 py-2 rounded-lg text-xs font-medium transition-all"
+                      style={{
+                        backgroundColor: 'transparent',
+                        color: '#9ca3af',
+                        border: '1px solid rgba(255,255,255,0.08)',
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.05)'
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.backgroundColor = 'transparent'
+                      }}
+                      whileHover={{ scale: 1.01 }}
+                      whileTap={{ scale: 0.98 }}
+                    >
+                      全部忽略
+                    </motion.button>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+
+              {/* Re-review button */}
+              <div className="pt-3"
+              >
+                <motion.button
+                  onClick={handleReReview}
+                  disabled={isReviewing}
+                  className="w-full py-2.5 rounded-lg text-xs font-medium flex items-center justify-center gap-2 transition-all disabled:opacity-50"
+                  style={{
+                    backgroundColor: 'rgba(94,106,210,0.1)',
+                    color: '#5e6ad2',
+                    border: '1px solid rgba(94,106,210,0.15)',
+                  }}
+                  onMouseEnter={(e) => {
+                    if (!isReviewing) e.currentTarget.style.backgroundColor = 'rgba(94,106,210,0.15)'
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.backgroundColor = 'rgba(94,106,210,0.1)'
+                  }}
+                  whileHover={!isReviewing ? { scale: 1.01 } : {}}
+                  whileTap={!isReviewing ? { scale: 0.98 } : {}}
+                >
+                  <motion.div
+                    animate={isReviewing ? { rotate: 360 } : { rotate: 0 }}
+                    transition={isReviewing ? { duration: 1, repeat: Infinity, ease: 'linear' } : {}}
+                  >
+                    <RotateCw className="w-3.5 h-3.5" />
+                  </motion.div>
+                  {isReviewing ? '审查中...' : '重新审查'}
+                </motion.button>
+              </div>
+            </div>
           </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* History drawer */}
+      <ReviewHistoryDrawer
+        isOpen={showHistory}
+        onClose={() => setShowHistory(false)}
+        history={reviewHistory.iterations}
+        currentIterationId={reviewHistory.currentIterationId}
+        onSelectIteration={(id) => {
+          handleSelectIteration(id)
+          setShowHistory(false)
+        }}
+      />
+
+      {/* Comparison view */}
+      <AnimatePresence>
+        {showComparison && hasMultipleIterations && (
+          <IterationComparisonView
+            iterations={reviewHistory.iterations}
+            onClose={() => setShowComparison(false)}
+          />
         )}
       </AnimatePresence>
     </div>

@@ -38,6 +38,100 @@
     --ifline: 94 45% 54%;
     --success: 142 71% 45%;
     --warning: 33 76% 64%;
+
+    /* 墨韵色系 - Ink Palette */
+    --ink-black: #0d0d12;
+    --charcoal: #1a1a2e;
+    --paper-white: #f5f0e6;
+    --smoke: #3a3a4a;
+    --frost: #e8e4dc;
+
+    /* Accent palette */
+    --accent-purple: #5e6ad2;
+    --vermillion: #c45c5c;
+    --amber: #e8b87d;
+    --jade: #5eb5a6;
+
+    /* UI Surfaces - Dark mode defaults */
+    --ui-bg: #08090a;
+    --ui-card: #0f1011;
+    --ui-text: #f7f8f8;
+    --ui-text-secondary: #d0d6e0;
+    --ui-border: rgba(255, 255, 255, 0.08);
+    --ui-toolbar: #0f1011;
+    --ui-drawer: #191a1b;
+
+    /* Writing surface */
+    --writing-bg: #1a1a2e;
+    --writing-text: #f5f0e6;
+    --writing-muted: rgba(245, 240, 230, 0.6);
+
+    /* Interaction state colors - Dark mode */
+    --hover-bg: rgba(255, 255, 255, 0.05);
+    --hover-border: rgba(255, 255, 255, 0.15);
+    --active-bg: rgba(94, 106, 210, 0.15);
+    --active-border: #5e6ad2;
+    --focus-ring: rgba(94, 106, 210, 0.5);
+    --disabled-opacity: 0.4;
+
+    /* Semantic colors */
+    --error: #c45c5c;
+    --success: #5eb5a6;
+    --warning: #e8b87d;
+    --info: #5e6ad2;
+  }
+
+  /* Light mode color overrides */
+  .light {
+    --background: 45 30% 96%;
+    --foreground: 240 10% 10%;
+    --card: 0 0% 100%;
+    --card-foreground: 240 10% 10%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 240 10% 10%;
+    --primary: 238 83% 55%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 40 20% 93%;
+    --secondary-foreground: 240 10% 10%;
+    --muted: 40 15% 90%;
+    --muted-foreground: 240 5% 45%;
+    --accent: 40 20% 93%;
+    --accent-foreground: 240 10% 10%;
+    --destructive: 0 72% 56%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 40 15% 85%;
+    --input: 40 15% 90%;
+    --ring: 238 83% 55%;
+
+    /* UI Surfaces - Light mode */
+    --ui-bg: #faf8f3;
+    --ui-card: #ffffff;
+    --ui-text: #1a1a2e;
+    --ui-text-secondary: #666666;
+    --ui-border: #e0dcd3;
+    --ui-toolbar: #f5f0e6;
+    --ui-drawer: #ffffff;
+
+    /* Writing surface - Light mode warm paper */
+    --writing-bg: #faf6e8;
+    --writing-text: #1a1a2e;
+    --writing-muted: rgba(26, 26, 46, 0.5);
+
+    /* Interaction state colors - Light mode */
+    --hover-bg: rgba(245, 240, 230, 0.8);
+    --hover-border: #c0bbb0;
+    --active-bg: rgba(94, 106, 210, 0.1);
+    --active-border: #a09a8c;
+    --focus-ring: rgba(94, 106, 210, 0.4);
+    --disabled-opacity: 0.4;
+
+    /* Entity colors - Light mode (slightly muted) */
+    --character: 33 72% 55%;
+    --item: 264 40% 60%;
+    --location: 166 40% 45%;
+    --faction: 0 48% 50%;
+    --outline: 217 75% 50%;
+    --ifline: 94 40% 45%;
   }
 }
 

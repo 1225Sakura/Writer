@@ -1,0 +1,429 @@
+/**
+ * Typography System
+ * Font loading, font stacks, and typography utilities
+ */
+
+/* ============================================================
+   FONT IMPORT — Google Fonts CDN
+   ============================================================ */
+
+/* Inter - Interface font */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;510;600;700&display=swap');
+
+/* Noto Serif SC + Source Han Serif CN - Chinese writing font */
+@import url('https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;500;600;700&family=Source+Han+Serif+CN:wght@400;500;600;700&display=swap');
+
+/* JetBrains Mono - Monospace for code/dialogue */
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&display=swap');
+
+/* ============================================================
+   FONT VARIABLE DEFINITIONS
+   ============================================================ */
+
+:root {
+  /* Font families - using system fonts with CDN fallbacks */
+  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  --font-mono: 'JetBrains Mono', 'SF Mono', 'Fira Code', 'Consolas', monospace;
+
+  /* Chinese serif fonts for writing (priority order) */
+  --font-serif-cn: 'Noto Serif SC', 'Source Han Serif CN', 'Source Han Serif SC', 'Songti SC', 'SimSun', serif;
+
+  /* English serif fonts */
+  --font-serif-en: 'Noto Serif SC', 'Georgia', 'Times New Roman', serif;
+
+  /* Combined writing font stack */
+  --font-writing: 'Noto Serif SC', 'Source Han Serif CN', 'Source Han Serif SC', 'Songti SC', serif;
+
+  /* ============================================================
+     TYPOGRAPHY SCALE
+     ============================================================ */
+
+  /* Font sizes */
+  --text-xs: 11px;
+  --text-sm: 13px;
+  --text-base: 14px;
+  --text-md: 15px;
+  --text-lg: 16px;
+  --text-xl: 18px;
+  --text-2xl: 22px;
+  --text-3xl: 28px;
+  --text-4xl: 36px;
+
+  /* Writing-specific sizes */
+  --writing-font-size-xs: 14px;
+  --writing-font-size-sm: 15px;
+  --writing-font-size-base: 16px;
+  --writing-font-size-md: 17px;
+  --writing-font-size-lg: 18px;
+  --writing-font-size-xl: 20px;
+
+  /* Font weights */
+  --weight-regular: 400;
+  --weight-medium: 500;
+  --weight-semibold: 510;
+  --weight-bold: 600;
+
+  /* Letter spacing */
+  --tracking-tight: -0.015em;
+  --tracking-normal: 0;
+  --tracking-wide: 0.02em;
+  --tracking-wide-xl: 0.04em;
+
+  /* Chinese character specific spacing (微调) */
+  --tracking-cn-tight: -0.02em;
+  --tracking-cn-normal: 0.03em;
+  --tracking-cn-wide: 0.05em;
+
+  /* Line heights */
+  --leading-none: 1;
+  --leading-tight: 1.25;
+  --leading-snug: 1.4;
+  --leading-normal: 1.5;
+  --leading-relaxed: 1.75;
+  --leading-loose: 2;
+
+  /* Writing-specific line heights */
+  --writing-leading-tight: 1.6;
+  --writing-leading-normal: 1.8;
+  --writing-leading-relaxed: 1.9;
+  --writing-leading-loose: 2;
+
+  /* ============================================================
+     WRITING TYPOGRAPHY VARIABLES
+     ============================================================ */
+
+  /* Writing area defaults */
+  --writing-font-size: 17px;
+  --writing-line-height: 1.85;
+  --writing-letter-spacing: 0.01em;
+  --writing-paragraph-spacing: 1.5em;
+  --writing-text-indent: 2em;
+
+  /* Interface typography defaults */
+  --interface-font-size: 14px;
+  --interface-line-height: 1.5;
+  --interface-letter-spacing: 0;
+}
+
+/* ============================================================
+   WRITING MODE TYPOGRAPHY
+   ============================================================ */
+
+/**
+ * Writing area font stack
+ * Chinese: Noto Serif SC (思源宋体) with fallbacks
+ * Line height: 1.75-2em for comfortable reading
+ * Letter spacing: slight increase for Chinese characters
+ */
+.writing-typography {
+  font-family: var(--font-writing);
+  font-size: var(--writing-font-size);
+  line-height: var(--writing-line-height);
+  letter-spacing: var(--writing-letter-spacing);
+  text-orientation: upright;
+  writing-mode: horizontal-tb;
+}
+
+/* Writing paragraphs */
+.writing-typography p {
+  margin-bottom: var(--writing-paragraph-spacing);
+  text-indent: var(--writing-text-indent);
+  hanging-punctuation: first last;
+}
+
+/* First paragraph no indent */
+.writing-typography p:first-of-type,
+.writing-typography p:first-child {
+  text-indent: 0;
+}
+
+/* Chinese character spacing (字间距微调) */
+.writing-typography-cn {
+  letter-spacing: var(--tracking-cn-normal);
+  font-weight: var(--weight-regular);
+}
+
+/* English text in writing area */
+.writing-typography-en {
+  font-family: var(--font-serif-en);
+  letter-spacing: 0.02em;
+}
+
+/* ============================================================
+   INTERFACE TYPOGRAPHY
+   ============================================================ */
+
+/**
+ * Interface font stack
+ * Clean, readable for UI elements
+ */
+.interface-typography {
+  font-family: var(--font-sans);
+  font-size: var(--interface-font-size);
+  line-height: var(--interface-line-height);
+  letter-spacing: var(--interface-letter-spacing);
+  font-weight: var(--weight-medium);
+}
+
+/* ============================================================
+   FONT UTILITY CLASSES
+   ============================================================ */
+
+/* Writing font */
+.font-writing {
+  font-family: var(--font-writing);
+}
+
+/* Interface font */
+.font-interface {
+  font-family: var(--font-sans);
+}
+
+/* Monospace font */
+.font-mono {
+  font-family: var(--font-mono);
+}
+
+/* Chinese serif */
+.font-serif-cn {
+  font-family: var(--font-serif-cn);
+}
+
+/* ============================================================
+   TEXT SIZE UTILITIES
+   ============================================================ */
+
+.text-writing-xs { font-size: var(--writing-font-size-xs); }
+.text-writing-sm { font-size: var(--writing-font-size-sm); }
+.text-writing-base { font-size: var(--writing-font-size-base); }
+.text-writing-md { font-size: var(--writing-font-size-md); }
+.text-writing-lg { font-size: var(--writing-font-size-lg); }
+.text-writing-xl { font-size: var(--writing-font-size-xl); }
+
+.text-interface-xs { font-size: var(--text-xs); }
+.text-interface-sm { font-size: var(--text-sm); }
+.text-interface-base { font-size: var(--text-base); }
+.text-interface-md { font-size: var(--text-md); }
+.text-interface-lg { font-size: var(--text-lg); }
+.text-interface-xl { font-size: var(--text-xl); }
+
+/* ============================================================
+   LINE HEIGHT UTILITIES
+   ============================================================ */
+
+.leading-writing-tight { line-height: var(--writing-leading-tight); }
+.leading-writing-normal { line-height: var(--writing-leading-normal); }
+.leading-writing-relaxed { line-height: var(--writing-leading-relaxed); }
+.leading-writing-loose { line-height: var(--writing-leading-loose); }
+
+.leading-interface-tight { line-height: var(--leading-tight); }
+.leading-interface-normal { line-height: var(--leading-normal); }
+.leading-interface-relaxed { line-height: var(--leading-relaxed); }
+
+/* ============================================================
+   LETTER SPACING UTILITIES (中文字符间距微调)
+   ============================================================ */
+
+/* Tight spacing for headings */
+.tracking-cn-tight {
+  letter-spacing: var(--tracking-cn-tight);
+}
+
+/* Normal spacing for body text - slight increase for readability */
+.tracking-cn-normal {
+  letter-spacing: var(--tracking-cn-normal);
+}
+
+/* Wide spacing for emphasis */
+.tracking-cn-wide {
+  letter-spacing: var(--tracking-cn-wide);
+}
+
+/* ============================================================
+   FONT FEATURE SETTINGS
+   ============================================================ */
+
+/* Enable OpenType features for Chinese fonts */
+.font-feature-cn {
+  font-feature-settings: 'ss01', 'ss03', 'cv01';
+  font-variant-east-asian: normal;
+}
+
+/* Enable OpenType features for Latin fonts */
+.font-feature-latin {
+  font-feature-settings: 'liga', 'dlig', 'clig', 'kern';
+  font-variant-numeric: oldstyle-nums proportional-nums;
+}
+
+/* ============================================================
+   FONT LOADING STATE
+   ============================================================ */
+
+/* Font loading in progress */
+.font-loading {
+  font-display: swap;
+}
+
+/* Font loaded successfully */
+.font-loaded {
+  font-display: auto;
+}
+
+/* ============================================================
+   TYPOGRAPHY COMPONENT CLASSES
+   ============================================================ */
+
+/* Chapter title */
+.chapter-title {
+  font-family: var(--font-writing);
+  font-size: var(--text-2xl);
+  font-weight: var(--weight-semibold);
+  line-height: var(--leading-tight);
+  letter-spacing: var(--tracking-tight);
+  color: var(--writing-text);
+}
+
+/* Section heading */
+.section-heading {
+  font-family: var(--font-writing);
+  font-size: var(--text-xl);
+  font-weight: var(--weight-medium);
+  line-height: var(--leading-snug);
+  letter-spacing: var(--tracking-tight);
+  color: var(--writing-text);
+}
+
+/* Body text */
+.body-text {
+  font-family: var(--font-writing);
+  font-size: var(--writing-font-size);
+  line-height: var(--writing-line-height);
+  letter-spacing: var(--writing-letter-spacing);
+  color: var(--writing-text);
+}
+
+/* Dialogue text */
+.dialogue-text {
+  font-family: var(--font-writing);
+  font-size: var(--writing-font-size);
+  line-height: var(--writing-leading-normal);
+  letter-spacing: var(--tracking-cn-normal);
+  color: var(--writing-text);
+}
+
+/* Narration text */
+.narration-text {
+  font-family: var(--font-writing);
+  font-size: var(--writing-font-size);
+  line-height: var(--writing-line-height);
+  letter-spacing: var(--tracking-cn-normal);
+  color: var(--writing-muted);
+}
+
+/* ============================================================
+   RESPONSIVE TYPOGRAPHY
+   ============================================================ */
+
+/* Mobile typography */
+@media (max-width: 767px) {
+  :root {
+    --writing-font-size: 15px;
+    --writing-line-height: 1.8;
+    --writing-letter-spacing: 0.02em;
+    --interface-font-size: 13px;
+  }
+}
+
+/* Tablet typography */
+@media (min-width: 768px) and (max-width: 1023px) {
+  :root {
+    --writing-font-size: 16px;
+    --writing-line-height: 1.85;
+    --writing-letter-spacing: 0.01em;
+    --interface-font-size: 14px;
+  }
+}
+
+/* Desktop typography */
+@media (min-width: 1024px) {
+  :root {
+    --writing-font-size: 17px;
+    --writing-line-height: 1.85;
+    --writing-letter-spacing: 0.01em;
+    --interface-font-size: 14px;
+  }
+}
+
+/* ============================================================
+   FONT SUBSTITUTION VISUAL MATCHING
+   ============================================================ */
+
+/* When Source Han Serif is not available, use local Chinese fonts */
+@font-face {
+  font-family: 'Source Han Serif CN Local';
+  src: local('Source Han Serif CN'),
+       local('Source Han Serif SC'),
+       local('Noto Serif SC'),
+       local('Songti SC'),
+       local('SimSun');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Source Han Sans CN Local';
+  src: local('Source Han Sans CN'),
+       local('Source Han Sans SC'),
+       local('Noto Sans SC'),
+       local('PingFang SC'),
+       local('Microsoft YaHei');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* ============================================================
+   ACCESSIBILITY: PREFERS REDUCED MOTION
+   ============================================================ */
+
+@media (prefers-reduced-motion: reduce) {
+  .writing-typography,
+  .interface-typography {
+    transition: none;
+  }
+}
+
+/* ============================================================
+   ACCESSIBILITY: PREFERS DARK COLOR SCHEME
+   ============================================================ */
+
+@media (prefers-color-scheme: dark) {
+  /* Ensure sufficient contrast in dark mode */
+  .body-text {
+    color: var(--text-primary);
+  }
+
+  .narration-text {
+    color: var(--text-secondary);
+  }
+}
+
+/* ============================================================
+   PRINT TYPOGRAPHY
+   ============================================================ */
+
+@media print {
+  .writing-typography {
+    font-size: 12pt;
+    line-height: 1.6;
+  }
+
+  .chapter-title {
+    font-size: 18pt;
+  }
+
+  .section-heading {
+    font-size: 14pt;
+  }
+}

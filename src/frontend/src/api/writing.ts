@@ -1,378 +1,416 @@
 import type {
-	Outline,
-	Chapter,
-	DraftVersion,
-	IFLine,
-	PlotThread,
-	AIInspectionResult,
-} from "./types";
-import { api, apiClient } from "./request";
+  Outline,
+  Chapter,
+  DraftVersion,
+  IFLine,
+  PlotThread,
+  AIInspectionResult,
+  AIGenerateRequest,
+  AIContextResponse,
+  AIExtractResponse,
+  AIChapterInspectionResponse,
+  PaginationParams,
+  ChapterFilters,
+  IFLineFilters,
+  PlotThreadFilters,
+} from "./types"
+import { api, apiClient } from "./request"
 
 // ============================================
 // Outlines
 // ============================================
 
 export const outlineApi = {
-	list: async (skip = 0, limit = 50): Promise<Outline[]> => {
-		return api.get<Outline[]>("/chapters/outlines", { skip, limit });
-	},
+  /** List all story outlines. */
+  list: async (params: PaginationParams = {}): Promise<Outline[]> => {
+    const { skip = 0, limit = 50 } = params
+    return api.get<Outline[]>("/chapters/outlines", { skip, limit })
+  },
 
-	create: async (data: { title: string; description?: string }): Promise<Outline> => {
-		return api.post<Outline>("/chapters/outlines", data);
-	},
+  /** Get a specific outline by ID. */
+  get: async (outlineId: number): Promise<Outline> => {
+    return api.get<Outline>(`/chapters/outlines/${outlineId}`)
+  },
 
-	update: async (
-		outlineId: number,
-		data: { title?: string; description?: string }
-	): Promise<Outline> => {
-		return api.patch<Outline>(`/chapters/outlines/${outlineId}`, data);
-	},
+  /** Create a new story outline. */
+  create: async (data: { title: string; description?: string }): Promise<Outline> => {
+    return api.post<Outline>("/chapters/outlines", data)
+  },
 
-	delete: async (outlineId: number): Promise<void> => {
-		return api.delete(`/chapters/outlines/${outlineId}`);
-	},
-};
+  /** Update an existing outline. */
+  update: async (
+    outlineId: number,
+    data: { title?: string; description?: string }
+  ): Promise<Outline> => {
+    return api.patch<Outline>(`/chapters/outlines/${outlineId}`, data)
+  },
+
+  /** Delete an outline. */
+  delete: async (outlineId: number): Promise<{ message: string }> => {
+    return api.delete<{ message: string }>(`/chapters/outlines/${outlineId}`)
+  },
+}
 
 // ============================================
 // Chapters
 // ============================================
 
 export const chapterApi = {
-	list: async (
-		skip = 0,
-		limit = 100,
-		filters?: { outline_id?: number; status?: string }
-	): Promise<Chapter[]> => {
-		return api.get<Chapter[]>("/chapters/", { skip, limit, ...filters });
-	},
+  /** List all chapters with optional filtering. */
+  list: async (
+    params: PaginationParams & ChapterFilters = {}
+  ): Promise<Chapter[]> => {
+    const { skip = 0, limit = 100, outline_id, status } = params
+    return api.get<Chapter[]>("/chapters/", { skip, limit, outline_id, status })
+  },
 
-	create: async (data: {
-		outline_id?: number;
-		title?: string;
-		summary?: string;
-		status?: string;
-		word_count?: number;
-		chapter_order?: number;
-	}): Promise<Chapter> => {
-		return api.post<Chapter>("/chapters/", data);
-	},
+  /** Get a specific chapter by ID. */
+  getById: async (chapterId: number): Promise<Chapter> => {
+    return api.get<Chapter>(`/chapters/${chapterId}`)
+  },
 
-	getById: async (chapterId: number): Promise<Chapter> => {
-		return api.get<Chapter>(`/chapters/${chapterId}`);
-	},
+  /** Create a new chapter. */
+  create: async (data: {
+    outline_id?: number
+    title?: string
+    summary?: string
+    status?: string
+    word_count?: number
+    chapter_order?: number
+  }): Promise<Chapter> => {
+    return api.post<Chapter>("/chapters/", data)
+  },
 
-	update: async (
-		chapterId: number,
-		data: {
-			outline_id?: number;
-			title?: string;
-			summary?: string;
-			status?: string;
-			word_count?: number;
-			chapter_order?: number;
-		}
-	): Promise<Chapter> => {
-		return api.patch<Chapter>(`/chapters/${chapterId}`, data);
-	},
+  /** Update an existing chapter. */
+  update: async (
+    chapterId: number,
+    data: {
+      outline_id?: number
+      title?: string
+      summary?: string
+      status?: string
+      word_count?: number
+      chapter_order?: number
+    }
+  ): Promise<Chapter> => {
+    return api.patch<Chapter>(`/chapters/${chapterId}`, data)
+  },
 
-	delete: async (chapterId: number): Promise<void> => {
-		return api.delete(`/chapters/${chapterId}`);
-	},
-};
+  /** Delete a chapter. */
+  delete: async (chapterId: number): Promise<{ message: string }> => {
+    return api.delete<{ message: string }>(`/chapters/${chapterId}`)
+  },
+}
 
 // ============================================
-// Drafts
+// Draft Versions
 // ============================================
 
 export const draftApi = {
-	list: async (chapterId: number, skip = 0, limit = 20): Promise<DraftVersion[]> => {
-		return api.get<DraftVersion[]>(`/chapters/${chapterId}/drafts`, { skip, limit });
-	},
+  /** List all draft versions for a chapter. */
+  list: async (
+    chapterId: number,
+    params: PaginationParams = {}
+  ): Promise<DraftVersion[]> => {
+    const { skip = 0, limit = 20 } = params
+    return api.get<DraftVersion[]>(`/chapters/${chapterId}/drafts`, { skip, limit })
+  },
 
-	create: async (
-		chapterId: number,
-		data: { chapter_id: number; content: string; version_number: number }
-	): Promise<DraftVersion> => {
-		return api.post<DraftVersion>(`/chapters/${chapterId}/drafts`, data);
-	},
+  /** Create a new draft version for a chapter. */
+  create: async (
+    chapterId: number,
+    data: { content: string; version_number: number }
+  ): Promise<DraftVersion> => {
+    return api.post<DraftVersion>(`/chapters/${chapterId}/drafts`, {
+      chapter_id: chapterId,
+      ...data,
+    })
+  },
 
-	getVersion: async (
-		chapterId: number,
-		versionNumber: number
-	): Promise<DraftVersion> => {
-		return api.get<DraftVersion>(`/chapters/${chapterId}/drafts/${versionNumber}`);
-	},
-};
+  /** Get a specific draft version by version number. */
+  getVersion: async (
+    chapterId: number,
+    versionNumber: number
+  ): Promise<DraftVersion> => {
+    return api.get<DraftVersion>(`/chapters/${chapterId}/drafts/${versionNumber}`)
+  },
+
+  /** Delete a draft version. */
+  delete: async (chapterId: number, versionNumber: number): Promise<{ message: string }> => {
+    return api.delete<{ message: string }>(`/chapters/${chapterId}/drafts/${versionNumber}`)
+  },
+}
 
 // ============================================
 // IF Lines
 // ============================================
 
 export const ifLineApi = {
-	list: async (
-		skip = 0,
-		limit = 50,
-		characterId?: number
-	): Promise<IFLine[]> => {
-		return api.get<IFLine[]>("/chapters/if-lines", { skip, limit, character_id: characterId });
-	},
+  /** List all IF lines with optional character filter. */
+  list: async (
+    params: PaginationParams & IFLineFilters = {}
+  ): Promise<IFLine[]> => {
+    const { skip = 0, limit = 50, character_id } = params
+    return api.get<IFLine[]>("/chapters/if-lines", { skip, limit, character_id })
+  },
 
-	create: async (data: {
-		title: string;
-		linked_character_id?: number;
-		description?: string;
-		sync_mode?: string;
-	}): Promise<IFLine> => {
-		return api.post<IFLine>("/chapters/if-lines", data);
-	},
+  /** Get a specific IF line by ID. */
+  get: async (ifLineId: number): Promise<IFLine> => {
+    return api.get<IFLine>(`/chapters/if-lines/${ifLineId}`)
+  },
 
-	update: async (
-		ifLineId: number,
-		data: {
-			title?: string;
-			linked_character_id?: number;
-			description?: string;
-			sync_mode?: string;
-		}
-	): Promise<IFLine> => {
-		return api.patch<IFLine>(`/chapters/if-lines/${ifLineId}`, data);
-	},
+  /** Create a new IF line. */
+  create: async (data: {
+    title: string
+    linked_character_id?: number
+    description?: string
+    sync_mode?: string
+  }): Promise<IFLine> => {
+    return api.post<IFLine>("/chapters/if-lines", data)
+  },
 
-	delete: async (ifLineId: number): Promise<void> => {
-		return api.delete(`/chapters/if-lines/${ifLineId}`);
-	},
-};
+  /** Update an existing IF line. */
+  update: async (
+    ifLineId: number,
+    data: {
+      title?: string
+      linked_character_id?: number
+      description?: string
+      sync_mode?: string
+    }
+  ): Promise<IFLine> => {
+    return api.patch<IFLine>(`/chapters/if-lines/${ifLineId}`, data)
+  },
+
+  /** Delete an IF line. */
+  delete: async (ifLineId: number): Promise<{ message: string }> => {
+    return api.delete<{ message: string }>(`/chapters/if-lines/${ifLineId}`)
+  },
+}
 
 // ============================================
 // Plot Threads
 // ============================================
 
 export const plotThreadApi = {
-	list: async (
-		skip = 0,
-		limit = 100,
-		status?: string
-	): Promise<PlotThread[]> => {
-		return api.get<PlotThread[]>("/chapters/plot-threads", { skip, limit, status });
-	},
+  /** List all plot threads with optional status filter. */
+  list: async (
+    params: PaginationParams & PlotThreadFilters = {}
+  ): Promise<PlotThread[]> => {
+    const { skip = 0, limit = 100, status } = params
+    return api.get<PlotThread[]>("/chapters/plot-threads", { skip, limit, status })
+  },
 
-	create: async (data: {
-		title: string;
-		description?: string;
-		status?: string;
-		created_chapter_id?: number;
-		reveal_chapter_id?: number;
-	}): Promise<PlotThread> => {
-		return api.post<PlotThread>("/chapters/plot-threads", data);
-	},
+  /** Get a specific plot thread by ID. */
+  get: async (plotThreadId: number): Promise<PlotThread> => {
+    return api.get<PlotThread>(`/chapters/plot-threads/${plotThreadId}`)
+  },
 
-	update: async (
-		plotThreadId: number,
-		data: {
-			title?: string;
-			description?: string;
-			status?: string;
-			created_chapter_id?: number;
-			reveal_chapter_id?: number;
-		}
-	): Promise<PlotThread> => {
-		return api.patch<PlotThread>(`/chapters/plot-threads/${plotThreadId}`, data);
-	},
+  /** Create a new plot thread. */
+  create: async (data: {
+    title: string
+    description?: string
+    status?: string
+    created_chapter_id?: number
+    reveal_chapter_id?: number
+  }): Promise<PlotThread> => {
+    return api.post<PlotThread>("/chapters/plot-threads", data)
+  },
 
-	delete: async (plotThreadId: number): Promise<void> => {
-		return api.delete(`/chapters/plot-threads/${plotThreadId}`);
-	},
-};
+  /** Update an existing plot thread. */
+  update: async (
+    plotThreadId: number,
+    data: {
+      title?: string
+      description?: string
+      status?: string
+      created_chapter_id?: number
+      reveal_chapter_id?: number
+    }
+  ): Promise<PlotThread> => {
+    return api.patch<PlotThread>(`/chapters/plot-threads/${plotThreadId}`, data)
+  },
+
+  /** Delete a plot thread. */
+  delete: async (plotThreadId: number): Promise<{ message: string }> => {
+    return api.delete<{ message: string }>(`/chapters/plot-threads/${plotThreadId}`)
+  },
+}
 
 // ============================================
 // AI Inspections
 // ============================================
 
 export const inspectionApi = {
-	list: async (
-		chapterId: number,
-		skip = 0,
-		limit = 20
-	): Promise<AIInspectionResult[]> => {
-		return api.get<AIInspectionResult[]>(`/chapters/${chapterId}/inspections`, { skip, limit });
-	},
+  /** List all AI inspection results for a chapter. */
+  list: async (
+    chapterId: number,
+    params: PaginationParams = {}
+  ): Promise<AIInspectionResult[]> => {
+    const { skip = 0, limit = 20 } = params
+    return api.get<AIInspectionResult[]>(`/chapters/${chapterId}/inspections`, { skip, limit })
+  },
 
-	create: async (
-		chapterId: number,
-		data: {
-			inspection_type: string;
-			issues_json?: string;
-			suggestions_json?: string;
-		}
-	): Promise<AIInspectionResult> => {
-		return api.post<AIInspectionResult>(
-			`/chapters/${chapterId}/inspections`,
-			{
-				inspection_type: data.inspection_type,
-				issues_json: data.issues_json,
-				suggestions_json: data.suggestions_json,
-			}
-		);
-	},
-};
+  /** Create a new AI inspection result for a chapter. */
+  create: async (
+    chapterId: number,
+    data: {
+      inspection_type: string
+      issues_json?: string
+      suggestions_json?: string
+    }
+  ): Promise<AIInspectionResult> => {
+    return api.post<AIInspectionResult>(
+      `/chapters/${chapterId}/inspections`,
+      data
+    )
+  },
+}
 
 // ============================================
 // AI Operations
 // ============================================
 
-export type AIOperationType =
-	| "continue"
-	| "expand"
-	| "condense"
-	| "rewrite"
-	| "polish"
-	| "optimize";
-
-export interface AIGenerateRequest {
-	prompt: string;
-	operation: AIOperationType;
-	chapter_id?: number;
-	human_ai_ratio?: number;
-	style?: string;
-}
-
-export interface AIGenerateResponse {
-	operation: string;
-	"human-ai-ratio": string;
-	style: string;
-}
-
 export const aiApi = {
-	generate: async (
-		data: AIGenerateRequest
-	): Promise<{ stream: ReadableStream<Uint8Array>; headers: AIGenerateResponse }> => {
-		const response = await apiClient.post(`/ai/generate`, data, {
-			responseType: "stream",
-		});
-		return {
-			stream: response.data,
-			headers: {
-				operation: response.headers["x-operation"] as string,
-				"human-ai-ratio": response.headers["x-human-ai-ratio"] as string,
-				style: response.headers["x-style"] as string,
-			},
-		};
-	},
+  /**
+   * Generate AI content with streaming response.
+   * Returns a ReadableStream for real-time content delivery.
+   */
+  generate: async (data: AIGenerateRequest): Promise<{
+    stream: ReadableStream<Uint8Array>
+    headers: { operation: string; "human-ai-ratio": string; style: string }
+  }> => {
+    const response = await apiClient.post(`/ai/generate`, data, {
+      responseType: "stream",
+    })
+    return {
+      stream: response.data,
+      headers: {
+        operation: response.headers["x-operation"] as string,
+        "human-ai-ratio": response.headers["x-human-ai-ratio"] as string,
+        style: response.headers["x-style"] as string,
+      },
+    }
+  },
 
-	optimize: async (
-		content: string,
-		chapterId?: number,
-		humanAiRatio?: number
-	): Promise<string> => {
-		const response = await aiApi.generate({
-			prompt: content,
-			operation: "optimize",
-			chapter_id: chapterId,
-			human_ai_ratio: humanAiRatio,
-		});
-		return new Response(response.stream).text();
-	},
+  /**
+   * Build a writing execution context for a chapter.
+   * Returns a complete context package with core task, characters, constraints, etc.
+   */
+  buildContext: async (chapterId: number): Promise<AIContextResponse> => {
+    return api.post<AIContextResponse>("/ai/context", { chapter_id: chapterId })
+  },
 
-	expand: async (
-		content: string,
-		chapterId?: number,
-		humanAiRatio?: number
-	): Promise<string> => {
-		const response = await aiApi.generate({
-			prompt: content,
-			operation: "expand",
-			chapter_id: chapterId,
-			human_ai_ratio: humanAiRatio,
-		});
-		return new Response(response.stream).text();
-	},
+  /**
+   * Extract structured entities from chapter content.
+   * Returns entities, relationships, state changes, scenes, and summary.
+   */
+  extract: async (content: string, chapterId?: number): Promise<AIExtractResponse> => {
+    return api.post<AIExtractResponse>("/ai/extract", { content, chapter_id: chapterId })
+  },
 
-	shrink: async (
-		content: string,
-		chapterId?: number,
-		humanAiRatio?: number
-	): Promise<string> => {
-		const response = await aiApi.generate({
-			prompt: content,
-			operation: "condense",
-			chapter_id: chapterId,
-			human_ai_ratio: humanAiRatio,
-		});
-		return new Response(response.stream).text();
-	},
+  /**
+   * Run AI inspection on a chapter.
+   * Checks for consistency, plot holes, character consistency, etc.
+   */
+  inspectChapter: async (chapterId: number): Promise<AIChapterInspectionResponse> => {
+    return api.post<AIChapterInspectionResponse>(`/ai/chapters/${chapterId}/inspect`)
+  },
 
-	rewrite: async (
-		content: string,
-		chapterId?: number,
-		humanAiRatio?: number
-	): Promise<string> => {
-		const response = await aiApi.generate({
-			prompt: content,
-			operation: "rewrite",
-			chapter_id: chapterId,
-			human_ai_ratio: humanAiRatio,
-		});
-		return new Response(response.stream).text();
-	},
+  // Convenience methods for specific operations
 
-	continue: async (
-		content: string,
-		chapterId?: number,
-		humanAiRatio?: number
-	): Promise<string> => {
-		const response = await aiApi.generate({
-			prompt: content,
-			operation: "continue",
-			chapter_id: chapterId,
-			human_ai_ratio: humanAiRatio,
-		});
-		return new Response(response.stream).text();
-	},
+  /** Optimize content. */
+  optimize: async (
+    content: string,
+    chapterId?: number,
+    humanAiRatio?: number
+  ): Promise<{ stream: ReadableStream<Uint8Array>; headers: { operation: string; "human-ai-ratio": string; style: string } }> => {
+    return aiApi.generate({
+      prompt: content,
+      operation: "optimize",
+      chapter_id: chapterId,
+      human_ai_ratio: humanAiRatio,
+    })
+  },
 
-	polish: async (
-		content: string,
-		chapterId?: number,
-		humanAiRatio?: number
-	): Promise<string> => {
-		const response = await aiApi.generate({
-			prompt: content,
-			operation: "polish",
-			chapter_id: chapterId,
-			human_ai_ratio: humanAiRatio,
-		});
-		return new Response(response.stream).text();
-	},
+  /** Expand content. */
+  expand: async (
+    content: string,
+    chapterId?: number,
+    humanAiRatio?: number
+  ): Promise<{ stream: ReadableStream<Uint8Array>; headers: { operation: string; "human-ai-ratio": string; style: string } }> => {
+    return aiApi.generate({
+      prompt: content,
+      operation: "expand",
+      chapter_id: chapterId,
+      human_ai_ratio: humanAiRatio,
+    })
+  },
 
-	context: async (chapterId: number): Promise<{
-		chapter_id: number;
-		chapter_title?: string;
-		core_task: Record<string, unknown>;
-		active_characters: unknown[];
-		scene_constraints: Record<string, unknown>;
-		style_guidance: string;
-	}> => {
-		return api.post("/ai/context", { chapter_id: chapterId });
-	},
+  /** Condense/shrink content. */
+  shrink: async (
+    content: string,
+    chapterId?: number,
+    humanAiRatio?: number
+  ): Promise<{ stream: ReadableStream<Uint8Array>; headers: { operation: string; "human-ai-ratio": string; style: string } }> => {
+    return aiApi.generate({
+      prompt: content,
+      operation: "condense",
+      chapter_id: chapterId,
+      human_ai_ratio: humanAiRatio,
+    })
+  },
 
-	extract: async (content: string, chapterId?: number): Promise<{
-		chapter_id?: number;
-		entities: unknown[];
-		relationships: unknown[];
-		state_changes: unknown[];
-		scenes: unknown[];
-		summary: string;
-	}> => {
-		return api.post("/ai/extract", { content, chapter_id: chapterId });
-	},
-};
+  /** Rewrite content. */
+  rewrite: async (
+    content: string,
+    chapterId?: number,
+    humanAiRatio?: number
+  ): Promise<{ stream: ReadableStream<Uint8Array>; headers: { operation: string; "human-ai-ratio": string; style: string } }> => {
+    return aiApi.generate({
+      prompt: content,
+      operation: "rewrite",
+      chapter_id: chapterId,
+      human_ai_ratio: humanAiRatio,
+    })
+  },
+
+  /** Continue writing from content. */
+  continue: async (
+    content: string,
+    chapterId?: number,
+    humanAiRatio?: number
+  ): Promise<{ stream: ReadableStream<Uint8Array>; headers: { operation: string; "human-ai-ratio": string; style: string } }> => {
+    return aiApi.generate({
+      prompt: content,
+      operation: "continue",
+      chapter_id: chapterId,
+      human_ai_ratio: humanAiRatio,
+    })
+  },
+
+  /** Polish content. */
+  polish: async (
+    content: string,
+    chapterId?: number,
+    humanAiRatio?: number
+  ): Promise<{ stream: ReadableStream<Uint8Array>; headers: { operation: string; "human-ai-ratio": string; style: string } }> => {
+    return aiApi.generate({
+      prompt: content,
+      operation: "polish",
+      chapter_id: chapterId,
+      human_ai_ratio: humanAiRatio,
+    })
+  },
+}
 
 // Export all APIs
 export default {
-	outline: outlineApi,
-	chapter: chapterApi,
-	draft: draftApi,
-	ifLine: ifLineApi,
-	plotThread: plotThreadApi,
-	inspection: inspectionApi,
-	ai: aiApi,
-};
+  outline: outlineApi,
+  chapter: chapterApi,
+  draft: draftApi,
+  ifLine: ifLineApi,
+  plotThread: plotThreadApi,
+  inspection: inspectionApi,
+  ai: aiApi,
+}

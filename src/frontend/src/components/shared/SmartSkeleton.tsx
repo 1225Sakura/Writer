@@ -2,17 +2,26 @@
  * SmartSkeleton — Enhanced skeleton loading component with shimmer animation
  * Based on shadcn/ui Skeleton with CSS shimmer sweep effect
  *
+ * Features:
+ *   - Shimmer sweep animation
+ *   - Content cross-fade transition
+ *   - Multiple preset variants
+ *   - Pulse fallback for reduced motion
+ *
  * Variants:
  *   text    — Text lines skeleton (for paragraphs, messages)
  *   card    — Card skeleton (for entity cards, panels)
  *   avatar  — Avatar skeleton (for user/AI avatars, profile images)
  *   chart   — Chart/area skeleton (for relation graphs, stats)
+ *   button  — Button skeleton
+ *   image   — Image skeleton
  */
 
+import { useState, useEffect } from 'react'
 import { cn } from '@/lib/utils'
 
 interface SmartSkeletonProps {
-  variant?: 'text' | 'card' | 'avatar' | 'chart'
+  variant?: 'text' | 'card' | 'avatar' | 'chart' | 'button' | 'image'
   className?: string
   lines?: number
   width?: string | number
@@ -113,10 +122,33 @@ function ChartSkeleton({ className }: { className?: string }) {
           <ShimmerBlock
             key={i}
             className="flex-1 rounded-t-md"
-            height={`${30 + Math.random() * 60}%`}
+            height={`${30 + ((i * 7) % 60)}%`}
           />
         ))}
       </div>
+    </div>
+  )
+}
+
+/** Button variant */
+function ButtonSkeleton({ className }: { className?: string }) {
+  return (
+    <ShimmerBlock
+      height={36}
+      width={100}
+      className={cn('rounded-md', className)}
+    />
+  )
+}
+
+/** Image variant */
+function ImageSkeleton({ className, aspectRatio = '16/9' }: { className?: string; aspectRatio?: string }) {
+  return (
+    <div
+      className={cn('rounded-lg overflow-hidden', className)}
+      style={{ aspectRatio }}
+    >
+      <ShimmerBlock height="100%" width="100%" className="rounded-none" />
     </div>
   )
 }
@@ -185,6 +217,10 @@ export function SmartSkeleton({
       return <AvatarSkeleton size={typeof width === 'number' ? width : 40} className={className} />
     case 'chart':
       return <ChartSkeleton className={className} />
+    case 'button':
+      return <ButtonSkeleton className={className} />
+    case 'image':
+      return <ImageSkeleton className={className} />
     default:
       return <TextSkeleton lines={lines} className={className} />
   }
@@ -215,6 +251,139 @@ export function CardGridSkeleton({ count = 6, className }: { count?: number; cla
       {Array.from({ length: count }).map((_, i) => (
         <CardSkeleton key={i} />
       ))}
+    </div>
+  )
+}
+
+/** Skeleton with content cross-fade transition */
+interface SkeletonTransitionProps {
+  loading: boolean
+  children: React.ReactNode
+  variant?: SmartSkeletonProps['variant']
+  className?: string
+  skeletonClassName?: string
+  /** 过渡持续时间 (ms) */
+  transitionDuration?: number
+  /** 最小显示骨架时间 (ms)，避免闪烁 */
+  minDuration?: number
+}
+
+/**
+ * SkeletonTransition — 骨架屏与内容的交叉淡化过渡
+ *
+ * 特性：
+ * - 骨架屏淡出 + 内容淡入的平滑过渡
+ * - 最小显示时间，避免快速加载时的闪烁
+ * - 支持所有 SmartSkeleton 变体
+ */
+export function SkeletonTransition({
+  loading,
+  children,
+  variant = 'text',
+  className,
+  skeletonClassName,
+  transitionDuration = 300,
+  minDuration = 400,
+}: SkeletonTransitionProps) {
+  const [showSkeleton, setShowSkeleton] = useState(loading)
+  const [showContent, setShowContent] = useState(!loading)
+  const [minTimeElapsed, setMinTimeElapsed] = useState(!loading)
+
+  useEffect(() => {
+    if (loading) {
+      setShowSkeleton(true)
+      setShowContent(false)
+      setMinTimeElapsed(false)
+
+      const timer = setTimeout(() => {
+        setMinTimeElapsed(true)
+      }, minDuration)
+
+      return () => clearTimeout(timer)
+    } else {
+      // 等待最小时间后再切换
+      const timer = setTimeout(() => {
+        setShowSkeleton(false)
+        // 延迟一点显示内容，让骨架屏先开始淡出
+        setTimeout(() => {
+          setShowContent(true)
+        }, transitionDuration / 3)
+      }, minTimeElapsed ? 0 : minDuration)
+
+      return () => clearTimeout(timer)
+    }
+  }, [loading, minDuration, minTimeElapsed, transitionDuration])
+
+  return (
+    <div className={cn('relative', className)}>
+      {/* Skeleton layer */}
+      <div
+        className={cn(
+          'transition-opacity',
+          skeletonClassName
+        )}
+        style={{
+          opacity: showSkeleton ? 1 : 0,
+          transitionDuration: `${transitionDuration}ms`,
+          transitionTimingFunction: 'cubic-bezier(0.16, 1, 0.3, 1)',
+          pointerEvents: showSkeleton ? 'auto' : 'none',
+          position: showContent ? 'absolute' : 'relative',
+          inset: 0,
+        }}
+        aria-hidden={!showSkeleton}
+      >
+        <SmartSkeleton variant={variant} className="w-full h-full" />
+      </div>
+
+      {/* Content layer */}
+      <div
+        className="transition-all"
+        style={{
+          opacity: showContent ? 1 : 0,
+          transform: showContent ? 'translateY(0)' : 'translateY(4px)',
+          transitionDuration: `${transitionDuration}ms`,
+          transitionTimingFunction: 'cubic-bezier(0.16, 1, 0.3, 1)',
+          pointerEvents: showContent ? 'auto' : 'none',
+          position: showSkeleton ? 'absolute' : 'relative',
+          inset: 0,
+        }}
+        aria-hidden={!showContent}
+      >
+        {children}
+      </div>
+    </div>
+  )
+}
+
+/** Content fade-in wrapper — 内容加载完成后的淡入效果 */
+export function ContentFadeIn({
+  children,
+  className,
+  delay = 0,
+  duration = 400,
+}: {
+  children: React.ReactNode
+  className?: string
+  delay?: number
+  duration?: number
+}) {
+  const [visible, setVisible] = useState(false)
+
+  useEffect(() => {
+    const timer = setTimeout(() => setVisible(true), delay)
+    return () => clearTimeout(timer)
+  }, [delay])
+
+  return (
+    <div
+      className={cn(className)}
+      style={{
+        opacity: visible ? 1 : 0,
+        transform: visible ? 'translateY(0)' : 'translateY(8px)',
+        transition: `opacity ${duration}ms cubic-bezier(0.16, 1, 0.3, 1) ${delay}ms, transform ${duration}ms cubic-bezier(0.16, 1, 0.3, 1) ${delay}ms`,
+      }}
+    >
+      {children}
     </div>
   )
 }

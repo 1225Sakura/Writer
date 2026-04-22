@@ -19,6 +19,8 @@ export interface ApiError {
     | 'FORBIDDEN_ERROR'
     | 'NOT_FOUND'
     | 'SERVER_ERROR'
+    | 'RATE_LIMIT_ERROR'
+    | 'VALIDATION_ERROR'
     | 'UNKNOWN_ERROR'
   message: string
   statusCode?: number
@@ -65,6 +67,15 @@ const transformError = (err: unknown): ApiError => {
   const statusCode = error.response.status
 
   switch (statusCode) {
+    case 400: {
+      const data = error.response?.data as { detail?: string; message?: string }
+      return {
+        code: 'VALIDATION_ERROR',
+        message: data?.detail || data?.message || '请求参数错误',
+        statusCode,
+        originalError: error,
+      }
+    }
     case 401:
       return {
         code: 'AUTH_ERROR',
@@ -83,6 +94,13 @@ const transformError = (err: unknown): ApiError => {
       return {
         code: 'NOT_FOUND',
         message: '请求的资源不存在',
+        statusCode,
+        originalError: error,
+      }
+    case 429:
+      return {
+        code: 'RATE_LIMIT_ERROR',
+        message: '请求过于频繁，请稍后再试',
         statusCode,
         originalError: error,
       }
@@ -123,11 +141,41 @@ export const getErrorMessage = (error: ApiError): string => {
       return '您没有权限执行此操作'
     case 'NOT_FOUND':
       return '请求的资源不存在'
+    case 'RATE_LIMIT_ERROR':
+      return '请求过于频繁，请稍后再试'
+    case 'VALIDATION_ERROR':
+      return error.message || '请求参数错误'
     case 'SERVER_ERROR':
       return '服务器内部错误，请稍后重试'
     default:
       return error.message || '请求失败，请稍后重试'
   }
+}
+
+/**
+ * Check if an error is a specific API error code.
+ */
+export const isApiError = (error: unknown, code: ApiError['code']): boolean => {
+  return (
+    typeof error === 'object' &&
+    error !== null &&
+    'code' in error &&
+    (error as ApiError).code === code
+  )
+}
+
+/**
+ * Check if an error is a network-related error (retryable).
+ */
+export const isRetryableError = (error: unknown): boolean => {
+  if (typeof error !== 'object' || error === null) return false
+  const apiError = error as ApiError
+  return (
+    apiError.code === 'NETWORK_ERROR' ||
+    apiError.code === 'TIMEOUT_ERROR' ||
+    apiError.code === 'SERVER_ERROR' ||
+    apiError.code === 'RATE_LIMIT_ERROR'
+  )
 }
 
 // ============================================
@@ -174,7 +222,7 @@ apiClient.interceptors.response.use(
 axiosRetry(apiClient, {
   retries: 3,
   retryDelay: (retryCount) => {
-    return retryCount * 1000 // Exponential backoff: 1s, 2s, 4s
+    return Math.pow(2, retryCount) * 1000 // Exponential backoff: 1s, 2s, 4s
   },
   retryCondition: (error) => {
     if (!error.response) {
@@ -183,8 +231,11 @@ axiosRetry(apiClient, {
     const status = error.response.status
     return status >= 500 || status === 408 || status === 429
   },
-  onRetry: (_retryCount, _error) => {
-    // Retry logging removed for production
+  onRetry: (retryCount, error) => {
+    const axiosErr = error as AxiosError
+    console.warn(
+      `[API Retry] Attempt ${retryCount}/3 - ${axiosErr.config?.method?.toUpperCase()} ${axiosErr.config?.url}`
+    )
   },
 })
 
@@ -195,9 +246,10 @@ axiosRetry(apiClient, {
 let isOnline = navigator.onLine
 
 type OnlineCallback = () => void
+type OfflineCallback = () => void
 
 const onlineListeners: OnlineCallback[] = []
-const offlineListeners: OnlineCallback[] = []
+const offlineListeners: OfflineCallback[] = []
 
 const handleOnline = () => {
   isOnline = true
@@ -216,7 +268,7 @@ if (typeof window !== 'undefined') {
 
 export const setupOnlineDetection = (
   onOnline: OnlineCallback,
-  onOffline: OnlineCallback
+  onOffline: OfflineCallback
 ): (() => void) => {
   onlineListeners.push(onOnline)
   offlineListeners.push(onOffline)
@@ -231,13 +283,13 @@ export const setupOnlineDetection = (
 export const getOnlineStatus = (): boolean => isOnline
 
 // ============================================
-// API Request Wrapper
+// Request Wrapper
 // ============================================
 
-interface RequestOptions {
+export interface RequestOptions {
   skipOnlineCheck?: boolean
   skipRetry?: boolean
-  cacheTTL?: number // Cache TTL in ms, default 1 min
+  cacheTTL?: number // Cache TTL in ms, 0 to disable, default 1 min
 }
 
 const request = async <T>(
@@ -281,7 +333,7 @@ const request = async <T>(
   return response.data
 }
 
-// Convenience method for GET requests (used by chat.ts and settings.ts)
+// Convenience method for GET requests
 const get = <T>(url: string, params?: Record<string, unknown>): Promise<T> =>
   request<T>('get', url, { params })
 

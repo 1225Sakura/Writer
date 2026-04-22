@@ -2,7 +2,7 @@ import { useUIStore, useSettingsStore, UIState } from '@/store'
 import { Button } from '@/components/ui/Button'
 import { Globe, Users, Package, MapPin, Shield, BookOpen, FileText, GitBranch, Feather, Sparkles } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { useMemo } from 'react'
+// import { useMemo } from 'react'
 
 const categories: Array<{ key: UIState['settingsCategory']; label: string; icon: typeof Globe }> = [
   { key: 'world', label: '世界观', icon: Globe },
@@ -46,13 +46,15 @@ function CountBadge({ count, color }: { count: number; color: string }) {
   return (
     <motion.span
       key={count}
-      initial={{ scale: 0.6, opacity: 0 }}
-      animate={{ scale: 1, opacity: 1 }}
+      initial={{ scale: 0.6, opacity: 0, y: -4 }}
+      animate={{ scale: 1, opacity: 1, y: 0 }}
+      exit={{ scale: 0.6, opacity: 0, y: -4 }}
       transition={{ type: 'spring', stiffness: 500, damping: 25 }}
       className="ml-auto text-[10px] px-1.5 py-0.5 rounded-full font-medium min-w-[20px] text-center"
       style={{
         backgroundColor: `${color}20`,
         color: color,
+        boxShadow: `0 0 8px ${color}30`,
       }}
     >
       {count}
@@ -86,8 +88,18 @@ export function CategoryNav() {
 
   return (
     <div className="h-full flex flex-col" style={{ backgroundColor: 'var(--color-bg-surface)' }}>
-      {/* Header */}
-      <div className="px-4 py-5" style={{ borderBottom: '1px solid var(--color-border)' }}>
+      {/* Header with subtle gradient */}
+      <div
+        className="px-4 py-5 relative overflow-hidden"
+        style={{ borderBottom: '1px solid var(--color-border)' }}
+      >
+        {/* Decorative gradient accent */}
+        <div
+          className="absolute top-0 left-0 right-0 h-px"
+          style={{
+            background: 'linear-gradient(90deg, transparent, rgba(94,106,210,0.4), transparent)',
+          }}
+        />
         <h2 className="font-semibold text-base" style={{ color: 'var(--text-primary)' }}>
           设定编辑
         </h2>
@@ -150,6 +162,17 @@ export function CategoryNav() {
                   }}
                 />
               )}
+
+              {/* Hover glow background */}
+              <motion.div
+                className="absolute inset-0 opacity-0 group-hover:opacity-100 pointer-events-none"
+                initial={false}
+                animate={isActive ? { opacity: 0 } : { opacity: 0 }}
+                transition={{ duration: 0.2 }}
+                style={{
+                  background: `radial-gradient(ellipse at left, ${glowColor}, transparent 70%)`,
+                }}
+              />
 
               {/* Icon with animation */}
               <motion.div

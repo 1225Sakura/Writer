@@ -1,29 +1,12 @@
 import { useSettingsStore, type CharacterLocal, UIState, Chapter } from '@/store'
-import { Trash2, Edit2, Users, Plus, FileText, X, Sparkles, Check } from 'lucide-react'
+import { Trash2, Edit2, Users, Plus, FileText, X, Sparkles, Check, AlertCircle, Loader2, Save } from 'lucide-react'
 import { useState, useCallback } from 'react'
-import { TagInput, TagChips } from './TagInput'
+import { TagInput } from './TagInput'
+import { EntityCard, entityColors, cardStyle } from './EntityCard'
 import { motion, AnimatePresence } from 'framer-motion'
 
 interface EntityEditorProps {
   category: UIState['settingsCategory']
-}
-
-// Entity type colors for badges
-const entityColors: Record<string, { bg: string; text: string }> = {
-  character: { bg: 'rgba(232,184,125,0.15)', text: '#e8b87d' },
-  item: { bg: 'rgba(155,126,217,0.15)', text: '#9b7ed9' },
-  location: { bg: 'rgba(94,181,166,0.15)', text: '#5eb5a6' },
-  faction: { bg: 'rgba(212,93,93,0.15)', text: '#d45d5d' },
-  world: { bg: 'rgba(94,106,210,0.15)', text: '#5e6ad2' },
-  rule: { bg: 'rgba(126,184,74,0.15)', text: '#7eb84a' },
-  outline: { bg: 'rgba(94,106,210,0.15)', text: '#5e6ad2' },
-  ifline: { bg: 'rgba(126,184,74,0.15)', text: '#7eb84a' },
-}
-
-// Linear card style
-const cardStyle = {
-  backgroundColor: 'rgba(255,255,255,0.02)',
-  border: '1px solid rgba(255,255,255,0.08)',
 }
 
 // Common input style for Linear design
@@ -33,7 +16,15 @@ const inputStyle = {
   color: '#f7f8f8',
 }
 
-// Floating label input component
+// Validation state type
+type ValidationState = 'idle' | 'valid' | 'invalid' | 'saving' | 'saved' | 'error'
+
+interface FieldValidation {
+  state: ValidationState
+  message?: string
+}
+
+// Floating label input with validation
 function FloatingLabelInput({
   value,
   onChange,
@@ -41,6 +32,9 @@ function FloatingLabelInput({
   label,
   autoFocus,
   onKeyDown,
+  validation,
+  required,
+  maxLength,
 }: {
   value: string
   onChange: (value: string) => void
@@ -48,23 +42,56 @@ function FloatingLabelInput({
   label: string
   autoFocus?: boolean
   onKeyDown?: (e: React.KeyboardEvent) => void
+  validation?: FieldValidation
+  required?: boolean
+  maxLength?: number
 }) {
   const [isFocused, setIsFocused] = useState(false)
   const isActive = isFocused || value.length > 0
+
+  const getBorderColor = () => {
+    if (!validation) return isFocused ? 'rgba(94,106,210,0.5)' : 'rgba(255,255,255,0.1)'
+    switch (validation.state) {
+      case 'invalid':
+      case 'error':
+        return 'rgba(196,92,92,0.6)'
+      case 'valid':
+      case 'saved':
+        return 'rgba(126,184,74,0.5)'
+      case 'saving':
+        return 'rgba(94,106,210,0.5)'
+      default:
+        return isFocused ? 'rgba(94,106,210,0.5)' : 'rgba(255,255,255,0.1)'
+    }
+  }
+
+  const getLabelColor = () => {
+    if (!validation) return isFocused ? '#5e6ad2' : '#8a8f98'
+    switch (validation.state) {
+      case 'invalid':
+      case 'error':
+        return '#d45d5d'
+      case 'valid':
+      case 'saved':
+        return '#7eb84a'
+      default:
+        return isFocused ? '#5e6ad2' : '#8a8f98'
+    }
+  }
 
   return (
     <div className="relative">
       <motion.label
         className="absolute left-3 pointer-events-none origin-left"
-        style={{ color: '#8a8f98' }}
+        style={{ color: getLabelColor() }}
         animate={{
           y: isActive ? -22 : 10,
           scale: isActive ? 0.85 : 1,
-          color: isFocused ? '#5e6ad2' : '#8a8f98',
         }}
         transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
       >
         {label}
+        {required && <span style={{ color: '#d45d5d' }}> *</span>}
       </motion.label>
       <input
         type="text"
@@ -75,42 +102,105 @@ function FloatingLabelInput({
         onKeyDown={onKeyDown}
         placeholder={isActive ? placeholder : ''}
         autoFocus={autoFocus}
+        maxLength={maxLength}
         className="w-full px-3 pt-5 pb-2 rounded-md text-sm transition-all focus:outline-none"
         style={{
           ...inputStyle,
-          borderColor: isFocused ? 'rgba(94,106,210,0.5)' : 'rgba(255,255,255,0.1)',
+          borderColor: getBorderColor(),
         }}
       />
+      {/* Validation indicator */}
+      <AnimatePresence>
+        {validation && validation.state !== 'idle' && (
+          <motion.div
+            className="absolute right-3 top-1/2 -translate-y-1/2"
+            initial={{ opacity: 0, scale: 0.5 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.5 }}
+            transition={{ type: 'spring', stiffness: 500, damping: 25 }}
+          >
+            {validation.state === 'saving' && (
+              <Loader2 className="w-4 h-4 animate-spin" style={{ color: '#5e6ad2' }} />
+            )}
+            {validation.state === 'saved' && (
+              <Check className="w-4 h-4" style={{ color: '#7eb84a' }} />
+            )}
+            {(validation.state === 'invalid' || validation.state === 'error') && (
+              <AlertCircle className="w-4 h-4" style={{ color: '#d45d5d' }} />
+            )}
+          </motion.div>
+        )}
+      </AnimatePresence>
+      {/* Validation message */}
+      <AnimatePresence>
+        {validation?.message && (validation.state === 'invalid' || validation.state === 'error') && (
+          <motion.p
+            className="text-[10px] mt-1 ml-1"
+            style={{ color: '#d45d5d' }}
+            initial={{ opacity: 0, y: -4 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -4 }}
+          >
+            {validation.message}
+          </motion.p>
+        )}
+      </AnimatePresence>
+      {/* Character count */}
+      {maxLength && value.length > 0 && (
+        <span
+          className="absolute right-3 -bottom-4 text-[10px]"
+          style={{ color: value.length > maxLength * 0.9 ? '#d45d5d' : '#6b7280' }}
+        >
+          {value.length}/{maxLength}
+        </span>
+      )}
     </div>
   )
 }
 
-// Floating label textarea component
+// Floating label textarea with validation
 function FloatingLabelTextarea({
   value,
   onChange,
   placeholder,
   label,
   rows = 3,
+  validation,
+  maxLength,
 }: {
   value: string
   onChange: (value: string) => void
   placeholder?: string
   label: string
   rows?: number
+  validation?: FieldValidation
+  maxLength?: number
 }) {
   const [isFocused, setIsFocused] = useState(false)
   const isActive = isFocused || value.length > 0
 
+  const getBorderColor = () => {
+    if (!validation) return isFocused ? 'rgba(94,106,210,0.5)' : 'rgba(255,255,255,0.1)'
+    switch (validation.state) {
+      case 'invalid':
+      case 'error':
+        return 'rgba(196,92,92,0.6)'
+      case 'valid':
+      case 'saved':
+        return 'rgba(126,184,74,0.5)'
+      default:
+        return isFocused ? 'rgba(94,106,210,0.5)' : 'rgba(255,255,255,0.1)'
+    }
+  }
+
   return (
     <div className="relative">
       <motion.label
-        className="absolute left-3 pointer-events-none origin-left"
-        style={{ color: '#8a8f98' }}
+        className="absolute left-3 pointer-events-none origin-left z-10"
+        style={{ color: isFocused ? '#5e6ad2' : '#8a8f98' }}
         animate={{
           y: isActive ? -22 : 10,
           scale: isActive ? 0.85 : 1,
-          color: isFocused ? '#5e6ad2' : '#8a8f98',
         }}
         transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
       >
@@ -123,200 +213,73 @@ function FloatingLabelTextarea({
         onBlur={() => setIsFocused(false)}
         placeholder={isActive ? placeholder : ''}
         rows={rows}
+        maxLength={maxLength}
         className="w-full px-3 pt-5 pb-2 rounded-md text-sm transition-all focus:outline-none resize-none"
         style={{
           ...inputStyle,
-          borderColor: isFocused ? 'rgba(94,106,210,0.5)' : 'rgba(255,255,255,0.1)',
+          borderColor: getBorderColor(),
         }}
       />
+      {maxLength && value.length > 0 && (
+        <span
+          className="absolute right-3 bottom-2 text-[10px]"
+          style={{ color: value.length > maxLength * 0.9 ? '#d45d5d' : '#6b7280' }}
+        >
+          {value.length}/{maxLength}
+        </span>
+      )}
     </div>
   )
 }
 
-// Save success feedback animation
-function SaveSuccessFeedback({ show }: { show: boolean }) {
+// Save state indicator component
+function SaveStateIndicator({ state, message }: { state: ValidationState; message?: string }) {
   return (
-    <AnimatePresence>
-      {show && (
+    <AnimatePresence mode="wait">
+      {state === 'saving' && (
         <motion.div
-          className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1.5"
-          initial={{ opacity: 0, scale: 0.5, x: 10 }}
-          animate={{ opacity: 1, scale: 1, x: 0 }}
-          exit={{ opacity: 0, scale: 0.5, x: 10 }}
-          transition={{ type: 'spring', stiffness: 400, damping: 25 }}
+          key="saving"
+          className="flex items-center gap-1.5"
+          initial={{ opacity: 0, y: 5 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -5 }}
+        >
+          <Loader2 className="w-3.5 h-3.5 animate-spin" style={{ color: '#5e6ad2' }} />
+          <span className="text-xs" style={{ color: '#5e6ad2' }}>保存中...</span>
+        </motion.div>
+      )}
+      {state === 'saved' && (
+        <motion.div
+          key="saved"
+          className="flex items-center gap-1.5"
+          initial={{ opacity: 0, y: 5 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -5 }}
+          transition={{ duration: 0.2 }}
         >
           <motion.div
             initial={{ scale: 0 }}
             animate={{ scale: 1 }}
-            transition={{ type: 'spring', stiffness: 500, damping: 20, delay: 0.1 }}
+            transition={{ type: 'spring', stiffness: 500, damping: 20 }}
           >
-            <Check className="w-4 h-4" style={{ color: '#7eb84a' }} />
+            <Check className="w-3.5 h-3.5" style={{ color: '#7eb84a' }} />
           </motion.div>
-          <span className="text-xs" style={{ color: '#7eb84a' }}>已保存</span>
+          <span className="text-xs" style={{ color: '#7eb84a' }}>{message || '已保存'}</span>
+        </motion.div>
+      )}
+      {(state === 'invalid' || state === 'error') && (
+        <motion.div
+          key="error"
+          className="flex items-center gap-1.5"
+          initial={{ opacity: 0, y: 5 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -5 }}
+        >
+          <AlertCircle className="w-3.5 h-3.5" style={{ color: '#d45d5d' }} />
+          <span className="text-xs" style={{ color: '#d45d5d' }}>{message || '保存失败'}</span>
         </motion.div>
       )}
     </AnimatePresence>
-  )
-}
-
-// Generic entity card for simple CRUD entities
-function EntityCard({
-  name,
-  description,
-  badge,
-  badgeColor,
-  tags,
-  entityType,
-  entityId,
-  onDelete,
-}: {
-  name: string
-  description?: string
-  badge?: string
-  badgeColor?: { bg: string; text: string }
-  tags?: string[]
-  entityType?: 'character' | 'item' | 'location' | 'faction' | 'world' | 'rule' | 'ifline'
-  entityId?: number
-  onDelete: () => void
-}) {
-  const [isHovered, setIsHovered] = useState(false)
-
-  return (
-    <motion.div
-      className="p-4 rounded-lg cursor-pointer"
-      style={{
-        ...cardStyle,
-        backgroundColor: isHovered ? 'rgba(255,255,255,0.04)' : 'rgba(255,255,255,0.02)',
-        borderColor: isHovered ? 'rgba(255,255,255,0.12)' : 'rgba(255,255,255,0.08)',
-      }}
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
-      whileHover={{ y: -1 }}
-      transition={{ duration: 0.15 }}
-    >
-      <div className="flex items-start justify-between">
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 mb-1">
-            <h3 className="font-medium text-sm" style={{ color: '#f7f8f8' }}>
-              {name}
-            </h3>
-            {badge && badgeColor && (
-              <span
-                className="text-xs px-2 py-0.5 rounded"
-                style={{ backgroundColor: badgeColor.bg, color: badgeColor.text }}
-              >
-                {badge}
-              </span>
-            )}
-          </div>
-          {description && (
-            <p className="text-xs line-clamp-2" style={{ color: '#6b7280' }}>
-              {description}
-            </p>
-          )}
-          {entityType && entityId !== undefined && (
-            <TagInput entityType={entityType} entityId={entityId} tags={tags || []} />
-          )}
-          {!entityType && tags && tags.length > 0 && <TagChips tags={tags} />}
-        </div>
-        <button
-          onClick={(e) => {
-            e.stopPropagation()
-            onDelete()
-          }}
-          className="p-1.5 rounded transition-all"
-          style={{ color: '#6b7280' }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.backgroundColor = 'rgba(196,92,92,0.15)'
-            e.currentTarget.style.color = '#d45d5d'
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.backgroundColor = 'transparent'
-            e.currentTarget.style.color = '#6b7280'
-          }}
-        >
-          <Trash2 className="w-4 h-4" />
-        </button>
-      </div>
-    </motion.div>
-  )
-}
-
-// Generic add form for entities
-function AddEntityForm({
-  placeholder,
-  onAdd,
-  onCancel,
-}: {
-  placeholder: string
-  onAdd: (name: string) => void
-  onCancel: () => void
-}) {
-  const [name, setName] = useState('')
-  const [showSuccess, setShowSuccess] = useState(false)
-
-  const handleAdd = useCallback(() => {
-    if (name.trim()) {
-      onAdd(name.trim())
-      setShowSuccess(true)
-      setTimeout(() => setShowSuccess(false), 1500)
-    }
-  }, [name, onAdd])
-
-  return (
-    <div className="p-3 rounded-lg" style={cardStyle}>
-      <div className="relative">
-        <FloatingLabelInput
-          value={name}
-          onChange={setName}
-          placeholder={placeholder}
-          label="名称"
-          autoFocus
-          onKeyDown={(e) => {
-            if (e.key === 'Enter' && name.trim()) handleAdd()
-            if (e.key === 'Escape') onCancel()
-          }}
-        />
-        <SaveSuccessFeedback show={showSuccess} />
-      </div>
-      <div className="flex gap-2 justify-end mt-3">
-        <button
-          onClick={onCancel}
-          className="px-3 py-1.5 rounded-md text-xs font-medium transition-all"
-          style={{
-            backgroundColor: 'transparent',
-            color: '#9ca3af',
-            border: '1px solid rgba(255,255,255,0.1)',
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.05)'
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.backgroundColor = 'transparent'
-          }}
-        >
-          取消
-        </button>
-        <motion.button
-          onClick={handleAdd}
-          disabled={!name.trim()}
-          className="px-3 py-1.5 rounded-md text-xs font-medium disabled:opacity-40 relative overflow-hidden"
-          style={{
-            backgroundColor: '#5e6ad2',
-            color: '#fff',
-          }}
-          onMouseEnter={(e) => {
-            if (name.trim()) e.currentTarget.style.backgroundColor = '#4f5cbd'
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.backgroundColor = '#5e6ad2'
-          }}
-          whileTap={{ scale: 0.97 }}
-        >
-          添加
-        </motion.button>
-      </div>
-    </div>
   )
 }
 
@@ -338,12 +301,16 @@ function SectionHeader({
         <h2 className="text-base font-semibold" style={{ color: '#f7f8f8' }}>
           {title}
         </h2>
-        <span
+        <motion.span
+          key={count}
           className="text-xs px-1.5 py-0.5 rounded"
           style={{ backgroundColor: 'rgba(255,255,255,0.08)', color: '#9ca3af' }}
+          initial={{ scale: 0.8, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          transition={{ type: 'spring', stiffness: 500, damping: 25 }}
         >
           {count}
-        </span>
+        </motion.span>
       </div>
       <div className="flex items-center gap-2">
         {onGenerate && (
@@ -393,99 +360,6 @@ function SectionHeader({
   )
 }
 
-// 通用实体编辑表单
-function EntityForm<T extends { name: string; description?: string }>({
-  entity,
-  onSave,
-  onCancel,
-  fields,
-}: {
-  entity?: T
-  onSave: (data: T) => void
-  onCancel: () => void
-  fields: Array<{ key: keyof T; label: string; type?: 'text' | 'textarea' }>
-}) {
-  const [formData, setFormData] = useState<T>(() => {
-    if (entity) return entity
-    const empty = {} as T
-    return empty
-  })
-  const [showSuccess, setShowSuccess] = useState(false)
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-    onSave(formData)
-    setShowSuccess(true)
-    setTimeout(() => setShowSuccess(false), 1500)
-  }
-
-  return (
-    <form onSubmit={handleSubmit} className="space-y-4 p-4 rounded-lg relative" style={cardStyle}>
-      {fields.map(({ key, label, type }) => (
-        <div key={key as string}>
-          {type === 'textarea' ? (
-            <FloatingLabelTextarea
-              value={(formData[key] as string) || ''}
-              onChange={(value) => {
-                setFormData({ ...formData, [key]: value as T[keyof T] })
-              }}
-              placeholder={`输入${label}...`}
-              label={label}
-            />
-          ) : (
-            <FloatingLabelInput
-              value={(formData[key] as string) || ''}
-              onChange={(value) => {
-                setFormData({ ...formData, [key]: value as T[keyof T] })
-              }}
-              placeholder={`输入${label}...`}
-              label={label}
-            />
-          )}
-        </div>
-      ))}
-      <div className="flex gap-2 justify-end pt-2 relative">
-        <SaveSuccessFeedback show={showSuccess} />
-        <button
-          type="button"
-          onClick={onCancel}
-          className="px-4 py-2 rounded-md text-sm font-medium transition-all"
-          style={{
-            backgroundColor: 'transparent',
-            color: '#9ca3af',
-            border: '1px solid rgba(255,255,255,0.1)',
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.05)'
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.backgroundColor = 'transparent'
-          }}
-        >
-          取消
-        </button>
-        <motion.button
-          type="submit"
-          className="px-4 py-2 rounded-md text-sm font-medium transition-all"
-          style={{
-            backgroundColor: '#5e6ad2',
-            color: '#fff',
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.backgroundColor = '#4f5cbd'
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.backgroundColor = '#5e6ad2'
-          }}
-          whileTap={{ scale: 0.97 }}
-        >
-          保存
-        </motion.button>
-      </div>
-    </form>
-  )
-}
-
 // Character tier badges
 const tierLabels: Record<string, string> = {
   core: '核心',
@@ -493,7 +367,163 @@ const tierLabels: Record<string, string> = {
   minor: '路人',
 }
 
-// 角色卡片
+// 通用实体编辑表单 with validation
+function EntityForm<T extends { name: string; description?: string }>({
+  entity,
+  onSave,
+  onCancel,
+  fields,
+  extraFields,
+}: {
+  entity?: T
+  onSave: (data: T) => void
+  onCancel: () => void
+  fields: Array<{ key: keyof T; label: string; type?: 'text' | 'textarea'; required?: boolean; maxLength?: number }>
+  extraFields?: React.ReactNode
+}) {
+  const [formData, setFormData] = useState<T>(() => {
+    if (entity) return { ...entity }
+    const empty = {} as T
+    return empty
+  })
+  const [saveState, setSaveState] = useState<ValidationState>('idle')
+  const [fieldValidations, setFieldValidations] = useState<Record<string, FieldValidation>>({})
+
+  const validateField = (_key: string, value: string, required?: boolean): FieldValidation => {
+    if (required && !value.trim()) {
+      return { state: 'invalid', message: '此字段为必填项' }
+    }
+    if (value.trim().length > 0) {
+      return { state: 'valid' }
+    }
+    return { state: 'idle' }
+  }
+
+  const handleFieldChange = (key: keyof T, value: string, required?: boolean) => {
+    setFormData({ ...formData, [key]: value as T[keyof T] })
+    const validation = validateField(key as string, value, required)
+    setFieldValidations((prev) => ({ ...prev, [key as string]: validation }))
+  }
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+
+    // Validate all required fields
+    const validations: Record<string, FieldValidation> = {}
+    let hasError = false
+    fields.forEach(({ key, required }) => {
+      const value = (formData[key] as string) || ''
+      const validation = validateField(key as string, value, required)
+      validations[key as string] = validation
+      if (validation.state === 'invalid') hasError = true
+    })
+    setFieldValidations(validations)
+
+    if (hasError) {
+      setSaveState('error')
+      setTimeout(() => setSaveState('idle'), 2000)
+      return
+    }
+
+    setSaveState('saving')
+    // Simulate save delay for UX feedback
+    setTimeout(() => {
+      onSave(formData)
+      setSaveState('saved')
+      setTimeout(() => setSaveState('idle'), 1500)
+    }, 300)
+  }
+
+  const isValid = fields.every(({ key, required }) => {
+    if (!required) return true
+    const value = (formData[key] as string) || ''
+    return value.trim().length > 0
+  })
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-4 p-4 rounded-lg relative" style={cardStyle}>
+      {fields.map(({ key, label, type, required, maxLength }) => (
+        <div key={key as string}>
+          {type === 'textarea' ? (
+            <FloatingLabelTextarea
+              value={(formData[key] as string) || ''}
+              onChange={(value) => handleFieldChange(key, value, required)}
+              placeholder={`输入${label}...`}
+              label={label}
+              validation={fieldValidations[key as string]}
+              maxLength={maxLength}
+            />
+          ) : (
+            <FloatingLabelInput
+              value={(formData[key] as string) || ''}
+              onChange={(value) => handleFieldChange(key, value, required)}
+              placeholder={`输入${label}...`}
+              label={label}
+              validation={fieldValidations[key as string]}
+              required={required}
+              maxLength={maxLength}
+            />
+          )}
+        </div>
+      ))}
+      {extraFields}
+      <div className="flex items-center justify-between pt-2">
+        <SaveStateIndicator state={saveState} />
+        <div className="flex gap-2">
+          <motion.button
+            type="button"
+            onClick={onCancel}
+            className="px-4 py-2 rounded-md text-sm font-medium transition-all"
+            style={{
+              backgroundColor: 'transparent',
+              color: '#9ca3af',
+              border: '1px solid rgba(255,255,255,0.1)',
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.05)'
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.backgroundColor = 'transparent'
+            }}
+            whileTap={{ scale: 0.97 }}
+          >
+            取消
+          </motion.button>
+          <motion.button
+            type="submit"
+            disabled={!isValid || saveState === 'saving'}
+            className="px-4 py-2 rounded-md text-sm font-medium transition-all disabled:opacity-40 flex items-center gap-2"
+            style={{
+              backgroundColor: '#5e6ad2',
+              color: '#fff',
+            }}
+            onMouseEnter={(e) => {
+              if (isValid) e.currentTarget.style.backgroundColor = '#4f5cbd'
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.backgroundColor = '#5e6ad2'
+            }}
+            whileTap={{ scale: 0.97 }}
+          >
+            {saveState === 'saving' ? (
+              <>
+                <Loader2 className="w-4 h-4 animate-spin" />
+                保存中
+              </>
+            ) : (
+              <>
+                <Save className="w-4 h-4" />
+                保存
+              </>
+            )}
+          </motion.button>
+        </div>
+      </div>
+    </form>
+  )
+}
+
+// 角色卡片 with expanded fields
 function CharacterCard({ character }: { character: CharacterLocal }) {
   const { updateCharacter, deleteCharacter } = useSettingsStore()
   const [isHovered, setIsHovered] = useState(false)
@@ -512,8 +542,8 @@ function CharacterCard({ character }: { character: CharacterLocal }) {
         onSave={handleSave}
         onCancel={() => setIsEditing(false)}
         fields={[
-          { key: 'name', label: '姓名' },
-          { key: 'description', label: '描述', type: 'textarea' },
+          { key: 'name', label: '姓名', required: true, maxLength: 50 },
+          { key: 'description', label: '描述', type: 'textarea', maxLength: 500 },
         ]}
       />
     )
@@ -537,44 +567,41 @@ function CharacterCard({ character }: { character: CharacterLocal }) {
           <h3 className="font-medium text-sm" style={{ color: '#f7f8f8' }}>
             {character.name}
           </h3>
-          <span
-            className="text-xs px-2 py-0.5 rounded"
+          <motion.span
+            className="text-xs px-2 py-0.5 rounded font-medium"
             style={{ backgroundColor: color.bg, color: color.text }}
+            whileHover={{ scale: 1.05 }}
           >
             {tierLabels[character.tier]}
-          </span>
+          </motion.span>
         </div>
         <div className="flex gap-1">
-          <button
+          <motion.button
             onClick={() => setIsEditing(true)}
             className="p-1.5 rounded transition-all"
             style={{ color: '#6b7280' }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.1)'
-              e.currentTarget.style.color = '#f7f8f8'
+            whileHover={{
+              backgroundColor: 'rgba(255,255,255,0.1)',
+              color: '#f7f8f8',
+              scale: 1.1,
             }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.backgroundColor = 'transparent'
-              e.currentTarget.style.color = '#6b7280'
-            }}
+            whileTap={{ scale: 0.9 }}
           >
             <Edit2 className="w-4 h-4" />
-          </button>
-          <button
+          </motion.button>
+          <motion.button
             onClick={() => deleteCharacter(character.id)}
             className="p-1.5 rounded transition-all"
             style={{ color: '#6b7280' }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.backgroundColor = 'rgba(196,92,92,0.15)'
-              e.currentTarget.style.color = '#d45d5d'
+            whileHover={{
+              backgroundColor: 'rgba(196,92,92,0.15)',
+              color: '#d45d5d',
+              scale: 1.1,
             }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.backgroundColor = 'transparent'
-              e.currentTarget.style.color = '#6b7280'
-            }}
+            whileTap={{ scale: 0.9 }}
           >
             <Trash2 className="w-4 h-4" />
-          </button>
+          </motion.button>
         </div>
       </div>
       {character.description && (
@@ -582,22 +609,29 @@ function CharacterCard({ character }: { character: CharacterLocal }) {
           {character.description}
         </p>
       )}
+      {character.personality && (
+        <p className="text-xs mb-1" style={{ color: '#9ca3af' }}>
+          性格: {character.personality}
+        </p>
+      )}
       {character.cultivationRealm && (
-        <p className="text-xs" style={{ color: '#5eb5a6' }}>
+        <p className="text-xs mb-2" style={{ color: '#5eb5a6' }}>
           境界: {character.cultivationRealm}
         </p>
       )}
       <TagInput entityType="character" entityId={character.id} tags={character.tags} />
-      <div className="flex items-center gap-2 mt-2">
-        <span className="text-xs" style={{ color: '#6b7280' }}>
-          {character.relationships.length} 条关系
-        </span>
-      </div>
+      {character.relationships.length > 0 && (
+        <div className="flex items-center gap-2 mt-2">
+          <span className="text-xs" style={{ color: '#6b7280' }}>
+            {character.relationships.length} 条关系
+          </span>
+        </div>
+      )}
     </motion.div>
   )
 }
 
-// 新建角色表单
+// 新建角色表单 with expanded fields
 function NewCharacterForm() {
   const { addCharacter } = useSettingsStore()
   const [showForm, setShowForm] = useState(false)
@@ -613,8 +647,8 @@ function NewCharacterForm() {
         onSave={handleSave}
         onCancel={() => setShowForm(false)}
         fields={[
-          { key: 'name', label: '姓名' },
-          { key: 'description', label: '描述', type: 'textarea' },
+          { key: 'name', label: '姓名', required: true, maxLength: 50 },
+          { key: 'description', label: '描述', type: 'textarea', maxLength: 500 },
         ]}
       />
     )
@@ -644,6 +678,110 @@ function NewCharacterForm() {
         添加角色
       </span>
     </motion.button>
+  )
+}
+
+// Generic add form for entities
+function AddEntityForm({
+  placeholder,
+  onAdd,
+  onCancel,
+}: {
+  placeholder: string
+  onAdd: (name: string) => void
+  onCancel: () => void
+}) {
+  const [name, setName] = useState('')
+  const [saveState, setSaveState] = useState<ValidationState>('idle')
+  const [validation, setValidation] = useState<FieldValidation>({ state: 'idle' })
+
+  const handleAdd = useCallback(() => {
+    if (!name.trim()) {
+      setValidation({ state: 'invalid', message: '名称不能为空' })
+      setSaveState('error')
+      setTimeout(() => {
+        setValidation({ state: 'idle' })
+        setSaveState('idle')
+      }, 2000)
+      return
+    }
+    setSaveState('saving')
+    setTimeout(() => {
+      onAdd(name.trim())
+      setSaveState('saved')
+      setName('')
+      setTimeout(() => setSaveState('idle'), 1500)
+    }, 300)
+  }, [name, onAdd])
+
+  return (
+    <div className="p-3 rounded-lg" style={cardStyle}>
+      <div className="relative">
+        <FloatingLabelInput
+          value={name}
+          onChange={(value) => {
+            setName(value)
+            if (validation.state === 'invalid') setValidation({ state: 'idle' })
+          }}
+          placeholder={placeholder}
+          label="名称"
+          autoFocus
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' && name.trim()) handleAdd()
+            if (e.key === 'Escape') onCancel()
+          }}
+          validation={validation}
+          required
+          maxLength={50}
+        />
+      </div>
+      <div className="flex items-center justify-between mt-3">
+        <SaveStateIndicator state={saveState} />
+        <div className="flex gap-2">
+          <motion.button
+            onClick={onCancel}
+            className="px-3 py-1.5 rounded-md text-xs font-medium transition-all"
+            style={{
+              backgroundColor: 'transparent',
+              color: '#9ca3af',
+              border: '1px solid rgba(255,255,255,0.1)',
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.05)'
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.backgroundColor = 'transparent'
+            }}
+            whileTap={{ scale: 0.97 }}
+          >
+            取消
+          </motion.button>
+          <motion.button
+            onClick={handleAdd}
+            disabled={!name.trim() || saveState === 'saving'}
+            className="px-3 py-1.5 rounded-md text-xs font-medium disabled:opacity-40 relative overflow-hidden flex items-center gap-1.5"
+            style={{
+              backgroundColor: '#5e6ad2',
+              color: '#fff',
+            }}
+            onMouseEnter={(e) => {
+              if (name.trim()) e.currentTarget.style.backgroundColor = '#4f5cbd'
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.backgroundColor = '#5e6ad2'
+            }}
+            whileTap={{ scale: 0.97 }}
+          >
+            {saveState === 'saving' ? (
+              <Loader2 className="w-3.5 h-3.5 animate-spin" />
+            ) : (
+              <Plus className="w-3.5 h-3.5" />
+            )}
+            添加
+          </motion.button>
+        </div>
+      </div>
+    </div>
   )
 }
 
@@ -745,10 +883,12 @@ function OutlineEditor() {
                     if (e.key === 'Enter') handleCreateOutline()
                     if (e.key === 'Escape') setIsCreatingOutline(false)
                   }}
+                  required
+                  maxLength={100}
                 />
               </div>
               <div className="flex gap-2 justify-center">
-                <button
+                <motion.button
                   onClick={() => setIsCreatingOutline(false)}
                   className="px-4 py-2 rounded-md text-sm font-medium transition-all"
                   style={{
@@ -756,16 +896,18 @@ function OutlineEditor() {
                     color: '#9ca3af',
                     border: '1px solid rgba(255,255,255,0.1)',
                   }}
+                  whileTap={{ scale: 0.97 }}
                 >
                   取消
-                </button>
+                </motion.button>
                 <motion.button
                   onClick={handleCreateOutline}
                   disabled={!newOutlineTitle.trim()}
-                  className="px-4 py-2 rounded-md text-sm font-medium transition-all disabled:opacity-40"
+                  className="px-4 py-2 rounded-md text-sm font-medium transition-all disabled:opacity-40 flex items-center gap-2"
                   style={{ backgroundColor: '#5e6ad2', color: '#fff' }}
                   whileTap={{ scale: 0.97 }}
                 >
+                  <Plus className="w-4 h-4" />
                   创建
                 </motion.button>
               </div>
@@ -803,12 +945,16 @@ function OutlineEditor() {
           <h2 className="text-base font-semibold" style={{ color: '#f7f8f8' }}>
             大纲管理
           </h2>
-          <span
+          <motion.span
+            key={chapters.length}
             className="text-xs px-2 py-0.5 rounded"
-            style={{ backgroundColor: 'rgba(94,106,210,0.15)', color: '#5e6ad2' }}
+            style={{ backgroundColor: 'rgba(91,142,232,0.15)', color: '#5b8ee8' }}
+            initial={{ scale: 0.8, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ type: 'spring', stiffness: 500 }}
           >
             {chapters.length} 章节
-          </span>
+          </motion.span>
         </div>
         <motion.button
           onClick={() => setShowAddChapter(true)}
@@ -871,7 +1017,7 @@ function OutlineEditor() {
                 {/* 章节序号 */}
                 <span
                   className="text-sm font-mono mt-0.5"
-                  style={{ minWidth: '24px', color: '#5e6ad2', opacity: 0.7 }}
+                  style={{ minWidth: '24px', color: '#5b8ee8', opacity: 0.7 }}
                 >
                   {String(index + 1).padStart(2, '0')}
                 </span>
@@ -889,7 +1035,7 @@ function OutlineEditor() {
                       className="w-full px-2 py-1 rounded border text-sm focus:outline-none"
                       style={{
                         backgroundColor: 'rgba(255,255,255,0.05)',
-                        borderColor: '#5e6ad2',
+                        borderColor: '#5b8ee8',
                         color: '#f7f8f8',
                       }}
                     />
@@ -899,7 +1045,7 @@ function OutlineEditor() {
                       className="font-medium text-sm cursor-pointer transition-colors"
                       style={{ color: '#f7f8f8' }}
                       onMouseEnter={(e) => {
-                        e.currentTarget.style.color = '#5e6ad2'
+                        e.currentTarget.style.color = '#5b8ee8'
                       }}
                       onMouseLeave={(e) => {
                         e.currentTarget.style.color = '#f7f8f8'
@@ -935,54 +1081,45 @@ function OutlineEditor() {
 
                 {/* 操作按钮 */}
                 <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                  <button
+                  <motion.button
                     onClick={() => startEditTitle(chapter)}
                     className="p-1.5 rounded transition-all"
                     style={{ color: '#6b7280' }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.1)'
-                      e.currentTarget.style.color = '#f7f8f8'
+                    whileHover={{
+                      backgroundColor: 'rgba(255,255,255,0.1)',
+                      color: '#f7f8f8',
                     }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.backgroundColor = 'transparent'
-                      e.currentTarget.style.color = '#6b7280'
-                    }}
+                    whileTap={{ scale: 0.9 }}
                     title="编辑标题"
                   >
                     <Edit2 className="w-4 h-4" />
-                  </button>
-                  <button
+                  </motion.button>
+                  <motion.button
                     onClick={() => setSummaryModalChapterId(chapter.id)}
                     className="p-1.5 rounded transition-all"
                     style={{ color: '#6b7280' }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.1)'
-                      e.currentTarget.style.color = '#f7f8f8'
+                    whileHover={{
+                      backgroundColor: 'rgba(255,255,255,0.1)',
+                      color: '#f7f8f8',
                     }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.backgroundColor = 'transparent'
-                      e.currentTarget.style.color = '#6b7280'
-                    }}
+                    whileTap={{ scale: 0.9 }}
                     title="编辑摘要"
                   >
                     <FileText className="w-4 h-4" />
-                  </button>
-                  <button
+                  </motion.button>
+                  <motion.button
                     onClick={() => deleteChapter(chapter.id)}
                     className="p-1.5 rounded transition-all"
                     style={{ color: '#6b7280' }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.backgroundColor = 'rgba(196,92,92,0.15)'
-                      e.currentTarget.style.color = '#d45d5d'
+                    whileHover={{
+                      backgroundColor: 'rgba(196,92,92,0.15)',
+                      color: '#d45d5d',
                     }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.backgroundColor = 'transparent'
-                      e.currentTarget.style.color = '#6b7280'
-                    }}
+                    whileTap={{ scale: 0.9 }}
                     title="删除章节"
                   >
                     <Trash2 className="w-4 h-4" />
-                  </button>
+                  </motion.button>
                 </div>
               </div>
             </motion.div>
@@ -1015,10 +1152,12 @@ function OutlineEditor() {
                     setNewChapterTitle('')
                   }
                 }}
+                required
+                maxLength={100}
               />
             </div>
             <div className="flex gap-2 justify-end mt-3">
-              <button
+              <motion.button
                 onClick={() => {
                   setShowAddChapter(false)
                   setNewChapterTitle('')
@@ -1029,16 +1168,18 @@ function OutlineEditor() {
                   color: '#9ca3af',
                   border: '1px solid rgba(255,255,255,0.1)',
                 }}
+                whileTap={{ scale: 0.97 }}
               >
                 取消
-              </button>
+              </motion.button>
               <motion.button
                 onClick={handleAddChapter}
                 disabled={!newChapterTitle.trim()}
-                className="px-3 py-1.5 rounded-md text-xs font-medium transition-all disabled:opacity-40"
-                style={{ backgroundColor: '#5e6ad2', color: '#fff' }}
+                className="px-3 py-1.5 rounded-md text-xs font-medium transition-all disabled:opacity-40 flex items-center gap-1.5"
+                style={{ backgroundColor: '#5b8ee8', color: '#fff' }}
                 whileTap={{ scale: 0.97 }}
               >
+                <Plus className="w-3.5 h-3.5" />
                 添加
               </motion.button>
             </div>
@@ -1072,11 +1213,23 @@ function ChapterSummaryModal({
   onClose: () => void
 }) {
   const [summary, setSummary] = useState(chapter.summary || '')
+  const [saveState, setSaveState] = useState<ValidationState>('idle')
+
+  const handleSave = () => {
+    setSaveState('saving')
+    setTimeout(() => {
+      onSave(summary)
+      setSaveState('saved')
+    }, 200)
+  }
 
   return (
-    <div
+    <motion.div
       className="fixed inset-0 flex items-center justify-center z-50"
       style={{ backgroundColor: 'rgba(0,0,0,0.7)' }}
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
       onClick={onClose}
     >
       <motion.div
@@ -1092,21 +1245,18 @@ function ChapterSummaryModal({
           <h3 className="text-sm font-semibold" style={{ color: '#f7f8f8' }}>
             编辑章节摘要
           </h3>
-          <button
+          <motion.button
             onClick={onClose}
             className="p-1 rounded transition-all"
             style={{ color: '#6b7280' }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.1)'
-              e.currentTarget.style.color = '#f7f8f8'
+            whileHover={{
+              backgroundColor: 'rgba(255,255,255,0.1)',
+              color: '#f7f8f8',
             }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.backgroundColor = 'transparent'
-              e.currentTarget.style.color = '#6b7280'
-            }}
+            whileTap={{ scale: 0.9 }}
           >
             <X className="w-4 h-4" />
-          </button>
+          </motion.button>
         </div>
         <p className="text-xs mb-3" style={{ color: '#9ca3af' }}>
           {chapter.title}
@@ -1117,30 +1267,36 @@ function ChapterSummaryModal({
           placeholder="编写章节摘要..."
           label="摘要"
           rows={4}
+          maxLength={500}
         />
-        <div className="flex gap-2 justify-end mt-4">
-          <button
-            onClick={onClose}
-            className="px-4 py-2 rounded-md text-sm font-medium transition-all"
-            style={{
-              backgroundColor: 'transparent',
-              color: '#9ca3af',
-              border: '1px solid rgba(255,255,255,0.1)',
-            }}
-          >
-            取消
-          </button>
-          <motion.button
-            onClick={() => onSave(summary)}
-            className="px-4 py-2 rounded-md text-sm font-medium transition-all"
-            style={{ backgroundColor: '#5e6ad2', color: '#fff' }}
-            whileTap={{ scale: 0.97 }}
-          >
-            保存
-          </motion.button>
+        <div className="flex items-center justify-between mt-4">
+          <SaveStateIndicator state={saveState} />
+          <div className="flex gap-2">
+            <motion.button
+              onClick={onClose}
+              className="px-4 py-2 rounded-md text-sm font-medium transition-all"
+              style={{
+                backgroundColor: 'transparent',
+                color: '#9ca3af',
+                border: '1px solid rgba(255,255,255,0.1)',
+              }}
+              whileTap={{ scale: 0.97 }}
+            >
+              取消
+            </motion.button>
+            <motion.button
+              onClick={handleSave}
+              className="px-4 py-2 rounded-md text-sm font-medium transition-all flex items-center gap-2"
+              style={{ backgroundColor: '#5b8ee8', color: '#fff' }}
+              whileTap={{ scale: 0.97 }}
+            >
+              <Save className="w-4 h-4" />
+              保存
+            </motion.button>
+          </div>
         </div>
       </motion.div>
-    </div>
+    </motion.div>
   )
 }
 
@@ -1172,9 +1328,20 @@ export function EntityEditor({ category }: EntityEditorProps) {
             onGenerate={() => handleGenerate('character')}
           />
           <div className="space-y-3">
-            {characters.map((char) => (
-              <CharacterCard key={char.id} character={char} />
-            ))}
+            <AnimatePresence mode="popLayout">
+              {characters.map((char) => (
+                <motion.div
+                  key={char.id}
+                  layout
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, x: -20 }}
+                  transition={{ type: 'spring', stiffness: 400, damping: 30 }}
+                >
+                  <CharacterCard character={char} />
+                </motion.div>
+              ))}
+            </AnimatePresence>
             {characters.length === 0 && (
               <div className="text-center py-8" style={{ color: '#6b7280' }}>
                 <Users className="w-10 h-10 mx-auto mb-2 opacity-50" />
@@ -1197,19 +1364,29 @@ export function EntityEditor({ category }: EntityEditorProps) {
             onGenerate={() => handleGenerate('item')}
           />
           <div className="space-y-3">
-            {items.map((item) => (
-              <EntityCard
-                key={item.id}
-                name={item.name}
-                description={item.description}
-                badge={item.owner ? `持有者: ${item.owner}` : undefined}
-                badgeColor={entityColors.item}
-                tags={item.tags}
-                entityType="item"
-                entityId={item.id}
-                onDelete={() => useSettingsStore.getState().deleteItem(item.id)}
-              />
-            ))}
+            <AnimatePresence mode="popLayout">
+              {items.map((item) => (
+                <motion.div
+                  key={item.id}
+                  layout
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, x: -20 }}
+                  transition={{ type: 'spring', stiffness: 400, damping: 30 }}
+                >
+                  <EntityCard
+                    name={item.name}
+                    description={item.description}
+                    badge={item.owner ? `持有者: ${item.owner}` : undefined}
+                    badgeColor={entityColors.item}
+                    tags={item.tags}
+                    entityType="item"
+                    entityId={item.id}
+                    onDelete={() => useSettingsStore.getState().deleteItem(item.id)}
+                  />
+                </motion.div>
+              ))}
+            </AnimatePresence>
             {items.length === 0 && (
               <div className="text-center py-8" style={{ color: '#6b7280' }}>
                 <p className="text-sm">暂无物品</p>
@@ -1234,19 +1411,29 @@ export function EntityEditor({ category }: EntityEditorProps) {
             onGenerate={() => handleGenerate('location')}
           />
           <div className="space-y-3">
-            {locations.map((loc) => (
-              <EntityCard
-                key={loc.id}
-                name={loc.name}
-                description={loc.description}
-                badge={loc.importance === 'major' ? '重要地点' : '次要地点'}
-                badgeColor={entityColors.location}
-                tags={loc.tags}
-                entityType="location"
-                entityId={loc.id}
-                onDelete={() => useSettingsStore.getState().deleteLocation(loc.id)}
-              />
-            ))}
+            <AnimatePresence mode="popLayout">
+              {locations.map((loc) => (
+                <motion.div
+                  key={loc.id}
+                  layout
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, x: -20 }}
+                  transition={{ type: 'spring', stiffness: 400, damping: 30 }}
+                >
+                  <EntityCard
+                    name={loc.name}
+                    description={loc.description}
+                    badge={loc.importance === 'major' ? '重要地点' : '次要地点'}
+                    badgeColor={entityColors.location}
+                    tags={loc.tags}
+                    entityType="location"
+                    entityId={loc.id}
+                    onDelete={() => useSettingsStore.getState().deleteLocation(loc.id)}
+                  />
+                </motion.div>
+              ))}
+            </AnimatePresence>
             {locations.length === 0 && (
               <div className="text-center py-8" style={{ color: '#6b7280' }}>
                 <p className="text-sm">暂无地点</p>
@@ -1271,19 +1458,29 @@ export function EntityEditor({ category }: EntityEditorProps) {
             onGenerate={() => handleGenerate('faction')}
           />
           <div className="space-y-3">
-            {factions.map((fac) => (
-              <EntityCard
-                key={fac.id}
-                name={fac.name}
-                description={fac.description}
-                badge={fac.type}
-                badgeColor={entityColors.faction}
-                tags={fac.tags}
-                entityType="faction"
-                entityId={fac.id}
-                onDelete={() => useSettingsStore.getState().deleteFaction(fac.id)}
-              />
-            ))}
+            <AnimatePresence mode="popLayout">
+              {factions.map((fac) => (
+                <motion.div
+                  key={fac.id}
+                  layout
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, x: -20 }}
+                  transition={{ type: 'spring', stiffness: 400, damping: 30 }}
+                >
+                  <EntityCard
+                    name={fac.name}
+                    description={fac.description}
+                    badge={fac.type}
+                    badgeColor={entityColors.faction}
+                    tags={fac.tags}
+                    entityType="faction"
+                    entityId={fac.id}
+                    onDelete={() => useSettingsStore.getState().deleteFaction(fac.id)}
+                  />
+                </motion.div>
+              ))}
+            </AnimatePresence>
             {factions.length === 0 && (
               <div className="text-center py-8" style={{ color: '#6b7280' }}>
                 <p className="text-sm">暂无势力</p>
@@ -1308,18 +1505,28 @@ export function EntityEditor({ category }: EntityEditorProps) {
             onGenerate={() => handleGenerate('world')}
           />
           <div className="space-y-3">
-            {worldSettings.map((world) => (
-              <EntityCard
-                key={world.id}
-                name={world.name}
-                description={world.description}
-                badgeColor={entityColors.world}
-                tags={world.tags}
-                entityType="world"
-                entityId={world.id}
-                onDelete={() => useSettingsStore.getState().deleteWorldSetting(world.id)}
-              />
-            ))}
+            <AnimatePresence mode="popLayout">
+              {worldSettings.map((world) => (
+                <motion.div
+                  key={world.id}
+                  layout
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, x: -20 }}
+                  transition={{ type: 'spring', stiffness: 400, damping: 30 }}
+                >
+                  <EntityCard
+                    name={world.name}
+                    description={world.description}
+                    badgeColor={entityColors.world}
+                    tags={world.tags}
+                    entityType="world"
+                    entityId={world.id}
+                    onDelete={() => useSettingsStore.getState().deleteWorldSetting(world.id)}
+                  />
+                </motion.div>
+              ))}
+            </AnimatePresence>
             {worldSettings.length === 0 && (
               <div className="text-center py-8" style={{ color: '#6b7280' }}>
                 <p className="text-sm">暂无世界观设定</p>
@@ -1344,19 +1551,29 @@ export function EntityEditor({ category }: EntityEditorProps) {
             onGenerate={() => handleGenerate('rule')}
           />
           <div className="space-y-3">
-            {rules.map((rule) => (
-              <EntityCard
-                key={rule.id}
-                name={rule.name}
-                description={rule.description}
-                badge={rule.type}
-                badgeColor={entityColors.rule}
-                tags={rule.tags}
-                entityType="rule"
-                entityId={rule.id}
-                onDelete={() => useSettingsStore.getState().deleteRule(rule.id)}
-              />
-            ))}
+            <AnimatePresence mode="popLayout">
+              {rules.map((rule) => (
+                <motion.div
+                  key={rule.id}
+                  layout
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, x: -20 }}
+                  transition={{ type: 'spring', stiffness: 400, damping: 30 }}
+                >
+                  <EntityCard
+                    name={rule.name}
+                    description={rule.description}
+                    badge={rule.type}
+                    badgeColor={entityColors.rule}
+                    tags={rule.tags}
+                    entityType="rule"
+                    entityId={rule.id}
+                    onDelete={() => useSettingsStore.getState().deleteRule(rule.id)}
+                  />
+                </motion.div>
+              ))}
+            </AnimatePresence>
             {rules.length === 0 && (
               <div className="text-center py-8" style={{ color: '#6b7280' }}>
                 <p className="text-sm">暂无规则设定</p>
@@ -1384,19 +1601,29 @@ export function EntityEditor({ category }: EntityEditorProps) {
             onGenerate={generateRelations}
           />
           <div className="space-y-3">
-            {ifLines.map((ifline) => (
-              <EntityCard
-                key={ifline.id}
-                name={ifline.title}
-                description={ifline.description}
-                badge={ifline.sync_mode === 'auto' ? '自动同步' : '手动同步'}
-                badgeColor={entityColors.ifline}
-                tags={ifline.tags}
-                entityType="ifline"
-                entityId={ifline.id}
-                onDelete={() => useSettingsStore.getState().deleteIFLine(ifline.id)}
-              />
-            ))}
+            <AnimatePresence mode="popLayout">
+              {ifLines.map((ifline) => (
+                <motion.div
+                  key={ifline.id}
+                  layout
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, x: -20 }}
+                  transition={{ type: 'spring', stiffness: 400, damping: 30 }}
+                >
+                  <EntityCard
+                    name={ifline.title}
+                    description={ifline.description}
+                    badge={ifline.sync_mode === 'auto' ? '自动同步' : '手动同步'}
+                    badgeColor={entityColors.ifline}
+                    tags={ifline.tags}
+                    entityType="ifline"
+                    entityId={ifline.id}
+                    onDelete={() => useSettingsStore.getState().deleteIFLine(ifline.id)}
+                  />
+                </motion.div>
+              ))}
+            </AnimatePresence>
             {ifLines.length === 0 && (
               <div className="text-center py-8" style={{ color: '#6b7280' }}>
                 <p className="text-sm">暂无IF线</p>
