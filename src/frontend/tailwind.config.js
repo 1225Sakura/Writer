@@ -1,4 +1,6 @@
 /** @type {import('tailwindcss').Config} */
+const plugin = require('tailwindcss/plugin')
+
 export default {
   content: [
     "./index.html",
@@ -305,5 +307,10 @@ export default {
   		}
   	}
   },
-  plugins: [],
+  plugins: [
+    plugin(({ addVariant }) => {
+      addVariant('motion-reduce', '@media (prefers-reduced-motion: reduce) { & }');
+      addVariant('motion-safe', '@media (prefers-reduced-motion: no-preference) { & }');
+    }),
+  ],
 }

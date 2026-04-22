@@ -23,22 +23,22 @@ export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElemen
 }
 
 const variantStyles = {
-  default: 'bg-var-accent text-white hover:bg-[#828fff] active:bg-[#4f5ab8]',
-  primary: 'bg-[#5e6ad2] text-white hover:bg-[#828fff] active:bg-[#4f5ab8]',
+  default: 'bg-var-accent text-white hover:bg-[var(--accent-primary-hover)] active:bg-[var(--accent-primary-active)]',
+  primary: 'bg-[var(--accent-primary)] text-white hover:bg-[var(--accent-primary-hover)] active:bg-[var(--accent-primary-active)]',
   secondary:
     'bg-var-border text-var-text hover:bg-var-border/80 active:bg-var-border/60 border border-transparent hover:border-var-text-secondary/30',
   outline:
     'border border-var-border bg-transparent hover:bg-var-border/20 active:bg-var-border/40',
   ghost:
-    'bg-[rgba(255,255,255,0.02)] hover:bg-[rgba(255,255,255,0.05)] text-[#d0d6e0] border border-[rgba(255,255,255,0.08)]',
+    'bg-[var(--color-surface-raised)] hover:bg-[var(--color-surface-hover)] text-[var(--text-secondary)] border border-[var(--color-border)]',
   ghostHover:
-    'bg-transparent text-[#d0d6e0] border border-transparent hover:bg-[rgba(255,255,255,0.05)] hover:border-[rgba(255,255,255,0.08)]',
+    'bg-transparent text-[var(--text-secondary)] border border-transparent hover:bg-[var(--color-surface-hover)] hover:border-[var(--color-border)]',
   subtle:
-    'bg-[rgba(255,255,255,0.04)] hover:bg-[rgba(255,255,255,0.08)] text-[#d0d6e0] border border-[rgba(255,255,255,0.06)]',
-  destructive: 'bg-var-error text-white hover:brightness-110 active:brightness-90',
+    'bg-[var(--color-surface-raised)] hover:bg-[var(--color-border)] text-[var(--text-secondary)] border border-[var(--color-border)]',
+  destructive: 'bg-[var(--color-danger)] text-white hover:brightness-110 active:brightness-90',
   glow: 'bg-var-accent text-white relative overflow-hidden',
   gradient:
-    'bg-gradient-to-r from-[#5e6ad2] to-[#7b87e0] text-white hover:from-[#6b76d9] hover:to-[#8a94e8] active:from-[#4f5ab8] active:to-[#6b76d9]',
+    'bg-gradient-to-r from-[var(--accent-primary)] to-[var(--accent-secondary)] text-white hover:from-[var(--accent-primary-hover)] hover:to-[var(--accent-secondary-hover)] active:from-[var(--accent-primary-active)] active:to-[var(--accent-secondary-active)]',
 }
 
 const sizeStyles = {
@@ -58,7 +58,7 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
       disabled,
       loading,
       children,
-      glowColor = '#5e6ad2',
+      glowColor = 'var(--accent-primary)',
       onClick,
       ...props
     },
@@ -132,14 +132,14 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
           />
         )}
 
-        {loading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+        {loading && <Loader2 className="w-4 h-4 mr-2 animate-spin motion-reduce:animate-none" />}
         <span className="relative z-10">{children}</span>
 
         {/* Ripple effects */}
         {ripples.map((ripple) => (
           <span
             key={ripple.id}
-            className="absolute rounded-full bg-white/30 pointer-events-none animate-ripple"
+            className="absolute rounded-full bg-white/30 pointer-events-none animate-ripple motion-reduce:animate-none"
             style={{
               left: ripple.x,
               top: ripple.y,

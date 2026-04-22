@@ -141,7 +141,7 @@ export function WritingToolbar() {
     <div className="h-[44px] flex items-center px-4 gap-2"
          style={{
            backgroundColor: 'var(--color-bg-surface)',
-           borderBottom: '1px solid var(--color-border)',
+           borderBottom: '1px solid var(--border-default)',
          }}>
       {/* 左侧：返回聊天 + 返回设定 */}
       <Button
@@ -162,7 +162,7 @@ export function WritingToolbar() {
         <span>返回设定</span>
       </Button>
 
-      <div className="w-px h-6" style={{ backgroundColor: 'var(--color-border)' }} />
+      <div className="w-px h-6" style={{ backgroundColor: 'var(--border-default)' }} />
 
       {/* 中间：工具按钮 */}
       <div className="flex items-center gap-1">
@@ -195,7 +195,7 @@ export function WritingToolbar() {
 
       {/* 中间偏右：人机比例快捷滑块 + 快捷AI操作 */}
       <div className="flex items-center gap-2 ml-2">
-        <div className="w-px h-6" style={{ backgroundColor: 'var(--color-border)' }} />
+        <div className="w-px h-6" style={{ backgroundColor: 'var(--border-default)' }} />
 
         {/* Human-AI ratio mini control */}
         <div className="flex items-center gap-2 px-2 py-1 rounded-lg bg-[rgba(255,255,255,0.03)] border border-[rgba(255,255,255,0.06)]">
@@ -237,7 +237,7 @@ export function WritingToolbar() {
             )}
             <span>快捷AI</span>
             {isAIGenerating && (
-              <span className="absolute -top-1 -right-1 w-2 h-2 bg-[#5e6ad2] rounded-full animate-pulse" />
+              <span className="absolute -top-1 -right-1 w-2 h-2 bg-[#5e6ad2] rounded-full animate-pulse motion-reduce:animate-none" />
             )}
           </Button>
 
@@ -326,10 +326,10 @@ export function WritingToolbar() {
           </span>
         </div>
 
-        <div className="w-px h-5" style={{ backgroundColor: 'var(--color-border)' }} />
+        <div className="w-px h-5" style={{ backgroundColor: 'var(--border-default)' }} />
 
         {/* 字数统计 */}
-        <span className="text-xs" style={{ color: 'var(--color-text-muted)' }}>
+        <span className="text-xs" style={{ color: 'var(--text-tertiary)' }}>
           {wordCount} 字
         </span>
 

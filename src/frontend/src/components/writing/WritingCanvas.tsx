@@ -8,6 +8,7 @@ import { useWritingStore } from '@/store'
 import { useUIStore } from '@/store'
 import { setEditorInstance } from '@/store/editorRegistry'
 import { useEffect, useRef, useCallback, useState } from 'react'
+import { usePrefersReducedMotion } from '@/hooks'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Save, CheckCircle, AlertCircle } from 'lucide-react'
 import { FocusModeExtension } from './extensions'
@@ -43,7 +44,7 @@ function SaveStatusIndicator({ status, lastSavedAt }: { status: string; lastSave
   if (status === 'saving') {
     return (
       <span className="flex items-center gap-1 text-[#d0d6e0]">
-        <Save className="w-3 h-3 animate-pulse" />
+        <Save className="w-3 h-3 animate-pulse motion-reduce:animate-none" />
         保存中...
       </span>
     )
@@ -105,6 +106,7 @@ export function WritingCanvas() {
   const [todayWordCount, setTodayWordCount] = useState(0)
   const [isTyping, setIsTyping] = useState(false)
   const typingIndicatorTimeoutRef = useRef<NodeJS.Timeout | null>(null)
+  const prefersReducedMotion = usePrefersReducedMotion()
 
   const editor = useEditor({
     extensions: [
@@ -391,8 +393,8 @@ export function WritingCanvas() {
               className="flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-[#7eb84a]/10 border border-[#7eb84a]/20"
             >
               <motion.div
-                animate={{ opacity: [1, 0.3, 1] }}
-                transition={{ duration: 1.2, repeat: Infinity, ease: 'easeInOut' }}
+                animate={prefersReducedMotion ? {} : { opacity: [1, 0.3, 1] }}
+                transition={prefersReducedMotion ? {} : { duration: 1.2, repeat: Infinity, ease: 'easeInOut' }}
               >
                 <Type className="w-3 h-3 text-[#7eb84a]" />
               </motion.div>
@@ -407,7 +409,7 @@ export function WritingCanvas() {
 
           {loading.ai && (
             <span className="flex items-center gap-1" style={{ color: 'var(--accent-primary)' }}>
-              <span className="w-1.5 h-1.5 rounded-full bg-[var(--accent-primary)] animate-pulse" />
+              <span className="w-1.5 h-1.5 rounded-full bg-[var(--accent-primary)] animate-pulse motion-reduce:animate-none" />
               AI处理中...
             </span>
           )}

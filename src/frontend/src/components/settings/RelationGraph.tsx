@@ -84,6 +84,12 @@ const RELATION_TYPE_LABELS: Record<string, string> = {
 }
 
 // ============================================
+// Performance Thresholds
+// ============================================
+
+const PERFORMANCE_THRESHOLD = 100
+
+// ============================================
 // Helper: Build graph data from store entities
 // ============================================
 
@@ -240,7 +246,7 @@ function GraphFallback() {
   return (
     <div className="h-full flex items-center justify-center" style={{ backgroundColor: '#0a0b0d' }}>
       <div className="text-center">
-        <div className="w-8 h-8 border-2 border-t-transparent rounded-full animate-spin mx-auto mb-3" style={{ borderColor: '#5e6ad2', borderTopColor: 'transparent' }} />
+        <div className="w-8 h-8 border-2 border-t-transparent rounded-full animate-spin motion-reduce:animate-none mx-auto mb-3" style={{ borderColor: '#5e6ad2', borderTopColor: 'transparent' }} />
         <p className="text-xs" style={{ color: '#6b7280' }}>加载图谱引擎...</p>
       </div>
     </div>
@@ -574,6 +580,7 @@ export function RelationGraph() {
   const { characters } = useSettingsStore()
 
   const [dimensions, setDimensions] = useState({ width: 300, height: 400 })
+  const [viewport, setViewport] = useState({ x: 0, y: 0, width: 300, height: 400 })
   const [viewMode, setViewMode] = useState<'2d' | '3d'>('2d')
   const [activeNodeTypes, setActiveNodeTypes] = useState<Set<EntityNodeType>>(new Set(Object.keys(ENTITY_TYPE_CONFIG) as EntityNodeType[]))
   const [filterRelation, setFilterRelation] = useState<string>('all')
@@ -597,12 +604,41 @@ export function RelationGraph() {
     return { nodes: filteredNodes, links: filteredLinks }
   }, [allNodes, allLinks, activeNodeTypes, filterRelation])
 
-  // Responsive dimensions
+  // Viewport-based visible node filtering with buffer for culling
+  const visibleNodes = useMemo(() => {
+    const buffer = 100
+    return nodes.filter(node => {
+      const nx = (node as any).x || 0
+      const ny = (node as any).y || 0
+      return nx >= viewport.x - buffer &&
+             nx <= viewport.x + viewport.width + buffer &&
+             ny >= viewport.y - buffer &&
+             ny <= viewport.y + viewport.height + buffer
+    })
+  }, [nodes, viewport])
+
+  // Visible links filtered to only connect visible nodes
+  const visibleLinks = useMemo(() => {
+    const visibleNodeIds = new Set(visibleNodes.map(n => n.id))
+    return links.filter(link =>
+      visibleNodeIds.has(link.source as string) && visibleNodeIds.has(link.target as string)
+    )
+  }, [links, visibleNodes])
+
+  // Performance-aware render mode
+  const renderMode = useMemo(() => {
+    if (nodes.length > PERFORMANCE_THRESHOLD * 1.5) return 'simple'
+    if (nodes.length > PERFORMANCE_THRESHOLD) return 'optimized'
+    return 'full'
+  }, [nodes.length])
+
+  // Responsive dimensions and viewport tracking
   useEffect(() => {
     const updateDimensions = () => {
       if (containerRef.current) {
         const { width, height } = containerRef.current.getBoundingClientRect()
         setDimensions({ width, height })
+        setViewport(prev => ({ ...prev, width, height }))
       }
     }
     updateDimensions()
@@ -614,6 +650,17 @@ export function RelationGraph() {
       window.removeEventListener('resize', updateDimensions)
     }
   }, [])
+
+  // Track viewport changes from pan/zoom via control utilities
+  const updateViewport = useCallback((centerZoom: { k: number; x: number; y: number }) => {
+    const newViewport = {
+      x: (-centerZoom.x / centerZoom.k),
+      y: (-centerZoom.y / centerZoom.k),
+      width: dimensions.width / centerZoom.k,
+      height: dimensions.height / centerZoom.k,
+    }
+    setViewport(newViewport)
+  }, [dimensions])
 
   // Toggle entity type filter
   const toggleNodeType = useCallback((type: EntityNodeType) => {
@@ -685,7 +732,7 @@ export function RelationGraph() {
     )
   }
 
-  const visibleRelationTypes = [...new Set(links.map((l) => l.type))]
+  const visibleRelationTypes = [...new Set(visibleLinks.map((l) => l.type))]
 
   return (
     <div
@@ -743,7 +790,7 @@ export function RelationGraph() {
         {viewMode === '2d' ? (
           <ForceGraph2D
             ref={fgRef}
-            graphData={{ nodes, links }}
+            graphData={{ nodes: visibleNodes, links: visibleLinks }}
             width={dimensions.width}
             height={dimensions.height}
             backgroundColor="#0a0b0d"
@@ -759,31 +806,39 @@ export function RelationGraph() {
             }}
             {...{
               linkOpacity: (link: any) => {
+                if (renderMode === 'simple') return 0.2
                 const isHighlighted = hoveredNodeId &&
                   (link.source.id === hoveredNodeId || link.target.id === hoveredNodeId)
                 const isDimmed = hoveredNodeId && !isHighlighted
                 return isDimmed ? 0.08 : isHighlighted ? 0.9 : 0.35
               }
             }}
-            linkDirectionalParticles={2}
-            linkDirectionalParticleSpeed={0.008}
+            linkDirectionalParticles={renderMode === 'full' ? 2 : 0}
+            linkDirectionalParticleSpeed={renderMode === 'full' ? 0.008 : 0}
             linkDirectionalParticleWidth={(link: any) => {
-              const isHighlighted = hoveredNodeId &&
+              const isHighlighted = renderMode !== 'simple' && hoveredNodeId &&
                 (link.source.id === hoveredNodeId || link.target.id === hoveredNodeId)
               return isHighlighted ? 2 : 0
             }}
             onNodeClick={handleNodeClick}
             onBackgroundClick={handleBackgroundClick}
-            onNodeHover={(node: any) => setHoveredNodeId(node?.id || null)}
-            cooldownTicks={100}
-            warmupTicks={20}
-            d3AlphaDecay={0.02}
-            d3VelocityDecay={0.3}
+            onNodeHover={renderMode !== 'simple' ? ((node: any) => setHoveredNodeId(node?.id || null)) : undefined}
+            onEngineStop={() => {
+              if (fgRef.current) {
+                const centerGraph = fgRef.current.centerAt()
+                const zoom = fgRef.current.zoom()
+                updateViewport({ k: zoom, x: centerGraph.x || 0, y: centerGraph.y || 0 })
+              }
+            }}
+            cooldownTicks={renderMode === 'simple' ? 30 : renderMode === 'optimized' ? 60 : 100}
+            warmupTicks={renderMode === 'simple' ? 5 : renderMode === 'optimized' ? 10 : 20}
+            d3AlphaDecay={renderMode === 'simple' ? 0.05 : 0.02}
+            d3VelocityDecay={renderMode === 'simple' ? 0.5 : 0.3}
             enableNodeDrag={true}
             enableZoomInteraction={true}
             enablePanInteraction={true}
             nodeCanvasObjectMode={() => 'after'}
-            nodeCanvasObject={(node: any, ctx: CanvasRenderingContext2D, globalScale: number) => {
+            nodeCanvasObject={renderMode === 'simple' ? undefined : ((node: any, ctx: CanvasRenderingContext2D, globalScale: number) => {
               const label = node.name
               const fontSize = Math.max(10 / globalScale, 8)
               ctx.font = `${node.id === hoveredNodeId ? '600' : '400'} ${fontSize}px Inter, sans-serif`
@@ -794,8 +849,8 @@ export function RelationGraph() {
               const isSelected = selectedNode?.node.id === node.id
               const yOffset = Math.sqrt(node.val) * 6 + 4 + fontSize * 0.8
 
-              // Glow effect for hovered/selected
-              if (isHovered || isSelected) {
+              // Glow effect for hovered/selected (disabled in simple mode)
+              if (renderMode !== 'simple' && (isHovered || isSelected)) {
                 ctx.shadowColor = node.color
                 ctx.shadowBlur = 12
               }
@@ -805,20 +860,20 @@ export function RelationGraph() {
 
               ctx.shadowBlur = 0
 
-              // Type indicator dot
-              if (isHovered) {
+              // Type indicator dot (disabled in simple mode)
+              if (renderMode !== 'simple' && isHovered) {
                 const config = ENTITY_TYPE_CONFIG[node.type as EntityNodeType]
                 ctx.beginPath()
                 ctx.arc((node.x as number) - ctx.measureText(label).width / 2 - 6, (node.y as number) + yOffset, 3, 0, 2 * Math.PI)
                 ctx.fillStyle = config?.color || node.color
                 ctx.fill()
               }
-            }}
+            })}
           />
         ) : (
           <ForceGraph3D
             ref={fgRef}
-            graphData={{ nodes, links }}
+            graphData={{ nodes: visibleNodes, links: visibleLinks }}
             width={dimensions.width}
             height={dimensions.height}
             backgroundColor="#0a0b0d"
@@ -851,8 +906,8 @@ export function RelationGraph() {
 
       {/* Stats bar */}
       <StatsBar
-        nodeCount={nodes.length}
-        linkCount={links.length}
+        nodeCount={visibleNodes.length}
+        linkCount={visibleLinks.length}
         filterRelation={filterRelation}
         onClearFilter={() => setFilterRelation('all')}
       />

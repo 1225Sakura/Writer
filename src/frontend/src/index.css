@@ -1,6 +1,8 @@
 /* shadcn/ui CSS variables mapped to Linear design system */
 /* This file is loaded alongside styles/globals.css for full Linear theme support */
 
+@import './styles/design-tokens.css';
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -79,10 +81,27 @@
     --success: #5eb5a6;
     --warning: #e8b87d;
     --info: #5e6ad2;
+
+    /* Aliases for Button.tsx compatibility */
+    --color-surface-raised: var(--ui-card);
+    --color-surface-hover: var(--hover-bg);
+    --color-text: var(--ui-text);
+    --color-text-secondary: var(--ui-text-secondary);
+    --color-text-muted: var(--ui-text-secondary);
+    --color-border: var(--ui-border);
+    --color-error: var(--error);
+    --color-ifline: var(--ifline);
+    --color-writing-dark: var(--writing-bg);
+    --color-black: var(--ink-black);
+    --accent-primary: var(--accent-purple);
+    --accent-secondary: var(--accent-purple);
+    --accent-primary-hover: color-mix(in srgb, var(--accent-purple) 85%, white);
+    --accent-primary-active: color-mix(in srgb, var(--accent-purple) 70%, black);
   }
 
-  /* Light mode color overrides */
-  .light {
+  /* Light mode color overrides - support both .light class and data-theme attribute */
+  .light,
+  [data-theme="light"] {
     --background: 45 30% 96%;
     --foreground: 240 10% 10%;
     --card: 0 0% 100%;
@@ -132,6 +151,51 @@
     --faction: 0 48% 50%;
     --outline: 217 75% 50%;
     --ifline: 94 40% 45%;
+  }
+
+  /* Dark mode using data-theme attribute (in addition to .dark class) */
+  [data-theme="dark"] {
+    --background: 0 0% 3.5%;
+    --foreground: 0 0% 98%;
+    --card: 0 0% 5%;
+    --card-foreground: 0 0% 98%;
+    --popover: 0 0% 5%;
+    --popover-foreground: 0 0% 98%;
+    --primary: 238 83% 66%;
+    --primary-foreground: 0 0% 98%;
+    --secondary: 240 3.7% 15.9%;
+    --secondary-foreground: 0 0% 98%;
+    --muted: 240 3.7% 15.9%;
+    --muted-foreground: 240 5% 64.9%;
+    --accent: 240 3.7% 15.9%;
+    --accent-foreground: 0 0% 98%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 240 3.7% 15.9%;
+    --input: 240 3.7% 15.9%;
+    --ring: 238 83% 66%;
+
+    /* UI Surfaces - Dark mode */
+    --ui-bg: #08090a;
+    --ui-card: #0f1011;
+    --ui-text: #f7f8f8;
+    --ui-text-secondary: #d0d6e0;
+    --ui-border: rgba(255, 255, 255, 0.08);
+    --ui-toolbar: #0f1011;
+    --ui-drawer: #191a1b;
+
+    /* Writing surface - Dark mode */
+    --writing-bg: #1a1a2e;
+    --writing-text: #f5f0e6;
+    --writing-muted: rgba(245, 240, 230, 0.6);
+
+    /* Interaction state colors - Dark mode */
+    --hover-bg: rgba(255, 255, 255, 0.05);
+    --hover-border: rgba(255, 255, 255, 0.15);
+    --active-bg: rgba(94, 106, 210, 0.15);
+    --active-border: #5e6ad2;
+    --focus-ring: rgba(94, 106, 210, 0.5);
+    --disabled-opacity: 0.4;
   }
 }
 

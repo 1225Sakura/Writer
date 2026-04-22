@@ -1,7 +1,8 @@
 import { useWritingStore, useSettingsStore } from '@/store'
 import { useState, useEffect } from 'react'
+import { usePrefersReducedMotion } from '@/hooks'
 import { Button } from '@/components/ui/Button'
-import { Slider } from '@/components/ui/slider'
+import { HumanAIRatioSlider } from '@/components/ui/HumanAIRatioSlider'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   Target,
@@ -27,7 +28,7 @@ export function CollaborationPanel() {
   return (
     <div className="flex-1 overflow-y-auto p-4 space-y-4">
       <CollaborationStatus />
-      <HumanAIRatioSlider />
+      <RatioSliderSection />
       <BattleStation />
       <PlotTracker />
       <IFLinesSection />
@@ -41,6 +42,7 @@ export function CollaborationPanel() {
 function CollaborationStatus() {
   const { humanAIRatio, loading } = useWritingStore()
   const isAIGenerating = loading.ai
+  const prefersReducedMotion = usePrefersReducedMotion()
 
   const getModeLabel = (ratio: number) => {
     if (ratio < 30) return { label: 'AI主导', color: '#5e6ad2', icon: <Bot className="w-3.5 h-3.5" /> }
@@ -63,12 +65,12 @@ function CollaborationStatus() {
             backgroundColor: `${mode.color}20`,
             color: mode.color,
           }}
-          animate={isAIGenerating ? { scale: [1, 1.05, 1] } : {}}
-          transition={{ duration: 1.5, repeat: Infinity }}
+          animate={isAIGenerating && !prefersReducedMotion ? { scale: [1, 1.05, 1] } : {}}
+          transition={prefersReducedMotion ? {} : { duration: 1.5, repeat: Infinity }}
         >
           {isAIGenerating ? (
             <>
-              <Zap className="w-3 h-3 animate-pulse" />
+              <Zap className="w-3 h-3 animate-pulse motion-reduce:animate-none" />
               AI生成中...
             </>
           ) : (
@@ -98,7 +100,7 @@ function CollaborationStatus() {
             exit={{ opacity: 0, height: 0 }}
           >
             <ActivityItem
-              icon={<Sparkles className="w-3 h-3 text-[#5e6ad2] animate-pulse" />}
+              icon={<Sparkles className="w-3 h-3 text-[#5e6ad2] animate-pulse motion-reduce:animate-none" />}
               text="AI正在处理选中内容..."
               time="进行中"
               highlight
@@ -130,8 +132,8 @@ function ActivityItem({
   )
 }
 
-// 人机比例滑块（自定义视觉优化）
-function HumanAIRatioSlider() {
+// 人机比例滑块（使用统一组件）
+function RatioSliderSection() {
   const { humanAIRatio, setHumanAIRatio } = useWritingStore()
 
   return (
@@ -142,49 +144,10 @@ function HumanAIRatioSlider() {
       onToggle={() => {}}
     >
       <div className="space-y-3">
-        {/* Visual ratio bar */}
-        <div className="relative">
-          <div className="flex h-8 rounded-lg overflow-hidden border border-[rgba(255,255,255,0.08)]">
-            <motion.div
-              className="flex items-center justify-center gap-1 text-xs font-medium"
-              style={{ backgroundColor: '#5e6ad2' }}
-              animate={{ width: `${humanAIRatio}%` }}
-              transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
-            >
-              {humanAIRatio > 20 && (
-                <>
-                  <Bot className="w-3.5 h-3.5" />
-                  <span>AI {humanAIRatio}%</span>
-                </>
-              )}
-            </motion.div>
-            <motion.div
-              className="flex items-center justify-center gap-1 text-xs font-medium"
-              style={{ backgroundColor: '#7eb84a' }}
-              animate={{ width: `${100 - humanAIRatio}%` }}
-              transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
-            >
-              {humanAIRatio < 80 && (
-                <>
-                  <User className="w-3.5 h-3.5" />
-                  <span>用户 {100 - humanAIRatio}%</span>
-                </>
-              )}
-            </motion.div>
-          </div>
-        </div>
-
-        {/* Slider control */}
-        <div className="px-1">
-          <Slider
-            value={[humanAIRatio]}
-            min={0}
-            max={100}
-            step={5}
-            onValueChange={(value) => setHumanAIRatio(value[0])}
-            className="w-full"
-          />
-        </div>
+        <HumanAIRatioSlider
+          value={humanAIRatio}
+          onChange={setHumanAIRatio}
+        />
 
         {/* Mode description */}
         <div className="p-2 rounded-lg bg-[#0f1011] border border-[rgba(255,255,255,0.06)]">

@@ -246,7 +246,7 @@ export function WritingStatsOverlay({
                         animate={{ opacity: 1, x: 0 }}
                         className="flex items-center gap-2"
                       >
-                        <div className="w-1.5 h-1.5 rounded-full bg-[#7eb84a] animate-pulse" />
+                        <div className="w-1.5 h-1.5 rounded-full bg-[#7eb84a] animate-pulse motion-reduce:animate-none" />
                         <span className="text-[11px] text-[#7eb84a]">
                           当前速度: {burstWPM} 字/分
                         </span>

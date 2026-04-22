@@ -3,7 +3,7 @@ import { useWritingStore, WritingStyle } from '@/store'
 import { getEditorInstance } from '@/store/editorRegistry'
 import { showToast } from '@/components/ui/Toast'
 import { Button } from '@/components/ui/Button'
-import { Slider } from '@/components/ui/slider'
+import { HumanAIRatioSlider } from '@/components/ui/HumanAIRatioSlider'
 import { CircularProgress } from '@/components/ui/CircularProgress'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
@@ -51,7 +51,7 @@ const aiOperations: AIOperation[] = [
     label: '优化',
     shortcut: 'Ctrl+Shift+O',
     icon: <Zap className="w-5 h-5" />,
-    activeIcon: <Loader2 className="w-5 h-5 animate-spin" />,
+    activeIcon: <Loader2 className="w-5 h-5 animate-spin motion-reduce:animate-none" />,
     description: '提升表达质量',
     color: '#5e6ad2',
   },
@@ -60,7 +60,7 @@ const aiOperations: AIOperation[] = [
     label: '扩写',
     shortcut: 'Ctrl+Shift+E',
     icon: <Expand className="w-5 h-5" />,
-    activeIcon: <Loader2 className="w-5 h-5 animate-spin" />,
+    activeIcon: <Loader2 className="w-5 h-5 animate-spin motion-reduce:animate-none" />,
     description: '丰富细节描写',
     color: '#7eb84a',
   },
@@ -69,7 +69,7 @@ const aiOperations: AIOperation[] = [
     label: '缩写',
     shortcut: 'Ctrl+Shift+S',
     icon: <Shrink className="w-5 h-5" />,
-    activeIcon: <Loader2 className="w-5 h-5 animate-spin" />,
+    activeIcon: <Loader2 className="w-5 h-5 animate-spin motion-reduce:animate-none" />,
     description: '精简冗余内容',
     color: '#e8b87d',
   },
@@ -78,7 +78,7 @@ const aiOperations: AIOperation[] = [
     label: '改写',
     shortcut: 'Ctrl+Shift+R',
     icon: <RefreshCw className="w-5 h-5" />,
-    activeIcon: <Loader2 className="w-5 h-5 animate-spin" />,
+    activeIcon: <Loader2 className="w-5 h-5 animate-spin motion-reduce:animate-none" />,
     description: '换一种表达方式',
     color: '#9b7ed9',
   },
@@ -87,7 +87,7 @@ const aiOperations: AIOperation[] = [
     label: '续写',
     shortcut: 'Ctrl+Shift+W',
     icon: <ArrowRight className="w-5 h-5" />,
-    activeIcon: <Loader2 className="w-5 h-5 animate-spin" />,
+    activeIcon: <Loader2 className="w-5 h-5 animate-spin motion-reduce:animate-none" />,
     description: '延续当前情节',
     color: '#5eb5a6',
   },
@@ -96,7 +96,7 @@ const aiOperations: AIOperation[] = [
     label: '润色',
     shortcut: 'Ctrl+Shift+P',
     icon: <Paintbrush className="w-5 h-5" />,
-    activeIcon: <Loader2 className="w-5 h-5 animate-spin" />,
+    activeIcon: <Loader2 className="w-5 h-5 animate-spin motion-reduce:animate-none" />,
     description: '打磨文笔风格',
     color: '#c45c5c',
   },
@@ -373,27 +373,10 @@ export function AIOperationDrawer() {
         onToggle={() => toggleSection('ratio')}
       >
         <div className="space-y-3">
-          {/* Custom styled slider */}
-          <div className="relative pt-1">
-            <div className="flex justify-between text-xs mb-2">
-              <span className="text-[#5e6ad2] font-medium">AI主导</span>
-              <span className="text-[#f7f8f8] font-semibold">{humanAIRatio}%</span>
-              <span className="text-[#7eb84a] font-medium">用户主导</span>
-            </div>
-            <Slider
-              value={[humanAIRatio]}
-              min={0}
-              max={100}
-              step={5}
-              onValueChange={(value) => setHumanAIRatio(value[0])}
-              className="w-full"
-            />
-            <div className="flex justify-between mt-1.5">
-              <span className="text-[10px] text-[#d0d6e0]/60">AI全自动</span>
-              <span className="text-[10px] text-[#d0d6e0]/60">半协作</span>
-              <span className="text-[10px] text-[#d0d6e0]/60">纯人工</span>
-            </div>
-          </div>
+          <HumanAIRatioSlider
+            value={humanAIRatio}
+            onChange={setHumanAIRatio}
+          />
           {/* Ratio indicator */}
           <div className="flex items-center gap-2 p-2 rounded-lg bg-[#0f1011]">
             <div className="flex-1 h-1.5 bg-[rgba(255,255,255,0.06)] rounded-full overflow-hidden">
