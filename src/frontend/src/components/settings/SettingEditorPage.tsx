@@ -74,9 +74,9 @@ function StatusBar() {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               className="flex items-center gap-1"
-              style={{ color: '#e8b87d' }}
+              style={{ color: 'var(--color-character)' }}
             >
-              <div className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" />
+              <div className="w-2 h-2 rounded-full bg-amber-500 animate-pulse motion-reduce:animate-none" />
               <span>保存中...</span>
             </motion.div>
           ) : lastSaved ? (
@@ -86,7 +86,7 @@ function StatusBar() {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               className="flex items-center gap-1"
-              style={{ color: '#7eb84a' }}
+              style={{ color: 'var(--color-ifline)' }}
             >
               <Check className="w-3 h-3" />
               <span>已保存 {formatTime(lastSaved)}</span>
@@ -111,9 +111,9 @@ function StatusBar() {
       <div className="flex items-center gap-2" style={{ color: 'var(--color-text-muted)' }}>
         <Keyboard className="w-3 h-3" />
         <span className="hidden sm:inline">
-          <kbd className="px-1 py-0.5 rounded text-[10px]" style={{ backgroundColor: 'rgba(255,255,255,0.06)' }}>Ctrl</kbd>
+          <kbd className="px-1 py-0.5 rounded text-[10px]" style={{ backgroundColor: 'var(--color-surface-raised)' }}>Ctrl</kbd>
           {' + '}
-          <kbd className="px-1 py-0.5 rounded text-[10px]" style={{ backgroundColor: 'rgba(255,255,255,0.06)' }}>S</kbd>
+          <kbd className="px-1 py-0.5 rounded text-[10px]" style={{ backgroundColor: 'var(--color-surface-raised)' }}>S</kbd>
           {' 保存'}
         </span>
       </div>
@@ -125,7 +125,12 @@ export function SettingEditorPage() {
   const { settingsCategory, setCurrentInterface, setSettingsCategory } = useUIStore()
   const generateRelations = useSettingsStore((state) => state.generateRelations)
   const generate = useSettingsStore((state) => state.generate)
+  const loadAll = useSettingsStore((state) => state.loadAll)
   const isLoading = useSettingsStore((state) => state.isLoading)
+
+  useEffect(() => {
+    loadAll()
+  }, [loadAll])
 
   return (
     <motion.div
@@ -158,11 +163,12 @@ export function SettingEditorPage() {
           }}
         />
       </div>
-      {/* 左侧：分类导航 - 200px 宽 */}
+      {/* 左侧：分类导航 */}
       <motion.div
         className="flex-shrink-0 h-full overflow-hidden flex flex-col relative"
         style={{
           width: '200px',
+          minWidth: '120px',
           backgroundColor: 'var(--color-bg-surface)',
           borderRight: '1px solid var(--color-border)',
           zIndex: 1,
@@ -191,7 +197,7 @@ export function SettingEditorPage() {
           }}
         >
           <div className="flex items-center gap-2">
-            <Settings className="w-4 h-4" style={{ color: '#5e6ad2' }} />
+            <Settings className="w-4 h-4" style={{ color: 'var(--accent-primary)' }} />
             <span className="font-medium text-sm" style={{ color: 'var(--color-text)' }}>
               设定编辑器
             </span>
@@ -255,11 +261,12 @@ export function SettingEditorPage() {
         <StatusBar />
       </motion.div>
 
-      {/* 右侧：关系图谱 - 320px 宽 */}
+      {/* 右侧：关系图谱 */}
       <motion.div
         className="flex-shrink-0 h-full flex flex-col overflow-hidden relative"
         style={{
           width: '320px',
+          minWidth: '200px',
           backgroundColor: 'var(--color-bg-primary)',
           borderLeft: '1px solid var(--color-border)',
           zIndex: 1,
@@ -275,7 +282,7 @@ export function SettingEditorPage() {
           }}
         >
           <div className="flex items-center gap-2">
-            <span className="text-xs font-medium uppercase tracking-wide" style={{ color: '#d0d6e0' }}>
+            <span className="text-xs font-medium uppercase tracking-wide" style={{ color: 'var(--color-text-secondary)' }}>
               关系图谱
             </span>
           </div>

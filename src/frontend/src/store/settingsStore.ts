@@ -10,6 +10,7 @@ import {
   factionApi,
   worldSettingApi,
   ruleApi,
+  writingSettingsApi,
 } from '../api/settings'
 import {
   outlineApi,
@@ -285,7 +286,7 @@ export const useSettingsStore = create<SettingsState & SettingsActions>()(
               state.error = null
             })
             try {
-              const [characters, items, locations, factions, worldSettings, rules, outlines, ifLines] =
+              const [characters, items, locations, factions, worldSettings, rules, outlines, ifLines, writingSettings] =
                 await Promise.all([
                   characterApi.list(),
                   itemApi.list(),
@@ -295,6 +296,7 @@ export const useSettingsStore = create<SettingsState & SettingsActions>()(
                   ruleApi.list(),
                   outlineApi.list(),
                   ifLineApi.list(),
+                  writingSettingsApi.get(),
                 ])
 
               const charactersWithRelations = await Promise.all(
