@@ -22,29 +22,42 @@ export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElemen
   glowColor?: string
 }
 
-const variantStyles = {
-  default: 'bg-[var(--accent-primary)] text-white hover:bg-[var(--accent-primary-hover)] active:bg-[var(--accent-primary-active)]',
-  primary: 'bg-[var(--accent-primary)] text-white hover:bg-[var(--accent-primary-hover)] active:bg-[var(--accent-primary-active)]',
+const variantStyles: Record<string, string> = {
+  default: 'text-white hover:brightness-110 active:brightness-90 disabled:brightness-75 disabled:cursor-not-allowed',
+  primary: 'text-white hover:brightness-110 active:brightness-90 disabled:brightness-75 disabled:cursor-not-allowed',
   secondary:
-    'bg-[var(--border-default)] text-[var(--text-primary)] hover:bg-[var(--border-strong)] active:bg-[var(--border-strong)]/80 border border-transparent hover:border-[var(--text-secondary)]/30',
+    'text-[#f7f8f8] hover:bg-[rgba(255,255,255,0.1)] active:bg-[rgba(255,255,255,0.08)] border border-[rgba(255,255,255,0.06)] hover:border-[rgba(208,214,224,0.3)] disabled:opacity-50 disabled:cursor-not-allowed',
   outline:
-    'border border-[var(--border-default)] bg-transparent hover:bg-[var(--border-default)]/20 active:bg-[var(--border-default)]/40',
+    'border border-[rgba(255,255,255,0.06)] bg-transparent hover:bg-[rgba(255,255,255,0.06)]/20 active:bg-[rgba(255,255,255,0.06)]/40 disabled:opacity-40 disabled:cursor-not-allowed',
   ghost:
-    'bg-[var(--color-surface-raised)] hover:bg-[var(--color-surface-hover)] text-[var(--text-secondary)] border border-[var(--border-default)]',
+    'hover:bg-[#2a2c2e] text-[#d0d6e0] border border-[rgba(255,255,255,0.06)] disabled:opacity-50 disabled:cursor-not-allowed',
   ghostHover:
-    'bg-transparent text-[var(--text-secondary)] border border-transparent hover:bg-[var(--color-surface-hover)] hover:border-[var(--border-default)]',
+    'text-[#d0d6e0] border border-transparent hover:bg-[#2a2c2e] hover:border-[rgba(255,255,255,0.06)] disabled:opacity-40 disabled:cursor-not-allowed',
   subtle:
-    'bg-[var(--color-surface-raised)] hover:bg-[var(--border-default)] text-[var(--text-secondary)] border border-[var(--border-default)]',
-  destructive: 'bg-[var(--color-danger)] text-white hover:brightness-110 active:brightness-90',
-  glow: 'bg-[var(--accent-primary)] text-white relative overflow-hidden',
+    'hover:bg-[rgba(255,255,255,0.06)] text-[#d0d6e0] border border-[rgba(255,255,255,0.06)] disabled:opacity-50 disabled:cursor-not-allowed',
+  destructive: 'bg-[#d93a3a] text-white hover:brightness-110 active:brightness-90 disabled:brightness-75 disabled:cursor-not-allowed',
+  glow: 'text-white relative overflow-hidden disabled:brightness-75 disabled:cursor-not-allowed',
   gradient:
-    'bg-gradient-to-r from-[var(--accent-primary)] to-[var(--accent-secondary)] text-white hover:from-[var(--accent-primary-hover)] hover:to-[var(--accent-secondary-hover)] active:from-[var(--accent-primary-active)] active:to-[var(--accent-secondary-active)]',
+    'bg-gradient-to-r from-[#5e6ad2] to-[#9b7ed9] text-white hover:brightness-110 active:brightness-90 disabled:brightness-75 disabled:cursor-not-allowed',
+}
+
+const variantBackgrounds: Record<string, string> = {
+  default: '#5e6ad2',
+  primary: '#5e6ad2',
+  secondary: 'rgba(255,255,255,0.06)',
+  outline: 'transparent',
+  ghost: '#191a1b',
+  ghostHover: 'transparent',
+  subtle: '#191a1b',
+  destructive: '#d93a3a',
+  glow: '#5e6ad2',
+  gradient: 'transparent',
 }
 
 const sizeStyles = {
-  sm: 'h-8 px-3 py-1.5 text-sm rounded-lg',
-  md: 'h-10 px-4 py-2 text-base rounded-xl',
-  lg: 'h-12 px-6 py-3 text-lg rounded-xl',
+  sm: 'h-8 px-3 py-1.5 text-sm rounded-lg gap-1.5',
+  md: 'h-10 px-4 py-2 text-sm rounded-xl gap-2',
+  lg: 'h-12 px-6 py-3 text-base rounded-xl gap-2.5',
   icon: 'h-10 w-10 rounded-full',
 }
 
@@ -113,11 +126,10 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
           className
         )}
         style={
-          isGlow
-            ? {
-                boxShadow: `0 0 16px ${glowColor}40, 0 0 32px ${glowColor}20`,
-              }
-            : undefined
+          {
+            backgroundColor: variantBackgrounds[variant],
+            ...(isGlow ? { boxShadow: `0 0 16px ${glowColor}40, 0 0 32px ${glowColor}20` } : {}),
+          }
         }
         onClick={handleClick}
         {...props}

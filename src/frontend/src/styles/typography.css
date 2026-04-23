@@ -1,38 +1,78 @@
 /**
  * Typography System
  * Font loading, font stacks, and typography utilities
+ *
+ * Fonts are loaded via <link> tags in index.html for better performance (no FOIT).
+ * This file defines font stacks, variables, and typography utilities.
  */
-
-/* ============================================================
-   FONT IMPORT — Google Fonts CDN
-   ============================================================ */
-
-/* Inter - Interface font */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;510;600;700&display=swap');
-
-/* Noto Serif SC + Source Han Serif CN - Chinese writing font */
-@import url('https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;500;600;700&family=Source+Han+Serif+CN:wght@400;500;600;700&display=swap');
-
-/* JetBrains Mono - Monospace for code/dialogue */
-@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&display=swap');
 
 /* ============================================================
    FONT VARIABLE DEFINITIONS
    ============================================================ */
 
 :root {
-  /* Font families - using system fonts with CDN fallbacks */
-  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
-  --font-mono: 'JetBrains Mono', 'SF Mono', 'Fira Code', 'Consolas', monospace;
+  /* Font families - comprehensive fallback stacks for cross-platform Chinese support */
+  --font-sans: 'Inter',
+    /* macOS */
+    -apple-system,
+    'SF Pro Display',
+    BlinkMacSystemFont,
+    'Segoe UI',
+    /* iOS */
+    'PingFang SC',
+    'Hiragino Sans GB',
+    /* Windows */
+    'Microsoft YaHei',
+    'PingFang SC',
+    'SimHei',
+    /* Linux */
+    'Noto Sans CJK SC',
+    'WenQuanYi Micro Hei',
+    /* Fallback */
+    sans-serif;
 
-  /* Chinese serif fonts for writing (priority order) */
-  --font-serif-cn: 'Noto Serif SC', 'Source Han Serif CN', 'Source Han Serif SC', 'Songti SC', 'SimSun', serif;
+  --font-mono: 'JetBrains Mono',
+    'SF Mono',
+    'Fira Code',
+    'Cascadia Code',
+    'Consolas',
+    'Monaco',
+    monospace;
+
+  /* Chinese serif fonts for writing (思源宋体 family with fallbacks) */
+  --font-serif-cn: 'Noto Serif SC',
+    'Source Han Serif CN',
+    'Source Han Serif SC',
+    'Source Han Serif',
+    'Songti SC',
+    'SimSun',
+    'NSimSun',
+    /* macOS */
+    'STSong',
+    'STKaiti',
+    /* Linux */
+    'Noto Serif CJK SC',
+    'Noto Serif CJK',
+    /* Fallback */
+    serif;
 
   /* English serif fonts */
-  --font-serif-en: 'Noto Serif SC', 'Georgia', 'Times New Roman', serif;
+  --font-serif-en: 'Noto Serif SC',
+    'Georgia',
+    'Times New Roman',
+    'Cambria',
+    serif;
 
-  /* Combined writing font stack */
-  --font-writing: 'Noto Serif SC', 'Source Han Serif CN', 'Source Han Serif SC', 'Songti SC', serif;
+  /* Combined writing font stack - optimized for Chinese novels */
+  --font-writing: 'Noto Serif SC',
+    'Source Han Serif CN',
+    'Source Han Serif SC',
+    'Songti SC',
+    'SimSun',
+    'STSong',
+    'STKaiti',
+    'Noto Serif CJK SC',
+    serif;
 
   /* ============================================================
      TYPOGRAPHY SCALE
@@ -395,18 +435,40 @@
 }
 
 /* ============================================================
-   ACCESSIBILITY: PREFERS DARK COLOR SCHEME
+   ACCESSIBILITY: DARK/LIGHT MODE CONTRAST
    ============================================================ */
 
-@media (prefers-color-scheme: dark) {
-  /* Ensure sufficient contrast in dark mode */
-  .body-text {
-    color: var(--text-primary);
-  }
+/* Dark mode writing text - warm paper white on deep background */
+[data-theme="dark"] .body-text,
+[data-theme="dark"] .dialogue-text,
+[data-theme="dark"] .narration-text {
+  color: var(--writing-text, #f5f0e6);
+}
 
-  .narration-text {
-    color: var(--text-secondary);
-  }
+/* Light mode writing text - deep ink on warm paper */
+[data-theme="light"] .body-text,
+[data-theme="light"] .dialogue-text,
+[data-theme="light"] .narration-text {
+  color: var(--writing-text, #1a1a2e);
+}
+
+/* Ensure minimum contrast ratios for accessibility */
+/* WCAG AA requires 4.5:1 for normal text, 3:1 for large text */
+.writing-typography {
+  /* Use font-smoothing for better rendering */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+/* Interface text contrast in dark mode */
+[data-theme="dark"] .interface-typography {
+  color: var(--text-primary, #f7f8f8);
+}
+
+/* Interface text contrast in light mode */
+[data-theme="light"] .interface-typography {
+  color: var(--text-primary, #1a1a2e);
 }
 
 /* ============================================================

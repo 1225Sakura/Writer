@@ -97,6 +97,15 @@
     --accent-secondary: var(--accent-purple);
     --accent-primary-hover: color-mix(in srgb, var(--accent-purple) 85%, white);
     --accent-primary-active: color-mix(in srgb, var(--accent-purple) 70%, black);
+
+    /* Additional aliases for components */
+    --color-primary: var(--accent-purple);
+    --color-ifline: var(--ifline);
+    --color-character: var(--character);
+    --color-item: var(--item);
+    --color-location: var(--location);
+    --color-faction: var(--faction);
+    --color-outline: var(--outline);
   }
 
   /* Light mode color overrides - support both .light class and data-theme attribute */

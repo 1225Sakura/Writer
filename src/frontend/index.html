@@ -14,6 +14,27 @@
     <meta property="og:type" content="website" />
     <meta name="theme-color" content="#1a1a2e" />
     <link rel="manifest" href="/manifest.json" />
+
+    <!-- Google Fonts preconnect for faster connection -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+
+    <!-- Preload critical fonts to prevent FOIT -->
+    <link rel="preload" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;510;600;700&display=swap" as="style" />
+    <link rel="preload" href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;500;600;700&family=Source+Han+Serif+CN:wght@400;500;600;700&display=swap" as="style" />
+    <link rel="preload" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&display=swap" as="style" />
+
+    <!-- Load fonts via link tags for better performance (not @import) -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;510;600;700&display=swap" rel="stylesheet" media="print" onload="this.media='all'" />
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;500;600;700&family=Source+Han+Serif+CN:wght@400;500;600;700&display=swap" rel="stylesheet" media="print" onload="this.media='all'" />
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" media="print" onload="this.media='all'" />
+
+    <!-- Fallback noscript styles for fonts -->
+    <noscript>
+      <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;510;600;700&display=swap" rel="stylesheet" />
+      <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;500;600;700&family=Source+Han+Serif+CN:wght@400;500;600;700&display=swap" rel="stylesheet" />
+      <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+    </noscript>
   </head>
   <body>
     <div id="root">

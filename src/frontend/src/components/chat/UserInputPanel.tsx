@@ -77,8 +77,12 @@ export function UserInputPanel() {
   const hasMessages = messages.length > 0
   const canSend = input.trim() && !isLoading && !isStreaming
 
-  return (
+    return (
     <div className="flex flex-col gap-3 p-4"
+         style={{
+           backgroundColor: 'var(--color-surface-base)',
+           borderTop: '1px solid var(--border-default)',
+         }}>="flex flex-col gap-3 p-4"
          style={{
            backgroundColor: 'var(--color-bg-surface)',
            borderTop: '1px solid var(--color-border)',
@@ -114,7 +118,7 @@ export function UserInputPanel() {
             className="flex items-center gap-2 text-xs px-3 py-2 rounded-lg"
             style={{
               backgroundColor: 'rgba(126, 184, 74, 0.1)',
-              color: '#7eb84a',
+              color: 'var(--ifline)',
               border: '1px solid rgba(126, 184, 74, 0.2)',
             }}
           >

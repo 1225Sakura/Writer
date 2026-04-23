@@ -260,7 +260,7 @@ export function WritingEditorPage() {
             <motion.div
               key="ai-drawer"
               initial={{ width: 0, opacity: 0, x: 20 }}
-              animate={{ width: '100%', opacity: 1, x: 0 }}
+              animate={{ width: 360, opacity: 1, x: 0 }}
               exit={{ width: 0, opacity: 0, x: 20 }}
               transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
               className="drawer-responsive drawer-right border-l border-[var(--border-default)] bg-[var(--color-surface-raised)] flex flex-col overflow-hidden relative"

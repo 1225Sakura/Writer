@@ -202,8 +202,8 @@ export function ChatInitPage() {
 
         {/* 右侧：已收集信息面板 */}
         <motion.div
-          className="w-[40%] max-w-[480px] min-w-[280px] overflow-y-auto shrink-0"
-          style={{ backgroundColor: 'var(--ui-card)' }}
+          className="w-[40%] max-w-[480px] min-w-[280px] overflow-y-auto shrink-0 hidden md:block"
+          style={{ backgroundColor: 'var(--color-surface-raised)' }}
           initial={{ x: 24, opacity: 0 }}
           animate={{ x: 0, opacity: 1 }}
           transition={{ delay: 0.15, duration: 0.4, ease: [0.22, 1, 0.36, 1] }}

@@ -1,15 +1,13 @@
 /* ============================================================
    Auto Novel Writer — Global CSS Variables
    Based on Linear Design System + Writing-Specific UX
-   Version: 1.1
-   Date: 2026-04-21
-   ============================================================ */
+   Version: 1.2
+   Date: 2026-04-23
 
-/* ============================================================
-   FONT IMPORT — Inter Variable with OpenType features
+   Note: Fonts are loaded via <link> tags in index.html for
+   better performance (FOIT/FOUT prevention). This file only
+   defines CSS variables and base styles.
    ============================================================ */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;510;600&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;500;600;700&family=Source+Han+Serif+CN:wght@400;500;600;700&display=swap');
 
 /* ============================================================
    CSS VARIABLES — Linear Design System
@@ -53,35 +51,51 @@
   --color-warning:    #e5a000;
   --color-success:    #2ea043;
 
-  /* === Colors: Novel Entity Type Colors === */
-  --color-character:  #e8b87d;
-  --color-item:       #9b7ed9;
-  --color-location:   #5eb5a6;
-  --color-faction:    #d45d5d;
-  --color-outline:    #5b8ee8;
-  --color-ifline:     #7eb84a;
-  --color-world:      #5e6ad2;
-  --color-rule:       #7eb74a;
+  /* === Colors: Novel Entity Type Colors - 调整后 === */
+  --color-character:  #d4a574;        /* 角色 - 琥珀 (调整后更沉稳) */
+  --color-item:       #9b7ed9;        /* 物品 - 紫藤 */
+  --color-location:   #5eb5a6;        /* 地点 - 翠岚 */
+  --color-faction:    #d45d5d;        /* 势力 - 朱砂 */
+  --color-outline:    #5b8ee8;        /* 大纲 - 蓝 */
+  --color-ifline:     #7eb84a;        /* IF线 - 绿 */
+  --color-world:      #5e6ad2;        /* 世界 - 紫辰 */
+  --color-rule:       #7eb84a;        /* 规则 - 绿 (统一拼写) */
+  --color-vermillion:  #c45c5c;        /* 朱砂红 - 统一变量 */
 
-  /* === Colors: Writing Surface === */
-  --writing-bg:       #1a1a2e;
+  /* === Colors: Writing Surface - 调整后 === */
+  --writing-bg:       #1e1e2e;        /* 使用更深背景色 */
   --writing-text:     #f5f0e6;
   --writing-muted:    rgba(245, 240, 230, 0.6);
 
   /* === Aliases for component compatibility === */
   --color-bg-surface: #0f1011;
   --color-text-writing: #f5f0e6;
-  --color-writing-dark: #1a1a2e;
+  --color-writing-dark: #1e1e2e;
   --color-text-secondary: #d0d6e0;
   --color-text-muted: #8a8f98;
   --color-bg-card: #0f1011;
   --color-toolbar: #0f1011;
   --color-drawer: #191a1b;
+  --color-border: var(--border-default);     /* 统一边框变量 */
+  --accent-purple: var(--accent-primary);      /* 修复不存在的变量 */
 
-  /* === Typography: Font Families === */
-  --font-sans:        'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  --font-mono:        'JetBrains Mono', 'SF Mono', 'Fira Code', monospace;
-  --font-serif-cn:    'Noto Serif SC', 'Source Han Serif CN', '宋体', serif;
+  /* === Typography: Font Families (comprehensive Chinese fallback stacks) === */
+  --font-sans: 'Inter',
+    -apple-system,
+    'SF Pro Display',
+    BlinkMacSystemFont,
+    'Segoe UI',
+    'PingFang SC',
+    'Hiragino Sans GB',
+    'Microsoft YaHei',
+    'PingFang SC',
+    'SimHei',
+    'Noto Sans CJK SC',
+    'WenQuanYi Micro Hei',
+    sans-serif;
+  --font-mono: 'JetBrains Mono', 'SF Mono', 'Fira Code', 'Cascadia Code', 'Consolas', monospace;
+  --font-serif-cn: 'Noto Serif SC', 'Source Han Serif CN', 'Source Han Serif SC', 'Source Han Serif', 'Songti SC', 'SimSun', 'NSimSun', 'STSong', 'STKaiti', 'Noto Serif CJK SC', serif;
+  --font-serif-en: 'Noto Serif SC', 'Georgia', 'Times New Roman', serif; Serif SC', 'Source Han Serif CN', '宋体', serif;
   --font-serif-en:    'Source Han Serif', 'Noto Serif', 'Georgia', serif;
 
   /* === Typography: Type Scale (8px base) === */
@@ -196,9 +210,55 @@
   --shadow-glow:                0 0 16px rgba(94, 106, 210, 0.35);
   --shadow-inner-glow:          inset 0 0 12px rgba(94, 106, 210, 0.15);
 
+  /* === Icon Colors === */
+  --icon-primary: var(--accent-primary);      /* 主要操作 */
+  --icon-secondary: var(--text-secondary);   /* 次要图标 */
+  --icon-muted: var(--text-tertiary);        /* 禁用/低优先级 */
+  --icon-active: var(--color-character);       /* 激活状态 */
+  --icon-success: var(--color-ifline);        /* 成功状态 */
+  --icon-warning: var(--color-character);     /* 警告状态 */
+  --icon-danger: var(--color-vermillion);     /* 危险状态 */
+
   /* === Selection Colors === */
   --selection-bg:               rgba(94, 106, 210, 0.35);
   --selection-color:            #f7f8f8;
+}
+
+/* ============================================================
+   THEME: LIGHT MODE - 补充缺失变量
+   ============================================================ */
+[data-theme="light"] {
+  --color-surface-base: #f5f0e6;
+  --color-surface-raised: #ffffff;
+  --color-surface-overlay: #faf8f3;
+  --color-surface-input: #f0ebe3;
+  --color-surface-hover: #e8e4dc;
+  --text-primary: #1a1a2e;
+  --text-secondary: #666666;
+  --text-tertiary: #999999;
+  --border-default: rgba(0,0,0,0.08);
+  --border-strong: rgba(0,0,0,0.12);
+  --writing-bg: #faf6e8;
+  --writing-text: #1a1a2e;
+}
+
+/* ============================================================
+   THEME: EYE-CARE MODE - 护眼模式
+   ============================================================ */
+[data-theme="eye-care"] {
+  --color-surface-base: #1a1f1a;
+  --color-surface-raised: #242924;
+  --color-surface-overlay: #2a302a;
+  --color-surface-input: #323832;
+  --color-surface-hover: #3a403a;
+  --text-primary: #e8efe0;
+  --text-secondary: #b8c4a8;
+  --text-tertiary: #889478;
+  --accent-primary: #7eb87a;
+  --accent-hover: #8fc489;
+  --accent-muted: rgba(126, 184, 122, 0.15);
+  --writing-bg: #1e241e;
+  --writing-text: #e8efe0;
 }
 
 /* ============================================================

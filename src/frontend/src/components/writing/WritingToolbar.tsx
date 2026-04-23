@@ -129,18 +129,18 @@ export function WritingToolbar() {
   }
 
   const quickAIOperations = [
-    { key: 'optimize', label: '优化', icon: <Zap className="w-3.5 h-3.5" />, shortcut: 'O', color: '#5e6ad2' },
-    { key: 'expand', label: '扩写', icon: <Expand className="w-3.5 h-3.5" />, shortcut: 'E', color: '#7eb84a' },
-    { key: 'shrink', label: '缩写', icon: <Shrink className="w-3.5 h-3.5" />, shortcut: 'S', color: '#e8b87d' },
-    { key: 'rewrite', label: '改写', icon: <RefreshCw className="w-3.5 h-3.5" />, shortcut: 'R', color: '#9b7ed9' },
-    { key: 'continue', label: '续写', icon: <ArrowRight className="w-3.5 h-3.5" />, shortcut: 'W', color: '#5eb5a6' },
-    { key: 'polish', label: '润色', icon: <Paintbrush className="w-3.5 h-3.5" />, shortcut: 'P', color: '#c45c5c' },
+    { key: 'optimize', label: '优化', icon: <Zap className="w-3.5 h-3.5" />, shortcut: 'O', color: 'var(--accent-primary)' },
+    { key: 'expand', label: '扩写', icon: <Expand className="w-3.5 h-3.5" />, shortcut: 'E', color: 'var(--color-ifline)' },
+    { key: 'shrink', label: '缩写', icon: <Shrink className="w-3.5 h-3.5" />, shortcut: 'S', color: 'var(--color-character)' },
+    { key: 'rewrite', label: '改写', icon: <RefreshCw className="w-3.5 h-3.5" />, shortcut: 'R', color: 'var(--color-item)' },
+    { key: 'continue', label: '续写', icon: <ArrowRight className="w-3.5 h-3.5" />, shortcut: 'W', color: 'var(--color-location)' },
+    { key: 'polish', label: '润色', icon: <Paintbrush className="w-3.5 h-3.5" />, shortcut: 'P', color: 'var(--color-vermillion)' },
   ] as const
 
   return (
     <div className="h-[44px] flex items-center px-4 gap-2"
          style={{
-           backgroundColor: 'var(--color-bg-surface)',
+           backgroundColor: 'var(--color-surface-base)',
            borderBottom: '1px solid var(--border-default)',
          }}>
       {/* 左侧：返回聊天 + 返回设定 */}
@@ -199,7 +199,7 @@ export function WritingToolbar() {
 
         {/* Human-AI ratio mini control */}
         <div className="flex items-center gap-2 px-2 py-1 rounded-lg bg-[rgba(255,255,255,0.03)] border border-[rgba(255,255,255,0.06)]">
-          <Bot className="w-3.5 h-3.5 text-[#5e6ad2]" />
+          <Bot className="w-3.5 h-3.5" style={{ color: 'var(--accent-primary)' }} />
           <div className="w-16">
             <Slider
               value={[humanAIRatio]}
@@ -210,7 +210,7 @@ export function WritingToolbar() {
               className="w-full"
             />
           </div>
-          <User className="w-3.5 h-3.5 text-[#7eb84a]" />
+          <User className="w-3.5 h-3.5" style={{ color: 'var(--color-ifline)' }} />
           <span className="text-[10px] text-[#d0d6e0]/70 w-8 text-center">
             {humanAIRatio < 30 ? 'AI' : humanAIRatio < 70 ? '协作' : '用户'}
           </span>
@@ -237,7 +237,7 @@ export function WritingToolbar() {
             )}
             <span>快捷AI</span>
             {isAIGenerating && (
-              <span className="absolute -top-1 -right-1 w-2 h-2 bg-[#5e6ad2] rounded-full animate-pulse motion-reduce:animate-none" />
+              <span className="absolute -top-1 -right-1 w-2 h-2 rounded-full animate-pulse motion-reduce:animate-none" style={{ backgroundColor: 'var(--accent-primary)' }} />
             )}
           </Button>
 
@@ -264,7 +264,7 @@ export function WritingToolbar() {
                       disabled={quickOpLoading !== null}
                       className={`flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-xs transition-all
                         ${quickOpLoading === op.key
-                          ? 'bg-[#5e6ad2]/20 text-[#5e6ad2]'
+                          ? 'bg-[var(--accent-primary)]/20' : ''}
                           : 'text-[#d0d6e0] hover:bg-[rgba(255,255,255,0.06)]'
                         }
                         ${quickOpLoading !== null && quickOpLoading !== op.key ? 'opacity-40' : ''}
@@ -291,15 +291,19 @@ export function WritingToolbar() {
               initial={{ opacity: 0, x: 8 }}
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: 8 }}
-              className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-[#5e6ad2]/10 border border-[#5e6ad2]/20"
+              className="flex items-center gap-1.5 px-2 py-0.5 rounded-full"
+              style={{
+                backgroundColor: 'color-mix(in srgb, var(--accent-primary) 10%, transparent)',
+                border: '1px solid color-mix(in srgb, var(--accent-primary) 20%, transparent)',
+              }}
             >
               <motion.div
                 animate={{ scale: [1, 1.2, 1] }}
                 transition={{ duration: 1, repeat: Infinity }}
               >
-                <Sparkles className="w-3 h-3 text-[#5e6ad2]" />
+                <Sparkles className="w-3 h-3" style={{ color: 'var(--accent-primary)' }} />
               </motion.div>
-              <span className="text-[10px] text-[#5e6ad2] font-medium">AI生成中</span>
+              <span className="text-[10px] font-medium" style={{ color: 'var(--accent-primary)' }}>AI生成中</span>
             </motion.div>
           )}
         </AnimatePresence>
@@ -308,12 +312,12 @@ export function WritingToolbar() {
         <div className="flex items-center gap-1.5 mr-2"
           title="今日写作进度"
         >
-          <BarChart3 className="w-3.5 h-3.5 text-[#5e6ad2]" />
+          <BarChart3 className="w-3.5 h-3.5" style={{ color: 'var(--accent-primary)' }} />
           <div className="w-20 h-1.5 bg-[rgba(255,255,255,0.06)] rounded-full overflow-hidden">
             <motion.div
               className="h-full rounded-full"
               style={{
-                background: 'linear-gradient(90deg, #5e6ad2 0%, #7eb84a 100%)',
+                background: 'linear-gradient(90deg, var(--accent-primary) 0%, var(--color-ifline) 100%)',
                 boxShadow: '0 0 6px rgba(94, 106, 210, 0.3)',
               }}
               initial={{ width: 0 }}
@@ -321,7 +325,7 @@ export function WritingToolbar() {
               transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
             />
           </div>
-          <span className="text-[10px] text-[#d0d6e0]/70">
+          <span className="text-xs" style={{ color: 'var(--text-secondary)', opacity: 0.7 }}>
             {todayWordCount}/{targetWordCount}
           </span>
         </div>
@@ -422,10 +426,10 @@ const ToolbarButton = memo(function ToolbarButton({
       {icon}
       <span>{label}</span>
       {isActive && (
-        <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-3/4 h-[2px] rounded-full bg-gradient-to-r from-[#5e6ad2] to-[#7eb84a] opacity-80" />
+        <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-3/4 h-[2px] rounded-full bg-gradient-to-r from-[var(--accent-primary)] to-[var(--ifline)] opacity-80" />
       )}
       {badge && (
-        <span className="absolute -top-1 -right-1 w-2 h-2 bg-[#c45c5c] rounded-full" />
+        <span className="absolute -top-1 -right-1 w-2 h-2 rounded-full" style={{ backgroundColor: 'var(--vermillion)' }} />
       )}
     </Button>
   )

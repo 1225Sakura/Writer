@@ -22,19 +22,19 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
         glow: 'transparent',
       },
       focus: {
-        border: '#5e6ad2',
+        border: 'var(--accent-primary)',
         ring: 'rgba(94,106,210,0.3)',
         glow: 'inset 0 0 12px rgba(94,106,210,0.08)',
       },
       error: {
-        border: '#c45c5c',
-        ring: 'rgba(196,92,92,0.3)',
-        glow: 'inset 0 0 12px rgba(196,92,92,0.08)',
+        border: 'var(--color-error)',
+        ring: 'rgba(217,58,58,0.3)',
+        glow: 'inset 0 0 12px rgba(217,58,58,0.08)',
       },
       success: {
-        border: '#5eb5a6',
-        ring: 'rgba(94,181,166,0.3)',
-        glow: 'inset 0 0 12px rgba(94,181,166,0.08)',
+        border: 'var(--color-ifline)',
+        ring: 'rgba(126,183,74,0.3)',
+        glow: 'inset 0 0 12px rgba(126,183,74,0.08)',
       },
       disabled: {
         border: 'rgba(255,255,255,0.04)',
@@ -54,7 +54,7 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
           className={twMerge(
             clsx(
               'flex h-10 w-full rounded-[6px] bg-[rgba(255,255,255,0.02)] px-4 py-2 text-sm font-[510]',
-              'text-[#d0d6e0] placeholder:text-[#8a8f98]',
+              'text-[var(--text-secondary)] placeholder:text-[var(--text-muted)]',
               'transition-all duration-200',
               'disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:border-[rgba(255,255,255,0.04)]'
             ),
@@ -87,10 +87,10 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
               className="absolute right-3 top-1/2 -translate-y-1/2"
             >
               {status === 'success' && (
-                <Check className="w-4 h-4 text-[#5eb5a6]" />
+                <Check className="w-4 h-4" style={{ color: 'var(--color-location)' }} />
               )}
               {status === 'error' && (
-                <AlertCircle className="w-4 h-4 text-[#c45c5c]" />
+                <AlertCircle className="w-4 h-4" style={{ color: 'var(--vermillion)' }} />
               )}
             </motion.div>
           )}
@@ -117,7 +117,7 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -4 }}
               transition={{ duration: 0.2 }}
-              className="absolute -bottom-5 left-0 text-xs text-[#c45c5c]"
+              className="absolute -bottom-5 left-0 text-xs" style={{ color: 'var(--vermillion)' }}
             >
               {errorMessage}
             </motion.div>
