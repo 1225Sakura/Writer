@@ -11,18 +11,18 @@ import sys
 from pathlib import Path
 
 
-ALEMBIC_INI = Path(__file__).parent.parent.parent.parent / "alembic.ini"
-BASE_DIR = Path(__file__).parent.parent.parent.parent
+ALEMBIC_INI = Path(__file__).parent.parent / "alembic.ini"
+BASE_DIR = Path(__file__).parent.parent
 
 # Resolve the alembic executable path (prefer venv, fallback to PATH)
 def _get_alembic_cmd() -> list:
     """Build the alembic command list with the correct executable path."""
     # Try venv alembic first
-    venv_alembic = BASE_DIR / "src" / "backend" / ".venv" / "Scripts" / "alembic.exe"
+    venv_alembic = BASE_DIR / ".venv" / "Scripts" / "alembic.exe"
     if venv_alembic.exists():
         return [str(venv_alembic), "-c", str(ALEMBIC_INI)]
 
-    venv_alembic_unix = BASE_DIR / "src" / "backend" / ".venv" / "bin" / "alembic"
+    venv_alembic_unix = BASE_DIR / ".venv" / "bin" / "alembic"
     if venv_alembic_unix.exists():
         return [str(venv_alembic_unix), "-c", str(ALEMBIC_INI)]
 

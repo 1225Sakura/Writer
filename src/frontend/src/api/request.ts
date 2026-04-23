@@ -20,6 +20,26 @@ const isDev = (): boolean => {
 }
 
 // ============================================
+// Shared API Key Resolution
+// ============================================
+
+/**
+ * Get the API key for authentication.
+ * In Electron: queries the main process via IPC.
+ * In browser: reads from localStorage.
+ */
+export const getApiKey = async (): Promise<string | null> => {
+  if (isElectron()) {
+    try {
+      return await window.electronAPI!.getApiKey()
+    } catch {
+      return null
+    }
+  }
+  return localStorage.getItem('writer_api_key')
+}
+
+// ============================================
 // API Base URL Resolution
 // ============================================
 
@@ -312,16 +332,7 @@ const setupInterceptors = (client: AxiosInstance): void => {
       }
 
       // Local API key auth for desktop app
-      let apiKey: string | null = null
-      if (isElectron()) {
-        try {
-          apiKey = await window.electronAPI!.getApiKey()
-        } catch {
-          apiKey = null
-        }
-      } else {
-        apiKey = localStorage.getItem('writer_api_key')
-      }
+      const apiKey = await getApiKey()
       if (apiKey && config.headers) {
         config.headers['X-API-Key'] = apiKey
       }

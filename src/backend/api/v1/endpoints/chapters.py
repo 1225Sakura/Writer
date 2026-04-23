@@ -422,7 +422,7 @@ async def delete_if_line(if_line_id: int, db: AsyncSession = Depends(get_db)):
     result = await db.execute(select(IFLine).where(IFLine.id == if_line_id))
     if_line = result.scalar_one_or_none()
     if not if_line:
-        raise HTTPException(status_code=404, detail="IF line not found")
+        raise IFLineNotFoundException(if_line_id=if_line_id)
     await db.delete(if_line)
     await get_cache_service().ainvalidate_tag("iflines")
     return {"message": "IF line deleted"}
@@ -501,7 +501,7 @@ async def update_plot_thread(
     result = await db.execute(select(PlotThread).where(PlotThread.id == plot_thread_id))
     db_plot_thread = result.scalar_one_or_none()
     if not db_plot_thread:
-        raise HTTPException(status_code=404, detail="Plot thread not found")
+        raise PlotThreadNotFoundException(plot_thread_id=plot_thread_id)
 
     update_data = plot_thread.model_dump(exclude_unset=True)
     for key, value in update_data.items():
@@ -523,7 +523,7 @@ async def delete_plot_thread(plot_thread_id: int, db: AsyncSession = Depends(get
     result = await db.execute(select(PlotThread).where(PlotThread.id == plot_thread_id))
     plot_thread = result.scalar_one_or_none()
     if not plot_thread:
-        raise HTTPException(status_code=404, detail="Plot thread not found")
+        raise PlotThreadNotFoundException(plot_thread_id=plot_thread_id)
     await db.delete(plot_thread)
     await get_cache_service().ainvalidate_tag("plotthreads")
     return {"message": "Plot thread deleted"}

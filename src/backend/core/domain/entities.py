@@ -148,6 +148,7 @@ if not _SKIP_DEFINITIONS:
         description = Column(Text)
         owner = Column(String)
         location = Column(String)
+        tags = Column(Text)  # JSON-encoded list of tag strings
 
 
     class Location(Base):
@@ -158,6 +159,7 @@ if not _SKIP_DEFINITIONS:
         name = Column(String, nullable=False)
         description = Column(Text)
         importance = Column(String)
+        tags = Column(Text)  # JSON-encoded list of tag strings
 
 
     class Faction(Base):
@@ -168,6 +170,7 @@ if not _SKIP_DEFINITIONS:
         name = Column(String, nullable=False)
         description = Column(Text)
         type = Column(String)
+        tags = Column(Text)  # JSON-encoded list of tag strings
 
 
     class WorldSetting(Base):
@@ -178,6 +181,7 @@ if not _SKIP_DEFINITIONS:
         name = Column(String, nullable=False)
         description = Column(Text)
         details_json = Column(Text)
+        tags = Column(Text)  # JSON-encoded list of tag strings
 
 
     class Rule(Base):
@@ -188,6 +192,7 @@ if not _SKIP_DEFINITIONS:
         name = Column(String, nullable=False)
         description = Column(Text)
         type = Column(String)
+        tags = Column(Text)  # JSON-encoded list of tag strings
 
 
     # ============================================
@@ -247,6 +252,8 @@ if not _SKIP_DEFINITIONS:
 
         id = Column(Integer, primary_key=True, autoincrement=True)
         project_id = Column(Integer, ForeignKey("projects.id"), nullable=True, index=True)
+        title = Column(String(255), nullable=True)
+        status = Column(String(50), default="active")
         created_at = Column(DateTime, default=datetime.utcnow)
         updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 

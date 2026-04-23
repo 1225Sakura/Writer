@@ -62,6 +62,7 @@ class ItemResponse(BaseModel):
     description: Optional[str]
     owner: Optional[str]
     location: Optional[str]
+    tags: Optional[List[str]] = None
 
 
 class LocationResponse(BaseModel):
@@ -72,6 +73,7 @@ class LocationResponse(BaseModel):
     name: str
     description: Optional[str]
     importance: Optional[str]
+    tags: Optional[List[str]] = None
 
 
 class FactionResponse(BaseModel):
@@ -82,6 +84,7 @@ class FactionResponse(BaseModel):
     name: str
     description: Optional[str]
     type: Optional[str]
+    tags: Optional[List[str]] = None
 
 
 class WorldSettingResponse(BaseModel):
@@ -92,6 +95,7 @@ class WorldSettingResponse(BaseModel):
     name: str
     description: Optional[str]
     details_json: Optional[str]
+    tags: Optional[List[str]] = None
 
 
 class RuleResponse(BaseModel):
@@ -102,6 +106,7 @@ class RuleResponse(BaseModel):
     name: str
     description: Optional[str]
     type: Optional[str]
+    tags: Optional[List[str]] = None
 
 
 # ============================================
@@ -203,6 +208,8 @@ class ChatSessionResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
     id: int
+    title: Optional[str] = None
+    status: Optional[str] = None
     created_at: datetime
     updated_at: datetime
 

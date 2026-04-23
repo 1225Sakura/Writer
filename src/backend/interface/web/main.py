@@ -166,8 +166,8 @@ class ConnectionManager:
                 self.active_connections[session_id].remove(websocket)
             if not self.active_connections[session_id]:
                 del self.active_connections[session_id]
-                self.connection_status[session_id] = "disconnected"
-                del self.connection_status[session_id]
+                if session_id in self.connection_status:
+                    del self.connection_status[session_id]
                 # Clean up rate limiting data
                 if session_id in self.rate_limit_tracking:
                     del self.rate_limit_tracking[session_id]
@@ -671,6 +671,22 @@ async def legacy_health_check():
     """Legacy health check - redirects to /api/v1/health."""
     from routes.health import health_check
     return await health_check()
+
+
+# Kubernetes-style readiness probe at root path
+@app.get("/ready")
+async def root_ready():
+    """Kubernetes-style readiness probe at /ready."""
+    from routes.health import readiness_check
+    return await readiness_check()
+
+
+# Kubernetes-style liveness probe at root path
+@app.get("/live")
+async def root_live():
+    """Kubernetes-style liveness probe at /live."""
+    from routes.health import liveness_check
+    return await liveness_check()
 
 
 # WebSocket status endpoint

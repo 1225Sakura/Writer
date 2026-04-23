@@ -177,6 +177,7 @@ class ItemCreateRequest(BaseModel):
     description: Optional[str] = Field(default=None, max_length=MAX_TEXT_FIELD_LENGTH)
     owner: Optional[str] = Field(default=None, max_length=MAX_NAME_LENGTH)
     location: Optional[str] = Field(default=None, max_length=MAX_NAME_LENGTH)
+    tags: Optional[List[str]] = Field(default=None)
 
     @field_validator('name')
     @classmethod
@@ -197,6 +198,7 @@ class ItemUpdateRequest(BaseModel):
     description: Optional[str] = Field(default=None, max_length=MAX_TEXT_FIELD_LENGTH)
     owner: Optional[str] = Field(default=None, max_length=MAX_NAME_LENGTH)
     location: Optional[str] = Field(default=None, max_length=MAX_NAME_LENGTH)
+    tags: Optional[List[str]] = Field(default=None)
 
     @field_validator('name')
     @classmethod
@@ -218,6 +220,7 @@ class LocationCreateRequest(BaseModel):
     name: str = Field(..., min_length=1, max_length=MAX_NAME_LENGTH)
     description: Optional[str] = Field(default=None, max_length=MAX_TEXT_FIELD_LENGTH)
     importance: Optional[str] = Field(default=None, max_length=100)
+    tags: Optional[List[str]] = Field(default=None)
 
     @field_validator('name')
     @classmethod
@@ -237,6 +240,7 @@ class LocationUpdateRequest(BaseModel):
     name: Optional[str] = Field(default=None, min_length=1, max_length=MAX_NAME_LENGTH)
     description: Optional[str] = Field(default=None, max_length=MAX_TEXT_FIELD_LENGTH)
     importance: Optional[str] = Field(default=None, max_length=100)
+    tags: Optional[List[str]] = Field(default=None)
 
     @field_validator('name')
     @classmethod
@@ -258,6 +262,7 @@ class FactionCreateRequest(BaseModel):
     name: str = Field(..., min_length=1, max_length=MAX_NAME_LENGTH)
     description: Optional[str] = Field(default=None, max_length=MAX_TEXT_FIELD_LENGTH)
     type: Optional[str] = Field(default=None, max_length=100)
+    tags: Optional[List[str]] = Field(default=None)
 
     @field_validator('name')
     @classmethod
@@ -277,6 +282,7 @@ class FactionUpdateRequest(BaseModel):
     name: Optional[str] = Field(default=None, min_length=1, max_length=MAX_NAME_LENGTH)
     description: Optional[str] = Field(default=None, max_length=MAX_TEXT_FIELD_LENGTH)
     type: Optional[str] = Field(default=None, max_length=100)
+    tags: Optional[List[str]] = Field(default=None)
 
     @field_validator('name')
     @classmethod
@@ -298,6 +304,7 @@ class WorldSettingCreateRequest(BaseModel):
     name: str = Field(..., min_length=1, max_length=MAX_NAME_LENGTH)
     description: Optional[str] = Field(default=None, max_length=MAX_TEXT_FIELD_LENGTH)
     details_json: Optional[str] = Field(default=None, max_length=MAX_JSON_LENGTH)
+    tags: Optional[List[str]] = Field(default=None)
 
     @field_validator('name')
     @classmethod
@@ -330,6 +337,7 @@ class WorldSettingUpdateRequest(BaseModel):
     name: Optional[str] = Field(default=None, min_length=1, max_length=MAX_NAME_LENGTH)
     description: Optional[str] = Field(default=None, max_length=MAX_TEXT_FIELD_LENGTH)
     details_json: Optional[str] = Field(default=None, max_length=MAX_JSON_LENGTH)
+    tags: Optional[List[str]] = Field(default=None)
 
     @field_validator('name')
     @classmethod
@@ -359,6 +367,7 @@ class RuleCreateRequest(BaseModel):
     name: str = Field(..., min_length=1, max_length=MAX_NAME_LENGTH)
     description: Optional[str] = Field(default=None, max_length=MAX_TEXT_FIELD_LENGTH)
     type: Optional[str] = Field(default=None, max_length=100)
+    tags: Optional[List[str]] = Field(default=None)
 
     @field_validator('name')
     @classmethod
@@ -696,6 +705,32 @@ class ChatSessionCreateRequest(BaseModel):
     model_config = ConfigDict(str_strip_whitespace=True)
 
     pass
+
+
+class ChatSessionUpdateRequest(BaseModel):
+    """Request to update a chat session."""
+    model_config = ConfigDict(str_strip_whitespace=True)
+
+    title: Optional[str] = Field(default=None, min_length=1, max_length=MAX_TITLE_LENGTH)
+    status: Optional[str] = Field(default=None, max_length=50)
+
+    @field_validator('title')
+    @classmethod
+    def validate_title(cls, v: Optional[str]) -> Optional[str]:
+        if v is not None:
+            return validate_non_empty(v, field_name='Title', max_length=MAX_TITLE_LENGTH)
+        return v
+
+    @field_validator('status')
+    @classmethod
+    def validate_status(cls, v: Optional[str]) -> Optional[str]:
+        if v is not None:
+            valid_statuses = {'active', 'archived', 'closed'}
+            v = sanitize_text(v, max_length=50)
+            if v not in valid_statuses:
+                raise ValueError(f'Status must be one of: {", ".join(sorted(valid_statuses))}')
+            return v
+        return v
 
 
 # ============================================

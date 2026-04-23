@@ -115,6 +115,37 @@ class ChatSessionService:
         if session:
             session.updated_at = datetime.utcnow()
 
+    async def update(
+        self,
+        session_id: int,
+        title: str | None = None,
+        status: str | None = None,
+    ) -> ChatSession | None:
+        """Update a chat session's fields.
+
+        Args:
+            session_id: The session ID.
+            title: Optional new title.
+            status: Optional new status.
+
+        Returns:
+            The updated ChatSession or None if not found.
+        """
+        session = await self.get(session_id)
+        if session is None:
+            return None
+
+        if title is not None:
+            session.title = title
+        if status is not None:
+            session.status = status
+
+        session.updated_at = datetime.utcnow()
+        await self._db.flush()
+        await self._db.refresh(session)
+        logger.info("Updated chat session id=%s", session_id)
+        return session
+
 
 class ChatMessageService:
     """Manage chat messages and AI integration."""

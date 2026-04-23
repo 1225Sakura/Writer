@@ -8,10 +8,13 @@ export interface AuthStatus {
   skip_localhost: boolean
 }
 
-export interface AuthKeyResponse {
+export interface AuthResponse {
   api_key: string
   message: string
 }
+
+/** @deprecated Use AuthResponse instead */
+export type AuthKeyResponse = AuthResponse
 
 /**
  * Fetch the local API key from the backend.
@@ -19,7 +22,7 @@ export interface AuthKeyResponse {
  */
 export async function fetchApiKey(): Promise<string> {
   const client = await getApiClient()
-  const response = await client.post<AuthKeyResponse>('/auth/key')
+  const response = await client.post<AuthResponse>('/auth/key')
   const { api_key } = response.data
   localStorage.setItem('writer_api_key', api_key)
   return api_key

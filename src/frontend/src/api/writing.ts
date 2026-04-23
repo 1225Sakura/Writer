@@ -14,7 +14,7 @@ import type {
   IFLineFilters,
   PlotThreadFilters,
 } from "./types"
-import { api, resolveBaseURL } from "./request"
+import { api, resolveBaseURL, getApiKey } from "./request"
 
 // ============================================
 // Outlines
@@ -285,18 +285,7 @@ export const aiApi = {
     const url = `${baseURL}/ai/generate`
 
     // Reuse the same API key logic as the axios interceptor
-    let apiKey: string | null = null
-    const isElectron =
-      typeof window !== "undefined" && !!(window as Window & { electronAPI?: unknown }).electronAPI
-    if (isElectron) {
-      try {
-        apiKey = await (window as any).electronAPI.getApiKey()
-      } catch {
-        apiKey = null
-      }
-    } else {
-      apiKey = localStorage.getItem("writer_api_key")
-    }
+    const apiKey = await getApiKey()
 
     const response = await fetch(url, {
       method: "POST",

@@ -16,7 +16,7 @@ from backend.core.domain import ChatSession, ChatMessage, ExtractedEntity
 from backend.middleware.auth import require_auth
 from backend.core.domain.schemas import (
     ChatMessageCreateRequest,
-    ChatSessionCreateRequest,
+    ChatSessionUpdateRequest,
     ChatMessageResponse,
     ChatSessionResponse,
     ExtractedEntityResponse,
@@ -125,6 +125,29 @@ async def get_session(
 ):
     """Get a specific chat session."""
     session = await service.get(session_id)
+    if not session:
+        raise HTTPException(status_code=404, detail="Session not found")
+    return session
+
+
+@router.patch(
+    "/sessions/{session_id}",
+    response_model=ChatSessionResponse,
+    dependencies=[require_auth],
+    summary="更新会话",
+    description="更新指定ID的聊天会话的标题或状态。",
+)
+async def update_session(
+    session_id: int,
+    req: ChatSessionUpdateRequest,
+    service: ChatSessionService = Depends(get_chat_session_service),
+):
+    """Update a chat session's title or status."""
+    session = await service.update(
+        session_id=session_id,
+        title=req.title,
+        status=req.status,
+    )
     if not session:
         raise HTTPException(status_code=404, detail="Session not found")
     return session

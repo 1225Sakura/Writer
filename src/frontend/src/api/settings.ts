@@ -288,11 +288,11 @@ export const writingSettingsApi = {
 export const backupApi = {
   /** Export all project data as JSON for backup and migration. */
   export: async (): Promise<ExportDataResponse> =>
-    api.get<ExportDataResponse>("/settings/export"),
+    api.get<ExportDataResponse>("/project/export"),
 
   /** Import project data from JSON. */
   import: async (data: ExportDataResponse): Promise<ImportSummaryResponse> =>
-    api.post<ImportSummaryResponse>("/settings/import", data),
+    api.post<ImportSummaryResponse>("/project/import", data),
 }
 
 // ============================================

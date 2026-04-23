@@ -5,15 +5,20 @@ import os
 from pathlib import Path
 
 # Setup paths
-BASE_DIR = Path(__file__).parent.parent.parent  # D:/writer
-sys.path.insert(0, str(BASE_DIR / 'src'))
-os.chdir(BASE_DIR / 'src' / 'backend')
+BASE_DIR = Path(__file__).parent.parent.parent.parent  # D:/writer/src
+sys.path.insert(0, str(BASE_DIR))
+os.chdir(BASE_DIR / 'backend')
 
 # Alias backend submodules as top-level modules so bare imports in main.py
 # and relative imports in routes/agents work together.
+# Ensure backend package itself is loaded first
+import backend
+
 _ALIASES = [
-    'config', 'database', 'routes', 'middleware',
-    'utils', 'services', 'models', 'agents', 'schemas',
+    'config', 'database', 'init_db', 'migrations',
+    'routes', 'middleware', 'utils', 'services',
+    'agents', 'api', 'core', 'db', 'events',
+    'infrastructure', 'repositories',
 ]
 for _name in _ALIASES:
     _full = f'backend.{_name}'
@@ -22,7 +27,7 @@ for _name in _ALIASES:
         if _name not in sys.modules:
             sys.modules[_name] = _mod
     except Exception as _e:
-        print(f'[Start] Warning: could not alias backend.{_name}: {_e}')
+        pass  # Some modules may not be needed at startup
 
 # Load environment variables from .env.example if .env doesn't exist
 ENV_FILE = Path(__file__).parent / '.env'
@@ -47,13 +52,13 @@ def check_environment():
 # Auto-initialize database if needed
 def ensure_database():
     """Ensure database exists and is initialized."""
-    db_path = Path(__file__).parent.parent.parent / 'data' / 'writer.db'
+    db_path = BASE_DIR / 'data' / 'writer.db'
     db_path.parent.mkdir(parents=True, exist_ok=True)
 
     if not db_path.exists():
         print("Database not found, initializing...")
-        from init_db import init_db
-        init_db()
+        from init_db import init_database
+        init_database()
         print("Database initialized successfully")
 
 if __name__ == "__main__":

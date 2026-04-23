@@ -4,6 +4,7 @@
 from fastapi import APIRouter, HTTPException, Depends
 from typing import List, Optional
 from datetime import datetime
+import json
 
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
@@ -48,6 +49,7 @@ from backend.core.domain.schemas.response_schemas import (
     WritingSettingsResponse,
     ExportDataResponse,
 )
+from backend.core.domain.schemas.common_schemas import MessageResponse
 
 # Global event bus instance
 event_bus = AsyncEventBus()
@@ -56,6 +58,23 @@ event_bus = AsyncEventBus()
 def get_character_service(db: AsyncSession = Depends(get_db)) -> CharacterService:
     """Dependency to inject CharacterService with event bus and cache."""
     return CharacterService(db, event_bus, get_cache_service())
+
+
+def _tags_to_json(tags: Optional[List[str]]) -> Optional[str]:
+    """Serialize a list of tags to a JSON string for storage."""
+    if tags is None:
+        return None
+    return json.dumps(tags, ensure_ascii=False)
+
+
+def _json_to_tags(tags_json: Optional[str]) -> Optional[List[str]]:
+    """Deserialize a JSON string to a list of tags."""
+    if tags_json is None:
+        return None
+    try:
+        return json.loads(tags_json)
+    except (json.JSONDecodeError, TypeError):
+        return None
 
 
 router = APIRouter(prefix="/settings", tags=["settings"], dependencies=[require_auth])
@@ -131,6 +150,7 @@ async def update_character(
 
 @router.delete(
     "/characters/{character_id}",
+    response_model=MessageResponse,
     summary="删除角色",
     description="删除指定ID的角色。",
 )
@@ -177,6 +197,7 @@ async def create_character_relationship(
 
 @router.delete(
     "/characters/{character_id}/relationships/{relationship_id}",
+    response_model=MessageResponse,
     summary="删除角色关系",
     description="删除指定角色关系。",
 )
@@ -264,6 +285,7 @@ async def update_character_storyline(
 
 @router.delete(
     "/characters/{character_id}/storylines/{storyline_id}",
+    response_model=MessageResponse,
     summary="删除角色故事线",
     description="删除指定角色故事线。",
 )
@@ -316,10 +338,13 @@ async def list_items(
 )
 async def create_item(item: ItemCreateRequest, db: AsyncSession = Depends(get_db)):
     """Create a new item."""
-    db_item = Item(**item.model_dump())
+    data = item.model_dump()
+    data['tags'] = _tags_to_json(data.get('tags'))
+    db_item = Item(**data)
     db.add(db_item)
     await db.flush()
     await db.refresh(db_item)
+    db_item.tags = _json_to_tags(db_item.tags)
     get_cache_service().clear_entity_cache("item")
     return db_item
 
@@ -336,6 +361,7 @@ async def get_item(item_id: int, db: AsyncSession = Depends(get_db)):
     item = result.scalar_one_or_none()
     if not item:
         raise HTTPException(status_code=404, detail="Item not found")
+    item.tags = _json_to_tags(item.tags)
     return item
 
 
@@ -356,17 +382,22 @@ async def update_item(
     if not db_item:
         raise HTTPException(status_code=404, detail="Item not found")
 
-    for key, value in item.model_dump(exclude_unset=True).items():
+    update_data = item.model_dump(exclude_unset=True)
+    if 'tags' in update_data:
+        update_data['tags'] = _tags_to_json(update_data['tags'])
+    for key, value in update_data.items():
         setattr(db_item, key, value)
 
     await db.flush()
     await db.refresh(db_item)
+    db_item.tags = _json_to_tags(db_item.tags)
     get_cache_service().clear_entity_cache("item")
     return db_item
 
 
 @router.delete(
     "/items/{item_id}",
+    response_model=MessageResponse,
     summary="删除物品",
     description="删除指定ID的物品。",
 )
@@ -410,12 +441,31 @@ async def list_locations(
 )
 async def create_location(location: LocationCreateRequest, db: AsyncSession = Depends(get_db)):
     """Create a new location."""
-    db_location = Location(**location.model_dump())
+    data = location.model_dump()
+    data['tags'] = _tags_to_json(data.get('tags'))
+    db_location = Location(**data)
     db.add(db_location)
     await db.flush()
     await db.refresh(db_location)
+    db_location.tags = _json_to_tags(db_location.tags)
     get_cache_service().clear_entity_cache("location")
     return db_location
+
+
+@router.get(
+    "/locations/{location_id}",
+    response_model=LocationResponse,
+    summary="获取地点详情",
+    description="获取指定ID的地点详细信息。",
+)
+async def get_location(location_id: int, db: AsyncSession = Depends(get_db)):
+    """Get a specific location by ID."""
+    result = await db.execute(select(Location).where(Location.id == location_id))
+    location = result.scalar_one_or_none()
+    if not location:
+        raise HTTPException(status_code=404, detail="Location not found")
+    location.tags = _json_to_tags(location.tags)
+    return location
 
 
 @router.patch(
@@ -435,32 +485,22 @@ async def update_location(
     if not db_location:
         raise HTTPException(status_code=404, detail="Location not found")
 
-    for key, value in location.model_dump(exclude_unset=True).items():
+    update_data = location.model_dump(exclude_unset=True)
+    if 'tags' in update_data:
+        update_data['tags'] = _tags_to_json(update_data['tags'])
+    for key, value in update_data.items():
         setattr(db_location, key, value)
 
     await db.flush()
     await db.refresh(db_location)
+    db_location.tags = _json_to_tags(db_location.tags)
     get_cache_service().clear_entity_cache("location")
     return db_location
 
 
-@router.get(
-    "/locations/{location_id}",
-    response_model=LocationResponse,
-    summary="获取地点详情",
-    description="获取指定ID的地点详细信息。",
-)
-async def get_location(location_id: int, db: AsyncSession = Depends(get_db)):
-    """Get a specific location by ID."""
-    result = await db.execute(select(Location).where(Location.id == location_id))
-    location = result.scalar_one_or_none()
-    if not location:
-        raise HTTPException(status_code=404, detail="Location not found")
-    return location
-
-
 @router.delete(
     "/locations/{location_id}",
+    response_model=MessageResponse,
     summary="删除地点",
     description="删除指定ID的地点。",
 )
@@ -504,10 +544,13 @@ async def list_factions(
 )
 async def create_faction(faction: FactionCreateRequest, db: AsyncSession = Depends(get_db)):
     """Create a new faction."""
-    db_faction = Faction(**faction.model_dump())
+    data = faction.model_dump()
+    data['tags'] = _tags_to_json(data.get('tags'))
+    db_faction = Faction(**data)
     db.add(db_faction)
     await db.flush()
     await db.refresh(db_faction)
+    db_faction.tags = _json_to_tags(db_faction.tags)
     get_cache_service().clear_entity_cache("faction")
     return db_faction
 
@@ -529,11 +572,15 @@ async def update_faction(
     if not db_faction:
         raise HTTPException(status_code=404, detail="Faction not found")
 
-    for key, value in faction.model_dump(exclude_unset=True).items():
+    update_data = faction.model_dump(exclude_unset=True)
+    if 'tags' in update_data:
+        update_data['tags'] = _tags_to_json(update_data['tags'])
+    for key, value in update_data.items():
         setattr(db_faction, key, value)
 
     await db.flush()
     await db.refresh(db_faction)
+    db_faction.tags = _json_to_tags(db_faction.tags)
     get_cache_service().clear_entity_cache("faction")
     return db_faction
 
@@ -550,11 +597,13 @@ async def get_faction(faction_id: int, db: AsyncSession = Depends(get_db)):
     faction = result.scalar_one_or_none()
     if not faction:
         raise HTTPException(status_code=404, detail="Faction not found")
+    faction.tags = _json_to_tags(faction.tags)
     return faction
 
 
 @router.delete(
     "/factions/{faction_id}",
+    response_model=MessageResponse,
     summary="删除势力",
     description="删除指定ID的势力。",
 )
@@ -597,10 +646,13 @@ async def create_world_setting(
     db: AsyncSession = Depends(get_db)
 ):
     """Create a new world setting."""
-    db_setting = WorldSetting(**setting.model_dump())
+    data = setting.model_dump()
+    data['tags'] = _tags_to_json(data.get('tags'))
+    db_setting = WorldSetting(**data)
     db.add(db_setting)
     await db.flush()
     await db.refresh(db_setting)
+    db_setting.tags = _json_to_tags(db_setting.tags)
     get_cache_service().clear_entity_cache("world_setting")
     return db_setting
 
@@ -617,6 +669,7 @@ async def get_world_setting(setting_id: int, db: AsyncSession = Depends(get_db))
     setting = result.scalar_one_or_none()
     if not setting:
         raise HTTPException(status_code=404, detail="World setting not found")
+    setting.tags = _json_to_tags(setting.tags)
     return setting
 
 
@@ -637,11 +690,15 @@ async def update_world_setting(
     if not db_setting:
         raise HTTPException(status_code=404, detail="World setting not found")
 
-    for key, value in setting.model_dump(exclude_unset=True).items():
+    update_data = setting.model_dump(exclude_unset=True)
+    if 'tags' in update_data:
+        update_data['tags'] = _tags_to_json(update_data['tags'])
+    for key, value in update_data.items():
         setattr(db_setting, key, value)
 
     await db.flush()
     await db.refresh(db_setting)
+    db_setting.tags = _json_to_tags(db_setting.tags)
     get_cache_service().clear_entity_cache("world_setting")
     return db_setting
 
@@ -691,10 +748,13 @@ async def list_rules(
 )
 async def create_rule(rule: RuleCreateRequest, db: AsyncSession = Depends(get_db)):
     """Create a new rule."""
-    db_rule = Rule(**rule.model_dump())
+    data = rule.model_dump()
+    data['tags'] = _tags_to_json(data.get('tags'))
+    db_rule = Rule(**data)
     db.add(db_rule)
     await db.flush()
     await db.refresh(db_rule)
+    db_rule.tags = _json_to_tags(db_rule.tags)
     get_cache_service().clear_entity_cache("rule")
     return db_rule
 
@@ -711,6 +771,7 @@ async def get_rule(rule_id: int, db: AsyncSession = Depends(get_db)):
     rule = result.scalar_one_or_none()
     if not rule:
         raise HTTPException(status_code=404, detail="Rule not found")
+    rule.tags = _json_to_tags(rule.tags)
     return rule
 
 
@@ -731,17 +792,22 @@ async def update_rule(
     if not db_rule:
         raise HTTPException(status_code=404, detail="Rule not found")
 
-    for key, value in rule.model_dump(exclude_unset=True).items():
+    update_data = rule.model_dump(exclude_unset=True)
+    if 'tags' in update_data:
+        update_data['tags'] = _tags_to_json(update_data['tags'])
+    for key, value in update_data.items():
         setattr(db_rule, key, value)
 
     await db.flush()
     await db.refresh(db_rule)
+    db_rule.tags = _json_to_tags(db_rule.tags)
     get_cache_service().clear_entity_cache("rule")
     return db_rule
 
 
 @router.delete(
     "/rules/{rule_id}",
+    response_model=MessageResponse,
     summary="删除规则",
     description="删除指定ID的规则。",
 )

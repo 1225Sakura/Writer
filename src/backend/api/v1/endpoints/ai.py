@@ -991,6 +991,17 @@ async def get_ai_provider_health() -> dict:
     return health
 
 
+@router.get(
+    "/provider-health",
+    summary="AI提供商健康状态（别名）",
+    description="/health 的别名端点，返回各AI提供商的健康状态、降级状态、错误率、调用次数、成功率和平均延迟。",
+)
+async def get_ai_provider_health_alias() -> dict:
+    """Alias for /ai/health - return AI provider health status and metrics."""
+    health = ai_service.get_provider_health()
+    return health
+
+
 @router.post(
     "/failover",
     response_model=FailoverResponse,
