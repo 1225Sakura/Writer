@@ -78,15 +78,13 @@ export function UserInputPanel() {
   const canSend = input.trim() && !isLoading && !isStreaming
 
     return (
-    <div className="flex flex-col gap-3 p-4"
-         style={{
-           backgroundColor: 'var(--color-surface-base)',
-           borderTop: '1px solid var(--border-default)',
-         }}>="flex flex-col gap-3 p-4"
-         style={{
-           backgroundColor: 'var(--color-bg-surface)',
-           borderTop: '1px solid var(--color-border)',
-         }}>
+    <div
+      className="flex flex-col gap-3 p-4"
+      style={{
+        backgroundColor: 'var(--color-surface-base)',
+        borderTop: '1px solid var(--border-default)',
+      }}
+    >
       {/* Template selector + Export button row */}
       <div className="flex items-center justify-between">
         <ChatTemplates onSelect={handleTemplateSelect} disabled={isLoading || isStreaming} />
