@@ -5,22 +5,24 @@
  * 适用于突出显示、悬停效果、强调UI
  *
  * 设计规范（DESIGN_VISUAL.md）：
- * - glow-accent: 0 0 16px rgba(94, 106, 210, 0.4), 0 0 32px rgba(94, 106, 210, 0.2)
- * - glow-vermillion: 0 0 12px rgba(196, 92, 92, 0.4), 0 0 24px rgba(196, 92, 92, 0.2)
+ * - glow-accent: 0 0 12px rgba(94, 106, 210, 0.25), 0 0 24px rgba(94, 106, 210, 0.1)
+ * - glow-vermillion: 0 0 8px rgba(196, 92, 92, 0.25), 0 0 16px rgba(196, 92, 92, 0.1)
+ *
+ * 默认使用 subtle 强度，避免过度发光干扰写作
  */
 
 import { motion } from 'framer-motion'
 import type { ReactNode, CSSProperties } from 'react'
 import { cn } from '@/lib/utils'
 
-export type GlowIntensity = 'subtle' | 'soft' | 'medium' | 'strong' | 'pulse'
+export type GlowIntensity = 'subtle' | 'soft' | 'medium' | 'strong'
 export type GlowColor = 'accent' | 'character' | 'item' | 'location' | 'faction' | 'outline' | 'ifline' | 'custom'
 
 interface GlowCardProps {
   children: ReactNode
   className?: string
   style?: CSSProperties
-  /** 发光强度 */
+  /** 发光强度 - 默认 subtle，避免过度发光 */
   intensity?: GlowIntensity
   /** 发光颜色 */
   color?: GlowColor
@@ -36,42 +38,38 @@ interface GlowCardProps {
   padding?: 'none' | 'sm' | 'md' | 'lg'
   /** 是否显示边框 */
   border?: boolean
-  /** 是否启用动画 */
+  /** 是否启用脉冲动画 - 默认关闭 */
   animated?: boolean
   /** 点击回调 */
   onClick?: () => void
 }
 
 const glowColorMap: Record<GlowColor, string> = {
-  accent: 'rgba(94, 106, 210, 0.4)',
-  character: 'rgba(232, 184, 125, 0.4)',
-  item: 'rgba(155, 126, 217, 0.4)',
-  location: 'rgba(94, 181, 166, 0.4)',
-  faction: 'rgba(212, 93, 93, 0.4)',
-  outline: 'rgba(91, 142, 232, 0.4)',
-  ifline: 'rgba(126, 183, 74, 0.4)',
-  custom: 'rgba(94, 106, 210, 0.4)',
+  accent: 'rgba(94, 106, 210, 0.3)',
+  character: 'rgba(232, 184, 125, 0.3)',
+  item: 'rgba(155, 126, 217, 0.3)',
+  location: 'rgba(94, 181, 166, 0.3)',
+  faction: 'rgba(212, 93, 93, 0.3)',
+  outline: 'rgba(91, 142, 232, 0.3)',
+  ifline: 'rgba(126, 183, 74, 0.3)',
+  custom: 'rgba(94, 106, 210, 0.3)',
 }
 
 const glowIntensityStyles: Record<GlowIntensity, { boxShadow: string; borderColor: string }> = {
   subtle: {
-    boxShadow: '0 0 8px var(--glow-color, rgba(94, 106, 210, 0.2))',
-    borderColor: 'rgba(94, 106, 210, 0.15)',
+    boxShadow: '0 0 6px var(--glow-color, rgba(94, 106, 210, 0.15))',
+    borderColor: 'rgba(94, 106, 210, 0.12)',
   },
   soft: {
-    boxShadow: '0 0 16px var(--glow-color, rgba(94, 106, 210, 0.25))',
-    borderColor: 'rgba(94, 106, 210, 0.2)',
+    boxShadow: '0 0 12px var(--glow-color, rgba(94, 106, 210, 0.2))',
+    borderColor: 'rgba(94, 106, 210, 0.18)',
   },
   medium: {
-    boxShadow: '0 0 24px var(--glow-color, rgba(94, 106, 210, 0.35))',
-    borderColor: 'rgba(94, 106, 210, 0.25)',
+    boxShadow: '0 0 20px var(--glow-color, rgba(94, 106, 210, 0.28))',
+    borderColor: 'rgba(94, 106, 210, 0.22)',
   },
   strong: {
-    boxShadow: '0 0 40px var(--glow-color, rgba(94, 106, 210, 0.5))',
-    borderColor: 'rgba(94, 106, 210, 0.35)',
-  },
-  pulse: {
-    boxShadow: '0 0 24px var(--glow-color, rgba(94, 106, 210, 0.4))',
+    boxShadow: '0 0 32px var(--glow-color, rgba(94, 106, 210, 0.4))',
     borderColor: 'rgba(94, 106, 210, 0.3)',
   },
 }
@@ -95,16 +93,16 @@ const paddingMap = {
  * GlowCard - 发光效果卡片
  *
  * 特性：
- * - 多种发光强度
+ * - 多种发光强度（默认 subtle）
  * - 主题色支持
- * - 悬停/点击微动效
- * - 可选脉冲动画
+ * - 悬停/点击微动效（克制）
+ * - 可选脉冲动画（默认关闭）
  */
 export function GlowCard({
   children,
   className,
   style,
-  intensity = 'medium',
+  intensity = 'subtle',
   color = 'accent',
   customColor,
   hover = true,
@@ -137,34 +135,34 @@ export function GlowCard({
       className={cn('cursor-pointer', className)}
       style={baseStyles}
       onClick={onClick}
-      whileHover={hover ? { scale: 1.02, y: -2 } : undefined}
-      whileTap={press ? { scale: 0.98 } : undefined}
-      transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
+      whileHover={hover ? { opacity: 0.95 } : undefined}
+      whileTap={press ? { scale: 0.99 } : undefined}
+      transition={{ duration: 0.15, ease: [0.16, 1, 0.3, 1] }}
     >
-      {/* Inner glow overlay */}
+      {/* Inner glow overlay - 仅在非 subtle 时显示 */}
       {intensity !== 'subtle' && (
         <div
           className="absolute inset-0 pointer-events-none"
           style={{
             background: `radial-gradient(circle at center, ${glowColor} 0%, transparent 70%)`,
-            opacity: 0.1,
+            opacity: 0.06,
           }}
         />
       )}
 
-      {/* Animated pulse effect */}
-      {animated && intensity === 'pulse' && (
+      {/* Animated pulse effect - 仅在显式启用时显示 */}
+      {animated && (
         <motion.div
           className="absolute inset-0 pointer-events-none"
           style={{
             background: `radial-gradient(circle at center, ${glowColor} 0%, transparent 70%)`,
           }}
           animate={{
-            opacity: [0.05, 0.15, 0.05],
-            scale: [1, 1.1, 1],
+            opacity: [0.03, 0.08, 0.03],
+            scale: [1, 1.05, 1],
           }}
           transition={{
-            duration: 2,
+            duration: 3,
             repeat: Infinity,
             ease: 'easeInOut',
           }}
@@ -178,6 +176,7 @@ export function GlowCard({
 
 /**
  * GlowBadge - 发光标签
+ * 默认使用更柔和的发光
  */
 export function GlowBadge({
   children,
@@ -204,7 +203,7 @@ export function GlowBadge({
         ...sizeStyles[size],
         background: `rgba(${color === 'accent' ? '94, 106, 210' : color === 'character' ? '232, 184, 125' : color === 'ifline' ? '126, 183, 74' : '94, 106, 210'}, 0.1)`,
         border: `1px solid ${glowColor}`,
-        boxShadow: `0 0 8px ${glowColor}`,
+        boxShadow: `0 0 6px ${glowColor.replace(/[\d.]+\)$/, '0.15)')}`,
         color: glowColor.replace(/[\d.]+\)$/, '1)').replace('rgba', 'rgb'),
       }}
     >
@@ -219,7 +218,7 @@ export function GlowBadge({
 export function GlowDivider({
   className,
   color = 'accent',
-  intensity = 'soft',
+  intensity = 'subtle',
   direction = 'horizontal',
 }: {
   className?: string
@@ -228,7 +227,7 @@ export function GlowDivider({
   direction?: 'horizontal' | 'vertical'
 }) {
   const glowColor = glowColorMap[color]
-  const intensityOpacity = { subtle: 0.3, soft: 0.5, medium: 0.7 }[intensity]
+  const intensityOpacity = { subtle: 0.2, soft: 0.35, medium: 0.5 }[intensity]
 
   return (
     <div

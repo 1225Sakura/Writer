@@ -36,24 +36,36 @@ const themeColors: Record<string, string> = {
 }
 
 /**
+ * 基于种子生成伪随机数，确保每次渲染结果一致
+ */
+function seededRandom(seed: number): () => number {
+  let s = seed
+  return () => {
+    s = (s * 16807 + 0) % 2147483647
+    return (s - 1) / 2147483646
+  }
+}
+
+/**
  * 预定义粒子配置，使用CSS变量实现主题同步
  * 颜色通过CSS变量引用，自动跟随主题变化
  */
-function useParticles(count: number = 16): ParticleConfig[] {
+function useParticles(count: number = 12): ParticleConfig[] {
   return useMemo(() => {
     const colorKeys = Object.keys(themeColors)
+    const rand = seededRandom(42) // 固定种子确保一致性
     const configs: ParticleConfig[] = []
 
     for (let i = 0; i < count; i++) {
       const colorKey = colorKeys[i % colorKeys.length]
       configs.push({
-        size: 3 + Math.floor(Math.random() * 5),
-        left: `${10 + (i * 80) / count + Math.random() * 10}%`,
-        top: `${10 + Math.random() * 80}%`,
-        delay: `${(i * 0.7) % 12}s`,
-        duration: `${16 + Math.random() * 14}s`,
+        size: 2 + Math.floor(rand() * 3),
+        left: `${8 + (i * 84) / count + rand() * 8}%`,
+        top: `${8 + rand() * 84}%`,
+        delay: `${(i * 0.9) % 14}s`,
+        duration: `${18 + rand() * 16}s`,
         colorVar: themeColors[colorKey],
-        opacity: 0.03 + Math.random() * 0.05,
+        opacity: 0.02 + rand() * 0.03,
       })
     }
 
@@ -71,17 +83,28 @@ interface ParticleBackgroundProps {
  *
  * 性能优化：
  * - IntersectionObserver：不在视口内时暂停渲染
- * - will-change: transform, opacity：GPU加速
  * - 纯CSS动画：零JS开销
  * - CSS变量颜色：自动跟随主题切换
+ * - 低透明度：不干扰正文阅读
+ * - prefers-reduced-motion：尊重用户减少动画偏好
  */
 export function ParticleBackground({
-  particleCount = 16,
+  particleCount = 12,
   enabled = true,
 }: ParticleBackgroundProps) {
   const containerRef = useRef<HTMLDivElement>(null)
   const [isVisible, setIsVisible] = useState(true)
+  const [prefersReducedMotion, setPrefersReducedMotion] = useState(false)
   const particles = useParticles(particleCount)
+
+  // 检测 prefers-reduced-motion
+  useEffect(() => {
+    const mql = window.matchMedia('(prefers-reduced-motion: reduce)')
+    setPrefersReducedMotion(mql.matches)
+    const handler = (e: MediaQueryListEvent) => setPrefersReducedMotion(e.matches)
+    mql.addEventListener('change', handler)
+    return () => mql.removeEventListener('change', handler)
+  }, [])
 
   // 使用 IntersectionObserver 检测可见性
   useEffect(() => {
@@ -99,7 +122,7 @@ export function ParticleBackground({
     return () => observer.disconnect()
   }, [])
 
-  if (!enabled || !isVisible) {
+  if (!enabled || !isVisible || prefersReducedMotion) {
     return <div ref={containerRef} aria-hidden="true" />
   }
 
@@ -134,7 +157,7 @@ export function ParticleBackground({
             borderRadius: '50%',
             animationDelay: p.delay,
             animationDuration: p.duration,
-            willChange: 'transform, opacity',
+            willChange: 'transform',
           }}
         />
       ))}

@@ -62,18 +62,12 @@ export function ChatInitPage() {
       {/* Ambient background glow */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden">
         <motion.div
-          className="absolute -top-40 -left-40 w-96 h-96 rounded-full"
-          style={{
-            background: 'radial-gradient(circle, var(--accent-primary) 0%, transparent 70%)',
-          }}
+          className="absolute -top-40 -left-40 w-96 h-96 rounded-full bg-accent-primary/10"
           animate={{ scale: [1, 1.1, 1], opacity: [0.6, 0.8, 0.6] }}
           transition={{ duration: 8, repeat: Infinity, ease: 'easeInOut' }}
         />
         <motion.div
-          className="absolute -bottom-20 right-20 w-80 h-80 rounded-full"
-          style={{
-            background: 'radial-gradient(circle, var(--color-character) 0%, transparent 70%)',
-          }}
+          className="absolute -bottom-20 right-20 w-80 h-80 rounded-full bg-[var(--color-character)]/10"
           animate={{ scale: [1, 1.15, 1], opacity: [0.5, 0.7, 0.5] }}
           transition={{ duration: 10, repeat: Infinity, ease: 'easeInOut', delay: 2 }}
         />
@@ -81,13 +75,8 @@ export function ChatInitPage() {
 
       {/* 顶部导航栏 - 48px */}
       <motion.header
-        className="h-[var(--layout-topbar-height)] flex items-center justify-between px-4 z-20 relative shrink-0"
-        style={{
-          backgroundColor: 'var(--color-surface-base)',
-          backdropFilter: 'blur(12px) saturate(1.2)',
-          WebkitBackdropFilter: 'blur(12px) saturate(1.2)',
-          borderBottom: '1px solid var(--color-border)',
-        }}
+        className="h-[var(--layout-topbar-height)] flex items-center justify-between px-4 z-20 relative shrink-0
+                   bg-surface-base backdrop-blur-md border-b border-default"
         initial={{ y: -20, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
@@ -95,21 +84,15 @@ export function ChatInitPage() {
         {/* Left: Logo + Project Name */}
         <div className="flex items-center gap-3">
           <motion.div
-            className="w-8 h-8 rounded-lg flex items-center justify-center"
-            style={{
-              backgroundColor: 'var(--accent-muted)',
-              border: '1px solid var(--border-focus)',
-              boxShadow: 'var(--shadow-glow-sm)',
-            }}
+            className="w-8 h-8 rounded-lg flex items-center justify-center bg-accent-muted border border-border-focus shadow-glow-sm"
             initial={{ scale: 0.8, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             transition={{ delay: 0.1, duration: 0.3, ease: [0.34, 1.56, 0.64, 1] }}
           >
-            <PenTool className="w-4 h-4" style={{ color: 'var(--accent-primary)' }} />
+            <PenTool className="w-4 h-4 text-accent-primary" />
           </motion.div>
           <motion.h1
-            className="font-medium text-sm"
-            style={{ color: 'var(--text-primary)' }}
+            className="font-medium text-sm text-primary"
             initial={{ x: -8, opacity: 0 }}
             animate={{ x: 0, opacity: 1 }}
             transition={{ delay: 0.15, duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
@@ -118,12 +101,8 @@ export function ChatInitPage() {
           </motion.h1>
           {hasMessages && (
             <motion.span
-              className="text-xs ml-2 px-2 py-0.5 rounded-full border"
-              style={{
-                color: 'var(--text-secondary)',
-                backgroundColor: 'var(--color-surface-base)',
-                borderColor: 'var(--border-subtle)',
-              }}
+              className="text-xs ml-2 px-2 py-0.5 rounded-full border border-subtle
+                         text-secondary bg-surface-base"
               initial={{ scale: 0.8, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               transition={{ delay: 0.2, duration: 0.25 }}
@@ -135,11 +114,12 @@ export function ChatInitPage() {
           {/* WebSocket connection status */}
           {wsStatus !== 'connected' && (
             <motion.div
-              className="flex items-center gap-1 ml-2 text-[10px] px-2 py-0.5 rounded-full"
+              className="flex items-center gap-1 ml-2 text-[10px] px-2 py-0.5 rounded-full border
+                         bg-surface-base"
               style={{
                 color: wsStatus === 'reconnecting' ? 'var(--color-danger)' : 'var(--text-secondary)',
+                borderColor: wsStatus === 'reconnecting' ? 'rgba(196, 92, 92, 0.2)' : 'var(--border-subtle)',
                 backgroundColor: wsStatus === 'reconnecting' ? 'rgba(196, 92, 92, 0.08)' : 'var(--color-surface-base)',
-                border: `1px solid ${wsStatus === 'reconnecting' ? 'rgba(196, 92, 92, 0.2)' : 'var(--border-subtle)'}`,
               }}
               initial={{ scale: 0.8, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
@@ -173,41 +153,29 @@ export function ChatInitPage() {
           transition={{ delay: 0.2, duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
         >
           <motion.button
-            className="p-2 rounded-lg"
-            style={{
-              backgroundColor: 'var(--color-surface-raised)',
-              border: '1px solid var(--color-border)',
-              color: 'var(--text-secondary)',
-            }}
+            className="p-2 rounded-lg bg-surface-raised border border-default text-secondary
+                       hover:bg-surface-hover transition-colors"
             title="保存会话"
-            whileHover={{ scale: 1.05, backgroundColor: 'var(--color-surface-hover)' }}
+            whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
           >
             <Save className="w-4 h-4" />
           </motion.button>
           <motion.button
-            className="p-2 rounded-lg"
-            style={{
-              backgroundColor: 'var(--color-surface-raised)',
-              border: '1px solid var(--color-border)',
-              color: 'var(--text-secondary)',
-            }}
+            className="p-2 rounded-lg bg-surface-raised border border-default text-secondary
+                       hover:bg-surface-hover transition-colors"
             title="历史记录"
-            whileHover={{ scale: 1.05, backgroundColor: 'var(--color-surface-hover)' }}
+            whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
           >
             <History className="w-4 h-4" />
           </motion.button>
           <motion.button
-            className="p-2 rounded-lg"
-            style={{
-              backgroundColor: 'var(--color-surface-raised)',
-              border: '1px solid var(--color-border)',
-              color: 'var(--text-secondary)',
-            }}
+            className="p-2 rounded-lg bg-surface-raised border border-default text-secondary
+                       hover:bg-surface-hover transition-colors"
             title="主题设置"
             onClick={toggleTheme}
-            whileHover={{ scale: 1.05, backgroundColor: 'var(--color-surface-hover)' }}
+            whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
           >
             <AnimatePresence mode="wait" initial={false}>
@@ -238,8 +206,7 @@ export function ChatInitPage() {
       <div className="flex flex-1 overflow-hidden relative z-10">
         {/* 左侧：AI聊天区域 (60%) */}
         <motion.div
-          className="flex-1 flex flex-col border-r"
-          style={{ borderColor: 'var(--border-default)' }}
+          className="flex-1 flex flex-col border-r border-default"
           initial={{ opacity: 0, x: -20 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.4, delay: 0.1, ease: [0.22, 1, 0.36, 1] }}
@@ -259,8 +226,7 @@ export function ChatInitPage() {
 
         {/* 右侧：已收集信息面板 */}
         <motion.div
-          className="w-[40%] max-w-[480px] min-w-[280px] overflow-y-auto shrink-0 hidden md:block"
-          style={{ backgroundColor: 'var(--color-surface-raised)' }}
+          className="w-[40%] max-w-[480px] min-w-[280px] overflow-y-auto shrink-0 hidden md:block bg-surface-raised"
           initial={{ x: 24, opacity: 0 }}
           animate={{ x: 0, opacity: 1 }}
           transition={{ delay: 0.15, duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
@@ -271,19 +237,14 @@ export function ChatInitPage() {
 
       {/* 底部操作栏 - 48px */}
       <motion.footer
-        className="h-[var(--layout-topbar-height)] flex items-center justify-between px-4 shrink-0 relative z-20"
-        style={{
-          backgroundColor: 'var(--color-surface-base)',
-          backdropFilter: 'blur(12px) saturate(1.2)',
-          WebkitBackdropFilter: 'blur(12px) saturate(1.2)',
-          borderTop: '1px solid var(--color-border)',
-        }}
+        className="h-[var(--layout-topbar-height)] flex items-center justify-between px-4 shrink-0 relative z-20
+                   bg-surface-base backdrop-blur-md border-t border-default"
         initial={{ y: 20, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ duration: 0.4, delay: 0.2, ease: [0.22, 1, 0.36, 1] }}
       >
         <div className="flex items-center gap-3">
-          <span className="text-xs" style={{ color: 'var(--text-secondary)' }}>
+          <span className="text-xs text-secondary">
             AI 正在引导你完善故事设定
           </span>
         </div>

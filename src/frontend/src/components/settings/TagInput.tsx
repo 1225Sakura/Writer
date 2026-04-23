@@ -9,7 +9,6 @@ interface TagInputProps {
   tags: string[]
 }
 
-// Entity type color mapping
 const ENTITY_TYPE_COLORS: Record<string, string> = {
   character: 'var(--color-character)',
   item: 'var(--color-item)',
@@ -21,7 +20,6 @@ const ENTITY_TYPE_COLORS: Record<string, string> = {
   outline: 'var(--color-outline)',
 }
 
-// Tag animation variants
 const tagVariants = {
   initial: { opacity: 0, scale: 0.6, y: 8 },
   animate: { opacity: 1, scale: 1, y: 0 },
@@ -34,19 +32,10 @@ const containerVariants = {
 }
 
 function getTagColor(tagName: string, entityType?: string): string {
-  // If entity type is provided, use it as base hue influence
   if (entityType && ENTITY_TYPE_COLORS[entityType]) {
-    const baseColor = ENTITY_TYPE_COLORS[entityType]
-    // Generate variation based on tag name
-    let hash = 0
-    for (let i = 0; i < tagName.length; i++) {
-      hash = tagName.charCodeAt(i) + ((hash << 5) - hash)
-    }
-    // Return the entity type color with slight opacity variation
-    return baseColor
+    return ENTITY_TYPE_COLORS[entityType]
   }
 
-  // Fallback to hash-based color
   const TAG_COLORS = [
     '#e8b87d', '#9b7ed9', '#5eb5a6', '#d45d5d', '#5e6ad2',
     '#7eb84a', '#c45c5c', '#5b8ee8', '#e87d9b', '#8ee85b',
@@ -236,11 +225,9 @@ export function TagInput({ entityType, entityId, tags }: TagInputProps) {
                   onKeyDown={handleKeyDown}
                   onFocus={() => setShowSuggestions(true)}
                   placeholder="输入标签..."
-                  className="w-full pl-8 pr-3 py-1.5 rounded-md text-xs transition-all outline-none"
+                  className="w-full pl-8 pr-3 py-1.5 rounded-md text-xs transition-all outline-none bg-white/5 text-[var(--text-primary)] border border-white/10 focus:border-[var(--border-focus)] focus:ring-1 focus:ring-[var(--accent-muted)]"
                   style={{
-                    backgroundColor: 'rgba(255,255,255,0.05)',
-                    border: `1px solid ${inputValue ? `${entityColor}50` : 'rgba(255,255,255,0.1)'}`,
-                    color: 'var(--text-primary)',
+                    borderColor: inputValue ? `${entityColor}50` : 'rgba(255,255,255,0.1)',
                     boxShadow: inputValue ? `0 0 0 2px ${entityColor}15` : 'none',
                   }}
                 />
@@ -251,8 +238,7 @@ export function TagInput({ entityType, entityId, tags }: TagInputProps) {
                   setInputValue('')
                   setShowSuggestions(false)
                 }}
-                className="p-1.5 rounded transition-colors hover:bg-white/10"
-                style={{ color: 'var(--text-tertiary)' }}
+                className="p-1.5 rounded transition-colors hover:bg-white/10 text-[var(--text-tertiary)] hover:rotate-90 active:scale-90"
                 whileHover={{ scale: 1.1, rotate: 90 }}
                 whileTap={{ scale: 0.9 }}
                 transition={{ type: 'spring', stiffness: 400, damping: 25 }}
@@ -261,15 +247,11 @@ export function TagInput({ entityType, entityId, tags }: TagInputProps) {
               </motion.button>
             </div>
 
-            {/* Autocomplete suggestions with animation */}
+            {/* Autocomplete suggestions */}
             <AnimatePresence>
               {showSuggestions && suggestions.length > 0 && (
                 <motion.div
-                  className="absolute top-full left-0 right-0 mt-1 rounded-md overflow-hidden z-10"
-                  style={{
-                    backgroundColor: 'var(--color-surface-base)',
-                    border: '1px solid var(--border-default)',
-                  }}
+                  className="absolute top-full left-0 right-0 mt-1 rounded-md overflow-hidden z-10 bg-[var(--color-surface-base)] border border-[var(--border-default)]"
                   initial={{ opacity: 0, y: -4, scaleY: 0.9 }}
                   animate={{ opacity: 1, y: 0, scaleY: 1 }}
                   exit={{ opacity: 0, y: -4, scaleY: 0.9 }}
@@ -282,9 +264,8 @@ export function TagInput({ entityType, entityId, tags }: TagInputProps) {
                       <motion.button
                         key={suggestion}
                         onClick={() => handleAdd(suggestion)}
-                        className="w-full flex items-center gap-2 px-3 py-2 text-left text-xs transition-colors"
+                        className="w-full flex items-center gap-2 px-3 py-2 text-left text-xs transition-colors text-[var(--text-secondary)] hover:translate-x-1"
                         style={{
-                          color: 'var(--text-secondary)',
                           backgroundColor: isHighlighted ? `${color}15` : 'transparent',
                         }}
                         onMouseEnter={() => setHighlightedIndex(index)}
@@ -306,12 +287,7 @@ export function TagInput({ entityType, entityId, tags }: TagInputProps) {
             <AnimatePresence>
               {showSuggestions && suggestions.length === 0 && inputValue.trim() && (
                 <motion.div
-                  className="absolute top-full left-0 right-0 mt-1 rounded-md p-3 z-10 text-xs text-center"
-                  style={{
-                    backgroundColor: 'var(--color-surface-base)',
-                    border: '1px solid var(--border-default)',
-                    color: 'var(--text-tertiary)',
-                  }}
+                  className="absolute top-full left-0 right-0 mt-1 rounded-md p-3 z-10 text-xs text-center bg-[var(--color-surface-base)] border border-[var(--border-default)] text-[var(--text-tertiary)]"
                   initial={{ opacity: 0, y: -4 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -4 }}
@@ -325,11 +301,9 @@ export function TagInput({ entityType, entityId, tags }: TagInputProps) {
           <motion.button
             key="add-button"
             onClick={() => setIsAdding(true)}
-            className="mt-2 inline-flex items-center gap-1 px-2 py-1 rounded text-xs transition-all"
+            className="mt-2 inline-flex items-center gap-1 px-2 py-1 rounded text-xs transition-all border border-dashed border-white/15 text-[var(--text-tertiary)] hover:border-[var(--border-strong)]"
             style={{
               backgroundColor: 'transparent',
-              color: 'var(--text-tertiary)',
-              border: '1px dashed rgba(255,255,255,0.15)',
             }}
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}

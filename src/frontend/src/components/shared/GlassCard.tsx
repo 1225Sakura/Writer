@@ -195,25 +195,24 @@ export function GlassCard({
       layoutId={layoutId}
       className={cn(
         'relative overflow-hidden',
-        hover && 'transition-all duration-200 cursor-pointer',
-        hover && 'hover:shadow-lg hover:shadow-black/20',
-        press && 'active:scale-[0.98]',
+        hover && 'transition-all duration-150 cursor-pointer',
+        hover && 'hover:shadow-md hover:shadow-black/15',
+        press && 'active:scale-[0.99]',
         onClick && 'cursor-pointer',
-        shimmer && 'relative',
         className
       )}
       style={baseStyle}
       onClick={onClick}
-      whileHover={hover ? { y: -2 } : undefined}
-      transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
+      whileHover={hover ? { opacity: 0.97 } : undefined}
+      transition={{ duration: 0.15, ease: [0.16, 1, 0.3, 1] }}
     >
-      {/* Gradient border overlay */}
+      {/* Gradient border overlay - 降低透明度 */}
       {border === 'gradient' && (
         <div
           className="absolute inset-0 rounded-inherit pointer-events-none"
           style={{
             padding: '1px',
-            background: 'linear-gradient(135deg, rgba(94, 106, 210, 0.4), rgba(94, 181, 166, 0.3), rgba(232, 184, 125, 0.35))',
+            background: 'linear-gradient(135deg, rgba(94, 106, 210, 0.25), rgba(94, 181, 166, 0.2), rgba(232, 184, 125, 0.22))',
             WebkitMask: 'linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)',
             WebkitMaskComposite: 'xor',
             maskComposite: 'exclude',
@@ -222,16 +221,16 @@ export function GlassCard({
         />
       )}
 
-      {/* Shimmer animation overlay */}
+      {/* Shimmer animation overlay - 仅在显式启用时显示，降低透明度 */}
       {shimmer && (
         <motion.div
           className="absolute inset-0 pointer-events-none rounded-inherit"
           style={{
-            background: 'linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.05), transparent)',
+            background: 'linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.03), transparent)',
             backgroundSize: '200% 100%',
           }}
           animate={{ backgroundPosition: ['200% 0', '-200% 0'] }}
-          transition={{ duration: 2, repeat: Infinity, ease: 'linear' }}
+          transition={{ duration: 3, repeat: Infinity, ease: 'linear' }}
         />
       )}
 

@@ -526,12 +526,13 @@
    Z-INDEX RESPONSIVE LAYERS
    ============================================================ */
 
-.z-base: 0;
-.z-dropdown: 50;
-.z-sticky: 100;
-.z-overlay: 150;
-.z-modal: 200;
-.z-toast: 300;
+/* z-index utility classes */
+.z-base    { z-index: 0; }
+.z-dropdown { z-index: 50; }
+.z-sticky   { z-index: 100; }
+.z-overlay  { z-index: 150; }
+.z-modal    { z-index: 200; }
+.z-toast    { z-index: 300; }
 
 /* ============================================================
    ANIMATION RESPONSIVE

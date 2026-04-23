@@ -39,12 +39,11 @@ function TreeNode({
       <div
         className={`flex items-center gap-1 px-2 py-1.5 rounded-lg cursor-pointer transition-all duration-150 group
           ${selectedId === item.id
-            ? 'bg-[var(--accent-primary)]/15'
-            : 'hover:bg-[var(--hover-bg)]'
+            ? 'bg-[var(--accent-primary)]/15 text-[var(--accent-primary)]'
+            : 'hover:bg-[var(--hover-bg)] text-[var(--text-secondary)]'
           }`}
         style={{
           paddingLeft: `${depth * 16 + 8}px`,
-          color: selectedId === item.id ? 'var(--accent-primary)' : 'var(--text-secondary)',
         }}
         onClick={() => onSelect(item.id)}
       >
@@ -54,14 +53,7 @@ function TreeNode({
             e.stopPropagation()
             setIsExpanded(!isExpanded)
           }}
-          className="w-4 h-4 flex items-center justify-center rounded"
-          style={{ color: 'var(--text-tertiary)' }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.background = 'var(--hover-bg)'
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.background = 'transparent'
-          }}
+          className="w-4 h-4 flex items-center justify-center rounded text-[var(--text-tertiary)] hover:bg-[var(--hover-bg)]"
         >
           {hasChildren ? (
             isExpanded ? (
@@ -80,14 +72,7 @@ function TreeNode({
         {/* Actions on hover */}
         <div className="opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-0.5">
           <button
-            className="w-5 h-5 flex items-center justify-center rounded"
-            style={{ color: 'var(--text-tertiary)' }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.background = 'var(--hover-bg)'
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.background = 'transparent'
-            }}
+            className="w-5 h-5 flex items-center justify-center rounded text-[var(--text-tertiary)] hover:bg-[var(--hover-bg)]"
           >
             <MoreHorizontal className="w-3 h-3" />
           </button>
@@ -129,20 +114,20 @@ function PlotThreadItem({
   onReveal: (id: number) => void
 }) {
   return (
-    <div className="flex items-start gap-2 p-2 rounded-lg bg-[#0f1011] border border-[rgba(255,255,255,0.06)] group">
+    <div className="flex items-start gap-2 p-2 rounded-lg bg-[var(--color-surface-base)] border border-[var(--border-default)] group">
       <PlotThreadIcon size="sm" className="text-[var(--color-ifline)] mt-0.5" />
       <div className="flex-1 min-w-0">
-        <div className="font-medium text-sm text-[#f7f8f8] truncate">{thread.title}</div>
+        <div className="font-medium text-sm text-[var(--text-primary)] truncate">{thread.title}</div>
         {thread.description && (
-          <div className="text-xs text-[#d0d6e0]/60 truncate">{thread.description}</div>
+          <div className="text-xs text-[var(--text-tertiary)] truncate">{thread.description}</div>
         )}
       </div>
       <button
         onClick={() => onReveal(thread.id)}
-        className="opacity-0 group-hover:opacity-100 w-6 h-6 flex items-center justify-center rounded hover:bg-[rgba(126,210,94,0.1)] transition-opacity"
+        className="opacity-0 group-hover:opacity-100 w-6 h-6 flex items-center justify-center rounded hover:bg-[var(--color-ifline)]/10 transition-opacity"
         title="标记为已揭示"
       >
-        <Check className="w-4 h-4 text-[#6dd45e]" />
+        <Check className="w-4 h-4 text-[var(--color-ifline)]" />
       </button>
     </div>
   )
@@ -155,11 +140,11 @@ function IFLineItem({
   line: { id: number; title: string; description?: string; progress?: number; sync_mode: string }
 }) {
   return (
-    <div className="p-2.5 rounded-lg bg-[#0f1011] border border-[rgba(255,255,255,0.06)]">
+    <div className="p-2.5 rounded-lg bg-[var(--color-surface-base)] border border-[var(--border-default)]">
       <div className="flex items-center gap-2 mb-1.5">
         <EntityIcon type="ifline" size="xs" className="text-[var(--color-ifline)]" />
         <div className="flex-1 min-w-0">
-          <div className="text-sm font-medium text-[#f7f8f8] truncate">{line.title}</div>
+          <div className="text-sm font-medium text-[var(--text-primary)] truncate">{line.title}</div>
         </div>
         <span
           className="text-[10px] px-1.5 py-0.5 rounded-full font-medium"
@@ -172,18 +157,17 @@ function IFLineItem({
         </span>
       </div>
       {line.description && (
-        <div className="text-xs text-[#d0d6e0]/60 truncate mb-2 pl-5">{line.description}</div>
+        <div className="text-xs text-[var(--text-tertiary)] truncate mb-2 pl-5">{line.description}</div>
       )}
       {/* Progress */}
       <div className="pl-5 space-y-1">
-        <div className="flex justify-between text-[10px] text-[#d0d6e0]/50">
+        <div className="flex justify-between text-[10px] text-[var(--text-tertiary)]">
           <span>进度</span>
           <span>{line.progress || 0}%</span>
         </div>
-        <div className="h-1 bg-[rgba(255,255,255,0.06)] rounded-full overflow-hidden">
+        <div className="h-1 bg-[var(--border-subtle)] rounded-full overflow-hidden">
           <motion.div
-            className="h-full rounded-full"
-            style={{ backgroundColor: 'var(--color-ifline)' }}
+            className="h-full rounded-full bg-[var(--color-ifline)]"
             initial={{ width: 0 }}
             animate={{ width: `${line.progress || 0}%` }}
             transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
@@ -248,44 +232,29 @@ export function OutlineSidebar() {
   ]
 
   return (
-    <div className="flex flex-col h-full" style={{ background: 'var(--color-surface-raised)' }}>
+    <div className="flex flex-col h-full bg-[var(--color-surface-raised)]">
       {/* Header */}
-      <div
-        className="flex items-center justify-between px-3 py-2.5"
-        style={{ borderBottom: '1px solid var(--border-default)' }}
+      <div className="flex items-center justify-between px-3 py-2.5 border-b border-[var(--border-default)]"
       >
-        <span className="font-medium text-sm" style={{ color: 'var(--text-primary)' }}>大纲</span>
+        <span className="font-medium text-sm text-[var(--text-primary)]">大纲</span>
       </div>
 
       {/* Tabs */}
-      <div className="flex" style={{ borderBottom: '1px solid var(--border-default)' }}>
+      <div className="flex border-b border-[var(--border-default)]">
         {tabs.map((tab) => (
           <button
             key={tab.id}
             onClick={() => setActiveTab(tab.id)}
-            className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 text-xs font-medium transition-all"
-            style={{
-              color: activeTab === tab.id ? 'var(--accent-primary)' : 'var(--text-secondary)',
-              borderBottom: activeTab === tab.id ? '2px solid var(--accent-primary)' : '2px solid transparent',
-            }}
-            onMouseEnter={(e) => {
-              if (activeTab !== tab.id) {
-                e.currentTarget.style.color = 'var(--text-primary)'
-                e.currentTarget.style.background = 'var(--hover-bg)'
-              }
-            }}
-            onMouseLeave={(e) => {
-              if (activeTab !== tab.id) {
-                e.currentTarget.style.color = 'var(--text-secondary)'
-                e.currentTarget.style.background = 'transparent'
-              }
-            }}
+            className={`flex-1 flex items-center justify-center gap-1.5 px-3 py-2 text-xs font-medium transition-all
+              ${activeTab === tab.id
+                ? 'text-[var(--accent-primary)] border-b-2 border-[var(--accent-primary)]'
+                : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--hover-bg)]'
+              }`}
           >
             {tab.icon}
             <span>{tab.label}</span>
             {tab.badge !== undefined && tab.badge > 0 && (
-              <span
-                className="px-1 py-0.5 text-[10px] rounded-full"
+              <span className="px-1 py-0.5 text-[10px] rounded-full"
                 style={{
                   background: 'color-mix(in srgb, var(--color-vermillion) 20%, transparent)',
                   color: 'var(--color-vermillion)',
@@ -311,7 +280,7 @@ export function OutlineSidebar() {
               className="space-y-1"
             >
               {outlineData.length === 0 ? (
-                <div className="text-center py-8 text-sm" style={{ color: 'var(--text-tertiary)' }}>
+                <div className="text-center py-8 text-sm text-[var(--text-tertiary)]">
                   暂无章节大纲
                 </div>
               ) : (

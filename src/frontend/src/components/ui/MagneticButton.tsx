@@ -1,6 +1,6 @@
 import * as React from 'react'
 import { useRef } from 'react'
-import { motion, useMotionValue, useSpring, useTransform } from 'framer-motion'
+import { motion, useMotionValue, useSpring } from 'framer-motion'
 import { clsx } from 'clsx'
 import { twMerge } from 'tailwind-merge'
 
@@ -15,19 +15,22 @@ export interface MagneticButtonProps {
   'aria-label'?: string
 }
 
+/**
+ * MagneticButton - 磁性按钮
+ *
+ * 简化为仅平移跟随，移除 3D 旋转效果
+ * 更适合写作软件的克制风格
+ */
 export const MagneticButton = React.forwardRef<HTMLButtonElement, MagneticButtonProps>(
-  ({ className, strength = 0.3, children, ...props }, ref) => {
+  ({ className, strength = 0.2, children, ...props }, ref) => {
     const buttonRef = useRef<HTMLButtonElement>(null)
 
     const x = useMotionValue(0)
     const y = useMotionValue(0)
 
-    const springConfig = { damping: 15, stiffness: 150 }
+    const springConfig = { damping: 20, stiffness: 200 }
     const springX = useSpring(x, springConfig)
     const springY = useSpring(y, springConfig)
-
-    const rotateX = useTransform(springY, [-20, 20], [5, -5])
-    const rotateY = useTransform(springX, [-20, 20], [-5, 5])
 
     const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
       const button = buttonRef.current
@@ -52,7 +55,7 @@ export const MagneticButton = React.forwardRef<HTMLButtonElement, MagneticButton
     return (
       <motion.div
         className="inline-block"
-        style={{ x: springX, y: springY, rotateX, rotateY, perspective: 500 }}
+        style={{ x: springX, y: springY }}
         onMouseMove={handleMouseMove}
         onMouseLeave={handleMouseLeave}
       >
@@ -64,7 +67,7 @@ export const MagneticButton = React.forwardRef<HTMLButtonElement, MagneticButton
           }}
           className={twMerge(
             clsx(
-              'inline-flex items-center justify-center font-medium transition-colors duration-200 cursor-pointer',
+              'inline-flex items-center justify-center font-medium transition-colors duration-150 cursor-pointer',
               'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5e6ad2] focus-visible:ring-offset-2',
               'disabled:pointer-events-none disabled:opacity-50'
             ),

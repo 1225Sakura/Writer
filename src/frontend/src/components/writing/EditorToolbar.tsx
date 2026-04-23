@@ -229,28 +229,12 @@ export function EditorToolbar({ editor }: EditorToolbarProps) {
       }}
       onMouseDown={(e) => e.preventDefault()}
       title={`${btn.title}${btn.shortcut ? ` (${btn.shortcut})` : ''}`}
-      className="flex items-center justify-center w-7 h-7 rounded-md transition-all duration-150
-                 hover:scale-105 active:scale-95"
-      style={{
-        color: btn.isActive()
-          ? 'var(--accent-primary)'
-          : 'var(--text-secondary)',
-        background: btn.isActive()
-          ? 'rgba(94, 106, 210, 0.15)'
-          : 'transparent',
-      }}
-      onMouseEnter={(e) => {
-        if (!btn.isActive()) {
-          e.currentTarget.style.background = 'rgba(255, 255, 255, 0.06)'
-          e.currentTarget.style.color = 'var(--text-primary)'
-        }
-      }}
-      onMouseLeave={(e) => {
-        if (!btn.isActive()) {
-          e.currentTarget.style.background = 'transparent'
-          e.currentTarget.style.color = 'var(--text-secondary)'
-        }
-      }}
+      className={`flex items-center justify-center w-7 h-7 rounded-md transition-all duration-150
+                 hover:scale-105 active:scale-95 ${
+                   btn.isActive()
+                     ? 'text-[var(--accent-primary)] bg-[rgba(94,106,210,0.15)]'
+                     : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[rgba(255,255,255,0.06)]'
+                 }`}
     >
       {btn.icon}
     </motion.button>
@@ -265,14 +249,7 @@ export function EditorToolbar({ editor }: EditorToolbarProps) {
           animate={{ opacity: 1, y: 0, scale: 1 }}
           exit={{ opacity: 0, y: -8, scale: 0.96 }}
           transition={{ duration: 0.18, ease: [0.16, 1, 0.3, 1] }}
-          className="absolute top-3 left-1/2 -translate-x-1/2 z-50 flex items-center gap-0.5 px-2 py-1.5 rounded-lg"
-          style={{
-            background: 'var(--glass-bg-strong)',
-            backdropFilter: 'blur(16px)',
-            WebkitBackdropFilter: 'blur(16px)',
-            border: '1px solid var(--glass-border)',
-            boxShadow: 'var(--shadow-float)',
-          }}
+          className="absolute top-3 left-1/2 -translate-x-1/2 z-50 flex items-center gap-0.5 px-2 py-1.5 rounded-lg glass-strong shadow-float"
         >
           {/* Paragraph style selector */}
           <div className="relative" ref={styleMenuRef}>
@@ -286,8 +263,7 @@ export function EditorToolbar({ editor }: EditorToolbarProps) {
               }}
               onMouseDown={(e) => e.preventDefault()}
               className="flex items-center gap-1 px-2 h-7 rounded-md transition-all duration-150
-                         hover:bg-[rgba(255,255,255,0.06)]"
-              style={{ color: 'var(--text-secondary)' }}
+                         text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[rgba(255,255,255,0.06)]"
             >
               <Type className="w-3.5 h-3.5" />
               <span className="text-[11px] font-medium">{getActiveStyleLabel()}</span>
@@ -301,14 +277,8 @@ export function EditorToolbar({ editor }: EditorToolbarProps) {
                   animate={{ opacity: 1, y: 0, scale: 1 }}
                   exit={{ opacity: 0, y: -4, scale: 0.96 }}
                   transition={{ duration: 0.15, ease: [0.16, 1, 0.3, 1] }}
-                  className="absolute top-full left-0 mt-1 py-1 rounded-lg z-50"
-                  style={{
-                    background: 'var(--glass-bg-strong)',
-                    backdropFilter: 'blur(16px)',
-                    border: '1px solid var(--glass-border)',
-                    boxShadow: 'var(--shadow-float)',
-                    minWidth: '140px',
-                  }}
+                  className="absolute top-full left-0 mt-1 py-1 rounded-lg z-50 glass-strong shadow-float"
+                  style={{ minWidth: '140px' }}
                 >
                   {paragraphStyles.map((style) => (
                     <button
@@ -319,12 +289,11 @@ export function EditorToolbar({ editor }: EditorToolbarProps) {
                         setStyleMenuOpen(false)
                       }}
                       onMouseDown={(e) => e.preventDefault()}
-                      className="flex items-center gap-2 w-full px-3 py-1.5 text-left transition-all duration-100
-                                 hover:bg-[rgba(255,255,255,0.06)]"
-                      style={{
-                        color: style.isActive() ? 'var(--accent-primary)' : 'var(--text-secondary)',
-                        background: style.isActive() ? 'rgba(94, 106, 210, 0.1)' : 'transparent',
-                      }}
+                      className={`flex items-center gap-2 w-full px-3 py-1.5 text-left transition-all duration-100 hover:bg-[rgba(255,255,255,0.06)] ${
+                        style.isActive()
+                          ? 'text-[var(--accent-primary)] bg-[rgba(94,106,210,0.1)]'
+                          : 'text-[var(--text-secondary)]'
+                      }`}
                     >
                       {style.icon}
                       <span className="text-xs">{style.label}</span>
@@ -336,19 +305,19 @@ export function EditorToolbar({ editor }: EditorToolbarProps) {
           </div>
 
           {/* Divider */}
-          <div className="w-px h-4 mx-0.5" style={{ background: 'var(--border-default)' }} />
+          <div className="w-px h-4 mx-0.5 bg-[var(--border-default)]" />
 
           {/* Format buttons */}
           {formatButtons.map((btn, i) => renderButton(btn, i, 0))}
 
           {/* Divider */}
-          <div className="w-px h-4 mx-0.5" style={{ background: 'var(--border-default)' }} />
+          <div className="w-px h-4 mx-0.5 bg-[var(--border-default)]" />
 
           {/* Alignment buttons */}
           {alignButtons.map((btn, i) => renderButton(btn, i, 1))}
 
           {/* Divider */}
-          <div className="w-px h-4 mx-0.5" style={{ background: 'var(--border-default)' }} />
+          <div className="w-px h-4 mx-0.5 bg-[var(--border-default)]" />
 
           {/* Quick format buttons */}
           {quickFormatButtons.map((btn, i) => renderButton(btn, i, 2))}

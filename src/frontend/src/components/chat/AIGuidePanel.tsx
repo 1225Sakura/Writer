@@ -65,7 +65,7 @@ function useTypingEffect(text: string, speed: number = 18, enabled: boolean = tr
 
 function HighlightedContent({ content, entities }: { content: string; entities?: ExtractedEntity[] }) {
   if (!entities || entities.length === 0) {
-    return <div className="text-sm whitespace-pre-wrap leading-relaxed text-[var(--text-primary)]">{content}</div>
+    return <div className="text-sm whitespace-pre-wrap leading-relaxed text-primary">{content}</div>
   }
 
   const sortedEntities = [...entities].sort((a, b) => b.name.length - a.name.length)
@@ -74,7 +74,7 @@ function HighlightedContent({ content, entities }: { content: string; entities?:
   const parts = content.split(regex)
 
   return (
-    <div className="text-sm whitespace-pre-wrap leading-relaxed text-[var(--text-primary)]">
+    <div className="text-sm whitespace-pre-wrap leading-relaxed text-primary">
       {parts.map((part, i) => {
         const entity = sortedEntities.find((e) => e.name === part)
         if (entity) {
@@ -156,10 +156,7 @@ function AIAvatar({ isThinking = false }: { isThinking?: boolean }) {
       <AnimatePresence>
         {isThinking && (
           <motion.div
-            className="absolute inset-0 rounded-full"
-            style={{
-              background: 'radial-gradient(circle, var(--accent-muted) 0%, transparent 70%)',
-            }}
+            className="absolute inset-0 rounded-full bg-accent-muted/30"
             initial={{ scale: 0.8, opacity: 0 }}
             animate={{ scale: [1, 1.5, 1], opacity: [0.2, 0.4, 0.2] }}
             exit={{ scale: 0.8, opacity: 0 }}
@@ -170,23 +167,19 @@ function AIAvatar({ isThinking = false }: { isThinking?: boolean }) {
       {/* Subtle ambient glow for idle state */}
       {!isThinking && (
         <motion.div
-          className="absolute inset-0 rounded-full"
-          style={{
-            background: 'radial-gradient(circle, var(--accent-muted) 0%, transparent 70%)',
-          }}
+          className="absolute inset-0 rounded-full bg-accent-muted/20"
           animate={{ scale: [1, 1.2, 1], opacity: [0.15, 0.25, 0.15] }}
           transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
         />
       )}
       <div
-        className="w-8 h-8 rounded-full flex items-center justify-center relative z-10"
+        className="w-8 h-8 rounded-full flex items-center justify-center relative z-10
+                   bg-accent-muted border border-border-focus"
         style={{
-          backgroundColor: 'var(--accent-muted)',
-          border: '1px solid var(--border-focus)',
           boxShadow: isThinking ? 'var(--shadow-glow)' : 'var(--shadow-glow-sm)',
         }}
       >
-        <Bot className="w-4.5 h-4.5" style={{ color: 'var(--accent-primary)' }} />
+        <Bot className="w-5 h-5 text-accent-primary" />
       </div>
     </motion.div>
   )
@@ -198,11 +191,11 @@ function AIAvatar({ isThinking = false }: { isThinking?: boolean }) {
 
 function MessageStatus({ status, timestamp }: { status?: 'sending' | 'sent' | 'error'; timestamp: Date }) {
   return (
-    <div className="text-xs mt-1 flex items-center gap-1" style={{ color: 'var(--text-secondary)' }}>
+    <div className="text-xs mt-1 flex items-center gap-1 text-secondary">
       {timestamp.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' })}
       {status === 'sending' && (
         <motion.span
-          className="inline-block w-1 h-1 rounded-full bg-[var(--accent-primary)]"
+          className="inline-block w-1 h-1 rounded-full bg-accent-primary"
           animate={{ opacity: [0.3, 1, 0.3] }}
           transition={{ duration: 1.2, repeat: Infinity, ease: 'easeInOut' }}
         />
@@ -271,11 +264,8 @@ function ChatBubble({ message, onEdit, onDelete, onConfirmEntity, index }: {
             <AIAvatar />
           ) : (
             <div
-              className="w-8 h-8 rounded-full flex items-center justify-center transition-shadow hover:shadow-md"
-              style={{
-                backgroundColor: 'var(--accent-primary)',
-                boxShadow: 'var(--shadow-glow-sm)',
-              }}
+              className="w-8 h-8 rounded-full flex items-center justify-center transition-shadow hover:shadow-md
+                         bg-accent-primary shadow-glow-sm"
             >
               <User className="w-4 h-4 text-white" />
             </div>
@@ -287,8 +277,8 @@ function ChatBubble({ message, onEdit, onDelete, onConfirmEntity, index }: {
           <div
             className={`rounded-2xl px-4 py-3.5 relative transition-shadow hover:shadow-md ${
               isAssistant
-                ? 'bg-[var(--color-surface-raised)] border border-[var(--border-default)] text-[var(--text-primary)]'
-                : 'bg-[var(--accent-primary)] text-white'
+                ? 'bg-surface-raised border border-default text-primary'
+                : 'bg-accent-primary text-white'
             }`}
             style={{
               borderRadius: isAssistant ? '20px 20px 20px 4px' : '20px 20px 4px 20px',
@@ -306,17 +296,19 @@ function ChatBubble({ message, onEdit, onDelete, onConfirmEntity, index }: {
                 >
                   <button
                     onClick={() => setIsEditing(true)}
-                    className="p-1.5 rounded-lg bg-[var(--color-surface-base)] border border-[var(--border-default)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors shadow-lg hover:shadow-xl"
+                    className="p-1.5 rounded-lg bg-surface-base border border-default text-secondary
+                               hover:text-primary transition-colors shadow-lg hover:shadow-xl"
                     title="编辑"
                   >
-                    <Pencil className="w-3 h-3" />
+                    <Pencil className="w-3.5 h-3.5" />
                   </button>
                   <button
                     onClick={() => onDelete?.(message.id)}
-                    className="p-1.5 rounded-lg bg-[var(--color-surface-base)] border border-[var(--border-default)] text-[var(--text-secondary)] hover:text-[var(--color-vermillion)] transition-colors shadow-lg hover:shadow-xl"
+                    className="p-1.5 rounded-lg bg-surface-base border border-default text-secondary
+                               hover:text-[var(--color-vermillion)] transition-colors shadow-lg hover:shadow-xl"
                     title="删除"
                   >
-                    <Trash2 className="w-3 h-3" />
+                    <Trash2 className="w-3.5 h-3.5" />
                   </button>
                 </motion.div>
               )}
@@ -329,13 +321,14 @@ function ChatBubble({ message, onEdit, onDelete, onConfirmEntity, index }: {
                   <textarea
                     value={editContent}
                     onChange={(e) => setEditContent(e.target.value)}
-                    className="w-full resize-none min-h-[60px] p-2 text-sm rounded bg-[var(--color-surface-base)] text-[var(--text-primary)] border border-[var(--border-default)] outline-none"
+                    className="w-full resize-none min-h-[60px] p-2 text-sm rounded bg-surface-base text-primary
+                               border border-default outline-none"
                     autoFocus
                   />
                   <div className="flex gap-2 justify-end">
                     <button
                       onClick={handleCancel}
-                      className="p-1.5 rounded text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors hover:bg-white/5"
+                      className="p-1.5 rounded text-secondary hover:text-primary transition-colors hover:bg-white/5"
                     >
                       <X className="w-3.5 h-3.5" />
                     </button>
@@ -356,10 +349,7 @@ function ChatBubble({ message, onEdit, onDelete, onConfirmEntity, index }: {
                   {/* Typing cursor for assistant */}
                   {isAssistant && !isComplete && (
                     <motion.span
-                      className="inline-block w-2 h-4 ml-0.5 rounded-sm align-middle"
-                      style={{
-                        backgroundColor: 'var(--accent-primary)',
-                      }}
+                      className="inline-block w-2 h-4 ml-0.5 rounded-sm align-middle bg-accent-primary"
                       animate={{ opacity: [1, 0, 1] }}
                       transition={{ duration: 0.8, repeat: Infinity, ease: 'easeInOut' }}
                     />
@@ -376,7 +366,7 @@ function ChatBubble({ message, onEdit, onDelete, onConfirmEntity, index }: {
           <div className={`mt-1 ${isAssistant ? 'ml-1' : 'mr-1 text-right'}`}>
             <MessageStatus timestamp={new Date(message.createdAt)} />
             {message.editedAt && (
-              <span className="text-[10px] opacity-50" style={{ color: 'var(--text-secondary)' }}>
+              <span className="text-[10px] opacity-50 text-secondary">
                 (已编辑)
               </span>
             )}
@@ -405,16 +395,13 @@ function StreamingBubble({ content }: { content: string }) {
         </div>
         <div>
           <div
-            className="rounded-2xl px-4 py-3.5 bg-[var(--color-surface-raised)] border border-[var(--border-default)]"
+            className="rounded-2xl px-4 py-3.5 bg-surface-raised border border-default"
             style={{ borderRadius: '20px 20px 20px 4px' }}
           >
-            <div className="text-sm whitespace-pre-wrap leading-relaxed text-[var(--text-primary)]">
+            <div className="text-sm whitespace-pre-wrap leading-relaxed text-primary">
               {content}
               <motion.span
-                className="inline-block w-2 h-4 ml-0.5 rounded-sm align-middle"
-                style={{
-                  backgroundColor: 'var(--accent-primary)',
-                }}
+                className="inline-block w-2 h-4 ml-0.5 rounded-sm align-middle bg-accent-primary"
                 animate={{ opacity: [1, 0, 1] }}
                 transition={{ duration: 0.8, repeat: Infinity, ease: 'easeInOut' }}
               />
@@ -422,10 +409,10 @@ function StreamingBubble({ content }: { content: string }) {
           </div>
           <div className="mt-1 ml-1 flex items-center gap-1.5">
             <span className="relative flex h-1.5 w-1.5">
-              <span className="animate-ping motion-reduce:animate-none absolute inline-flex h-full w-full rounded-full bg-[var(--accent-primary)] opacity-60"></span>
-              <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-[var(--accent-primary)]"></span>
+              <span className="animate-ping motion-reduce:animate-none absolute inline-flex h-full w-full rounded-full bg-accent-primary opacity-60"></span>
+              <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-accent-primary"></span>
             </span>
-            <span className="text-xs" style={{ color: 'var(--text-secondary)' }}>正在输入...</span>
+            <span className="text-xs text-secondary">正在输入...</span>
           </div>
         </div>
       </div>
@@ -447,29 +434,23 @@ function EmptyState() {
     >
       {/* Main icon */}
       <motion.div
-        className="relative w-20 h-20 rounded-2xl flex items-center justify-center mb-6"
-        style={{
-          backgroundColor: 'var(--accent-muted)',
-          border: '1px solid var(--border-focus)',
-          boxShadow: 'var(--shadow-glow-sm)',
-        }}
+        className="relative w-20 h-20 rounded-2xl flex items-center justify-center mb-6
+                   bg-accent-muted border border-border-focus shadow-glow-sm"
         initial={{ scale: 0.8, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
         transition={{ delay: 0.1, duration: 0.4, ease: [0.4, 0, 0.2, 1] }}
       >
-        <Sparkles className="w-9 h-9" style={{ color: 'var(--accent-primary)' }} />
+        <Sparkles className="w-9 h-9 text-accent-primary" />
         {/* Single decorative dot */}
         <motion.div
-          className="absolute -top-1.5 -right-1.5 w-3 h-3 rounded-full"
-          style={{ backgroundColor: 'var(--accent-primary)', opacity: 0.4 }}
+          className="absolute -top-1.5 -right-1.5 w-3 h-3 rounded-full bg-accent-primary opacity-40"
           animate={{ scale: [1, 1.2, 1], opacity: [0.4, 0.6, 0.4] }}
           transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
         />
       </motion.div>
 
       <motion.h2
-        className="text-xl font-medium mb-3"
-        style={{ color: 'var(--text-primary)' }}
+        className="text-xl font-medium mb-3 text-primary"
         initial={{ y: 8, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ delay: 0.15, duration: 0.3, ease: [0.4, 0, 0.2, 1] }}
@@ -483,12 +464,12 @@ function EmptyState() {
         animate={{ y: 0, opacity: 1 }}
         transition={{ delay: 0.2, duration: 0.3, ease: [0.4, 0, 0.2, 1] }}
       >
-        <div className="h-px flex-1" style={{ background: 'linear-gradient(90deg, transparent, var(--border-default))' }} />
-        <span className="text-xs flex items-center gap-1.5" style={{ color: 'var(--text-tertiary)' }}>
+        <div className="h-px flex-1 bg-gradient-to-r from-transparent to-default" />
+        <span className="text-xs flex items-center gap-1.5 text-tertiary">
           <Wand2 className="w-3 h-3" />
           选择下方标签快速开始，或直接输入你的想法
         </span>
-        <div className="h-px flex-1" style={{ background: 'linear-gradient(90deg, var(--border-default), transparent)' }} />
+        <div className="h-px flex-1 bg-gradient-to-l from-transparent to-default" />
       </motion.div>
 
       <motion.div
@@ -500,12 +481,8 @@ function EmptyState() {
         {['玄幻修仙', '都市异能', '悬疑推理', '言情', '科幻未来', '历史穿越'].map((tag, i) => (
           <motion.button
             key={tag}
-            className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-sm cursor-pointer transition-all"
-            style={{
-              backgroundColor: 'var(--color-surface-base)',
-              border: '1px solid var(--border-default)',
-              color: 'var(--text-secondary)',
-            }}
+            className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-sm cursor-pointer transition-all
+                       bg-surface-base border border-default text-secondary"
             whileHover={{
               backgroundColor: 'var(--color-surface-raised)',
               borderColor: 'var(--border-strong)',

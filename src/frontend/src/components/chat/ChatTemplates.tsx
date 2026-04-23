@@ -108,8 +108,8 @@ export function ChatTemplates({ onSelect, disabled }: ChatTemplatesProps) {
       <motion.button
         onClick={() => !disabled && setIsOpen(!isOpen)}
         disabled={disabled}
-        className="flex items-center gap-1.5 px-3 py-1.5 text-xs rounded-lg border border-[var(--border-default)]
-                   text-[var(--text-secondary)] hover:bg-[var(--color-surface-raised)] hover:text-[var(--text-primary)]
+        className="flex items-center gap-1.5 px-3 py-1.5 text-xs rounded-lg border border-default
+                   text-secondary hover:bg-surface-raised hover:text-primary
                    active:scale-95 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
         whileHover={{ y: -1 }}
         whileTap={{ scale: 0.96 }}
@@ -143,16 +143,15 @@ export function ChatTemplates({ onSelect, disabled }: ChatTemplatesProps) {
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: -10, scale: 0.96 }}
               transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
-              className="absolute bottom-full left-0 mb-2 z-50 w-72 rounded-xl border border-[var(--border-default)]
-                         shadow-2xl overflow-hidden"
-              style={{ backgroundColor: 'var(--color-surface-raised)' }}
+              className="absolute bottom-full left-0 mb-2 z-50 w-72 rounded-xl border border-default
+                         shadow-2xl overflow-hidden bg-surface-raised"
             >
               {/* Header */}
-              <div className="px-3 py-2.5 border-b border-[var(--border-subtle)]">
-                <div className="text-xs font-medium" style={{ color: 'var(--text-primary)' }}>
+              <div className="px-3 py-2.5 border-b border-subtle">
+                <div className="text-xs font-medium text-primary">
                   选择故事类型
                 </div>
-                <div className="text-[10px] mt-0.5" style={{ color: 'var(--text-secondary)' }}>
+                <div className="text-[10px] mt-0.5 text-secondary">
                   AI 将据此引导你完成世界观构建
                 </div>
               </div>
@@ -164,9 +163,6 @@ export function ChatTemplates({ onSelect, disabled }: ChatTemplatesProps) {
                     key={template.id}
                     onClick={() => handleSelect(template)}
                     className="flex flex-col gap-1.5 p-2.5 rounded-lg text-left group"
-                    style={{
-                      backgroundColor: 'transparent',
-                    }}
                     whileHover={{
                       backgroundColor: 'var(--color-surface-base)',
                       scale: 1.02,
@@ -188,11 +184,11 @@ export function ChatTemplates({ onSelect, disabled }: ChatTemplatesProps) {
                       >
                         <span style={{ color: template.color }}>{template.icon}</span>
                       </motion.div>
-                      <span className="text-xs font-medium" style={{ color: 'var(--text-primary)' }}>
+                      <span className="text-xs font-medium text-primary">
                         {template.label}
                       </span>
                     </div>
-                    <span className="text-[10px] leading-tight" style={{ color: 'var(--text-secondary)' }}>
+                    <span className="text-[10px] leading-tight text-secondary">
                       {template.description}
                     </span>
                   </motion.button>
@@ -200,8 +196,8 @@ export function ChatTemplates({ onSelect, disabled }: ChatTemplatesProps) {
               </div>
 
               {/* Footer hint */}
-              <div className="px-3 py-2 border-t border-[var(--border-subtle)]">
-                <div className="flex items-center gap-1.5 text-[10px]" style={{ color: 'var(--text-secondary)' }}>
+              <div className="px-3 py-2 border-t border-subtle">
+                <div className="flex items-center gap-1.5 text-[10px] text-secondary">
                   <BookOpen className="w-3 h-3" />
                   <span>也可以直接输入你的想法</span>
                 </div>

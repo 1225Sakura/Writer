@@ -40,17 +40,19 @@ export {
 
 export {
   EnhancedParticleBackground,
-  FloatingParticle,
 } from './EnhancedParticleBackground'
+
+// Note: FloatingParticle is not exported by EnhancedParticleBackground
 
 export {
   EnhancedPageTransition,
-  TransitionOverlay,
   PageIndicator,
   usePageTransition,
   type TransitionVariant,
   type TransitionDirection,
 } from './EnhancedPageTransition'
+
+// Note: TransitionOverlay is not exported by EnhancedPageTransition
 
 // Scroll & reveal animations
 export {

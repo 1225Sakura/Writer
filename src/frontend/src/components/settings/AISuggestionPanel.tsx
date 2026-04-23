@@ -220,8 +220,7 @@ function ReviewHistoryDrawer({
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="absolute inset-0 z-30"
-            style={{ backgroundColor: 'rgba(0,0,0,0.3)' }}
+            className="absolute inset-0 z-30 bg-black/30"
             onClick={onClose}
           />
           {/* Drawer */}
@@ -230,19 +229,15 @@ function ReviewHistoryDrawer({
             animate={{ x: 0 }}
             exit={{ x: '100%' }}
             transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
-            className="absolute right-0 top-0 bottom-0 z-40 w-[280px] flex flex-col"
-            style={{
-              backgroundColor: 'var(--color-surface-base)',
-              borderLeft: '1px solid var(--border-subtle)',
-            }}
+            className="absolute right-0 top-0 bottom-0 z-40 w-[280px] flex flex-col bg-[var(--color-surface-base)] border-l border-[var(--border-subtle)]"
           >
-            <div className="flex items-center justify-between px-4 py-3"
-              style={{ borderBottom: '1px solid var(--border-subtle)' }}
+            <div className="flex items-center justify-between px-4 py-3 border-b border-[var(--border-subtle)]"
             >
               <div className="flex items-center gap-2"
               >
-                <History className="w-4 h-4" style={{ color: 'var(--text-tertiary)' }} />
-                <span className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>
+                <History className="w-4 h-4 text-[var(--text-tertiary)]" />
+                <span className="text-sm font-medium text-[var(--text-primary)]"
+                >
                   审查历史
                 </span>
               </div>
@@ -250,7 +245,7 @@ function ReviewHistoryDrawer({
                 onClick={onClose}
                 className="p-1 rounded hover:bg-white/10 transition-colors"
               >
-                <X className="w-4 h-4" style={{ color: 'var(--text-tertiary)' }} />
+                <X className="w-4 h-4 text-[var(--text-tertiary)]" />
               </button>
             </div>
 
@@ -259,8 +254,9 @@ function ReviewHistoryDrawer({
               {history.length === 0 ? (
                 <div className="text-center py-8"
                 >
-                  <Clock className="w-8 h-8 mx-auto mb-2" style={{ color: 'var(--text-disabled)' }} />
-                  <p className="text-xs" style={{ color: 'var(--text-tertiary)' }}>
+                  <Clock className="w-8 h-8 mx-auto mb-2 text-[var(--text-disabled)]" />
+                  <p className="text-xs text-[var(--text-tertiary)]"
+                  >
                     暂无审查记录
                   </p>
                 </div>
@@ -287,7 +283,8 @@ function ReviewHistoryDrawer({
                         <span className="text-xs font-medium" style={{ color: isActive ? 'var(--accent-primary)' : 'var(--text-primary)' }}>
                           第 {history.length - index} 次审查
                         </span>
-                        <span className="text-[10px]" style={{ color: 'var(--text-disabled)' }}>
+                        <span className="text-[10px] text-[var(--text-disabled)]"
+                        >
                           {timeStr}
                         </span>
                       </div>
@@ -340,7 +337,6 @@ function IterationComparisonView({
 
   if (!leftIter || !rightIter) return null
 
-  // Find changes between iterations
   const leftIds = new Set(leftIter.suggestions.map((s) => s.id))
   const rightIds = new Set(rightIter.suggestions.map((s) => s.id))
   const resolvedIds = [...leftIds].filter((id) => !rightIds.has(id))
@@ -351,22 +347,20 @@ function IterationComparisonView({
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: 20 }}
-      className="absolute inset-x-0 bottom-0 z-20 rounded-t-xl"
+      className="absolute inset-x-0 bottom-0 z-20 rounded-t-xl bg-[var(--color-surface-base)] border-t border-[var(--border-default)]"
       style={{
-        backgroundColor: 'var(--color-surface-base)',
-        borderTop: '1px solid var(--border-default)',
         maxHeight: '70%',
         boxShadow: '0 -8px 32px rgba(0,0,0,0.4)',
       }}
     >
       {/* Header */}
-      <div className="flex items-center justify-between px-4 py-3"
-        style={{ borderBottom: '1px solid var(--border-subtle)' }}
+      <div className="flex items-center justify-between px-4 py-3 border-b border-[var(--border-subtle)]"
       >
         <div className="flex items-center gap-2"
         >
-          <ArrowRight className="w-4 h-4" style={{ color: 'var(--accent-primary)' }} />
-          <span className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>
+          <ArrowRight className="w-4 h-4 text-[var(--accent-primary)]" />
+          <span className="text-sm font-medium text-[var(--text-primary)]"
+          >
             审查对比
           </span>
         </div>
@@ -374,17 +368,17 @@ function IterationComparisonView({
           onClick={onClose}
           className="p-1 rounded hover:bg-white/10 transition-colors"
         >
-          <X className="w-4 h-4" style={{ color: 'var(--text-tertiary)' }} />
+          <X className="w-4 h-4 text-[var(--text-tertiary)]" />
         </button>
       </div>
 
       {/* Iteration selectors */}
-      <div className="flex items-center gap-4 px-4 py-2"
-        style={{ borderBottom: '1px solid rgba(255,255,255,0.04)' }}
+      <div className="flex items-center gap-4 px-4 py-2 border-b border-white/[0.04]"
       >
         <div className="flex-1"
         >
-          <span className="text-[10px]" style={{ color: 'var(--text-tertiary)' }}>较早版本</span>
+          <span className="text-[10px] text-[var(--text-tertiary)]"
+          >较早版本</span>
           <div className="flex items-center gap-1 mt-0.5"
           >
             <button
@@ -392,9 +386,10 @@ function IterationComparisonView({
               disabled={leftIndex === 0}
               className="p-0.5 rounded hover:bg-white/10 disabled:opacity-30 transition-opacity"
             >
-              <ChevronLeft className="w-3 h-3" style={{ color: 'var(--text-tertiary)' }} />
+              <ChevronLeft className="w-3 h-3 text-[var(--text-tertiary)]" />
             </button>
-            <span className="text-xs font-medium" style={{ color: 'var(--text-primary)' }}>
+            <span className="text-xs font-medium text-[var(--text-primary)]"
+            >
               第 {leftIndex + 1} 次
             </span>
             <button
@@ -402,14 +397,15 @@ function IterationComparisonView({
               disabled={leftIndex >= rightIndex - 1}
               className="p-0.5 rounded hover:bg-white/10 disabled:opacity-30 transition-opacity"
             >
-              <ChevronRightIcon className="w-3 h-3" style={{ color: 'var(--text-tertiary)' }} />
+              <ChevronRightIcon className="w-3 h-3 text-[var(--text-tertiary)]" />
             </button>
           </div>
         </div>
-        <ArrowRight className="w-4 h-4 flex-shrink-0" style={{ color: 'var(--text-disabled)' }} />
+        <ArrowRight className="w-4 h-4 flex-shrink-0 text-[var(--text-disabled)]" />
         <div className="flex-1"
         >
-          <span className="text-[10px]" style={{ color: 'var(--text-tertiary)' }}>较晚版本</span>
+          <span className="text-[10px] text-[var(--text-tertiary)]"
+          >较晚版本</span>
           <div className="flex items-center gap-1 mt-0.5"
           >
             <button
@@ -417,9 +413,10 @@ function IterationComparisonView({
               disabled={rightIndex <= leftIndex + 1}
               className="p-0.5 rounded hover:bg-white/10 disabled:opacity-30 transition-opacity"
             >
-              <ChevronLeft className="w-3 h-3" style={{ color: 'var(--text-tertiary)' }} />
+              <ChevronLeft className="w-3 h-3 text-[var(--text-tertiary)]" />
             </button>
-            <span className="text-xs font-medium" style={{ color: 'var(--text-primary)' }}>
+            <span className="text-xs font-medium text-[var(--text-primary)]"
+            >
               第 {rightIndex + 1} 次
             </span>
             <button
@@ -427,34 +424,39 @@ function IterationComparisonView({
               disabled={rightIndex >= iterations.length - 1}
               className="p-0.5 rounded hover:bg-white/10 disabled:opacity-30 transition-opacity"
             >
-              <ChevronRightIcon className="w-3 h-3" style={{ color: 'var(--text-tertiary)' }} />
+              <ChevronRightIcon className="w-3 h-3 text-[var(--text-tertiary)]" />
             </button>
           </div>
         </div>
       </div>
 
       {/* Comparison stats */}
-      <div className="flex items-center gap-4 px-4 py-2"
-        style={{ borderBottom: '1px solid rgba(255,255,255,0.04)' }}
+      <div className="flex items-center gap-4 px-4 py-2 border-b border-white/[0.04]"
       >
         <div className="flex items-center gap-1.5"
         >
-          <span className="text-[10px]" style={{ color: 'var(--text-tertiary)' }}>已解决:</span>
-          <span className="text-xs font-medium" style={{ color: 'var(--color-success)' }}>
+          <span className="text-[10px] text-[var(--text-tertiary)]"
+          >已解决:</span>
+          <span className="text-xs font-medium text-[var(--color-success)]"
+          >
             {resolvedIds.length} 项
           </span>
         </div>
         <div className="flex items-center gap-1.5"
         >
-          <span className="text-[10px]" style={{ color: 'var(--text-tertiary)' }}>新增:</span>
-          <span className="text-xs font-medium" style={{ color: 'var(--color-character)' }}>
+          <span className="text-[10px] text-[var(--text-tertiary)]"
+          >新增:</span>
+          <span className="text-xs font-medium text-[var(--color-character)]"
+          >
             {newIds.length} 项
           </span>
         </div>
         <div className="flex items-center gap-1.5"
         >
-          <span className="text-[10px]" style={{ color: 'var(--text-tertiary)' }}>剩余:</span>
-          <span className="text-xs font-medium" style={{ color: 'var(--text-primary)' }}>
+          <span className="text-[10px] text-[var(--text-tertiary)]"
+          >剩余:</span>
+          <span className="text-xs font-medium text-[var(--text-primary)]"
+          >
             {rightIter.issueCount} 项
           </span>
         </div>
@@ -485,11 +487,13 @@ function IterationComparisonView({
                   </span>
                 )}
                 <Icon className="w-3 h-3" style={{ color: config.colors.badge }} />
-                <span className="text-xs font-medium" style={{ color: 'var(--text-primary)' }}>
+                <span className="text-xs font-medium text-[var(--text-primary)]"
+                >
                   {suggestion.title}
                 </span>
               </div>
-              <p className="text-[11px] pl-5" style={{ color: 'var(--text-tertiary)' }}>
+              <p className="text-[11px] pl-5 text-[var(--text-tertiary)]"
+              >
                 {suggestion.description}
               </p>
             </div>
@@ -499,7 +503,8 @@ function IterationComparisonView({
         {resolvedIds.length > 0 && (
           <div className="pt-2" style={{ borderTop: '1px solid rgba(255,255,255,0.04)' }}
           >
-            <p className="text-[10px] mb-2" style={{ color: 'var(--text-disabled)' }}>已解决的问题</p>
+            <p className="text-[10px] mb-2 text-[var(--text-disabled)]"
+            >已解决的问题</p>
             {resolvedIds.map((id) => {
               const suggestion = leftIter.suggestions.find((s) => s.id === id)
               if (!suggestion) return null
@@ -514,8 +519,9 @@ function IterationComparisonView({
                 >
                   <div className="flex items-center gap-2"
                   >
-                    <Check className="w-3 h-3" style={{ color: 'var(--color-success)' }} />
-                    <span className="text-xs line-through" style={{ color: 'var(--text-tertiary)' }}>
+                    <Check className="w-3 h-3 text-[var(--color-success)]" />
+                    <span className="text-xs line-through text-[var(--text-tertiary)]"
+                    >
                       {suggestion.title}
                     </span>
                   </div>
@@ -553,7 +559,7 @@ function SuggestionCard({
     <motion.div
       variants={cardVariants}
       layout
-      className="p-3 rounded-lg group"
+      className="p-3 rounded-lg group transition-colors duration-150"
       style={{
         backgroundColor: isApplied ? 'var(--color-success)06' : 'var(--color-surface-raised)',
         border: `1px solid ${isApplied ? 'var(--color-success)15' : 'var(--border-subtle)'}`,
@@ -592,11 +598,7 @@ function SuggestionCard({
             </span>
             {ISSUE_TYPE_LABELS[suggestion.type] && (
               <span
-                className="text-[10px] px-1.5 py-0.5 rounded"
-                style={{
-                  backgroundColor: 'var(--color-surface-overlay)',
-                  color: 'var(--text-tertiary)',
-                }}
+                className="text-[10px] px-1.5 py-0.5 rounded bg-[var(--color-surface-overlay)] text-[var(--text-tertiary)]"
               >
                 {ISSUE_TYPE_LABELS[suggestion.type]}
               </span>
@@ -604,8 +606,7 @@ function SuggestionCard({
             {suggestion.lineReference && (
               <button
                 onClick={onClickLocate}
-                className="text-[10px] px-1.5 py-0.5 rounded hover:bg-white/10 transition-colors flex items-center gap-1"
-                style={{ backgroundColor: 'var(--accent-muted)', color: 'var(--accent-primary)' }}
+                className="text-[10px] px-1.5 py-0.5 rounded hover:bg-white/10 transition-colors flex items-center gap-1 bg-[var(--accent-muted)] text-[var(--accent-primary)]"
                 title="定位到相关实体"
               >
                 <Info className="w-2.5 h-2.5" />
@@ -615,12 +616,14 @@ function SuggestionCard({
           </div>
 
           {/* Title */}
-          <p className="text-sm font-medium mb-1" style={{ color: 'var(--text-primary)' }}>
+          <p className="text-sm font-medium mb-1 text-[var(--text-primary)]"
+          >
             {suggestion.title}
           </p>
 
           {/* Description */}
-          <p className="text-xs line-clamp-3" style={{ color: 'var(--text-tertiary)' }}>
+          <p className="text-xs line-clamp-3 text-[var(--text-tertiary)]"
+          >
             {suggestion.description}
           </p>
         </div>
@@ -652,17 +655,12 @@ function SuggestionCard({
               whileTap={{ scale: 0.85 }}
               disabled={isApplied}
             >
-              {isApplied ? (
-                <Check className="w-3.5 h-3.5" />
-              ) : (
-                <Check className="w-3.5 h-3.5" />
-              )}
+              <Check className="w-3.5 h-3.5" />
             </motion.button>
           )}
           <motion.button
             onClick={onDismiss}
-            className="p-1.5 rounded transition-all"
-            style={{ color: 'var(--text-tertiary)' }}
+            className="p-1.5 rounded transition-all text-[var(--text-tertiary)]"
             onMouseEnter={(e) => {
               e.currentTarget.style.backgroundColor = 'var(--color-surface-overlay)'
               e.currentTarget.style.color = 'var(--text-secondary)'
@@ -695,7 +693,6 @@ export function AISuggestionPanel() {
   const [showHistory, setShowHistory] = useState(false)
   const [showComparison, setShowComparison] = useState(false)
 
-  // Review history state (in-memory for this session)
   const [reviewHistory, setReviewHistory] = useState<ReviewHistoryState>({
     iterations: [],
     currentIterationId: null,
@@ -704,11 +701,9 @@ export function AISuggestionPanel() {
   const aiReviewResult = useSettingsStore((state) => state.aiReviewResult)
   const reviewWithAI = useSettingsStore((state) => state.reviewWithAI)
 
-  // Convert API result to local suggestions with severity
   const currentSuggestions: SuggestionItem[] = useMemo(() => {
     if (!aiReviewResult) return []
 
-    // Parse raw_response for structured data if available
     const raw = aiReviewResult.raw_response as {
       issues?: Array<{
         type: string
@@ -749,7 +744,6 @@ export function AISuggestionPanel() {
     return [...issues, ...suggestions]
   }, [aiReviewResult])
 
-  // Add current result to history when it changes
   useEffect(() => {
     if (currentSuggestions.length > 0 && aiReviewResult) {
       const iterationId = `iter_${Date.now()}`
@@ -759,7 +753,6 @@ export function AISuggestionPanel() {
         suggestion: currentSuggestions.filter((s) => s.severity === 'suggestion').length,
       }
 
-      // Only add if this is a new result (not already in history)
       const lastIter = reviewHistory.iterations[reviewHistory.iterations.length - 1]
       const isNewResult = !lastIter ||
         lastIter.issueCount !== currentSuggestions.length ||
@@ -783,17 +776,14 @@ export function AISuggestionPanel() {
     }
   }, [aiReviewResult?.raw_response, currentSuggestions.length])
 
-  // Filter suggestions
   const filteredSuggestions = useMemo(() => {
     let filtered = currentSuggestions.filter((s) => !dismissed.has(s.id))
     if (severityFilter !== 'all') {
       filtered = filtered.filter((s) => s.severity === severityFilter)
     }
-    // Sort by severity priority
     return filtered.sort((a, b) => SEVERITY_CONFIG[a.severity].priority - SEVERITY_CONFIG[b.severity].priority)
   }, [currentSuggestions, dismissed, severityFilter])
 
-  // Severity counts
   const severityCounts = useMemo(() => ({
     all: currentSuggestions.filter((s) => !dismissed.has(s.id)).length,
     error: currentSuggestions.filter((s) => s.severity === 'error' && !dismissed.has(s.id)).length,
@@ -801,7 +791,6 @@ export function AISuggestionPanel() {
     suggestion: currentSuggestions.filter((s) => s.severity === 'suggestion' && !dismissed.has(s.id)).length,
   }), [currentSuggestions, dismissed])
 
-  // Actions
   const handleDismiss = useCallback((id: string) => {
     setDismissed((prev) => new Set([...prev, id]))
   }, [])
@@ -821,7 +810,6 @@ export function AISuggestionPanel() {
   const handleReReview = useCallback(async () => {
     setIsReviewing(true)
     try {
-      // Use the current category from UI store - default to character for now
       await reviewWithAI('character')
     } catch {
       // Error handled by store
@@ -832,7 +820,6 @@ export function AISuggestionPanel() {
 
   const handleLocate = useCallback((entityIds?: number[]) => {
     if (entityIds && entityIds.length > 0) {
-      // Emit a custom event that the entity editor can listen to
       window.dispatchEvent(new CustomEvent('ai-review-locate', {
         detail: { entityIds },
       }))
@@ -843,7 +830,6 @@ export function AISuggestionPanel() {
     setReviewHistory((prev) => ({ ...prev, currentIterationId: id }))
   }, [])
 
-  // Get current iteration suggestions (from history if viewing past iteration)
   const displaySuggestions = useMemo(() => {
     const currentIter = reviewHistory.iterations.find(
       (i) => i.id === reviewHistory.currentIterationId
@@ -857,31 +843,22 @@ export function AISuggestionPanel() {
   const hasMultipleIterations = reviewHistory.iterations.length >= 2
 
   return (
-    <div className="relative" style={{ backgroundColor: 'var(--color-surface-base)' }}
+    <div className="relative bg-[var(--color-surface-base)]"
     >
       {/* Decorative gradient accent */}
-      <div
-        className="absolute top-0 left-0 right-0 h-px"
-        style={{
-          background: 'linear-gradient(90deg, transparent, rgba(94,106,210,0.3), transparent)',
-        }}
+      <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-[rgba(94,106,210,0.3)] to-transparent"
       />
       {/* Header */}
       <button
         onClick={() => setIsExpanded(!isExpanded)}
-        className="w-full px-4 py-3 flex items-center justify-between transition-all"
+        className="w-full px-4 py-3 flex items-center justify-between transition-all hover:bg-[var(--color-surface-raised)]"
         style={{ borderBottom: isExpanded ? '1px solid rgba(255,255,255,0.06)' : 'none' }}
-        onMouseEnter={(e) => {
-          e.currentTarget.style.backgroundColor = 'var(--color-surface-raised)'
-        }}
-        onMouseLeave={(e) => {
-          e.currentTarget.style.backgroundColor = 'transparent'
-        }}
       >
         <div className="flex items-center gap-2"
         >
-          <Sparkles className="w-4 h-4" style={{ color: 'var(--accent-primary)' }} />
-          <span className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>
+          <Sparkles className="w-4 h-4 text-[var(--accent-primary)]" />
+          <span className="text-sm font-medium text-[var(--text-primary)]"
+          >
             AI 审查建议
           </span>
           {severityCounts.all > 0 && (
@@ -935,7 +912,7 @@ export function AISuggestionPanel() {
               className="p-1.5 rounded hover:bg-white/10 transition-colors"
               title="审查历史"
             >
-              <History className="w-3.5 h-3.5" style={{ color: 'var(--text-tertiary)' }} />
+              <History className="w-3.5 h-3.5 text-[var(--text-tertiary)]" />
             </button>
           )}
           {/* Comparison button */}
@@ -948,14 +925,14 @@ export function AISuggestionPanel() {
               className="p-1.5 rounded hover:bg-white/10 transition-colors"
               title="审查对比"
             >
-              <ArrowRight className="w-3.5 h-3.5" style={{ color: 'var(--text-tertiary)' }} />
+              <ArrowRight className="w-3.5 h-3.5 text-[var(--text-tertiary)]" />
             </button>
           )}
           <motion.div
             animate={{ rotate: isExpanded ? 0 : 180 }}
             transition={{ duration: 0.2 }}
           >
-            <ChevronDown className="w-4 h-4" style={{ color: 'var(--text-tertiary)' }} />
+            <ChevronDown className="w-4 h-4 text-[var(--text-tertiary)]" />
           </motion.div>
         </div>
       </button>
@@ -993,9 +970,10 @@ export function AISuggestionPanel() {
                     animate={{ scale: 1 }}
                     transition={{ type: 'spring', stiffness: 400, damping: 20, delay: 0.1 }}
                   >
-                    <Check className="w-8 h-8 mx-auto mb-2" style={{ color: 'var(--color-success)' }} />
+                    <Check className="w-8 h-8 mx-auto mb-2 text-[var(--color-success)]" />
                   </motion.div>
-                  <p className="text-sm" style={{ color: 'var(--text-tertiary)' }}>
+                  <p className="text-sm text-[var(--text-tertiary)]"
+                  >
                     {severityFilter !== 'all'
                       ? `暂无${SEVERITY_CONFIG[severityFilter].label}级别的问题`
                       : '设定一致，暂无建议'}
@@ -1003,8 +981,7 @@ export function AISuggestionPanel() {
                   {severityFilter !== 'all' && (
                     <button
                       onClick={() => setSeverityFilter('all')}
-                      className="text-xs mt-1 hover:underline"
-                      style={{ color: 'var(--accent-primary)' }}
+                      className="text-xs mt-1 hover:underline text-[var(--accent-primary)]"
                     >
                       查看全部
                     </button>
@@ -1048,18 +1025,7 @@ export function AISuggestionPanel() {
                           .filter((s) => s.autoFixable)
                           .forEach((s) => handleApplyFix(s.id))
                       }}
-                      className="flex-1 py-2 rounded-lg text-xs font-medium transition-all"
-                      style={{
-                        backgroundColor: 'var(--color-surface-raised)',
-                        color: 'var(--text-secondary)',
-                        border: '1px solid var(--border-default)',
-                      }}
-                      onMouseEnter={(e) => {
-                        e.currentTarget.style.backgroundColor = 'var(--color-surface-overlay)'
-                      }}
-                      onMouseLeave={(e) => {
-                        e.currentTarget.style.backgroundColor = 'var(--color-surface-raised)'
-                      }}
+                      className="flex-1 py-2 rounded-lg text-xs font-medium transition-all bg-[var(--color-surface-raised)] text-[var(--text-secondary)] border border-[var(--border-default)] hover:bg-[var(--color-surface-overlay)]"
                       whileHover={{ scale: 1.01 }}
                       whileTap={{ scale: 0.98 }}
                     >
@@ -1067,18 +1033,7 @@ export function AISuggestionPanel() {
                     </motion.button>
                     <motion.button
                       onClick={() => setDismissed(new Set(displaySuggestions.map((s) => s.id)))}
-                      className="flex-1 py-2 rounded-lg text-xs font-medium transition-all"
-                      style={{
-                        backgroundColor: 'transparent',
-                        color: 'var(--text-tertiary)',
-                        border: '1px solid var(--border-default)',
-                      }}
-                      onMouseEnter={(e) => {
-                        e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.05)'
-                      }}
-                      onMouseLeave={(e) => {
-                        e.currentTarget.style.backgroundColor = 'transparent'
-                      }}
+                      className="flex-1 py-2 rounded-lg text-xs font-medium transition-all bg-transparent text-[var(--text-tertiary)] border border-[var(--border-default)] hover:bg-white/5"
                       whileHover={{ scale: 1.01 }}
                       whileTap={{ scale: 0.98 }}
                     >
@@ -1094,18 +1049,7 @@ export function AISuggestionPanel() {
                 <motion.button
                   onClick={handleReReview}
                   disabled={isReviewing}
-                  className="w-full py-2.5 rounded-lg text-xs font-medium flex items-center justify-center gap-2 transition-all disabled:opacity-50"
-                  style={{
-                    backgroundColor: 'var(--accent-muted)',
-                    color: 'var(--accent-primary)',
-                    border: '1px solid var(--accent-primary)20',
-                  }}
-                  onMouseEnter={(e) => {
-                    if (!isReviewing) e.currentTarget.style.backgroundColor = 'var(--accent-primary)25'
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.backgroundColor = 'var(--accent-muted)'
-                  }}
+                  className="w-full py-2.5 rounded-lg text-xs font-medium flex items-center justify-center gap-2 transition-all disabled:opacity-50 bg-[var(--accent-muted)] text-[var(--accent-primary)] border border-[var(--accent-primary)]/20 hover:bg-[var(--accent-primary)]/25"
                   whileHover={!isReviewing ? { scale: 1.01 } : {}}
                   whileTap={!isReviewing ? { scale: 0.98 } : {}}
                 >

@@ -89,10 +89,7 @@ function EntityItem({ entity, onConfirm, index }: {
 
   return (
     <motion.div
-      className="flex items-center gap-2.5 py-2.5 px-3 -mx-1 rounded-lg cursor-pointer group"
-      style={{
-        borderBottom: '1px solid var(--border-subtle)',
-      }}
+      className="flex items-center gap-2.5 py-2.5 px-3 -mx-1 rounded-lg cursor-pointer group border-b border-subtle"
       initial={{ opacity: 0, x: -8 }}
       animate={{ opacity: 1, x: 0 }}
       transition={{ delay: index * 0.04, duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
@@ -105,8 +102,8 @@ function EntityItem({ entity, onConfirm, index }: {
     >
       {/* Color-coded left border */}
       <motion.div
-        className="w-1 h-8 rounded-full flex-shrink-0"
-        style={{ backgroundColor: color, opacity: 0.5 }}
+        className="w-1 h-8 rounded-full flex-shrink-0 opacity-50"
+        style={{ backgroundColor: color }}
         whileHover={{ opacity: 0.8, scaleY: 1.2 }}
         transition={{ duration: 0.15 }}
       />
@@ -114,11 +111,11 @@ function EntityItem({ entity, onConfirm, index }: {
       <EntityTag type={entity.type} size="small" />
 
       <div className="flex-1 min-w-0">
-        <div className="font-medium text-sm truncate" style={{ color: 'var(--text-primary)' }}>
+        <div className="font-medium text-sm truncate text-primary">
           {entity.name}
         </div>
         {entity.description && (
-          <div className="text-xs truncate mt-0.5" style={{ color: 'var(--text-secondary)' }}>
+          <div className="text-xs truncate mt-0.5 text-secondary">
             {entity.description}
           </div>
         )}
@@ -149,7 +146,7 @@ function EntityItem({ entity, onConfirm, index }: {
               exit={{ scale: 0, rotate: 30 }}
               transition={{ type: 'spring', stiffness: 400, damping: 15 }}
             >
-              <CheckCircle className="w-4.5 h-4.5" style={{ color: 'var(--color-ifline)' }} />
+              <CheckCircle className="w-5 h-5 text-[var(--color-ifline)]" />
             </motion.div>
           ) : (
             <motion.div
@@ -159,7 +156,7 @@ function EntityItem({ entity, onConfirm, index }: {
               exit={{ scale: 0 }}
               transition={{ type: 'spring', stiffness: 400, damping: 15 }}
             >
-              <Circle className="w-4.5 h-4.5 hover:text-[var(--color-ifline)]" style={{ color: 'var(--text-secondary)' }} />
+              <Circle className="w-5 h-5 text-secondary hover:text-[var(--color-ifline)]" />
             </motion.div>
           )}
         </AnimatePresence>
@@ -198,16 +195,15 @@ function CategorySection({
     >
       {/* Section header */}
       <motion.button
-        className="flex items-center gap-2 w-full py-2 px-1 rounded-md group"
+        className="flex items-center gap-2 w-full py-2 px-1 rounded-md group hover:bg-surface-base"
         onClick={() => setIsExpanded(!isExpanded)}
-        whileHover={{ backgroundColor: 'var(--color-surface-base)' }}
         whileTap={{ scale: 0.99 }}
       >
         <motion.span
           animate={{ rotate: isExpanded ? 90 : 0 }}
           transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
         >
-          <ChevronRight className="w-3.5 h-3.5" style={{ color: 'var(--text-secondary)' }} />
+          <ChevronRight className="w-3.5 h-3.5 text-secondary" />
         </motion.span>
 
         {/* Color dot */}
@@ -216,11 +212,11 @@ function CategorySection({
           style={{ backgroundColor: color }}
         />
 
-        <h3 className="font-medium text-sm flex-1 text-left" style={{ color: 'var(--text-primary)' }}>
+        <h3 className="font-medium text-sm flex-1 text-left text-primary">
           {title}
         </h3>
 
-        <span className="text-xs flex items-center gap-1" style={{ color: 'var(--text-secondary)' }}>
+        <span className="text-xs flex items-center gap-1 text-secondary">
           <span style={{ color: confirmedCount === entities.length ? 'var(--color-ifline)' : color }}>
             {confirmedCount}
           </span>
@@ -274,19 +270,19 @@ export function CollectedInfoPanel({ entities, onConfirmEntity }: CollectedInfoP
   const confirmedCount = entities.filter((e) => e.confirmed).length
   const progressPercent = entities.length > 0 ? (confirmedCount / entities.length) * 100 : 0
 
-return (
-    <div className="h-full flex flex-col" style={{ backgroundColor: 'var(--color-surface-raised)' }}>
+  return (
+    <div className="h-full flex flex-col bg-surface-raised">
       {/* Header */}
-      <div className="p-4 border-b border-[var(--border-default)]">
+      <div className="p-4 border-b border-default">
         <div className="flex items-center gap-2 mb-1">
-          <Sparkles className="w-4 h-4" style={{ color: 'var(--accent-primary)' }} />
-          <h2 className="font-medium text-sm" style={{ color: 'var(--text-primary)' }}>已收集信息</h2>
+          <Sparkles className="w-4 h-4 text-accent-primary" />
+          <h2 className="font-medium text-sm text-primary">已收集信息</h2>
         </div>
-        <div className="text-xs" style={{ color: 'var(--text-secondary)' }}>
+        <div className="text-xs text-secondary">
           {confirmedCount}/{entities.length} 项已确认
         </div>
         {/* Progress bar */}
-        <div className="mt-2.5 h-1.5 rounded-full overflow-hidden" style={{ backgroundColor: 'var(--color-surface-base)' }}>
+        <div className="mt-2.5 h-1.5 rounded-full overflow-hidden bg-surface-base">
           <motion.div
             className="h-full rounded-full relative"
             style={{
@@ -323,20 +319,17 @@ return (
               transition={{ duration: 0.3 }}
             >
               <motion.div
-                className="w-14 h-14 rounded-full mx-auto mb-4 flex items-center justify-center"
-                style={{
-                  backgroundColor: 'var(--color-surface-base)',
-                  border: '1px solid var(--border-default)',
-                }}
+                className="w-14 h-14 rounded-full mx-auto mb-4 flex items-center justify-center
+                           bg-surface-base border border-default"
                 animate={{ y: [0, -5, 0] }}
                 transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
               >
-                <Edit3 className="w-6 h-6" style={{ color: 'var(--text-secondary)' }} />
+                <Edit3 className="w-6 h-6 text-secondary" />
               </motion.div>
-              <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
+              <p className="text-sm text-secondary">
                 开始对话后，这里将显示收集到的设定信息
               </p>
-              <p className="text-xs mt-2" style={{ color: 'var(--text-secondary)', opacity: 0.6 }}>
+              <p className="text-xs mt-2 text-secondary opacity-60">
                 AI 会自动识别并提取关键设定
               </p>
             </motion.div>
@@ -361,11 +354,11 @@ return (
       </div>
 
       {/* Footer actions */}
-      <div className="p-4 border-t border-[var(--border-default)]">
+      <div className="p-4 border-t border-default">
         <div className="flex gap-2 mb-2">
           <motion.button
-            className="flex-1 px-3 py-2 text-xs rounded-lg border border-[var(--border-default)]
-                       text-[var(--text-secondary)] hover:bg-[var(--color-surface-base)] hover:text-[var(--text-primary)]"
+            className="flex-1 px-3 py-2 text-xs rounded-lg border border-default
+                       text-secondary hover:bg-surface-base hover:text-primary"
             onClick={() => useUIStore.getState().setCurrentInterface('chat')}
             whileHover={{ y: -1 }}
             whileTap={{ scale: 0.97 }}
@@ -373,8 +366,8 @@ return (
             继续完善
           </motion.button>
           <motion.button
-            className="flex-1 px-3 py-2 text-xs rounded-lg border border-[var(--border-default)]
-                       text-[var(--text-secondary)] hover:bg-[var(--color-surface-base)] hover:text-[var(--text-primary)]"
+            className="flex-1 px-3 py-2 text-xs rounded-lg border border-default
+                       text-secondary hover:bg-surface-base hover:text-primary"
             onClick={() => useUIStore.getState().setCurrentInterface('settings')}
             whileHover={{ y: -1 }}
             whileTap={{ scale: 0.97 }}
@@ -384,11 +377,10 @@ return (
         </div>
         <motion.button
           className="w-full px-4 py-2.5 text-sm rounded-lg
-                     text-white flex items-center justify-center gap-2 font-medium"
-          style={{ backgroundColor: 'var(--accent-primary)' }}
+                     text-white flex items-center justify-center gap-2 font-medium
+                     bg-accent-primary hover:bg-accent-hover"
           onClick={() => useUIStore.getState().setCurrentInterface('settings')}
           whileHover={{
-            backgroundColor: 'var(--accent-hover)',
             y: -1,
             boxShadow: 'var(--shadow-glow)',
           }}

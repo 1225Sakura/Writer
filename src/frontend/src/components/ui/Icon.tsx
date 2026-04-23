@@ -23,11 +23,14 @@ import {
 
 // ============================================================
 // ICON SIZE SYSTEM
-// Default 3 sizes: sm(16px), md(20px), lg(24px)
-// All icons should use these standard sizes for consistency
+// Standard 4-tier size system for all icons:
+//   xs:  14px — small labels, tags, inline text
+//   sm:  16px — standard buttons, lists, navigation
+//   md:  20px — large buttons, section headers
+//   lg:  24px — empty states, hero icons
 // ============================================================
 
-export type IconSize = 'sm' | 'md' | 'lg' | 'xs'
+export type IconSize = 'xs' | 'sm' | 'md' | 'lg'
 
 const sizeMap: Record<IconSize, number> = {
   xs: 14,
@@ -41,6 +44,49 @@ const sizeClassMap: Record<IconSize, string> = {
   sm: 'w-4 h-4',
   md: 'w-5 h-5',
   lg: 'w-6 h-6',
+}
+
+// ============================================================
+// ICON COLOR SYSTEM
+// Use CSS design tokens for consistent icon coloring
+//   primary:   main interactive icons
+//   secondary: supporting icons in lists/cards
+//   muted:     disabled or low-priority icons
+//   accent:    brand-colored highlight icons
+//   danger:    error/warning state icons
+//   success:   success/confirm state icons
+// ============================================================
+
+export type IconColor =
+  | 'primary'
+  | 'secondary'
+  | 'muted'
+  | 'accent'
+  | 'danger'
+  | 'success'
+  | 'warning'
+  | 'inherit'
+
+const colorClassMap: Record<IconColor, string> = {
+  primary:   'text-[var(--icon-primary)]',
+  secondary: 'text-[var(--icon-secondary)]',
+  muted:     'text-[var(--icon-muted)]',
+  accent:    'text-[var(--accent-primary)]',
+  danger:    'text-[var(--icon-danger)]',
+  success:   'text-[var(--icon-success)]',
+  warning:   'text-[var(--icon-warning)]',
+  inherit:   'text-current',
+}
+
+const colorStyleMap: Record<IconColor, React.CSSProperties['color']> = {
+  primary:   'var(--icon-primary)',
+  secondary: 'var(--icon-secondary)',
+  muted:     'var(--icon-muted)',
+  accent:    'var(--accent-primary)',
+  danger:    'var(--icon-danger)',
+  success:   'var(--icon-success)',
+  warning:   'var(--icon-warning)',
+  inherit:   undefined,
 }
 
 // ============================================================
@@ -72,15 +118,17 @@ const entityIconMap: Record<EntityIconType, LucideIcon> = {
 export interface EntityIconProps {
   type: EntityIconType
   size?: IconSize
+  color?: IconColor
   className?: string
   style?: React.CSSProperties
 }
 
-export function EntityIcon({ type, size = 'sm', className, style }: EntityIconProps) {
+export function EntityIcon({ type, size = 'sm', color = 'inherit', className, style }: EntityIconProps) {
   const Icon = entityIconMap[type]
+  const colorClass = colorClassMap[color]
   return (
     <Icon
-      className={twMerge(clsx(sizeClassMap[size], className))}
+      className={twMerge(clsx(sizeClassMap[size], colorClass, 'flex-shrink-0', className))}
       style={style}
     />
   )
@@ -93,14 +141,16 @@ export function EntityIcon({ type, size = 'sm', className, style }: EntityIconPr
 
 export interface PlotThreadIconProps {
   size?: IconSize
+  color?: IconColor
   className?: string
   style?: React.CSSProperties
 }
 
-export function PlotThreadIcon({ size = 'sm', className, style }: PlotThreadIconProps) {
+export function PlotThreadIcon({ size = 'sm', color = 'inherit', className, style }: PlotThreadIconProps) {
+  const colorClass = colorClassMap[color]
   return (
     <Hash
-      className={twMerge(clsx(sizeClassMap[size], className))}
+      className={twMerge(clsx(sizeClassMap[size], colorClass, 'flex-shrink-0', className))}
       style={style}
     />
   )
@@ -108,13 +158,14 @@ export function PlotThreadIcon({ size = 'sm', className, style }: PlotThreadIcon
 
 // ============================================================
 // GENERIC ICON WRAPPER
-// Standardized size prop for all icons
-// Usage: <Icon icon={SomeLucideIcon} size="md" />
+// Standardized size + color props for all lucide icons
+// Usage: <Icon icon={SomeLucideIcon} size="md" color="accent" />
 // ============================================================
 
 export interface IconProps {
   icon: LucideIcon
   size?: IconSize
+  color?: IconColor
   className?: string
   style?: React.CSSProperties
   strokeWidth?: number
@@ -123,18 +174,29 @@ export interface IconProps {
 export function Icon({
   icon: LucideIconComponent,
   size = 'sm',
+  color = 'inherit',
   className,
   style,
   strokeWidth = 2,
 }: IconProps) {
+  const colorClass = colorClassMap[color]
   return (
     <LucideIconComponent
       size={sizeMap[size]}
       strokeWidth={strokeWidth}
-      className={twMerge(clsx('flex-shrink-0', className))}
+      className={twMerge(clsx('flex-shrink-0', colorClass, className))}
       style={style}
     />
   )
+}
+
+// ============================================================
+// UTILITY: Get color style for inline usage
+// Use when you need the color as a style prop (e.g. framer-motion)
+// ============================================================
+
+export function getIconColor(color: IconColor): React.CSSProperties['color'] {
+  return colorStyleMap[color]
 }
 
 // ============================================================
@@ -144,7 +206,7 @@ export function Icon({
 
 export const entityIcons = entityIconMap
 
-export { sizeMap, sizeClassMap }
+export { sizeMap, sizeClassMap, colorClassMap, colorStyleMap }
 
 // Re-export optimized icons for direct use
 export {

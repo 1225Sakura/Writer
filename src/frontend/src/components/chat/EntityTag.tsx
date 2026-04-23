@@ -12,31 +12,31 @@ const typeConfig: Record<EntityType, { label: string; bgColor: string; textColor
   character: {
     label: '角色',
     bgColor: 'var(--color-character)',
-    textColor: '#ffffff',
+    textColor: 'var(--text-primary)',
     icon: <User className="w-3 h-3" />,
   },
   item: {
     label: '物品',
     bgColor: 'var(--color-item)',
-    textColor: '#ffffff',
+    textColor: 'var(--text-primary)',
     icon: <Package className="w-3 h-3" />,
   },
   location: {
     label: '地点',
     bgColor: 'var(--color-location)',
-    textColor: '#ffffff',
+    textColor: 'var(--text-primary)',
     icon: <MapPin className="w-3 h-3" />,
   },
   faction: {
     label: '势力',
     bgColor: 'var(--color-faction)',
-    textColor: '#ffffff',
+    textColor: 'var(--text-primary)',
     icon: <Shield className="w-3 h-3" />,
   },
   world: {
     label: '世界观',
     bgColor: 'var(--color-world)',
-    textColor: '#ffffff',
+    textColor: 'var(--text-primary)',
     icon: <Globe className="w-3 h-3" />,
   },
   rule: {
@@ -48,7 +48,7 @@ const typeConfig: Record<EntityType, { label: string; bgColor: string; textColor
   outline: {
     label: '大纲',
     bgColor: 'var(--color-outline)',
-    textColor: '#ffffff',
+    textColor: 'var(--text-primary)',
     icon: <FileText className="w-3 h-3" />,
   },
   ifline: {
@@ -60,13 +60,13 @@ const typeConfig: Record<EntityType, { label: string; bgColor: string; textColor
   chapter: {
     label: '章节',
     bgColor: 'var(--color-outline)',
-    textColor: '#ffffff',
+    textColor: 'var(--text-primary)',
     icon: <FileText className="w-3 h-3" />,
   },
   plot_thread: {
     label: '剧情线',
     bgColor: 'var(--accent-primary)',
-    textColor: '#ffffff',
+    textColor: 'var(--text-primary)',
     icon: <GitBranch className="w-3 h-3" />,
   },
 }

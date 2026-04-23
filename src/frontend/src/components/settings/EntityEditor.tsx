@@ -1313,6 +1313,8 @@ export function EntityEditor({ category }: EntityEditorProps) {
     generateRelations,
   } = useSettingsStore()
 
+  const [showAddForm, setShowAddForm] = useState(false)
+
   const handleGenerate = (type: 'character' | 'item' | 'location' | 'faction' | 'world' | 'rule') => {
     generate(type)
   }
@@ -1324,7 +1326,7 @@ export function EntityEditor({ category }: EntityEditorProps) {
           <SectionHeader
             title="角色管理"
             count={characters.length}
-            onAdd={() => {}}
+            onAdd={() => setShowAddForm(true)}
             onGenerate={() => handleGenerate('character')}
           />
           <div className="space-y-3">
@@ -1360,7 +1362,7 @@ export function EntityEditor({ category }: EntityEditorProps) {
           <SectionHeader
             title="物品管理"
             count={items.length}
-            onAdd={() => {}}
+            onAdd={() => setShowAddForm(true)}
             onGenerate={() => handleGenerate('item')}
           />
           <div className="space-y-3">
@@ -1392,11 +1394,16 @@ export function EntityEditor({ category }: EntityEditorProps) {
                 <p className="text-sm">暂无物品</p>
               </div>
             )}
-            <AddEntityForm
-              placeholder="输入物品名称..."
-              onAdd={(name) => useSettingsStore.getState().addItem({ name })}
-              onCancel={() => {}}
-            />
+            {showAddForm && (
+              <AddEntityForm
+                placeholder="输入物品名称..."
+                onAdd={(name) => {
+                  useSettingsStore.getState().addItem({ name })
+                  setShowAddForm(false)
+                }}
+                onCancel={() => setShowAddForm(false)}
+              />
+            )}
           </div>
         </div>
       )
@@ -1407,7 +1414,7 @@ export function EntityEditor({ category }: EntityEditorProps) {
           <SectionHeader
             title="地点管理"
             count={locations.length}
-            onAdd={() => {}}
+            onAdd={() => setShowAddForm(true)}
             onGenerate={() => handleGenerate('location')}
           />
           <div className="space-y-3">
@@ -1439,11 +1446,16 @@ export function EntityEditor({ category }: EntityEditorProps) {
                 <p className="text-sm">暂无地点</p>
               </div>
             )}
-            <AddEntityForm
-              placeholder="输入地点名称..."
-              onAdd={(name) => useSettingsStore.getState().addLocation({ name, importance: 'minor' })}
-              onCancel={() => {}}
-            />
+            {showAddForm && (
+              <AddEntityForm
+                placeholder="输入地点名称..."
+                onAdd={(name) => {
+                  useSettingsStore.getState().addLocation({ name, importance: 'minor' })
+                  setShowAddForm(false)
+                }}
+                onCancel={() => setShowAddForm(false)}
+              />
+            )}
           </div>
         </div>
       )
@@ -1454,7 +1466,7 @@ export function EntityEditor({ category }: EntityEditorProps) {
           <SectionHeader
             title="势力管理"
             count={factions.length}
-            onAdd={() => {}}
+            onAdd={() => setShowAddForm(true)}
             onGenerate={() => handleGenerate('faction')}
           />
           <div className="space-y-3">
@@ -1486,11 +1498,16 @@ export function EntityEditor({ category }: EntityEditorProps) {
                 <p className="text-sm">暂无势力</p>
               </div>
             )}
-            <AddEntityForm
-              placeholder="输入势力名称..."
-              onAdd={(name) => useSettingsStore.getState().addFaction({ name, type: 'other' })}
-              onCancel={() => {}}
-            />
+            {showAddForm && (
+              <AddEntityForm
+                placeholder="输入势力名称..."
+                onAdd={(name) => {
+                  useSettingsStore.getState().addFaction({ name, type: 'other' })
+                  setShowAddForm(false)
+                }}
+                onCancel={() => setShowAddForm(false)}
+              />
+            )}
           </div>
         </div>
       )
@@ -1501,7 +1518,7 @@ export function EntityEditor({ category }: EntityEditorProps) {
           <SectionHeader
             title="世界观设定"
             count={worldSettings.length}
-            onAdd={() => {}}
+            onAdd={() => setShowAddForm(true)}
             onGenerate={() => handleGenerate('world')}
           />
           <div className="space-y-3">
@@ -1532,11 +1549,16 @@ export function EntityEditor({ category }: EntityEditorProps) {
                 <p className="text-sm">暂无世界观设定</p>
               </div>
             )}
-            <AddEntityForm
-              placeholder="输入世界观设定名称..."
-              onAdd={(name) => useSettingsStore.getState().addWorldSetting({ name, description: '' })}
-              onCancel={() => {}}
-            />
+            {showAddForm && (
+              <AddEntityForm
+                placeholder="输入世界观设定名称..."
+                onAdd={(name) => {
+                  useSettingsStore.getState().addWorldSetting({ name, description: '' })
+                  setShowAddForm(false)
+                }}
+                onCancel={() => setShowAddForm(false)}
+              />
+            )}
           </div>
         </div>
       )
@@ -1547,7 +1569,7 @@ export function EntityEditor({ category }: EntityEditorProps) {
           <SectionHeader
             title="规则设定"
             count={rules.length}
-            onAdd={() => {}}
+            onAdd={() => setShowAddForm(true)}
             onGenerate={() => handleGenerate('rule')}
           />
           <div className="space-y-3">
@@ -1579,11 +1601,16 @@ export function EntityEditor({ category }: EntityEditorProps) {
                 <p className="text-sm">暂无规则设定</p>
               </div>
             )}
-            <AddEntityForm
-              placeholder="输入规则名称..."
-              onAdd={(name) => useSettingsStore.getState().addRule({ name, description: '', type: 'other' })}
-              onCancel={() => {}}
-            />
+            {showAddForm && (
+              <AddEntityForm
+                placeholder="输入规则名称..."
+                onAdd={(name) => {
+                  useSettingsStore.getState().addRule({ name, description: '', type: 'other' })
+                  setShowAddForm(false)
+                }}
+                onCancel={() => setShowAddForm(false)}
+              />
+            )}
           </div>
         </div>
       )
@@ -1597,7 +1624,7 @@ export function EntityEditor({ category }: EntityEditorProps) {
           <SectionHeader
             title="IF线管理"
             count={ifLines.length}
-            onAdd={() => {}}
+            onAdd={() => setShowAddForm(true)}
             onGenerate={generateRelations}
           />
           <div className="space-y-3">
@@ -1629,11 +1656,16 @@ export function EntityEditor({ category }: EntityEditorProps) {
                 <p className="text-sm">暂无IF线</p>
               </div>
             )}
-            <AddEntityForm
-              placeholder="输入IF线标题..."
-              onAdd={(title) => useSettingsStore.getState().addIFLine({ title, sync_mode: 'manual', created_at: new Date().toISOString(), updated_at: new Date().toISOString() })}
-              onCancel={() => {}}
-            />
+            {showAddForm && (
+              <AddEntityForm
+                placeholder="输入IF线标题..."
+                onAdd={(title) => {
+                  useSettingsStore.getState().addIFLine({ title, sync_mode: 'manual', created_at: new Date().toISOString(), updated_at: new Date().toISOString() })
+                  setShowAddForm(false)
+                }}
+                onCancel={() => setShowAddForm(false)}
+              />
+            )}
           </div>
         </div>
       )

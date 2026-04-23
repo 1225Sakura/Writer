@@ -1,4 +1,5 @@
 import { useState, useCallback } from 'react'
+// Note: ripple effect removed for cleaner visual design
 import { useWritingStore, WritingStyle } from '@/store'
 import { getEditorInstance } from '@/store/editorRegistry'
 import { showToast } from '@/components/ui/Toast'
@@ -584,29 +585,16 @@ function Section({
   children: React.ReactNode
 }) {
   return (
-    <div
-      className="rounded-xl overflow-hidden"
-      style={{
-        background: 'var(--color-surface-base)',
-        border: '1px solid var(--border-default)',
-      }}
+    <div className="rounded-xl overflow-hidden bg-[var(--color-surface-base)] border border-[var(--border-default)]"
     >
       <button
         onClick={onToggle}
-        className="w-full px-3 py-2.5 flex items-center gap-2 transition-colors"
-        style={{ color: 'var(--text-secondary)' }}
-        onMouseEnter={(e) => {
-          e.currentTarget.style.background = 'var(--hover-bg)'
-        }}
-        onMouseLeave={(e) => {
-          e.currentTarget.style.background = 'transparent'
-        }}
+        className="w-full px-3 py-2.5 flex items-center gap-2 transition-colors text-[var(--text-secondary)] hover:bg-[var(--hover-bg)]"
       >
-        {icon && <span style={{ color: 'var(--accent-primary)' }}>{icon}</span>}
-        <span className="flex-1 text-left text-sm font-medium" style={{ color: 'var(--text-primary)' }}>{title}</span>
+        {icon && <span className="text-[var(--accent-primary)]">{icon}</span>}
+        <span className="flex-1 text-left text-sm font-medium text-[var(--text-primary)]">{title}</span>
         <ChevronDown
-          className={`w-4 h-4 transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`}
-          style={{ color: 'var(--text-secondary)' }}
+          className={`w-4 h-4 transition-transform duration-200 text-[var(--text-secondary)] ${isExpanded ? 'rotate-180' : ''}`}
         />
       </button>
       <AnimatePresence initial={false}>
@@ -618,9 +606,7 @@ function Section({
             transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
             className="overflow-hidden"
           >
-            <div
-              className="p-3"
-              style={{ background: 'var(--color-surface-base)' }}
+            <div className="p-3 bg-[var(--color-surface-base)]"
             >{children}</div>
           </motion.div>
         )}
@@ -642,24 +628,9 @@ function AIOperationButton({
   progress?: number
   onClick: () => void
 }) {
-  const [ripple, setRipple] = useState<{ x: number; y: number } | null>(null)
-
-  const handleClick = (e: React.MouseEvent<HTMLButtonElement>) => {
-    if (isDisabled) return
-
-    // Calculate ripple position
-    const rect = e.currentTarget.getBoundingClientRect()
-    const x = e.clientX - rect.left
-    const y = e.clientY - rect.top
-    setRipple({ x, y })
-    setTimeout(() => setRipple(null), 600)
-
-    onClick()
-  }
-
   return (
     <motion.button
-      onClick={handleClick}
+      onClick={onClick}
       disabled={isDisabled}
       whileHover={{ scale: isDisabled ? 1 : 1.03 }}
       whileTap={{ scale: isDisabled ? 1 : 0.97 }}
@@ -671,24 +642,6 @@ function AIOperationButton({
         ${isDisabled && !isLoading ? 'opacity-40 cursor-not-allowed' : 'cursor-pointer'}
       `}
     >
-      {/* Ripple effect */}
-      <AnimatePresence>
-        {ripple && (
-          <motion.div
-            initial={{ opacity: 0.5, scale: 0 }}
-            animate={{ opacity: 0, scale: 2.5 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.6, ease: 'easeOut' }}
-            className="absolute w-8 h-8 rounded-full"
-            style={{
-              left: ripple.x - 16,
-              top: ripple.y - 16,
-              background: `radial-gradient(circle, ${operation.color}40 0%, transparent 70%)`,
-            }}
-          />
-        )}
-      </AnimatePresence>
-
       {/* Loading overlay */}
       <AnimatePresence>
         {isLoading && (
@@ -696,35 +649,34 @@ function AIOperationButton({
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="absolute inset-0 rounded-xl flex items-center justify-center"
-            style={{ background: 'color-mix(in srgb, var(--accent-primary) 5%, transparent)' }}
+            className="absolute inset-0 rounded-xl flex items-center justify-center bg-[var(--accent-primary)]/5"
           >
             <motion.div
               animate={{ rotate: 360 }}
               transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
             >
-              <Loader2 className="w-6 h-6" style={{ color: 'var(--accent-primary)' }} />
+              <Loader2 className="w-6 h-6 text-[var(--accent-primary)]" />
             </motion.div>
           </motion.div>
         )}
       </AnimatePresence>
 
       <motion.span
-        style={{ color: isLoading ? 'var(--accent-primary)' : operation.color }}
+        className={isLoading ? 'text-[var(--accent-primary)]' : ''}
+        style={{ color: isLoading ? undefined : operation.color }}
         animate={isLoading ? { scale: [1, 0.9, 1] } : {}}
         transition={{ duration: 0.5, repeat: isLoading ? Infinity : 0 }}
       >
         {isLoading ? operation.activeIcon : operation.icon}
       </motion.span>
-      <span className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>{operation.label}</span>
-      <span className="text-[10px]" style={{ color: 'var(--text-tertiary)' }}>{operation.description}</span>
+      <span className="text-sm font-medium text-[var(--text-primary)]">{operation.label}</span>
+      <span className="text-[10px] text-[var(--text-tertiary)]">{operation.description}</span>
 
       {/* Mini progress bar when loading */}
       {isLoading && progress !== undefined && progress > 0 && (
-        <div className="w-full h-0.5 rounded-full overflow-hidden" style={{ background: 'var(--border-subtle)' }}>
+        <div className="w-full h-0.5 rounded-full overflow-hidden bg-[var(--border-subtle)]">
           <motion.div
-            className="h-full rounded-full"
-            style={{ background: 'var(--accent-primary)' }}
+            className="h-full rounded-full bg-[var(--accent-primary)]"
             initial={{ width: 0 }}
             animate={{ width: `${progress}%` }}
             transition={{ duration: 0.3 }}
@@ -732,10 +684,7 @@ function AIOperationButton({
         </div>
       )}
 
-      <span
-        className="text-[10px] px-1.5 py-0.5 rounded"
-        style={{ background: 'var(--border-subtle)', color: 'var(--text-tertiary)' }}
-      >
+      <span className="text-[10px] px-1.5 py-0.5 rounded bg-[var(--border-subtle)] text-[var(--text-tertiary)]">
         {operation.shortcut}
       </span>
     </motion.button>
@@ -758,24 +707,14 @@ function GlobalOperationButton({
       onClick={onClick}
       whileHover={{ scale: 1.01 }}
       whileTap={{ scale: 0.99 }}
-      className="w-full flex items-center gap-3 p-2.5 rounded-lg transition-all duration-200 cursor-pointer text-left"
-      style={{
-        background: 'var(--color-surface-base)',
-        border: '1px solid var(--border-default)',
-      }}
-      onMouseEnter={(e) => {
-        e.currentTarget.style.borderColor = 'var(--border-strong)'
-        e.currentTarget.style.background = 'var(--hover-bg)'
-      }}
-      onMouseLeave={(e) => {
-        e.currentTarget.style.borderColor = 'var(--border-default)'
-        e.currentTarget.style.background = 'var(--color-surface-base)'
-      }}
+      className="w-full flex items-center gap-3 p-2.5 rounded-lg transition-all duration-200 cursor-pointer text-left
+                 bg-[var(--color-surface-base)] border border-[var(--border-default)]
+                 hover:border-[var(--border-strong)] hover:bg-[var(--hover-bg)]"
     >
-      <span style={{ color: 'var(--accent-primary)' }}>{icon}</span>
+      <span className="text-[var(--accent-primary)]">{icon}</span>
       <div className="flex-1 min-w-0">
-        <div className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>{label}</div>
-        <div className="text-xs" style={{ color: 'var(--text-tertiary)' }}>{description}</div>
+        <div className="text-sm font-medium text-[var(--text-primary)]">{label}</div>
+        <div className="text-xs text-[var(--text-tertiary)]">{description}</div>
       </div>
     </motion.button>
   )

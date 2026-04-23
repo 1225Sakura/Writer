@@ -1,10 +1,10 @@
 /* ============================================================
    ANIMATION SYSTEM
    统一动画时长规范：
-   - 微交互：150ms
-   - 组件状态：200ms
-   - 页面过渡：300ms
-   - 缓动函数：cubic-bezier(0.4, 0, 0.2, 1)
+   - 微交互：100-150ms (var(--transition-fast) / var(--transition-base))
+   - 组件状态：200ms (var(--transition-normal))
+   - 页面过渡：250-300ms (var(--transition-slow))
+   - 缓动函数：var(--ease-out)
    ============================================================ */
 
 /* ============================================================
@@ -13,7 +13,7 @@
 
 @keyframes page-enter {
   from {
-    transform: translateX(20%);
+    transform: translateX(16px);
     opacity: 0;
   }
   to {
@@ -28,19 +28,17 @@
     opacity: 1;
   }
   to {
-    transform: translateX(-20%);
+    transform: translateX(-16px);
     opacity: 0;
   }
 }
 
 .page-enter {
-  animation: page-enter 300ms cubic-bezier(0.4, 0, 0.2, 1) forwards;
-  will-change: transform, opacity;
+  animation: page-enter var(--transition-slow) var(--ease-out) forwards;
 }
 
 .page-exit {
-  animation: page-exit 300ms cubic-bezier(0.4, 0, 0.2, 1) forwards;
-  will-change: transform, opacity;
+  animation: page-exit var(--transition-slow) var(--ease-out) forwards;
 }
 
 /* ============================================================
@@ -70,13 +68,11 @@
 }
 
 .drawer-slide-in {
-  animation: drawer-slide-in 200ms cubic-bezier(0.4, 0, 0.2, 1) forwards;
-  will-change: transform, opacity;
+  animation: drawer-slide-in var(--transition-normal) var(--ease-out) forwards;
 }
 
 .drawer-slide-out {
-  animation: drawer-slide-out 200ms cubic-bezier(0.4, 0, 0.2, 1) forwards;
-  will-change: transform, opacity;
+  animation: drawer-slide-out var(--transition-normal) var(--ease-out) forwards;
 }
 
 /* ============================================================
@@ -85,18 +81,17 @@
 
 @keyframes modal-zoom-in {
   from {
-    transform: scale(0.96) translateY(4px);
+    transform: scale(0.97);
     opacity: 0;
   }
   to {
-    transform: scale(1) translateY(0);
+    transform: scale(1);
     opacity: 1;
   }
 }
 
 .modal-zoom-in {
-  animation: modal-zoom-in 200ms cubic-bezier(0.4, 0, 0.2, 1) forwards;
-  will-change: transform, opacity;
+  animation: modal-zoom-in var(--transition-normal) var(--ease-out) forwards;
 }
 
 /* ============================================================
@@ -106,7 +101,7 @@
 @keyframes ripple-effect {
   from {
     transform: scale(0);
-    opacity: 0.3;
+    opacity: 0.25;
   }
   to {
     transform: scale(3);
@@ -117,8 +112,8 @@
 .ripple-effect {
   position: absolute;
   border-radius: 50%;
-  background: rgba(94, 106, 210, 0.2);
-  animation: ripple-effect 400ms cubic-bezier(0.4, 0, 0.2, 1) forwards;
+  background: rgba(94, 106, 210, 0.15);
+  animation: ripple-effect 350ms var(--ease-out) forwards;
   pointer-events: none;
 }
 
@@ -128,7 +123,7 @@
 
 @keyframes list-item-enter {
   from {
-    transform: translateY(6px);
+    transform: translateY(4px);
     opacity: 0;
   }
   to {
@@ -138,20 +133,18 @@
 }
 
 .list-stagger > * {
-  animation: list-item-enter 200ms cubic-bezier(0.4, 0, 0.2, 1) forwards;
+  animation: list-item-enter var(--transition-normal) var(--ease-out) forwards;
   opacity: 0;
 }
 
 .list-stagger > *:nth-child(1) { animation-delay: 0ms; }
-.list-stagger > *:nth-child(2) { animation-delay: 30ms; }
-.list-stagger > *:nth-child(3) { animation-delay: 60ms; }
-.list-stagger > *:nth-child(4) { animation-delay: 90ms; }
-.list-stagger > *:nth-child(5) { animation-delay: 120ms; }
-.list-stagger > *:nth-child(6) { animation-delay: 150ms; }
-.list-stagger > *:nth-child(7) { animation-delay: 180ms; }
-.list-stagger > *:nth-child(8) { animation-delay: 210ms; }
-.list-stagger > *:nth-child(9) { animation-delay: 240ms; }
-.list-stagger > *:nth-child(10) { animation-delay: 270ms; }
+.list-stagger > *:nth-child(2) { animation-delay: 25ms; }
+.list-stagger > *:nth-child(3) { animation-delay: 50ms; }
+.list-stagger > *:nth-child(4) { animation-delay: 75ms; }
+.list-stagger > *:nth-child(5) { animation-delay: 100ms; }
+.list-stagger > *:nth-child(6) { animation-delay: 125ms; }
+.list-stagger > *:nth-child(7) { animation-delay: 150ms; }
+.list-stagger > *:nth-child(8) { animation-delay: 175ms; }
 
 /* ============================================================
    REDUCED MOTION SUPPORT
@@ -163,6 +156,7 @@
   .drawer-slide-in,
   .drawer-slide-out,
   .modal-zoom-in,
+  .ripple-effect,
   .list-stagger > * {
     animation: none !important;
     transform: none !important;

@@ -1,77 +1,8 @@
 /* ============================================================
-   Design Tokens - 统一色彩和设计变量
-   Version: 1.0
-   Date: 2026-04-22
+   Design Tokens — Entry Point
+   This file imports the unified global style system.
+   All tokens are defined in globals.css to ensure a single
+   source of truth across dark / light / eye-care themes.
    ============================================================ */
 
-/* 核心色彩 */
-:root {
-  /* 背景色系 */
-  --color-black: #08090a;
-  --color-surface-base: #0f1011;
-  --color-surface-raised: #191a1b;
-  --color-surface-overlay: #202123;
-  --color-surface-input: #262829;
-  --color-surface-hover: #2a2c2e;
-
-  /* 墨韵色系 */
-  --ink-black: #0d0d12;
-  --charcoal: #1a1a2e;
-  --paper-white: #f5f0e6;
-  --smoke: #3a3a4a;
-  --frost: #e8e4dc;
-
-  /* 强调色 */
-  --accent-primary: #5e6ad2;
-  --accent-hover: #6b77e0;
-  --accent-muted: rgba(94, 106, 210, 0.15);
-  --accent-primary-hover: #6b77e0;
-  --accent-primary-active: #4a5499;
-  --accent-secondary: #9b7ed9;
-  --accent-secondary-hover: #a889e3;
-  --accent-secondary-active: #7a5fbf;
-
-  /* 语义色 */
-  --color-danger: #d93a3a;
-  --color-warning: #e5a000;
-  --color-success: #2ea043;
-  --color-error: #d93a3a;
-
-  /* 实体类型颜色 */
-  --color-character: #e8b87d;
-  --color-item: #9b7ed9;
-  --color-location: #5eb5a6;
-  --color-faction: #d45d5d;
-  --color-outline: #5b8ee8;
-  --color-ifline: #7eb84a;
-  --color-world: #5e6ad2;
-  --color-rule: #7eb84a;
-
-  /* 文字层次 */
-  --text-primary: #f7f8f8;
-  --text-secondary: #d0d6e0;
-  --text-tertiary: #8a8f98;
-  --text-disabled: #5c5f63;
-
-  /* 边框 */
-  --border-default: rgba(255, 255, 255, 0.06);
-  --border-subtle: rgba(255, 255, 255, 0.04);
-  --border-strong: rgba(255, 255, 255, 0.10);
-  --border-focus: rgba(94, 106, 210, 0.5);
-
-  /* 布局尺寸 */
-  --layout-sidebar-width: 200px;
-  --layout-sidebar-min: 120px;
-  --layout-rightpanel-width: 320px;
-  --layout-rightpanel-min: 200px;
-}
-
-/* 浅色主题覆盖 */
-[data-theme="light"] {
-  --color-black: #ffffff;
-  --color-surface-base: #f5f0e6;
-  --color-surface-raised: #ffffff;
-  --text-primary: #1a1a2e;
-  --text-secondary: #666666;
-  --border-default: rgba(0, 0, 0, 0.08);
-}
+@import './globals.css';

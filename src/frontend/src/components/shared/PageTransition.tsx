@@ -7,6 +7,7 @@
  *
  * 动画仅使用 transform 和 opacity，避免 layout 属性动画
  * 确保写作性能不受影响
+ * 支持 prefers-reduced-motion
  */
 
 import { useState, useEffect } from 'react'
@@ -38,19 +39,16 @@ function getDirection(from: InterfaceType, to: InterfaceType): number {
 
 const pageVariants: Variants = {
   enter: (direction: number) => ({
-    x: direction > 0 ? '20%' : '-20%',
+    x: direction > 0 ? '12%' : '-12%',
     opacity: 0,
-    scale: 0.98,
   }),
   center: {
     x: 0,
     opacity: 1,
-    scale: 1,
   },
   exit: (direction: number) => ({
-    x: direction > 0 ? '-20%' : '20%',
+    x: direction > 0 ? '-12%' : '12%',
     opacity: 0,
-    scale: 0.98,
   }),
 }
 
@@ -59,9 +57,10 @@ const pageVariants: Variants = {
  *
  * 特性：
  * - 双向滑动：根据界面顺序自动判断滑动方向
- * - 淡入淡出 + 微缩放：更自然的视觉过渡
+ * - 淡入淡出：更自然的视觉过渡
  * - 使用 spring 物理动画：更流畅的手感
  * - GPU 加速：仅使用 transform 和 opacity
+ * - 支持 prefers-reduced-motion
  */
 export function PageTransition({ children, interfaceType, className }: PageTransitionProps) {
   const [prevInterface, setPrevInterface] = useState<InterfaceType>(interfaceType)
@@ -84,17 +83,11 @@ export function PageTransition({ children, interfaceType, className }: PageTrans
         animate="center"
         exit="exit"
         transition={{
-          x: { type: 'spring', stiffness: 500, damping: 40, mass: 0.6 },
-          opacity: { duration: 0.2, ease: 'easeInOut' },
-          scale: { duration: 0.2, ease: 'easeInOut' },
+          x: { type: 'spring', stiffness: 400, damping: 38, mass: 0.7 },
+          opacity: { duration: 0.2, ease: [0.16, 1, 0.3, 1] },
         }}
         style={{
           willChange: 'transform, opacity',
-          position: 'absolute',
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
         }}
         className={className}
       >

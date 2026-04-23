@@ -198,12 +198,12 @@ interface SettingsActions {
   deleteFaction: (id: number) => Promise<void>
 
   // WorldSetting CRUD
-  addWorldSetting: (setting: Omit<WorldSetting, 'id'>) => Promise<void>
+  addWorldSetting: (setting: Omit<WorldSetting, 'id'>) => Promise<string>
   updateWorldSetting: (id: number, updates: Partial<WorldSetting>) => Promise<void>
   deleteWorldSetting: (id: number) => Promise<void>
 
   // Rule CRUD
-  addRule: (rule: Omit<Rule, 'id'>) => Promise<void>
+  addRule: (rule: Omit<Rule, 'id'>) => Promise<string>
   updateRule: (id: number, updates: Partial<Rule>) => Promise<void>
   deleteRule: (id: number) => Promise<void>
 
@@ -458,10 +458,10 @@ export const useSettingsStore = create<SettingsState & SettingsActions>()(
             }
           },
 
-          generate: async (_type, context) => {
+          generate: async (type, context) => {
             try {
               await aiGenerateApi.generate({
-                prompt: context || '',
+                prompt: context || `生成${type}设定`,
                 operation: 'continue',
               })
             } catch (error) {
@@ -715,6 +715,7 @@ export const useSettingsStore = create<SettingsState & SettingsActions>()(
           addWorldSetting: async (setting) => {
             const apiWS = await worldSettingApi.create(setting)
             set((state) => { state.worldSettings.push(apiWS) })
+            return String(apiWS.id)
           },
 
           updateWorldSetting: async (id, updates) => {
@@ -739,6 +740,7 @@ export const useSettingsStore = create<SettingsState & SettingsActions>()(
           addRule: async (rule) => {
             const apiRule = await ruleApi.create(rule)
             set((state) => { state.rules.push(apiRule) })
+            return String(apiRule.id)
           },
 
           updateRule: async (id, updates) => {
@@ -840,6 +842,12 @@ export const useSettingsStore = create<SettingsState & SettingsActions>()(
                   break
                 case 'rule':
                   await get().addRule({ name, description: description || '', type: 'other' })
+                  break
+                case 'outline':
+                  await get().setOutline({ id: Date.now(), title: name, description: description || '' })
+                  break
+                case 'ifline':
+                  await get().addIFLine({ title: name, description: description || '', sync_mode: 'manual', created_at: new Date().toISOString(), updated_at: new Date().toISOString() })
                   break
               }
             }

@@ -96,13 +96,13 @@ interface EntityActions {
   loadFactions: () => Promise<void>
 
   // WorldSetting CRUD
-  addWorldSetting: (setting: Omit<WorldSetting, 'id'>) => Promise<void>
+  addWorldSetting: (setting: Omit<WorldSetting, 'id'>) => Promise<string>
   updateWorldSetting: (id: number, updates: Partial<WorldSetting>) => Promise<void>
   deleteWorldSetting: (id: number) => Promise<void>
   loadWorldSettings: () => Promise<void>
 
   // Rule CRUD
-  addRule: (rule: Omit<Rule, 'id'>) => Promise<void>
+  addRule: (rule: Omit<Rule, 'id'>) => Promise<string>
   updateRule: (id: number, updates: Partial<Rule>) => Promise<void>
   deleteRule: (id: number) => Promise<void>
   loadRules: () => Promise<void>
@@ -317,6 +317,7 @@ export const useEntityStore = create<EntityState & EntityActions>()(
           addWorldSetting: async (setting) => {
             const apiWS = await worldSettingApi.create(setting)
             set((state) => { state.worldSettings.push(apiWS) })
+            return String(apiWS.id)
           },
 
           updateWorldSetting: async (id, updates) => {
@@ -346,6 +347,7 @@ export const useEntityStore = create<EntityState & EntityActions>()(
           addRule: async (rule) => {
             const apiRule = await ruleApi.create(rule)
             set((state) => { state.rules.push(apiRule) })
+            return String(apiRule.id)
           },
 
           updateRule: async (id, updates) => {

@@ -3,34 +3,40 @@
  *
  * Centralized animation variants and configs for consistent motion design
  * across the application following the DESIGN_VISUAL.md specification.
+ *
+ * 设计原则：
+ * - 克制使用动画，不干扰写作
+ * - 统一使用 CSS 变量（--transition-fast, --ease-out）
+ * - 所有动画仅使用 transform 和 opacity
+ * - 支持 prefers-reduced-motion
  */
 
 import { Variants, Transition } from 'framer-motion'
 
 /* ============================================================
    EASING CURVES
+   统一缓动函数，与 CSS 变量同步
    ============================================================ */
 
 export const easings = {
-  // Primary ease - smooth deceleration
+  // Primary ease - smooth deceleration (与 --ease-out 同步)
   smooth: [0.16, 1, 0.3, 1] as const,
-  // Bounce/overshoot
+  // Subtle bounce for success states
   bounce: [0.34, 1.56, 0.64, 1] as const,
-  // Linear
-  linear: [0, 0, 1, 1] as const,
-  // Standard ease
+  // Standard ease (与 animations.css 同步)
   standard: [0.4, 0, 0.2, 1] as const,
 }
 
 /* ============================================================
    DURATIONS
+   统一时长，与 CSS 变量同步
    ============================================================ */
 
 export const durations = {
-  fast: 0.15,
-  normal: 0.25,
-  slow: 0.4,
-  page: 0.35,
+  fast: 0.1,      // 100ms - 微交互
+  normal: 0.2,    // 200ms - 组件状态
+  slow: 0.25,     // 250ms - 页面过渡
+  page: 0.3,      // 300ms - 页面切换
 }
 
 /* ============================================================
@@ -42,29 +48,21 @@ export const transitions = {
   spring: {
     type: 'spring',
     stiffness: 400,
-    damping: 35,
-    mass: 0.8,
+    damping: 38,
+    mass: 0.7,
   } as Transition,
 
   // Gentle spring for micro-interactions
   gentle: {
     type: 'spring',
     stiffness: 300,
-    damping: 25,
-  } as Transition,
-
-  // Bounce spring for success states
-  bouncy: {
-    type: 'spring',
-    stiffness: 400,
-    damping: 15,
+    damping: 28,
   } as Transition,
 
   // Page transition specific
   page: {
-    x: { type: 'spring', stiffness: 400, damping: 35, mass: 0.8 },
+    x: { type: 'spring', stiffness: 400, damping: 38, mass: 0.7 },
     opacity: { duration: durations.page * 0.7, ease: easings.smooth },
-    scale: { duration: durations.page * 0.7, ease: easings.smooth },
   } as Transition,
 
   // Fade only
@@ -75,8 +73,8 @@ export const transitions = {
 
   // Stagger children
   stagger: {
-    staggerChildren: 0.08,
-    delayChildren: 0.1,
+    staggerChildren: 0.06,
+    delayChildren: 0.08,
   } as Transition,
 }
 
@@ -85,9 +83,9 @@ export const transitions = {
    ============================================================ */
 
 export const pageTransition = {
-  initial: { opacity: 0, y: 20, scale: 0.98 },
-  animate: { opacity: 1, y: 0, scale: 1 },
-  exit: { opacity: 0, y: -20, scale: 0.98 },
+  initial: { opacity: 0, y: 12 },
+  animate: { opacity: 1, y: 0 },
+  exit: { opacity: 0, y: -12 },
   transition: {
     duration: durations.page,
     ease: easings.smooth,
@@ -98,9 +96,9 @@ export const pageTransition = {
    MICRO-INTERACTION VARIANTS
    ============================================================ */
 
-// Button hover/active
+// Button hover/active - 克制，不上浮
 export const buttonHover = {
-  scale: 1.02,
+  opacity: 0.85,
   transition: { duration: durations.fast, ease: easings.smooth },
 }
 
@@ -109,30 +107,28 @@ export const buttonActive = {
   transition: { duration: durations.fast * 0.7, ease: easings.smooth },
 }
 
-// Card hover lift
+// Card hover - 轻微变化，不位移
 export const cardHover = {
-  y: -2,
-  scale: 1.01,
-  transition: { duration: 0.2, ease: easings.smooth },
+  opacity: 0.95,
+  transition: { duration: 0.15, ease: easings.smooth },
 }
 
 export const cardHoverLift = {
-  y: -4,
-  scale: 1.02,
-  boxShadow: '0 8px 24px rgba(0, 0, 0, 0.3)',
+  y: -2,
+  boxShadow: '0 4px 16px rgba(0, 0, 0, 0.2)',
   transition: { duration: 0.2, ease: easings.smooth },
 }
 
-// Icon hover
+// Icon hover - 轻微放大
 export const iconHover = {
-  scale: 1.1,
-  transition: { duration: durations.fast, ease: easings.bounce },
+  scale: 1.05,
+  transition: { duration: durations.fast, ease: easings.smooth },
 }
 
 // Success feedback
 export const successPulse = {
-  scale: [1, 1.3, 1],
-  transition: { duration: 0.5, ease: easings.bounce },
+  scale: [1, 1.15, 1],
+  transition: { duration: 0.4, ease: easings.bounce },
 }
 
 /* ============================================================
@@ -148,7 +144,7 @@ export const staggerContainer: Variants = {
 }
 
 export const staggerItem: Variants = {
-  hidden: { opacity: 0, y: 12 },
+  hidden: { opacity: 0, y: 8 },
   show: {
     opacity: 1,
     y: 0,
@@ -161,22 +157,22 @@ export const staggerItem: Variants = {
 
 // Chat message stagger
 export const chatMessage: Variants = {
-  hidden: { opacity: 0, y: 16, scale: 0.96 },
+  hidden: { opacity: 0, y: 12, scale: 0.98 },
   show: {
     opacity: 1,
     y: 0,
     scale: 1,
     transition: {
-      duration: 0.4,
+      duration: 0.3,
       ease: easings.smooth,
     },
   },
   exit: {
     opacity: 0,
-    y: -8,
-    scale: 0.96,
+    y: -6,
+    scale: 0.98,
     transition: {
-      duration: 0.25,
+      duration: 0.2,
       ease: easings.smooth,
     },
   },
@@ -195,7 +191,7 @@ export const fadeIn: Variants = {
 }
 
 export const fadeInUp: Variants = {
-  hidden: { opacity: 0, y: 20 },
+  hidden: { opacity: 0, y: 12 },
   show: {
     opacity: 1,
     y: 0,
@@ -207,7 +203,7 @@ export const fadeInUp: Variants = {
 }
 
 export const fadeInScale: Variants = {
-  hidden: { opacity: 0, scale: 0.95 },
+  hidden: { opacity: 0, scale: 0.97 },
   show: {
     opacity: 1,
     scale: 1,
@@ -287,18 +283,18 @@ export const drawerSlideUp: Variants = {
    ============================================================ */
 
 export const modalScale: Variants = {
-  hidden: { opacity: 0, scale: 0.9 },
+  hidden: { opacity: 0, scale: 0.95 },
   show: {
     opacity: 1,
     scale: 1,
     transition: {
       duration: durations.normal,
-      ease: easings.bounce,
+      ease: easings.smooth,
     },
   },
   exit: {
     opacity: 0,
-    scale: 0.95,
+    scale: 0.97,
     transition: {
       duration: durations.fast,
       ease: easings.smooth,
@@ -327,9 +323,8 @@ export const shimmer: Variants = {
 
 export const typingDots: Variants = {
   animate: {
-    opacity: [0.2, 1, 0.2],
-    scale: [0.8, 1.1, 0.8],
-    y: [0, -5, 0],
+    opacity: [0.3, 1, 0.3],
+    scale: [0.9, 1, 0.9],
     transition: {
       duration: 1.2,
       repeat: Infinity,
@@ -341,13 +336,14 @@ export const typingDots: Variants = {
 
 /* ============================================================
    AMBIENT/LOOPING ANIMATIONS
+   减少使用，避免干扰写作
    ============================================================ */
 
 export const float: Variants = {
   animate: {
-    y: [0, -6, 0],
+    y: [0, -4, 0],
     transition: {
-      duration: 3,
+      duration: 4,
       repeat: Infinity,
       ease: 'easeInOut',
     },
@@ -356,41 +352,17 @@ export const float: Variants = {
 
 export const pulse: Variants = {
   animate: {
-    scale: [1, 1.02, 1],
-    opacity: [1, 0.85, 1],
+    scale: [1, 1.01, 1],
+    opacity: [1, 0.9, 1],
     transition: {
-      duration: 2,
+      duration: 3,
       repeat: Infinity,
       ease: 'easeInOut',
     },
   },
 }
 
-export const glow: Variants = {
-  animate: {
-    boxShadow: [
-      '0 0 4px rgba(94, 106, 210, 0.3)',
-      '0 0 16px rgba(94, 106, 210, 0.6)',
-      '0 0 4px rgba(94, 106, 210, 0.3)',
-    ],
-    transition: {
-      duration: 2,
-      repeat: Infinity,
-      ease: 'easeInOut',
-    },
-  },
-}
-
-export const breathe: Variants = {
-  animate: {
-    scale: [1, 1.03, 1],
-    transition: {
-      duration: 4,
-      repeat: Infinity,
-      ease: 'easeInOut',
-    },
-  },
-}
+// 移除 glow 和 breathe 动画，避免 box-shadow 动画造成的性能问题
 
 /* ============================================================
    EXPAND/COLLAPSE VARIANTS
@@ -422,20 +394,20 @@ export const expandCollapse: Variants = {
 
 export const shake: Variants = {
   animate: {
-    x: [0, -4, 4, -4, 4, 0],
-    transition: { duration: 0.4, ease: 'easeOut' },
+    x: [0, -3, 3, -3, 3, 0],
+    transition: { duration: 0.35, ease: 'easeOut' },
   },
 }
 
 export const successBounce: Variants = {
-  initial: { scale: 0, rotate: -30 },
+  initial: { scale: 0, rotate: -20 },
   animate: {
     scale: 1,
     rotate: 0,
     transition: {
       type: 'spring',
       stiffness: 400,
-      damping: 15,
+      damping: 18,
     },
   },
 }
@@ -444,18 +416,12 @@ export const successBounce: Variants = {
    COMPOSED LAYOUT ANIMATIONS
    ============================================================ */
 
-// Glass card with shimmer border
+// Glass card hover - 克制
 export const glassCardHover = {
-  scale: 1.01,
-  backgroundColor: 'rgba(255, 255, 255, 0.07)',
-  borderColor: 'rgba(255, 255, 255, 0.15)',
-  transition: { duration: 0.2, ease: easings.smooth },
-}
-
-// Glow card effect
-export const glowCardGlow = {
-  boxShadow: '0 0 20px rgba(94, 106, 210, 0.4), 0 0 40px rgba(94, 106, 210, 0.2)',
-  transition: { duration: 0.3, ease: easings.smooth },
+  opacity: 0.95,
+  backgroundColor: 'rgba(255, 255, 255, 0.06)',
+  borderColor: 'rgba(255, 255, 255, 0.12)',
+  transition: { duration: 0.15, ease: easings.smooth },
 }
 
 /* ============================================================
@@ -476,12 +442,12 @@ export const cursorBlink: Variants = {
 // Generating dots (for AI thinking)
 export const generatingDots: Variants = {
   animate: (i: number) => ({
-    opacity: [0.3, 1, 0.3],
-    scale: [0.8, 1, 0.8],
+    opacity: [0.3, 0.8, 0.3],
+    scale: [0.9, 1, 0.9],
     transition: {
-      duration: 0.6,
+      duration: 0.8,
       repeat: Infinity,
-      delay: i * 0.15,
+      delay: i * 0.12,
       ease: 'easeInOut',
     },
   }),

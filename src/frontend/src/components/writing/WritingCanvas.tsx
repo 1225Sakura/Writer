@@ -127,10 +127,10 @@ export function WritingCanvas() {
       }),
       FocusModeExtension.configure({
         enabled: focusModeEnabled,
-        dimOpacity: 0.35,
+        dimOpacity: 0.3,
         blurAmount: 0,
         focusRange: 'paragraph',
-        fadeInDuration: 350,
+        fadeInDuration: 400,
         keepHeadingsVisible: true,
         keepEmptyLinesVisible: false,
       }),
@@ -287,43 +287,45 @@ export function WritingCanvas() {
         className="flex-1 overflow-y-auto relative writing-surface"
         style={{
           backgroundImage: `
-            radial-gradient(ellipse 80% 50% at 50% 0%, color-mix(in srgb, var(--accent-primary) 3%, transparent) 0%, transparent 60%),
-            radial-gradient(ellipse 60% 40% at 80% 100%, color-mix(in srgb, var(--color-character) 2%, transparent) 0%, transparent 50%),
-            linear-gradient(180deg, rgba(255,255,255,0.01) 0%, transparent 30%, rgba(0,0,0,0.02) 100%)
+            radial-gradient(ellipse 80% 50% at 50% 0%, color-mix(in srgb, var(--accent-primary) 2%, transparent) 0%, transparent 60%),
+            radial-gradient(ellipse 60% 40% at 80% 100%, color-mix(in srgb, var(--color-character) 1.5%, transparent) 0%, transparent 50%),
+            linear-gradient(180deg, rgba(255,255,255,0.005) 0%, transparent 30%, rgba(0,0,0,0.015) 100%)
           `,
         }}
       >
         {/* 浮动工具栏 */}
         <EditorToolbar editor={editor} />
 
-        {/* 卡片化容器 - centered on large screens */}
+        {/* 写作卡片容器 - centered on large screens with refined visual */}
         <div
-          className="my-6 rounded-xl max-w-[var(--writing-max-width)] mx-auto writing-card"
+          className="my-8 rounded-2xl max-w-[var(--writing-max-width)] mx-auto writing-card"
           style={{
-            backgroundColor: 'color-mix(in srgb, var(--writing-text) 3%, transparent)',
+            backgroundColor: 'color-mix(in srgb, var(--writing-text) 2%, transparent)',
             border: '1px solid var(--border-subtle)',
-            backdropFilter: 'blur(8px)',
+            backdropFilter: 'blur(12px)',
+            boxShadow: '0 1px 3px rgba(0,0,0,0.1), 0 4px 20px rgba(0,0,0,0.08)',
           }}
         >
           {/* 章节标题 - 与正文融合过渡 */}
-          <div className="px-12 pt-10 pb-4">
+          <div className="px-12 pt-12 pb-5">
             <h1
-              className="font-serif text-2xl font-medium tracking-tight"
+              className="font-serif-cn text-2xl font-semibold tracking-tight"
               style={{
                 color: 'var(--writing-text)',
-                lineHeight: 'var(--writing-line-height)',
+                lineHeight: 'var(--leading-tight)',
                 letterSpacing: 'var(--tracking-tight)',
                 transition: 'color var(--transition-normal)',
+                fontFamily: 'var(--font-serif-cn)',
               }}
             >
               {chapterTitle}
             </h1>
             {/* 柔和分隔线 */}
-            <div className="mt-4 h-px bg-gradient-to-r from-transparent via-[var(--border-strong)] to-transparent" />
+            <div className="mt-5 h-px bg-gradient-to-r from-transparent via-[var(--border-strong)] to-transparent opacity-60" />
           </div>
 
           {/* 正文编辑器 */}
-          <EditorContent editor={editor} className="min-h-full px-12 pb-12" />
+          <EditorContent editor={editor} className="min-h-full px-12 pb-16" />
         </div>
       </div>
 
@@ -392,8 +394,8 @@ export function WritingCanvas() {
               exit={{ opacity: 0, scale: 0.8 }}
               className="flex items-center gap-1.5 px-2 py-0.5 rounded-md"
               style={{
-                background: 'color-mix(in srgb, var(--color-ifline) 10%, transparent)',
-                border: '1px solid color-mix(in srgb, var(--color-ifline) 20%, transparent)',
+                background: 'color-mix(in srgb, var(--color-ifline) 8%, transparent)',
+                border: '1px solid color-mix(in srgb, var(--color-ifline) 15%, transparent)',
               }}
             >
               <motion.div

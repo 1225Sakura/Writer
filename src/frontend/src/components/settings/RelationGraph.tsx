@@ -7,13 +7,8 @@ import {
 } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 
-// Lazy load force graph components to reduce initial bundle
 const ForceGraph2D = lazy(() => import('react-force-graph-2d'))
 const ForceGraph3D = lazy(() => import('react-force-graph-3d'))
-
-// ============================================
-// Types
-// ============================================
 
 interface GraphNode {
   id: string
@@ -39,10 +34,6 @@ interface NodeDetail {
   x: number
   y: number
 }
-
-// ============================================
-// Constants
-// ============================================
 
 const ENTITY_TYPE_CONFIG: Record<EntityNodeType, { label: string; color: string; icon: typeof Users }> = {
   character: { label: '角色', color: 'var(--color-character)', icon: Users },
@@ -83,15 +74,7 @@ const RELATION_TYPE_LABELS: Record<string, string> = {
   other: '其他',
 }
 
-// ============================================
-// Performance Thresholds
-// ============================================
-
 const PERFORMANCE_THRESHOLD = 100
-
-// ============================================
-// Helper: Build graph data from store entities
-// ============================================
 
 function useGraphData() {
   const { characters, items, locations, factions, worldSettings, rules, ifLines } = useSettingsStore()
@@ -100,7 +83,6 @@ function useGraphData() {
     const nodes: GraphNode[] = []
     const links: GraphLink[] = []
 
-    // Character nodes
     characters.forEach((char) => {
       nodes.push({
         id: `char_${char.id}`,
@@ -112,7 +94,6 @@ function useGraphData() {
         entityId: char.id,
       })
 
-      // Character relationships
       char.relationships.forEach((rel) => {
         const targetId = `char_${rel.targetId}`
         if (nodes.some((n) => n.id === targetId)) {
@@ -126,7 +107,6 @@ function useGraphData() {
       })
     })
 
-    // Item nodes + ownership links
     items.forEach((item) => {
       nodes.push({
         id: `item_${item.id}`,
@@ -161,7 +141,6 @@ function useGraphData() {
       }
     })
 
-    // Location nodes
     locations.forEach((loc) => {
       nodes.push({
         id: `loc_${loc.id}`,
@@ -174,7 +153,6 @@ function useGraphData() {
       })
     })
 
-    // Faction nodes + membership links
     factions.forEach((fac) => {
       nodes.push({
         id: `fac_${fac.id}`,
@@ -187,7 +165,6 @@ function useGraphData() {
       })
     })
 
-    // World setting nodes
     worldSettings.forEach((ws) => {
       nodes.push({
         id: `world_${ws.id}`,
@@ -200,7 +177,6 @@ function useGraphData() {
       })
     })
 
-    // Rule nodes
     rules.forEach((rule) => {
       nodes.push({
         id: `rule_${rule.id}`,
@@ -213,7 +189,6 @@ function useGraphData() {
       })
     })
 
-    // IF line nodes
     ifLines.forEach((ifl) => {
       nodes.push({
         id: `ifl_${ifl.id}`,
@@ -238,24 +213,21 @@ function useGraphData() {
   }, [characters, items, locations, factions, worldSettings, rules, ifLines])
 }
 
-// ============================================
-// Component: Graph Fallback Loader
-// ============================================
-
 function GraphFallback() {
   return (
-    <div className="h-full flex items-center justify-center" style={{ backgroundColor: 'var(--color-surface-base)' }}>
-      <div className="text-center">
-        <div className="w-8 h-8 border-2 border-t-transparent rounded-full animate-spin motion-reduce:animate-none mx-auto mb-3" style={{ borderColor: 'var(--accent-primary)', borderTopColor: 'transparent' }} />
-        <p className="text-xs" style={{ color: 'var(--text-tertiary)' }}>加载图谱引擎...</p>
+    <div className="h-full flex items-center justify-center bg-[var(--color-surface-base)]"
+    >
+      <div className="text-center"
+      >
+        <div className="w-8 h-8 border-2 border-t-transparent rounded-full animate-spin motion-reduce:animate-none mx-auto mb-3"
+          style={{ borderColor: 'var(--accent-primary)', borderTopColor: 'transparent' }}
+        />
+        <p className="text-xs text-[var(--text-tertiary)]"
+        >加载图谱引擎...</p>
       </div>
     </div>
   )
 }
-
-// ============================================
-// Component: Node Detail Panel
-// ============================================
 
 function NodeDetailPanel({ detail, onClose }: { detail: NodeDetail; onClose: () => void }) {
   const config = ENTITY_TYPE_CONFIG[detail.node.type]
@@ -267,18 +239,17 @@ function NodeDetailPanel({ detail, onClose }: { detail: NodeDetail; onClose: () 
       animate={{ opacity: 1, y: 0, scale: 1 }}
       exit={{ opacity: 0, y: 8, scale: 0.96 }}
       transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
-      className="absolute z-20 rounded-lg p-3 min-w-[180px] max-w-[240px]"
+      className="absolute z-20 rounded-lg p-3 min-w-[180px] max-w-[240px] bg-[rgba(15,16,17,0.95)] border border-white/[0.08] backdrop-blur-xl"
       style={{
         left: Math.min(detail.x + 16, (typeof window !== 'undefined' ? window.innerWidth : 800) - 260),
         top: Math.max(detail.y - 16, 8),
-        backgroundColor: 'rgba(15,16,17,0.95)',
-        border: '1px solid rgba(255,255,255,0.08)',
-        backdropFilter: 'blur(12px)',
         boxShadow: '0 8px 32px rgba(0,0,0,0.4)',
       }}
     >
-      <div className="flex items-start justify-between mb-2">
-        <div className="flex items-center gap-2">
+      <div className="flex items-start justify-between mb-2"
+      >
+        <div className="flex items-center gap-2"
+        >
           <div
             className="w-6 h-6 rounded-full flex items-center justify-center"
             style={{ backgroundColor: `${config.color}20` }}
@@ -286,33 +257,33 @@ function NodeDetailPanel({ detail, onClose }: { detail: NodeDetail; onClose: () 
             <Icon className="w-3 h-3" style={{ color: config.color }} />
           </div>
           <div>
-            <p className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>{detail.node.name}</p>
-            <p className="text-[10px]" style={{ color: 'var(--text-tertiary)' }}>{config.label}</p>
+            <p className="text-sm font-medium text-[var(--text-primary)]"
+            >{detail.node.name}</p>
+            <p className="text-[10px] text-[var(--text-tertiary)]"
+            >{config.label}</p>
           </div>
         </div>
         <button
           onClick={onClose}
           className="p-0.5 rounded hover:bg-white/10 transition-colors flex-shrink-0"
         >
-          <X className="w-3 h-3" style={{ color: 'var(--text-tertiary)' }} />
+          <X className="w-3 h-3 text-[var(--text-tertiary)]" />
         </button>
       </div>
       {detail.node.description && (
-        <p className="text-xs line-clamp-3 mb-2" style={{ color: 'var(--text-tertiary)' }}>
+        <p className="text-xs line-clamp-3 mb-2 text-[var(--text-tertiary)]"
+        >
           {detail.node.description}
         </p>
       )}
-      <div className="flex items-center gap-1 text-[10px]" style={{ color: 'var(--text-tertiary)' }}>
+      <div className="flex items-center gap-1 text-[10px] text-[var(--text-tertiary)]"
+      >
         <LinkIcon className="w-3 h-3" />
         <span>{detail.node.val - 1} 条关系</span>
       </div>
     </motion.div>
   )
 }
-
-// ============================================
-// Component: Filter Controls
-// ============================================
 
 function FilterControls({
   activeTypes,
@@ -330,11 +301,10 @@ function FilterControls({
   const relationTypes = Object.entries(RELATION_TYPE_LABELS)
 
   return (
-    <div className="absolute top-3 left-3 z-10 flex flex-col gap-1.5">
+    <div className="absolute top-3 left-3 z-10 flex flex-col gap-1.5"
+    >
       {/* Zoom controls */}
-      <div
-        className="flex flex-col gap-0.5 rounded-lg p-1"
-        style={{ backgroundColor: 'var(--color-surface-overlay)', border: '1px solid var(--border-subtle)' }}
+      <div className="flex flex-col gap-0.5 rounded-lg p-1 bg-[var(--color-surface-overlay)] border border-[var(--border-subtle)]"
       >
         <FilterButton icon={ZoomIn} title="放大" />
         <FilterButton icon={ZoomOut} title="缩小" />
@@ -342,19 +312,18 @@ function FilterControls({
       </div>
 
       {/* Entity type filter */}
-      <div
-        className="rounded-lg p-1.5"
-        style={{ backgroundColor: 'var(--color-surface-overlay)', border: '1px solid var(--border-subtle)' }}
+      <div className="rounded-lg p-1.5 bg-[var(--color-surface-overlay)] border border-[var(--border-subtle)]"
       >
         <button
           onClick={() => setIsExpanded(!isExpanded)}
           className="flex items-center gap-1.5 px-1.5 py-1 rounded hover:bg-white/5 transition-colors w-full"
         >
-          <Filter className="w-3 h-3" style={{ color: 'var(--text-tertiary)' }} />
-          <span className="text-[10px]" style={{ color: 'var(--text-tertiary)' }}>筛选</span>
+          <Filter className="w-3 h-3 text-[var(--text-tertiary)]" />
+          <span className="text-[10px] text-[var(--text-tertiary)]"
+          >筛选</span>
           <ChevronRight
-            className="w-3 h-3 ml-auto transition-transform"
-            style={{ color: 'var(--text-tertiary)', transform: isExpanded ? 'rotate(90deg)' : 'rotate(0deg)' }}
+            className="w-3 h-3 ml-auto transition-transform text-[var(--text-tertiary)]"
+            style={{ transform: isExpanded ? 'rotate(90deg)' : 'rotate(0deg)' }}
           />
         </button>
 
@@ -367,7 +336,8 @@ function FilterControls({
               transition={{ duration: 0.2 }}
               className="overflow-hidden"
             >
-              <div className="pt-1.5 space-y-0.5">
+              <div className="pt-1.5 space-y-0.5"
+              >
                 {(Object.entries(ENTITY_TYPE_CONFIG) as [EntityNodeType, typeof ENTITY_TYPE_CONFIG['character']][]).map(([type, config]) => {
                   const isActive = activeTypes.has(type)
                   return (
@@ -404,16 +374,14 @@ function FilterControls({
               </div>
 
               {/* Relation filter */}
-              <div className="pt-2 mt-1.5" style={{ borderTop: '1px solid var(--border-subtle)' }}>
-                <p className="text-[10px] mb-1 px-1.5" style={{ color: 'var(--text-tertiary)' }}>关系类型</p>
+              <div className="pt-2 mt-1.5 border-t border-[var(--border-subtle)]"
+              >
+                <p className="text-[10px] mb-1 px-1.5 text-[var(--text-tertiary)]"
+                >关系类型</p>
                 <select
                   value={filterRelation}
                   onChange={(e) => onSetRelationFilter(e.target.value)}
-                  className="w-full text-[10px] px-1.5 py-1 rounded border-none outline-none cursor-pointer"
-                  style={{
-                    backgroundColor: 'var(--color-surface-overlay)',
-                    color: 'var(--text-tertiary)',
-                  }}
+                  className="w-full text-[10px] px-1.5 py-1 rounded border-none outline-none cursor-pointer bg-[var(--color-surface-overlay)] text-[var(--text-tertiary)]"
                 >
                   <option value="all">全部关系</option>
                   {relationTypes.map(([type, label]) => (
@@ -435,14 +403,10 @@ function FilterButton({ icon: Icon, title }: { icon: typeof ZoomIn; title: strin
       className="p-1.5 rounded hover:bg-white/10 transition-colors"
       title={title}
     >
-      <Icon className="w-3.5 h-3.5" style={{ color: 'var(--text-tertiary)' }} />
+      <Icon className="w-3.5 h-3.5 text-[var(--text-tertiary)]" />
     </button>
   )
 }
-
-// ============================================
-// Component: Legend
-// ============================================
 
 function Legend({
   showLegend,
@@ -457,14 +421,10 @@ function Legend({
     return (
       <button
         onClick={onToggle}
-        className="absolute bottom-3 right-3 z-10 p-1.5 rounded-lg hover:bg-white/10 transition-colors"
-        style={{
-          backgroundColor: 'var(--color-surface-overlay)',
-          border: '1px solid var(--border-subtle)',
-        }}
+        className="absolute bottom-3 right-3 z-10 p-1.5 rounded-lg hover:bg-white/10 transition-colors bg-[var(--color-surface-overlay)] border border-[var(--border-subtle)]"
         title="显示图例"
       >
-        <Eye className="w-3.5 h-3.5" style={{ color: 'var(--text-tertiary)' }} />
+        <Eye className="w-3.5 h-3.5 text-[var(--text-tertiary)]" />
       </button>
     )
   }
@@ -475,48 +435,52 @@ function Legend({
     <motion.div
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
-      className="absolute bottom-3 right-3 z-10 rounded-lg p-2.5"
-      style={{
-        backgroundColor: 'rgba(15,16,17,0.9)',
-        border: '1px solid var(--border-subtle)',
-        backdropFilter: 'blur(8px)',
-        minWidth: '140px',
-      }}
+      className="absolute bottom-3 right-3 z-10 rounded-lg p-2.5 bg-[rgba(15,16,17,0.9)] border border-[var(--border-subtle)] backdrop-blur-sm"
+      style={{ minWidth: '140px' }}
     >
-      <div className="flex items-center justify-between mb-2">
-        <span className="text-[10px] font-medium" style={{ color: 'var(--text-tertiary)' }}>图例</span>
+      <div className="flex items-center justify-between mb-2"
+      >
+        <span className="text-[10px] font-medium text-[var(--text-tertiary)]"
+        >图例</span>
         <button
           onClick={onToggle}
           className="p-0.5 rounded hover:bg-white/10 transition-colors"
         >
-          <EyeOff className="w-3 h-3" style={{ color: 'var(--text-tertiary)' }} />
+          <EyeOff className="w-3 h-3 text-[var(--text-tertiary)]" />
         </button>
       </div>
 
       {/* Entity types */}
-      <div className="space-y-1 mb-2 pb-2" style={{ borderBottom: '1px solid var(--border-subtle)' }}>
+      <div className="space-y-1 mb-2 pb-2 border-b border-[var(--border-subtle)]"
+      >
         {(Object.entries(ENTITY_TYPE_CONFIG) as [EntityNodeType, typeof ENTITY_TYPE_CONFIG['character']][]).map(([type, config]) => (
-          <div key={type} className="flex items-center gap-1.5">
+          <div key={type} className="flex items-center gap-1.5"
+          >
             <div
               className="w-2 h-2 rounded-full"
               style={{ backgroundColor: config.color }}
             />
-            <span className="text-[10px]" style={{ color: 'var(--text-tertiary)' }}>{config.label}</span>
+            <span className="text-[10px] text-[var(--text-tertiary)]"
+            >{config.label}</span>
           </div>
         ))}
       </div>
 
       {/* Relation types */}
       {uniqueTypes.length > 0 && (
-        <div className="space-y-1">
-          <span className="text-[10px]" style={{ color: 'var(--text-disabled)' }}>关系</span>
+        <div className="space-y-1"
+        >
+          <span className="text-[10px] text-[var(--text-disabled)]"
+          >关系</span>
           {uniqueTypes.map((type) => (
-            <div key={type} className="flex items-center gap-1.5">
+            <div key={type} className="flex items-center gap-1.5"
+            >
               <div
                 className="w-3 h-[2px] rounded"
                 style={{ backgroundColor: RELATION_TYPE_COLORS[type] || RELATION_TYPE_COLORS.other }}
               />
-              <span className="text-[10px]" style={{ color: 'var(--text-tertiary)' }}>
+              <span className="text-[10px] text-[var(--text-tertiary)]"
+              >
                 {RELATION_TYPE_LABELS[type] || type}
               </span>
             </div>
@@ -526,10 +490,6 @@ function Legend({
     </motion.div>
   )
 }
-
-// ============================================
-// Component: Stats Bar
-// ============================================
 
 function StatsBar({
   nodeCount,
@@ -543,21 +503,16 @@ function StatsBar({
   onClearFilter: () => void
 }) {
   return (
-    <div
-      className="absolute bottom-3 left-3 z-10 text-[10px] px-2.5 py-1.5 rounded-lg flex items-center gap-2"
-      style={{
-        backgroundColor: 'rgba(15,16,17,0.9)',
-        border: '1px solid var(--border-subtle)',
-        color: 'var(--text-tertiary)',
-        backdropFilter: 'blur(8px)',
-      }}
+    <div className="absolute bottom-3 left-3 z-10 text-[10px] px-2.5 py-1.5 rounded-lg flex items-center gap-2 bg-[rgba(15,16,17,0.9)] border border-[var(--border-subtle)] text-[var(--text-tertiary)] backdrop-blur-sm"
     >
       <span>{nodeCount} 节点</span>
-      <span style={{ color: 'var(--text-disabled)' }}>·</span>
+      <span className="text-[var(--text-disabled)]"
+      >·</span>
       <span>{linkCount} 关系</span>
       {filterRelation !== 'all' && (
         <>
-          <span style={{ color: 'var(--text-disabled)' }}>·</span>
+          <span className="text-[var(--text-disabled)]"
+          >·</span>
           <button
             className="underline hover:text-[var(--text-tertiary)] transition-colors"
             onClick={onClearFilter}
@@ -569,10 +524,6 @@ function StatsBar({
     </div>
   )
 }
-
-// ============================================
-// Main Component: RelationGraph
-// ============================================
 
 export function RelationGraph() {
   const containerRef = useRef<HTMLDivElement>(null)
@@ -591,7 +542,6 @@ export function RelationGraph() {
 
   const { nodes: allNodes, links: allLinks } = useGraphData()
 
-  // Filter nodes by type and relations
   const { nodes, links } = useMemo(() => {
     const filteredNodes = allNodes.filter((n) => activeNodeTypes.has(n.type))
     const nodeIds = new Set(filteredNodes.map((n) => n.id))
@@ -604,7 +554,6 @@ export function RelationGraph() {
     return { nodes: filteredNodes, links: filteredLinks }
   }, [allNodes, allLinks, activeNodeTypes, filterRelation])
 
-  // Viewport-based visible node filtering with buffer for culling
   const visibleNodes = useMemo(() => {
     const buffer = 100
     return nodes.filter(node => {
@@ -617,7 +566,6 @@ export function RelationGraph() {
     })
   }, [nodes, viewport])
 
-  // Visible links filtered to only connect visible nodes
   const visibleLinks = useMemo(() => {
     const visibleNodeIds = new Set(visibleNodes.map(n => n.id))
     return links.filter(link =>
@@ -625,14 +573,12 @@ export function RelationGraph() {
     )
   }, [links, visibleNodes])
 
-  // Performance-aware render mode
   const renderMode = useMemo(() => {
     if (nodes.length > PERFORMANCE_THRESHOLD * 1.5) return 'simple'
     if (nodes.length > PERFORMANCE_THRESHOLD) return 'optimized'
     return 'full'
   }, [nodes.length])
 
-  // Responsive dimensions and viewport tracking
   useEffect(() => {
     const updateDimensions = () => {
       if (containerRef.current) {
@@ -651,7 +597,6 @@ export function RelationGraph() {
     }
   }, [])
 
-  // Track viewport changes from pan/zoom via control utilities
   const updateViewport = useCallback((centerZoom: { k: number; x: number; y: number }) => {
     const newViewport = {
       x: (-centerZoom.x / centerZoom.k),
@@ -662,7 +607,6 @@ export function RelationGraph() {
     setViewport(newViewport)
   }, [dimensions])
 
-  // Toggle entity type filter
   const toggleNodeType = useCallback((type: EntityNodeType) => {
     setActiveNodeTypes((prev) => {
       const next = new Set(prev)
@@ -675,7 +619,6 @@ export function RelationGraph() {
     })
   }, [])
 
-  // Handle node click
   const handleNodeClick = useCallback((node: any, event: MouseEvent) => {
     if (!containerRef.current) return
     const rect = containerRef.current.getBoundingClientRect()
@@ -686,12 +629,10 @@ export function RelationGraph() {
     })
   }, [])
 
-  // Handle background click
   const handleBackgroundClick = useCallback(() => {
     setSelectedNode(null)
   }, [])
 
-  // Fullscreen toggle
   const toggleFullscreen = useCallback(() => {
     setIsFullscreen((prev) => !prev)
     setTimeout(() => {
@@ -701,17 +642,16 @@ export function RelationGraph() {
     }, 100)
   }, [])
 
-  // Empty state
   if (characters.length === 0 && allNodes.length === 0) {
     return (
-      <div
-        className="h-full flex items-center justify-center text-center p-4"
-        style={{ backgroundColor: 'var(--color-surface-base)' }}
+      <div className="h-full flex items-center justify-center text-center p-4 bg-[var(--color-surface-base)]"
       >
         <div>
-          <LinkIcon className="w-10 h-10 mx-auto mb-3" style={{ color: 'var(--text-disabled)' }} />
-          <p className="text-sm mb-1" style={{ color: 'var(--text-tertiary)' }}>添加角色后</p>
-          <p className="text-xs" style={{ color: 'var(--text-disabled)' }}>这里将显示关系图谱</p>
+          <LinkIcon className="w-10 h-10 mx-auto mb-3 text-[var(--text-disabled)]" />
+          <p className="text-sm mb-1 text-[var(--text-tertiary)]"
+          >添加角色后</p>
+          <p className="text-xs text-[var(--text-disabled)]"
+          >这里将显示关系图谱</p>
         </div>
       </div>
     )
@@ -719,14 +659,14 @@ export function RelationGraph() {
 
   if (nodes.length === 0) {
     return (
-      <div
-        className="h-full flex items-center justify-center text-center p-4"
-        style={{ backgroundColor: 'var(--color-surface-base)' }}
+      <div className="h-full flex items-center justify-center text-center p-4 bg-[var(--color-surface-base)]"
       >
         <div>
-          <Filter className="w-8 h-8 mx-auto mb-3" style={{ color: 'var(--text-disabled)' }} />
-          <p className="text-sm mb-1" style={{ color: 'var(--text-tertiary)' }}>筛选条件过于严格</p>
-          <p className="text-xs" style={{ color: 'var(--text-disabled)' }}>没有符合条件的节点</p>
+          <Filter className="w-8 h-8 mx-auto mb-3 text-[var(--text-disabled)]" />
+          <p className="text-sm mb-1 text-[var(--text-tertiary)]"
+          >筛选条件过于严格</p>
+          <p className="text-xs text-[var(--text-disabled)]"
+          >没有符合条件的节点</p>
         </div>
       </div>
     )
@@ -737,43 +677,37 @@ export function RelationGraph() {
   return (
     <div
       ref={containerRef}
-      className={`relative overflow-hidden ${isFullscreen ? 'fixed inset-0 z-50' : 'h-full'}`}
-      style={{ backgroundColor: 'var(--color-surface-base)' }}
+      className={`relative overflow-hidden bg-[var(--color-surface-base)] ${isFullscreen ? 'fixed inset-0 z-50' : 'h-full'}`}
     >
       {/* Decorative gradient accent */}
-      <div
-        className="absolute top-0 left-0 right-0 h-px"
-        style={{
-          background: 'linear-gradient(90deg, transparent, rgba(94,106,210,0.3), transparent)',
-          zIndex: 10,
-        }}
+      <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-[rgba(94,106,210,0.3)] to-transparent z-10"
       />
       {/* View mode toggle */}
-      <div className="absolute top-3 right-3 z-10 flex items-center gap-1.5">
+      <div className="absolute top-3 right-3 z-10 flex items-center gap-1.5"
+      >
         <button
           onClick={toggleFullscreen}
-          className="p-1.5 rounded-lg hover:bg-white/10 transition-colors"
-          style={{ backgroundColor: 'var(--color-surface-overlay)', border: '1px solid var(--border-subtle)' }}
+          className="p-1.5 rounded-lg hover:bg-white/10 transition-colors bg-[var(--color-surface-overlay)] border border-[var(--border-subtle)]"
           title={isFullscreen ? '退出全屏' : '全屏'}
         >
           {isFullscreen ? (
-            <Minimize2 className="w-3.5 h-3.5" style={{ color: 'var(--text-tertiary)' }} />
+            <Minimize2 className="w-3.5 h-3.5 text-[var(--text-tertiary)]" />
           ) : (
-            <Maximize2 className="w-3.5 h-3.5" style={{ color: 'var(--text-tertiary)' }} />
+            <Maximize2 className="w-3.5 h-3.5 text-[var(--text-tertiary)]" />
           )}
         </button>
         <button
           onClick={() => setViewMode(viewMode === '2d' ? '3d' : '2d')}
-          className="p-1.5 rounded-lg hover:bg-white/10 transition-colors flex items-center gap-1"
-          style={{ backgroundColor: 'var(--color-surface-overlay)', border: '1px solid var(--border-subtle)' }}
+          className="p-1.5 rounded-lg hover:bg-white/10 transition-colors flex items-center gap-1 bg-[var(--color-surface-overlay)] border border-[var(--border-subtle)]"
           title={viewMode === '2d' ? '切换到3D视图' : '切换到2D视图'}
         >
           {viewMode === '2d' ? (
-            <Box className="w-3.5 h-3.5" style={{ color: 'var(--text-tertiary)' }} />
+            <Box className="w-3.5 h-3.5 text-[var(--text-tertiary)]" />
           ) : (
-            <Grid2x2 className="w-3.5 h-3.5" style={{ color: 'var(--text-tertiary)' }} />
+            <Grid2x2 className="w-3.5 h-3.5 text-[var(--text-tertiary)]" />
           )}
-          <span className="text-[10px]" style={{ color: 'var(--text-tertiary)' }}>{viewMode.toUpperCase()}</span>
+          <span className="text-[10px] text-[var(--text-tertiary)]"
+          >{viewMode.toUpperCase()}</span>
         </button>
       </div>
 
@@ -849,7 +783,6 @@ export function RelationGraph() {
               const isSelected = selectedNode?.node.id === node.id
               const yOffset = Math.sqrt(node.val) * 6 + 4 + fontSize * 0.8
 
-              // Glow effect for hovered/selected nodes
               if (isHovered || isSelected) {
                 ctx.shadowColor = node.color
                 ctx.shadowBlur = 12
@@ -860,7 +793,6 @@ export function RelationGraph() {
 
               ctx.shadowBlur = 0
 
-              // Type indicator dot for hovered nodes
               if (isHovered) {
                 const config = ENTITY_TYPE_CONFIG[node.type as EntityNodeType]
                 ctx.beginPath()

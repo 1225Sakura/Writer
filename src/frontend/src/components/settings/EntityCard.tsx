@@ -3,7 +3,6 @@ import { motion } from 'framer-motion'
 import { Trash2, Edit2 } from 'lucide-react'
 import { TagInput, TagChips } from './TagInput'
 
-// Entity type colors - using CSS variables for theme consistency
 export const entityColors: Record<string, { bg: string; text: string }> = {
   character: { bg: 'rgba(232,184,125,0.15)', text: 'var(--color-character)' },
   item: { bg: 'rgba(155,126,217,0.15)', text: 'var(--color-item)' },
@@ -15,13 +14,11 @@ export const entityColors: Record<string, { bg: string; text: string }> = {
   ifline: { bg: 'rgba(126,184,74,0.15)', text: 'var(--color-ifline)' },
 }
 
-// Linear card style with glow support
 export const cardStyle = {
   backgroundColor: 'var(--color-surface-raised)',
   border: '1px solid var(--border-default)',
 }
 
-// Glow effect for active/hovered cards
 export const cardGlowStyle = (color: string, isHovered: boolean) => ({
   boxShadow: isHovered ? `0 0 16px ${color}18, 0 4px 12px rgba(0,0,0,0.15)` : 'none',
 })
@@ -57,9 +54,8 @@ export function EntityCard({
 
   return (
     <motion.div
-      className="p-4 rounded-lg relative overflow-hidden"
+      className="p-4 rounded-lg relative overflow-hidden bg-[var(--color-surface-raised)] border border-[var(--border-default)] transition-colors duration-150"
       style={{
-        ...cardStyle,
         ...cardGlowStyle(badgeColor?.text || 'var(--accent-primary)', isHovered),
         backgroundColor: isHovered ? 'var(--color-surface-overlay)' : 'var(--color-surface-raised)',
         borderColor: isHovered ? 'var(--border-strong)' : 'var(--border-default)',
@@ -86,7 +82,7 @@ export function EntityCard({
       <div className="flex items-start justify-between relative z-10">
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 mb-1">
-            <h3 className="font-medium text-sm" style={{ color: 'var(--text-primary)' }}>
+            <h3 className="font-medium text-sm text-[var(--text-primary)]">
               {name}
             </h3>
             {badge && badgeColor && (
@@ -101,7 +97,7 @@ export function EntityCard({
             )}
           </div>
           {description && (
-            <p className="text-xs line-clamp-2" style={{ color: 'var(--text-tertiary)' }}>
+            <p className="text-xs line-clamp-2 text-[var(--text-tertiary)]">
               {description}
             </p>
           )}
@@ -119,13 +115,8 @@ export function EntityCard({
                 e.stopPropagation()
                 onEdit()
               }}
-              className="p-1.5 rounded transition-all"
-              style={{ color: 'var(--text-tertiary)' }}
-              whileHover={{
-                backgroundColor: 'var(--color-surface-hover)',
-                color: 'var(--text-primary)',
-                scale: 1.1,
-              }}
+              className="p-1.5 rounded transition-all text-[var(--text-tertiary)] hover:bg-[var(--color-surface-hover)] hover:text-[var(--text-primary)] hover:scale-110 active:scale-90"
+              whileHover={{ scale: 1.1 }}
               whileTap={{ scale: 0.9 }}
             >
               <Edit2 className="w-4 h-4" />
@@ -136,13 +127,8 @@ export function EntityCard({
               e.stopPropagation()
               onDelete()
             }}
-            className="p-1.5 rounded transition-all"
-            style={{ color: 'var(--text-tertiary)' }}
-            whileHover={{
-              backgroundColor: 'var(--color-danger)15',
-              color: 'var(--color-danger)',
-              scale: 1.1,
-            }}
+            className="p-1.5 rounded transition-all text-[var(--text-tertiary)] hover:bg-[rgba(217,58,58,0.15)] hover:text-[var(--color-danger)] hover:scale-110 active:scale-90"
+            whileHover={{ scale: 1.1 }}
             whileTap={{ scale: 0.9 }}
           >
             <Trash2 className="w-4 h-4" />
@@ -153,7 +139,6 @@ export function EntityCard({
   )
 }
 
-// Compact entity card for list views
 interface EntityListItemProps {
   name: string
   description?: string
@@ -176,10 +161,7 @@ export function EntityListItem({
 
   return (
     <motion.div
-      className="flex items-center gap-3 px-3 py-2.5 rounded-md transition-colors cursor-pointer group relative"
-      style={{
-        backgroundColor: isHovered ? 'rgba(255,255,255,0.04)' : 'transparent',
-      }}
+      className="flex items-center gap-3 px-3 py-2.5 rounded-md transition-colors cursor-pointer group relative hover:bg-white/[0.04]"
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
       onClick={onClick}
@@ -202,11 +184,11 @@ export function EntityListItem({
         style={{ backgroundColor: typeColor }}
       />
       <div className="flex-1 min-w-0">
-        <div className="text-sm font-medium truncate" style={{ color: 'var(--text-primary)' }}>
+        <div className="text-sm font-medium truncate text-[var(--text-primary)]">
           {name}
         </div>
         {description && (
-          <p className="text-xs truncate" style={{ color: 'var(--text-tertiary)' }}>
+          <p className="text-xs truncate text-[var(--text-tertiary)]">
             {description}
           </p>
         )}
@@ -226,10 +208,9 @@ export function EntityListItem({
             e.stopPropagation()
             onDelete()
           }}
-          className="p-1 rounded opacity-0 group-hover:opacity-100 transition-opacity"
+          className="p-1 rounded opacity-0 group-hover:opacity-100 transition-opacity text-[var(--text-tertiary)] hover:scale-110 active:scale-90"
           whileHover={{ scale: 1.1 }}
           whileTap={{ scale: 0.9 }}
-          style={{ color: 'var(--text-tertiary)' }}
         >
           <Trash2 className="w-3.5 h-3.5" />
         </motion.button>

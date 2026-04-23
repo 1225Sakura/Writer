@@ -19,7 +19,6 @@ function StatusBar() {
   const settingsCategory = useUIStore((state) => state.settingsCategory)
   const isLoading = useSettingsStore((state) => state.isLoading)
 
-  // Category labels
   const categoryLabels: Record<string, string> = {
     world: '世界观',
     character: '角色',
@@ -31,7 +30,6 @@ function StatusBar() {
     ifline: 'IF线',
   }
 
-  // Simulate auto-save status (in real app, this would come from store)
   useEffect(() => {
     if (!isLoading) {
       setIsSaving(true)
@@ -49,23 +47,17 @@ function StatusBar() {
 
   return (
     <motion.div
-      className="flex items-center justify-between px-4 py-2 text-xs"
-      style={{
-        backgroundColor: 'var(--color-surface-base)',
-        borderTop: '1px solid var(--border-default)',
-      }}
+      className="flex items-center justify-between px-4 py-2 text-xs bg-[var(--color-surface-base)] border-t border-[var(--border-default)]"
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.3 }}
     >
-      {/* Current editing item */}
       <div className="flex items-center gap-3">
-        <span style={{ color: 'var(--text-secondary)' }}>
-          当前编辑：<span className="font-medium" style={{ color: 'var(--text-primary)' }}>{categoryLabels[settingsCategory]}</span>
+        <span className="text-[var(--text-secondary)]">
+          当前编辑：<span className="font-medium text-[var(--text-primary)]">{categoryLabels[settingsCategory]}</span>
         </span>
       </div>
 
-      {/* Auto-save status */}
       <div className="flex items-center gap-1">
         <AnimatePresence mode="wait">
           {isSaving ? (
@@ -74,8 +66,7 @@ function StatusBar() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="flex items-center gap-1"
-              style={{ color: 'var(--color-character)' }}
+              className="flex items-center gap-1 text-[var(--color-character)]"
             >
               <div className="w-2 h-2 rounded-full bg-amber-500 animate-pulse motion-reduce:animate-none" />
               <span>保存中...</span>
@@ -86,8 +77,7 @@ function StatusBar() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="flex items-center gap-1"
-              style={{ color: 'var(--color-ifline)' }}
+              className="flex items-center gap-1 text-[var(--color-ifline)]"
             >
               <Check className="w-3 h-3" />
               <span>已保存 {formatTime(lastSaved)}</span>
@@ -98,8 +88,7 @@ function StatusBar() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="flex items-center gap-1"
-              style={{ color: 'var(--text-tertiary)' }}
+              className="flex items-center gap-1 text-[var(--text-tertiary)]"
             >
               <AlertCircle className="w-3 h-3" />
               <span>未保存</span>
@@ -108,13 +97,12 @@ function StatusBar() {
         </AnimatePresence>
       </div>
 
-      {/* Keyboard shortcuts hint */}
-      <div className="flex items-center gap-2" style={{ color: 'var(--text-tertiary)' }}>
+      <div className="flex items-center gap-2 text-[var(--text-tertiary)]">
         <Keyboard className="w-3 h-3" />
         <span className="hidden sm:inline">
-          <kbd className="px-1 py-0.5 rounded text-[10px]" style={{ backgroundColor: 'var(--color-surface-raised)' }}>Ctrl</kbd>
+          <kbd className="px-1 py-0.5 rounded text-[10px] bg-[var(--color-surface-raised)]">Ctrl</kbd>
           {' + '}
-          <kbd className="px-1 py-0.5 rounded text-[10px]" style={{ backgroundColor: 'var(--color-surface-raised)' }}>S</kbd>
+          <kbd className="px-1 py-0.5 rounded text-[10px] bg-[var(--color-surface-raised)]">S</kbd>
           {' 保存'}
         </span>
       </div>
@@ -135,18 +123,14 @@ export function SettingEditorPage() {
 
   return (
     <motion.div
-      className="flex h-full relative"
-      style={{ backgroundColor: 'var(--color-surface-base)' }}
+      className="flex h-full relative bg-[var(--color-surface-base)]"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
     >
       {/* Background decorative elements */}
-      <div
-        className="absolute inset-0 pointer-events-none overflow-hidden"
-        style={{ zIndex: 0 }}
-      >
+      <div className="absolute inset-0 pointer-events-none overflow-hidden z-0">
         {/* Top-right gradient accent */}
         <div
           className="absolute top-0 right-0 w-[400px] h-[400px] opacity-20"
@@ -164,14 +148,12 @@ export function SettingEditorPage() {
           }}
         />
       </div>
-      {/* 左侧：分类导航 */}
+      {/* Left: CategoryNav */}
       <motion.div
-        className="flex-shrink-0 h-full overflow-hidden flex flex-col relative"
+        className="flex-shrink-0 h-full overflow-hidden flex flex-col relative bg-[var(--color-surface-base)] border-r border-[var(--border-default)]"
         style={{
-          width: '200px',
+          width: 'var(--layout-sidebar-width, 200px)',
           minWidth: '120px',
-          backgroundColor: 'var(--color-surface-base)',
-          borderRight: '1px solid var(--border-default)',
           zIndex: 1,
         }}
         initial={{ x: -20, opacity: 0 }}
@@ -181,7 +163,7 @@ export function SettingEditorPage() {
         <CategoryNav />
       </motion.div>
 
-      {/* 中间：实体编辑器 */}
+      {/* Center: EntityEditor */}
       <motion.div
         className="flex-1 overflow-hidden flex flex-col min-w-0 relative"
         style={{ zIndex: 1 }}
@@ -189,17 +171,12 @@ export function SettingEditorPage() {
         animate={{ opacity: 1 }}
         transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1], delay: 0.1 }}
       >
-        {/* 顶部工具栏 */}
-        <div
-          className="flex items-center justify-between px-4 py-3"
-          style={{
-            backgroundColor: 'var(--color-surface-base)',
-            borderBottom: '1px solid var(--border-default)',
-          }}
+        {/* Top toolbar */}
+        <div className="flex items-center justify-between px-4 py-3 bg-[var(--color-surface-base)] border-b border-[var(--border-default)]"
         >
           <div className="flex items-center gap-2">
-            <Settings className="w-4 h-4" style={{ color: 'var(--accent-primary)' }} />
-            <span className="font-medium text-sm" style={{ color: 'var(--text-primary)' }}>
+            <Settings className="w-4 h-4 text-[var(--accent-primary)]" />
+            <span className="font-medium text-sm text-[var(--text-primary)]">
               设定编辑器
             </span>
           </div>
@@ -241,7 +218,7 @@ export function SettingEditorPage() {
           </div>
         </div>
 
-        {/* 编辑器内容区 */}
+        {/* Editor content area */}
         <div className="flex-1 overflow-y-auto p-6 relative">
           <SectionLoadingOverlay visible={isLoading} message="加载实体数据..." />
           {isLoading ? (
@@ -254,41 +231,32 @@ export function SettingEditorPage() {
           )}
         </div>
 
-        {/* AI审查建议 */}
-        <div
-          style={{
-            borderTop: '1px solid var(--border-default)',
-          }}
+        {/* AI Suggestion Panel */}
+        <div className="border-t border-[var(--border-default)]"
         >
           <AISuggestionPanel />
         </div>
 
-        {/* 底部状态栏 */}
+        {/* Bottom status bar */}
         <StatusBar />
       </motion.div>
 
-      {/* 右侧：关系图谱 */}
+      {/* Right: RelationGraph */}
       <motion.div
-        className="flex-shrink-0 h-full flex flex-col overflow-hidden relative"
+        className="flex-shrink-0 h-full flex flex-col overflow-hidden relative bg-[var(--color-surface-raised)] border-l border-[var(--border-default)]"
         style={{
           width: 'var(--layout-rightpanel-width, 320px)',
           minWidth: '240px',
-          backgroundColor: 'var(--color-surface-raised)',
-          borderLeft: '1px solid var(--border-default)',
           zIndex: 1,
         }}
         initial={{ x: 20, opacity: 0 }}
         animate={{ x: 0, opacity: 1 }}
         transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1], delay: 0.15 }}
       >
-        <div
-          className="flex items-center justify-between px-4 py-3"
-          style={{
-            borderBottom: '1px solid var(--border-default)',
-          }}
+        <div className="flex items-center justify-between px-4 py-3 border-b border-[var(--border-default)]"
         >
           <div className="flex items-center gap-2">
-            <span className="text-xs font-medium uppercase tracking-wide" style={{ color: 'var(--text-secondary)' }}>
+            <span className="text-xs font-medium uppercase tracking-wide text-[var(--text-secondary)]">
               关系图谱
             </span>
           </div>

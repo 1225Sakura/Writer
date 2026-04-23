@@ -4,7 +4,6 @@ import { Button } from '@/components/ui/Button'
 import { Feather, Sparkles } from 'lucide-react'
 import { EntityIcon } from '@/components/ui/Icon'
 import { motion, AnimatePresence } from 'framer-motion'
-// import { useMemo } from 'react'
 
 const categories: Array<{ key: UIState['settingsCategory']; label: string; iconType: Parameters<typeof EntityIcon>[0]['type'] }> = [
   { key: 'world', label: '世界观', iconType: 'world' },
@@ -17,10 +16,8 @@ const categories: Array<{ key: UIState['settingsCategory']; label: string; iconT
   { key: 'ifline', label: 'IF线', iconType: 'ifline' },
 ]
 
-// Categories that support AI review
 const reviewableCategories = ['world', 'character', 'item', 'location', 'faction', 'rule']
 
-// Color system - uses CSS variables for theme consistency
 const categoryColorVars: Record<string, string> = {
   world: 'var(--color-world)',
   character: 'var(--color-character)',
@@ -32,7 +29,6 @@ const categoryColorVars: Record<string, string> = {
   ifline: 'var(--color-ifline)',
 }
 
-// Glow colors for hover/active effects (rgba needed for animations)
 const categoryGlowColors: Record<string, string> = {
   world: 'rgba(94,106,210,0.12)',
   character: 'rgba(232,184,125,0.12)',
@@ -44,7 +40,6 @@ const categoryGlowColors: Record<string, string> = {
   ifline: 'rgba(126,184,74,0.12)',
 }
 
-// Animated counter for badge counts
 function CountBadge({ count, color }: { count: number; color: string }) {
   return (
     <motion.span
@@ -73,7 +68,6 @@ export function CategoryNav() {
   const reviewWithAI = useSettingsStore((state) => state.reviewWithAI)
   const isLoading = useSettingsStore((state) => state.isLoading)
 
-  // Get entity counts for badges
   const counts = useSettingsStore(useShallow((state) => ({
     world: state.worldSettings.length,
     character: state.characters.length,
@@ -91,28 +85,19 @@ export function CategoryNav() {
   }
 
   return (
-    <div className="h-full flex flex-col" style={{ backgroundColor: 'var(--color-bg-surface)' }}>
-      {/* Header with subtle gradient */}
-      <div
-        className="px-4 py-5 relative overflow-hidden"
-        style={{ borderBottom: '1px solid var(--color-border)' }}
-      >
-        {/* Decorative gradient accent */}
-        <div
-          className="absolute top-0 left-0 right-0 h-px"
-          style={{
-            background: 'linear-gradient(90deg, transparent, rgba(94,106,210,0.4), transparent)',
-          }}
-        />
-        <h2 className="font-semibold text-base" style={{ color: 'var(--text-primary)' }}>
+    <div className="h-full flex flex-col bg-[var(--color-bg-surface)]">
+      {/* Header */}
+      <div className="px-4 py-5 relative overflow-hidden border-b border-[var(--color-border)]">
+        <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-[rgba(94,106,210,0.4)] to-transparent" />
+        <h2 className="font-semibold text-base text-[var(--text-primary)]">
           设定编辑
         </h2>
-        <p className="text-xs mt-1.5" style={{ color: 'var(--color-text-muted)' }}>
+        <p className="text-xs mt-1.5 text-[var(--color-text-muted)]">
           管理你的世界观、角色、物品等
         </p>
       </div>
 
-      {/* Navigation list with rich interactions */}
+      {/* Navigation list */}
       <nav className="flex-1 overflow-y-auto py-3">
         {categories.map(({ key, label, iconType }) => {
           const isActive = settingsCategory === key
@@ -130,7 +115,7 @@ export function CategoryNav() {
               transition={{ duration: 0.2 }}
               whileHover={!isActive ? { backgroundColor: 'rgba(255,255,255,0.04)' } : {}}
             >
-              {/* Active left border with glow */}
+              {/* Active left border indicator */}
               <AnimatePresence>
                 {isActive && (
                   <motion.div
@@ -151,7 +136,7 @@ export function CategoryNav() {
                 )}
               </AnimatePresence>
 
-              {/* Hover slide indicator */}
+              {/* Hover indicator */}
               {!isActive && (
                 <motion.div
                   className="absolute left-0 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-60"
@@ -178,7 +163,7 @@ export function CategoryNav() {
                 }}
               />
 
-              {/* Icon with animation */}
+              {/* Icon */}
               <motion.div
                 initial={false}
                 animate={isActive ? { scale: 1.15, rotate: [0, -5, 5, 0] } : { scale: 1, rotate: 0 }}
@@ -194,7 +179,6 @@ export function CategoryNav() {
                   className="flex-shrink-0 transition-colors duration-200"
                   style={{ color: isActive ? color : 'var(--color-text-muted)' }}
                 />
-                {/* Icon glow effect when active */}
                 {isActive && (
                   <motion.div
                     className="absolute inset-0 blur-sm"
@@ -228,7 +212,7 @@ export function CategoryNav() {
       </nav>
 
       {/* Footer: AI tools */}
-      <div className="p-4 flex flex-col gap-2" style={{ borderTop: '1px solid var(--color-border)' }}>
+      <div className="p-4 flex flex-col gap-2 border-t border-[var(--color-border)]">
         <AnimatePresence mode="wait">
           {reviewableCategories.includes(settingsCategory) && (
             <motion.div

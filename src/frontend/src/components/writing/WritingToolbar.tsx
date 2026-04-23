@@ -138,11 +138,7 @@ export function WritingToolbar() {
   ] as const
 
   return (
-    <div className="h-[var(--layout-topbar-height)] flex items-center px-4 gap-2"
-         style={{
-           backgroundColor: 'var(--color-surface-base)',
-           borderBottom: '1px solid var(--border-default)',
-         }}>
+    <div className="h-[var(--layout-topbar-height)] flex items-center px-4 gap-2 layout-topbar">
       {/* 左侧：返回聊天 + 返回设定 */}
       <Button
         onClick={() => setCurrentInterface('chat')}
@@ -162,7 +158,7 @@ export function WritingToolbar() {
         <span>返回设定</span>
       </Button>
 
-      <div className="w-px h-6" style={{ backgroundColor: 'var(--border-default)' }} />
+      <div className="w-px h-6 bg-[var(--border-default)]" />
 
       {/* 中间：工具按钮 */}
       <div className="flex items-center gap-1">
@@ -195,7 +191,7 @@ export function WritingToolbar() {
 
       {/* 中间偏右：人机比例快捷滑块 + 快捷AI操作 */}
       <div className="flex items-center gap-2 ml-2">
-        <div className="w-px h-6" style={{ backgroundColor: 'var(--border-default)' }} />
+        <div className="w-px h-6 bg-[var(--border-default)]" />
 
         {/* Human-AI ratio mini control - refined visual */}
         <div
@@ -205,7 +201,7 @@ export function WritingToolbar() {
             border: '1px solid var(--border-default)',
           }}
         >
-          <Bot className="w-3.5 h-3.5" style={{ color: 'var(--accent-primary)' }} />
+          <Bot className="w-4 h-4" style={{ color: 'var(--accent-primary)' }} />
           <div className="w-20">
             <Slider
               value={[humanAIRatio]}
@@ -216,7 +212,7 @@ export function WritingToolbar() {
               className="w-full"
             />
           </div>
-          <User className="w-3.5 h-3.5" style={{ color: 'var(--color-ifline)' }} />
+          <User className="w-4 h-4" style={{ color: 'var(--color-ifline)' }} />
           <span
             className="text-[10px] w-8 text-center font-medium"
             style={{ color: 'var(--text-tertiary)' }}
@@ -318,7 +314,7 @@ export function WritingToolbar() {
                 animate={{ scale: [1, 1.2, 1] }}
                 transition={{ duration: 1, repeat: Infinity }}
               >
-                <Sparkles className="w-3 h-3" style={{ color: 'var(--accent-primary)' }} />
+                <Sparkles className="w-3.5 h-3.5" style={{ color: 'var(--accent-primary)' }} />
               </motion.div>
               <span className="text-[10px] font-medium" style={{ color: 'var(--accent-primary)' }}>AI生成中</span>
             </motion.div>
@@ -329,7 +325,7 @@ export function WritingToolbar() {
         <div className="flex items-center gap-1.5 mr-2"
           title="今日写作进度"
         >
-          <BarChart3 className="w-3.5 h-3.5" style={{ color: 'var(--accent-primary)' }} />
+          <BarChart3 className="w-4 h-4" style={{ color: 'var(--accent-primary)' }} />
           <div className="w-20 h-1.5 bg-[rgba(255,255,255,0.06)] rounded-full overflow-hidden">
             <motion.div
               className="h-full rounded-full"
@@ -347,10 +343,10 @@ export function WritingToolbar() {
           </span>
         </div>
 
-        <div className="w-px h-5" style={{ backgroundColor: 'var(--border-default)' }} />
+        <div className="w-px h-5 bg-[var(--border-default)]" />
 
         {/* 字数统计 */}
-        <span className="text-xs" style={{ color: 'var(--text-tertiary)' }}>
+        <span className="text-xs text-[var(--text-tertiary)]">
           {wordCount} 字
         </span>
 
@@ -362,7 +358,7 @@ export function WritingToolbar() {
             size="sm"
             title={`OOC: ${oocWarnings.length}, 战力: ${powerImbalanceWarnings.length}`}
           >
-            <AlertTriangle className="w-3 h-3" />
+            <AlertTriangle className="w-4 h-4" />
             <span>警告 {oocWarnings.length + powerImbalanceWarnings.length}</span>
           </Button>
         )}
@@ -434,19 +430,19 @@ const ToolbarButton = memo(function ToolbarButton({
       onClick={onClick}
       variant={isActive ? 'primary' : 'ghost'}
       size="sm"
-      className={`relative overflow-hidden transition-all duration-200 ${
+      className={`relative overflow-hidden transition-all duration-200 rounded-md ${
         isActive
-          ? ''
-          : 'hover:scale-[1.03] hover:bg-gradient-to-b hover:from-[rgba(255,255,255,0.06)] hover:to-[rgba(255,255,255,0.02)]'
+          ? 'shadow-sm'
+          : 'hover:scale-[1.02] hover:bg-[rgba(255,255,255,0.04)]'
       }`}
     >
-      {icon}
-      <span>{label}</span>
+      <span className="flex items-center justify-center w-4 h-4">{icon}</span>
+      <span className="ml-1">{label}</span>
       {isActive && (
-        <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-3/4 h-[2px] rounded-full bg-gradient-to-r from-[var(--accent-primary)] to-[var(--ifline)] opacity-80" />
+        <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-2/3 h-[2px] rounded-full bg-gradient-to-r from-[var(--accent-primary)] to-[var(--color-ifline)] opacity-70" />
       )}
       {badge && (
-        <span className="absolute -top-1 -right-1 w-2 h-2 rounded-full" style={{ backgroundColor: 'var(--vermillion)' }} />
+        <span className="absolute -top-0.5 -right-0.5 w-1.5 h-1.5 rounded-full bg-[var(--color-vermillion)]" />
       )}
     </Button>
   )

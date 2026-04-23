@@ -23,7 +23,6 @@ const entityTypeConfig: Record<EntityType | 'all', { label: string; iconType: En
   plot_thread: { label: '剧情线', iconType: 'outline', color: 'var(--accent-primary)' },
 }
 
-// Search history storage key
 const SEARCH_HISTORY_KEY = 'entity-search-history'
 const MAX_HISTORY_ITEMS = 8
 
@@ -78,8 +77,7 @@ function highlightMatch(text: string, query: string): React.ReactNode {
     parts.push(
       <mark
         key={index}
-        className="rounded px-0.5 font-medium"
-        style={{ backgroundColor: 'var(--selection-bg)', color: 'var(--selection-color)' }}
+        className="rounded px-0.5 font-medium bg-[var(--selection-bg)] text-[var(--selection-color)]"
       >
         {text.slice(index, index + q.length)}
       </mark>
@@ -95,7 +93,6 @@ function highlightMatch(text: string, query: string): React.ReactNode {
   return parts.length > 0 ? parts : text
 }
 
-// Result item animation variants
 const resultVariants = {
   hidden: { opacity: 0, x: -12 },
   visible: (i: number) => ({
@@ -167,7 +164,6 @@ export function EntitySearch({ onResultClick }: EntitySearchProps) {
     inputRef.current?.focus()
   }
 
-  // Keyboard navigation within modal
   const handleModalKeyDown = (e: React.KeyboardEvent) => {
     const totalItems = hasQuery ? results.length : history.length
     if (e.key === 'ArrowDown') {
@@ -198,21 +194,13 @@ export function EntitySearch({ onResultClick }: EntitySearchProps) {
           setIsOpen(true)
           setTimeout(() => inputRef.current?.focus(), 0)
         }}
-        className="flex items-center gap-2 px-3 py-1.5 rounded-md text-xs transition-all"
-        style={{
-          backgroundColor: 'var(--color-surface-raised)',
-          border: '1px solid var(--border-default)',
-          color: 'var(--text-tertiary)',
-        }}
+        className="flex items-center gap-2 px-3 py-1.5 rounded-md text-xs transition-all bg-[var(--color-surface-raised)] border border-[var(--border-default)] text-[var(--text-tertiary)]"
         whileHover={{ scale: 1.02, backgroundColor: 'var(--color-surface-overlay)' }}
         whileTap={{ scale: 0.98 }}
       >
         <Search className="w-3.5 h-3.5" />
         <span>搜索实体</span>
-        <kbd
-          className="hidden sm:inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-mono ml-1"
-          style={{ backgroundColor: 'var(--color-surface-overlay)', color: 'var(--text-tertiary)' }}
-        >
+        <kbd className="hidden sm:inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-mono ml-1 bg-[var(--color-surface-overlay)] text-[var(--text-tertiary)]">
           Ctrl+K
         </kbd>
       </motion.button>
@@ -221,19 +209,14 @@ export function EntitySearch({ onResultClick }: EntitySearchProps) {
       <AnimatePresence>
         {isOpen && (
           <motion.div
-            className="fixed inset-0 z-50 flex items-start justify-center pt-[15vh]"
-            style={{ backgroundColor: 'var(--glass-bg-strong)' }}
+            className="fixed inset-0 z-50 flex items-start justify-center pt-[15vh] bg-[var(--glass-bg-strong)]"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={() => setIsOpen(false)}
           >
             <motion.div
-              className="w-full max-w-lg rounded-lg overflow-hidden shadow-2xl"
-              style={{
-                backgroundColor: 'var(--color-surface-base)',
-                border: '1px solid var(--border-strong)',
-              }}
+              className="w-full max-w-lg rounded-lg overflow-hidden shadow-2xl bg-[var(--color-surface-base)] border border-[var(--border-strong)]"
               initial={{ opacity: 0, scale: 0.95, y: -20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: -20 }}
@@ -241,8 +224,8 @@ export function EntitySearch({ onResultClick }: EntitySearchProps) {
               onClick={(e) => e.stopPropagation()}
             >
               {/* Input area */}
-              <div className="flex items-center gap-3 px-4 py-3" style={{ borderBottom: '1px solid var(--border-default)' }}>
-                <Search className="w-5 h-5 flex-shrink-0" style={{ color: 'var(--text-tertiary)' }} />
+              <div className="flex items-center gap-3 px-4 py-3 border-b border-[var(--border-default)]">
+                <Search className="w-5 h-5 flex-shrink-0 text-[var(--text-tertiary)]" />
                 <input
                   ref={inputRef}
                   type="text"
@@ -250,8 +233,7 @@ export function EntitySearch({ onResultClick }: EntitySearchProps) {
                   onChange={(e) => setQuery(e.target.value)}
                   onKeyDown={handleModalKeyDown}
                   placeholder="搜索角色、物品、地点..."
-                  className="flex-1 bg-transparent text-sm outline-none"
-                  style={{ color: 'var(--text-primary)' }}
+                  className="flex-1 bg-transparent text-sm outline-none text-[var(--text-primary)] placeholder:text-[var(--text-tertiary)]"
                 />
                 {query && (
                   <motion.button
@@ -259,20 +241,20 @@ export function EntitySearch({ onResultClick }: EntitySearchProps) {
                       setQuery('')
                       inputRef.current?.focus()
                     }}
-                    className="p-1 rounded transition-colors hover:bg-white/10"
+                    className="p-1 rounded transition-colors hover:bg-white/10 text-[var(--text-tertiary)]"
                     initial={{ opacity: 0, scale: 0.8 }}
                     animate={{ opacity: 1, scale: 1 }}
                     exit={{ opacity: 0, scale: 0.8 }}
                     whileHover={{ scale: 1.1, rotate: 90 }}
                     whileTap={{ scale: 0.9 }}
                   >
-                    <X className="w-4 h-4" style={{ color: 'var(--text-tertiary)' }} />
+                    <X className="w-4 h-4" />
                   </motion.button>
                 )}
               </div>
 
               {/* Type filter tabs */}
-              <div className="flex items-center gap-1 px-3 py-2 overflow-x-auto" style={{ borderBottom: '1px solid var(--border-default)' }}>
+              <div className="flex items-center gap-1 px-3 py-2 overflow-x-auto border-b border-[var(--border-default)]">
                 {(Object.keys(entityTypeConfig) as Array<EntityType | 'all'>).map((type) => {
                   const config = entityTypeConfig[type]
                   const isActive = filterType === type
@@ -321,11 +303,11 @@ export function EntitySearch({ onResultClick }: EntitySearchProps) {
                           initial={{ opacity: 0, y: 10 }}
                           animate={{ opacity: 1, y: 0 }}
                         >
-                          <Search className="w-8 h-8 mx-auto mb-2" style={{ color: 'var(--text-disabled)' }} />
-                          <p className="text-sm" style={{ color: 'var(--text-tertiary)' }}>
+                          <Search className="w-8 h-8 mx-auto mb-2 text-[var(--text-disabled)]" />
+                          <p className="text-sm text-[var(--text-tertiary)]">
                             未找到匹配结果
                           </p>
-                          <p className="text-xs mt-1" style={{ color: 'var(--text-disabled)' }}>
+                          <p className="text-xs mt-1 text-[var(--text-disabled)]">
                             尝试其他关键词或切换分类
                           </p>
                         </motion.div>
@@ -362,11 +344,11 @@ export function EntitySearch({ onResultClick }: EntitySearchProps) {
                                 )}
                               </motion.div>
                               <div className="flex-1 min-w-0">
-                                <div className="text-sm font-medium truncate" style={{ color: 'var(--text-primary)' }}>
+                                <div className="text-sm font-medium truncate text-[var(--text-primary)]">
                                   {highlightMatch(result.name, query)}
                                 </div>
                                 {result.description && (
-                                  <p className="text-xs truncate" style={{ color: 'var(--text-tertiary)' }}>
+                                  <p className="text-xs truncate text-[var(--text-tertiary)]">
                                     {highlightMatch(result.description, query)}
                                   </p>
                                 )}
@@ -381,10 +363,7 @@ export function EntitySearch({ onResultClick }: EntitySearchProps) {
                               >
                                 {config.label}
                               </motion.span>
-                              <motion.div
-                                className="opacity-0 group-hover:opacity-100 transition-opacity"
-                                initial={false}
-                              >
+                              <motion.div className="opacity-0 group-hover:opacity-100 transition-opacity">
                                 <ArrowRight className="w-3.5 h-3.5" style={{ color: config.color }} />
                               </motion.div>
                             </motion.button>
@@ -402,13 +381,12 @@ export function EntitySearch({ onResultClick }: EntitySearchProps) {
                       {history.length > 0 ? (
                         <>
                           <div className="flex items-center justify-between px-4 py-2">
-                            <span className="text-[10px] uppercase tracking-wider font-medium" style={{ color: 'var(--text-tertiary)' }}>
+                            <span className="text-[10px] uppercase tracking-wider font-medium text-[var(--text-tertiary)]">
                               搜索历史
                             </span>
                             <motion.button
                               onClick={clearHistory}
-                              className="text-[10px] flex items-center gap-1"
-                              style={{ color: 'var(--text-tertiary)' }}
+                              className="text-[10px] flex items-center gap-1 text-[var(--text-tertiary)] hover:text-[var(--color-danger)]"
                               whileHover={{ color: 'var(--color-danger)' }}
                             >
                               <Trash2 className="w-3 h-3" />
@@ -429,8 +407,8 @@ export function EntitySearch({ onResultClick }: EntitySearchProps) {
                               transition={{ delay: index * 0.03 }}
                               whileHover={{ x: 4 }}
                             >
-                              <Clock className="w-4 h-4 flex-shrink-0" style={{ color: 'var(--text-tertiary)' }} />
-                              <span className="text-sm flex-1" style={{ color: 'var(--text-secondary)' }}>
+                              <Clock className="w-4 h-4 flex-shrink-0 text-[var(--text-tertiary)]" />
+                              <span className="text-sm flex-1 text-[var(--text-secondary)]">
                                 {historyQuery}
                               </span>
                               <motion.button
@@ -438,22 +416,22 @@ export function EntitySearch({ onResultClick }: EntitySearchProps) {
                                   e.stopPropagation()
                                   removeFromHistory(historyQuery)
                                 }}
-                                className="p-1 rounded opacity-0 group-hover:opacity-100 transition-opacity"
+                                className="p-1 rounded opacity-0 group-hover:opacity-100 transition-opacity text-[var(--text-tertiary)] hover:scale-110 active:scale-90"
                                 whileHover={{ scale: 1.1 }}
                                 whileTap={{ scale: 0.9 }}
                               >
-                                <X className="w-3 h-3" style={{ color: 'var(--text-tertiary)' }} />
+                                <X className="w-3 h-3" />
                               </motion.button>
                             </motion.button>
                           ))}
                         </>
                       ) : (
                         <div className="py-8 text-center">
-                          <Search className="w-8 h-8 mx-auto mb-2" style={{ color: 'var(--text-disabled)' }} />
-                          <p className="text-sm" style={{ color: 'var(--text-tertiary)' }}>
+                          <Search className="w-8 h-8 mx-auto mb-2 text-[var(--text-disabled)]" />
+                          <p className="text-sm text-[var(--text-tertiary)]">
                             输入关键词开始搜索
                           </p>
-                          <p className="text-xs mt-1" style={{ color: 'var(--text-disabled)' }}>
+                          <p className="text-xs mt-1 text-[var(--text-disabled)]">
                             支持角色、物品、地点、势力等实体
                           </p>
                         </div>
@@ -464,22 +442,17 @@ export function EntitySearch({ onResultClick }: EntitySearchProps) {
               </div>
 
               {/* Footer */}
-              <div
-                className="flex items-center justify-between px-4 py-2 text-xs"
-                style={{
-                  borderTop: '1px solid var(--border-default)',
-                  color: 'var(--text-tertiary)',
-                }}
+              <div className="flex items-center justify-between px-4 py-2 text-xs border-t border-[var(--border-default)] text-[var(--text-tertiary)]"
               >
                 <div className="flex items-center gap-3">
                   <span>
-                    <kbd className="px-1 rounded" style={{ backgroundColor: 'var(--color-surface-overlay)' }}>↑↓</kbd> 选择
+                    <kbd className="px-1 rounded bg-[var(--color-surface-overlay)]">↑↓</kbd> 选择
                   </span>
                   <span>
-                    <kbd className="px-1 rounded" style={{ backgroundColor: 'var(--color-surface-overlay)' }}>Enter</kbd> 确认
+                    <kbd className="px-1 rounded bg-[var(--color-surface-overlay)]">Enter</kbd> 确认
                   </span>
                   <span>
-                    <kbd className="px-1 rounded" style={{ backgroundColor: 'var(--color-surface-overlay)' }}>Esc</kbd> 关闭
+                    <kbd className="px-1 rounded bg-[var(--color-surface-overlay)]">Esc</kbd> 关闭
                   </span>
                 </div>
                 {hasQuery && results.length > 0 && (
