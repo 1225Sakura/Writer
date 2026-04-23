@@ -112,3 +112,4 @@ src/backend/.db
 tests/.pytest_cache/
 .pytest_cache/
 .pytest_cache/
+electron/release/win-unpacked/Writer.exe
