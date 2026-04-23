@@ -179,12 +179,12 @@ export function WritingEditorPage() {
             transition={{ duration: 0.3, delay: 0.1 }}
             className="fixed top-4 left-4 z-40 flex items-center gap-2 px-3 py-1.5 rounded-full"
             style={{
-              background: 'var(--accent-purple)',
-              border: '1px solid var(--accent-purple)',
+              background: 'var(--accent-primary)',
+              border: '1px solid var(--accent-primary)',
             }}
           >
-            <Aperture className="w-3.5 h-3.5 text-[var(--accent-purple)]" />
-            <span className="text-[11px] font-medium text-[var(--accent-purple)]">沉浸模式</span>
+            <Aperture className="w-3.5 h-3.5" style={{ color: 'white' }} />
+            <span className="text-xs font-medium" style={{ color: 'white' }}>沉浸模式</span>
           </motion.div>
         )}
       </AnimatePresence>
@@ -234,7 +234,7 @@ export function WritingEditorPage() {
               animate={{ width: 280, opacity: 1, x: 0 }}
               exit={{ width: 0, opacity: 0, x: -20 }}
               transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
-              className="border-r border-[var(--color-border)] bg-[var(--color-surface-raised)] flex flex-col overflow-hidden relative"
+              className="border-r border-[var(--border-default)] bg-[var(--color-surface-raised)] flex flex-col overflow-hidden relative"
               style={{
                 boxShadow: '4px 0 24px rgba(91, 142, 232, 0.08)',
               }}
@@ -263,7 +263,7 @@ export function WritingEditorPage() {
               animate={{ width: '100%', opacity: 1, x: 0 }}
               exit={{ width: 0, opacity: 0, x: 20 }}
               transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
-              className="drawer-responsive drawer-right border-l border-[var(--color-border)] bg-[var(--color-surface-raised)] flex flex-col overflow-hidden relative"
+              className="drawer-responsive drawer-right border-l border-[var(--border-default)] bg-[var(--color-surface-raised)] flex flex-col overflow-hidden relative"
               style={{
                 boxShadow: '-4px 0 24px var(--accent-purple)',
                 maxWidth: '360px',
@@ -279,14 +279,14 @@ export function WritingEditorPage() {
                   background: 'linear-gradient(180deg, var(--accent-purple) 0%, var(--accent-purple) 50%, transparent 100%)',
                 }}
               />
-              <div className="p-3 border-b border-[var(--color-border)] flex items-center justify-between min-w-0 w-full">
-                <span className="font-medium text-sm text-[var(--color-text)]">写作操作</span>
+              <div className="p-3 border-b border-[var(--border-default)] flex items-center justify-between min-w-0 w-full">
+                <span className="font-medium text-sm text-[var(--text-primary)]">写作操作</span>
                 <Button
                   onClick={toggleAIDrawer}
                   variant="ghost"
                   size="icon"
                 >
-                  <X className="w-4 h-4 text-[var(--color-text-secondary)]" />
+                  <X className="w-4 h-4 text-[var(--text-secondary)]" />
                 </Button>
               </div>
               <AIOperationDrawer />
@@ -303,7 +303,7 @@ export function WritingEditorPage() {
               animate={{ width: 260, opacity: 1, x: 0 }}
               exit={{ width: 0, opacity: 0, x: 20 }}
               transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
-              className="drawer-responsive drawer-right border-l border-[var(--color-border)] bg-[var(--color-surface-raised)] flex flex-col overflow-hidden relative"
+              className="drawer-responsive drawer-right border-l border-[var(--border-default)] bg-[var(--color-surface-raised)] flex flex-col overflow-hidden relative"
               style={{
                 boxShadow: '-4px 0 24px var(--color-ifline)',
               }}
@@ -318,14 +318,14 @@ export function WritingEditorPage() {
                   background: 'linear-gradient(180deg, var(--color-ifline) 0%, var(--color-ifline) 50%, transparent 100%)',
                 }}
               />
-              <div className="p-3 border-b border-[var(--color-border)] flex items-center justify-between min-w-0 w-full">
-                <span className="font-medium text-sm text-[var(--color-text)]">协作面板</span>
+              <div className="p-3 border-b border-[var(--border-default)] flex items-center justify-between min-w-0 w-full">
+                <span className="font-medium text-sm text-[var(--text-primary)]">协作面板</span>
                 <Button
                   onClick={toggleCollaborationDrawer}
                   variant="ghost"
                   size="icon"
                 >
-                  <X className="w-4 h-4 text-[var(--color-text-secondary)]" />
+                  <X className="w-4 h-4 text-[var(--text-secondary)]" />
                 </Button>
               </div>
               <CollaborationPanel />

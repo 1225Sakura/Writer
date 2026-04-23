@@ -23,20 +23,20 @@ export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElemen
 }
 
 const variantStyles = {
-  default: 'bg-var-accent text-white hover:bg-[var(--accent-primary-hover)] active:bg-[var(--accent-primary-active)]',
+  default: 'bg-[var(--accent-primary)] text-white hover:bg-[var(--accent-primary-hover)] active:bg-[var(--accent-primary-active)]',
   primary: 'bg-[var(--accent-primary)] text-white hover:bg-[var(--accent-primary-hover)] active:bg-[var(--accent-primary-active)]',
   secondary:
-    'bg-var-border text-var-text hover:bg-var-border/80 active:bg-var-border/60 border border-transparent hover:border-var-text-secondary/30',
+    'bg-[var(--border-default)] text-[var(--text-primary)] hover:bg-[var(--border-strong)] active:bg-[var(--border-strong)]/80 border border-transparent hover:border-[var(--text-secondary)]/30',
   outline:
-    'border border-var-border bg-transparent hover:bg-var-border/20 active:bg-var-border/40',
+    'border border-[var(--border-default)] bg-transparent hover:bg-[var(--border-default)]/20 active:bg-[var(--border-default)]/40',
   ghost:
-    'bg-[var(--color-surface-raised)] hover:bg-[var(--color-surface-hover)] text-[var(--text-secondary)] border border-[var(--color-border)]',
+    'bg-[var(--color-surface-raised)] hover:bg-[var(--color-surface-hover)] text-[var(--text-secondary)] border border-[var(--border-default)]',
   ghostHover:
-    'bg-transparent text-[var(--text-secondary)] border border-transparent hover:bg-[var(--color-surface-hover)] hover:border-[var(--color-border)]',
+    'bg-transparent text-[var(--text-secondary)] border border-transparent hover:bg-[var(--color-surface-hover)] hover:border-[var(--border-default)]',
   subtle:
-    'bg-[var(--color-surface-raised)] hover:bg-[var(--color-border)] text-[var(--text-secondary)] border border-[var(--color-border)]',
+    'bg-[var(--color-surface-raised)] hover:bg-[var(--border-default)] text-[var(--text-secondary)] border border-[var(--border-default)]',
   destructive: 'bg-[var(--color-danger)] text-white hover:brightness-110 active:brightness-90',
-  glow: 'bg-var-accent text-white relative overflow-hidden',
+  glow: 'bg-[var(--accent-primary)] text-white relative overflow-hidden',
   gradient:
     'bg-gradient-to-r from-[var(--accent-primary)] to-[var(--accent-secondary)] text-white hover:from-[var(--accent-primary-hover)] hover:to-[var(--accent-secondary-hover)] active:from-[var(--accent-primary-active)] active:to-[var(--accent-secondary-active)]',
 }
@@ -104,7 +104,7 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
         className={twMerge(
           clsx(
             'relative inline-flex items-center justify-center font-[510] transition-all duration-200 cursor-pointer overflow-hidden',
-            'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-var-accent focus-visible:ring-offset-2 focus-visible:ring-offset-var-bg',
+            'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-primary)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--color-surface-base)]',
             'disabled:pointer-events-none disabled:opacity-50',
             'hover:scale-[1.02] active:scale-[0.98]',
             variantStyles[variant],

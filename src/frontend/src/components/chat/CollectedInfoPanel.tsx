@@ -27,22 +27,22 @@ const categoryLabels: Record<string, string> = {
 }
 
 /* ============================================================
-   ENTITY TYPE COLORS (from design system)
+   ENTITY TYPE COLORS (from design system - CSS variables)
    ============================================================ */
 
 const typeColors: Record<string, string> = {
-  character: '#e8b87d',
-  item: '#9b7ed9',
-  location: '#5eb5a6',
-  faction: '#d45d5d',
-  world: '#5e6ad2',
-  rule: '#7eb84a',
-  outline: '#5b8ee8',
-  ifline: '#7eb84a',
+  character: 'var(--color-character)',
+  item: 'var(--color-item)',
+  location: 'var(--color-location)',
+  faction: 'var(--color-faction)',
+  world: 'var(--color-world)',
+  rule: 'var(--color-rule)',
+  outline: 'var(--color-outline)',
+  ifline: 'var(--color-ifline)',
 }
 
 const typeBgColors: Record<string, string> = {
-  character: 'rgba(232, 184, 125, 0.08)',
+  character: 'rgba(212, 165, 116, 0.08)',
   item: 'rgba(155, 126, 217, 0.08)',
   location: 'rgba(94, 181, 166, 0.08)',
   faction: 'rgba(212, 93, 93, 0.08)',
@@ -53,7 +53,7 @@ const typeBgColors: Record<string, string> = {
 }
 
 const typeGlowColors: Record<string, string> = {
-  character: 'rgba(232, 184, 125, 0.3)',
+  character: 'rgba(212, 165, 116, 0.3)',
   item: 'rgba(155, 126, 217, 0.3)',
   location: 'rgba(94, 181, 166, 0.3)',
   faction: 'rgba(212, 93, 93, 0.3)',
@@ -73,7 +73,7 @@ function EntityItem({ entity, onConfirm, index }: {
   index: number
 }) {
   const [justConfirmed, setJustConfirmed] = useState(false)
-  const color = typeColors[entity.type] || '#d0d6e0'
+  const color = typeColors[entity.type] || 'var(--color-character)'
   const bgColor = typeBgColors[entity.type] || 'rgba(255,255,255,0.02)'
   const glowColor = typeGlowColors[entity.type] || 'rgba(255,255,255,0.1)'
 
@@ -149,7 +149,7 @@ function EntityItem({ entity, onConfirm, index }: {
               exit={{ scale: 0, rotate: 30 }}
               transition={{ type: 'spring', stiffness: 400, damping: 15 }}
             >
-              <CheckCircle className="w-4.5 h-4.5" style={{ color: '#7eb84a' }} />
+              <CheckCircle className="w-4.5 h-4.5" style={{ color: 'var(--color-ifline)' }} />
             </motion.div>
           ) : (
             <motion.div
@@ -159,7 +159,7 @@ function EntityItem({ entity, onConfirm, index }: {
               exit={{ scale: 0 }}
               transition={{ type: 'spring', stiffness: 400, damping: 15 }}
             >
-              <Circle className="w-4.5 h-4.5 hover:text-[#7eb84a]" style={{ color: 'var(--text-secondary)' }} />
+              <Circle className="w-4.5 h-4.5 hover:text-[var(--color-ifline)]" style={{ color: 'var(--text-secondary)' }} />
             </motion.div>
           )}
         </AnimatePresence>
@@ -184,7 +184,7 @@ function CategorySection({
   type: string
 }) {
   const [isExpanded, setIsExpanded] = useState(true)
-  const color = typeColors[type] || '#d0d6e0'
+  const color = typeColors[type] || 'var(--color-character)'
   const confirmedCount = entities.filter((e) => e.confirmed).length
 
   if (entities.length === 0) return null
@@ -221,7 +221,7 @@ function CategorySection({
         </h3>
 
         <span className="text-xs flex items-center gap-1" style={{ color: 'var(--text-secondary)' }}>
-          <span style={{ color: confirmedCount === entities.length ? '#7eb84a' : color }}>
+          <span style={{ color: confirmedCount === entities.length ? 'var(--color-ifline)' : color }}>
             {confirmedCount}
           </span>
           <span>/</span>
@@ -274,8 +274,8 @@ export function CollectedInfoPanel({ entities, onConfirmEntity }: CollectedInfoP
   const confirmedCount = entities.filter((e) => e.confirmed).length
   const progressPercent = entities.length > 0 ? (confirmedCount / entities.length) * 100 : 0
 
-  return (
-    <div className="h-full flex flex-col" style={{ backgroundColor: '#0f1011' }}>
+return (
+    <div className="h-full flex flex-col" style={{ backgroundColor: 'var(--color-surface-raised)' }}>
       {/* Header */}
       <div className="p-4 border-b border-[rgba(255,255,255,0.06)]">
         <div className="flex items-center gap-2 mb-1">
@@ -291,8 +291,8 @@ export function CollectedInfoPanel({ entities, onConfirmEntity }: CollectedInfoP
             className="h-full rounded-full relative"
             style={{
               background: progressPercent === 100
-                ? 'linear-gradient(90deg, #7eb84a, #8ec95a)'
-                : 'linear-gradient(90deg, var(--accent-primary), #7b8ce4)',
+                ? 'linear-gradient(90deg, var(--color-ifline), var(--color-ifline))'
+                : 'linear-gradient(90deg, var(--accent-primary), var(--accent-primary))',
             }}
             initial={{ width: 0 }}
             animate={{ width: `${progressPercent}%` }}
@@ -365,7 +365,7 @@ export function CollectedInfoPanel({ entities, onConfirmEntity }: CollectedInfoP
         <div className="flex gap-2 mb-2">
           <motion.button
             className="flex-1 px-3 py-2 text-xs rounded-lg border border-[rgba(255,255,255,0.06)]
-                       text-[#d0d6e0] hover:bg-[rgba(255,255,255,0.04)] hover:text-[#f7f8f8]"
+                       text-[var(--text-secondary)] hover:bg-[rgba(255,255,255,0.04)] hover:text-[var(--text-primary)]"
             onClick={() => useUIStore.getState().setCurrentInterface('chat')}
             whileHover={{ y: -1 }}
             whileTap={{ scale: 0.97 }}
@@ -374,7 +374,7 @@ export function CollectedInfoPanel({ entities, onConfirmEntity }: CollectedInfoP
           </motion.button>
           <motion.button
             className="flex-1 px-3 py-2 text-xs rounded-lg border border-[rgba(255,255,255,0.06)]
-                       text-[#d0d6e0] hover:bg-[rgba(255,255,255,0.04)] hover:text-[#f7f8f8]"
+                       text-[var(--text-secondary)] hover:bg-[rgba(255,255,255,0.04)] hover:text-[var(--text-primary)]"
             onClick={() => useUIStore.getState().setCurrentInterface('settings')}
             whileHover={{ y: -1 }}
             whileTap={{ scale: 0.97 }}

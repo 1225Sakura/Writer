@@ -50,8 +50,8 @@ function StatusBar() {
     <motion.div
       className="flex items-center justify-between px-4 py-2 text-xs"
       style={{
-        backgroundColor: 'var(--color-bg-surface)',
-        borderTop: '1px solid var(--color-border)',
+        backgroundColor: 'var(--color-surface-base)',
+        borderTop: '1px solid var(--border-default)',
       }}
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
@@ -59,8 +59,8 @@ function StatusBar() {
     >
       {/* Current editing item */}
       <div className="flex items-center gap-3">
-        <span style={{ color: 'var(--color-text-secondary)' }}>
-          当前编辑：<span className="font-medium" style={{ color: 'var(--color-text)' }}>{categoryLabels[settingsCategory]}</span>
+        <span style={{ color: 'var(--text-secondary)' }}>
+          当前编辑：<span className="font-medium" style={{ color: 'var(--text-primary)' }}>{categoryLabels[settingsCategory]}</span>
         </span>
       </div>
 
@@ -98,7 +98,7 @@ function StatusBar() {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               className="flex items-center gap-1"
-              style={{ color: 'var(--color-text-muted)' }}
+              style={{ color: 'var(--text-tertiary)' }}
             >
               <AlertCircle className="w-3 h-3" />
               <span>未保存</span>
@@ -108,7 +108,7 @@ function StatusBar() {
       </div>
 
       {/* Keyboard shortcuts hint */}
-      <div className="flex items-center gap-2" style={{ color: 'var(--color-text-muted)' }}>
+      <div className="flex items-center gap-2" style={{ color: 'var(--text-tertiary)' }}>
         <Keyboard className="w-3 h-3" />
         <span className="hidden sm:inline">
           <kbd className="px-1 py-0.5 rounded text-[10px]" style={{ backgroundColor: 'var(--color-surface-raised)' }}>Ctrl</kbd>
@@ -135,7 +135,7 @@ export function SettingEditorPage() {
   return (
     <motion.div
       className="flex h-full relative"
-      style={{ backgroundColor: 'var(--color-bg)' }}
+      style={{ backgroundColor: 'var(--color-surface-base)' }}
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
@@ -169,8 +169,8 @@ export function SettingEditorPage() {
         style={{
           width: '200px',
           minWidth: '120px',
-          backgroundColor: 'var(--color-bg-surface)',
-          borderRight: '1px solid var(--color-border)',
+          backgroundColor: 'var(--color-surface-base)',
+          borderRight: '1px solid var(--border-default)',
           zIndex: 1,
         }}
         initial={{ x: -20, opacity: 0 }}
@@ -192,13 +192,13 @@ export function SettingEditorPage() {
         <div
           className="flex items-center justify-between px-4 py-3"
           style={{
-            backgroundColor: 'var(--color-bg-surface)',
-            borderBottom: '1px solid var(--color-border)',
+            backgroundColor: 'var(--color-surface-base)',
+            borderBottom: '1px solid var(--border-default)',
           }}
         >
           <div className="flex items-center gap-2">
             <Settings className="w-4 h-4" style={{ color: 'var(--accent-primary)' }} />
-            <span className="font-medium text-sm" style={{ color: 'var(--color-text)' }}>
+            <span className="font-medium text-sm" style={{ color: 'var(--text-primary)' }}>
               设定编辑器
             </span>
           </div>
@@ -251,7 +251,7 @@ export function SettingEditorPage() {
         {/* AI审查建议 */}
         <div
           style={{
-            borderTop: '1px solid var(--color-border)',
+            borderTop: '1px solid var(--border-default)',
           }}
         >
           <AISuggestionPanel />
@@ -267,8 +267,8 @@ export function SettingEditorPage() {
         style={{
           width: '320px',
           minWidth: '200px',
-          backgroundColor: 'var(--color-bg-primary)',
-          borderLeft: '1px solid var(--color-border)',
+          backgroundColor: 'var(--color-surface-raised)',
+          borderLeft: '1px solid var(--border-default)',
           zIndex: 1,
         }}
         initial={{ x: 20, opacity: 0 }}
@@ -278,11 +278,11 @@ export function SettingEditorPage() {
         <div
           className="flex items-center justify-between px-4 py-3"
           style={{
-            borderBottom: '1px solid var(--color-border)',
+            borderBottom: '1px solid var(--border-default)',
           }}
         >
           <div className="flex items-center gap-2">
-            <span className="text-xs font-medium uppercase tracking-wide" style={{ color: 'var(--color-text-secondary)' }}>
+            <span className="text-xs font-medium uppercase tracking-wide" style={{ color: 'var(--text-secondary)' }}>
               关系图谱
             </span>
           </div>
