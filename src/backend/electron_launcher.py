@@ -52,6 +52,8 @@ def ensure_database():
     In Electron mode, the data directory is set by the main process via
     WRITER_DATA_DIR env var. Falls back to backend/data/ for standalone runs.
     """
+    import sqlite3
+
     # Respect Electron's data directory if provided
     electron_data_dir = os.environ.get('WRITER_DATA_DIR')
     if electron_data_dir:
@@ -62,8 +64,11 @@ def ensure_database():
     data_dir.mkdir(parents=True, exist_ok=True)
     db_path = data_dir / 'writer.db'
 
+    # If database exists, ensure it has all required columns (schema compatibility)
     if db_path.exists():
         print(f"[Launcher] Database already exists at {db_path}")
+        # Ensure tags columns exist in all tables that need them
+        _ensure_tags_columns(db_path)
         return
 
     print(f"[Launcher] Database not found, initializing at {db_path}...")
@@ -86,6 +91,44 @@ def ensure_database():
         print(f"[Launcher] Migration error: {e}")
         import traceback
         traceback.print_exc()
+
+
+def _ensure_tags_columns(db_path: Path):
+    """Ensure tags columns exist in all tables that need them.
+
+    This handles schema migrations for existing databases that may be missing
+    the tags columns added in a later migration.
+    """
+    import sqlite3
+
+    conn = sqlite3.connect(str(db_path))
+    cursor = conn.cursor()
+
+    # Tables that need tags column
+    tables_needing_tags = ['characters', 'items', 'locations', 'factions', 'world_settings', 'rules']
+
+    for table in tables_needing_tags:
+        try:
+            # Check if table exists
+            cursor.execute(
+                "SELECT name FROM sqlite_master WHERE type='table' AND name=?",
+                (table,)
+            )
+            if not cursor.fetchone():
+                continue  # Table doesn't exist, skip
+
+            # Check if tags column exists
+            cursor.execute(f"PRAGMA table_info({table})")
+            columns = [col[1] for col in cursor.fetchall()]
+
+            if 'tags' not in columns:
+                cursor.execute(f'ALTER TABLE {table} ADD COLUMN tags TEXT')
+                print(f"[Launcher] Added tags column to {table}")
+        except sqlite3.Error as e:
+            print(f"[Launcher] Warning: Could not add tags to {table}: {e}")
+
+    conn.commit()
+    conn.close()
 
 # Ensure database is initialized
 ensure_database()
