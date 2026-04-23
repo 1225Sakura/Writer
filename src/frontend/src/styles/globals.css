@@ -95,7 +95,7 @@
     sans-serif;
   --font-mono: 'JetBrains Mono', 'SF Mono', 'Fira Code', 'Cascadia Code', 'Consolas', monospace;
   --font-serif-cn: 'Noto Serif SC', 'Source Han Serif CN', 'Source Han Serif SC', 'Source Han Serif', 'Songti SC', 'SimSun', 'NSimSun', 'STSong', 'STKaiti', 'Noto Serif CJK SC', serif;
-  --font-serif-en: 'Noto Serif SC', 'Georgia', 'Times New Roman', serif; Serif SC', 'Source Han Serif CN', '宋体', serif;
+  --font-serif-en: 'Noto Serif SC', 'Georgia', 'Times New Roman', serif;
   --font-serif-en:    'Source Han Serif', 'Noto Serif', 'Georgia', serif;
 
   /* === Typography: Type Scale (8px base) === */
