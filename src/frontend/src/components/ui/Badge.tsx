@@ -26,20 +26,20 @@ export interface BadgeProps extends React.HTMLAttributes<HTMLSpanElement> {
 const variantStyles: Record<string, string> = {
   default: 'bg-[var(--accent-primary)]/90 text-white hover:bg-[var(--accent-primary)]',
   primary: 'bg-[var(--color-world)] text-white hover:brightness-110',
-  secondary: 'bg-[rgba(255,255,255,0.08)] text-[var(--text-secondary)] hover:bg-[rgba(255,255,255,0.12)]',
-  outline: 'bg-transparent border border-[rgba(255,255,255,0.15)] text-[var(--text-secondary)] hover:border-[rgba(255,255,255,0.25)]',
+  secondary: 'bg-[var(--color-surface-overlay)] text-[var(--text-secondary)] hover:bg-[var(--color-surface-hover)]',
+  outline: 'bg-transparent border border-[var(--border-strong)] text-[var(--text-secondary)] hover:border-[var(--border-default)]',
   ghost: 'bg-transparent text-[var(--text-tertiary)] hover:text-[var(--text-secondary)]',
   // Entity type colors matching project ontology
-  character: 'bg-[var(--color-character)]/20 text-[var(--color-character)] border border-[var(--color-character)]/30 hover:bg-[var(--color-character)]/30',
-  item: 'bg-[var(--color-item)]/20 text-[var(--color-item)] border border-[var(--color-item)]/30 hover:bg-[var(--color-item)]/30',
-  location: 'bg-[var(--color-location)]/20 text-[var(--color-location)] border border-[var(--color-location)]/30 hover:bg-[var(--color-location)]/30',
-  faction: 'bg-[var(--color-faction)]/20 text-[var(--color-faction)] border border-[var(--color-faction)]/30 hover:bg-[var(--color-faction)]/30',
-  outlineEntity: 'bg-[var(--color-outline)]/20 text-[var(--color-outline)] border border-[var(--color-outline)]/30 hover:bg-[var(--color-outline)]/30',
-  ifline: 'bg-[var(--color-ifline)]/20 text-[var(--color-ifline)] border border-[var(--color-ifline)]/30 hover:bg-[var(--color-ifline)]/30',
+  character: 'bg-[var(--color-character)]/15 text-[var(--color-character)] border border-[var(--color-character)]/25 hover:bg-[var(--color-character)]/25',
+  item: 'bg-[var(--color-item)]/15 text-[var(--color-item)] border border-[var(--color-item)]/25 hover:bg-[var(--color-item)]/25',
+  location: 'bg-[var(--color-location)]/15 text-[var(--color-location)] border border-[var(--color-location)]/25 hover:bg-[var(--color-location)]/25',
+  faction: 'bg-[var(--color-faction)]/15 text-[var(--color-faction)] border border-[var(--color-faction)]/25 hover:bg-[var(--color-faction)]/25',
+  outlineEntity: 'bg-[var(--color-outline)]/15 text-[var(--color-outline)] border border-[var(--color-outline)]/25 hover:bg-[var(--color-outline)]/25',
+  ifline: 'bg-[var(--color-ifline)]/15 text-[var(--color-ifline)] border border-[var(--color-ifline)]/25 hover:bg-[var(--color-ifline)]/25',
   // Status colors
-  success: 'bg-[var(--color-ifline)]/20 text-[var(--color-ifline)] border border-[var(--color-ifline)]/30 hover:bg-[var(--color-ifline)]/30',
-  warning: 'bg-[var(--color-character)]/20 text-[var(--color-character)] border border-[var(--color-character)]/30 hover:bg-[var(--color-character)]/30',
-  error: 'bg-[var(--color-error)]/20 text-[var(--color-error)] border border-[var(--color-error)]/30 hover:bg-[var(--color-error)]/30',
+  success: 'bg-[var(--color-ifline)]/15 text-[var(--color-ifline)] border border-[var(--color-ifline)]/25 hover:bg-[var(--color-ifline)]/25',
+  warning: 'bg-[var(--color-warning)]/15 text-[var(--color-warning)] border border-[var(--color-warning)]/25 hover:bg-[var(--color-warning)]/25',
+  error: 'bg-[var(--color-vermillion)]/15 text-[var(--color-vermillion)] border border-[var(--color-vermillion)]/25 hover:bg-[var(--color-vermillion)]/25',
 }
 
 const dotColors: Record<string, string> = {
@@ -55,8 +55,8 @@ const dotColors: Record<string, string> = {
   outlineEntity: 'bg-[var(--color-outline)]',
   ifline: 'bg-[var(--color-ifline)]',
   success: 'bg-[var(--color-ifline)]',
-  warning: 'bg-[var(--color-character)]',
-  error: 'bg-[var(--color-error)]',
+  warning: 'bg-[var(--color-warning)]',
+  error: 'bg-[var(--color-vermillion)]',
 }
 
 const sizeStyles = {

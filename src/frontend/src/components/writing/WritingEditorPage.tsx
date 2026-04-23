@@ -151,7 +151,7 @@ export function WritingEditorPage() {
 
   return (
     <div className={`h-full flex flex-col bg-[var(--ink-black)] ${immersiveMode ? 'immersive-mode' : ''}`}>
-      {/* Immersive mode vignette overlay */}
+      {/* Immersive mode vignette overlay - more subtle */}
       <AnimatePresence>
         {immersiveMode && chromeVisible && (
           <motion.div
@@ -159,10 +159,10 @@ export function WritingEditorPage() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            transition={{ duration: 0.4 }}
+            transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
             className="fixed inset-0 pointer-events-none z-30"
             style={{
-              background: 'radial-gradient(ellipse 70% 60% at 50% 40%, transparent 30%, var(--ink-black) 100%)',
+              background: 'radial-gradient(ellipse 75% 65% at 50% 45%, transparent 40%, var(--ink-black) 100%)',
             }}
           />
         )}
@@ -225,7 +225,7 @@ export function WritingEditorPage() {
         <ChapterNotesPanel />
         <WritingSprintTimer />
 
-        {/* 大纲侧边栏 (280px, 可收起) */}
+        {/* 大纲侧边栏 (可收起) */}
         <AnimatePresence initial={false}>
           {outlineDrawerOpen && (!immersiveMode || chromeVisible) && (
             <motion.div
@@ -260,13 +260,13 @@ export function WritingEditorPage() {
             <motion.div
               key="ai-drawer"
               initial={{ width: 0, opacity: 0, x: 20 }}
-              animate={{ width: 360, opacity: 1, x: 0 }}
+              animate={{ width: 320, opacity: 1, x: 0 }}
               exit={{ width: 0, opacity: 0, x: 20 }}
               transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
               className="drawer-responsive drawer-right border-l border-[var(--border-default)] bg-[var(--color-surface-raised)] flex flex-col overflow-hidden relative"
               style={{
-                boxShadow: '-4px 0 24px var(--accent-purple)',
-                maxWidth: '360px',
+                boxShadow: '-4px 0 24px color-mix(in srgb, var(--accent-primary) 15%, transparent)',
+                maxWidth: '320px',
               }}
             >
               {/* Glow indicator */}
@@ -279,7 +279,7 @@ export function WritingEditorPage() {
                   background: 'linear-gradient(180deg, var(--accent-purple) 0%, var(--accent-purple) 50%, transparent 100%)',
                 }}
               />
-              <div className="p-3 border-b border-[var(--border-default)] flex items-center justify-between min-w-0 w-full">
+              <div className="p-4 border-b border-[var(--border-default)] flex items-center justify-between min-w-0 w-full">
                 <span className="font-medium text-sm text-[var(--text-primary)]">写作操作</span>
                 <Button
                   onClick={toggleAIDrawer}
@@ -300,12 +300,12 @@ export function WritingEditorPage() {
             <motion.div
               key="collab-drawer"
               initial={{ width: 0, opacity: 0, x: 20 }}
-              animate={{ width: 260, opacity: 1, x: 0 }}
+              animate={{ width: 280, opacity: 1, x: 0 }}
               exit={{ width: 0, opacity: 0, x: 20 }}
               transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
               className="drawer-responsive drawer-right border-l border-[var(--border-default)] bg-[var(--color-surface-raised)] flex flex-col overflow-hidden relative"
               style={{
-                boxShadow: '-4px 0 24px var(--color-ifline)',
+                boxShadow: '-4px 0 24px color-mix(in srgb, var(--color-ifline) 15%, transparent)',
               }}
             >
               {/* Glow indicator */}
@@ -318,7 +318,7 @@ export function WritingEditorPage() {
                   background: 'linear-gradient(180deg, var(--color-ifline) 0%, var(--color-ifline) 50%, transparent 100%)',
                 }}
               />
-              <div className="p-3 border-b border-[var(--border-default)] flex items-center justify-between min-w-0 w-full">
+              <div className="p-4 border-b border-[var(--border-default)] flex items-center justify-between min-w-0 w-full">
                 <span className="font-medium text-sm text-[var(--text-primary)]">协作面板</span>
                 <Button
                   onClick={toggleCollaborationDrawer}

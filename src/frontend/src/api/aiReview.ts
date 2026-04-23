@@ -9,6 +9,7 @@ import type {
   OOCCheckResponse,
   HighPointCheckResponse,
   ReaderPullCheckResponse,
+  ExtractedEntity,
 } from "./types"
 
 // ============================================
@@ -43,8 +44,8 @@ export const aiReviewApi = {
    */
   extractEntities: async (
     chatMessages: Array<{ role: string; content: string }>
-  ): Promise<{ entities: unknown[] }> => {
-    return api.post<{ entities: unknown[] }>("/ai/extract-entities", {
+  ): Promise<{ entities: ExtractedEntity[] }> => {
+    return api.post<{ entities: ExtractedEntity[] }>("/ai/extract-entities", {
       chat_messages: chatMessages,
     })
   },

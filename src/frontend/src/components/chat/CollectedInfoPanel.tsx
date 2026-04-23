@@ -91,7 +91,7 @@ function EntityItem({ entity, onConfirm, index }: {
     <motion.div
       className="flex items-center gap-2.5 py-2.5 px-3 -mx-1 rounded-lg cursor-pointer group"
       style={{
-        borderBottom: '1px solid rgba(255,255,255,0.03)',
+        borderBottom: '1px solid var(--border-subtle)',
       }}
       initial={{ opacity: 0, x: -8 }}
       animate={{ opacity: 1, x: 0 }}
@@ -200,7 +200,7 @@ function CategorySection({
       <motion.button
         className="flex items-center gap-2 w-full py-2 px-1 rounded-md group"
         onClick={() => setIsExpanded(!isExpanded)}
-        whileHover={{ backgroundColor: 'rgba(255,255,255,0.02)' }}
+        whileHover={{ backgroundColor: 'var(--color-surface-base)' }}
         whileTap={{ scale: 0.99 }}
       >
         <motion.span
@@ -277,7 +277,7 @@ export function CollectedInfoPanel({ entities, onConfirmEntity }: CollectedInfoP
 return (
     <div className="h-full flex flex-col" style={{ backgroundColor: 'var(--color-surface-raised)' }}>
       {/* Header */}
-      <div className="p-4 border-b border-[rgba(255,255,255,0.06)]">
+      <div className="p-4 border-b border-[var(--border-default)]">
         <div className="flex items-center gap-2 mb-1">
           <Sparkles className="w-4 h-4" style={{ color: 'var(--accent-primary)' }} />
           <h2 className="font-medium text-sm" style={{ color: 'var(--text-primary)' }}>已收集信息</h2>
@@ -286,13 +286,13 @@ return (
           {confirmedCount}/{entities.length} 项已确认
         </div>
         {/* Progress bar */}
-        <div className="mt-2.5 h-1.5 rounded-full overflow-hidden" style={{ backgroundColor: 'rgba(255,255,255,0.04)' }}>
+        <div className="mt-2.5 h-1.5 rounded-full overflow-hidden" style={{ backgroundColor: 'var(--color-surface-base)' }}>
           <motion.div
             className="h-full rounded-full relative"
             style={{
               background: progressPercent === 100
                 ? 'linear-gradient(90deg, var(--color-ifline), var(--color-ifline))'
-                : 'linear-gradient(90deg, var(--accent-primary), var(--accent-primary))',
+                : 'linear-gradient(90deg, var(--accent-primary), var(--accent-hover))',
             }}
             initial={{ width: 0 }}
             animate={{ width: `${progressPercent}%` }}
@@ -325,8 +325,8 @@ return (
               <motion.div
                 className="w-14 h-14 rounded-full mx-auto mb-4 flex items-center justify-center"
                 style={{
-                  backgroundColor: 'rgba(255,255,255,0.03)',
-                  border: '1px solid rgba(255,255,255,0.06)',
+                  backgroundColor: 'var(--color-surface-base)',
+                  border: '1px solid var(--border-default)',
                 }}
                 animate={{ y: [0, -5, 0] }}
                 transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
@@ -361,11 +361,11 @@ return (
       </div>
 
       {/* Footer actions */}
-      <div className="p-4 border-t border-[rgba(255,255,255,0.06)]">
+      <div className="p-4 border-t border-[var(--border-default)]">
         <div className="flex gap-2 mb-2">
           <motion.button
-            className="flex-1 px-3 py-2 text-xs rounded-lg border border-[rgba(255,255,255,0.06)]
-                       text-[var(--text-secondary)] hover:bg-[rgba(255,255,255,0.04)] hover:text-[var(--text-primary)]"
+            className="flex-1 px-3 py-2 text-xs rounded-lg border border-[var(--border-default)]
+                       text-[var(--text-secondary)] hover:bg-[var(--color-surface-base)] hover:text-[var(--text-primary)]"
             onClick={() => useUIStore.getState().setCurrentInterface('chat')}
             whileHover={{ y: -1 }}
             whileTap={{ scale: 0.97 }}
@@ -373,8 +373,8 @@ return (
             继续完善
           </motion.button>
           <motion.button
-            className="flex-1 px-3 py-2 text-xs rounded-lg border border-[rgba(255,255,255,0.06)]
-                       text-[var(--text-secondary)] hover:bg-[rgba(255,255,255,0.04)] hover:text-[var(--text-primary)]"
+            className="flex-1 px-3 py-2 text-xs rounded-lg border border-[var(--border-default)]
+                       text-[var(--text-secondary)] hover:bg-[var(--color-surface-base)] hover:text-[var(--text-primary)]"
             onClick={() => useUIStore.getState().setCurrentInterface('settings')}
             whileHover={{ y: -1 }}
             whileTap={{ scale: 0.97 }}
@@ -390,7 +390,7 @@ return (
           whileHover={{
             backgroundColor: 'var(--accent-hover)',
             y: -1,
-            boxShadow: '0 4px 16px rgba(94, 106, 210, 0.25)',
+            boxShadow: 'var(--shadow-glow)',
           }}
           whileTap={{ scale: 0.97 }}
         >

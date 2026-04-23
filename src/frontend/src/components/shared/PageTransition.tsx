@@ -38,7 +38,7 @@ function getDirection(from: InterfaceType, to: InterfaceType): number {
 
 const pageVariants: Variants = {
   enter: (direction: number) => ({
-    x: direction > 0 ? '30%' : '-30%',
+    x: direction > 0 ? '20%' : '-20%',
     opacity: 0,
     scale: 0.98,
   }),
@@ -48,7 +48,7 @@ const pageVariants: Variants = {
     scale: 1,
   },
   exit: (direction: number) => ({
-    x: direction > 0 ? '-30%' : '30%',
+    x: direction > 0 ? '-20%' : '20%',
     opacity: 0,
     scale: 0.98,
   }),
@@ -84,9 +84,9 @@ export function PageTransition({ children, interfaceType, className }: PageTrans
         animate="center"
         exit="exit"
         transition={{
-          x: { type: 'spring', stiffness: 400, damping: 35, mass: 0.8 },
-          opacity: { duration: 0.25, ease: 'easeInOut' },
-          scale: { duration: 0.25, ease: 'easeInOut' },
+          x: { type: 'spring', stiffness: 500, damping: 40, mass: 0.6 },
+          opacity: { duration: 0.2, ease: 'easeInOut' },
+          scale: { duration: 0.2, ease: 'easeInOut' },
         }}
         style={{
           willChange: 'transform, opacity',

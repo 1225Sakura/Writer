@@ -33,8 +33,8 @@ async function executeAIOperation(operation: AIOperationType, selectedText: stri
       case 'expand':
         result = await store.expand(selectedText)
         break
-      case 'shrink':
-        result = await store.shrink(selectedText)
+      case 'condense':
+        result = await store.condense(selectedText)
         break
       case 'rewrite':
         result = await store.rewrite(selectedText)

@@ -11,14 +11,14 @@ interface TagInputProps {
 
 // Entity type color mapping
 const ENTITY_TYPE_COLORS: Record<string, string> = {
-  character: '#e8b87d',
-  item: '#9b7ed9',
-  location: '#5eb5a6',
-  faction: '#d45d5d',
-  world: '#5e6ad2',
-  rule: '#7eb84a',
-  ifline: '#7eb84a',
-  outline: '#5b8ee8',
+  character: 'var(--color-character)',
+  item: 'var(--color-item)',
+  location: 'var(--color-location)',
+  faction: 'var(--color-faction)',
+  world: 'var(--color-world)',
+  rule: 'var(--color-rule)',
+  ifline: 'var(--color-ifline)',
+  outline: 'var(--color-outline)',
 }
 
 // Tag animation variants
@@ -200,7 +200,7 @@ export function TagInput({ entityType, entityId, tags }: TagInputProps) {
     }
   }
 
-  const entityColor = ENTITY_TYPE_COLORS[entityType] || '#5e6ad2'
+  const entityColor = ENTITY_TYPE_COLORS[entityType] || 'var(--accent-primary)'
 
   return (
     <div ref={containerRef} className="relative">
@@ -240,7 +240,7 @@ export function TagInput({ entityType, entityId, tags }: TagInputProps) {
                   style={{
                     backgroundColor: 'rgba(255,255,255,0.05)',
                     border: `1px solid ${inputValue ? `${entityColor}50` : 'rgba(255,255,255,0.1)'}`,
-                    color: '#f7f8f8',
+                    color: 'var(--text-primary)',
                     boxShadow: inputValue ? `0 0 0 2px ${entityColor}15` : 'none',
                   }}
                 />
@@ -252,7 +252,7 @@ export function TagInput({ entityType, entityId, tags }: TagInputProps) {
                   setShowSuggestions(false)
                 }}
                 className="p-1.5 rounded transition-colors hover:bg-white/10"
-                style={{ color: '#6b7280' }}
+                style={{ color: 'var(--text-tertiary)' }}
                 whileHover={{ scale: 1.1, rotate: 90 }}
                 whileTap={{ scale: 0.9 }}
                 transition={{ type: 'spring', stiffness: 400, damping: 25 }}
@@ -267,8 +267,8 @@ export function TagInput({ entityType, entityId, tags }: TagInputProps) {
                 <motion.div
                   className="absolute top-full left-0 right-0 mt-1 rounded-md overflow-hidden z-10"
                   style={{
-                    backgroundColor: '#1a1a2e',
-                    border: '1px solid rgba(255,255,255,0.1)',
+                    backgroundColor: 'var(--color-surface-base)',
+                    border: '1px solid var(--border-default)',
                   }}
                   initial={{ opacity: 0, y: -4, scaleY: 0.9 }}
                   animate={{ opacity: 1, y: 0, scaleY: 1 }}
@@ -284,7 +284,7 @@ export function TagInput({ entityType, entityId, tags }: TagInputProps) {
                         onClick={() => handleAdd(suggestion)}
                         className="w-full flex items-center gap-2 px-3 py-2 text-left text-xs transition-colors"
                         style={{
-                          color: '#d0d6e0',
+                          color: 'var(--text-secondary)',
                           backgroundColor: isHighlighted ? `${color}15` : 'transparent',
                         }}
                         onMouseEnter={() => setHighlightedIndex(index)}
@@ -308,9 +308,9 @@ export function TagInput({ entityType, entityId, tags }: TagInputProps) {
                 <motion.div
                   className="absolute top-full left-0 right-0 mt-1 rounded-md p-3 z-10 text-xs text-center"
                   style={{
-                    backgroundColor: '#1a1a2e',
-                    border: '1px solid rgba(255,255,255,0.1)',
-                    color: '#6b7280',
+                    backgroundColor: 'var(--color-surface-base)',
+                    border: '1px solid var(--border-default)',
+                    color: 'var(--text-tertiary)',
                   }}
                   initial={{ opacity: 0, y: -4 }}
                   animate={{ opacity: 1, y: 0 }}
@@ -328,7 +328,7 @@ export function TagInput({ entityType, entityId, tags }: TagInputProps) {
             className="mt-2 inline-flex items-center gap-1 px-2 py-1 rounded text-xs transition-all"
             style={{
               backgroundColor: 'transparent',
-              color: '#6b7280',
+              color: 'var(--text-tertiary)',
               border: '1px dashed rgba(255,255,255,0.15)',
             }}
             initial={{ opacity: 0, scale: 0.9 }}

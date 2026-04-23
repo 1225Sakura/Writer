@@ -31,7 +31,7 @@ function AppContent() {
   // 渲染当前界面 with per-component Suspense boundaries to isolate loading states
   const renderInterface = () => {
     const loadingFallback = (
-      <div className="h-screen w-screen overflow-hidden bg-[#08090a] flex items-center justify-center">
+      <div className="h-screen w-screen overflow-hidden bg-[var(--color-black)] flex items-center justify-center">
         <LoadingOverlay visible={true} message="正在加载..." fullscreen={false} />
       </div>
     )

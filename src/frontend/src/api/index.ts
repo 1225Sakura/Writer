@@ -2,6 +2,29 @@
 export * from "./request"
 export * from "./types"
 
+// Electron desktop integration
+export {
+  isElectron,
+  isBrowser,
+  getBackendUrl,
+  getBackendStatus,
+  restartBackend,
+  clearBackendUrlCache,
+  getApiKey,
+  setApiKey,
+  getAppInfo,
+  showSaveDialog,
+  showOpenDialog,
+  readFile,
+  writeFile,
+  openExternal,
+  minimizeWindow,
+  maximizeWindow,
+  closeWindow,
+  isMaximized,
+  type AppInfo,
+} from "./electron"
+
 // Auth API
 export {
   fetchApiKey,
@@ -21,7 +44,7 @@ export {
   messageApi,
   entityApi,
   streamChat,
-  streamReader,
+  sseStreamReader,
   consumeStream,
   type StreamCallbacks,
 } from "./chat"
@@ -133,3 +156,19 @@ export {
   type MetricsSummary,
   type MetricsHistoryPoint,
 } from "./metrics"
+
+// Tasks API
+export {
+  tasksApi,
+  submitTask,
+  getTask,
+  listTasks,
+  cancelTask,
+  type TaskResponse,
+  type TaskListResponse,
+  type TaskSubmitResponse,
+  type TaskCancelResponse,
+  type SubmitTaskRequest,
+  type TaskType,
+  type TaskStatus,
+} from "./tasks"

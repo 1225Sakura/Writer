@@ -82,6 +82,13 @@
     --warning: #e8b87d;
     --info: #5e6ad2;
 
+    /* Standardized text color variables */
+    --text-primary: var(--ui-text);
+    --text-secondary: var(--ui-text-secondary);
+    --text-muted: var(--ui-text-secondary);
+    --text-inverse: var(--ink-black);
+    --text-disabled: #5c5f63;
+
     /* Aliases for Button.tsx compatibility */
     --color-surface-raised: var(--ui-card);
     --color-surface-hover: var(--hover-bg);
@@ -89,18 +96,20 @@
     --color-text-secondary: var(--ui-text-secondary);
     --color-text-muted: var(--ui-text-secondary);
     --color-border: var(--ui-border);
+    --color-border-subtle: rgba(255, 255, 255, 0.04);
+    --color-border-strong: rgba(255, 255, 255, 0.10);
     --color-error: var(--error);
     --color-ifline: var(--ifline);
     --color-writing-dark: var(--writing-bg);
     --color-black: var(--ink-black);
     --accent-primary: var(--accent-purple);
+    --accent-hover: color-mix(in srgb, var(--accent-purple) 85%, white);
     --accent-secondary: var(--accent-purple);
     --accent-primary-hover: color-mix(in srgb, var(--accent-purple) 85%, white);
     --accent-primary-active: color-mix(in srgb, var(--accent-purple) 70%, black);
 
     /* Additional aliases for components */
     --color-primary: var(--accent-purple);
-    --color-ifline: var(--ifline);
     --color-character: var(--character);
     --color-item: var(--item);
     --color-location: var(--location);
@@ -144,6 +153,13 @@
     --writing-bg: #faf6e8;
     --writing-text: #1a1a2e;
     --writing-muted: rgba(26, 26, 46, 0.5);
+
+    /* Standardized text color variables - Light mode */
+    --text-primary: var(--ui-text);
+    --text-secondary: var(--ui-text-secondary);
+    --text-muted: #999999;
+    --text-inverse: #f5f0e6;
+    --text-disabled: #b0b0b0;
 
     /* Interaction state colors - Light mode */
     --hover-bg: rgba(245, 240, 230, 0.8);
@@ -197,6 +213,13 @@
     --writing-bg: #1a1a2e;
     --writing-text: #f5f0e6;
     --writing-muted: rgba(245, 240, 230, 0.6);
+
+    /* Standardized text color variables - Dark mode */
+    --text-primary: var(--ui-text);
+    --text-secondary: var(--ui-text-secondary);
+    --text-muted: #8a8f98;
+    --text-inverse: #1a1a2e;
+    --text-disabled: #5c5f63;
 
     /* Interaction state colors - Dark mode */
     --hover-bg: rgba(255, 255, 255, 0.05);

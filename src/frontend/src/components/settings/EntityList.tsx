@@ -69,7 +69,7 @@ export function EntityList({
     : { all: sortedEntities }
 
   const typeFilters: Array<{ type: EntityType | 'all'; label: string; color: string }> = [
-    { type: 'all', label: '全部', color: '#6b7280' },
+    { type: 'all', label: '全部', color: 'var(--text-tertiary)' },
     { type: 'character', label: '角色', color: entityColors.character.text },
     { type: 'item', label: '物品', color: entityColors.item.text },
     { type: 'location', label: '地点', color: entityColors.location.text },
@@ -81,7 +81,7 @@ export function EntityList({
 
   if (entities.length === 0) {
     return (
-      <div className="text-center py-8" style={{ color: '#6b7280' }}>
+      <div className="text-center py-8" style={{ color: 'var(--text-tertiary)' }}>
         <p className="text-sm">{emptyMessage}</p>
       </div>
     )
@@ -96,9 +96,9 @@ export function EntityList({
             onClick={() => setShowFilters(!showFilters)}
             className="flex items-center gap-1 px-2 py-1 rounded text-xs transition-colors"
             style={{
-              backgroundColor: showFilters ? 'rgba(255,255,255,0.08)' : 'transparent',
-              color: showFilters ? '#f7f8f8' : '#6b7280',
-              border: '1px solid rgba(255,255,255,0.08)',
+              backgroundColor: showFilters ? 'var(--color-surface-overlay)' : 'transparent',
+              color: showFilters ? 'var(--text-primary)' : 'var(--text-tertiary)',
+              border: '1px solid var(--border-default)',
             }}
             whileHover={{ backgroundColor: 'rgba(255,255,255,0.06)' }}
             whileTap={{ scale: 0.95 }}
@@ -120,9 +120,9 @@ export function EntityList({
             onClick={() => toggleSort('name')}
             className="flex items-center gap-1 px-2 py-1 rounded text-xs transition-colors"
             style={{
-              backgroundColor: sortField === 'name' ? 'rgba(255,255,255,0.08)' : 'transparent',
-              color: sortField === 'name' ? '#f7f8f8' : '#6b7280',
-              border: '1px solid rgba(255,255,255,0.08)',
+              backgroundColor: sortField === 'name' ? 'var(--color-surface-overlay)' : 'transparent',
+              color: sortField === 'name' ? 'var(--text-primary)' : 'var(--text-tertiary)',
+              border: '1px solid var(--border-default)',
             }}
             whileTap={{ scale: 0.95 }}
           >
@@ -151,8 +151,8 @@ export function EntityList({
                 className="px-2.5 py-1 rounded-md text-xs font-medium transition-all"
                 style={{
                   backgroundColor: filterType === type ? `${color}20` : 'transparent',
-                  color: filterType === type ? color : '#6b7280',
-                  border: `1px solid ${filterType === type ? `${color}40` : 'rgba(255,255,255,0.08)'}`,
+                  color: filterType === type ? color : 'var(--text-tertiary)',
+                  border: `1px solid ${filterType === type ? `${color}40` : 'var(--border-default)'}`,
                 }}
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
@@ -171,16 +171,16 @@ export function EntityList({
             <div className="flex items-center gap-2 px-3 py-2">
               <div
                 className="w-2 h-2 rounded-full"
-                style={{ backgroundColor: typeEntities[0]?.typeColor || '#6b7280' }}
+                style={{ backgroundColor: typeEntities[0]?.typeColor || 'var(--text-tertiary)' }}
               />
-              <span className="text-xs font-medium" style={{ color: '#9ca3af' }}>
+              <span className="text-xs font-medium" style={{ color: 'var(--text-secondary)' }}>
                 {typeEntities[0]?.typeLabel || type}
               </span>
               <span
                 className="text-[10px] px-1.5 py-0.5 rounded-full"
                 style={{
-                  backgroundColor: `${typeEntities[0]?.typeColor || '#6b7280'}15`,
-                  color: typeEntities[0]?.typeColor || '#6b7280',
+                  backgroundColor: `${typeEntities[0]?.typeColor || 'var(--text-tertiary)'}15`,
+                  color: typeEntities[0]?.typeColor || 'var(--text-tertiary)',
                 }}
               >
                 {typeEntities.length}
@@ -220,7 +220,7 @@ export function EntityList({
       )}
 
       {filteredEntities.length === 0 && (
-        <div className="text-center py-6" style={{ color: '#6b7280' }}>
+        <div className="text-center py-6" style={{ color: 'var(--text-tertiary)' }}>
           <p className="text-sm">没有匹配的实体</p>
         </div>
       )}

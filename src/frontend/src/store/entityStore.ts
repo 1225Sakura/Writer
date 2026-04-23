@@ -10,6 +10,7 @@ import {
   ruleApi,
 } from '../api/settings'
 import { ifLineApi } from '../api/writing'
+import { createHybridStorage } from './utils/indexedDBStorage'
 import type {
   Character,
   Item,
@@ -463,6 +464,7 @@ export const useEntityStore = create<EntityState & EntityActions>()(
         }),
         {
           name: 'writer-entity-store',
+          storage: createHybridStorage(100 * 1024) as never,
           partialize: () => ({}),
           version: 1,
         }
@@ -489,3 +491,17 @@ export const selectEntityCounts = (state: EntityState) => ({
 
 export const selectCharactersByTier = (tier: CharacterLocal['tier']) => (state: EntityState) =>
   state.characters.filter((c) => c.tier === tier)
+
+/** 仅选择 loading/error 状态（最小重渲染） */
+export const selectEntityStatus = (state: EntityState) => ({
+  isLoading: state.isLoading,
+  error: state.error,
+})
+
+/** 清理 entity store 临时状态 */
+export function cleanupEntityStore() {
+  useEntityStore.setState({
+    isLoading: false,
+    error: null,
+  })
+}

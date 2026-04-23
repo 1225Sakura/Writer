@@ -9,11 +9,11 @@ interface EntityEditorProps {
   category: UIState['settingsCategory']
 }
 
-// Common input style for Linear design
+// Common input style using CSS variables
 const inputStyle = {
-  backgroundColor: 'rgba(255,255,255,0.05)',
-  border: '1px solid rgba(255,255,255,0.1)',
-  color: '#f7f8f8',
+  backgroundColor: 'var(--color-surface-input)',
+  border: '1px solid var(--border-default)',
+  color: 'var(--text-primary)',
 }
 
 // Validation state type
@@ -50,32 +50,32 @@ function FloatingLabelInput({
   const isActive = isFocused || value.length > 0
 
   const getBorderColor = () => {
-    if (!validation) return isFocused ? 'rgba(94,106,210,0.5)' : 'rgba(255,255,255,0.1)'
+    if (!validation) return isFocused ? 'var(--border-focus)' : 'var(--border-default)'
     switch (validation.state) {
       case 'invalid':
       case 'error':
-        return 'rgba(196,92,92,0.6)'
+        return 'rgba(217,58,58,0.6)'
       case 'valid':
       case 'saved':
-        return 'rgba(126,184,74,0.5)'
+        return 'rgba(46,160,67,0.5)'
       case 'saving':
-        return 'rgba(94,106,210,0.5)'
+        return 'var(--border-focus)'
       default:
-        return isFocused ? 'rgba(94,106,210,0.5)' : 'rgba(255,255,255,0.1)'
+        return isFocused ? 'var(--border-focus)' : 'var(--border-default)'
     }
   }
 
   const getLabelColor = () => {
-    if (!validation) return isFocused ? '#5e6ad2' : '#8a8f98'
+    if (!validation) return isFocused ? 'var(--accent-primary)' : 'var(--text-tertiary)'
     switch (validation.state) {
       case 'invalid':
       case 'error':
-        return '#d45d5d'
+        return 'var(--color-danger)'
       case 'valid':
       case 'saved':
-        return '#7eb84a'
+        return 'var(--color-success)'
       default:
-        return isFocused ? '#5e6ad2' : '#8a8f98'
+        return isFocused ? 'var(--accent-primary)' : 'var(--text-tertiary)'
     }
   }
 
@@ -91,7 +91,7 @@ function FloatingLabelInput({
         transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
       >
         {label}
-        {required && <span style={{ color: '#d45d5d' }}> *</span>}
+        {required && <span style={{ color: 'var(--color-danger)' }}> *</span>}
       </motion.label>
       <input
         type="text"
@@ -120,13 +120,13 @@ function FloatingLabelInput({
             transition={{ type: 'spring', stiffness: 500, damping: 25 }}
           >
             {validation.state === 'saving' && (
-              <Loader2 className="w-4 h-4 animate-spin motion-reduce:animate-none" style={{ color: '#5e6ad2' }} />
+              <Loader2 className="w-4 h-4 animate-spin motion-reduce:animate-none" style={{ color: 'var(--accent-primary)' }} />
             )}
             {validation.state === 'saved' && (
-              <Check className="w-4 h-4" style={{ color: '#7eb84a' }} />
+              <Check className="w-4 h-4" style={{ color: 'var(--color-success)' }} />
             )}
             {(validation.state === 'invalid' || validation.state === 'error') && (
-              <AlertCircle className="w-4 h-4" style={{ color: '#d45d5d' }} />
+              <AlertCircle className="w-4 h-4" style={{ color: 'var(--color-danger)' }} />
             )}
           </motion.div>
         )}
@@ -136,7 +136,7 @@ function FloatingLabelInput({
         {validation?.message && (validation.state === 'invalid' || validation.state === 'error') && (
           <motion.p
             className="text-[10px] mt-1 ml-1"
-            style={{ color: '#d45d5d' }}
+            style={{ color: 'var(--color-danger)' }}
             initial={{ opacity: 0, y: -4 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -4 }}
@@ -149,7 +149,7 @@ function FloatingLabelInput({
       {maxLength && value.length > 0 && (
         <span
           className="absolute right-3 -bottom-4 text-[10px]"
-          style={{ color: value.length > maxLength * 0.9 ? '#d45d5d' : '#6b7280' }}
+          style={{ color: value.length > maxLength * 0.9 ? 'var(--color-danger)' : 'var(--text-tertiary)' }}
         >
           {value.length}/{maxLength}
         </span>
@@ -197,7 +197,7 @@ function FloatingLabelTextarea({
     <div className="relative">
       <motion.label
         className="absolute left-3 pointer-events-none origin-left z-10"
-        style={{ color: isFocused ? '#5e6ad2' : '#8a8f98' }}
+        style={{ color: isFocused ? 'var(--accent-primary)' : 'var(--text-tertiary)' }}
         animate={{
           y: isActive ? -22 : 10,
           scale: isActive ? 0.85 : 1,
@@ -223,7 +223,7 @@ function FloatingLabelTextarea({
       {maxLength && value.length > 0 && (
         <span
           className="absolute right-3 bottom-2 text-[10px]"
-          style={{ color: value.length > maxLength * 0.9 ? '#d45d5d' : '#6b7280' }}
+          style={{ color: value.length > maxLength * 0.9 ? 'var(--color-danger)' : 'var(--text-tertiary)' }}
         >
           {value.length}/{maxLength}
         </span>
@@ -244,8 +244,8 @@ function SaveStateIndicator({ state, message }: { state: ValidationState; messag
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: -5 }}
         >
-          <Loader2 className="w-3.5 h-3.5 animate-spin motion-reduce:animate-none" style={{ color: '#5e6ad2' }} />
-          <span className="text-xs" style={{ color: '#5e6ad2' }}>保存中...</span>
+          <Loader2 className="w-3.5 h-3.5 animate-spin motion-reduce:animate-none" style={{ color: 'var(--accent-primary)' }} />
+          <span className="text-xs" style={{ color: 'var(--accent-primary)' }}>保存中...</span>
         </motion.div>
       )}
       {state === 'saved' && (
@@ -262,9 +262,9 @@ function SaveStateIndicator({ state, message }: { state: ValidationState; messag
             animate={{ scale: 1 }}
             transition={{ type: 'spring', stiffness: 500, damping: 20 }}
           >
-            <Check className="w-3.5 h-3.5" style={{ color: '#7eb84a' }} />
+            <Check className="w-3.5 h-3.5" style={{ color: 'var(--color-success)' }} />
           </motion.div>
-          <span className="text-xs" style={{ color: '#7eb84a' }}>{message || '已保存'}</span>
+          <span className="text-xs" style={{ color: 'var(--color-success)' }}>{message || '已保存'}</span>
         </motion.div>
       )}
       {(state === 'invalid' || state === 'error') && (
@@ -275,8 +275,8 @@ function SaveStateIndicator({ state, message }: { state: ValidationState; messag
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: -5 }}
         >
-          <AlertCircle className="w-3.5 h-3.5" style={{ color: '#d45d5d' }} />
-          <span className="text-xs" style={{ color: '#d45d5d' }}>{message || '保存失败'}</span>
+          <AlertCircle className="w-3.5 h-3.5" style={{ color: 'var(--color-danger)' }} />
+          <span className="text-xs" style={{ color: 'var(--color-danger)' }}>{message || '保存失败'}</span>
         </motion.div>
       )}
     </AnimatePresence>
@@ -298,13 +298,13 @@ function SectionHeader({
   return (
     <div className="flex items-center justify-between mb-4">
       <div className="flex items-center gap-2">
-        <h2 className="text-base font-semibold" style={{ color: '#f7f8f8' }}>
+        <h2 className="text-base font-semibold" style={{ color: 'var(--text-primary)' }}>
           {title}
         </h2>
         <motion.span
           key={count}
           className="text-xs px-1.5 py-0.5 rounded"
-          style={{ backgroundColor: 'rgba(255,255,255,0.08)', color: '#9ca3af' }}
+          style={{ backgroundColor: 'var(--color-surface-overlay)', color: 'var(--text-tertiary)' }}
           initial={{ scale: 0.8, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           transition={{ type: 'spring', stiffness: 500, damping: 25 }}
@@ -318,15 +318,15 @@ function SectionHeader({
             onClick={onGenerate}
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-all"
             style={{
-              backgroundColor: 'rgba(94,106,210,0.15)',
-              color: '#5e6ad2',
-              border: '1px solid rgba(94,106,210,0.3)',
+              backgroundColor: 'var(--accent-muted)',
+              color: 'var(--accent-primary)',
+              border: '1px solid var(--accent-primary)30',
             }}
             onMouseEnter={(e) => {
-              e.currentTarget.style.backgroundColor = 'rgba(94,106,210,0.25)'
+              e.currentTarget.style.backgroundColor = 'var(--accent-primary)25'
             }}
             onMouseLeave={(e) => {
-              e.currentTarget.style.backgroundColor = 'rgba(94,106,210,0.15)'
+              e.currentTarget.style.backgroundColor = 'var(--accent-muted)'
             }}
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
@@ -339,15 +339,15 @@ function SectionHeader({
           onClick={onAdd}
           className="flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-all"
           style={{
-            backgroundColor: 'rgba(255,255,255,0.05)',
-            color: '#d0d6e0',
-            border: '1px solid rgba(255,255,255,0.08)',
+            backgroundColor: 'var(--color-surface-raised)',
+            color: 'var(--text-secondary)',
+            border: '1px solid var(--border-default)',
           }}
           onMouseEnter={(e) => {
-            e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.08)'
+            e.currentTarget.style.backgroundColor = 'var(--color-surface-overlay)'
           }}
           onMouseLeave={(e) => {
-            e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.05)'
+            e.currentTarget.style.backgroundColor = 'var(--color-surface-raised)'
           }}
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.98 }}
@@ -476,7 +476,7 @@ function EntityForm<T extends { name: string; description?: string }>({
             className="px-4 py-2 rounded-md text-sm font-medium transition-all"
             style={{
               backgroundColor: 'transparent',
-              color: '#9ca3af',
+              color: 'var(--text-tertiary)',
               border: '1px solid rgba(255,255,255,0.1)',
             }}
             onMouseEnter={(e) => {
@@ -494,14 +494,14 @@ function EntityForm<T extends { name: string; description?: string }>({
             disabled={!isValid || saveState === 'saving'}
             className="px-4 py-2 rounded-md text-sm font-medium transition-all disabled:opacity-40 flex items-center gap-2"
             style={{
-              backgroundColor: '#5e6ad2',
+              backgroundColor: 'var(--accent-primary)',
               color: '#fff',
             }}
             onMouseEnter={(e) => {
-              if (isValid) e.currentTarget.style.backgroundColor = '#4f5cbd'
+              if (isValid) e.currentTarget.style.backgroundColor = 'var(--accent-hover)'
             }}
             onMouseLeave={(e) => {
-              e.currentTarget.style.backgroundColor = '#5e6ad2'
+              e.currentTarget.style.backgroundColor = 'var(--accent-primary)'
             }}
             whileTap={{ scale: 0.97 }}
           >
@@ -564,7 +564,7 @@ function CharacterCard({ character }: { character: CharacterLocal }) {
     >
       <div className="flex items-start justify-between mb-2">
         <div className="flex items-center gap-2">
-          <h3 className="font-medium text-sm" style={{ color: '#f7f8f8' }}>
+          <h3 className="font-medium text-sm" style={{ color: 'var(--text-primary)' }}>
             {character.name}
           </h3>
           <motion.span
@@ -579,10 +579,10 @@ function CharacterCard({ character }: { character: CharacterLocal }) {
           <motion.button
             onClick={() => setIsEditing(true)}
             className="p-1.5 rounded transition-all"
-            style={{ color: '#6b7280' }}
+            style={{ color: 'var(--text-tertiary)' }}
             whileHover={{
               backgroundColor: 'rgba(255,255,255,0.1)',
-              color: '#f7f8f8',
+              color: 'var(--text-primary)',
               scale: 1.1,
             }}
             whileTap={{ scale: 0.9 }}
@@ -592,10 +592,10 @@ function CharacterCard({ character }: { character: CharacterLocal }) {
           <motion.button
             onClick={() => deleteCharacter(character.id)}
             className="p-1.5 rounded transition-all"
-            style={{ color: '#6b7280' }}
+            style={{ color: 'var(--text-tertiary)' }}
             whileHover={{
               backgroundColor: 'rgba(196,92,92,0.15)',
-              color: '#d45d5d',
+              color: 'var(--color-danger)',
               scale: 1.1,
             }}
             whileTap={{ scale: 0.9 }}
@@ -605,24 +605,24 @@ function CharacterCard({ character }: { character: CharacterLocal }) {
         </div>
       </div>
       {character.description && (
-        <p className="text-xs line-clamp-2 mb-2" style={{ color: '#6b7280' }}>
+        <p className="text-xs line-clamp-2 mb-2" style={{ color: 'var(--text-tertiary)' }}>
           {character.description}
         </p>
       )}
       {character.personality && (
-        <p className="text-xs mb-1" style={{ color: '#9ca3af' }}>
+        <p className="text-xs mb-1" style={{ color: 'var(--text-tertiary)' }}>
           性格: {character.personality}
         </p>
       )}
       {character.cultivationRealm && (
-        <p className="text-xs mb-2" style={{ color: '#5eb5a6' }}>
+        <p className="text-xs mb-2" style={{ color: 'var(--color-location)' }}>
           境界: {character.cultivationRealm}
         </p>
       )}
       <TagInput entityType="character" entityId={character.id} tags={character.tags} />
       {character.relationships.length > 0 && (
         <div className="flex items-center gap-2 mt-2">
-          <span className="text-xs" style={{ color: '#6b7280' }}>
+          <span className="text-xs" style={{ color: 'var(--text-tertiary)' }}>
             {character.relationships.length} 条关系
           </span>
         </div>
@@ -673,8 +673,8 @@ function NewCharacterForm() {
       whileHover={{ scale: 1.005 }}
       whileTap={{ scale: 0.99 }}
     >
-      <Plus className="w-4 h-4" style={{ color: '#5e6ad2' }} />
-      <span className="text-sm" style={{ color: '#5e6ad2' }}>
+      <Plus className="w-4 h-4" style={{ color: 'var(--accent-primary)' }} />
+      <span className="text-sm" style={{ color: 'var(--accent-primary)' }}>
         添加角色
       </span>
     </motion.button>
@@ -743,7 +743,7 @@ function AddEntityForm({
             className="px-3 py-1.5 rounded-md text-xs font-medium transition-all"
             style={{
               backgroundColor: 'transparent',
-              color: '#9ca3af',
+              color: 'var(--text-tertiary)',
               border: '1px solid rgba(255,255,255,0.1)',
             }}
             onMouseEnter={(e) => {
@@ -761,14 +761,14 @@ function AddEntityForm({
             disabled={!name.trim() || saveState === 'saving'}
             className="px-3 py-1.5 rounded-md text-xs font-medium disabled:opacity-40 relative overflow-hidden flex items-center gap-1.5"
             style={{
-              backgroundColor: '#5e6ad2',
+              backgroundColor: 'var(--accent-primary)',
               color: '#fff',
             }}
             onMouseEnter={(e) => {
-              if (name.trim()) e.currentTarget.style.backgroundColor = '#4f5cbd'
+              if (name.trim()) e.currentTarget.style.backgroundColor = 'var(--accent-hover)'
             }}
             onMouseLeave={(e) => {
-              e.currentTarget.style.backgroundColor = '#5e6ad2'
+              e.currentTarget.style.backgroundColor = 'var(--accent-primary)'
             }}
             whileTap={{ scale: 0.97 }}
           >
@@ -847,9 +847,9 @@ function OutlineEditor() {
   }
 
   const statusColors: Record<string, { bg: string; text: string }> = {
-    planning: { bg: 'rgba(255,255,255,0.08)', text: '#9ca3af' },
-    writing: { bg: 'rgba(94,106,210,0.15)', text: '#5e6ad2' },
-    completed: { bg: 'rgba(126,184,74,0.15)', text: '#7eb84a' },
+    planning: { bg: 'var(--color-surface-overlay)', text: 'var(--text-tertiary)' },
+    writing: { bg: 'var(--accent-muted)', text: 'var(--accent-primary)' },
+    completed: { bg: 'rgba(126,184,74,0.15)', text: 'var(--color-ifline)' },
   }
 
   const statusLabels: Record<string, string> = {
@@ -862,12 +862,12 @@ function OutlineEditor() {
   if (!outline) {
     return (
       <div>
-        <h2 className="text-base font-semibold mb-4" style={{ color: '#f7f8f8' }}>
+        <h2 className="text-base font-semibold mb-4" style={{ color: 'var(--text-primary)' }}>
           大纲管理
         </h2>
         <div className="rounded-lg p-8 text-center" style={cardStyle}>
-          <FileText className="w-10 h-10 mx-auto mb-3" style={{ color: '#6b7280' }} />
-          <p className="text-sm mb-4" style={{ color: '#9ca3af' }}>
+          <FileText className="w-10 h-10 mx-auto mb-3" style={{ color: 'var(--text-tertiary)' }} />
+          <p className="text-sm mb-4" style={{ color: 'var(--text-tertiary)' }}>
             尚未创建故事大纲
           </p>
           {isCreatingOutline ? (
@@ -893,7 +893,7 @@ function OutlineEditor() {
                   className="px-4 py-2 rounded-md text-sm font-medium transition-all"
                   style={{
                     backgroundColor: 'transparent',
-                    color: '#9ca3af',
+                    color: 'var(--text-tertiary)',
                     border: '1px solid rgba(255,255,255,0.1)',
                   }}
                   whileTap={{ scale: 0.97 }}
@@ -904,7 +904,7 @@ function OutlineEditor() {
                   onClick={handleCreateOutline}
                   disabled={!newOutlineTitle.trim()}
                   className="px-4 py-2 rounded-md text-sm font-medium transition-all disabled:opacity-40 flex items-center gap-2"
-                  style={{ backgroundColor: '#5e6ad2', color: '#fff' }}
+                  style={{ backgroundColor: 'var(--accent-primary)', color: '#fff' }}
                   whileTap={{ scale: 0.97 }}
                 >
                   <Plus className="w-4 h-4" />
@@ -918,7 +918,7 @@ function OutlineEditor() {
               className="px-4 py-2 rounded-md text-sm font-medium transition-all"
               style={{
                 backgroundColor: 'rgba(255,255,255,0.05)',
-                color: '#d0d6e0',
+                color: 'var(--text-secondary)',
                 border: '1px solid rgba(255,255,255,0.08)',
               }}
               onMouseEnter={(e) => {
@@ -942,13 +942,13 @@ function OutlineEditor() {
     <div>
       <div className="flex items-center justify-between mb-5">
         <div className="flex items-center gap-3">
-          <h2 className="text-base font-semibold" style={{ color: '#f7f8f8' }}>
+          <h2 className="text-base font-semibold" style={{ color: 'var(--text-primary)' }}>
             大纲管理
           </h2>
           <motion.span
             key={chapters.length}
             className="text-xs px-2 py-0.5 rounded"
-            style={{ backgroundColor: 'rgba(91,142,232,0.15)', color: '#5b8ee8' }}
+            style={{ backgroundColor: 'rgba(91,142,232,0.15)', color: 'var(--color-outline)' }}
             initial={{ scale: 0.8, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             transition={{ type: 'spring', stiffness: 500 }}
@@ -961,7 +961,7 @@ function OutlineEditor() {
           className="flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-all"
           style={{
             backgroundColor: 'rgba(255,255,255,0.05)',
-            color: '#d0d6e0',
+            color: 'var(--text-secondary)',
             border: '1px solid rgba(255,255,255,0.08)',
           }}
           onMouseEnter={(e) => {
@@ -979,7 +979,7 @@ function OutlineEditor() {
       </div>
 
       <div className="mb-4 pb-3" style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
-        <h3 className="text-sm font-medium" style={{ color: '#f7f8f8' }}>
+        <h3 className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>
           {outline.title}
         </h3>
       </div>
@@ -988,10 +988,10 @@ function OutlineEditor() {
       <div className="space-y-2">
         {chapters.length === 0 && !showAddChapter ? (
           <div className="rounded-lg p-6 text-center" style={cardStyle}>
-            <p className="text-sm" style={{ color: '#6b7280' }}>
+            <p className="text-sm" style={{ color: 'var(--text-tertiary)' }}>
               暂无章节
             </p>
-            <p className="text-xs mt-1" style={{ color: '#6b7280', opacity: 0.7 }}>
+            <p className="text-xs mt-1" style={{ color: 'var(--text-tertiary)', opacity: 0.7 }}>
               点击右上角按钮添加第一章
             </p>
           </div>
@@ -1017,7 +1017,7 @@ function OutlineEditor() {
                 {/* 章节序号 */}
                 <span
                   className="text-sm font-mono mt-0.5"
-                  style={{ minWidth: '24px', color: '#5b8ee8', opacity: 0.7 }}
+                  style={{ minWidth: '24px', color: 'var(--color-outline)', opacity: 0.7 }}
                 >
                   {String(index + 1).padStart(2, '0')}
                 </span>
@@ -1034,21 +1034,21 @@ function OutlineEditor() {
                       autoFocus
                       className="w-full px-2 py-1 rounded border text-sm focus:outline-none"
                       style={{
-                        backgroundColor: 'rgba(255,255,255,0.05)',
-                        borderColor: '#5b8ee8',
-                        color: '#f7f8f8',
+                        backgroundColor: 'var(--color-surface-base)',
+                        borderColor: 'var(--color-outline)',
+                        color: 'var(--text-primary)',
                       }}
                     />
                   ) : (
                     <div
                       onClick={() => startEditTitle(chapter)}
                       className="font-medium text-sm cursor-pointer transition-colors"
-                      style={{ color: '#f7f8f8' }}
+                      style={{ color: 'var(--text-primary)' }}
                       onMouseEnter={(e) => {
-                        e.currentTarget.style.color = '#5b8ee8'
+                        e.currentTarget.style.color = 'var(--color-outline)'
                       }}
                       onMouseLeave={(e) => {
-                        e.currentTarget.style.color = '#f7f8f8'
+                        e.currentTarget.style.color = 'var(--text-primary)'
                       }}
                     >
                       {chapter.title || '未命名章节'}
@@ -1057,7 +1057,7 @@ function OutlineEditor() {
 
                   {/* 章节摘要 */}
                   {chapter.summary && (
-                    <p className="text-xs mt-1 line-clamp-2" style={{ color: '#6b7280' }}>
+                    <p className="text-xs mt-1 line-clamp-2" style={{ color: 'var(--text-tertiary)' }}>
                       {chapter.summary}
                     </p>
                   )}
@@ -1073,7 +1073,7 @@ function OutlineEditor() {
                     >
                       {statusLabels[chapter.status]}
                     </span>
-                    <span className="text-xs" style={{ color: '#6b7280' }}>
+                    <span className="text-xs" style={{ color: 'var(--text-tertiary)' }}>
                       {chapter.word_count.toLocaleString()} 字
                     </span>
                   </div>
@@ -1084,10 +1084,10 @@ function OutlineEditor() {
                   <motion.button
                     onClick={() => startEditTitle(chapter)}
                     className="p-1.5 rounded transition-all"
-                    style={{ color: '#6b7280' }}
+                    style={{ color: 'var(--text-tertiary)' }}
                     whileHover={{
                       backgroundColor: 'rgba(255,255,255,0.1)',
-                      color: '#f7f8f8',
+                      color: 'var(--text-primary)',
                     }}
                     whileTap={{ scale: 0.9 }}
                     title="编辑标题"
@@ -1097,10 +1097,10 @@ function OutlineEditor() {
                   <motion.button
                     onClick={() => setSummaryModalChapterId(chapter.id)}
                     className="p-1.5 rounded transition-all"
-                    style={{ color: '#6b7280' }}
+                    style={{ color: 'var(--text-tertiary)' }}
                     whileHover={{
                       backgroundColor: 'rgba(255,255,255,0.1)',
-                      color: '#f7f8f8',
+                      color: 'var(--text-primary)',
                     }}
                     whileTap={{ scale: 0.9 }}
                     title="编辑摘要"
@@ -1110,10 +1110,10 @@ function OutlineEditor() {
                   <motion.button
                     onClick={() => deleteChapter(chapter.id)}
                     className="p-1.5 rounded transition-all"
-                    style={{ color: '#6b7280' }}
+                    style={{ color: 'var(--text-tertiary)' }}
                     whileHover={{
                       backgroundColor: 'rgba(196,92,92,0.15)',
-                      color: '#d45d5d',
+                      color: 'var(--color-danger)',
                     }}
                     whileTap={{ scale: 0.9 }}
                     title="删除章节"
@@ -1165,7 +1165,7 @@ function OutlineEditor() {
                 className="px-3 py-1.5 rounded-md text-xs font-medium transition-all"
                 style={{
                   backgroundColor: 'transparent',
-                  color: '#9ca3af',
+                  color: 'var(--text-tertiary)',
                   border: '1px solid rgba(255,255,255,0.1)',
                 }}
                 whileTap={{ scale: 0.97 }}
@@ -1176,7 +1176,7 @@ function OutlineEditor() {
                 onClick={handleAddChapter}
                 disabled={!newChapterTitle.trim()}
                 className="px-3 py-1.5 rounded-md text-xs font-medium transition-all disabled:opacity-40 flex items-center gap-1.5"
-                style={{ backgroundColor: '#5b8ee8', color: '#fff' }}
+                style={{ backgroundColor: 'var(--color-outline)', color: '#fff' }}
                 whileTap={{ scale: 0.97 }}
               >
                 <Plus className="w-3.5 h-3.5" />
@@ -1234,7 +1234,7 @@ function ChapterSummaryModal({
     >
       <motion.div
         className="w-full max-w-md rounded-lg p-5"
-        style={{ backgroundColor: '#0f1011', border: '1px solid rgba(255,255,255,0.08)' }}
+        style={{ backgroundColor: 'var(--color-surface-base)', border: '1px solid var(--border-default)' }}
         onClick={(e) => e.stopPropagation()}
         initial={{ opacity: 0, scale: 0.95, y: 20 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
@@ -1242,23 +1242,23 @@ function ChapterSummaryModal({
         transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
       >
         <div className="flex items-center justify-between mb-4">
-          <h3 className="text-sm font-semibold" style={{ color: '#f7f8f8' }}>
+          <h3 className="text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>
             编辑章节摘要
           </h3>
           <motion.button
             onClick={onClose}
             className="p-1 rounded transition-all"
-            style={{ color: '#6b7280' }}
+            style={{ color: 'var(--text-tertiary)' }}
             whileHover={{
               backgroundColor: 'rgba(255,255,255,0.1)',
-              color: '#f7f8f8',
+              color: 'var(--text-primary)',
             }}
             whileTap={{ scale: 0.9 }}
           >
             <X className="w-4 h-4" />
           </motion.button>
         </div>
-        <p className="text-xs mb-3" style={{ color: '#9ca3af' }}>
+        <p className="text-xs mb-3" style={{ color: 'var(--text-tertiary)' }}>
           {chapter.title}
         </p>
         <FloatingLabelTextarea
@@ -1277,7 +1277,7 @@ function ChapterSummaryModal({
               className="px-4 py-2 rounded-md text-sm font-medium transition-all"
               style={{
                 backgroundColor: 'transparent',
-                color: '#9ca3af',
+                color: 'var(--text-tertiary)',
                 border: '1px solid rgba(255,255,255,0.1)',
               }}
               whileTap={{ scale: 0.97 }}
@@ -1287,7 +1287,7 @@ function ChapterSummaryModal({
             <motion.button
               onClick={handleSave}
               className="px-4 py-2 rounded-md text-sm font-medium transition-all flex items-center gap-2"
-              style={{ backgroundColor: '#5b8ee8', color: '#fff' }}
+              style={{ backgroundColor: 'var(--color-outline)', color: '#fff' }}
               whileTap={{ scale: 0.97 }}
             >
               <Save className="w-4 h-4" />
@@ -1343,7 +1343,7 @@ export function EntityEditor({ category }: EntityEditorProps) {
               ))}
             </AnimatePresence>
             {characters.length === 0 && (
-              <div className="text-center py-8" style={{ color: '#6b7280' }}>
+              <div className="text-center py-8" style={{ color: 'var(--text-tertiary)' }}>
                 <Users className="w-10 h-10 mx-auto mb-2 opacity-50" />
                 <p className="text-sm">暂无角色</p>
                 <p className="text-xs mt-1 opacity-70">点击下方按钮创建第一个角色</p>
@@ -1388,7 +1388,7 @@ export function EntityEditor({ category }: EntityEditorProps) {
               ))}
             </AnimatePresence>
             {items.length === 0 && (
-              <div className="text-center py-8" style={{ color: '#6b7280' }}>
+              <div className="text-center py-8" style={{ color: 'var(--text-tertiary)' }}>
                 <p className="text-sm">暂无物品</p>
               </div>
             )}
@@ -1435,7 +1435,7 @@ export function EntityEditor({ category }: EntityEditorProps) {
               ))}
             </AnimatePresence>
             {locations.length === 0 && (
-              <div className="text-center py-8" style={{ color: '#6b7280' }}>
+              <div className="text-center py-8" style={{ color: 'var(--text-tertiary)' }}>
                 <p className="text-sm">暂无地点</p>
               </div>
             )}
@@ -1482,7 +1482,7 @@ export function EntityEditor({ category }: EntityEditorProps) {
               ))}
             </AnimatePresence>
             {factions.length === 0 && (
-              <div className="text-center py-8" style={{ color: '#6b7280' }}>
+              <div className="text-center py-8" style={{ color: 'var(--text-tertiary)' }}>
                 <p className="text-sm">暂无势力</p>
               </div>
             )}
@@ -1528,7 +1528,7 @@ export function EntityEditor({ category }: EntityEditorProps) {
               ))}
             </AnimatePresence>
             {worldSettings.length === 0 && (
-              <div className="text-center py-8" style={{ color: '#6b7280' }}>
+              <div className="text-center py-8" style={{ color: 'var(--text-tertiary)' }}>
                 <p className="text-sm">暂无世界观设定</p>
               </div>
             )}
@@ -1575,7 +1575,7 @@ export function EntityEditor({ category }: EntityEditorProps) {
               ))}
             </AnimatePresence>
             {rules.length === 0 && (
-              <div className="text-center py-8" style={{ color: '#6b7280' }}>
+              <div className="text-center py-8" style={{ color: 'var(--text-tertiary)' }}>
                 <p className="text-sm">暂无规则设定</p>
               </div>
             )}
@@ -1625,7 +1625,7 @@ export function EntityEditor({ category }: EntityEditorProps) {
               ))}
             </AnimatePresence>
             {ifLines.length === 0 && (
-              <div className="text-center py-8" style={{ color: '#6b7280' }}>
+              <div className="text-center py-8" style={{ color: 'var(--text-tertiary)' }}>
                 <p className="text-sm">暂无IF线</p>
               </div>
             )}
@@ -1640,7 +1640,7 @@ export function EntityEditor({ category }: EntityEditorProps) {
 
     default:
       return (
-        <div className="text-center py-12" style={{ color: '#6b7280' }}>
+        <div className="text-center py-12" style={{ color: 'var(--text-tertiary)' }}>
           <p>选择左侧分类开始编辑</p>
         </div>
       )

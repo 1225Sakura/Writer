@@ -47,81 +47,21 @@ const presetVariants: Record<StaggerPreset, { container: Variants; child: Varian
       visible: {
         opacity: 1,
         transition: {
-          staggerChildren: 0.08,
+          staggerChildren: 0.06,
           delayChildren: 0,
         },
       },
     },
     child: {
-      hidden: { opacity: 0, y: 20 },
+      hidden: { opacity: 0, y: 12 },
       visible: {
         opacity: 1,
         y: 0,
-        transition: { duration: 0.4, ease: [0.16, 1, 0.3, 1] },
+        transition: { duration: 0.3, ease: [0.4, 0, 0.2, 1] },
       },
     },
   },
   'fade-down': {
-    container: {
-      hidden: { opacity: 0 },
-      visible: {
-        opacity: 1,
-        transition: {
-          staggerChildren: 0.08,
-          delayChildren: 0,
-        },
-      },
-    },
-    child: {
-      hidden: { opacity: 0, y: -20 },
-      visible: {
-        opacity: 1,
-        y: 0,
-        transition: { duration: 0.4, ease: [0.16, 1, 0.3, 1] },
-      },
-    },
-  },
-  'fade-left': {
-    container: {
-      hidden: { opacity: 0 },
-      visible: {
-        opacity: 1,
-        transition: {
-          staggerChildren: 0.08,
-          delayChildren: 0,
-        },
-      },
-    },
-    child: {
-      hidden: { opacity: 0, x: 20 },
-      visible: {
-        opacity: 1,
-        x: 0,
-        transition: { duration: 0.4, ease: [0.16, 1, 0.3, 1] },
-      },
-    },
-  },
-  'fade-right': {
-    container: {
-      hidden: { opacity: 0 },
-      visible: {
-        opacity: 1,
-        transition: {
-          staggerChildren: 0.08,
-          delayChildren: 0,
-        },
-      },
-    },
-    child: {
-      hidden: { opacity: 0, x: -20 },
-      visible: {
-        opacity: 1,
-        x: 0,
-        transition: { duration: 0.4, ease: [0.16, 1, 0.3, 1] },
-      },
-    },
-  },
-  scale: {
     container: {
       hidden: { opacity: 0 },
       visible: {
@@ -133,11 +73,71 @@ const presetVariants: Record<StaggerPreset, { container: Variants; child: Varian
       },
     },
     child: {
-      hidden: { opacity: 0, scale: 0.85 },
+      hidden: { opacity: 0, y: -12 },
+      visible: {
+        opacity: 1,
+        y: 0,
+        transition: { duration: 0.3, ease: [0.4, 0, 0.2, 1] },
+      },
+    },
+  },
+  'fade-left': {
+    container: {
+      hidden: { opacity: 0 },
+      visible: {
+        opacity: 1,
+        transition: {
+          staggerChildren: 0.06,
+          delayChildren: 0,
+        },
+      },
+    },
+    child: {
+      hidden: { opacity: 0, x: 12 },
+      visible: {
+        opacity: 1,
+        x: 0,
+        transition: { duration: 0.3, ease: [0.4, 0, 0.2, 1] },
+      },
+    },
+  },
+  'fade-right': {
+    container: {
+      hidden: { opacity: 0 },
+      visible: {
+        opacity: 1,
+        transition: {
+          staggerChildren: 0.06,
+          delayChildren: 0,
+        },
+      },
+    },
+    child: {
+      hidden: { opacity: 0, x: -12 },
+      visible: {
+        opacity: 1,
+        x: 0,
+        transition: { duration: 0.3, ease: [0.4, 0, 0.2, 1] },
+      },
+    },
+  },
+  scale: {
+    container: {
+      hidden: { opacity: 0 },
+      visible: {
+        opacity: 1,
+        transition: {
+          staggerChildren: 0.05,
+          delayChildren: 0,
+        },
+      },
+    },
+    child: {
+      hidden: { opacity: 0, scale: 0.94 },
       visible: {
         opacity: 1,
         scale: 1,
-        transition: { duration: 0.35, ease: [0.16, 1, 0.3, 1] },
+        transition: { duration: 0.25, ease: [0.4, 0, 0.2, 1] },
       },
     },
   },
@@ -147,17 +147,17 @@ const presetVariants: Record<StaggerPreset, { container: Variants; child: Varian
       visible: {
         opacity: 1,
         transition: {
-          staggerChildren: 0.1,
+          staggerChildren: 0.08,
           delayChildren: 0,
         },
       },
     },
     child: {
-      hidden: { opacity: 0, y: 30 },
+      hidden: { opacity: 0, y: 20 },
       visible: {
         opacity: 1,
         y: 0,
-        transition: { duration: 0.5, ease: [0.16, 1, 0.3, 1] },
+        transition: { duration: 0.35, ease: [0.4, 0, 0.2, 1] },
       },
     },
   },
@@ -167,17 +167,17 @@ const presetVariants: Record<StaggerPreset, { container: Variants; child: Varian
       visible: {
         opacity: 1,
         transition: {
-          staggerChildren: 0.1,
+          staggerChildren: 0.08,
           delayChildren: 0,
         },
       },
     },
     child: {
-      hidden: { opacity: 0, filter: 'blur(8px)' },
+      hidden: { opacity: 0, filter: 'blur(4px)' },
       visible: {
         opacity: 1,
         filter: 'blur(0px)',
-        transition: { duration: 0.5, ease: 'easeOut' },
+        transition: { duration: 0.35, ease: 'easeOut' },
       },
     },
   },
@@ -202,7 +202,7 @@ const presetVariants: Record<StaggerPreset, { container: Variants; child: Varian
 export function StaggerChildren({
   children,
   preset = 'fade-up',
-  staggerDelay = 0.08,
+  staggerDelay = 0.06,
   delayChildren = 0,
   duration,
   className,
@@ -301,7 +301,7 @@ export function StaggerList<T>({
   renderItem,
   keyExtractor,
   preset = 'fade-up',
-  staggerDelay = 0.08,
+  staggerDelay = 0.06,
   delayChildren = 0,
   className,
   itemClassName,

@@ -51,16 +51,16 @@
   --color-warning:    #e5a000;
   --color-success:    #2ea043;
 
-  /* === Colors: Novel Entity Type Colors - 调整后 === */
-  --color-character:  #d4a574;        /* 角色 - 琥珀 (调整后更沉稳) */
+  /* === Colors: Novel Entity Type Colors - 统一自 design-tokens.css === */
+  --color-character:  #e8b87d;        /* 角色 - 琥珀 */
   --color-item:       #9b7ed9;        /* 物品 - 紫藤 */
   --color-location:   #5eb5a6;        /* 地点 - 翠岚 */
   --color-faction:    #d45d5d;        /* 势力 - 朱砂 */
   --color-outline:    #5b8ee8;        /* 大纲 - 蓝 */
   --color-ifline:     #7eb84a;        /* IF线 - 绿 */
   --color-world:      #5e6ad2;        /* 世界 - 紫辰 */
-  --color-rule:       #7eb84a;        /* 规则 - 绿 (统一拼写) */
-  --color-vermillion:  #c45c5c;        /* 朱砂红 - 统一变量 */
+  --color-rule:       #7eb84a;        /* 规则 - 绿 */
+  --color-vermillion: #c45c5c;        /* 朱砂红 */
 
   /* === Colors: Writing Surface - 调整后 === */
   --writing-bg:       #1e1e2e;        /* 使用更深背景色 */
@@ -68,46 +68,73 @@
   --writing-muted:    rgba(245, 240, 230, 0.6);
 
   /* === Aliases for component compatibility === */
-  --color-bg-surface: #0f1011;
-  --color-text-writing: #f5f0e6;
-  --color-writing-dark: #1e1e2e;
-  --color-text-secondary: #d0d6e0;
-  --color-text-muted: #8a8f98;
-  --color-bg-card: #0f1011;
-  --color-toolbar: #0f1011;
-  --color-drawer: #191a1b;
+  --color-bg-surface: var(--color-surface-base);
+  --color-text-writing: var(--paper-white);
+  --color-writing-dark: var(--charcoal);
+  --color-text-secondary: var(--text-secondary);
+  --color-text-muted: var(--text-tertiary);
+  --color-bg-card: var(--color-surface-base);
+  --color-toolbar: var(--color-surface-base);
+  --color-drawer: var(--color-surface-raised);
   --color-border: var(--border-default);     /* 统一边框变量 */
+  --color-border-subtle: var(--border-subtle);
+  --color-border-strong: var(--border-strong);
   --accent-purple: var(--accent-primary);      /* 修复不存在的变量 */
 
-  /* === Typography: Font Families (comprehensive Chinese fallback stacks) === */
+  /* === Typography: Font Families (Standardized) === */
+  /* Chinese Serif: Noto Serif SC / Source Han Serif CN / SimSun / serif */
+  --font-serif-cn: 'Noto Serif SC',
+    'Source Han Serif CN',
+    'Source Han Serif SC',
+    'Source Han Serif',
+    'Songti SC',
+    'SimSun',
+    'NSimSun',
+    'STSong',
+    'STKaiti',
+    'Noto Serif CJK SC',
+    serif;
+
+  /* Chinese Sans-Serif: Noto Sans SC / Source Han Sans CN / PingFang SC / Microsoft YaHei / sans-serif */
   --font-sans: 'Inter',
     -apple-system,
     'SF Pro Display',
     BlinkMacSystemFont,
-    'Segoe UI',
+    'Noto Sans SC',
+    'Source Han Sans CN',
     'PingFang SC',
     'Hiragino Sans GB',
     'Microsoft YaHei',
-    'PingFang SC',
-    'SimHei',
     'Noto Sans CJK SC',
     'WenQuanYi Micro Hei',
     sans-serif;
-  --font-mono: 'JetBrains Mono', 'SF Mono', 'Fira Code', 'Cascadia Code', 'Consolas', monospace;
-  --font-serif-cn: 'Noto Serif SC', 'Source Han Serif CN', 'Source Han Serif SC', 'Source Han Serif', 'Songti SC', 'SimSun', 'NSimSun', 'STSong', 'STKaiti', 'Noto Serif CJK SC', serif;
-  --font-serif-en: 'Noto Serif SC', 'Georgia', 'Times New Roman', serif;
-  --font-serif-en:    'Source Han Serif', 'Noto Serif', 'Georgia', serif;
 
-  /* === Typography: Type Scale (8px base) === */
-  --text-xs:          11px;
-  --text-sm:          13px;
-  --text-base:        14px;
-  --text-md:          15px;
-  --text-lg:          16px;
-  --text-xl:          18px;
-  --text-2xl:         22px;
-  --text-3xl:         28px;
-  --text-4xl:         36px;
+  /* English Monospace: JetBrains Mono / Fira Code / Cascadia Code / monospace */
+  --font-mono: 'JetBrains Mono',
+    'Fira Code',
+    'Cascadia Code',
+    'SF Mono',
+    'Consolas',
+    'Monaco',
+    monospace;
+
+  /* English Serif */
+  --font-serif-en: 'Noto Serif SC',
+    'Georgia',
+    'Times New Roman',
+    'Cambria',
+    serif;
+
+  /* === Typography: Type Scale (Standardized) === */
+  --text-xs:          12px;   /* 辅助文字 */
+  --text-sm:          13px;   /* 标签 */
+  --text-base:        14px;   /* 界面默认 */
+  --text-md:          15px;   /* 稍大 */
+  --text-lg:          16px;   /* 稍大 */
+  --text-xl:          18px;   /* 小标题 */
+  --text-2xl:         20px;   /* 标题 */
+  --text-3xl:         24px;   /* 大标题 */
+  --text-4xl:         36px;   /* 超大标题 */
 
   /* === Typography: Font Weights (Linear signature: 510) === */
   --weight-regular:   400;
@@ -121,12 +148,12 @@
   --tracking-wide:    0.02em;
   --tracking-wide-xl:  0.04em;
 
-  /* === Typography: Line Heights === */
+  /* === Typography: Line Heights (Standardized) === */
   --leading-none:     1;
   --leading-tight:    1.25;
-  --leading-normal:   1.5;
-  --leading-relaxed:  1.75;
-  --leading-loose:    2;
+  --leading-normal:   1.5;    /* 界面默认: 1.5em */
+  --leading-relaxed:  1.75;   /* 写作区: 1.75em */
+  --leading-loose:    2;      /* 写作区宽松: 2em */
 
   /* === Typography: Writing-specific === */
   --writing-font-size:      17px;
@@ -151,17 +178,17 @@
   --space-20:   80px;
   --space-24:   96px;
 
-  /* === Border Radius (Linear scale) === */
-  --radius-sm:   2px;
-  --radius-md:   4px;
-  --radius-lg:   6px;
-  --radius-xl:   8px;
-  --radius-2xl:  12px;
-  --radius-pill: 22px;
+  /* === Border Radius (Unified Scale: small 6px, medium 12px, large 16px, full 9999px) === */
+  --radius-sm:   6px;
+  --radius-md:   8px;
+  --radius-lg:   12px;
+  --radius-xl:   16px;
+  --radius-2xl:  20px;
+  --radius-pill: 9999px;
   --radius-full: 9999px;
 
-  /* === Border Radius — Component-specific (for Tailwind var-* classes) === */
-  --radius-card:   8px;
+  /* === Border Radius — Component-specific === */
+  --radius-card:   12px;
   --radius-button: 6px;
   --radius-input:  6px;
 
@@ -189,6 +216,18 @@
   --layout-topbar-height:       48px;
   --layout-content-max-width:   1200px;
   --writing-max-width:          720px;
+
+  /* === Spacing System (4px base unit) === */
+  --spacing-xs:   4px;
+  --spacing-sm:   8px;
+  --spacing-md:   12px;
+  --spacing-base: 16px;
+  --spacing-lg:   20px;
+  --spacing-xl:   24px;
+  --spacing-2xl:  32px;
+  --spacing-3xl:  40px;
+  --spacing-4xl:  48px;
+  --spacing-5xl:  64px;
 
   /* === Ink Texture (水墨纹理) === */
   --ink-texture-opacity:        0.03;
@@ -557,6 +596,10 @@ code, pre {
   letter-spacing: var(--writing-letter-spacing);
   color: var(--writing-text);
   transition: color var(--transition-normal);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  font-feature-settings: "kern" 1, "liga" 1;
 }
 
 .writing-area p {
@@ -580,6 +623,10 @@ code, pre {
   transition: color var(--transition-normal);
   scroll-padding-top: 33vh;
   scroll-padding-bottom: 67vh;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  font-feature-settings: "kern" 1, "liga" 1;
 }
 
 .writing-area .tiptap p {
@@ -640,7 +687,7 @@ code, pre {
 }
 
 .writing-area .tiptap {
-  caret-color: #e8b87d;
+  caret-color: var(--color-character);
   caret-shape: bar;
 }
 
@@ -667,15 +714,15 @@ code, pre {
   50% { opacity: 1; }
 }
 
-/* Selection styling — warm ink-like selection */
+/* Selection styling — warm ink-like selection using CSS variables */
 .writing-area .tiptap ::selection {
-  background: rgba(196, 92, 92, 0.25) !important;
-  color: #f5f0e6 !important;
+  background: color-mix(in srgb, var(--color-vermillion) 25%, transparent) !important;
+  color: var(--writing-text) !important;
 }
 
 .writing-area .tiptap ::-moz-selection {
-  background: rgba(196, 92, 92, 0.25) !important;
-  color: #f5f0e6 !important;
+  background: color-mix(in srgb, var(--color-vermillion) 25%, transparent) !important;
+  color: var(--writing-text) !important;
 }
 
 /* Paragraph spacing optimization */
@@ -1816,4 +1863,47 @@ code, pre {
   0% { background-position: 0% 50%; }
   50% { background-position: 100% 50%; }
   100% { background-position: 0% 50%; }
+}
+
+/* ============================================================
+   WRITING EDITOR SPECIFIC CLASSES
+   ============================================================ */
+
+/* Writing surface background */
+.writing-surface {
+  background-color: var(--writing-bg);
+}
+
+/* Writing card container */
+.writing-card {
+  background-color: color-mix(in srgb, var(--writing-text) 3%, transparent);
+  border: 1px solid var(--border-subtle);
+  backdrop-filter: blur(8px);
+}
+
+/* Immersive mode transition */
+.immersive-mode {
+  transition: all var(--transition-slow) var(--ease-out);
+}
+
+/* Focus mode active state */
+.focus-mode-active .layout-sidebar,
+.focus-mode-active .layout-topbar,
+.focus-mode-active .writing-toolbar {
+  opacity: 0;
+  pointer-events: none;
+  transform: translateX(-100%);
+}
+
+.focus-mode-active .layout-sidebar:hover,
+.focus-mode-active .layout-topbar:hover {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateX(0);
+}
+
+.focus-mode-active:hover .writing-toolbar {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateY(0);
 }

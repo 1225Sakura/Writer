@@ -1,6 +1,7 @@
 import { create } from 'zustand'
 import { persist, subscribeWithSelector } from 'zustand/middleware'
 import { immer } from 'zustand/middleware/immer'
+import { createHybridStorage } from './utils/indexedDBStorage'
 
 // ============================================
 // Types
@@ -451,6 +452,7 @@ export const useHistoryStore = create<HistoryState & HistoryActions>()(
         }),
         {
           name: 'writer-history-store',
+          storage: createHybridStorage(100 * 1024) as never,
           partialize: (state) => ({
             stack: state.stack.slice(-20), // Only persist last 20
             currentIndex: Math.min(state.currentIndex, 19),

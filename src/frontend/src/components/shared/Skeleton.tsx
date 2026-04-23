@@ -11,7 +11,7 @@ interface SkeletonProps {
 export function Skeleton({ className = '', width, height }: SkeletonProps) {
   return (
     <div
-      className={`animate-pulse motion-reduce:animate-none bg-gradient-to-r from-[rgba(255,255,255,0.04)] via-[rgba(255,255,255,0.08)] to-[rgba(255,255,255,0.04)] bg-[length:200%_100%] ${className}`}
+      className={`animate-pulse motion-reduce:animate-none bg-gradient-to-r from-[var(--color-surface-overlay)] via-[var(--color-surface-hover)] to-[var(--color-surface-overlay)] bg-[length:200%_100%] ${className}`}
       style={{
         width: typeof width === 'number' ? `${width}px` : width,
         height: typeof height === 'number' ? `${height}px` : height,
@@ -36,7 +36,7 @@ export function SkeletonText({ lines = 3, className = '' }: { lines?: number; cl
 
 export function SkeletonCard({ className = '' }: { className?: string }) {
   return (
-    <div className={`bg-[var(--color-bg-surface)] rounded-lg p-4 space-y-3 ${className}`}>
+    <div className={`bg-[var(--color-surface-raised)] rounded-[var(--radius-lg)] p-4 space-y-3 ${className}`}>
       <Skeleton height={20} width="60%" />
       <SkeletonText lines={3} />
     </div>

@@ -1,9 +1,9 @@
 // Store exports with backward compatibility
 // New modular stores
-export { useSessionStore, selectCurrentSession, selectSessionCount } from './sessionStore'
+export { useSessionStore, selectCurrentSession, selectSessionCount, selectSessionStatus } from './sessionStore'
 export { useMessageStore, selectMessageCount, selectIsEmptySession, selectUserMessages, selectAssistantMessages } from './messageStore'
 export { useChatEntityStore, selectConfirmedEntities, selectPendingEntities, selectEntitiesByType } from './chatEntityStore'
-export { useEntityStore, selectCharacterCount, selectEntityCounts, selectCharactersByTier } from './entityStore'
+export { useEntityStore, selectCharacterCount, selectEntityCounts, selectCharactersByTier, selectEntityStatus } from './entityStore'
 export { useRelationStore } from './relationStore'
 export { useFilterStore, selectActiveFilter, selectTags } from './filterStore'
 
@@ -14,11 +14,18 @@ export {
   selectPendingEntities as chatSelectPending,
   selectMessageCount as chatSelectMessageCount,
   selectIsEmptySession as chatSelectIsEmpty,
+  selectStreamingState,
+  selectLoadingError,
+  selectEntitiesByType as chatSelectEntitiesByType,
+  cleanupChatStore,
 } from './chatStore'
 export {
   useSettingsStore,
   selectCharacterCount as settingsSelectCharacterCount,
   selectEntityCounts as settingsSelectEntityCounts,
+  selectSettingsStatus,
+  selectWritingSettings,
+  cleanupSettingsStore,
 } from './settingsStore'
 
 // Types from chatStore
@@ -32,7 +39,17 @@ export type { EntityType } from '../shared/types'
 export type { Character, Item, Location, Faction, WorldSetting, Rule, Outline, Chapter, IFLine } from '../api/types'
 
 // UI Store
-export { useUIStore, type InterfaceType, type UIState } from './uiStore'
+export {
+  useUIStore,
+  type InterfaceType,
+  type UIState,
+  selectDrawerState,
+  selectNavigationState,
+  selectPanelSizes,
+  selectTheme,
+  selectDisplayModes,
+  cleanupUIStore,
+} from './uiStore'
 
 // Writing Store
 export {
@@ -47,6 +64,10 @@ export {
   selectDraftVersionsForCurrentChapter,
   selectPendingJobs,
   selectCompletedJobs,
+  selectWritingConfig,
+  selectCurrentContent,
+  selectLoadingState,
+  cleanupWritingStore,
 } from './writingStore'
 
 // History Store
@@ -72,4 +93,26 @@ export {
   selectActiveIFLines,
   selectConflictsNeedingAttention,
   selectSyncProgress,
+  selectSyncStatusOnly,
+  selectSyncStats,
+  cleanupSyncStore,
 } from './syncStore'
+
+// Store utilities
+export {
+  shallow,
+  createSelector,
+  createShallowSelector,
+  useShallowSelector,
+  shallowSelectors,
+  indexedDBStorage,
+  createHybridStorage,
+  createOptimisticContext,
+  withOptimisticUpdate,
+  createOptimisticMessage,
+  createOptimisticEntityUpdate,
+  createCrossStoreSync,
+  createBidirectionalSync,
+  createCleanupRegistry,
+  createAutoCleanupSubscription,
+} from './utils'

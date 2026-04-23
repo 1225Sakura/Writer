@@ -57,6 +57,18 @@ const typeConfig: Record<EntityType, { label: string; bgColor: string; textColor
     textColor: 'var(--writing-text)',
     icon: <GitBranch className="w-3 h-3" />,
   },
+  chapter: {
+    label: '章节',
+    bgColor: 'var(--color-outline)',
+    textColor: '#ffffff',
+    icon: <FileText className="w-3 h-3" />,
+  },
+  plot_thread: {
+    label: '剧情线',
+    bgColor: 'var(--accent-primary)',
+    textColor: '#ffffff',
+    icon: <GitBranch className="w-3 h-3" />,
+  },
 }
 
 const sizeClasses = {

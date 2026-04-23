@@ -1,8 +1,9 @@
-import { useState, useRef } from 'react'
+import { useState, useRef, useCallback } from 'react'
 import { useChatStore } from '@/store'
 import { Send, RefreshCw, Loader2, FileText, Zap, Wand2, Lightbulb } from 'lucide-react'
 import { ChatTemplates } from './ChatTemplates'
 import { motion, AnimatePresence } from 'framer-motion'
+import { getWebSocketClient } from '@/api/websocket'
 
 const quickReplies = [
   { label: '继续', icon: <Zap className="w-3 h-3" />, message: '继续' },
@@ -17,7 +18,7 @@ export function UserInputPanel() {
   const { sendMessage, createSession, clearSession, sessionId, isLoading, isStreaming, error, messages, exportToOutline } = useChatStore()
   const [showExportConfirm, setShowExportConfirm] = useState(false)
 
-  const handleSend = async () => {
+  const handleSend = useCallback(async () => {
     if (!input.trim() || isLoading || isStreaming) return
 
     let currentSessionId = sessionId
@@ -28,9 +29,17 @@ export function UserInputPanel() {
 
     if (!currentSessionId) return
 
+    const content = input.trim()
     setInput('')
-    await sendMessage(input.trim())
-  }
+
+    // Also send via WebSocket for real-time sync if connected
+    const ws = getWebSocketClient()
+    if (ws.isConnected) {
+      ws.sendText(content, 'user')
+    }
+
+    await sendMessage(content)
+  }, [input, isLoading, isStreaming, sessionId, createSession, sendMessage])
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {
@@ -49,22 +58,31 @@ export function UserInputPanel() {
     textareaRef.current?.focus()
   }
 
-  const handleQuickReply = (message: string) => {
+  const handleQuickReply = useCallback((message: string) => {
     setInput(message)
     // Auto-send for quick replies
     setTimeout(() => {
       const currentSessionId = sessionId || useChatStore.getState().sessionId
       if (currentSessionId) {
+        // Send via WebSocket if connected
+        const ws = getWebSocketClient()
+        if (ws.isConnected) {
+          ws.sendText(message, 'user')
+        }
         sendMessage(message)
         setInput('')
       } else {
         createSession().then(() => {
+          const ws = getWebSocketClient()
+          if (ws.isConnected) {
+            ws.sendText(message, 'user')
+          }
           sendMessage(message)
           setInput('')
         })
       }
     }, 100)
-  }
+  }, [sessionId, createSession, sendMessage])
 
   const handleExportOutline = () => {
     const result = exportToOutline()
@@ -93,10 +111,10 @@ export function UserInputPanel() {
           <motion.button
             onClick={handleExportOutline}
             disabled={isLoading || isStreaming}
-            className="flex items-center gap-1.5 px-3 py-1.5 text-xs rounded-md border border-[rgba(255,255,255,0.08)]
-                       text-[#d0d6e0] hover:bg-[rgba(255,255,255,0.04)] hover:text-[#f7f8f8]
+            className="flex items-center gap-1.5 px-3 py-1.5 text-xs rounded-md border border-[var(--border-default)]
+                       text-[var(--text-secondary)] hover:bg-[var(--color-surface-raised)] hover:text-[var(--text-primary)]
                        active:scale-95 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
-            whileHover={{ y: -1, boxShadow: '0 2px 8px rgba(0,0,0,0.15)' }}
+            whileHover={{ y: -1, boxShadow: 'var(--shadow-card)' }}
             whileTap={{ scale: 0.97 }}
           >
             <FileText className="w-3.5 h-3.5" />
@@ -116,7 +134,7 @@ export function UserInputPanel() {
             className="flex items-center gap-2 text-xs px-3 py-2 rounded-lg"
             style={{
               backgroundColor: 'rgba(126, 184, 74, 0.1)',
-              color: 'var(--ifline)',
+              color: 'var(--color-ifline)',
               border: '1px solid rgba(126, 184, 74, 0.2)',
             }}
           >
@@ -148,8 +166,8 @@ export function UserInputPanel() {
               <motion.button
                 key={reply.label}
                 onClick={() => handleQuickReply(reply.message)}
-                className="flex items-center gap-1.5 px-3 py-1.5 text-xs rounded-full border border-[rgba(255,255,255,0.06)]
-                           text-[#d0d6e0] hover:bg-[rgba(255,255,255,0.04)] hover:text-[#f7f8f8] hover:border-[rgba(255,255,255,0.1)]
+                className="flex items-center gap-1.5 px-3 py-1.5 text-xs rounded-full border border-[var(--border-default)]
+                           text-[var(--text-secondary)] hover:bg-[var(--color-surface-raised)] hover:text-[var(--text-primary)] hover:border-[var(--border-strong)]
                            transition-colors"
                 initial={{ opacity: 0, x: -8 }}
                 animate={{ opacity: 1, x: 0 }}
@@ -171,16 +189,16 @@ export function UserInputPanel() {
           className="p-2.5 flex-shrink-0"
           style={{
             borderRadius: 'var(--radius-md)',
-            backgroundColor: 'rgba(255,255,255,0.02)',
-            border: '1px solid rgba(255,255,255,0.08)',
+            backgroundColor: 'var(--color-surface-raised)',
+            border: '1px solid var(--border-default)',
           }}
           title="开始新对话"
           onClick={handleNewChat}
-          whileHover={{ scale: 1.08, backgroundColor: 'rgba(255,255,255,0.05)' }}
+          whileHover={{ scale: 1.08, backgroundColor: 'var(--color-surface-hover)' }}
           whileTap={{ scale: 0.92 }}
           transition={{ duration: 0.15 }}
         >
-          <RefreshCw className="w-5 h-5" style={{ color: 'var(--color-text-secondary)' }} />
+          <RefreshCw className="w-5 h-5" style={{ color: 'var(--text-secondary)' }} />
         </motion.button>
 
         {/* Input area */}
@@ -189,7 +207,7 @@ export function UserInputPanel() {
             className="relative"
             animate={{
               boxShadow: isFocused
-                ? '0 0 0 1px var(--accent-primary), 0 0 16px rgba(94, 106, 210, 0.15)'
+                ? '0 0 0 1px var(--accent-primary), var(--shadow-glow-sm)'
                 : '0 0 0 1px transparent',
             }}
             transition={{ duration: 0.2 }}
@@ -242,13 +260,13 @@ export function UserInputPanel() {
           style={{
             backgroundColor: canSend ? 'var(--accent-primary)' : 'var(--color-surface-input)',
             borderRadius: 'var(--radius-md)',
-            color: '#ffffff',
+            color: 'var(--text-primary)',
             border: 'none',
           }}
           whileHover={canSend ? {
             scale: 1.05,
             backgroundColor: 'var(--accent-hover)',
-            boxShadow: '0 4px 16px rgba(94, 106, 210, 0.3)',
+            boxShadow: 'var(--shadow-glow)',
           } : {}}
           whileTap={canSend ? { scale: 0.92 } : {}}
           transition={{ duration: 0.15 }}

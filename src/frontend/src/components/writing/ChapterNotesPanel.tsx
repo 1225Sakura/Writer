@@ -1,7 +1,7 @@
 import { useState, useCallback, useEffect, useRef } from 'react'
 import { useWritingStore } from '@/store'
 import { Button } from '@/components/ui/Button'
-import { Textarea } from '@/components/ui/Textarea'
+import { Textarea } from '@/components/ui/textarea'
 import {
   StickyNote,
   X,
@@ -153,20 +153,23 @@ export function ChapterNotesPanel() {
           exit={{ opacity: 0, scale: 0.9, y: 8 }}
           transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
           onClick={() => setIsOpen(true)}
-          className="fixed right-4 bottom-14 z-50 flex items-center gap-2 px-3 py-2 rounded-lg
-                     bg-[#191a1b] border border-[rgba(255,255,255,0.08)]
-                     text-[#d0d6e0] text-xs font-medium
-                     hover:bg-[rgba(255,255,255,0.04)] transition-all duration-200
-                     shadow-lg hover:shadow-xl hover:-translate-y-0.5"
+          className="fixed right-4 bottom-14 z-50 flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-medium transition-all duration-200 hover:-translate-y-0.5"
+          style={{
+            background: 'var(--color-surface-raised)',
+            border: '1px solid var(--border-default)',
+            color: 'var(--text-secondary)',
+            boxShadow: 'var(--shadow-drawer)',
+          }}
           title="章节笔记"
         >
-          <StickyNote className="w-4 h-4 text-[#e8b87d]" />
+          <StickyNote className="w-4 h-4" style={{ color: 'var(--color-character)' }} />
           <span>笔记</span>
           {noteContent && (
             <motion.span
               initial={{ scale: 0 }}
               animate={{ scale: 1 }}
-              className="w-1.5 h-1.5 rounded-full bg-[#7eb84a]"
+              className="w-1.5 h-1.5 rounded-full"
+              style={{ background: 'var(--color-ifline)' }}
             />
           )}
         </motion.button>
@@ -177,20 +180,16 @@ export function ChapterNotesPanel() {
           animate={{ opacity: 1, scale: 1, y: 0, x: 0 }}
           exit={{ opacity: 0, scale: 0.92, y: 16, x: 20 }}
           transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
-          className="fixed right-4 bottom-14 z-50 w-80 flex flex-col
-                      bg-[#191a1b] border border-[rgba(255,255,255,0.08)] rounded-xl
-                      overflow-hidden"
+          className="fixed right-4 bottom-14 z-50 w-80 flex flex-col rounded-xl overflow-hidden"
           style={{
-            boxShadow: `
-              0 4px 20px rgba(0, 0, 0, 0.25),
-              0 8px 40px rgba(0, 0, 0, 0.15),
-              0 0 0 1px rgba(255, 255, 255, 0.04)
-            `,
+            background: 'var(--color-surface-raised)',
+            border: '1px solid var(--border-default)',
+            boxShadow: 'var(--shadow-float)',
           }}
         >
           {/* Header */}
           <div className="flex items-center justify-between px-3 py-2.5
-                          border-b border-[rgba(255,255,255,0.06)]"
+" style={{ borderBottom: '1px solid var(--border-subtle)' }}
           >
             <div className="flex items-center gap-2">
               <motion.div
@@ -198,9 +197,9 @@ export function ChapterNotesPanel() {
                 animate={{ rotate: 0 }}
                 transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
               >
-                <StickyNote className="w-4 h-4 text-[#e8b87d]" />
+                <StickyNote className="w-4 h-4" style={{ color: 'var(--color-character)' }} />
               </motion.div>
-              <span className="text-sm font-medium text-[#f7f8f8]">章节笔记</span>
+              <span className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>章节笔记</span>
             </div>
             <div className="flex items-center gap-1">
               <Button
@@ -210,7 +209,7 @@ export function ChapterNotesPanel() {
                 className="h-7 w-7 hover:bg-[rgba(126,184,74,0.1)] transition-colors duration-150"
                 title="保存笔记"
               >
-                <Save className="w-3.5 h-3.5 text-[#7eb84a]" />
+                <Save className="w-3.5 h-3.5" style={{ color: 'var(--color-ifline)' }} />
               </Button>
               <Button
                 onClick={handleClear}
@@ -219,16 +218,16 @@ export function ChapterNotesPanel() {
                 className="h-7 w-7 hover:bg-[rgba(196,92,92,0.1)] transition-colors duration-150"
                 title="清空笔记"
               >
-                <Trash2 className="w-3.5 h-3.5 text-[#c45c5c]" />
+                <Trash2 className="w-3.5 h-3.5" style={{ color: 'var(--color-vermillion)' }} />
               </Button>
               <Button
                 onClick={() => setIsOpen(false)}
                 variant="ghost"
                 size="icon"
-                className="h-7 w-7 hover:bg-[rgba(255,255,255,0.06)] transition-colors duration-150"
+                className="h-7 w-7 transition-colors duration-150"
                 title="关闭"
               >
-                <X className="w-3.5 h-3.5 text-[#d0d6e0]" />
+                <X className="w-3.5 h-3.5" style={{ color: 'var(--text-secondary)' }} />
               </Button>
             </div>
           </div>
@@ -236,7 +235,7 @@ export function ChapterNotesPanel() {
           {/* Category Tags */}
           <div className="px-3 pt-3 pb-2">
             <div className="flex items-center gap-1.5 flex-wrap">
-              <Tag className="w-3 h-3 text-[#8a8f98] mr-0.5" />
+              <Tag className="w-3 h-3 mr-0.5" style={{ color: 'var(--text-tertiary)' }} />
               {NOTE_CATEGORIES.map((category, index) => (
                 <motion.button
                   key={category.id}
@@ -301,15 +300,17 @@ export function ChapterNotesPanel() {
               value={noteContent}
               onChange={(e) => setNoteContent(e.target.value)}
               placeholder="记录本章灵感、伏笔、待办事项..."
-              className="min-h-[140px] resize-none bg-[#0f1011] border-[rgba(255,255,255,0.08)]
-                         text-[#d0d6e0] text-sm placeholder:text-[#d0d6e0]/40
-                         focus:border-[#5e6ad2]/50 focus:ring-1 focus:ring-[#5e6ad2]/20
-                         transition-all duration-200"
+              className="min-h-[140px] resize-none text-sm transition-all duration-200"
+              style={{
+                background: 'var(--color-surface-base)',
+                border: '1px solid var(--border-default)',
+                color: 'var(--text-secondary)',
+              }}
             />
 
             {/* Quick action hints */}
             <div className="flex items-center justify-between mt-2">
-              <p className="text-[10px] text-[#d0d6e0]/50">
+              <p className="text-[10px]" style={{ color: 'var(--text-tertiary)' }}>
                 自动保存 · 按章节独立存储
               </p>
               <div className="flex items-center gap-1">
@@ -317,7 +318,8 @@ export function ChapterNotesPanel() {
                   <motion.span
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
-                    className="text-[10px] text-[#8a8f98]"
+                    className="text-[10px]"
+                    style={{ color: 'var(--text-tertiary)' }}
                   >
                     {noteContent.length} 字
                   </motion.span>
@@ -328,16 +330,17 @@ export function ChapterNotesPanel() {
 
           {/* Footer with chapter info */}
           <div
-            className="px-3 py-2 border-t border-[rgba(255,255,255,0.06)]
-                       flex items-center justify-between"
+            className="px-3 py-2 flex items-center justify-between"
+            style={{ borderTop: '1px solid var(--border-subtle)' }}
           >
-            <span className="text-[10px] text-[#8a8f98]">
+            <span className="text-[10px]" style={{ color: 'var(--text-tertiary)' }}>
               {currentChapterId ? '已关联当前章节' : '未选择章节'}
             </span>
             <motion.div
               initial={{ scale: 0 }}
               animate={{ scale: noteContent ? 1 : 0 }}
-              className="w-1.5 h-1.5 rounded-full bg-[#7eb84a]"
+              className="w-1.5 h-1.5 rounded-full"
+              style={{ background: 'var(--color-ifline)' }}
             />
           </div>
         </motion.div>

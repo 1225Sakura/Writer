@@ -196,7 +196,7 @@ export function useCommandPalette() {
       const labels: Record<AIOperationType, string> = {
         optimize: '优化',
         expand: '扩写',
-        shrink: '缩写',
+        condense: '缩写',
         rewrite: '改写',
         continue: '续写',
         polish: '润色',
@@ -321,16 +321,16 @@ export function useCommandPalette() {
         },
       },
       {
-        id: 'ai-shrink',
+        id: 'ai-condense',
         label: 'AI缩写',
         shortcut: 'Ctrl+Shift+S',
         icon: <Scissors className="w-4 h-4" />,
         category: 'ai',
-        keywords: ['shrink', '缩写', '精简'],
+        keywords: ['condense', 'shrink', '缩写', '精简'],
         disabled: !currentChapterId || currentInterface !== 'writing',
         action: () => {
-          recordCommand('ai-shrink')
-          executeAIOperation('shrink')
+          recordCommand('ai-condense')
+          executeAIOperation('condense')
         },
       },
       {

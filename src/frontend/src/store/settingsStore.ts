@@ -12,6 +12,7 @@ import {
   ruleApi,
   writingSettingsApi,
 } from '../api/settings'
+import { createHybridStorage } from './utils/indexedDBStorage'
 import {
   outlineApi,
   chapterApi,
@@ -1334,6 +1335,7 @@ export const useSettingsStore = create<SettingsState & SettingsActions>()(
         }),
         {
           name: 'writer-settings-store-v2',
+          storage: createHybridStorage(100 * 1024) as never,
           partialize: (state) => ({
             tags: state.tags,
             activeFilter: state.activeFilter,
@@ -1361,3 +1363,24 @@ export const selectEntityCounts = (state: SettingsState) => ({
 })
 
 export const selectWritingSettings = (state: SettingsState) => state.writingSettings
+
+/** 仅选择 loading/error 状态（最小重渲染） */
+export const selectSettingsStatus = (state: SettingsState) => ({
+  isLoading: state.isLoading,
+  error: state.error,
+})
+
+/** 选择角色列表（shallow 比较） */
+export const selectCharactersShallow = (state: SettingsState) => state.characters
+
+/** 选择 AI 审查结果 */
+export const selectAIReviewResult = (state: SettingsState) => state.aiReviewResult
+
+/** 清理 settings store 临时状态 */
+export function cleanupSettingsStore() {
+  useSettingsStore.setState({
+    isLoading: false,
+    error: null,
+    aiReviewResult: null,
+  })
+}

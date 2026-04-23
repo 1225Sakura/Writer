@@ -8,6 +8,65 @@ import axiosRetry from 'axios-retry'
 import { apiCache } from '@/utils/cache'
 
 // ============================================
+// Environment Detection
+// ============================================
+
+const isElectron = (): boolean => {
+  return typeof window !== 'undefined' && !!(window as Window & { electronAPI?: unknown }).electronAPI
+}
+
+const isDev = (): boolean => {
+  return import.meta.env.DEV === true
+}
+
+// ============================================
+// API Base URL Resolution
+// ============================================
+
+/**
+ * Resolve the API base URL based on environment.
+ *
+ * - Vite dev server: uses VITE_API_BASE_URL or falls back to '' (relative,
+ *   letting the Vite proxy handle /api -> localhost:8000).
+ * - Electron production: queries the main process for the backend URL via IPC.
+ * - Direct browser (non-Electron production): uses VITE_API_BASE_URL env var.
+ */
+let resolvedBaseUrl: string | null = null
+
+const resolveBaseURL = async (): Promise<string> => {
+  if (resolvedBaseUrl !== null) {
+    return resolvedBaseUrl
+  }
+
+  // Electron production: ask main process for backend URL
+  if (isElectron() && !isDev()) {
+    try {
+      const backendUrl = await window.electronAPI!.getBackendUrl()
+      resolvedBaseUrl = `${backendUrl}/api/v1`
+      return resolvedBaseUrl
+    } catch {
+      // Fallback if IPC fails
+      resolvedBaseUrl = 'http://localhost:8000/api/v1'
+      return resolvedBaseUrl
+    }
+  }
+
+  // Vite dev or direct browser build
+  const envUrl = import.meta.env.VITE_API_BASE_URL as string | undefined
+  if (envUrl) {
+    resolvedBaseUrl = envUrl
+  } else if (isDev()) {
+    // In dev, use relative path so Vite proxy handles it
+    resolvedBaseUrl = '/api/v1'
+  } else {
+    // Production fallback (should be set by build config)
+    resolvedBaseUrl = 'http://localhost:8000/api/v1'
+  }
+
+  return resolvedBaseUrl
+}
+
+// ============================================
 // API Error Types
 // ============================================
 
@@ -21,6 +80,7 @@ export interface ApiError {
     | 'SERVER_ERROR'
     | 'RATE_LIMIT_ERROR'
     | 'VALIDATION_ERROR'
+    | 'CANCELLED_ERROR'
     | 'UNKNOWN_ERROR'
   message: string
   statusCode?: number
@@ -28,19 +88,58 @@ export interface ApiError {
 }
 
 // ============================================
-// API Client Setup
+// API Client Setup (lazy init)
 // ============================================
 
-const API_BASE_URL =
-  (import.meta.env.VITE_API_BASE_URL as string) || 'http://127.0.0.1:8000/api/v1'
+let apiClient: AxiosInstance | null = null
 
-const apiClient: AxiosInstance = axios.create({
-  baseURL: API_BASE_URL,
-  timeout: 30000,
-  headers: {
-    'Content-Type': 'application/json',
-  },
-})
+const createApiClient = (baseURL: string): AxiosInstance => {
+  const client = axios.create({
+    baseURL,
+    timeout: 30000,
+    headers: {
+      'Content-Type': 'application/json',
+    },
+  })
+
+  // Attach retry logic
+  axiosRetry(client, {
+    retries: 3,
+    retryDelay: (retryCount) => {
+      return Math.pow(2, retryCount) * 1000 // Exponential backoff: 1s, 2s, 4s
+    },
+    retryCondition: (error) => {
+      if (!error.response) {
+        return true // Retry on network errors
+      }
+      const status = error.response.status
+      return status >= 500 || status === 408 || status === 429
+    },
+    onRetry: (retryCount, error) => {
+      const axiosErr = error as AxiosError
+      if (isDev()) {
+        console.warn(
+          `[API Retry] Attempt ${retryCount}/3 - ${axiosErr.config?.method?.toUpperCase()} ${axiosErr.config?.url}`
+        )
+      }
+    },
+  })
+
+  return client
+}
+
+/**
+ * Get the initialized API client. Must be awaited before first use.
+ */
+export const getApiClient = async (): Promise<AxiosInstance> => {
+  if (apiClient) {
+    return apiClient
+  }
+  const baseURL = await resolveBaseURL()
+  apiClient = createApiClient(baseURL)
+  setupInterceptors(apiClient)
+  return apiClient
+}
 
 // ============================================
 // Error Transformation
@@ -49,8 +148,17 @@ const apiClient: AxiosInstance = axios.create({
 const transformError = (err: unknown): ApiError => {
   const error = err as AxiosError
 
+  // Check for cancellation first
+  if (axios.isCancel?.(error) || error.message?.includes('canceled') || error.message?.includes('aborted')) {
+    return {
+      code: 'CANCELLED_ERROR',
+      message: '请求已取消',
+      originalError: error,
+    }
+  }
+
   if (!error.response) {
-    if (error.code === 'ECONNABORTED' || error.message.includes('timeout')) {
+    if (error.code === 'ECONNABORTED' || error.message?.includes('timeout')) {
       return {
         code: 'TIMEOUT_ERROR',
         message: '请求超时，请稍后重试',
@@ -68,10 +176,13 @@ const transformError = (err: unknown): ApiError => {
 
   switch (statusCode) {
     case 400: {
-      const data = error.response?.data as { detail?: string; message?: string }
+      const data = error.response?.data as { detail?: string; message?: string; errors?: Record<string, string[]> }
+      const fieldErrors = data?.errors
+        ? Object.entries(data.errors).map(([k, v]) => `${k}: ${v.join(', ')}`).join('; ')
+        : ''
       return {
         code: 'VALIDATION_ERROR',
-        message: data?.detail || data?.message || '请求参数错误',
+        message: fieldErrors || data?.detail || data?.message || '请求参数错误',
         statusCode,
         originalError: error,
       }
@@ -147,6 +258,8 @@ export const getErrorMessage = (error: ApiError): string => {
       return error.message || '请求参数错误'
     case 'SERVER_ERROR':
       return '服务器内部错误，请稍后重试'
+    case 'CANCELLED_ERROR':
+      return '请求已取消'
     default:
       return error.message || '请求失败，请稍后重试'
   }
@@ -178,72 +291,79 @@ export const isRetryableError = (error: unknown): boolean => {
   )
 }
 
+/**
+ * Check if an error is a cancellation.
+ */
+export const isCancelledError = (error: unknown): boolean => {
+  return isApiError(error, 'CANCELLED_ERROR')
+}
+
 // ============================================
-// Request Interceptor
+// Interceptors
 // ============================================
 
-apiClient.interceptors.request.use(
-  (config: InternalAxiosRequestConfig) => {
-    // Local API key auth for desktop app
-    const apiKey = localStorage.getItem('writer_api_key')
-    if (apiKey && config.headers) {
-      config.headers['X-API-Key'] = apiKey
+const setupInterceptors = (client: AxiosInstance): void => {
+  // Request interceptor
+  client.interceptors.request.use(
+    async (config: InternalAxiosRequestConfig) => {
+      // Dev logging
+      if (isDev()) {
+        console.log(`[API Request] ${config.method?.toUpperCase()} ${config.url}`, config.params || config.data || '')
+      }
+
+      // Local API key auth for desktop app
+      let apiKey: string | null = null
+      if (isElectron()) {
+        try {
+          apiKey = await window.electronAPI!.getApiKey()
+        } catch {
+          apiKey = null
+        }
+      } else {
+        apiKey = localStorage.getItem('writer_api_key')
+      }
+      if (apiKey && config.headers) {
+        config.headers['X-API-Key'] = apiKey
+      }
+
+      // Add timestamp for GET requests to avoid caching
+      if (config.method === 'get') {
+        if (config.params) {
+          config.params = { ...config.params, _t: Date.now() }
+        } else {
+          config.params = { _t: Date.now() }
+        }
+      }
+
+      return config
+    },
+    (error) => {
+      return Promise.reject(transformError(error))
     }
-    // Add timestamp for GET requests to avoid caching
-    if (config.method === 'get' && config.params) {
-      config.params = { ...config.params, _t: Date.now() }
-    } else if (config.method === 'get') {
-      config.params = { _t: Date.now() }
+  )
+
+  // Response interceptor
+  client.interceptors.response.use(
+    (response: AxiosResponse) => {
+      if (isDev()) {
+        console.log(`[API Response] ${response.config.method?.toUpperCase()} ${response.config.url} -> ${response.status}`)
+      }
+      return response
+    },
+    (error: AxiosError) => {
+      if (isDev() && error.response) {
+        console.error(`[API Error] ${error.config?.method?.toUpperCase()} ${error.config?.url} -> ${error.response.status}`, error.response.data)
+      }
+      return Promise.reject(transformError(error))
     }
-    return config
-  },
-  (error) => {
-    return Promise.reject(transformError(error))
-  }
-)
-
-// ============================================
-// Response Interceptor
-// ============================================
-
-apiClient.interceptors.response.use(
-  (response: AxiosResponse) => {
-    return response
-  },
-  (error: AxiosError) => {
-    return Promise.reject(transformError(error))
-  }
-)
-
-// ============================================
-// Retry Configuration
-// ============================================
-
-axiosRetry(apiClient, {
-  retries: 3,
-  retryDelay: (retryCount) => {
-    return Math.pow(2, retryCount) * 1000 // Exponential backoff: 1s, 2s, 4s
-  },
-  retryCondition: (error) => {
-    if (!error.response) {
-      return true // Retry on network errors
-    }
-    const status = error.response.status
-    return status >= 500 || status === 408 || status === 429
-  },
-  onRetry: (retryCount, error) => {
-    const axiosErr = error as AxiosError
-    console.warn(
-      `[API Retry] Attempt ${retryCount}/3 - ${axiosErr.config?.method?.toUpperCase()} ${axiosErr.config?.url}`
-    )
-  },
-})
+  )
+}
 
 // ============================================
 // Offline Detection
 // ============================================
 
-let isOnline = navigator.onLine
+let isOnline = typeof navigator !== 'undefined' ? navigator.onLine : true
 
 type OnlineCallback = () => void
 type OfflineCallback = () => void
@@ -283,6 +403,27 @@ export const setupOnlineDetection = (
 export const getOnlineStatus = (): boolean => isOnline
 
 // ============================================
+// AbortController / Request Cancellation
+// ============================================
+
+export interface CancellableRequest<T> {
+  promise: Promise<T>
+  cancel: (reason?: string) => void
+}
+
+/**
+ * Wrap an Axios request with an AbortController for cancellation support.
+ */
+const makeCancellable = <T>(executor: (signal: AbortSignal) => Promise<T>): CancellableRequest<T> => {
+  const controller = new AbortController()
+  const promise = executor(controller.signal)
+  return {
+    promise,
+    cancel: (reason?: string) => controller.abort(reason),
+  }
+}
+
+// ============================================
 // Request Wrapper
 // ============================================
 
@@ -290,6 +431,7 @@ export interface RequestOptions {
   skipOnlineCheck?: boolean
   skipRetry?: boolean
   cacheTTL?: number // Cache TTL in ms, 0 to disable, default 1 min
+  signal?: AbortSignal
 }
 
 const request = async <T>(
@@ -298,7 +440,7 @@ const request = async <T>(
   data?: unknown,
   options: RequestOptions = {}
 ): Promise<T> => {
-  if (!options.skipOnlineCheck && !navigator.onLine) {
+  if (!options.skipOnlineCheck && typeof navigator !== 'undefined' && !navigator.onLine) {
     return Promise.reject({
       code: 'NETWORK_ERROR',
       message: '当前处于离线状态，请检查您的网络连接',
@@ -313,12 +455,17 @@ const request = async <T>(
     }
   }
 
+  const client = await getApiClient()
+
   const config: Record<string, unknown> = {}
   if (options.skipRetry) {
     config['axios-retry'] = { retries: 0 }
   }
+  if (options.signal) {
+    config['signal'] = options.signal
+  }
 
-  const response = await apiClient.request<T>({
+  const response = await client.request<T>({
     method,
     url,
     data,
@@ -334,24 +481,24 @@ const request = async <T>(
 }
 
 // Convenience method for GET requests
-const get = <T>(url: string, params?: Record<string, unknown>): Promise<T> =>
-  request<T>('get', url, { params })
+const get = <T>(url: string, params?: Record<string, unknown>, options?: RequestOptions): Promise<T> =>
+  request<T>('get', url, { params }, options)
 
 // Convenience method for POST requests
-const post = <T>(url: string, data?: unknown): Promise<T> =>
-  request<T>('post', url, data)
+const post = <T>(url: string, data?: unknown, options?: RequestOptions): Promise<T> =>
+  request<T>('post', url, data, options)
 
 // Convenience method for PUT requests
-const put = <T>(url: string, data?: unknown): Promise<T> =>
-  request<T>('put', url, data)
+const put = <T>(url: string, data?: unknown, options?: RequestOptions): Promise<T> =>
+  request<T>('put', url, data, options)
 
 // Convenience method for PATCH requests
-const patch = <T>(url: string, data?: unknown): Promise<T> =>
-  request<T>('patch', url, data)
+const patch = <T>(url: string, data?: unknown, options?: RequestOptions): Promise<T> =>
+  request<T>('patch', url, data, options)
 
 // Convenience method for DELETE requests
-const del = <T>(url: string): Promise<T> =>
-  request<T>('delete', url)
+const del = <T>(url: string, options?: RequestOptions): Promise<T> =>
+  request<T>('delete', url, undefined, options)
 
 export { get, post, put, patch, del as delete }
 
@@ -377,11 +524,73 @@ export const api = {
 }
 
 // ============================================
+// Health Check Polling
+// ============================================
+
+export interface HealthPollerOptions {
+  intervalMs?: number
+  timeoutMs?: number
+  onHealthy?: () => void
+  onUnhealthy?: (error: ApiError) => void
+  onStatusChange?: (isHealthy: boolean) => void
+}
+
+let healthPollerId: ReturnType<typeof setInterval> | null = null
+
+/**
+ * Start polling the backend health endpoint.
+ * Returns a function to stop polling.
+ */
+export const startHealthPolling = (options: HealthPollerOptions = {}): (() => void) => {
+  const { intervalMs = 30000, timeoutMs = 5000 } = options
+
+  if (healthPollerId) {
+    clearInterval(healthPollerId)
+  }
+
+  let lastHealthy = true
+
+  const check = async () => {
+    try {
+      const client = await getApiClient()
+      await client.get('/health', { timeout: timeoutMs })
+      if (!lastHealthy) {
+        lastHealthy = true
+        options.onHealthy?.()
+        options.onStatusChange?.(true)
+      }
+    } catch (err) {
+      const apiErr = err as ApiError
+      if (lastHealthy && apiErr.code !== 'CANCELLED_ERROR') {
+        lastHealthy = false
+        options.onUnhealthy?.(apiErr)
+        options.onStatusChange?.(false)
+      }
+    }
+  }
+
+  // Initial check
+  check()
+
+  healthPollerId = setInterval(check, intervalMs)
+
+  return () => {
+    if (healthPollerId) {
+      clearInterval(healthPollerId)
+      healthPollerId = null
+    }
+  }
+}
+
+// ============================================
 // Named Exports
 // ============================================
 
-export { apiClient }
+/** Get the raw Axios instance (initialized lazily). */
+export const getAxiosInstance = async (): Promise<AxiosInstance> => getApiClient()
+
 export { transformError }
+export { makeCancellable, createApiClient, resolveBaseURL }
 
 // Default export for backwards compatibility with existing imports
 export default { get, post, put, patch, delete: del }

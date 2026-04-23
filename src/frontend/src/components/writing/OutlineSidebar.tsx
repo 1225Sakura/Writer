@@ -6,11 +6,11 @@ import {
   ChevronDown,
   FileText,
   AlertCircle,
-  GitBranch,
   List,
   Check,
   MoreHorizontal,
 } from 'lucide-react'
+import { PlotThreadIcon, EntityIcon } from '@/components/ui/Icon'
 
 interface OutlineItem {
   id: string
@@ -39,10 +39,13 @@ function TreeNode({
       <div
         className={`flex items-center gap-1 px-2 py-1.5 rounded-lg cursor-pointer transition-all duration-150 group
           ${selectedId === item.id
-            ? 'bg-[#5e6ad2]/15 text-[#5e6ad2]'
-            : 'text-[#d0d6e0] hover:bg-[rgba(255,255,255,0.04)]'
+            ? 'bg-[var(--accent-primary)]/15'
+            : 'hover:bg-[var(--hover-bg)]'
           }`}
-        style={{ paddingLeft: `${depth * 16 + 8}px` }}
+        style={{
+          paddingLeft: `${depth * 16 + 8}px`,
+          color: selectedId === item.id ? 'var(--accent-primary)' : 'var(--text-secondary)',
+        }}
         onClick={() => onSelect(item.id)}
       >
         {/* Expand/collapse icon */}
@@ -51,7 +54,14 @@ function TreeNode({
             e.stopPropagation()
             setIsExpanded(!isExpanded)
           }}
-          className="w-4 h-4 flex items-center justify-center rounded hover:bg-[rgba(255,255,255,0.08)]"
+          className="w-4 h-4 flex items-center justify-center rounded"
+          style={{ color: 'var(--text-tertiary)' }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.background = 'var(--hover-bg)'
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.background = 'transparent'
+          }}
         >
           {hasChildren ? (
             isExpanded ? (
@@ -69,7 +79,16 @@ function TreeNode({
 
         {/* Actions on hover */}
         <div className="opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-0.5">
-          <button className="w-5 h-5 flex items-center justify-center rounded hover:bg-[rgba(255,255,255,0.08)]">
+          <button
+            className="w-5 h-5 flex items-center justify-center rounded"
+            style={{ color: 'var(--text-tertiary)' }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.background = 'var(--hover-bg)'
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.background = 'transparent'
+            }}
+          >
             <MoreHorizontal className="w-3 h-3" />
           </button>
         </div>
@@ -111,7 +130,7 @@ function PlotThreadItem({
 }) {
   return (
     <div className="flex items-start gap-2 p-2 rounded-lg bg-[#0f1011] border border-[rgba(255,255,255,0.06)] group">
-      <span className="text-[var(--color-ifline)] font-bold text-sm mt-0.5">❶</span>
+      <PlotThreadIcon size="sm" className="text-[var(--color-ifline)] mt-0.5" />
       <div className="flex-1 min-w-0">
         <div className="font-medium text-sm text-[#f7f8f8] truncate">{thread.title}</div>
         {thread.description && (
@@ -138,7 +157,7 @@ function IFLineItem({
   return (
     <div className="p-2.5 rounded-lg bg-[#0f1011] border border-[rgba(255,255,255,0.06)]">
       <div className="flex items-center gap-2 mb-1.5">
-        <GitBranch className="w-3.5 h-3.5 text-[var(--color-ifline)]" />
+        <EntityIcon type="ifline" size="xs" className="text-[var(--color-ifline)]" />
         <div className="flex-1 min-w-0">
           <div className="text-sm font-medium text-[#f7f8f8] truncate">{line.title}</div>
         </div>
@@ -225,32 +244,53 @@ export function OutlineSidebar() {
   const tabs = [
     { id: 'outline' as const, label: '章节', icon: <List className="w-3.5 h-3.5" /> },
     { id: 'plot' as const, label: '伏笔', icon: <AlertCircle className="w-3.5 h-3.5" />, badge: openThreads.length },
-    { id: 'ifline' as const, label: 'IF线', icon: <GitBranch className="w-3.5 h-3.5" />, badge: ifLines.length },
+    { id: 'ifline' as const, label: 'IF线', icon: <EntityIcon type="ifline" size="xs" />, badge: ifLines.length },
   ]
 
   return (
-    <div className="flex flex-col h-full bg-[#191a1b]">
+    <div className="flex flex-col h-full" style={{ background: 'var(--color-surface-raised)' }}>
       {/* Header */}
-      <div className="flex items-center justify-between px-3 py-2.5 border-b border-[rgba(255,255,255,0.08)]">
-        <span className="font-medium text-sm text-[#f7f8f8]">大纲</span>
+      <div
+        className="flex items-center justify-between px-3 py-2.5"
+        style={{ borderBottom: '1px solid var(--border-default)' }}
+      >
+        <span className="font-medium text-sm" style={{ color: 'var(--text-primary)' }}>大纲</span>
       </div>
 
       {/* Tabs */}
-      <div className="flex border-b border-[rgba(255,255,255,0.08)]">
+      <div className="flex" style={{ borderBottom: '1px solid var(--border-default)' }}>
         {tabs.map((tab) => (
           <button
             key={tab.id}
             onClick={() => setActiveTab(tab.id)}
-            className={`flex-1 flex items-center justify-center gap-1.5 px-3 py-2 text-xs font-medium transition-all
-              ${activeTab === tab.id
-                ? 'text-[#5e6ad2] border-b-2 border-[#5e6ad2]'
-                : 'text-[#d0d6e0] hover:text-[#f7f8f8] hover:bg-[rgba(255,255,255,0.02)]'
-              }`}
+            className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 text-xs font-medium transition-all"
+            style={{
+              color: activeTab === tab.id ? 'var(--accent-primary)' : 'var(--text-secondary)',
+              borderBottom: activeTab === tab.id ? '2px solid var(--accent-primary)' : '2px solid transparent',
+            }}
+            onMouseEnter={(e) => {
+              if (activeTab !== tab.id) {
+                e.currentTarget.style.color = 'var(--text-primary)'
+                e.currentTarget.style.background = 'var(--hover-bg)'
+              }
+            }}
+            onMouseLeave={(e) => {
+              if (activeTab !== tab.id) {
+                e.currentTarget.style.color = 'var(--text-secondary)'
+                e.currentTarget.style.background = 'transparent'
+              }
+            }}
           >
             {tab.icon}
             <span>{tab.label}</span>
             {tab.badge !== undefined && tab.badge > 0 && (
-              <span className="px-1 py-0.5 text-[10px] rounded-full bg-[#c45c5c]/20 text-[#c45c5c]">
+              <span
+                className="px-1 py-0.5 text-[10px] rounded-full"
+                style={{
+                  background: 'color-mix(in srgb, var(--color-vermillion) 20%, transparent)',
+                  color: 'var(--color-vermillion)',
+                }}
+              >
                 {tab.badge}
               </span>
             )}
@@ -271,7 +311,7 @@ export function OutlineSidebar() {
               className="space-y-1"
             >
               {outlineData.length === 0 ? (
-                <div className="text-center py-8 text-sm text-[#d0d6e0]/60">
+                <div className="text-center py-8 text-sm" style={{ color: 'var(--text-tertiary)' }}>
                   暂无章节大纲
                 </div>
               ) : (
@@ -297,7 +337,7 @@ export function OutlineSidebar() {
               className="space-y-2"
             >
               {openThreads.length === 0 ? (
-                <div className="text-center py-8 text-sm text-[#d0d6e0]/60">
+                <div className="text-center py-8 text-sm" style={{ color: 'var(--text-tertiary)' }}>
                   暂无进行中的伏笔
                 </div>
               ) : (
@@ -322,7 +362,7 @@ export function OutlineSidebar() {
               className="space-y-2"
             >
               {ifLines.length === 0 ? (
-                <div className="text-center py-8 text-sm text-[#d0d6e0]/60">
+                <div className="text-center py-8 text-sm" style={{ color: 'var(--text-tertiary)' }}>
                   暂无IF线
                 </div>
               ) : (

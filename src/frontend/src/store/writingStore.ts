@@ -11,6 +11,7 @@ import {
   inspectionApi,
   aiApi,
 } from '../api/writing'
+import { writingSettingsApi } from '../api/settings'
 import { consumeStream } from '../api/chat'
 import type {
   Chapter,
@@ -20,6 +21,7 @@ import type {
   DraftVersion,
   AIInspectionResult,
 } from '../api/types'
+import { createHybridStorage } from './utils/indexedDBStorage'
 
 // ============================================
 // Types
@@ -80,13 +82,15 @@ export interface AIInspectionResultLocal {
 /** AI生成队列项 */
 export interface AIGenerationJob {
   id: string
-  type: 'optimize' | 'expand' | 'shrink' | 'rewrite' | 'continue' | 'polish'
+  type: 'optimize' | 'expand' | 'condense' | 'rewrite' | 'continue' | 'polish'
   content: string
   status: 'pending' | 'processing' | 'completed' | 'failed'
   result?: string
   error?: string
   createdAt: number
   completedAt?: number
+  progress: number
+  retryCount: number
 }
 
 /** 自动保存状态 */
@@ -224,7 +228,7 @@ interface WritingActions {
   // AI operations with queue
   optimize: (content: string) => Promise<string>
   expand: (content: string) => Promise<string>
-  shrink: (content: string) => Promise<string>
+  condense: (content: string) => Promise<string>
   rewrite: (content: string) => Promise<string>
   continue: (content: string) => Promise<string>
   polish: (content: string) => Promise<string>
@@ -335,13 +339,26 @@ export const useWritingStore = create<WritingState & WritingActions>()(
               state.loading.outlines = true
             })
             try {
-              const [chapters, outlines] = await Promise.all([
+              const [chapters, outlines, settings] = await Promise.all([
                 chapterApi.list(),
                 outlineApi.list(),
+                writingSettingsApi.get().catch(() => null),
               ])
               set((state) => {
                 state.chapters = chapters
                 state.outlines = outlines
+                // Override local settings with backend settings if available
+                if (settings) {
+                  if (settings.human_ai_ratio !== undefined) {
+                    state.humanAIRatio = Math.round(settings.human_ai_ratio * 100)
+                  }
+                  if (settings.writing_style) {
+                    state.writingStyle = settings.writing_style as WritingStyle
+                  }
+                  if (settings.target_word_count) {
+                    state.targetWordCount = settings.target_word_count
+                  }
+                }
               })
             } catch (error) {
               console.error('Failed to initialize writing store:', error)
@@ -437,7 +454,23 @@ export const useWritingStore = create<WritingState & WritingActions>()(
             const wordCount = currentContent.replace(/\s/g, '').length
             set((state) => { state.saveStatus = 'saving' })
             try {
+              // Update chapter metadata
               await chapterApi.update(currentChapterId, { word_count: wordCount })
+
+              // Save content as draft version
+              if (currentContent.trim()) {
+                const existingDrafts = get().draftVersions.filter(
+                  (d) => d.chapter_id === currentChapterId
+                )
+                await draftApi.create(currentChapterId, {
+                  content: currentContent,
+                  version_number: existingDrafts.length + 1,
+                })
+                // Refresh drafts
+                const updatedDrafts = await draftApi.list(currentChapterId)
+                set((state) => { state.draftVersions = updatedDrafts })
+              }
+
               set((state) => {
                 const ch = state.chapters.find((c) => c.id === currentChapterId)
                 if (ch) {
@@ -708,6 +741,8 @@ export const useWritingStore = create<WritingState & WritingActions>()(
               content,
               status: 'pending',
               createdAt: Date.now(),
+              progress: 0,
+              retryCount: 0,
             }
             set((state) => {
               state.aiJobQueue.push(job)
@@ -723,9 +758,15 @@ export const useWritingStore = create<WritingState & WritingActions>()(
           cancelJob: (jobId) => {
             set((state) => {
               const job = state.aiJobQueue.find((j) => j.id === jobId)
-              if (job && job.status === 'pending') {
+              if (!job) return
+
+              if (job.status === 'pending') {
                 job.status = 'failed'
                 job.error = '已取消'
+              } else if (job.status === 'processing') {
+                // Mark for cancellation - the processNextJob loop will check this
+                job.error = '取消中...'
+                // Abort controller will be checked during streaming
               }
             })
           },
@@ -744,6 +785,7 @@ export const useWritingStore = create<WritingState & WritingActions>()(
               if (job) {
                 job.status = 'pending'
                 job.error = undefined
+                job.progress = 0
               }
             })
             await get().processNextJob()
@@ -753,7 +795,7 @@ export const useWritingStore = create<WritingState & WritingActions>()(
             return get().aiJobQueue.find((j) => j.id === jobId)
           },
 
-          // Internal: process next job in queue
+          // Internal: process next job in queue with retry, timeout, and cancellation
           processNextJob: async () => {
             const { aiJobQueue, currentJobId } = get()
             if (currentJobId) return // Already processing
@@ -761,62 +803,173 @@ export const useWritingStore = create<WritingState & WritingActions>()(
             const nextJob = aiJobQueue.find((j) => j.status === 'pending')
             if (!nextJob) return
 
+            const MAX_RETRIES = 3
+            const TIMEOUT_MS = 30000
+
             set((state) => {
               state.currentJobId = nextJob.id
               nextJob.status = 'processing'
+              nextJob.progress = 5
               state.loading.ai = true
             })
 
-            try {
-              let result: string
-              const chapterId = get().currentChapterId ?? undefined
-              const ratio = get().humanAIRatio
+            const chapterId = get().currentChapterId ?? undefined
+            const ratio = get().humanAIRatio
+            let lastError: Error | null = null
 
-              let res: { stream: ReadableStream<Uint8Array>; headers: { operation: string; 'human-ai-ratio': string; style: string } }
-              switch (nextJob.type) {
-                case 'optimize':
-                  res = await aiApi.optimize(nextJob.content, chapterId, ratio)
-                  break
-                case 'expand':
-                  res = await aiApi.expand(nextJob.content, chapterId, ratio)
-                  break
-                case 'shrink':
-                  res = await aiApi.shrink(nextJob.content, chapterId, ratio)
-                  break
-                case 'rewrite':
-                  res = await aiApi.rewrite(nextJob.content, chapterId, ratio)
-                  break
-                case 'continue':
-                  res = await aiApi.continue(nextJob.content, chapterId, ratio)
-                  break
-                case 'polish':
-                  res = await aiApi.polish(nextJob.content, chapterId, ratio)
-                  break
-                default:
-                  throw new Error('Unknown job type')
+            // Retry loop
+            for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
+              // Check if job was cancelled before starting
+              const currentJob = get().aiJobQueue.find((j) => j.id === nextJob.id)
+              if (!currentJob || currentJob.error === '取消中...') {
+                set((state) => {
+                  const job = state.aiJobQueue.find((j) => j.id === nextJob.id)
+                  if (job) {
+                    job.status = 'failed'
+                    job.error = '已取消'
+                    job.progress = 0
+                  }
+                  state.currentJobId = null
+                  state.loading.ai = false
+                })
+                return
               }
-              result = await consumeStream(res.stream)
 
-              set((state) => {
-                const job = state.aiJobQueue.find((j) => j.id === nextJob.id)
-                if (job) {
-                  job.status = 'completed'
-                  job.result = result
-                  job.completedAt = Date.now()
+              if (attempt > 0) {
+                set((state) => {
+                  const job = state.aiJobQueue.find((j) => j.id === nextJob.id)
+                  if (job) {
+                    job.retryCount = attempt
+                    job.progress = 5
+                    job.error = undefined
+                  }
+                })
+                // Exponential backoff before retry
+                await new Promise((r) => setTimeout(r, Math.pow(2, attempt) * 1000))
+              }
+
+              try {
+                let res: { stream: ReadableStream<Uint8Array>; headers: { operation: string; 'human-ai-ratio': string; style: string } }
+                switch (nextJob.type) {
+                  case 'optimize':
+                    res = await aiApi.optimize(nextJob.content, chapterId, ratio)
+                    break
+                  case 'expand':
+                    res = await aiApi.expand(nextJob.content, chapterId, ratio)
+                    break
+                  case 'condense':
+                    res = await aiApi.shrink(nextJob.content, chapterId, ratio)
+                    break
+                  case 'rewrite':
+                    res = await aiApi.rewrite(nextJob.content, chapterId, ratio)
+                    break
+                  case 'continue':
+                    res = await aiApi.continue(nextJob.content, chapterId, ratio)
+                    break
+                  case 'polish':
+                    res = await aiApi.polish(nextJob.content, chapterId, ratio)
+                    break
+                  default:
+                    throw new Error('Unknown job type')
                 }
-                state.currentJobId = null
-                state.loading.ai = false
-              })
-            } catch (error) {
-              set((state) => {
-                const job = state.aiJobQueue.find((j) => j.id === nextJob.id)
-                if (job) {
-                  job.status = 'failed'
-                  job.error = (error as Error).message
+
+                // Consume stream with timeout, progress tracking, and cancellation check
+                const result = await Promise.race([
+                  consumeStream(res.stream, {
+                    onChunk: () => {
+                      // Chunk updates are handled by progress events
+                    },
+                    onProgress: (percent) => {
+                      set((state) => {
+                        const job = state.aiJobQueue.find((j) => j.id === nextJob.id)
+                        if (job) job.progress = percent
+                      })
+                    },
+                    onDone: () => {
+                      set((state) => {
+                        const job = state.aiJobQueue.find((j) => j.id === nextJob.id)
+                        if (job) job.progress = 100
+                      })
+                    },
+                  }),
+                  new Promise<string>((_, reject) => {
+                    setTimeout(() => {
+                      reject(new Error('AI生成超时，请重试'))
+                    }, TIMEOUT_MS)
+                  }),
+                ])
+
+                // Check if cancelled during stream consumption
+                const postStreamJob = get().aiJobQueue.find((j) => j.id === nextJob.id)
+                if (postStreamJob?.error === '取消中...') {
+                  set((state) => {
+                    const job = state.aiJobQueue.find((j) => j.id === nextJob.id)
+                    if (job) {
+                      job.status = 'failed'
+                      job.error = '已取消'
+                      job.progress = 0
+                    }
+                    state.currentJobId = null
+                    state.loading.ai = false
+                  })
+                  return
                 }
-                state.currentJobId = null
-                state.loading.ai = false
-              })
+
+                // Validate result
+                if (!result || !result.trim()) {
+                  throw new Error('AI返回了空内容')
+                }
+
+                set((state) => {
+                  const job = state.aiJobQueue.find((j) => j.id === nextJob.id)
+                  if (job) {
+                    job.status = 'completed'
+                    job.result = result
+                    job.completedAt = Date.now()
+                    job.progress = 100
+                    job.retryCount = attempt
+                  }
+                  state.currentJobId = null
+                  state.loading.ai = false
+                })
+
+                // Success - break retry loop
+                lastError = null
+                break
+              } catch (error) {
+                lastError = error instanceof Error ? error : new Error(String(error))
+                console.warn(`[AI Job] Attempt ${attempt + 1}/${MAX_RETRIES + 1} failed for ${nextJob.type}:`, lastError.message)
+
+                // Don't retry on cancellation
+                const checkJob = get().aiJobQueue.find((j) => j.id === nextJob.id)
+                if (checkJob?.error === '取消中...') {
+                  set((state) => {
+                    const job = state.aiJobQueue.find((j) => j.id === nextJob.id)
+                    if (job) {
+                      job.status = 'failed'
+                      job.error = '已取消'
+                      job.progress = 0
+                    }
+                    state.currentJobId = null
+                    state.loading.ai = false
+                  })
+                  return
+                }
+
+                // On final attempt, mark as failed
+                if (attempt === MAX_RETRIES) {
+                  set((state) => {
+                    const job = state.aiJobQueue.find((j) => j.id === nextJob.id)
+                    if (job) {
+                      job.status = 'failed'
+                      job.error = lastError?.message || 'AI生成失败，已达到最大重试次数'
+                      job.progress = 0
+                    }
+                    state.currentJobId = null
+                    state.loading.ai = false
+                  })
+                }
+              }
             }
 
             // Process next job
@@ -839,8 +992,8 @@ export const useWritingStore = create<WritingState & WritingActions>()(
             throw new Error(job?.error || 'Expansion failed')
           },
 
-          shrink: async (content) => {
-            const jobId = get().addJob('shrink', content)
+          condense: async (content) => {
+            const jobId = get().addJob('condense', content)
             await get().waitForJob(jobId)
             const job = get().aiJobQueue.find((j) => j.id === jobId)
             if (job?.status === 'completed') return job.result!
@@ -892,10 +1045,18 @@ export const useWritingStore = create<WritingState & WritingActions>()(
 
           setHumanAIRatio: (ratio) => {
             set((state) => { state.humanAIRatio = ratio })
+            // Sync to backend (fire and forget)
+            writingSettingsApi.update({ human_ai_ratio: ratio / 100 }).catch((err) => {
+              console.warn('Failed to sync human-ai ratio to backend:', err)
+            })
           },
 
           setWritingStyle: (style) => {
             set((state) => { state.writingStyle = style })
+            // Sync to backend (fire and forget)
+            writingSettingsApi.update({ writing_style: style }).catch((err) => {
+              console.warn('Failed to sync writing style to backend:', err)
+            })
           },
 
           setTargetWordCount: (count) => {
@@ -1055,6 +1216,7 @@ export const useWritingStore = create<WritingState & WritingActions>()(
         }),
         {
           name: 'writer-writing-store-v2',
+          storage: createHybridStorage(100 * 1024) as never,
           partialize: (state) => ({
             humanAIRatio: state.humanAIRatio,
             writingStyle: state.writingStyle,
@@ -1090,3 +1252,36 @@ export const selectPendingJobs = (state: WritingState) =>
 
 export const selectCompletedJobs = (state: WritingState) =>
   state.aiJobQueue.filter((j) => j.status === 'completed')
+
+/** 仅选择写作配置（最小重渲染） */
+export const selectWritingConfig = (state: WritingState) => ({
+  humanAIRatio: state.humanAIRatio,
+  writingStyle: state.writingStyle,
+  targetWordCount: state.targetWordCount,
+  autoSaveEnabled: state.autoSaveEnabled,
+  autoSaveInterval: state.autoSaveInterval,
+})
+
+/** 仅选择当前章节内容 */
+export const selectCurrentContent = (state: WritingState) => ({
+  currentContent: state.currentContent,
+  wordCount: state.wordCount,
+  saveStatus: state.saveStatus,
+})
+
+/** 仅选择 loading 状态 */
+export const selectLoadingState = (state: WritingState) => state.loading
+
+/** 清理 writing store 临时状态 */
+export function cleanupWritingStore() {
+  useWritingStore.setState((state) => {
+    state.loading.chapters = false
+    state.loading.outlines = false
+    state.loading.ifLines = false
+    state.loading.plotThreads = false
+    state.loading.drafts = false
+    state.loading.ai = false
+    state.error = null
+    state.saveStatus = 'idle'
+  })
+}

@@ -325,7 +325,7 @@ function BookSpinner({
 export function LoadingSpinner({
   variant = 'ring',
   size = 'md',
-  color = '#5e6ad2',
+  color = 'var(--accent-primary)',
   className,
 }: LoadingSpinnerProps) {
   const pixelSize = sizeMap[size]
@@ -368,7 +368,7 @@ export function InlineLoading({
     <div className={cn('flex items-center gap-2', className)}>
       <LoadingSpinner variant={variant} size={size} />
       {message && (
-        <span className="text-xs" style={{ color: '#8a8f98' }}>
+        <span className="text-xs text-[var(--text-tertiary)]">
           {message}
         </span>
       )}
@@ -406,7 +406,7 @@ export function PageLoading({
     <div className="flex flex-col items-center justify-center gap-4 min-h-[200px]">
       <LoadingSpinner variant={variant} size={size} />
       {message && (
-        <p className="text-sm" style={{ color: '#8a8f98' }}>
+        <p className="text-sm text-[var(--text-tertiary)]">
           {message}
         </p>
       )}

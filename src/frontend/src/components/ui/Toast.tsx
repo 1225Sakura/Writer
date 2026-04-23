@@ -11,24 +11,28 @@ export interface ToastProps {
 
 const typeConfig = {
   info: {
-    bg: 'bg-[#5e6ad2]',
+    bg: 'bg-[var(--accent-primary)]',
     icon: Info,
     progressColor: 'bg-white/40',
+    textColor: 'text-white',
   },
   success: {
-    bg: 'bg-[#7eb84a]',
+    bg: 'bg-[var(--color-ifline)]',
     icon: CheckCircle,
     progressColor: 'bg-white/40',
+    textColor: 'text-white',
   },
   warning: {
-    bg: 'bg-[#e8b87d]',
+    bg: 'bg-[var(--color-character)]',
     icon: AlertTriangle,
     progressColor: 'bg-white/40',
+    textColor: 'text-white',
   },
   error: {
-    bg: 'bg-[#c45c5c]',
+    bg: 'bg-[var(--color-vermillion)]',
     icon: AlertCircle,
     progressColor: 'bg-white/40',
+    textColor: 'text-white',
   },
 }
 
@@ -65,21 +69,21 @@ export function Toast({ message, type = 'info', duration = 3000, onClose }: Toas
   return (
     <motion.div
       layout
-      initial={{ x: 80, opacity: 0, scale: 0.95 }}
+      initial={{ x: 60, opacity: 0, scale: 0.96 }}
       animate={{ x: 0, opacity: 1, scale: 1 }}
-      exit={{ y: -20, opacity: 0, scale: 0.95 }}
+      exit={{ y: -12, opacity: 0, scale: 0.96 }}
       transition={{
         type: 'spring',
-        stiffness: 400,
-        damping: 30,
+        stiffness: 500,
+        damping: 35,
       }}
-      className={`relative flex items-center gap-3 px-4 py-3 rounded-xl border border-white/10 shadow-lg overflow-hidden ${config.bg} text-white min-w-[280px] max-w-[400px]`}
+      className={`relative flex items-center gap-3 px-4 py-3 rounded-xl border border-[var(--border-default)] shadow-[var(--shadow-elevated)] overflow-hidden ${config.bg} ${config.textColor} min-w-[280px] max-w-[400px]`}
     >
       <Icon className="w-5 h-5 flex-shrink-0 opacity-90" />
       <span className="text-sm font-medium flex-1 pr-2">{message}</span>
       <button
         onClick={onClose}
-        className="p-1 hover:bg-white/20 rounded-md transition-colors flex-shrink-0"
+        className="p-1 hover:bg-black/10 rounded-md transition-colors flex-shrink-0"
       >
         <X className="w-4 h-4" />
       </button>
@@ -96,7 +100,7 @@ export function Toast({ message, type = 'info', duration = 3000, onClose }: Toas
   )
 }
 
-// Toast 管理器
+// Toast manager
 let toastId = 0
 let addToastHandler: ((message: string, type?: ToastProps['type']) => void) | null = null
 

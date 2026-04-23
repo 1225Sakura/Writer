@@ -1,4 +1,5 @@
 import { useUIStore, useSettingsStore } from '@/store'
+import type { SettingsCategory } from '@/store/uiStore'
 import { CategoryNav } from './CategoryNav'
 import { EntityEditor } from './EntityEditor'
 import { RelationGraph } from './RelationGraph'
@@ -203,7 +204,12 @@ export function SettingEditorPage() {
             </span>
           </div>
           <div className="flex items-center gap-2">
-            <EntitySearch onResultClick={(type) => setSettingsCategory(type)} />
+            <EntitySearch onResultClick={(type) => {
+              const valid: Array<SettingsCategory> = ['world', 'character', 'item', 'location', 'faction', 'rule', 'outline', 'ifline']
+              if (valid.includes(type as SettingsCategory)) {
+                setSettingsCategory(type as SettingsCategory)
+              }
+            }} />
             <Button
               onClick={() => setCurrentInterface('chat')}
               variant="ghost"
@@ -236,7 +242,7 @@ export function SettingEditorPage() {
         </div>
 
         {/* 编辑器内容区 */}
-        <div className="flex-1 overflow-y-auto p-5 relative">
+        <div className="flex-1 overflow-y-auto p-6 relative">
           <SectionLoadingOverlay visible={isLoading} message="加载实体数据..." />
           {isLoading ? (
             <div className="space-y-4">
@@ -265,8 +271,8 @@ export function SettingEditorPage() {
       <motion.div
         className="flex-shrink-0 h-full flex flex-col overflow-hidden relative"
         style={{
-          width: '320px',
-          minWidth: '200px',
+          width: 'var(--layout-rightpanel-width, 320px)',
+          minWidth: '240px',
           backgroundColor: 'var(--color-surface-raised)',
           borderLeft: '1px solid var(--border-default)',
           zIndex: 1,

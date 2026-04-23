@@ -3,13 +3,14 @@
  *
  * 提供按钮点击反馈、悬停效果、状态变化等微动效
  *
- * 设计规范（DESIGN_VISUAL.md）：
- * - Hover: scale(1.02), 150ms
+ * 设计规范：
+ * - Hover: translateY(-1px) + shadow, 150ms
  * - Active/Press: scale(0.98), 100ms
  * - Error: 红色抖动 (shake)
  */
 
-import { motion, type HTMLMotionProps } from 'framer-motion'
+import * as React from 'react'
+import { motion, type HTMLMotionProps, AnimatePresence } from 'framer-motion'
 import type { ReactNode, CSSProperties } from 'react'
 import { cn } from '@/lib/utils'
 
@@ -22,14 +23,14 @@ interface RippleEffectProps extends HTMLMotionProps<'span'> {
 /**
  * RippleEffect - 波纹点击效果
  */
-export function RippleEffect({ color = 'rgba(255, 255, 255, 0.3)', ...props }: RippleEffectProps) {
+export function RippleEffect({ color = 'rgba(255, 255, 255, 0.25)', ...props }: RippleEffectProps) {
   return (
     <motion.span
       {...props}
       className={cn('absolute inset-0 pointer-events-none', props.className)}
       initial={{ scale: 0, opacity: 1 }}
-      animate={{ scale: 2.5, opacity: 0 }}
-      transition={{ duration: 0.6, ease: 'easeOut' }}
+      animate={{ scale: 2, opacity: 0 }}
+      transition={{ duration: 0.4, ease: [0.4, 0, 0.2, 1] }}
       style={{
         backgroundColor: color,
         borderRadius: '50%',
@@ -61,9 +62,9 @@ export function ButtonFeedback({
   return (
     <motion.button
       className={cn('relative overflow-hidden cursor-pointer', className)}
-      whileHover={{ scale: 1.02 }}
-      whileTap={scaleOnClick ? { scale: 0.97 } : undefined}
-      transition={{ duration: 0.1 }}
+      whileHover={{ y: -1, boxShadow: '0 2px 8px rgba(0,0,0,0.15)' }}
+      whileTap={scaleOnClick ? { scale: 0.98 } : undefined}
+      transition={{ duration: 0.15, ease: [0.4, 0, 0.2, 1] }}
       {...props}
     >
       {children}
@@ -137,9 +138,9 @@ export function IconButton({
         ...variantStyles[variant],
         ...activeStyle,
       }}
-      whileHover={{ scale: 1.05 }}
-      whileTap={{ scale: 0.95 }}
-      transition={{ duration: 0.15 }}
+      whileHover={{ y: -1, opacity: 0.9 }}
+      whileTap={{ scale: 0.97 }}
+      transition={{ duration: 0.15, ease: [0.4, 0, 0.2, 1] }}
       aria-label={label}
       {...props}
     >
@@ -195,9 +196,9 @@ export function Toggle({
       disabled={disabled}
     >
       <motion.div
-        className={cn('absolute bg-white rounded-full shadow-md', thumb)}
+        className={cn('absolute bg-white rounded-full shadow-sm', thumb)}
         animate={{ x: checked ? 20 : 2 }}
-        transition={{ type: 'spring', stiffness: 500, damping: 30 }}
+        transition={{ type: 'spring', stiffness: 500, damping: 35 }}
       />
     </motion.button>
   )
@@ -235,10 +236,10 @@ export function HoverCard({
       <AnimatePresence>
         {isHovered && content && (
           <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.95 }}
-            transition={{ duration: 0.15 }}
+            initial={{ opacity: 0, y: 4 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 4 }}
+            transition={{ duration: 0.15, ease: [0.4, 0, 0.2, 1] }}
             className={cn(
               'absolute z-50 p-3 rounded-lg border shadow-lg',
               'bg-elevation-3 border-border-default',
@@ -292,15 +293,15 @@ export function PulseIndicator({
     <motion.span
       className={cn('relative inline-flex rounded-full', sizeMap[size], className)}
       style={{ backgroundColor: statusColors[status] }}
-      animate={status === 'online' ? { scale: [1, 1.2, 1] } : undefined}
-      transition={{ duration: 2, repeat: Infinity }}
+      animate={status === 'online' ? { scale: [1, 1.15, 1] } : undefined}
+      transition={{ duration: 2.5, repeat: Infinity, ease: 'easeInOut' }}
     >
       {(status === 'online' || status === 'busy') && (
         <motion.span
           className="absolute inset-0 rounded-full"
           style={{ backgroundColor: statusColors[status] }}
-          animate={{ scale: [1, 2], opacity: [0.5, 0] }}
-          transition={{ duration: 1.5, repeat: Infinity }}
+          animate={{ scale: [1, 1.8], opacity: [0.4, 0] }}
+          transition={{ duration: 2, repeat: Infinity, ease: 'easeOut' }}
         />
       )}
     </motion.span>
@@ -332,17 +333,18 @@ export function ShimmerButton({
   }
 
   const defaultShimmer = {
-    default: 'rgba(255, 255, 255, 0.1)',
-    accent: 'rgba(255, 255, 255, 0.2)',
-    danger: 'rgba(255, 255, 255, 0.1)',
+    default: 'rgba(255, 255, 255, 0.06)',
+    accent: 'rgba(255, 255, 255, 0.15)',
+    danger: 'rgba(255, 255, 255, 0.06)',
   }
 
   return (
     <motion.button
       className={cn('relative overflow-hidden rounded-lg px-4 py-2 font-medium', className)}
       style={{ backgroundColor: variantBg[variant] }}
-      whileHover={{ scale: 1.02 }}
+      whileHover={{ y: -1 }}
       whileTap={{ scale: 0.98 }}
+      transition={{ duration: 0.15, ease: [0.4, 0, 0.2, 1] }}
       {...props}
     >
       <motion.div
@@ -352,7 +354,7 @@ export function ShimmerButton({
           backgroundSize: '200% 100%',
         }}
         animate={{ backgroundPosition: ['200% 0', '-200% 0'] }}
-        transition={{ duration: 1.5, repeat: Infinity, ease: 'linear' }}
+        transition={{ duration: 2, repeat: Infinity, ease: 'linear' }}
       />
       <span className="relative z-10">{children}</span>
     </motion.button>
@@ -371,7 +373,7 @@ interface MagneticEffectProps {
  * MagneticEffect - 磁性悬停效果
  * 鼠标靠近时元素会被"吸"向鼠标方向
  */
-export function MagneticEffect({ children, strength = 0.3, className }: MagneticEffectProps) {
+export function MagneticEffect({ children, strength = 0.2, className }: MagneticEffectProps) {
   const ref = React.useRef<HTMLDivElement>(null)
   const [position, setPosition] = React.useState({ x: 0, y: 0 })
 
@@ -394,7 +396,7 @@ export function MagneticEffect({ children, strength = 0.3, className }: Magnetic
       ref={ref}
       className={cn('inline-flex', className)}
       animate={{ x: position.x, y: position.y }}
-      transition={{ type: 'spring', stiffness: 150, damping: 15 }}
+      transition={{ type: 'spring', stiffness: 200, damping: 20 }}
       onMouseMove={handleMouseMove}
       onMouseLeave={handleMouseLeave}
     >
@@ -417,7 +419,7 @@ interface CountUpNumberProps {
  */
 export function CountUpNumber({
   value,
-  duration = 1,
+  duration = 0.8,
   className,
   formatter = (v) => v.toString(),
 }: CountUpNumberProps) {
@@ -443,7 +445,3 @@ export function CountUpNumber({
 
   return <span className={className}>{formatter(displayValue)}</span>
 }
-
-// Import React for hooks
-import * as React from 'react'
-import { AnimatePresence } from 'framer-motion'

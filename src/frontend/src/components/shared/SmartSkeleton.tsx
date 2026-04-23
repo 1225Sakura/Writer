@@ -44,7 +44,7 @@ function ShimmerBlock({
     <div
       className={cn(
         'animate-shimmer motion-reduce:animate-none',
-        rounded && 'rounded-md',
+        rounded && 'rounded-[var(--radius-md)]',
         className
       )}
       style={{
@@ -65,7 +65,7 @@ function TextSkeleton({ lines = 3, className }: { lines?: number; className?: st
           height={16}
           className={cn(
             i === lines - 1 ? 'w-3/4' : 'w-full',
-            'rounded-md'
+            'rounded-[var(--radius-md)]'
           )}
         />
       ))}
@@ -78,12 +78,12 @@ function CardSkeleton({ className }: { className?: string }) {
   return (
     <div
       className={cn(
-        'rounded-lg p-4 space-y-3 border',
+        'rounded-[var(--radius-lg)] p-4 space-y-3 border',
         className
       )}
       style={{
-        backgroundColor: 'rgba(255, 255, 255, 0.02)',
-        borderColor: 'rgba(255, 255, 255, 0.06)',
+        backgroundColor: 'var(--color-surface-raised)',
+        borderColor: 'var(--border-default)',
       }}
     >
       <ShimmerBlock height={20} width="60%" />
@@ -108,12 +108,12 @@ function ChartSkeleton({ className }: { className?: string }) {
   return (
     <div
       className={cn(
-        'rounded-lg p-4 border space-y-4',
+        'rounded-[var(--radius-lg)] p-4 border space-y-4',
         className
       )}
       style={{
-        backgroundColor: 'rgba(255, 255, 255, 0.02)',
-        borderColor: 'rgba(255, 255, 255, 0.06)',
+        backgroundColor: 'var(--color-surface-raised)',
+        borderColor: 'var(--border-default)',
       }}
     >
       <ShimmerBlock height={16} width="40%" />
@@ -136,7 +136,7 @@ function ButtonSkeleton({ className }: { className?: string }) {
     <ShimmerBlock
       height={36}
       width={100}
-      className={cn('rounded-md', className)}
+      className={cn('rounded-[var(--radius-md)]', className)}
     />
   )
 }
@@ -145,7 +145,7 @@ function ButtonSkeleton({ className }: { className?: string }) {
 function ImageSkeleton({ className, aspectRatio = '16/9' }: { className?: string; aspectRatio?: string }) {
   return (
     <div
-      className={cn('rounded-lg overflow-hidden', className)}
+      className={cn('rounded-[var(--radius-lg)] overflow-hidden', className)}
       style={{ aspectRatio }}
     >
       <ShimmerBlock height="100%" width="100%" className="rounded-none" />
@@ -190,8 +190,8 @@ function EntityListSkeleton({ items = 5, className }: { items?: number; classNam
 function WritingAreaSkeleton({ className }: { className?: string }) {
   return (
     <div className={cn('space-y-6 p-8', className)}>
-      <ShimmerBlock height={32} width="60%" className="rounded-lg" />
-      <div className="h-px bg-gradient-to-r from-transparent via-[rgba(255,255,255,0.08)] to-transparent" />
+      <ShimmerBlock height={32} width="60%" className="rounded-[var(--radius-lg)]" />
+      <div className="h-px bg-gradient-to-r from-transparent via-[var(--border-default)] to-transparent" />
       <div className="space-y-4">
         <TextSkeleton lines={4} />
         <TextSkeleton lines={3} />
@@ -262,19 +262,19 @@ interface SkeletonTransitionProps {
   variant?: SmartSkeletonProps['variant']
   className?: string
   skeletonClassName?: string
-  /** 过渡持续时间 (ms) */
+  /** Transition duration (ms) */
   transitionDuration?: number
-  /** 最小显示骨架时间 (ms)，避免闪烁 */
+  /** Minimum skeleton display time (ms), prevents flickering */
   minDuration?: number
 }
 
 /**
- * SkeletonTransition — 骨架屏与内容的交叉淡化过渡
+ * SkeletonTransition — Cross-fade transition between skeleton and content
  *
- * 特性：
- * - 骨架屏淡出 + 内容淡入的平滑过渡
- * - 最小显示时间，避免快速加载时的闪烁
- * - 支持所有 SmartSkeleton 变体
+ * Features:
+ * - Smooth skeleton fade-out + content fade-in transition
+ * - Minimum display time to prevent flickering on fast loads
+ * - Supports all SmartSkeleton variants
  */
 export function SkeletonTransition({
   loading,
@@ -301,10 +301,10 @@ export function SkeletonTransition({
 
       return () => clearTimeout(timer)
     } else {
-      // 等待最小时间后再切换
+      // Wait for minimum time before switching
       const timer = setTimeout(() => {
         setShowSkeleton(false)
-        // 延迟一点显示内容，让骨架屏先开始淡出
+        // Delay content display slightly to let skeleton start fading out
         setTimeout(() => {
           setShowContent(true)
         }, transitionDuration / 3)
@@ -355,7 +355,7 @@ export function SkeletonTransition({
   )
 }
 
-/** Content fade-in wrapper — 内容加载完成后的淡入效果 */
+/** Content fade-in wrapper — Fade-in effect after content loads */
 export function ContentFadeIn({
   children,
   className,

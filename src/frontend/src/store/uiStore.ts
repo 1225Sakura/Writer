@@ -1,6 +1,7 @@
 import { create } from 'zustand'
 import { persist, subscribeWithSelector } from 'zustand/middleware'
 import { immer } from 'zustand/middleware/immer'
+import { createHybridStorage } from './utils/indexedDBStorage'
 
 // ============================================
 // Types
@@ -417,6 +418,7 @@ export const useUIStore = create<UIState & UIActions>()(
         }),
         {
           name: 'writer-ui-store-v2',
+          storage: createHybridStorage(50 * 1024) as never,
           partialize: (state) => ({
             theme: state.theme,
             currentInterface: state.currentInterface,
@@ -444,3 +446,49 @@ export const selectAnyDrawerOpen = (state: UIState) =>
 
 export const selectIsInWritingMode = (state: UIState) =>
   state.currentInterface === 'writing'
+
+/** 仅选择 drawer 状态（最小重渲染） */
+export const selectDrawerState = (state: UIState) =>
+  ({
+    aiDrawerOpen: state.aiDrawerOpen,
+    collaborationDrawerOpen: state.collaborationDrawerOpen,
+    outlineDrawerOpen: state.outlineDrawerOpen,
+  })
+
+/** 仅选择导航状态 */
+export const selectNavigationState = (state: UIState) =>
+  ({
+    currentInterface: state.currentInterface,
+    canGoBack: state.canGoBack,
+    settingsCategory: state.settingsCategory,
+  })
+
+/** 仅选择面板尺寸 */
+export const selectPanelSizes = (state: UIState) =>
+  ({
+    aiPanel: state.aiPanel,
+    collaborationPanel: state.collaborationPanel,
+    outlinePanel: state.outlinePanel,
+  })
+
+/** 仅选择主题 */
+export const selectTheme = (state: UIState) => state.theme
+
+/** 仅选择全屏/沉浸状态 */
+export const selectDisplayModes = (state: UIState) =>
+  ({
+    fullscreenWriting: state.fullscreenWriting,
+    immersiveMode: state.immersiveMode,
+    focusModeEnabled: state.focusModeEnabled,
+  })
+
+/** 清理 UI store 临时状态 */
+export function cleanupUIStore() {
+  useUIStore.setState({
+    aiDrawerOpen: false,
+    collaborationDrawerOpen: false,
+    outlineDrawerOpen: false,
+    toasts: [],
+    fullscreenWriting: false,
+  })
+}

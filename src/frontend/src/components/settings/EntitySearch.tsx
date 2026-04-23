@@ -1,22 +1,26 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
 import { useSettingsStore, type EntityType } from '@/store'
-import { Search, X, Users, Package, MapPin, Shield, Globe, BookOpen, GitBranch, FileText, Clock, ArrowRight, Trash2 } from 'lucide-react'
+import { Search, X, Clock, ArrowRight, Trash2 } from 'lucide-react'
+import { EntityIcon } from '@/components/ui/Icon'
+import type { EntityIconType } from '@/components/ui/Icon'
 import { motion, AnimatePresence } from 'framer-motion'
 
 interface EntitySearchProps {
   onResultClick?: (type: EntityType, id: number) => void
 }
 
-const entityTypeConfig: Record<EntityType | 'all', { label: string; icon: typeof Users; color: string }> = {
-  all: { label: '全部', icon: Search, color: '#5e6ad2' },
-  character: { label: '角色', icon: Users, color: '#e8b87d' },
-  item: { label: '物品', icon: Package, color: '#9b7ed9' },
-  location: { label: '地点', icon: MapPin, color: '#5eb5a6' },
-  faction: { label: '势力', icon: Shield, color: '#d45d5d' },
-  world: { label: '世界观', icon: Globe, color: '#5e6ad2' },
-  rule: { label: '规则', icon: BookOpen, color: '#7eb84a' },
-  ifline: { label: 'IF线', icon: GitBranch, color: '#7eb84a' },
-  outline: { label: '大纲', icon: FileText, color: '#5b8ee8' },
+const entityTypeConfig: Record<EntityType | 'all', { label: string; iconType: EntityIconType | 'search'; color: string }> = {
+  all: { label: '全部', iconType: 'search', color: 'var(--accent-primary)' },
+  character: { label: '角色', iconType: 'character', color: 'var(--color-character)' },
+  item: { label: '物品', iconType: 'item', color: 'var(--color-item)' },
+  location: { label: '地点', iconType: 'location', color: 'var(--color-location)' },
+  faction: { label: '势力', iconType: 'faction', color: 'var(--color-faction)' },
+  world: { label: '世界观', iconType: 'world', color: 'var(--color-world)' },
+  rule: { label: '规则', iconType: 'rule', color: 'var(--color-rule)' },
+  ifline: { label: 'IF线', iconType: 'ifline', color: 'var(--color-ifline)' },
+  outline: { label: '大纲', iconType: 'outline', color: 'var(--color-outline)' },
+  chapter: { label: '章节', iconType: 'outline', color: 'var(--color-outline)' },
+  plot_thread: { label: '剧情线', iconType: 'outline', color: 'var(--accent-primary)' },
 }
 
 // Search history storage key
@@ -75,7 +79,7 @@ function highlightMatch(text: string, query: string): React.ReactNode {
       <mark
         key={index}
         className="rounded px-0.5 font-medium"
-        style={{ backgroundColor: 'rgba(94,106,210,0.35)', color: '#f7f8f8' }}
+        style={{ backgroundColor: 'var(--selection-bg)', color: 'var(--selection-color)' }}
       >
         {text.slice(index, index + q.length)}
       </mark>
@@ -196,18 +200,18 @@ export function EntitySearch({ onResultClick }: EntitySearchProps) {
         }}
         className="flex items-center gap-2 px-3 py-1.5 rounded-md text-xs transition-all"
         style={{
-          backgroundColor: 'rgba(255,255,255,0.05)',
-          border: '1px solid rgba(255,255,255,0.08)',
-          color: '#9ca3af',
+          backgroundColor: 'var(--color-surface-raised)',
+          border: '1px solid var(--border-default)',
+          color: 'var(--text-tertiary)',
         }}
-        whileHover={{ scale: 1.02, backgroundColor: 'rgba(255,255,255,0.08)' }}
+        whileHover={{ scale: 1.02, backgroundColor: 'var(--color-surface-overlay)' }}
         whileTap={{ scale: 0.98 }}
       >
         <Search className="w-3.5 h-3.5" />
         <span>搜索实体</span>
         <kbd
           className="hidden sm:inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-mono ml-1"
-          style={{ backgroundColor: 'rgba(255,255,255,0.08)', color: '#6b7280' }}
+          style={{ backgroundColor: 'var(--color-surface-overlay)', color: 'var(--text-tertiary)' }}
         >
           Ctrl+K
         </kbd>
@@ -218,7 +222,7 @@ export function EntitySearch({ onResultClick }: EntitySearchProps) {
         {isOpen && (
           <motion.div
             className="fixed inset-0 z-50 flex items-start justify-center pt-[15vh]"
-            style={{ backgroundColor: 'rgba(0,0,0,0.6)' }}
+            style={{ backgroundColor: 'var(--glass-bg-strong)' }}
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
@@ -227,8 +231,8 @@ export function EntitySearch({ onResultClick }: EntitySearchProps) {
             <motion.div
               className="w-full max-w-lg rounded-lg overflow-hidden shadow-2xl"
               style={{
-                backgroundColor: '#0f1011',
-                border: '1px solid rgba(255,255,255,0.1)',
+                backgroundColor: 'var(--color-surface-base)',
+                border: '1px solid var(--border-strong)',
               }}
               initial={{ opacity: 0, scale: 0.95, y: -20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
@@ -237,8 +241,8 @@ export function EntitySearch({ onResultClick }: EntitySearchProps) {
               onClick={(e) => e.stopPropagation()}
             >
               {/* Input area */}
-              <div className="flex items-center gap-3 px-4 py-3" style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
-                <Search className="w-5 h-5 flex-shrink-0" style={{ color: '#6b7280' }} />
+              <div className="flex items-center gap-3 px-4 py-3" style={{ borderBottom: '1px solid var(--border-default)' }}>
+                <Search className="w-5 h-5 flex-shrink-0" style={{ color: 'var(--text-tertiary)' }} />
                 <input
                   ref={inputRef}
                   type="text"
@@ -247,7 +251,7 @@ export function EntitySearch({ onResultClick }: EntitySearchProps) {
                   onKeyDown={handleModalKeyDown}
                   placeholder="搜索角色、物品、地点..."
                   className="flex-1 bg-transparent text-sm outline-none"
-                  style={{ color: '#f7f8f8' }}
+                  style={{ color: 'var(--text-primary)' }}
                 />
                 {query && (
                   <motion.button
@@ -262,16 +266,15 @@ export function EntitySearch({ onResultClick }: EntitySearchProps) {
                     whileHover={{ scale: 1.1, rotate: 90 }}
                     whileTap={{ scale: 0.9 }}
                   >
-                    <X className="w-4 h-4" style={{ color: '#6b7280' }} />
+                    <X className="w-4 h-4" style={{ color: 'var(--text-tertiary)' }} />
                   </motion.button>
                 )}
               </div>
 
               {/* Type filter tabs */}
-              <div className="flex items-center gap-1 px-3 py-2 overflow-x-auto" style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
+              <div className="flex items-center gap-1 px-3 py-2 overflow-x-auto" style={{ borderBottom: '1px solid var(--border-default)' }}>
                 {(Object.keys(entityTypeConfig) as Array<EntityType | 'all'>).map((type) => {
                   const config = entityTypeConfig[type]
-                  const Icon = config.icon
                   const isActive = filterType === type
                   return (
                     <motion.button
@@ -280,7 +283,7 @@ export function EntitySearch({ onResultClick }: EntitySearchProps) {
                       className="flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs whitespace-nowrap transition-all"
                       style={{
                         backgroundColor: isActive ? `${config.color}15` : 'transparent',
-                        color: isActive ? config.color : '#9ca3af',
+                        color: isActive ? config.color : 'var(--text-tertiary)',
                         border: isActive ? `1px solid ${config.color}30` : '1px solid transparent',
                       }}
                       whileHover={{ scale: 1.05 }}
@@ -290,7 +293,11 @@ export function EntitySearch({ onResultClick }: EntitySearchProps) {
                         animate={isActive ? { rotate: [0, -10, 10, 0] } : { rotate: 0 }}
                         transition={{ duration: 0.4 }}
                       >
-                        <Icon className="w-3 h-3" />
+                        {config.iconType === 'search' ? (
+                          <Search className="w-3 h-3" />
+                        ) : (
+                          <EntityIcon type={config.iconType} size="xs" />
+                        )}
                       </motion.div>
                       {config.label}
                     </motion.button>
@@ -314,18 +321,17 @@ export function EntitySearch({ onResultClick }: EntitySearchProps) {
                           initial={{ opacity: 0, y: 10 }}
                           animate={{ opacity: 1, y: 0 }}
                         >
-                          <Search className="w-8 h-8 mx-auto mb-2" style={{ color: '#4b5563' }} />
-                          <p className="text-sm" style={{ color: '#6b7280' }}>
+                          <Search className="w-8 h-8 mx-auto mb-2" style={{ color: 'var(--text-disabled)' }} />
+                          <p className="text-sm" style={{ color: 'var(--text-tertiary)' }}>
                             未找到匹配结果
                           </p>
-                          <p className="text-xs mt-1" style={{ color: '#4b5563' }}>
+                          <p className="text-xs mt-1" style={{ color: 'var(--text-disabled)' }}>
                             尝试其他关键词或切换分类
                           </p>
                         </motion.div>
                       ) : (
                         results.map((result, index) => {
                           const config = entityTypeConfig[result.type]
-                          const Icon = config.icon
                           const isSelected = index === selectedIndex
                           return (
                             <motion.button
@@ -349,14 +355,18 @@ export function EntitySearch({ onResultClick }: EntitySearchProps) {
                                 whileHover={{ scale: 1.1, rotate: 5 }}
                                 transition={{ type: 'spring', stiffness: 400 }}
                               >
-                                <Icon className="w-4 h-4" style={{ color: config.color }} />
+                                {config.iconType === 'search' ? (
+                                  <Search className="w-4 h-4" style={{ color: config.color }} />
+                                ) : (
+                                  <EntityIcon type={config.iconType} size="sm" style={{ color: config.color }} />
+                                )}
                               </motion.div>
                               <div className="flex-1 min-w-0">
-                                <div className="text-sm font-medium truncate" style={{ color: '#f7f8f8' }}>
+                                <div className="text-sm font-medium truncate" style={{ color: 'var(--text-primary)' }}>
                                   {highlightMatch(result.name, query)}
                                 </div>
                                 {result.description && (
-                                  <p className="text-xs truncate" style={{ color: '#6b7280' }}>
+                                  <p className="text-xs truncate" style={{ color: 'var(--text-tertiary)' }}>
                                     {highlightMatch(result.description, query)}
                                   </p>
                                 )}
@@ -392,14 +402,14 @@ export function EntitySearch({ onResultClick }: EntitySearchProps) {
                       {history.length > 0 ? (
                         <>
                           <div className="flex items-center justify-between px-4 py-2">
-                            <span className="text-[10px] uppercase tracking-wider font-medium" style={{ color: '#6b7280' }}>
+                            <span className="text-[10px] uppercase tracking-wider font-medium" style={{ color: 'var(--text-tertiary)' }}>
                               搜索历史
                             </span>
                             <motion.button
                               onClick={clearHistory}
                               className="text-[10px] flex items-center gap-1"
-                              style={{ color: '#6b7280' }}
-                              whileHover={{ color: '#d45d5d' }}
+                              style={{ color: 'var(--text-tertiary)' }}
+                              whileHover={{ color: 'var(--color-danger)' }}
                             >
                               <Trash2 className="w-3 h-3" />
                               清除
@@ -412,15 +422,15 @@ export function EntitySearch({ onResultClick }: EntitySearchProps) {
                               onMouseEnter={() => setSelectedIndex(index)}
                               className="w-full flex items-center gap-3 px-4 py-2.5 text-left transition-colors group"
                               style={{
-                                backgroundColor: index === selectedIndex ? 'rgba(255,255,255,0.04)' : 'transparent',
+                                backgroundColor: index === selectedIndex ? 'var(--color-surface-raised)' : 'transparent',
                               }}
                               initial={{ opacity: 0, x: -8 }}
                               animate={{ opacity: 1, x: 0 }}
                               transition={{ delay: index * 0.03 }}
                               whileHover={{ x: 4 }}
                             >
-                              <Clock className="w-4 h-4 flex-shrink-0" style={{ color: '#6b7280' }} />
-                              <span className="text-sm flex-1" style={{ color: '#d0d6e0' }}>
+                              <Clock className="w-4 h-4 flex-shrink-0" style={{ color: 'var(--text-tertiary)' }} />
+                              <span className="text-sm flex-1" style={{ color: 'var(--text-secondary)' }}>
                                 {historyQuery}
                               </span>
                               <motion.button
@@ -432,18 +442,18 @@ export function EntitySearch({ onResultClick }: EntitySearchProps) {
                                 whileHover={{ scale: 1.1 }}
                                 whileTap={{ scale: 0.9 }}
                               >
-                                <X className="w-3 h-3" style={{ color: '#6b7280' }} />
+                                <X className="w-3 h-3" style={{ color: 'var(--text-tertiary)' }} />
                               </motion.button>
                             </motion.button>
                           ))}
                         </>
                       ) : (
                         <div className="py-8 text-center">
-                          <Search className="w-8 h-8 mx-auto mb-2" style={{ color: '#4b5563' }} />
-                          <p className="text-sm" style={{ color: '#6b7280' }}>
+                          <Search className="w-8 h-8 mx-auto mb-2" style={{ color: 'var(--text-disabled)' }} />
+                          <p className="text-sm" style={{ color: 'var(--text-tertiary)' }}>
                             输入关键词开始搜索
                           </p>
-                          <p className="text-xs mt-1" style={{ color: '#4b5563' }}>
+                          <p className="text-xs mt-1" style={{ color: 'var(--text-disabled)' }}>
                             支持角色、物品、地点、势力等实体
                           </p>
                         </div>
@@ -457,19 +467,19 @@ export function EntitySearch({ onResultClick }: EntitySearchProps) {
               <div
                 className="flex items-center justify-between px-4 py-2 text-xs"
                 style={{
-                  borderTop: '1px solid rgba(255,255,255,0.06)',
-                  color: '#6b7280',
+                  borderTop: '1px solid var(--border-default)',
+                  color: 'var(--text-tertiary)',
                 }}
               >
                 <div className="flex items-center gap-3">
                   <span>
-                    <kbd className="px-1 rounded" style={{ backgroundColor: 'rgba(255,255,255,0.08)' }}>↑↓</kbd> 选择
+                    <kbd className="px-1 rounded" style={{ backgroundColor: 'var(--color-surface-overlay)' }}>↑↓</kbd> 选择
                   </span>
                   <span>
-                    <kbd className="px-1 rounded" style={{ backgroundColor: 'rgba(255,255,255,0.08)' }}>Enter</kbd> 确认
+                    <kbd className="px-1 rounded" style={{ backgroundColor: 'var(--color-surface-overlay)' }}>Enter</kbd> 确认
                   </span>
                   <span>
-                    <kbd className="px-1 rounded" style={{ backgroundColor: 'rgba(255,255,255,0.08)' }}>Esc</kbd> 关闭
+                    <kbd className="px-1 rounded" style={{ backgroundColor: 'var(--color-surface-overlay)' }}>Esc</kbd> 关闭
                   </span>
                 </div>
                 {hasQuery && results.length > 0 && (

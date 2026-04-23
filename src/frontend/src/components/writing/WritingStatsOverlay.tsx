@@ -31,11 +31,11 @@ function estimateReadTime(wordCount: number): string {
 }
 
 function getProgressColor(percentage: number): string {
-  if (percentage >= 100) return '#7eb84a'
-  if (percentage >= 75) return '#5eb5a6'
-  if (percentage >= 50) return '#e8b87d'
-  if (percentage >= 25) return '#5b8ee8'
-  return '#c45c5c'
+  if (percentage >= 100) return 'var(--color-ifline)'
+  if (percentage >= 75) return 'var(--color-location)'
+  if (percentage >= 50) return 'var(--color-character)'
+  if (percentage >= 25) return 'var(--color-outline)'
+  return 'var(--color-vermillion)'
 }
 
 export function WritingStatsOverlay({
@@ -131,9 +131,9 @@ export function WritingStatsOverlay({
             transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
             onClick={toggleVisible}
             className="fixed left-4 bottom-16 z-50 flex items-center justify-center w-8 h-8 rounded-full
-                       bg-[#191a1b] border border-[rgba(255,255,255,0.08)]
-                       text-[#d0d6e0] hover:text-[#f7f8f8]
-                       hover:bg-[rgba(255,255,255,0.04)] transition-all duration-200
+                       bg-[var(--color-surface-raised)] border border-[var(--border-default)]
+                       text-[var(--text-secondary)] hover:text-[var(--text-primary)]
+                       hover:bg-[var(--border-subtle)] transition-all duration-200
                        shadow-lg"
             title="显示写作统计"
           >
@@ -151,7 +151,7 @@ export function WritingStatsOverlay({
             exit={{ opacity: 0, y: 16, scale: 0.95 }}
             transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
             className="fixed left-4 bottom-16 z-50 flex flex-col
-                       bg-[#191a1b] border border-[rgba(255,255,255,0.08)] rounded-xl
+                       bg-[var(--color-surface-raised)] border border-[var(--border-default)] rounded-xl
                        overflow-hidden"
             style={{
               boxShadow: `
@@ -165,18 +165,18 @@ export function WritingStatsOverlay({
             {/* Header */}
             <div
               className="flex items-center justify-between px-3 py-2
-                         border-b border-[rgba(255,255,255,0.06)] cursor-pointer"
+                         border-b border-[var(--border-subtle)] cursor-pointer"
               onClick={toggleExpanded}
             >
               <div className="flex items-center gap-1.5">
-                <Zap className="w-3 h-3 text-[#e8b87d]" />
-                <span className="text-[11px] font-medium text-[#8a8f98]">写作统计</span>
+                <Zap className="w-3 h-3" style={{ color: 'var(--color-character)' }} />
+                <span className="text-[11px] font-medium" style={{ color: 'var(--text-muted)' }}>写作统计</span>
               </div>
               <div className="flex items-center gap-0.5">
                 {expanded ? (
-                  <ChevronDown className="w-3 h-3 text-[#8a8f98]" />
+                  <ChevronDown className="w-3 h-3" style={{ color: 'var(--text-muted)' }} />
                 ) : (
-                  <ChevronUp className="w-3 h-3 text-[#8a8f98]" />
+                  <ChevronUp className="w-3 h-3" style={{ color: 'var(--text-muted)' }} />
                 )}
                 <button
                   onClick={(e) => {
@@ -184,8 +184,8 @@ export function WritingStatsOverlay({
                     toggleVisible()
                   }}
                   className="ml-1 w-5 h-5 flex items-center justify-center rounded
-                             hover:bg-[rgba(255,255,255,0.06)] text-[#8a8f98]
-                             hover:text-[#d0d6e0] transition-colors"
+                             hover:bg-[var(--border-subtle)] transition-colors"
+                  style={{ color: 'var(--text-muted)' }}
                 >
                   <span className="text-[10px]">×</span>
                 </button>
@@ -195,17 +195,18 @@ export function WritingStatsOverlay({
             {/* Compact stats row */}
             <div className="flex items-center gap-3 px-3 py-2">
               <div className="flex items-center gap-1.5">
-                <Type className="w-3 h-3 text-[#5eb5a6]" />
+                <Type className="w-3 h-3" style={{ color: 'var(--color-location)' }} />
                 <motion.span
-                  className="text-xs font-medium text-[#f7f8f8]"
+                  className="text-xs font-medium"
+                  style={{ color: 'var(--text-primary)' }}
                   key={wordCount}
-                  initial={{ scale: 1.1, color: '#7eb84a' }}
-                  animate={{ scale: 1, color: '#f7f8f8' }}
+                  initial={{ scale: 1.1 }}
+                  animate={{ scale: 1 }}
                   transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
                 >
                   {Math.round(animatedWordCount.get())}
                 </motion.span>
-                <span className="text-[10px] text-[#8a8f98]">字</span>
+                <span className="text-[10px]" style={{ color: 'var(--text-muted)' }}>字</span>
                 {/* Delta indicator */}
                 <AnimatePresence>
                   {showDelta && wordCountDelta > 0 && (
@@ -213,18 +214,19 @@ export function WritingStatsOverlay({
                       initial={{ opacity: 0, y: 4, scale: 0.8 }}
                       animate={{ opacity: 1, y: 0, scale: 1 }}
                       exit={{ opacity: 0, y: -4, scale: 0.8 }}
-                      className="text-[10px] font-medium text-[#7eb84a] ml-0.5"
+                      className="text-[10px] font-medium ml-0.5"
+                      style={{ color: 'var(--color-ifline)' }}
                     >
                       +{wordCountDelta}
                     </motion.span>
                   )}
                 </AnimatePresence>
               </div>
-              <div className="w-px h-3 bg-[rgba(255,255,255,0.08)]" />
+              <div className="w-px h-3" style={{ backgroundColor: 'var(--border-default)' }} />
               <div className="flex items-center gap-1.5">
-                <Clock className="w-3 h-3 text-[#5b8ee8]" />
-                <span className="text-xs font-medium text-[#f7f8f8]">{sessionWPM}</span>
-                <span className="text-[10px] text-[#8a8f98]">字/分</span>
+                <Clock className="w-3 h-3" style={{ color: 'var(--color-outline)' }} />
+                <span className="text-xs font-medium" style={{ color: 'var(--text-primary)' }}>{sessionWPM}</span>
+                <span className="text-[10px]" style={{ color: 'var(--text-muted)' }}>字/分</span>
               </div>
             </div>
 
@@ -246,8 +248,8 @@ export function WritingStatsOverlay({
                         animate={{ opacity: 1, x: 0 }}
                         className="flex items-center gap-2"
                       >
-                        <div className="w-1.5 h-1.5 rounded-full bg-[#7eb84a] animate-pulse motion-reduce:animate-none" />
-                        <span className="text-[11px] text-[#7eb84a]">
+                        <div className="w-1.5 h-1.5 rounded-full animate-pulse motion-reduce:animate-none" style={{ backgroundColor: 'var(--color-ifline)' }} />
+                        <span className="text-[11px]" style={{ color: 'var(--color-ifline)' }}>
                           当前速度: {burstWPM} 字/分
                         </span>
                       </motion.div>
@@ -256,10 +258,10 @@ export function WritingStatsOverlay({
                     {/* Reading time */}
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-1.5">
-                        <BookOpen className="w-3 h-3 text-[#9b7ed9]" />
-                        <span className="text-[11px] text-[#8a8f98]">预计阅读</span>
+                        <BookOpen className="w-3 h-3" style={{ color: 'var(--color-item)' }} />
+                        <span className="text-[11px]" style={{ color: 'var(--text-muted)' }}>预计阅读</span>
                       </div>
-                      <span className="text-[11px] font-medium text-[#d0d6e0]">
+                      <span className="text-[11px] font-medium" style={{ color: 'var(--text-secondary)' }}>
                         {estimateReadTime(wordCount)}
                       </span>
                     </div>
@@ -267,10 +269,10 @@ export function WritingStatsOverlay({
                     {/* Session duration */}
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-1.5">
-                        <Clock className="w-3 h-3 text-[#e8b87d]" />
-                        <span className="text-[11px] text-[#8a8f98]">本次时长</span>
+                        <Clock className="w-3 h-3" style={{ color: 'var(--color-character)' }} />
+                        <span className="text-[11px]" style={{ color: 'var(--text-muted)' }}>本次时长</span>
                       </div>
-                      <span className="text-[11px] font-medium text-[#d0d6e0]">
+                      <span className="text-[11px] font-medium" style={{ color: 'var(--text-secondary)' }}>
                         {formatDuration(sessionDuration)}
                       </span>
                     </div>
@@ -278,7 +280,7 @@ export function WritingStatsOverlay({
                     {/* Today's progress */}
                     <div className="pt-1">
                       <div className="flex items-center justify-between mb-1.5">
-                        <span className="text-[11px] text-[#8a8f98]">今日进度</span>
+                        <span className="text-[11px]" style={{ color: 'var(--text-muted)' }}>今日进度</span>
                         <motion.span
                           className="text-[11px] font-medium"
                           style={{ color: progressColor }}
@@ -287,7 +289,7 @@ export function WritingStatsOverlay({
                           {Math.round(animatedTodayWordCount.get())} / {targetWordCount}
                         </motion.span>
                       </div>
-                      <div className="h-1.5 rounded-full bg-[rgba(255,255,255,0.06)] overflow-hidden">
+                      <div className="h-1.5 rounded-full overflow-hidden" style={{ backgroundColor: 'var(--border-subtle)' }}>
                         <motion.div
                           className="h-full rounded-full"
                           style={{ backgroundColor: progressColor }}
@@ -297,7 +299,7 @@ export function WritingStatsOverlay({
                         />
                       </div>
                       <div className="flex justify-end mt-1">
-                        <span className="text-[10px] text-[#8a8f98]">{progressPercentage}%</span>
+                        <span className="text-[10px]" style={{ color: 'var(--text-muted)' }}>{progressPercentage}%</span>
                       </div>
                     </div>
                   </div>

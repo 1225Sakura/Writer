@@ -1,18 +1,21 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useChatStore, useUIStore } from '@/store'
 import { AIGuidePanel } from './AIGuidePanel'
 import { UserInputPanel } from './UserInputPanel'
 import { CollectedInfoPanel } from './CollectedInfoPanel'
 import { Button } from '@/components/ui/Button'
-import { ArrowRight, Settings, PenTool, Sun, Moon, Save, History } from 'lucide-react'
+import { ArrowRight, Settings, PenTool, Sun, Moon, Save, History, Wifi, WifiOff } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { ChatSkeleton } from '@/components/shared/SmartSkeleton'
 import { useThemeContext } from '@/components/shared/ThemeProvider'
+import { getWebSocketClient, type WebSocketStatus } from '@/api/websocket'
 
 export function ChatInitPage() {
   const { extractedEntities, sessionId, createSession, loadExtractedEntities, loadMessages, confirmEntity, messages, isLoading } = useChatStore()
   const { setCurrentInterface } = useUIStore()
   const { theme, toggleTheme } = useThemeContext()
+  const [wsStatus, setWsStatus] = useState<WebSocketStatus>('disconnected')
+  const [wsReconnectAttempt, setWsReconnectAttempt] = useState(0)
 
   // Initialize session on mount
   useEffect(() => {
@@ -28,6 +31,24 @@ export function ChatInitPage() {
       loadMessages()
     }
   }, [sessionId, loadExtractedEntities, loadMessages])
+
+  // WebSocket connection management
+  useEffect(() => {
+    if (!sessionId) return
+
+    const ws = getWebSocketClient()
+    ws.on({
+      onStatusChange: (status) => setWsStatus(status),
+      onReconnect: (attempt) => setWsReconnectAttempt(attempt),
+      onConnect: () => setWsReconnectAttempt(0),
+    })
+
+    ws.connect(sessionId)
+
+    return () => {
+      ws.disconnect()
+    }
+  }, [sessionId])
 
   const hasMessages = messages.length > 0
 
@@ -60,7 +81,7 @@ export function ChatInitPage() {
 
       {/* 顶部导航栏 - 48px */}
       <motion.header
-        className="h-12 flex items-center justify-between px-4 z-20 relative shrink-0"
+        className="h-[var(--layout-topbar-height)] flex items-center justify-between px-4 z-20 relative shrink-0"
         style={{
           backgroundColor: 'var(--color-surface-base)',
           backdropFilter: 'blur(12px) saturate(1.2)',
@@ -75,12 +96,16 @@ export function ChatInitPage() {
         <div className="flex items-center gap-3">
           <motion.div
             className="w-8 h-8 rounded-lg flex items-center justify-center"
-            style={{ backgroundColor: 'var(--accent-primary)' }}
+            style={{
+              backgroundColor: 'var(--accent-muted)',
+              border: '1px solid var(--border-focus)',
+              boxShadow: 'var(--shadow-glow-sm)',
+            }}
             initial={{ scale: 0.8, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             transition={{ delay: 0.1, duration: 0.3, ease: [0.34, 1.56, 0.64, 1] }}
           >
-            <PenTool className="w-4 h-4 text-white" />
+            <PenTool className="w-4 h-4" style={{ color: 'var(--accent-primary)' }} />
           </motion.div>
           <motion.h1
             className="font-medium text-sm"
@@ -96,8 +121,8 @@ export function ChatInitPage() {
               className="text-xs ml-2 px-2 py-0.5 rounded-full border"
               style={{
                 color: 'var(--text-secondary)',
-                backgroundColor: 'rgba(255,255,255,0.04)',
-                borderColor: 'rgba(255,255,255,0.06)',
+                backgroundColor: 'var(--color-surface-base)',
+                borderColor: 'var(--border-subtle)',
               }}
               initial={{ scale: 0.8, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
@@ -105,6 +130,38 @@ export function ChatInitPage() {
             >
               {messages.length} 条消息
             </motion.span>
+          )}
+
+          {/* WebSocket connection status */}
+          {wsStatus !== 'connected' && (
+            <motion.div
+              className="flex items-center gap-1 ml-2 text-[10px] px-2 py-0.5 rounded-full"
+              style={{
+                color: wsStatus === 'reconnecting' ? 'var(--color-danger)' : 'var(--text-secondary)',
+                backgroundColor: wsStatus === 'reconnecting' ? 'rgba(196, 92, 92, 0.08)' : 'var(--color-surface-base)',
+                border: `1px solid ${wsStatus === 'reconnecting' ? 'rgba(196, 92, 92, 0.2)' : 'var(--border-subtle)'}`,
+              }}
+              initial={{ scale: 0.8, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.8, opacity: 0 }}
+            >
+              {wsStatus === 'reconnecting' ? (
+                <>
+                  <WifiOff className="w-2.5 h-2.5" />
+                  重连中{wsReconnectAttempt > 0 ? `(${wsReconnectAttempt})` : ''}
+                </>
+              ) : wsStatus === 'connecting' ? (
+                <>
+                  <Wifi className="w-2.5 h-2.5 animate-pulse" />
+                  连接中
+                </>
+              ) : (
+                <>
+                  <WifiOff className="w-2.5 h-2.5" />
+                  已断开
+                </>
+              )}
+            </motion.div>
           )}
         </div>
 
@@ -123,7 +180,7 @@ export function ChatInitPage() {
               color: 'var(--text-secondary)',
             }}
             title="保存会话"
-            whileHover={{ scale: 1.05, backgroundColor: 'rgba(255,255,255,0.06)' }}
+            whileHover={{ scale: 1.05, backgroundColor: 'var(--color-surface-hover)' }}
             whileTap={{ scale: 0.95 }}
           >
             <Save className="w-4 h-4" />
@@ -136,7 +193,7 @@ export function ChatInitPage() {
               color: 'var(--text-secondary)',
             }}
             title="历史记录"
-            whileHover={{ scale: 1.05, backgroundColor: 'rgba(255,255,255,0.06)' }}
+            whileHover={{ scale: 1.05, backgroundColor: 'var(--color-surface-hover)' }}
             whileTap={{ scale: 0.95 }}
           >
             <History className="w-4 h-4" />
@@ -150,7 +207,7 @@ export function ChatInitPage() {
             }}
             title="主题设置"
             onClick={toggleTheme}
-            whileHover={{ scale: 1.05, backgroundColor: 'rgba(255,255,255,0.06)' }}
+            whileHover={{ scale: 1.05, backgroundColor: 'var(--color-surface-hover)' }}
             whileTap={{ scale: 0.95 }}
           >
             <AnimatePresence mode="wait" initial={false}>
@@ -182,7 +239,7 @@ export function ChatInitPage() {
         {/* 左侧：AI聊天区域 (60%) */}
         <motion.div
           className="flex-1 flex flex-col border-r"
-          style={{ borderColor: 'rgba(255,255,255,0.06)' }}
+          style={{ borderColor: 'var(--border-default)' }}
           initial={{ opacity: 0, x: -20 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.4, delay: 0.1, ease: [0.22, 1, 0.36, 1] }}
@@ -212,9 +269,9 @@ export function ChatInitPage() {
         </motion.div>
       </div>
 
-      {/* 底部操作栏 - 56px */}
+      {/* 底部操作栏 - 48px */}
       <motion.footer
-        className="h-14 flex items-center justify-between px-4 shrink-0 relative z-20"
+        className="h-[var(--layout-topbar-height)] flex items-center justify-between px-4 shrink-0 relative z-20"
         style={{
           backgroundColor: 'var(--color-surface-base)',
           backdropFilter: 'blur(12px) saturate(1.2)',

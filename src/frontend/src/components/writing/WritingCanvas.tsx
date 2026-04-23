@@ -43,7 +43,7 @@ function formatTime(timestamp: number | null): string {
 function SaveStatusIndicator({ status, lastSavedAt }: { status: string; lastSavedAt: number | null }) {
   if (status === 'saving') {
     return (
-      <span className="flex items-center gap-1 text-[#d0d6e0]">
+      <span className="flex items-center gap-1" style={{ color: 'var(--text-secondary)' }}>
         <Save className="w-3 h-3 animate-pulse motion-reduce:animate-none" />
         保存中...
       </span>
@@ -51,7 +51,7 @@ function SaveStatusIndicator({ status, lastSavedAt }: { status: string; lastSave
   }
   if (status === 'saved') {
     return (
-      <span className="flex items-center gap-1 text-[#7eb84a]" title={`上次保存: ${formatTime(lastSavedAt)}`}>
+      <span className="flex items-center gap-1" style={{ color: 'var(--color-ifline)' }} title={`上次保存: ${formatTime(lastSavedAt)}`}>
         <CheckCircle className="w-3 h-3" />
         已保存 {lastSavedAt ? formatTime(lastSavedAt) : ''}
       </span>
@@ -59,7 +59,7 @@ function SaveStatusIndicator({ status, lastSavedAt }: { status: string; lastSave
   }
   if (status === 'unsaved') {
     return (
-      <span className="flex items-center gap-1 text-[#c45c5c]">
+      <span className="flex items-center gap-1" style={{ color: 'var(--color-vermillion)' }}>
         <AlertCircle className="w-3 h-3" />
         未保存
       </span>
@@ -166,7 +166,7 @@ export function WritingCanvas() {
     editorProps: {
       attributes: {
         class: 'writing-area max-w-none focus:outline-none min-h-full px-8 py-6',
-        style: 'caret-color: #e8b87d;',
+        style: 'caret-color: var(--color-character);',
       },
     },
   })
@@ -281,14 +281,14 @@ export function WritingCanvas() {
   }, [editor])
 
   return (
-    <div className="h-full flex flex-col" style={{ backgroundColor: '#1a1a2e' }}>
-      {/* 写作区域 - subtle paper texture background */}
+    <div className="h-full flex flex-col" style={{ backgroundColor: 'var(--writing-bg)' }}>
+      {/* 写作区域 - subtle paper texture background using CSS variables */}
       <div
-        className="flex-1 overflow-y-auto relative"
+        className="flex-1 overflow-y-auto relative writing-surface"
         style={{
           backgroundImage: `
-            radial-gradient(ellipse 80% 50% at 50% 0%, rgba(94, 106, 210, 0.03) 0%, transparent 60%),
-            radial-gradient(ellipse 60% 40% at 80% 100%, rgba(232, 184, 125, 0.02) 0%, transparent 50%),
+            radial-gradient(ellipse 80% 50% at 50% 0%, color-mix(in srgb, var(--accent-primary) 3%, transparent) 0%, transparent 60%),
+            radial-gradient(ellipse 60% 40% at 80% 100%, color-mix(in srgb, var(--color-character) 2%, transparent) 0%, transparent 50%),
             linear-gradient(180deg, rgba(255,255,255,0.01) 0%, transparent 30%, rgba(0,0,0,0.02) 100%)
           `,
         }}
@@ -296,12 +296,12 @@ export function WritingCanvas() {
         {/* 浮动工具栏 */}
         <EditorToolbar editor={editor} />
 
-        {/* 卡片化容器 - Linear elevation-2 with semi-transparent border, centered on large screens */}
+        {/* 卡片化容器 - centered on large screens */}
         <div
-          className="my-6 rounded-xl max-w-[800px] mx-auto"
+          className="my-6 rounded-xl max-w-[var(--writing-max-width)] mx-auto writing-card"
           style={{
-            backgroundColor: 'rgba(245, 240, 230, 0.03)',
-            border: '1px solid rgba(255, 255, 255, 0.06)',
+            backgroundColor: 'color-mix(in srgb, var(--writing-text) 3%, transparent)',
+            border: '1px solid var(--border-subtle)',
             backdropFilter: 'blur(8px)',
           }}
         >
@@ -310,16 +310,16 @@ export function WritingCanvas() {
             <h1
               className="font-serif text-2xl font-medium tracking-tight"
               style={{
-                color: '#f5f0e6',
-                lineHeight: 1.85,
-                letterSpacing: '-0.02em',
+                color: 'var(--writing-text)',
+                lineHeight: 'var(--writing-line-height)',
+                letterSpacing: 'var(--tracking-tight)',
                 transition: 'color var(--transition-normal)',
               }}
             >
               {chapterTitle}
             </h1>
-            {/* 柔和分隔线 - Linear semi-transparent style */}
-            <div className="mt-4 h-px bg-gradient-to-r from-transparent via-[rgba(255,255,255,0.08)] to-transparent" />
+            {/* 柔和分隔线 */}
+            <div className="mt-4 h-px bg-gradient-to-r from-transparent via-[var(--border-strong)] to-transparent" />
           </div>
 
           {/* 正文编辑器 */}
@@ -336,13 +336,13 @@ export function WritingCanvas() {
         targetWordCount={targetWordCount}
       />
 
-      {/* 底部状态栏 - refined visual design */}
+      {/* 底部状态栏 - refined visual design using CSS variables */}
       <div
         className="flex items-center px-5 py-2 text-xs font-medium"
         style={{
-          backgroundColor: 'var(--color-bg-surface)',
-          borderTop: '1px solid var(--color-border-subtle)',
-          color: 'var(--color-text-muted)',
+          backgroundColor: 'var(--color-surface-base)',
+          borderTop: '1px solid var(--border-subtle)',
+          color: 'var(--text-tertiary)',
           fontFamily: 'var(--font-sans)',
           minHeight: '36px',
           gap: '2px',
@@ -350,7 +350,7 @@ export function WritingCanvas() {
       >
         <span
           className="px-2 py-0.5 rounded-md"
-          style={{ color: 'var(--color-text-secondary)', background: 'rgba(255,255,255,0.03)' }}
+          style={{ color: 'var(--text-secondary)', background: 'var(--border-subtle)' }}
         >
           {chapterTitle}
         </span>
@@ -376,7 +376,7 @@ export function WritingCanvas() {
           className={`px-2 py-0.5 rounded-md text-xs transition-all duration-200 ${
             focusModeEnabled
               ? 'bg-[var(--color-outline)]/15 text-[var(--color-outline)]'
-              : 'hover:bg-[rgba(255,255,255,0.06)] text-[var(--color-text-muted)]'
+              : 'hover:bg-[var(--border-subtle)] text-[var(--text-tertiary)]'
           }`}
           title="聚焦模式 (Ctrl+Shift+F)"
         >
@@ -390,15 +390,19 @@ export function WritingCanvas() {
               initial={{ opacity: 0, scale: 0.8 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.8 }}
-              className="flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-[#7eb84a]/10 border border-[#7eb84a]/20"
+              className="flex items-center gap-1.5 px-2 py-0.5 rounded-md"
+              style={{
+                background: 'color-mix(in srgb, var(--color-ifline) 10%, transparent)',
+                border: '1px solid color-mix(in srgb, var(--color-ifline) 20%, transparent)',
+              }}
             >
               <motion.div
                 animate={prefersReducedMotion ? {} : { opacity: [1, 0.3, 1] }}
                 transition={prefersReducedMotion ? {} : { duration: 1.2, repeat: Infinity, ease: 'easeInOut' }}
               >
-                <Type className="w-3 h-3 text-[#7eb84a]" />
+                <Type className="w-3 h-3" style={{ color: 'var(--color-ifline)' }} />
               </motion.div>
-              <span className="text-[10px] text-[#7eb84a] font-medium">写作中</span>
+              <span className="text-[10px] font-medium" style={{ color: 'var(--color-ifline)' }}>写作中</span>
             </motion.div>
           )}
         </AnimatePresence>
@@ -409,7 +413,7 @@ export function WritingCanvas() {
 
           {loading.ai && (
             <span className="flex items-center gap-1" style={{ color: 'var(--accent-primary)' }}>
-              <span className="w-1.5 h-1.5 rounded-full bg-[var(--accent-primary)] animate-pulse motion-reduce:animate-none" />
+              <span className="w-1.5 h-1.5 rounded-full animate-pulse motion-reduce:animate-none" style={{ backgroundColor: 'var(--accent-primary)' }} />
               AI处理中...
             </span>
           )}

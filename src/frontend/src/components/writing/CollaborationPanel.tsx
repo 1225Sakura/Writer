@@ -38,6 +38,21 @@ export function CollaborationPanel() {
   )
 }
 
+// Shared card style for panel sections
+function PanelCard({ children, className = '' }: { children: React.ReactNode; className?: string }) {
+  return (
+    <div
+      className={`rounded-xl overflow-hidden ${className}`}
+      style={{
+        background: 'var(--color-surface-base)',
+        border: '1px solid var(--border-default)',
+      }}
+    >
+      {children}
+    </div>
+  )
+}
+
 // 协作状态指示器
 function CollaborationStatus() {
   const { humanAIRatio, loading } = useWritingStore()
@@ -53,34 +68,35 @@ function CollaborationStatus() {
   const mode = getModeLabel(humanAIRatio)
 
   return (
-    <div className="p-3 rounded-xl bg-[#0f1011] border border-[rgba(255,255,255,0.08)]">
-      <div className="flex items-center justify-between mb-2">
-        <div className="flex items-center gap-2">
-          <Activity className="w-4 h-4 text-[#5e6ad2]" />
-          <span className="text-sm font-medium text-[#f7f8f8]">协作状态</span>
+    <PanelCard>
+      <div className="p-3">
+        <div className="flex items-center justify-between mb-2">
+          <div className="flex items-center gap-2">
+            <Activity className="w-4 h-4" style={{ color: 'var(--accent-primary)' }} />
+            <span className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>协作状态</span>
+          </div>
+          <motion.div
+            className="flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-medium"
+            style={{
+              backgroundColor: `${mode.color}20`,
+              color: mode.color,
+            }}
+            animate={isAIGenerating && !prefersReducedMotion ? { scale: [1, 1.05, 1] } : {}}
+            transition={prefersReducedMotion ? {} : { duration: 1.5, repeat: Infinity }}
+          >
+            {isAIGenerating ? (
+              <>
+                <Zap className="w-3 h-3 animate-pulse motion-reduce:animate-none" />
+                AI生成中...
+              </>
+            ) : (
+              <>
+                {mode.icon}
+                {mode.label}
+              </>
+            )}
+          </motion.div>
         </div>
-        <motion.div
-          className="flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-medium"
-          style={{
-            backgroundColor: `${mode.color}20`,
-            color: mode.color,
-          }}
-          animate={isAIGenerating && !prefersReducedMotion ? { scale: [1, 1.05, 1] } : {}}
-          transition={prefersReducedMotion ? {} : { duration: 1.5, repeat: Infinity }}
-        >
-          {isAIGenerating ? (
-            <>
-              <Zap className="w-3 h-3 animate-pulse motion-reduce:animate-none" />
-              AI生成中...
-            </>
-          ) : (
-            <>
-              {mode.icon}
-              {mode.label}
-            </>
-          )}
-        </motion.div>
-      </div>
       {/* Real-time activity feed */}
       <div className="space-y-1.5">
         <ActivityItem
@@ -109,6 +125,7 @@ function CollaborationStatus() {
         )}
       </div>
     </div>
+    </PanelCard>
   )
 }
 
@@ -124,10 +141,13 @@ function ActivityItem({
   highlight?: boolean
 }) {
   return (
-    <div className={`flex items-center gap-2 text-xs ${highlight ? 'text-[#5e6ad2]' : 'text-[#d0d6e0]/70'}`}>
-      <span className={highlight ? 'text-[#5e6ad2]' : 'text-[#d0d6e0]/50'}>{icon}</span>
+    <div
+      className="flex items-center gap-2 text-xs"
+      style={{ color: highlight ? 'var(--accent-primary)' : 'var(--text-secondary)' }}
+    >
+      <span style={{ color: highlight ? 'var(--accent-primary)' : 'var(--text-tertiary)' }}>{icon}</span>
       <span className="flex-1">{text}</span>
-      <span className="text-[10px] text-[#d0d6e0]/40">{time}</span>
+      <span className="text-[10px]" style={{ color: 'var(--text-tertiary)' }}>{time}</span>
     </div>
   )
 }
@@ -150,8 +170,14 @@ function RatioSliderSection() {
         />
 
         {/* Mode description */}
-        <div className="p-2 rounded-lg bg-[#0f1011] border border-[rgba(255,255,255,0.06)]">
-          <div className="text-xs text-[#d0d6e0]/80">
+        <div
+          className="p-2 rounded-lg"
+          style={{
+            background: 'var(--color-surface-base)',
+            border: '1px solid var(--border-default)',
+          }}
+        >
+          <div className="text-xs" style={{ color: 'var(--text-secondary)' }}>
             {humanAIRatio < 30 && 'AI主导模式：AI自动推进剧情，用户偶尔介入调整'}
             {humanAIRatio >= 30 && humanAIRatio < 70 && '协作模式：人机共同创作，AI辅助用户写作'}
             {humanAIRatio >= 70 && '用户主导模式：用户主导创作，AI仅按指令辅助'}
@@ -547,11 +573,11 @@ function ChapterProgress() {
     >
       <div className="space-y-3">
         <div className="space-y-1">
-          <div className="flex justify-between text-sm text-[#f7f8f8]">
+          <div className="flex justify-between text-sm" style={{ color: 'var(--text-primary)' }}>
             <span>本章: {wordCount} / {targetWordCount} 字</span>
             <span className="font-medium">{Math.round(progress)}%</span>
           </div>
-          <div className="h-2 bg-[rgba(255,255,255,0.06)] rounded-full overflow-hidden">
+          <div className="h-2 rounded-full overflow-hidden" style={{ background: 'var(--border-subtle)' }}>
             <motion.div
               className="h-full rounded-full"
               style={{ background: 'linear-gradient(90deg, #5e6ad2 0%, #7eb84a 100%)' }}
@@ -561,13 +587,13 @@ function ChapterProgress() {
             />
           </div>
         </div>
-        <div className="pt-2 border-t border-[rgba(255,255,255,0.06)]">
-          <div className="flex justify-between text-xs text-[#d0d6e0]/70">
+        <div className="pt-2" style={{ borderTop: '1px solid var(--border-subtle)' }}>
+          <div className="flex justify-between text-xs" style={{ color: 'var(--text-secondary)' }}>
             <span>总章节: {chapters.length}</span>
             <span>总字数: {totalWords.toLocaleString()}</span>
           </div>
           {currentChapter && (
-            <div className="mt-1 text-xs text-[#5e6ad2] truncate">
+            <div className="mt-1 text-xs truncate" style={{ color: 'var(--accent-primary)' }}>
               当前: {currentChapter.title || `第${currentChapter.chapter_order}章`}
             </div>
           )}
@@ -594,21 +620,40 @@ function CollapsibleSection({
   children: React.ReactNode
 }) {
   return (
-    <div className="border border-[rgba(255,255,255,0.08)] rounded-xl overflow-hidden bg-[#0f1011]">
+    <div
+      className="rounded-xl overflow-hidden"
+      style={{
+        background: 'var(--color-surface-base)',
+        border: '1px solid var(--border-default)',
+      }}
+    >
       <button
         onClick={onToggle}
-        className="w-full px-3 py-2.5 flex items-center gap-2
-                   hover:bg-[rgba(255,255,255,0.04)] active:scale-[0.99] transition-all"
+        className="w-full px-3 py-2.5 flex items-center gap-2 active:scale-[0.99] transition-all"
+        style={{ color: 'var(--text-secondary)' }}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.background = 'var(--hover-bg)'
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.background = 'transparent'
+        }}
       >
-        {icon && <span className="text-[#5e6ad2]">{icon}</span>}
-        <span className="flex-1 text-left text-sm font-medium text-[#f7f8f8]">{title}</span>
+        {icon && <span style={{ color: 'var(--accent-primary)' }}>{icon}</span>}
+        <span className="flex-1 text-left text-sm font-medium" style={{ color: 'var(--text-primary)' }}>{title}</span>
         {badge !== undefined && badge > 0 && (
-          <span className="px-1.5 py-0.5 text-xs rounded-full bg-[#c45c5c]/20 text-[#c45c5c] font-medium">
+          <span
+            className="px-1.5 py-0.5 text-xs rounded-full font-medium"
+            style={{
+              background: 'color-mix(in srgb, var(--color-vermillion) 20%, transparent)',
+              color: 'var(--color-vermillion)',
+            }}
+          >
             {badge}
           </span>
         )}
         <ChevronDown
-          className={`w-4 h-4 text-[#d0d6e0] transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`}
+          className={`w-4 h-4 transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`}
+          style={{ color: 'var(--text-secondary)' }}
         />
       </button>
       <AnimatePresence initial={false}>
@@ -620,7 +665,10 @@ function CollapsibleSection({
             transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
             className="overflow-hidden"
           >
-            <div className="p-3 bg-[#08090a]">{children}</div>
+            <div
+              className="p-3"
+              style={{ background: 'var(--color-surface-base)' }}
+            >{children}</div>
           </motion.div>
         )}
       </AnimatePresence>

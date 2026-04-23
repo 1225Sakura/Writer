@@ -16,7 +16,10 @@ export default defineConfig({
       '/api': {
         target: 'http://localhost:8000',
         changeOrigin: true,
-        rewrite: (path) => path.replace(/^\/api/, '/api/v1'),
+        // Note: Backend routes are already /api/v1/*, so no rewrite needed.
+        // The frontend calls /api/health -> proxy -> http://localhost:8000/api/health
+        // But backend health is at /api/v1/health, so frontend should call /api/v1/health.
+        // Vite proxy passes /api/v1/health through unchanged.
       },
     },
   },

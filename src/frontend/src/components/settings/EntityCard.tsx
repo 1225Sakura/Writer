@@ -3,27 +3,27 @@ import { motion } from 'framer-motion'
 import { Trash2, Edit2 } from 'lucide-react'
 import { TagInput, TagChips } from './TagInput'
 
-// Entity type colors
+// Entity type colors - using CSS variables for theme consistency
 export const entityColors: Record<string, { bg: string; text: string }> = {
-  character: { bg: 'rgba(232,184,125,0.15)', text: '#e8b87d' },
-  item: { bg: 'rgba(155,126,217,0.15)', text: '#9b7ed9' },
-  location: { bg: 'rgba(94,181,166,0.15)', text: '#5eb5a6' },
-  faction: { bg: 'rgba(212,93,93,0.15)', text: '#d45d5d' },
-  world: { bg: 'rgba(94,106,210,0.15)', text: '#5e6ad2' },
-  rule: { bg: 'rgba(126,184,74,0.15)', text: '#7eb84a' },
-  outline: { bg: 'rgba(91,142,232,0.15)', text: '#5b8ee8' },
-  ifline: { bg: 'rgba(126,184,74,0.15)', text: '#7eb84a' },
+  character: { bg: 'rgba(232,184,125,0.15)', text: 'var(--color-character)' },
+  item: { bg: 'rgba(155,126,217,0.15)', text: 'var(--color-item)' },
+  location: { bg: 'rgba(94,181,166,0.15)', text: 'var(--color-location)' },
+  faction: { bg: 'rgba(212,93,93,0.15)', text: 'var(--color-faction)' },
+  world: { bg: 'rgba(94,106,210,0.15)', text: 'var(--color-world)' },
+  rule: { bg: 'rgba(126,184,74,0.15)', text: 'var(--color-rule)' },
+  outline: { bg: 'rgba(91,142,232,0.15)', text: 'var(--color-outline)' },
+  ifline: { bg: 'rgba(126,184,74,0.15)', text: 'var(--color-ifline)' },
 }
 
 // Linear card style with glow support
 export const cardStyle = {
-  backgroundColor: 'rgba(255,255,255,0.02)',
-  border: '1px solid rgba(255,255,255,0.08)',
+  backgroundColor: 'var(--color-surface-raised)',
+  border: '1px solid var(--border-default)',
 }
 
 // Glow effect for active/hovered cards
 export const cardGlowStyle = (color: string, isHovered: boolean) => ({
-  boxShadow: isHovered ? `0 0 20px ${color}20, 0 4px 12px rgba(0,0,0,0.2)` : 'none',
+  boxShadow: isHovered ? `0 0 16px ${color}18, 0 4px 12px rgba(0,0,0,0.15)` : 'none',
 })
 
 interface EntityCardProps {
@@ -60,9 +60,9 @@ export function EntityCard({
       className="p-4 rounded-lg relative overflow-hidden"
       style={{
         ...cardStyle,
-        ...cardGlowStyle(badgeColor?.text || '#5e6ad2', isHovered),
-        backgroundColor: isHovered ? 'rgba(255,255,255,0.04)' : 'rgba(255,255,255,0.02)',
-        borderColor: isHovered ? 'rgba(255,255,255,0.12)' : 'rgba(255,255,255,0.08)',
+        ...cardGlowStyle(badgeColor?.text || 'var(--accent-primary)', isHovered),
+        backgroundColor: isHovered ? 'var(--color-surface-overlay)' : 'var(--color-surface-raised)',
+        borderColor: isHovered ? 'var(--border-strong)' : 'var(--border-default)',
         cursor: onClick ? 'pointer' : 'default',
       }}
       onMouseEnter={() => setIsHovered(true)}
@@ -86,7 +86,7 @@ export function EntityCard({
       <div className="flex items-start justify-between relative z-10">
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 mb-1">
-            <h3 className="font-medium text-sm" style={{ color: '#f7f8f8' }}>
+            <h3 className="font-medium text-sm" style={{ color: 'var(--text-primary)' }}>
               {name}
             </h3>
             {badge && badgeColor && (
@@ -101,7 +101,7 @@ export function EntityCard({
             )}
           </div>
           {description && (
-            <p className="text-xs line-clamp-2" style={{ color: '#6b7280' }}>
+            <p className="text-xs line-clamp-2" style={{ color: 'var(--text-tertiary)' }}>
               {description}
             </p>
           )}
@@ -120,10 +120,10 @@ export function EntityCard({
                 onEdit()
               }}
               className="p-1.5 rounded transition-all"
-              style={{ color: '#6b7280' }}
+              style={{ color: 'var(--text-tertiary)' }}
               whileHover={{
-                backgroundColor: 'rgba(255,255,255,0.1)',
-                color: '#f7f8f8',
+                backgroundColor: 'var(--color-surface-hover)',
+                color: 'var(--text-primary)',
                 scale: 1.1,
               }}
               whileTap={{ scale: 0.9 }}
@@ -137,10 +137,10 @@ export function EntityCard({
               onDelete()
             }}
             className="p-1.5 rounded transition-all"
-            style={{ color: '#6b7280' }}
+            style={{ color: 'var(--text-tertiary)' }}
             whileHover={{
-              backgroundColor: 'rgba(196,92,92,0.15)',
-              color: '#d45d5d',
+              backgroundColor: 'var(--color-danger)15',
+              color: 'var(--color-danger)',
               scale: 1.1,
             }}
             whileTap={{ scale: 0.9 }}
@@ -202,11 +202,11 @@ export function EntityListItem({
         style={{ backgroundColor: typeColor }}
       />
       <div className="flex-1 min-w-0">
-        <div className="text-sm font-medium truncate" style={{ color: '#f7f8f8' }}>
+        <div className="text-sm font-medium truncate" style={{ color: 'var(--text-primary)' }}>
           {name}
         </div>
         {description && (
-          <p className="text-xs truncate" style={{ color: '#6b7280' }}>
+          <p className="text-xs truncate" style={{ color: 'var(--text-tertiary)' }}>
             {description}
           </p>
         )}
@@ -229,7 +229,7 @@ export function EntityListItem({
           className="p-1 rounded opacity-0 group-hover:opacity-100 transition-opacity"
           whileHover={{ scale: 1.1 }}
           whileTap={{ scale: 0.9 }}
-          style={{ color: '#6b7280' }}
+          style={{ color: 'var(--text-tertiary)' }}
         >
           <Trash2 className="w-3.5 h-3.5" />
         </motion.button>

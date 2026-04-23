@@ -11,35 +11,8 @@
    ============================================================ */
 
 :root {
-  /* Font families - comprehensive fallback stacks for cross-platform Chinese support */
-  --font-sans: 'Inter',
-    /* macOS */
-    -apple-system,
-    'SF Pro Display',
-    BlinkMacSystemFont,
-    'Segoe UI',
-    /* iOS */
-    'PingFang SC',
-    'Hiragino Sans GB',
-    /* Windows */
-    'Microsoft YaHei',
-    'PingFang SC',
-    'SimHei',
-    /* Linux */
-    'Noto Sans CJK SC',
-    'WenQuanYi Micro Hei',
-    /* Fallback */
-    sans-serif;
-
-  --font-mono: 'JetBrains Mono',
-    'SF Mono',
-    'Fira Code',
-    'Cascadia Code',
-    'Consolas',
-    'Monaco',
-    monospace;
-
-  /* Chinese serif fonts for writing (思源宋体 family with fallbacks) */
+  /* === Chinese Serif (中文衬线) ===
+     Noto Serif SC / Source Han Serif CN / SimSun / serif */
   --font-serif-cn: 'Noto Serif SC',
     'Source Han Serif CN',
     'Source Han Serif SC',
@@ -47,23 +20,53 @@
     'Songti SC',
     'SimSun',
     'NSimSun',
-    /* macOS */
     'STSong',
     'STKaiti',
-    /* Linux */
     'Noto Serif CJK SC',
-    'Noto Serif CJK',
-    /* Fallback */
     serif;
 
-  /* English serif fonts */
+  /* === Chinese Sans-Serif (中文无衬线) ===
+     Noto Sans SC / Source Han Sans CN / PingFang SC / Microsoft YaHei / sans-serif */
+  --font-sans: 'Inter',
+    -apple-system,
+    'SF Pro Display',
+    BlinkMacSystemFont,
+    'Noto Sans SC',
+    'Source Han Sans CN',
+    'PingFang SC',
+    'Hiragino Sans GB',
+    'Microsoft YaHei',
+    'Noto Sans CJK SC',
+    'WenQuanYi Micro Hei',
+    sans-serif;
+
+  /* === English Monospace (英文等宽) ===
+     JetBrains Mono / Fira Code / Cascadia Code / monospace */
+  --font-mono: 'JetBrains Mono',
+    'Fira Code',
+    'Cascadia Code',
+    'SF Mono',
+    'Consolas',
+    'Monaco',
+    monospace;
+
+  /* === English Sans-Serif (英文无衬线) ===
+     Inter / -apple-system / BlinkMacSystemFont / sans-serif */
+  --font-sans-en: 'Inter',
+    -apple-system,
+    'SF Pro Display',
+    BlinkMacSystemFont,
+    'Segoe UI',
+    sans-serif;
+
+  /* === English Serif (英文衬线) === */
   --font-serif-en: 'Noto Serif SC',
     'Georgia',
     'Times New Roman',
     'Cambria',
     serif;
 
-  /* Combined writing font stack - optimized for Chinese novels */
+  /* === Combined writing font stack - optimized for Chinese novels === */
   --font-writing: 'Noto Serif SC',
     'Source Han Serif CN',
     'Source Han Serif SC',
@@ -75,19 +78,19 @@
     serif;
 
   /* ============================================================
-     TYPOGRAPHY SCALE
+     TYPOGRAPHY SCALE (Standardized)
      ============================================================ */
 
   /* Font sizes */
-  --text-xs: 11px;
-  --text-sm: 13px;
-  --text-base: 14px;
-  --text-md: 15px;
-  --text-lg: 16px;
-  --text-xl: 18px;
-  --text-2xl: 22px;
-  --text-3xl: 28px;
-  --text-4xl: 36px;
+  --text-xs: 12px;   /* 辅助文字 */
+  --text-sm: 13px;   /* 标签 */
+  --text-base: 14px; /* 界面默认 */
+  --text-md: 15px;   /* 稍大 */
+  --text-lg: 16px;   /* 稍大 */
+  --text-xl: 18px;   /* 小标题 */
+  --text-2xl: 20px;  /* 标题 */
+  --text-3xl: 24px;  /* 大标题 */
+  --text-4xl: 36px;  /* 超大标题 */
 
   /* Writing-specific sizes */
   --writing-font-size-xs: 14px;
@@ -109,24 +112,37 @@
   --tracking-wide: 0.02em;
   --tracking-wide-xl: 0.04em;
 
-  /* Chinese character specific spacing (微调) */
+  /* Chinese character specific spacing */
   --tracking-cn-tight: -0.02em;
   --tracking-cn-normal: 0.03em;
   --tracking-cn-wide: 0.05em;
 
-  /* Line heights */
+  /* ============================================================
+     LINE HEIGHTS (Standardized)
+     ============================================================ */
+
+  /* Interface line heights */
   --leading-none: 1;
   --leading-tight: 1.25;
   --leading-snug: 1.4;
-  --leading-normal: 1.5;
-  --leading-relaxed: 1.75;
-  --leading-loose: 2;
+  --leading-normal: 1.5;    /* 界面默认: 1.5em */
+  --leading-relaxed: 1.75;  /* 写作区: 1.75em */
+  --leading-loose: 2;       /* 写作区宽松: 2em */
 
   /* Writing-specific line heights */
   --writing-leading-tight: 1.6;
-  --writing-leading-normal: 1.8;
+  --writing-leading-normal: 1.75;
   --writing-leading-relaxed: 1.9;
   --writing-leading-loose: 2;
+
+  /* ============================================================
+     TEXT COLOR VARIABLES (Standardized)
+     ============================================================ */
+
+  --text-primary: #f7f8f8;
+  --text-secondary: #d0d6e0;
+  --text-muted: #8a8f98;
+  --text-inverse: #1a1a2e;
 
   /* ============================================================
      WRITING TYPOGRAPHY VARIABLES
@@ -151,7 +167,7 @@
 
 /**
  * Writing area font stack
- * Chinese: Noto Serif SC (思源宋体) with fallbacks
+ * Chinese: Noto Serif SC with fallbacks
  * Line height: 1.75-2em for comfortable reading
  * Letter spacing: slight increase for Chinese characters
  */
@@ -162,6 +178,10 @@
   letter-spacing: var(--writing-letter-spacing);
   text-orientation: upright;
   writing-mode: horizontal-tb;
+  /* Font rendering optimizations */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
 }
 
 /* Writing paragraphs */
@@ -177,7 +197,7 @@
   text-indent: 0;
 }
 
-/* Chinese character spacing (字间距微调) */
+/* Chinese character spacing */
 .writing-typography-cn {
   letter-spacing: var(--tracking-cn-normal);
   font-weight: var(--weight-regular);
@@ -203,6 +223,10 @@
   line-height: var(--interface-line-height);
   letter-spacing: var(--interface-letter-spacing);
   font-weight: var(--weight-medium);
+  /* Font rendering optimizations */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
 }
 
 /* ============================================================
@@ -261,20 +285,17 @@
 .leading-interface-relaxed { line-height: var(--leading-relaxed); }
 
 /* ============================================================
-   LETTER SPACING UTILITIES (中文字符间距微调)
+   LETTER SPACING UTILITIES
    ============================================================ */
 
-/* Tight spacing for headings */
 .tracking-cn-tight {
   letter-spacing: var(--tracking-cn-tight);
 }
 
-/* Normal spacing for body text - slight increase for readability */
 .tracking-cn-normal {
   letter-spacing: var(--tracking-cn-normal);
 }
 
-/* Wide spacing for emphasis */
 .tracking-cn-wide {
   letter-spacing: var(--tracking-cn-wide);
 }
@@ -450,15 +471,6 @@
 [data-theme="light"] .dialogue-text,
 [data-theme="light"] .narration-text {
   color: var(--writing-text, #1a1a2e);
-}
-
-/* Ensure minimum contrast ratios for accessibility */
-/* WCAG AA requires 4.5:1 for normal text, 3:1 for large text */
-.writing-typography {
-  /* Use font-smoothing for better rendering */
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  text-rendering: optimizeLegibility;
 }
 
 /* Interface text contrast in dark mode */

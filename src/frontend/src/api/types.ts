@@ -4,6 +4,16 @@
 
 import type {
   ChatMessage,
+  Character,
+  CharacterRelationship,
+  CharacterStoryline,
+  Item,
+  Faction,
+  WorldSetting,
+  Rule,
+  WritingSettings,
+  ChapterStatus,
+  PlotThreadStatus,
 } from "@/shared/types"
 
 // ============================================
@@ -12,6 +22,8 @@ import type {
 
 export type {
   Character,
+  CharacterRelationship,
+  CharacterStoryline,
   Item,
   Location,
   Faction,
@@ -29,6 +41,19 @@ export type {
   WritingSettings,
   ApiResponse,
   PaginatedResponse,
+  ErrorResponse,
+  SuccessResponse,
+  Project,
+  GenreConfiguration,
+  BackgroundTask,
+  WorkflowExecution,
+  AgentExecutionLog,
+  ChapterStatus,
+  IFLineSyncMode,
+  PlotThreadStatus,
+  ChatRole,
+  EntityType,
+  SettingsEntityType,
 } from "@/shared/types"
 
 // Re-export with 'Api' suffix to avoid naming conflicts
@@ -49,6 +74,10 @@ export type {
   Faction as ApiFaction,
   WorldSetting as ApiWorldSetting,
   Rule as ApiRule,
+  Project as ApiProject,
+  BackgroundTask as ApiBackgroundTask,
+  WorkflowExecution as ApiWorkflowExecution,
+  AgentExecutionLog as ApiAgentExecutionLog,
 } from "@/shared/types"
 
 // ============================================
@@ -63,39 +92,8 @@ export type WritingStyleType =
   | "custom"
 
 // ============================================
-// Entity Type Enum (for AI review categorization)
-// ============================================
-
-export type EntityType =
-  | "character"
-  | "item"
-  | "location"
-  | "faction"
-  | "world"
-  | "rule"
-  | "outline"
-  | "chapter"
-  | "plot_thread"
-
-// ============================================
 // API-specific types (not in shared)
 // ============================================
-
-export interface CharacterRelationship {
-  id: number
-  character_id: number
-  target_id: number
-  type: "family" | "friend" | "enemy" | "master" | "disciple" | "rival" | "romantic" | "other"
-  description?: string
-}
-
-export interface CharacterStoryline {
-  id: number
-  character_id: number
-  title: string
-  arc?: string
-  progress: number
-}
 
 // ============================================
 // Chat API Types
@@ -103,20 +101,22 @@ export interface CharacterStoryline {
 
 export interface ChatSendRequest {
   content: string
-  collected_settings?: Record<string, unknown>
+  collected_settings?: Record<string, string | number | boolean | null>
   current_category?: string
+}
+
+export interface AgentResult {
+  confidence: number
+  metadata: Record<string, string | number | boolean>
+  warnings: string[]
+  content?: string
 }
 
 export interface ChatSendResponse {
   user_message: ChatMessage
   ai_message: ChatMessage
   stream?: ReadableStream<Uint8Array>
-  agent_result?: {
-    confidence: number
-    metadata: Record<string, unknown>
-    warnings: string[]
-    content?: string | Record<string, unknown>
-  }
+  agent_result?: AgentResult
 }
 
 export interface SessionSummaryResponse {
@@ -144,6 +144,12 @@ export interface AIGenerateRequest {
   style?: string
 }
 
+export interface AIGenerateHeaders {
+  operation: string
+  "human-ai-ratio": string
+  style: string
+}
+
 export interface AIGenerateResponse {
   operation: string
   "human-ai-ratio": string
@@ -159,26 +165,76 @@ export interface AIStreamResult {
 // AI Context & Extract Types
 // ============================================
 
+export interface SceneConstraint {
+  location?: string
+  time?: string
+  mood?: string
+  pov?: string
+}
+
+export interface ContinuityInfo {
+  previous_chapter_summary?: string
+  active_plot_threads: string[]
+  character_states: Record<string, string>
+}
+
 export interface AIContextResponse {
   chapter_id: number
   chapter_title?: string
-  core_task: Record<string, unknown>
-  承接上文: Record<string, unknown>
-  active_characters: unknown[]
-  scene_constraints: Record<string, unknown>
+  core_task: {
+    objective?: string
+    target_length?: number
+    focus?: string
+  }
+  承接上文: {
+    summary?: string
+    unresolved_threads?: string[]
+  }
+  active_characters: Array<{
+    id: number
+    name: string
+    state: string
+    motivation?: string
+  }>
+  scene_constraints: SceneConstraint
   time_constraints: string
   style_guidance: string
-  continuity: Record<string, unknown>
+  continuity: ContinuityInfo
   engagement_strategy: string
   raw_ai_response?: string
 }
 
+export interface ExtractedScene {
+  location?: string
+  characters: string[]
+  events: string[]
+  mood?: string
+}
+
+export interface ExtractedRelationship {
+  source: string
+  target: string
+  type: string
+  description?: string
+}
+
+export interface ExtractedStateChange {
+  entity: string
+  property: string
+  old_value?: string
+  new_value: string
+}
+
 export interface AIExtractResponse {
   chapter_id?: number
-  entities: unknown[]
-  relationships: unknown[]
-  state_changes: unknown[]
-  scenes: unknown[]
+  entities: Array<{
+    type: string
+    name: string
+    description?: string
+  }>
+  relationships: ExtractedRelationship[]
+  state_changes: ExtractedStateChange[]
+  scenes: ExtractedScene[]
   summary: string
 }
 
@@ -188,7 +244,7 @@ export interface AIExtractResponse {
 
 export interface AIReviewResult {
   review_content: string
-  raw_response: Record<string, unknown>
+  raw_response: Record<string, string | number | boolean | string[]>
 }
 
 export interface AIReviewRequest {
@@ -198,7 +254,7 @@ export interface AIReviewRequest {
 export interface AIChapterInspectionResponse {
   chapter_id: number
   review_content: string
-  raw_response: Record<string, unknown>
+  raw_response: Record<string, string | number | boolean | string[]>
 }
 
 // ============================================
@@ -216,12 +272,24 @@ export interface CheckerBaseResponse {
   suggestions: string[]
 }
 
+export interface ContinuityPlotThreadStatus {
+  thread_id: number
+  title: string
+  status: string
+  fulfilled: boolean
+}
+
 export interface ContinuityCheckResponse extends CheckerBaseResponse {
-  plot_thread_status: Record<string, unknown>
+  plot_thread_status: ContinuityPlotThreadStatus[]
+}
+
+export interface StrandRatio {
+  strand: string
+  percentage: number
 }
 
 export interface PacingCheckResponse extends CheckerBaseResponse {
-  strand_ratios: Record<string, unknown>
+  strand_ratios: StrandRatio[]
   analysis: string
 }
 
@@ -271,15 +339,15 @@ export interface ReaderPullCheckResponse extends CheckerBaseResponse {
 export interface ExportDataResponse {
   version: string
   exported_at: string
-  characters: unknown[]
-  character_relationships: unknown[]
-  character_storylines: unknown[]
-  items: unknown[]
-  locations: unknown[]
-  factions: unknown[]
-  world_settings: unknown[]
-  rules: unknown[]
-  writing_settings: Record<string, unknown> | null
+  characters: Character[]
+  character_relationships: CharacterRelationship[]
+  character_storylines: CharacterStoryline[]
+  items: Item[]
+  locations: Location[]
+  factions: Faction[]
+  world_settings: WorldSetting[]
+  rules: Rule[]
+  writing_settings: WritingSettings | null
 }
 
 export interface ImportSummaryResponse {
@@ -309,7 +377,7 @@ export interface PaginationParams {
 
 export interface ChapterFilters {
   outline_id?: number
-  status?: "pending" | "writing" | "review" | "completed" | "archived"
+  status?: ChapterStatus
 }
 
 export interface CharacterFilters {
@@ -337,7 +405,7 @@ export interface IFLineFilters {
 }
 
 export interface PlotThreadFilters {
-  status?: "active" | "resolved" | "abandoned" | "hidden"
+  status?: PlotThreadStatus
 }
 
 export interface EntityFilters {

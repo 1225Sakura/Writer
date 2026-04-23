@@ -17,8 +17,8 @@ export function TypingIndicator() {
           <div
             className="w-7 h-7 rounded-full flex items-center justify-center"
             style={{
-              backgroundColor: 'rgba(94, 106, 210, 0.12)',
-              border: '1px solid rgba(94, 106, 210, 0.2)',
+              backgroundColor: 'var(--accent-muted)',
+              border: '1px solid var(--border-focus)',
             }}
           >
             <Bot className="w-4 h-4" style={{ color: 'var(--accent-primary)' }} />
@@ -29,9 +29,9 @@ export function TypingIndicator() {
           <div
             className="rounded-2xl px-4 py-3"
             style={{
-              backgroundColor: '#0f1011',
-              border: '1px solid rgba(255,255,255,0.08)',
-              borderRadius: '16px 16px 16px 4px',
+              backgroundColor: 'var(--color-surface-raised)',
+              border: '1px solid var(--border-default)',
+              borderRadius: '20px 20px 20px 4px',
             }}
           >
             <div className="flex items-center gap-2">
@@ -80,7 +80,7 @@ export function TypingIndicatorBrain() {
           <motion.div
             className="absolute inset-0 rounded-full"
             style={{
-              background: 'radial-gradient(circle, rgba(94,106,210,0.25) 0%, transparent 70%)',
+              background: 'radial-gradient(circle, var(--accent-muted) 0%, transparent 70%)',
             }}
             animate={{ scale: [1, 1.5, 1], opacity: [0.3, 0.6, 0.3] }}
             transition={{ duration: 1.5, repeat: Infinity, ease: 'easeInOut' }}
@@ -88,8 +88,8 @@ export function TypingIndicatorBrain() {
           <div
             className="w-7 h-7 rounded-full flex items-center justify-center relative"
             style={{
-              backgroundColor: 'rgba(94, 106, 210, 0.15)',
-              border: '1px solid rgba(94, 106, 210, 0.25)',
+              backgroundColor: 'var(--accent-muted)',
+              border: '1px solid var(--border-focus)',
             }}
           >
             <Brain className="w-4 h-4" style={{ color: 'var(--accent-primary)' }} />
@@ -100,9 +100,9 @@ export function TypingIndicatorBrain() {
           <div
             className="rounded-2xl px-4 py-3"
             style={{
-              backgroundColor: '#0f1011',
-              border: '1px solid rgba(255,255,255,0.08)',
-              borderRadius: '16px 16px 16px 4px',
+              backgroundColor: 'var(--color-surface-raised)',
+              border: '1px solid var(--border-default)',
+              borderRadius: '20px 20px 20px 4px',
             }}
           >
             <div className="flex items-center gap-3">
@@ -146,8 +146,8 @@ export function TypingIndicatorOrbital() {
           <div
             className="w-7 h-7 rounded-full flex items-center justify-center"
             style={{
-              backgroundColor: 'rgba(94, 106, 210, 0.12)',
-              border: '1px solid rgba(94, 106, 210, 0.2)',
+              backgroundColor: 'var(--accent-muted)',
+              border: '1px solid var(--border-focus)',
             }}
           >
             <Bot className="w-4 h-4" style={{ color: 'var(--accent-primary)' }} />
@@ -158,9 +158,9 @@ export function TypingIndicatorOrbital() {
           <div
             className="rounded-2xl px-4 py-3"
             style={{
-              backgroundColor: '#0f1011',
-              border: '1px solid rgba(255,255,255,0.08)',
-              borderRadius: '16px 16px 16px 4px',
+              backgroundColor: 'var(--color-surface-raised)',
+              border: '1px solid var(--border-default)',
+              borderRadius: '20px 20px 20px 4px',
             }}
           >
             <div className="flex items-center gap-2">
@@ -211,8 +211,8 @@ export function TypingIndicatorLoading() {
           <div
             className="w-7 h-7 rounded-full flex items-center justify-center"
             style={{
-              backgroundColor: 'rgba(94, 106, 210, 0.12)',
-              border: '1px solid rgba(94, 106, 210, 0.2)',
+              backgroundColor: 'var(--accent-muted)',
+              border: '1px solid var(--border-focus)',
             }}
           >
             <Bot className="w-4 h-4" style={{ color: 'var(--accent-primary)' }} />
@@ -223,9 +223,9 @@ export function TypingIndicatorLoading() {
           <div
             className="rounded-2xl px-4 py-3"
             style={{
-              backgroundColor: '#0f1011',
-              border: '1px solid rgba(255,255,255,0.08)',
-              borderRadius: '16px 16px 16px 4px',
+              backgroundColor: 'var(--color-surface-raised)',
+              border: '1px solid var(--border-default)',
+              borderRadius: '20px 20px 20px 4px',
             }}
           >
             <div className="flex items-center gap-2.5">
@@ -256,8 +256,8 @@ export function TypingIndicatorWave() {
           <div
             className="w-7 h-7 rounded-full flex items-center justify-center"
             style={{
-              backgroundColor: 'rgba(94, 106, 210, 0.12)',
-              border: '1px solid rgba(94, 106, 210, 0.2)',
+              backgroundColor: 'var(--accent-muted)',
+              border: '1px solid var(--border-focus)',
             }}
           >
             <Bot className="w-4 h-4" style={{ color: 'var(--accent-primary)' }} />
@@ -268,9 +268,9 @@ export function TypingIndicatorWave() {
           <div
             className="rounded-2xl px-4 py-3"
             style={{
-              backgroundColor: '#0f1011',
-              border: '1px solid rgba(255,255,255,0.08)',
-              borderRadius: '16px 16px 16px 4px',
+              backgroundColor: 'var(--color-surface-raised)',
+              border: '1px solid var(--border-default)',
+              borderRadius: '20px 20px 20px 4px',
             }}
           >
             <div className="flex items-center gap-2">

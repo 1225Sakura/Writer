@@ -48,31 +48,31 @@ const animationStyles: Record<RevealAnimation, { initial: React.CSSProperties; a
     animate: { opacity: 1 },
   },
   'slide-up': {
-    initial: { opacity: 0, transform: 'translateY(24px)' },
+    initial: { opacity: 0, transform: 'translateY(16px)' },
     animate: { opacity: 1, transform: 'translateY(0)' },
   },
   'slide-down': {
-    initial: { opacity: 0, transform: 'translateY(-24px)' },
+    initial: { opacity: 0, transform: 'translateY(-16px)' },
     animate: { opacity: 1, transform: 'translateY(0)' },
   },
   'slide-left': {
-    initial: { opacity: 0, transform: 'translateX(24px)' },
+    initial: { opacity: 0, transform: 'translateX(16px)' },
     animate: { opacity: 1, transform: 'translateX(0)' },
   },
   'slide-right': {
-    initial: { opacity: 0, transform: 'translateX(-24px)' },
+    initial: { opacity: 0, transform: 'translateX(-16px)' },
     animate: { opacity: 1, transform: 'translateX(0)' },
   },
   scale: {
-    initial: { opacity: 0, transform: 'scale(0.92)' },
+    initial: { opacity: 0, transform: 'scale(0.96)' },
     animate: { opacity: 1, transform: 'scale(1)' },
   },
   blur: {
-    initial: { opacity: 0, filter: 'blur(8px)' },
+    initial: { opacity: 0, filter: 'blur(4px)' },
     animate: { opacity: 1, filter: 'blur(0px)' },
   },
   'slide-up-fade': {
-    initial: { opacity: 0, transform: 'translateY(16px) scale(0.98)' },
+    initial: { opacity: 0, transform: 'translateY(12px) scale(0.98)' },
     animate: { opacity: 1, transform: 'translateY(0) scale(1)' },
   },
 }
@@ -87,9 +87,9 @@ export function ScrollReveal({
   children,
   animation = 'slide-up-fade',
   threshold = 0.1,
-  rootMargin = '0px 0px -40px 0px',
+  rootMargin = '0px 0px -20px 0px',
   delay = 0,
-  duration = 500,
+  duration = 400,
   once = true,
   className,
   customInitial,
@@ -136,8 +136,8 @@ export function ScrollReveal({
       style={{
         ...initialStyle,
         ...(shouldShow ? animateStyle : keepHidden ? initialStyle : {}),
-        transition: `all ${duration}ms cubic-bezier(0.16, 1, 0.3, 1) ${delay}ms`,
-        willChange: 'transform, opacity, filter',
+        transition: `all ${duration}ms cubic-bezier(0.4, 0, 0.2, 1) ${delay}ms`,
+        willChange: 'transform, opacity',
       }}
     >
       {children}
@@ -163,7 +163,7 @@ interface ScrollRevealGroupProps {
 export function ScrollRevealGroup({
   children,
   animation = 'slide-up-fade',
-  staggerDelay = 80,
+  staggerDelay = 60,
   threshold = 0.05,
   className,
   itemClassName,

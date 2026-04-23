@@ -7,14 +7,10 @@ import {
   Search,
   Inbox,
   MessageSquareOff,
-  BookOpen,
-  Users,
-  MapPin,
-  Swords,
-  GitBranch,
   Sparkles,
   type LucideIcon,
 } from 'lucide-react'
+import { EntityIcon } from './Icon'
 
 export interface EmptyStateProps extends React.HTMLAttributes<HTMLDivElement> {
   icon?: EmptyStateIcon
@@ -38,18 +34,21 @@ type EmptyStateIcon =
   | 'ai'
   | 'custom'
 
-const iconMap: Record<EmptyStateIcon, LucideIcon> = {
+const iconMap: Record<Extract<EmptyStateIcon, 'default' | 'search' | 'inbox' | 'message' | 'ai' | 'custom'>, LucideIcon> = {
   default: FileQuestion,
   search: Search,
   inbox: Inbox,
   message: MessageSquareOff,
-  book: BookOpen,
-  character: Users,
-  location: MapPin,
-  faction: Swords,
-  ifline: GitBranch,
   ai: Sparkles,
   custom: FileQuestion,
+}
+
+const entityIconTypes: Record<string, 'world' | 'character' | 'location' | 'faction' | 'rule' | 'outline' | 'ifline'> = {
+  book: 'outline',
+  character: 'character',
+  location: 'location',
+  faction: 'faction',
+  ifline: 'ifline',
 }
 
 const sizeConfig = {
@@ -87,8 +86,8 @@ export const EmptyState = React.forwardRef<HTMLDivElement, EmptyStateProps>(
     },
     ref
   ) => {
-    const Icon = iconMap[icon]
     const config = sizeConfig[size]
+    const isEntityIcon = icon in entityIconTypes
 
     const Wrapper = animated ? motion.div : 'div'
     const wrapperProps = animated
@@ -116,8 +115,8 @@ export const EmptyState = React.forwardRef<HTMLDivElement, EmptyStateProps>(
         {/* Icon container with subtle glow */}
         <motion.div
           className={clsx(
-            'relative flex items-center justify-center rounded-2xl mb-4',
-            'bg-[rgba(255,255,255,0.03)] border border-[rgba(255,255,255,0.06)]'
+            'relative flex items-center justify-center rounded-[var(--radius-xl)] mb-4',
+            'bg-[var(--color-surface-raised)] border border-[var(--border-default)]'
           )}
           style={{ width: config.icon * 2, height: config.icon * 2 }}
           {...(animated
@@ -128,17 +127,31 @@ export const EmptyState = React.forwardRef<HTMLDivElement, EmptyStateProps>(
               }
             : {})}
         >
-          <Icon
-            size={config.icon}
-            className="text-[rgba(255,255,255,0.2)]"
-            strokeWidth={1.5}
-          />
+          {isEntityIcon ? (
+            <EntityIcon
+              type={entityIconTypes[icon]}
+              size={size === 'sm' ? 'sm' : size === 'md' ? 'md' : 'lg'}
+              className="text-[var(--text-tertiary)]"
+              style={{ strokeWidth: 1.5 }}
+            />
+          ) : (
+            (() => {
+              const LucideIconComponent = iconMap[icon as keyof typeof iconMap]
+              return (
+                <LucideIconComponent
+                  size={config.icon}
+                  className="text-[var(--text-tertiary)]"
+                  strokeWidth={1.5}
+                />
+              )
+            })()
+          )}
           {/* Subtle inner glow */}
           <div
-            className="absolute inset-0 rounded-2xl pointer-events-none"
+            className="absolute inset-0 rounded-[var(--radius-xl)] pointer-events-none"
             style={{
               background:
-                'radial-gradient(circle at 50% 50%, rgba(94, 106, 210, 0.05) 0%, transparent 70%)',
+                'radial-gradient(circle at 50% 50%, var(--accent-muted) 0%, transparent 70%)',
             }}
           />
         </motion.div>
@@ -147,7 +160,7 @@ export const EmptyState = React.forwardRef<HTMLDivElement, EmptyStateProps>(
           <motion.h3
             className={clsx(
               config.title,
-              'font-semibold text-[#d0d6e0] mb-1.5'
+              'font-semibold text-[var(--text-primary)] mb-1.5'
             )}
             {...(animated
               ? {
@@ -165,7 +178,7 @@ export const EmptyState = React.forwardRef<HTMLDivElement, EmptyStateProps>(
           <motion.p
             className={clsx(
               config.desc,
-              'text-[#8a8f98] max-w-[280px] leading-relaxed'
+              'text-[var(--text-tertiary)] max-w-[280px] leading-relaxed'
             )}
             {...(animated
               ? {

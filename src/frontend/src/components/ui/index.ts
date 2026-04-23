@@ -1,17 +1,17 @@
 export { Button } from './Button'
 export type { ButtonProps } from './Button'
 
-export { Card, CardHeader, CardContent, CardFooter } from './Card'
-export type { CardProps, CardHeaderProps, CardContentProps, CardFooterProps } from './Card'
+export { Card, CardHeader, CardContent, CardFooter } from './card'
+export type { CardProps, CardHeaderProps, CardContentProps, CardFooterProps } from './card'
 
-export { Input } from './Input'
-export type { InputProps } from './Input'
+export { Input } from './input'
+export type { InputProps } from './input'
 
-export { Textarea } from './Textarea'
-export type { TextareaProps } from './Textarea'
+export { Textarea } from './textarea'
+export type { TextareaProps } from './textarea'
 
-export { Badge } from './Badge'
-export type { BadgeProps } from './Badge'
+export { Badge } from './badge'
+export type { BadgeProps } from './badge'
 
 export {
   DropdownMenu,
@@ -111,6 +111,9 @@ export type { DividerProps } from './Divider'
 
 export { EmptyState } from './EmptyState'
 export type { EmptyStateProps } from './EmptyState'
+
+export { Icon, EntityIcon, PlotThreadIcon, entityIcons, sizeMap, sizeClassMap } from './Icon'
+export type { IconProps, EntityIconProps, PlotThreadIconProps, IconSize, EntityIconType } from './Icon'
 
 export { ProgressRing } from './ProgressRing'
 export type { ProgressRingProps } from './ProgressRing'

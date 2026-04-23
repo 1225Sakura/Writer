@@ -57,7 +57,7 @@ export function WritingToolbar() {
     setHumanAIRatio,
     optimize,
     expand,
-    shrink,
+    condense: shrink,
     rewrite,
     continue: continueWriting,
     polish,
@@ -78,7 +78,7 @@ export function WritingToolbar() {
   const isAIGenerating = loading.ai
 
   const handleQuickAIOp = async (
-    operation: 'optimize' | 'expand' | 'shrink' | 'rewrite' | 'continue' | 'polish'
+    operation: 'optimize' | 'expand' | 'condense' | 'rewrite' | 'continue' | 'polish'
   ) => {
     const editor = getEditorInstance()
     const selectedText = editor
@@ -100,7 +100,7 @@ export function WritingToolbar() {
         case 'expand':
           result = await expand(selectedText)
           break
-        case 'shrink':
+        case 'condense':
           result = await shrink(selectedText)
           break
         case 'rewrite':
@@ -131,14 +131,14 @@ export function WritingToolbar() {
   const quickAIOperations = [
     { key: 'optimize', label: '优化', icon: <Zap className="w-3.5 h-3.5" />, shortcut: 'O', color: 'var(--accent-primary)' },
     { key: 'expand', label: '扩写', icon: <Expand className="w-3.5 h-3.5" />, shortcut: 'E', color: 'var(--color-ifline)' },
-    { key: 'shrink', label: '缩写', icon: <Shrink className="w-3.5 h-3.5" />, shortcut: 'S', color: 'var(--color-character)' },
+    { key: 'condense', label: '缩写', icon: <Shrink className="w-3.5 h-3.5" />, shortcut: 'S', color: 'var(--color-character)' },
     { key: 'rewrite', label: '改写', icon: <RefreshCw className="w-3.5 h-3.5" />, shortcut: 'R', color: 'var(--color-item)' },
     { key: 'continue', label: '续写', icon: <ArrowRight className="w-3.5 h-3.5" />, shortcut: 'W', color: 'var(--color-location)' },
     { key: 'polish', label: '润色', icon: <Paintbrush className="w-3.5 h-3.5" />, shortcut: 'P', color: 'var(--color-vermillion)' },
   ] as const
 
   return (
-    <div className="h-[44px] flex items-center px-4 gap-2"
+    <div className="h-[var(--layout-topbar-height)] flex items-center px-4 gap-2"
          style={{
            backgroundColor: 'var(--color-surface-base)',
            borderBottom: '1px solid var(--border-default)',
@@ -197,10 +197,16 @@ export function WritingToolbar() {
       <div className="flex items-center gap-2 ml-2">
         <div className="w-px h-6" style={{ backgroundColor: 'var(--border-default)' }} />
 
-        {/* Human-AI ratio mini control */}
-        <div className="flex items-center gap-2 px-2 py-1 rounded-lg bg-[rgba(255,255,255,0.03)] border border-[rgba(255,255,255,0.06)]">
+        {/* Human-AI ratio mini control - refined visual */}
+        <div
+          className="flex items-center gap-2 px-2.5 py-1.5 rounded-lg"
+          style={{
+            background: 'var(--border-subtle)',
+            border: '1px solid var(--border-default)',
+          }}
+        >
           <Bot className="w-3.5 h-3.5" style={{ color: 'var(--accent-primary)' }} />
-          <div className="w-16">
+          <div className="w-20">
             <Slider
               value={[humanAIRatio]}
               min={0}
@@ -211,7 +217,10 @@ export function WritingToolbar() {
             />
           </div>
           <User className="w-3.5 h-3.5" style={{ color: 'var(--color-ifline)' }} />
-          <span className="text-[10px] text-[#d0d6e0]/70 w-8 text-center">
+          <span
+            className="text-[10px] w-8 text-center font-medium"
+            style={{ color: 'var(--text-tertiary)' }}
+          >
             {humanAIRatio < 30 ? 'AI' : humanAIRatio < 70 ? '协作' : '用户'}
           </span>
         </div>
@@ -248,9 +257,16 @@ export function WritingToolbar() {
                 animate={{ opacity: 1, y: 0, scale: 1 }}
                 exit={{ opacity: 0, y: -4, scale: 0.95 }}
                 transition={{ duration: 0.15 }}
-                className="absolute top-full left-0 mt-1 z-50 p-1.5 rounded-xl bg-[#191a1b] border border-[rgba(255,255,255,0.08)] shadow-xl min-w-[200px]"
+                className="absolute top-full left-0 mt-1 z-50 p-1.5 rounded-xl shadow-xl min-w-[200px]"
+                style={{
+                  background: 'var(--color-surface-raised)',
+                  border: '1px solid var(--border-default)',
+                }}
               >
-                <div className="text-[10px] text-[#d0d6e0]/50 px-2 py-1 uppercase tracking-wider">
+                <div
+                  className="text-[10px] px-2 py-1 uppercase tracking-wider"
+                  style={{ color: 'var(--text-tertiary)' }}
+                >
                   选中文字后执行
                 </div>
                 <div className="grid grid-cols-2 gap-1">
@@ -265,14 +281,15 @@ export function WritingToolbar() {
                       className={`flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-xs transition-all
                         ${quickOpLoading === op.key
                           ? 'bg-[var(--accent-primary)]/20' : ''}
-                          : 'text-[#d0d6e0] hover:bg-[rgba(255,255,255,0.06)]'
+                          : 'hover:bg-[var(--border-subtle)]'
                         }
                         ${quickOpLoading !== null && quickOpLoading !== op.key ? 'opacity-40' : ''}
                       `}
+                      style={{ color: 'var(--text-secondary)' }}
                     >
                       <span style={{ color: op.color }}>{op.icon}</span>
                       <span className="flex-1 text-left">{op.label}</span>
-                      <span className="text-[10px] text-[#d0d6e0]/40">⇧{op.shortcut}</span>
+                      <span className="text-[10px]" style={{ color: 'var(--text-tertiary)' }}>⇧{op.shortcut}</span>
                     </button>
                   ))}
                 </div>

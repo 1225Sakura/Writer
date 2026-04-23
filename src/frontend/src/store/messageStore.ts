@@ -3,6 +3,7 @@ import { subscribeWithSelector } from 'zustand/middleware'
 import { immer } from 'zustand/middleware/immer'
 import { messageApi } from '../api/chat'
 import type { ChatMessageLocal, MessageCache } from './chatStore'
+import { createHybridStorage } from './utils/indexedDBStorage'
 
 // Re-export types for external usage
 export type { ChatMessageLocal, MessageCache }
@@ -61,33 +62,12 @@ const genMessageId = () => {
 // ============================================
 
 const CACHE_KEY = 'writer-chat-message-cache'
-const CACHE_TTL = 1000 * 60 * 60 * 24 // 24 hours
+const cacheStorage = createHybridStorage(100 * 1024)
 
-function loadCacheFromStorage(): MessageCache {
-  if (typeof window === 'undefined') return { messages: {}, cachedAt: {} }
-  try {
-    const raw = localStorage.getItem(CACHE_KEY)
-    if (!raw) return { messages: {}, cachedAt: {} }
-    const parsed = JSON.parse(raw) as MessageCache
-    const now = Date.now()
-    const cleaned: MessageCache = { messages: {}, cachedAt: {} }
-    Object.entries(parsed.cachedAt).forEach(([sid, ts]) => {
-      if (now - ts < CACHE_TTL) {
-        const id = Number(sid)
-        cleaned.messages[id] = parsed.messages[id]
-        cleaned.cachedAt[id] = ts
-      }
-    })
-    return cleaned
-  } catch {
-    return { messages: {}, cachedAt: {} }
-  }
-}
-
-function saveCacheToStorage(cache: MessageCache) {
+async function saveCacheToStorage(cache: MessageCache) {
   if (typeof window === 'undefined') return
   try {
-    localStorage.setItem(CACHE_KEY, JSON.stringify(cache))
+    await cacheStorage.setItem(CACHE_KEY, { state: cache, version: 0 })
   } catch (e) {
     console.warn('Chat cache storage full, clearing old entries')
     const entries = Object.entries(cache.cachedAt).sort((a, b) => a[1] - b[1])
@@ -97,7 +77,7 @@ function saveCacheToStorage(cache: MessageCache) {
       delete cache.cachedAt[Number(sid)]
     })
     try {
-      localStorage.setItem(CACHE_KEY, JSON.stringify(cache))
+      await cacheStorage.setItem(CACHE_KEY, { state: cache, version: 0 })
     } catch {
       // Still full, give up
     }
@@ -118,7 +98,7 @@ export const useMessageStore = create<MessageState & MessageActions>()(
         streamAbortController: null,
         isLoading: false,
         error: null,
-        messageCache: loadCacheFromStorage(),
+        messageCache: { messages: {}, cachedAt: {} },
 
         sendMessage: async (sessionId, content) => {
           const userMessageId = genMessageId()
@@ -277,7 +257,7 @@ export const useMessageStore = create<MessageState & MessageActions>()(
             state.messageCache = { messages: {}, cachedAt: {} }
           })
           if (typeof window !== 'undefined') {
-            localStorage.removeItem(CACHE_KEY)
+            cacheStorage.removeItem(CACHE_KEY)
           }
         },
 

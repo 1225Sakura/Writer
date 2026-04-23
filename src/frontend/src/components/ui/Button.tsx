@@ -23,34 +23,34 @@ export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElemen
 }
 
 const variantStyles: Record<string, string> = {
-  default: 'text-white hover:brightness-110 active:brightness-90 disabled:brightness-75 disabled:cursor-not-allowed',
-  primary: 'text-white hover:brightness-110 active:brightness-90 disabled:brightness-75 disabled:cursor-not-allowed',
+  default: 'text-[var(--text-primary)] hover:brightness-110 active:brightness-90 disabled:brightness-75 disabled:cursor-not-allowed',
+  primary: 'text-[var(--text-primary)] hover:brightness-110 active:brightness-90 disabled:brightness-75 disabled:cursor-not-allowed',
   secondary:
-    'text-[#f7f8f8] hover:bg-[rgba(255,255,255,0.1)] active:bg-[rgba(255,255,255,0.08)] border border-[rgba(255,255,255,0.06)] hover:border-[rgba(208,214,224,0.3)] disabled:opacity-50 disabled:cursor-not-allowed',
+    'text-[var(--text-primary)] hover:bg-[rgba(255,255,255,0.1)] active:bg-[rgba(255,255,255,0.08)] border border-[var(--border-default)] hover:border-[rgba(208,214,224,0.3)] disabled:opacity-50 disabled:cursor-not-allowed',
   outline:
-    'border border-[rgba(255,255,255,0.06)] bg-transparent hover:bg-[rgba(255,255,255,0.06)]/20 active:bg-[rgba(255,255,255,0.06)]/40 disabled:opacity-40 disabled:cursor-not-allowed',
+    'border border-[var(--border-default)] bg-transparent hover:bg-[rgba(255,255,255,0.06)]/20 active:bg-[rgba(255,255,255,0.06)]/40 disabled:opacity-40 disabled:cursor-not-allowed',
   ghost:
-    'hover:bg-[#2a2c2e] text-[#d0d6e0] border border-[rgba(255,255,255,0.06)] disabled:opacity-50 disabled:cursor-not-allowed',
+    'hover:bg-[var(--color-surface-hover)] text-[var(--text-secondary)] border border-[var(--border-default)] disabled:opacity-50 disabled:cursor-not-allowed',
   ghostHover:
-    'text-[#d0d6e0] border border-transparent hover:bg-[#2a2c2e] hover:border-[rgba(255,255,255,0.06)] disabled:opacity-40 disabled:cursor-not-allowed',
+    'text-[var(--text-secondary)] border border-transparent hover:bg-[var(--color-surface-hover)] hover:border-[var(--border-default)] disabled:opacity-40 disabled:cursor-not-allowed',
   subtle:
-    'hover:bg-[rgba(255,255,255,0.06)] text-[#d0d6e0] border border-[rgba(255,255,255,0.06)] disabled:opacity-50 disabled:cursor-not-allowed',
-  destructive: 'bg-[#d93a3a] text-white hover:brightness-110 active:brightness-90 disabled:brightness-75 disabled:cursor-not-allowed',
-  glow: 'text-white relative overflow-hidden disabled:brightness-75 disabled:cursor-not-allowed',
+    'hover:bg-[rgba(255,255,255,0.06)] text-[var(--text-secondary)] border border-[var(--border-default)] disabled:opacity-50 disabled:cursor-not-allowed',
+  destructive: 'bg-[var(--color-danger)] text-[var(--text-primary)] hover:brightness-110 active:brightness-90 disabled:brightness-75 disabled:cursor-not-allowed',
+  glow: 'text-[var(--text-primary)] relative overflow-hidden disabled:brightness-75 disabled:cursor-not-allowed',
   gradient:
-    'bg-gradient-to-r from-[#5e6ad2] to-[#9b7ed9] text-white hover:brightness-110 active:brightness-90 disabled:brightness-75 disabled:cursor-not-allowed',
+    'bg-gradient-to-r from-[var(--accent-primary)] to-[var(--accent-secondary)] text-[var(--text-primary)] hover:brightness-110 active:brightness-90 disabled:brightness-75 disabled:cursor-not-allowed',
 }
 
 const variantBackgrounds: Record<string, string> = {
-  default: '#5e6ad2',
-  primary: '#5e6ad2',
+  default: 'var(--accent-primary)',
+  primary: 'var(--accent-primary)',
   secondary: 'rgba(255,255,255,0.06)',
   outline: 'transparent',
-  ghost: '#191a1b',
+  ghost: 'var(--color-surface-raised)',
   ghostHover: 'transparent',
-  subtle: '#191a1b',
-  destructive: '#d93a3a',
-  glow: '#5e6ad2',
+  subtle: 'var(--color-surface-raised)',
+  destructive: 'var(--color-danger)',
+  glow: 'var(--accent-primary)',
   gradient: 'transparent',
 }
 

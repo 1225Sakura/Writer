@@ -1,7 +1,7 @@
 import { create } from 'zustand'
 import { persist, subscribeWithSelector } from 'zustand/middleware'
 import { immer } from 'zustand/middleware/immer'
-// import type { IFLine } from '../api/types'
+import { createHybridStorage } from './utils/indexedDBStorage'
 
 // ============================================
 // Types
@@ -463,6 +463,7 @@ export const useSyncStore = create<SyncState & SyncActions>()(
         }),
         {
           name: 'writer-sync-store',
+          storage: createHybridStorage(100 * 1024) as never,
           partialize: (state) => ({
             globalSyncMode: state.globalSyncMode,
             characterProgress: state.characterProgress,
@@ -495,4 +496,27 @@ export const selectSyncProgress = (state: SyncState) => {
     (s) => s.status === 'synced'
   ).length
   return Math.round((synced / total) * 100)
+}
+
+/** 仅选择同步状态（最小重渲染） */
+export const selectSyncStatusOnly = (state: SyncState) => ({
+  isSyncing: state.isSyncing,
+  globalSyncMode: state.globalSyncMode,
+  lastGlobalSync: state.lastGlobalSync,
+})
+
+/** 选择统计信息 */
+export const selectSyncStats = (state: SyncState) => ({
+  totalSyncedWords: state.totalSyncedWords,
+  totalGeneratedWords: state.totalGeneratedWords,
+  activeIFLines: state.ifLineSyncStates.size,
+  pendingConflicts: state.conflicts.filter((c) => !c.resolved).length,
+})
+
+/** 清理 sync store 临时状态 */
+export function cleanupSyncStore() {
+  useSyncStore.setState({
+    isSyncing: false,
+    generationTasks: [],
+  })
 }

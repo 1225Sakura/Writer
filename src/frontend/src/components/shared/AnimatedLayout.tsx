@@ -1,3 +1,12 @@
+/**
+ * AnimatedLayout - 布局变化时的动画 wrapper
+ *
+ * 使用 Framer Motion 的 layout prop 实现平滑的布局过渡
+ * 当子元素的大小或位置发生变化时，自动产生平滑动画
+ *
+ * 适用于：侧边栏展开/收起、卡片重排、面板大小调整等场景
+ */
+
 import { motion } from 'framer-motion'
 import type { ReactNode } from 'react'
 
@@ -7,21 +16,21 @@ interface AnimatedLayoutProps {
   layoutId?: string
   /** 动画类型 */
   variant?: 'spring' | 'smooth' | 'snappy'
-  /** 是否启用布局动画 */
+  /** 是否启用 */
   enabled?: boolean
 }
 
 const transitionPresets = {
   spring: {
     type: 'spring' as const,
-    stiffness: 300,
-    damping: 30,
+    stiffness: 400,
+    damping: 35,
   },
   smooth: {
     type: 'spring' as const,
-    stiffness: 200,
-    damping: 25,
-    mass: 1.2,
+    stiffness: 250,
+    damping: 28,
+    mass: 1,
   },
   snappy: {
     type: 'spring' as const,
@@ -31,14 +40,6 @@ const transitionPresets = {
   },
 }
 
-/**
- * AnimatedLayout - 布局变化时的动画 wrapper
- *
- * 使用 Framer Motion 的 layout prop 实现平滑的布局过渡
- * 当子元素的大小或位置发生变化时，自动产生平滑动画
- *
- * 适用于：侧边栏展开/收起、卡片重排、面板大小调整等场景
- */
 export function AnimatedLayout({
   children,
   className,
@@ -100,9 +101,9 @@ export function AnimatedLayoutGroup({
 export function AnimatedContainer({
   children,
   className,
-  initial = { opacity: 0, y: 8 },
+  initial = { opacity: 0, y: 6 },
   animate = { opacity: 1, y: 0 },
-  exit = { opacity: 0, y: -8 },
+  exit = { opacity: 0, y: -6 },
   transition,
 }: {
   children: ReactNode
@@ -117,7 +118,7 @@ export function AnimatedContainer({
       initial={initial}
       animate={animate}
       exit={exit}
-      transition={transition ?? { duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
+      transition={transition ?? { duration: 0.2, ease: [0.4, 0, 0.2, 1] }}
       className={className}
     >
       {children}
@@ -144,7 +145,7 @@ export function AnimatedFade({
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      transition={{ duration, delay, ease: 'easeInOut' }}
+      transition={{ duration, delay, ease: [0.4, 0, 0.2, 1] }}
       className={className}
     >
       {children}
@@ -158,7 +159,7 @@ export function AnimatedFade({
 export function AnimatedScale({
   children,
   className,
-  duration = 0.25,
+  duration = 0.2,
 }: {
   children: ReactNode
   className?: string
@@ -166,10 +167,10 @@ export function AnimatedScale({
 }) {
   return (
     <motion.div
-      initial={{ opacity: 0, scale: 0.95 }}
+      initial={{ opacity: 0, scale: 0.96 }}
       animate={{ opacity: 1, scale: 1 }}
-      exit={{ opacity: 0, scale: 0.95 }}
-      transition={{ duration, ease: [0.16, 1, 0.3, 1] }}
+      exit={{ opacity: 0, scale: 0.96 }}
+      transition={{ duration, ease: [0.4, 0, 0.2, 1] }}
       className={className}
     >
       {children}

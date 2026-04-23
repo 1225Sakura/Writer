@@ -14,7 +14,7 @@ import type {
   IFLineFilters,
   PlotThreadFilters,
 } from "./types"
-import { api, apiClient } from "./request"
+import { api, resolveBaseURL } from "./request"
 
 // ============================================
 // Outlines
@@ -274,21 +274,54 @@ export const inspectionApi = {
 export const aiApi = {
   /**
    * Generate AI content with streaming response.
-   * Returns a ReadableStream for real-time content delivery.
+   * Uses fetch API (not axios) because axios does not support
+   * responseType: "stream" in browser environments.
    */
   generate: async (data: AIGenerateRequest): Promise<{
     stream: ReadableStream<Uint8Array>
     headers: { operation: string; "human-ai-ratio": string; style: string }
   }> => {
-    const response = await apiClient.post(`/ai/generate`, data, {
-      responseType: "stream",
-    })
-    return {
-      stream: response.data,
+    const baseURL = await resolveBaseURL()
+    const url = `${baseURL}/ai/generate`
+
+    // Reuse the same API key logic as the axios interceptor
+    let apiKey: string | null = null
+    const isElectron =
+      typeof window !== "undefined" && !!(window as Window & { electronAPI?: unknown }).electronAPI
+    if (isElectron) {
+      try {
+        apiKey = await (window as any).electronAPI.getApiKey()
+      } catch {
+        apiKey = null
+      }
+    } else {
+      apiKey = localStorage.getItem("writer_api_key")
+    }
+
+    const response = await fetch(url, {
+      method: "POST",
       headers: {
-        operation: response.headers["x-operation"] as string,
-        "human-ai-ratio": response.headers["x-human-ai-ratio"] as string,
-        style: response.headers["x-style"] as string,
+        "Content-Type": "application/json",
+        ...(apiKey ? { "X-API-Key": apiKey } : {}),
+      },
+      body: JSON.stringify(data),
+    })
+
+    if (!response.ok) {
+      const errorText = await response.text().catch(() => "Unknown error")
+      throw new Error(`AI generation failed: ${response.status} ${errorText}`)
+    }
+
+    if (!response.body) {
+      throw new Error("AI generation failed: response body is null")
+    }
+
+    return {
+      stream: response.body,
+      headers: {
+        operation: response.headers.get("x-operation") || data.operation,
+        "human-ai-ratio": response.headers.get("x-human-ai-ratio") || String(data.human_ai_ratio ?? 70),
+        style: response.headers.get("x-style") || data.style || "default",
       },
     }
   },

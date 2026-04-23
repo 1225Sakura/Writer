@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react'
 import { useChatStore, ChatMessage, ExtractedEntity } from '@/store'
-import { Bot, User, Pencil, Trash2, Check, X, Sparkles, MessageSquareText } from 'lucide-react'
+import { Bot, User, Pencil, Trash2, Check, X, Sparkles, MessageSquareText, Wand2 } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { TypingIndicator } from './TypingIndicator'
 import { EntityTag } from './EntityTag'
@@ -65,7 +65,7 @@ function useTypingEffect(text: string, speed: number = 18, enabled: boolean = tr
 
 function HighlightedContent({ content, entities }: { content: string; entities?: ExtractedEntity[] }) {
   if (!entities || entities.length === 0) {
-    return <div className="text-sm whitespace-pre-wrap leading-relaxed">{content}</div>
+    return <div className="text-sm whitespace-pre-wrap leading-relaxed text-[var(--text-primary)]">{content}</div>
   }
 
   const sortedEntities = [...entities].sort((a, b) => b.name.length - a.name.length)
@@ -74,7 +74,7 @@ function HighlightedContent({ content, entities }: { content: string; entities?:
   const parts = content.split(regex)
 
   return (
-    <div className="text-sm whitespace-pre-wrap leading-relaxed">
+    <div className="text-sm whitespace-pre-wrap leading-relaxed text-[var(--text-primary)]">
       {parts.map((part, i) => {
         const entity = sortedEntities.find((e) => e.name === part)
         if (entity) {
@@ -113,11 +113,11 @@ function EntityChips({ entities, onConfirm }: { entities?: ExtractedEntity[]; on
           onClick={() => onConfirm?.(entity.id)}
           className="transition-opacity hover:opacity-80 flex items-center gap-1"
           title={entity.confirmed ? '已确认' : '点击确认'}
-          initial={{ opacity: 0, scale: 0.8 }}
+          initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
-          transition={{ delay: i * 0.05, duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.92 }}
+          transition={{ delay: i * 0.04, duration: 0.2, ease: [0.4, 0, 0.2, 1] }}
+          whileHover={{ y: -1 }}
+          whileTap={{ scale: 0.95 }}
         >
           <EntityTag type={entity.type} size="small" />
           <span className="text-xs" style={{ color: typeColors[entity.type] }}>
@@ -130,7 +130,7 @@ function EntityChips({ entities, onConfirm }: { entities?: ExtractedEntity[]; on
 }
 
 /* ============================================================
-   AI AVATAR with breathing animation
+   AI AVATAR with subtle breathing animation
    ============================================================ */
 
 function AIAvatar({ isThinking = false }: { isThinking?: boolean }) {
@@ -138,56 +138,52 @@ function AIAvatar({ isThinking = false }: { isThinking?: boolean }) {
     <motion.div
       className="relative flex-shrink-0"
       animate={isThinking ? {
-        scale: [1, 1.08, 1],
+        scale: [1, 1.05, 1],
       } : {
         scale: [1, 1.02, 1],
       }}
       transition={isThinking ? {
-        duration: 1.2,
+        duration: 1.5,
         repeat: Infinity,
         ease: 'easeInOut',
       } : {
-        duration: 3,
+        duration: 4,
         repeat: Infinity,
         ease: 'easeInOut',
       }}
     >
-      {/* Glow ring when thinking */}
+      {/* Single subtle glow ring when thinking */}
       <AnimatePresence>
         {isThinking && (
           <motion.div
             className="absolute inset-0 rounded-full"
             style={{
-              background: 'radial-gradient(circle, rgba(94,106,210,0.4) 0%, transparent 70%)',
+              background: 'radial-gradient(circle, var(--accent-muted) 0%, transparent 70%)',
             }}
             initial={{ scale: 0.8, opacity: 0 }}
-            animate={{ scale: [1, 1.6, 1], opacity: [0.4, 0.7, 0.4] }}
+            animate={{ scale: [1, 1.5, 1], opacity: [0.2, 0.4, 0.2] }}
             exit={{ scale: 0.8, opacity: 0 }}
-            transition={{ duration: 1.2, repeat: Infinity, ease: 'easeInOut' }}
+            transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
           />
         )}
       </AnimatePresence>
-      {/* Secondary pulse ring */}
-      <AnimatePresence>
-        {isThinking && (
-          <motion.div
-            className="absolute inset-0 rounded-full"
-            style={{
-              background: 'radial-gradient(circle, rgba(94,106,210,0.2) 0%, transparent 70%)',
-            }}
-            initial={{ scale: 0.8, opacity: 0 }}
-            animate={{ scale: [1, 2, 1], opacity: [0.2, 0.4, 0.2] }}
-            exit={{ scale: 0.8, opacity: 0 }}
-            transition={{ duration: 1.5, repeat: Infinity, ease: 'easeInOut', delay: 0.2 }}
-          />
-        )}
-      </AnimatePresence>
+      {/* Subtle ambient glow for idle state */}
+      {!isThinking && (
+        <motion.div
+          className="absolute inset-0 rounded-full"
+          style={{
+            background: 'radial-gradient(circle, var(--accent-muted) 0%, transparent 70%)',
+          }}
+          animate={{ scale: [1, 1.2, 1], opacity: [0.15, 0.25, 0.15] }}
+          transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
+        />
+      )}
       <div
         className="w-8 h-8 rounded-full flex items-center justify-center relative z-10"
         style={{
-          backgroundColor: 'rgba(94, 106, 210, 0.15)',
-          border: '1px solid rgba(94, 106, 210, 0.25)',
-          boxShadow: isThinking ? '0 0 20px rgba(94, 106, 210, 0.3)' : 'none',
+          backgroundColor: 'var(--accent-muted)',
+          border: '1px solid var(--border-focus)',
+          boxShadow: isThinking ? 'var(--shadow-glow)' : 'var(--shadow-glow-sm)',
         }}
       >
         <Bot className="w-4.5 h-4.5" style={{ color: 'var(--accent-primary)' }} />
@@ -208,7 +204,7 @@ function MessageStatus({ status, timestamp }: { status?: 'sending' | 'sent' | 'e
         <motion.span
           className="inline-block w-1 h-1 rounded-full bg-[var(--accent-primary)]"
           animate={{ opacity: [0.3, 1, 0.3] }}
-          transition={{ duration: 1, repeat: Infinity }}
+          transition={{ duration: 1.2, repeat: Infinity, ease: 'easeInOut' }}
         />
       )}
       {status === 'error' && (
@@ -233,7 +229,7 @@ function ChatBubble({ message, onEdit, onDelete, onConfirmEntity, index }: {
   const [isEditing, setIsEditing] = useState(false)
   const [editContent, setEditContent] = useState(message.content)
   const [showActions, setShowActions] = useState(false)
-  const isLatest = index === 0 // assuming reverse order or adjust as needed
+  const isLatest = index === 0
 
   // Only apply typing effect to latest assistant message
   const { displayed, isComplete } = useTypingEffect(
@@ -256,13 +252,13 @@ function ChatBubble({ message, onEdit, onDelete, onConfirmEntity, index }: {
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 16, scale: 0.96 }}
+      initial={{ opacity: 0, y: 12, scale: 0.97 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
-      exit={{ opacity: 0, y: -8, scale: 0.96 }}
+      exit={{ opacity: 0, y: -6, scale: 0.97 }}
       transition={{
-        duration: 0.4,
-        delay: index * 0.08,
-        ease: [0.16, 1, 0.3, 1],
+        duration: 0.3,
+        delay: index * 0.05,
+        ease: [0.4, 0, 0.2, 1],
       }}
       className={`flex ${isAssistant ? 'justify-start' : 'justify-end'} mb-5`}
       onMouseEnter={() => setShowActions(true)}
@@ -274,61 +270,54 @@ function ChatBubble({ message, onEdit, onDelete, onConfirmEntity, index }: {
           {isAssistant ? (
             <AIAvatar />
           ) : (
-            <motion.div
-              className="w-8 h-8 rounded-full flex items-center justify-center"
+            <div
+              className="w-8 h-8 rounded-full flex items-center justify-center transition-shadow hover:shadow-md"
               style={{
-                backgroundColor: 'rgba(94, 106, 210, 0.7)',
-                boxShadow: '0 2px 8px rgba(94, 106, 210, 0.3)',
+                backgroundColor: 'var(--accent-primary)',
+                boxShadow: 'var(--shadow-glow-sm)',
               }}
-              whileHover={{ scale: 1.1, boxShadow: '0 4px 12px rgba(94, 106, 210, 0.4)' }}
-              transition={{ type: 'spring', stiffness: 400, damping: 17 }}
             >
               <User className="w-4 h-4 text-white" />
-            </motion.div>
+            </div>
           )}
         </div>
 
         {/* Bubble */}
         <div className="relative">
-          <motion.div
-            className={`rounded-2xl px-4 py-3 relative ${
+          <div
+            className={`rounded-2xl px-4 py-3.5 relative transition-shadow hover:shadow-md ${
               isAssistant
-                ? 'bg-[#0f1011] border border-[rgba(255,255,255,0.08)] text-[#f7f8f8]'
-                : 'bg-[#5e6ad2] text-white'
+                ? 'bg-[var(--color-surface-raised)] border border-[var(--border-default)] text-[var(--text-primary)]'
+                : 'bg-[var(--accent-primary)] text-white'
             }`}
-            initial={{ borderRadius: isAssistant ? '4px 16px 16px 16px' : '16px 4px 16px 16px', scale: 0.95, opacity: 0 }}
-            animate={{ borderRadius: isAssistant ? '16px 16px 16px 4px' : '16px 16px 4px 16px', scale: 1, opacity: 1 }}
-            transition={{ duration: 0.35, delay: 0.05, ease: [0.16, 1, 0.3, 1] }}
-            whileHover={{ y: -2, boxShadow: '0 8px 24px rgba(0,0,0,0.3)' }}
+            style={{
+              borderRadius: isAssistant ? '20px 20px 20px 4px' : '20px 20px 4px 20px',
+            }}
           >
             {/* Action buttons for user messages */}
             <AnimatePresence>
               {!isAssistant && showActions && !isEditing && (
                 <motion.div
-                  initial={{ opacity: 0, scale: 0.85, y: 4 }}
-                  animate={{ opacity: 1, scale: 1, y: 0 }}
-                  exit={{ opacity: 0, scale: 0.85, y: 4 }}
-                  transition={{ duration: 0.15 }}
+                  initial={{ opacity: 0, y: 4 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: 4 }}
+                  transition={{ duration: 0.15, ease: [0.4, 0, 0.2, 1] }}
                   className="absolute -top-9 right-0 flex gap-1"
                 >
-                  <motion.button
+                  <button
                     onClick={() => setIsEditing(true)}
-                    className="p-1.5 rounded-lg bg-[#0f1011] border border-[rgba(255,255,255,0.08)] text-[#d0d6e0] hover:text-[#f7f8f8] transition-colors shadow-lg"
+                    className="p-1.5 rounded-lg bg-[var(--color-surface-base)] border border-[var(--border-default)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors shadow-lg hover:shadow-xl"
                     title="编辑"
-                    whileHover={{ scale: 1.1 }}
-                    whileTap={{ scale: 0.9 }}
                   >
                     <Pencil className="w-3 h-3" />
-                  </motion.button>
-                  <motion.button
+                  </button>
+                  <button
                     onClick={() => onDelete?.(message.id)}
-                    className="p-1.5 rounded-lg bg-[#0f1011] border border-[rgba(255,255,255,0.08)] text-[#d0d6e0] hover:text-[#c45c5c] transition-colors shadow-lg"
+                    className="p-1.5 rounded-lg bg-[var(--color-surface-base)] border border-[var(--border-default)] text-[var(--text-secondary)] hover:text-[var(--color-vermillion)] transition-colors shadow-lg hover:shadow-xl"
                     title="删除"
-                    whileHover={{ scale: 1.1 }}
-                    whileTap={{ scale: 0.9 }}
                   >
                     <Trash2 className="w-3 h-3" />
-                  </motion.button>
+                  </button>
                 </motion.div>
               )}
             </AnimatePresence>
@@ -340,26 +329,22 @@ function ChatBubble({ message, onEdit, onDelete, onConfirmEntity, index }: {
                   <textarea
                     value={editContent}
                     onChange={(e) => setEditContent(e.target.value)}
-                    className="w-full resize-none min-h-[60px] p-2 text-sm rounded bg-[rgba(0,0,0,0.3)] text-white border border-[rgba(255,255,255,0.1)] outline-none"
+                    className="w-full resize-none min-h-[60px] p-2 text-sm rounded bg-[var(--color-surface-base)] text-[var(--text-primary)] border border-[var(--border-default)] outline-none"
                     autoFocus
                   />
                   <div className="flex gap-2 justify-end">
-                    <motion.button
+                    <button
                       onClick={handleCancel}
-                      className="p-1.5 rounded text-[#d0d6e0] hover:text-[#f7f8f8] transition-colors"
-                      whileHover={{ scale: 1.1 }}
-                      whileTap={{ scale: 0.9 }}
+                      className="p-1.5 rounded text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors hover:bg-white/5"
                     >
                       <X className="w-3.5 h-3.5" />
-                    </motion.button>
-                    <motion.button
+                    </button>
+                    <button
                       onClick={handleSave}
-                      className="p-1.5 rounded text-[#7eb84a] hover:text-[#8ec95a] transition-colors"
-                      whileHover={{ scale: 1.1 }}
-                      whileTap={{ scale: 0.9 }}
+                      className="p-1.5 rounded text-[var(--color-ifline)] hover:text-[var(--color-success)] transition-colors hover:bg-white/5"
                     >
                       <Check className="w-3.5 h-3.5" />
-                    </motion.button>
+                    </button>
                   </div>
                 </div>
               ) : (
@@ -374,10 +359,9 @@ function ChatBubble({ message, onEdit, onDelete, onConfirmEntity, index }: {
                       className="inline-block w-2 h-4 ml-0.5 rounded-sm align-middle"
                       style={{
                         backgroundColor: 'var(--accent-primary)',
-                        boxShadow: '0 0 8px rgba(94, 106, 210, 0.5)',
                       }}
                       animate={{ opacity: [1, 0, 1] }}
-                      transition={{ duration: 0.8, repeat: Infinity }}
+                      transition={{ duration: 0.8, repeat: Infinity, ease: 'easeInOut' }}
                     />
                   )}
                   {message.entities && message.entities.length > 0 && (
@@ -386,7 +370,7 @@ function ChatBubble({ message, onEdit, onDelete, onConfirmEntity, index }: {
                 </>
               )}
             </div>
-          </motion.div>
+          </div>
 
           {/* Timestamp */}
           <div className={`mt-1 ${isAssistant ? 'ml-1' : 'mr-1 text-right'}`}>
@@ -410,9 +394,9 @@ function ChatBubble({ message, onEdit, onDelete, onConfirmEntity, index }: {
 function StreamingBubble({ content }: { content: string }) {
   return (
     <motion.div
-      initial={{ opacity: 0, y: 12, scale: 0.96 }}
+      initial={{ opacity: 0, y: 8, scale: 0.97 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
-      transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
+      transition={{ duration: 0.25, ease: [0.4, 0, 0.2, 1] }}
       className="flex justify-start mb-5"
     >
       <div className="flex gap-3 max-w-[75%]">
@@ -420,29 +404,26 @@ function StreamingBubble({ content }: { content: string }) {
           <AIAvatar isThinking />
         </div>
         <div>
-          <motion.div
-            className="rounded-2xl px-4 py-3 bg-[#0f1011] border border-[rgba(255,255,255,0.08)]"
-            initial={{ borderRadius: '4px 16px 16px 16px' }}
-            animate={{ borderRadius: '16px 16px 16px 4px' }}
-            transition={{ duration: 0.3 }}
+          <div
+            className="rounded-2xl px-4 py-3.5 bg-[var(--color-surface-raised)] border border-[var(--border-default)]"
+            style={{ borderRadius: '20px 20px 20px 4px' }}
           >
-            <div className="text-sm whitespace-pre-wrap leading-relaxed text-[#f7f8f8]">
+            <div className="text-sm whitespace-pre-wrap leading-relaxed text-[var(--text-primary)]">
               {content}
               <motion.span
                 className="inline-block w-2 h-4 ml-0.5 rounded-sm align-middle"
                 style={{
                   backgroundColor: 'var(--accent-primary)',
-                  boxShadow: '0 0 8px rgba(94, 106, 210, 0.5)',
                 }}
                 animate={{ opacity: [1, 0, 1] }}
-                transition={{ duration: 0.8, repeat: Infinity }}
+                transition={{ duration: 0.8, repeat: Infinity, ease: 'easeInOut' }}
               />
             </div>
-          </motion.div>
+          </div>
           <div className="mt-1 ml-1 flex items-center gap-1.5">
             <span className="relative flex h-1.5 w-1.5">
-              <span className="animate-ping motion-reduce:animate-none absolute inline-flex h-full w-full rounded-full bg-[#5e6ad2] opacity-60"></span>
-              <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-[#5e6ad2]"></span>
+              <span className="animate-ping motion-reduce:animate-none absolute inline-flex h-full w-full rounded-full bg-[var(--accent-primary)] opacity-60"></span>
+              <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-[var(--accent-primary)]"></span>
             </span>
             <span className="text-xs" style={{ color: 'var(--text-secondary)' }}>正在输入...</span>
           </div>
@@ -460,93 +441,82 @@ function EmptyState() {
   return (
     <motion.div
       className="flex flex-col items-center justify-center h-full text-center px-6 relative"
-      initial={{ opacity: 0, y: 20 }}
+      initial={{ opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+      transition={{ duration: 0.4, ease: [0.4, 0, 0.2, 1] }}
     >
-      {/* Decorative background glow */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <motion.div
-          className="absolute top-1/4 left-1/2 -translate-x-1/2 w-80 h-80 rounded-full"
-          style={{ background: 'radial-gradient(circle, var(--accent-primary) 0%, transparent 70%)', opacity: 0.03 }}
-          animate={{ scale: [1, 1.1, 1] }}
-          transition={{ duration: 6, repeat: Infinity, ease: 'easeInOut' }}
-        />
-      </div>
-
       {/* Main icon */}
       <motion.div
         className="relative w-20 h-20 rounded-2xl flex items-center justify-center mb-6"
         style={{
-          backgroundColor: 'rgba(94, 106, 210, 0.08)',
-          border: '1px solid rgba(94, 106, 210, 0.15)',
+          backgroundColor: 'var(--accent-muted)',
+          border: '1px solid var(--border-focus)',
+          boxShadow: 'var(--shadow-glow-sm)',
         }}
-        initial={{ scale: 0.6, opacity: 0, rotate: -10 }}
-        animate={{ scale: 1, opacity: 1, rotate: 0 }}
-        transition={{ delay: 0.1, duration: 0.5, ease: [0.34, 1.56, 0.64, 1] }}
+        initial={{ scale: 0.8, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        transition={{ delay: 0.1, duration: 0.4, ease: [0.4, 0, 0.2, 1] }}
       >
         <Sparkles className="w-9 h-9" style={{ color: 'var(--accent-primary)' }} />
-        {/* Decorative dots */}
+        {/* Single decorative dot */}
         <motion.div
-          className="absolute -top-1.5 -right-1.5 w-3.5 h-3.5 rounded-full"
-          style={{ backgroundColor: 'var(--accent-primary)', opacity: 0.5 }}
-          animate={{ scale: [1, 1.4, 1], opacity: [0.5, 0.8, 0.5] }}
-          transition={{ duration: 2.5, repeat: Infinity, ease: 'easeInOut' }}
-        />
-        <motion.div
-          className="absolute -bottom-1 -left-1 w-2 h-2 rounded-full"
-          style={{ backgroundColor: 'var(--color-character)', opacity: 0.4 }}
-          animate={{ scale: [1, 1.3, 1], opacity: [0.4, 0.7, 0.4] }}
-          transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut', delay: 0.5 }}
+          className="absolute -top-1.5 -right-1.5 w-3 h-3 rounded-full"
+          style={{ backgroundColor: 'var(--accent-primary)', opacity: 0.4 }}
+          animate={{ scale: [1, 1.2, 1], opacity: [0.4, 0.6, 0.4] }}
+          transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
         />
       </motion.div>
 
       <motion.h2
         className="text-xl font-medium mb-3"
         style={{ color: 'var(--text-primary)' }}
-        initial={{ y: 12, opacity: 0 }}
+        initial={{ y: 8, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
-        transition={{ delay: 0.2, duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+        transition={{ delay: 0.15, duration: 0.3, ease: [0.4, 0, 0.2, 1] }}
       >
         欢迎使用自动化写作软件
       </motion.h2>
 
-      <motion.p
-        className="max-w-md text-sm leading-relaxed mb-8"
-        style={{ color: 'var(--text-secondary)' }}
-        initial={{ y: 12, opacity: 0 }}
+      <motion.div
+        className="flex items-center gap-2 mb-6"
+        initial={{ y: 8, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
-        transition={{ delay: 0.3, duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+        transition={{ delay: 0.2, duration: 0.3, ease: [0.4, 0, 0.2, 1] }}
       >
-        我将帮你创建一个精彩的网络小说项目。首先，请告诉我你的故事属于什么类型？
-      </motion.p>
+        <div className="h-px flex-1" style={{ background: 'linear-gradient(90deg, transparent, var(--border-default))' }} />
+        <span className="text-xs flex items-center gap-1.5" style={{ color: 'var(--text-tertiary)' }}>
+          <Wand2 className="w-3 h-3" />
+          选择下方标签快速开始，或直接输入你的想法
+        </span>
+        <div className="h-px flex-1" style={{ background: 'linear-gradient(90deg, var(--border-default), transparent)' }} />
+      </motion.div>
 
       <motion.div
         className="flex flex-wrap justify-center gap-2.5"
-        initial={{ y: 12, opacity: 0 }}
+        initial={{ y: 8, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
-        transition={{ delay: 0.4, duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+        transition={{ delay: 0.25, duration: 0.3, ease: [0.4, 0, 0.2, 1] }}
       >
         {['玄幻修仙', '都市异能', '悬疑推理', '言情', '科幻未来', '历史穿越'].map((tag, i) => (
           <motion.button
             key={tag}
-            className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-sm cursor-pointer"
+            className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-sm cursor-pointer transition-all"
             style={{
-              backgroundColor: 'rgba(255,255,255,0.02)',
+              backgroundColor: 'var(--color-surface-base)',
               border: '1px solid var(--border-default)',
               color: 'var(--text-secondary)',
             }}
             whileHover={{
-              backgroundColor: 'rgba(255,255,255,0.05)',
-              borderColor: 'rgba(255,255,255,0.12)',
+              backgroundColor: 'var(--color-surface-raised)',
+              borderColor: 'var(--border-strong)',
               color: 'var(--text-primary)',
-              y: -2,
-              boxShadow: '0 4px 12px rgba(0,0,0,0.2)',
+              y: -1,
+              boxShadow: 'var(--shadow-elevated)',
             }}
-            whileTap={{ scale: 0.96 }}
-            initial={{ opacity: 0, y: 10 }}
+            whileTap={{ scale: 0.97 }}
+            initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.45 + i * 0.06, duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
+            transition={{ delay: 0.3 + i * 0.04, duration: 0.25, ease: [0.4, 0, 0.2, 1] }}
           >
             <MessageSquareText className="w-3.5 h-3.5 opacity-60" />
             {tag}
@@ -581,8 +551,12 @@ export function AIGuidePanel() {
     })
   }, [messages, extractEntitiesFromMessage])
 
+  // Determine typing indicator state:
+  // Show when loading (waiting for AI response) but NOT when streaming (content already arriving)
+  const showTypingIndicator = isLoading && !isStreaming && messages.length > 0
+
   return (
-    <div ref={scrollRef} className="h-full overflow-y-auto p-4" style={{ backgroundColor: '#08090a' }}>
+    <div ref={scrollRef} className="h-full overflow-y-auto p-4 bg-ink-gradient">
       {messages.length === 0 && !isStreaming && (
         <EmptyState />
       )}
@@ -604,11 +578,12 @@ export function AIGuidePanel() {
         <StreamingBubble content={currentStreamContent} />
       )}
 
-      {isLoading && !isStreaming && (
+      {showTypingIndicator && (
         <motion.div
-          initial={{ opacity: 0, y: 12 }}
+          initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -8 }}
+          exit={{ opacity: 0, y: -6 }}
+          transition={{ duration: 0.2, ease: [0.4, 0, 0.2, 1] }}
         >
           <TypingIndicator />
         </motion.div>

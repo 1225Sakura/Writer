@@ -1,5 +1,5 @@
 // Auth API - Local API key management for desktop app
-import { apiClient } from './request'
+import { getApiClient } from './request'
 
 export interface AuthStatus {
   enabled: boolean
@@ -18,7 +18,8 @@ export interface AuthKeyResponse {
  * For desktop apps, this is called once on app startup.
  */
 export async function fetchApiKey(): Promise<string> {
-  const response = await apiClient.post<AuthKeyResponse>('/auth/key')
+  const client = await getApiClient()
+  const response = await client.post<AuthKeyResponse>('/auth/key')
   const { api_key } = response.data
   localStorage.setItem('writer_api_key', api_key)
   return api_key
@@ -28,7 +29,8 @@ export async function fetchApiKey(): Promise<string> {
  * Refresh the API key (invalidates the old one).
  */
 export async function refreshApiKey(): Promise<string> {
-  const response = await apiClient.post<AuthKeyResponse>('/auth/key/refresh')
+  const client = await getApiClient()
+  const response = await client.post<AuthKeyResponse>('/auth/key/refresh')
   const { api_key } = response.data
   localStorage.setItem('writer_api_key', api_key)
   return api_key
@@ -38,7 +40,8 @@ export async function refreshApiKey(): Promise<string> {
  * Check auth status from the backend.
  */
 export async function getAuthStatus(): Promise<AuthStatus> {
-  const response = await apiClient.get<AuthStatus>('/auth/status')
+  const client = await getApiClient()
+  const response = await client.get<AuthStatus>('/auth/status')
   return response.data
 }
 

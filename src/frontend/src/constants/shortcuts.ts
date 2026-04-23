@@ -288,13 +288,13 @@ export const ALL_SHORTCUTS = {
 export type ShortcutKey = keyof typeof ALL_SHORTCUTS
 
 // ============ AI 操作类型 ============
-export type AIOperationType = 'optimize' | 'expand' | 'shrink' | 'rewrite' | 'continue' | 'polish'
+export type AIOperationType = 'optimize' | 'expand' | 'condense' | 'rewrite' | 'continue' | 'polish'
 
 // AI 操作标签
 export const AI_OPERATION_LABELS: Record<AIOperationType, string> = {
   optimize: '优化',
   expand: '扩写',
-  shrink: '缩写',
+  condense: '缩写',
   rewrite: '改写',
   continue: '续写',
   polish: '润色',
@@ -304,7 +304,7 @@ export const AI_OPERATION_LABELS: Record<AIOperationType, string> = {
 export const AI_OPERATION_DESCRIPTIONS: Record<AIOperationType, string> = {
   optimize: '优化文本表达，提升文采',
   expand: '扩展文本内容，增加细节描写',
-  shrink: '精简文本，去除冗余',
+  condense: '精简文本，去除冗余',
   rewrite: '以不同风格重新表达',
   continue: '基于上下文续写内容',
   polish: '润色文本，改善流畅度',
@@ -314,7 +314,7 @@ export const AI_OPERATION_DESCRIPTIONS: Record<AIOperationType, string> = {
 export const AI_SHORTCUT_OPERATIONS: Record<string, AIOperationType> = {
   O: 'optimize',
   E: 'expand',
-  S: 'shrink',
+  S: 'condense',
   R: 'rewrite',
   W: 'continue',
   P: 'polish',

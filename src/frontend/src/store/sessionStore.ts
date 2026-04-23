@@ -3,6 +3,7 @@ import { persist, subscribeWithSelector } from 'zustand/middleware'
 import { immer } from 'zustand/middleware/immer'
 import { sessionApi } from '../api/chat'
 import type { ChatSession } from '../api/types'
+import { createHybridStorage } from './utils/indexedDBStorage'
 
 // ============================================
 // Types
@@ -110,6 +111,7 @@ export const useSessionStore = create<SessionState & SessionActions>()(
         }),
         {
           name: 'writer-session-store',
+          storage: createHybridStorage(50 * 1024) as never,
           partialize: (state) => ({
             sessionId: state.sessionId,
             lastActiveSessionId: state.lastActiveSessionId,
@@ -130,3 +132,17 @@ export const selectCurrentSession = (state: SessionState) =>
   state.sessions.find((s) => s.id === state.sessionId)
 
 export const selectSessionCount = (state: SessionState) => state.sessions.length
+
+/** 仅选择 loading/error 状态（最小重渲染） */
+export const selectSessionStatus = (state: SessionState) => ({
+  isLoading: state.isLoading,
+  error: state.error,
+})
+
+/** 清理 session store 临时状态 */
+export function cleanupSessionStore() {
+  useSessionStore.setState({
+    isLoading: false,
+    error: null,
+  })
+}

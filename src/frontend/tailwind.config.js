@@ -145,20 +145,26 @@ export default {
       },
   		fontFamily: {
   			serif: [
-  				'Source Han Serif',
   				'Noto Serif SC',
+  				'Source Han Serif CN',
+  				'Source Han Serif',
   				'Georgia',
   				'serif'
   			],
   			sans: [
-  				'Source Han Sans',
-  				'Noto Sans SC',
   				'Inter',
+  				'-apple-system',
+  				'BlinkMacSystemFont',
+  				'Noto Sans SC',
+  				'Source Han Sans CN',
+  				'PingFang SC',
+  				'Microsoft YaHei',
   				'sans-serif'
   			],
   			mono: [
   				'JetBrains Mono',
-  				'iA Writer Quattro',
+  				'Fira Code',
+  				'Cascadia Code',
   				'monospace'
   			]
   		},
@@ -166,6 +172,29 @@ export default {
   			'510': '510'
   		},
   		spacing: {
+  			'0': '0px',
+  			'px': '1px',
+  			'0.5': '2px',
+  			'1': '4px',
+  			'1.5': '6px',
+  			'2': '8px',
+  			'2.5': '10px',
+  			'3': '12px',
+  			'3.5': '14px',
+  			'4': '16px',
+  			'5': '20px',
+  			'6': '24px',
+  			'7': '28px',
+  			'8': '32px',
+  			'9': '36px',
+  			'10': '40px',
+  			'11': '44px',
+  			'12': '48px',
+  			'14': '56px',
+  			'16': '64px',
+  			'20': '80px',
+  			'24': '96px',
+  			// Legacy aliases for backward compatibility
   			xs: '4px',
   			sm: '8px',
   			md: '16px',
@@ -175,7 +204,12 @@ export default {
   			'3xl': '64px'
   		},
   		borderRadius: {
-  			card: '8px',
+  			'sm': '6px',
+  			'md': '12px',
+  			'lg': '16px',
+  			'full': '9999px',
+  			// Legacy aliases
+  			card: '12px',
   			button: '6px',
   			input: '6px'
   		},
@@ -205,6 +239,14 @@ export default {
   				},
   				'100%': {
   					backgroundPosition: '200% 0'
+  				}
+  			},
+  			'shimmer-subtle': {
+  				'0%': {
+  					backgroundPosition: '-100% 0'
+  				},
+  				'100%': {
+  					backgroundPosition: '100% 0'
   				}
   			},
   			float: {
@@ -263,10 +305,11 @@ export default {
   		animation: {
   			'pulse-slow': 'pulse-slow 3s ease-in-out infinite',
   			shimmer: 'shimmer 2s linear infinite',
+  			'shimmer-subtle': 'shimmer-subtle 1.5s linear infinite',
   			float: 'float 3s ease-in-out infinite',
   			glow: 'glow 2s ease-in-out infinite',
   			breathe: 'breathe 4s ease-in-out infinite',
-  			ripple: 'ripple 0.6s ease-out forwards',
+  			ripple: 'ripple 0.4s ease-out forwards',
   			'accordion-down': 'accordion-down 0.2s ease-out',
   			'accordion-up': 'accordion-up 0.2s ease-out'
   		},

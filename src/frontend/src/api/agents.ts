@@ -47,7 +47,11 @@ export interface ReviewResponse {
   suggestions: string[]
   checker_scores: Record<string, number>
   phase_results: Record<string, unknown>
-  disagreements: unknown[]
+  disagreements: Array<{
+    checker: string
+    issue: string
+    severity: string
+  }>
   confidence: number
   metadata: Record<string, unknown>
 }
@@ -56,8 +60,17 @@ export interface PlotRequest {
   task_type?: "foreshadowing" | "climax" | "rhythm" | "full"
   content?: string
   outline?: Record<string, unknown>
-  chapters?: unknown[]
-  active_threads?: unknown[]
+  chapters?: Array<{
+    id: number
+    title?: string
+    summary?: string
+    status?: string
+  }>
+  active_threads?: Array<{
+    id: number
+    title: string
+    status: string
+  }>
   progress?: number
 }
 
@@ -90,7 +103,12 @@ export interface CheckerRunResponse {
   chapter_id: number
   mode: string
   score: number
-  issues: unknown[]
+  issues: Array<{
+    type: string
+    message: string
+    severity?: string
+    location?: string
+  }>
   suggestions: string[]
 }
 

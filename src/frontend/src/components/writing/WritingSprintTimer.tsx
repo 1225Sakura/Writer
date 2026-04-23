@@ -127,14 +127,25 @@ export function WritingSprintTimer() {
     return (
       <button
         onClick={() => setIsOpen(true)}
-        className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium
-                   transition-all duration-200 border
-                   ${timer.isRunning
-                     ? timer.isBreak
-                       ? 'bg-[#7eb84a]/10 border-[#7eb84a]/30 text-[#7eb84a]'
-                       : 'bg-[#5e6ad2]/10 border-[#5e6ad2]/30 text-[#5e6ad2]'
-                     : 'bg-[rgba(255,255,255,0.02)] border-[rgba(255,255,255,0.08)] text-[#d0d6e0] hover:bg-[rgba(255,255,255,0.05)]'
-                   }`}
+        className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium
+                   transition-all duration-200 border"
+        style={{
+          background: timer.isRunning
+            ? timer.isBreak
+              ? 'color-mix(in srgb, var(--color-ifline) 10%, transparent)'
+              : 'color-mix(in srgb, var(--accent-primary) 10%, transparent)'
+            : 'var(--border-subtle)',
+          borderColor: timer.isRunning
+            ? timer.isBreak
+              ? 'color-mix(in srgb, var(--color-ifline) 30%, transparent)'
+              : 'color-mix(in srgb, var(--accent-primary) 30%, transparent)'
+            : 'var(--border-default)',
+          color: timer.isRunning
+            ? timer.isBreak
+              ? 'var(--color-ifline)'
+              : 'var(--accent-primary)'
+            : 'var(--text-secondary)',
+        }}
         title="写作冲刺计时器"
       >
         <Timer className="w-3.5 h-3.5" />
@@ -145,17 +156,25 @@ export function WritingSprintTimer() {
   }
 
   return (
-    <div className="fixed right-4 top-16 z-50 w-64 flex flex-col
-                    bg-[#191a1b] border border-[rgba(255,255,255,0.08)] rounded-xl
-                    shadow-xl overflow-hidden"
+    <div
+      className="fixed right-4 top-16 z-50 w-64 flex flex-col rounded-xl overflow-hidden"
+      style={{
+        background: 'var(--color-surface-raised)',
+        border: '1px solid var(--border-default)',
+        boxShadow: 'var(--shadow-float)',
+      }}
     >
       {/* Header */}
-      <div className="flex items-center justify-between px-3 py-2.5
-                      border-b border-[rgba(255,255,255,0.08)]"
+      <div
+        className="flex items-center justify-between px-3 py-2.5"
+        style={{ borderBottom: '1px solid var(--border-default)' }}
       >
         <div className="flex items-center gap-2">
-          <Timer className={`w-4 h-4 ${timer.isBreak ? 'text-[#7eb84a]' : 'text-[#5e6ad2]'}`} />
-          <span className="text-sm font-medium text-[#f7f8f8]">
+          <Timer
+            className="w-4 h-4"
+            style={{ color: timer.isBreak ? 'var(--color-ifline)' : 'var(--accent-primary)' }}
+          />
+          <span className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>
             {timer.isBreak ? '休息时间' : '写作冲刺'}
           </span>
         </div>
@@ -167,7 +186,7 @@ export function WritingSprintTimer() {
             className="h-7 w-7"
             title="设置"
           >
-            <Settings className="w-3.5 h-3.5 text-[#d0d6e0]" />
+            <Settings className="w-3.5 h-3.5" style={{ color: 'var(--text-secondary)' }} />
           </Button>
           <Button
             onClick={() => setIsOpen(false)}
@@ -176,7 +195,7 @@ export function WritingSprintTimer() {
             className="h-7 w-7"
             title="关闭"
           >
-            <X className="w-3.5 h-3.5 text-[#d0d6e0]" />
+            <X className="w-3.5 h-3.5" style={{ color: 'var(--text-secondary)' }} />
           </Button>
         </div>
       </div>
@@ -189,13 +208,13 @@ export function WritingSprintTimer() {
             <circle
               cx="50" cy="50" r="42"
               fill="none"
-              stroke="rgba(255,255,255,0.06)"
+              stroke="var(--border-subtle)"
               strokeWidth="6"
             />
             <circle
               cx="50" cy="50" r="42"
               fill="none"
-              stroke={timer.isBreak ? '#7eb84a' : '#5e6ad2'}
+              stroke={timer.isBreak ? 'var(--color-ifline)' : 'var(--accent-primary)'}
               strokeWidth="6"
               strokeLinecap="round"
               strokeDasharray={`${2 * Math.PI * 42}`}
@@ -204,11 +223,11 @@ export function WritingSprintTimer() {
             />
           </svg>
           <div className="absolute inset-0 flex flex-col items-center justify-center">
-            <span className="text-2xl font-mono font-bold text-[#f7f8f8]"
+            <span className="text-2xl font-mono font-bold" style={{ color: 'var(--text-primary)' }}
             >
               {formatTime(timer.timeRemaining)}
             </span>
-            <span className="text-[10px] text-[#d0d6e0]/60 mt-0.5">
+            <span className="text-[10px] mt-0.5" style={{ color: 'var(--text-tertiary)' }}>
               {timer.isBreak ? '休息一下' : '专注写作'}
             </span>
           </div>
@@ -221,7 +240,11 @@ export function WritingSprintTimer() {
               onClick={pauseTimer}
               variant="ghost"
               size="sm"
-              className="h-8 px-3 bg-[rgba(255,255,255,0.04)] border border-[rgba(255,255,255,0.08)]"
+              className="h-8 px-3"
+              style={{
+                background: 'var(--hover-bg)',
+                border: '1px solid var(--border-default)',
+              }}
             >
               <Pause className="w-4 h-4 mr-1" />
               暂停
@@ -244,22 +267,22 @@ export function WritingSprintTimer() {
             className="h-8 w-8"
             title="重置"
           >
-            <RotateCcw className="w-4 h-4 text-[#d0d6e0]" />
+            <RotateCcw className="w-4 h-4" style={{ color: 'var(--text-secondary)' }} />
           </Button>
         </div>
 
         {/* Sprint count */}
-        <div className="text-[10px] text-[#d0d6e0]/50">
+        <div className="text-[10px]" style={{ color: 'var(--text-tertiary)' }}>
           已完成 {timer.sprintCount} 个冲刺
         </div>
       </div>
 
       {/* Settings Panel */}
       {showSettings && (
-        <div className="px-4 pb-4 border-t border-[rgba(255,255,255,0.08)] pt-3">
+        <div className="px-4 pb-4 pt-3" style={{ borderTop: '1px solid var(--border-default)' }}>
           <div className="space-y-3">
             <div className="flex items-center justify-between">
-              <span className="text-xs text-[#d0d6e0]">冲刺时长</span>
+              <span className="text-xs" style={{ color: 'var(--text-secondary)' }}>冲刺时长</span>
               <div className="flex items-center gap-2">
                 <input
                   type="range"
@@ -280,11 +303,11 @@ export function WritingSprintTimer() {
                   }}
                   className="w-20 accent-[#5e6ad2]"
                 />
-                <span className="text-xs text-[#f7f8f8] w-10 text-right">{sprintMinutes}分</span>
+                <span className="text-xs w-10 text-right" style={{ color: 'var(--text-primary)' }}>{sprintMinutes}分</span>
               </div>
             </div>
             <div className="flex items-center justify-between">
-              <span className="text-xs text-[#d0d6e0]">休息时长</span>
+              <span className="text-xs" style={{ color: 'var(--text-secondary)' }}>休息时长</span>
               <div className="flex items-center gap-2">
                 <input
                   type="range"
@@ -305,7 +328,7 @@ export function WritingSprintTimer() {
                   }}
                   className="w-20 accent-[#7eb84a]"
                 />
-                <span className="text-xs text-[#f7f8f8] w-10 text-right">{breakMinutes}分</span>
+                <span className="text-xs w-10 text-right" style={{ color: 'var(--text-primary)' }}>{breakMinutes}分</span>
               </div>
             </div>
           </div>

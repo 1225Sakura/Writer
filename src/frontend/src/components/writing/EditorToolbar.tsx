@@ -267,11 +267,11 @@ export function EditorToolbar({ editor }: EditorToolbarProps) {
           transition={{ duration: 0.18, ease: [0.16, 1, 0.3, 1] }}
           className="absolute top-3 left-1/2 -translate-x-1/2 z-50 flex items-center gap-0.5 px-2 py-1.5 rounded-lg"
           style={{
-            background: 'rgba(25, 26, 27, 0.9)',
+            background: 'var(--glass-bg-strong)',
             backdropFilter: 'blur(16px)',
             WebkitBackdropFilter: 'blur(16px)',
-            border: '1px solid rgba(255, 255, 255, 0.08)',
-            boxShadow: '0 8px 32px rgba(0, 0, 0, 0.4), 0 2px 8px rgba(0, 0, 0, 0.2)',
+            border: '1px solid var(--glass-border)',
+            boxShadow: 'var(--shadow-float)',
           }}
         >
           {/* Paragraph style selector */}
@@ -303,10 +303,10 @@ export function EditorToolbar({ editor }: EditorToolbarProps) {
                   transition={{ duration: 0.15, ease: [0.16, 1, 0.3, 1] }}
                   className="absolute top-full left-0 mt-1 py-1 rounded-lg z-50"
                   style={{
-                    background: 'rgba(32, 33, 35, 0.95)',
+                    background: 'var(--glass-bg-strong)',
                     backdropFilter: 'blur(16px)',
-                    border: '1px solid rgba(255, 255, 255, 0.08)',
-                    boxShadow: '0 8px 32px rgba(0, 0, 0, 0.4)',
+                    border: '1px solid var(--glass-border)',
+                    boxShadow: 'var(--shadow-float)',
                     minWidth: '140px',
                   }}
                 >
@@ -336,19 +336,19 @@ export function EditorToolbar({ editor }: EditorToolbarProps) {
           </div>
 
           {/* Divider */}
-          <div className="w-px h-4 bg-[rgba(255,255,255,0.08)] mx-0.5" />
+          <div className="w-px h-4 mx-0.5" style={{ background: 'var(--border-default)' }} />
 
           {/* Format buttons */}
           {formatButtons.map((btn, i) => renderButton(btn, i, 0))}
 
           {/* Divider */}
-          <div className="w-px h-4 bg-[rgba(255,255,255,0.08)] mx-0.5" />
+          <div className="w-px h-4 mx-0.5" style={{ background: 'var(--border-default)' }} />
 
           {/* Alignment buttons */}
           {alignButtons.map((btn, i) => renderButton(btn, i, 1))}
 
           {/* Divider */}
-          <div className="w-px h-4 bg-[rgba(255,255,255,0.08)] mx-0.5" />
+          <div className="w-px h-4 mx-0.5" style={{ background: 'var(--border-default)' }} />
 
           {/* Quick format buttons */}
           {quickFormatButtons.map((btn, i) => renderButton(btn, i, 2))}

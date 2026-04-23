@@ -2,6 +2,7 @@ import { create } from 'zustand'
 import { persist, subscribeWithSelector } from 'zustand/middleware'
 import { immer } from 'zustand/middleware/immer'
 import type { EntityType } from '../shared/types'
+import { createHybridStorage } from './utils/indexedDBStorage'
 
 // Re-export
 export type { EntityType }
@@ -219,6 +220,7 @@ export const useFilterStore = create<FilterState & FilterActions>()(
         }),
         {
           name: 'writer-filter-store',
+          storage: createHybridStorage(50 * 1024) as never,
           partialize: (state) => ({
             tags: state.tags,
             activeFilter: state.activeFilter,

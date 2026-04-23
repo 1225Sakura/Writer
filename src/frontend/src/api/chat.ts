@@ -53,9 +53,10 @@ export const messageApi = {
    */
   send: async (
     sessionId: number,
-    data: ChatSendRequest
+    data: ChatSendRequest,
+    options?: { signal?: AbortSignal }
   ): Promise<ChatSendResponse> => {
-    return api.post<ChatSendResponse>(`/chat/sessions/${sessionId}/send`, data)
+    return api.post<ChatSendResponse>(`/chat/sessions/${sessionId}/send`, data, options)
   },
 
   /**
@@ -116,19 +117,26 @@ export const entityApi = {
 
 export interface StreamCallbacks {
   onChunk?: (text: string) => void
+  onProgress?: (percent: number) => void
   onDone?: () => void
   onError?: (error: Error) => void
 }
 
+/** Parsed SSE event */
+interface SSEEvent {
+  event: string
+  data: string
+}
+
 /**
- * Read a streaming response and yield decoded text chunks.
+ * Read an SSE streaming response and yield parsed events.
  */
-export async function* streamReader(
+export async function* sseStreamReader(
   stream: ReadableStream<Uint8Array>
-): AsyncGenerator<string> {
+): AsyncGenerator<SSEEvent> {
   const reader = stream.getReader()
   const decoder = new TextDecoder()
-  let buffer = ""
+  let buffer = ''
 
   try {
     while (true) {
@@ -136,7 +144,44 @@ export async function* streamReader(
       if (done) break
 
       buffer += decoder.decode(value, { stream: true })
-      yield buffer
+
+      // Process complete events (separated by double newline)
+      let eventEnd: number
+      while ((eventEnd = buffer.indexOf('\n\n')) !== -1) {
+        const eventText = buffer.slice(0, eventEnd)
+        buffer = buffer.slice(eventEnd + 2)
+
+        const lines = eventText.split('\n')
+        let eventName = 'message'
+        let data = ''
+
+        for (const line of lines) {
+          if (line.startsWith('event: ')) {
+            eventName = line.slice(7)
+          } else if (line.startsWith('data: ')) {
+            data = line.slice(6)
+          }
+        }
+
+        yield { event: eventName, data }
+      }
+    }
+
+    // Process any remaining data
+    if (buffer.trim()) {
+      const lines = buffer.split('\n')
+      let eventName = 'message'
+      let data = ''
+      for (const line of lines) {
+        if (line.startsWith('event: ')) {
+          eventName = line.slice(7)
+        } else if (line.startsWith('data: ')) {
+          data = line.slice(6)
+        }
+      }
+      if (data) {
+        yield { event: eventName, data }
+      }
     }
   } finally {
     reader.releaseLock()
@@ -144,21 +189,61 @@ export async function* streamReader(
 }
 
 /**
- * Consume a streaming response with callbacks.
+ * Consume an SSE streaming response with callbacks.
+ * Handles progress events, text chunks, errors, and completion.
  */
 export async function consumeStream(
   stream: ReadableStream<Uint8Array>,
   callbacks: StreamCallbacks = {}
 ): Promise<string> {
-  const { onChunk, onDone, onError } = callbacks
-  let fullText = ""
+  const { onChunk, onProgress, onDone, onError } = callbacks
+  let fullText = ''
 
   try {
-    for await (const chunk of streamReader(stream)) {
-      fullText = chunk
-      onChunk?.(chunk)
+    for await (const sseEvent of sseStreamReader(stream)) {
+      switch (sseEvent.event) {
+        case 'chunk': {
+          fullText += sseEvent.data
+          onChunk?.(fullText)
+          break
+        }
+        case 'progress': {
+          try {
+            const parsed = JSON.parse(sseEvent.data)
+            if (typeof parsed.percent === 'number') {
+              onProgress?.(parsed.percent)
+            }
+          } catch {
+            // Ignore malformed progress events
+          }
+          break
+        }
+        case 'done': {
+          onDone?.()
+          break
+        }
+        case 'error': {
+          try {
+            const parsed = JSON.parse(sseEvent.data)
+            throw new Error(parsed.message || 'AI generation failed')
+          } catch (e) {
+            if (e instanceof Error && e.message !== 'AI generation failed') {
+              throw e
+            }
+            throw new Error(sseEvent.data || 'AI generation failed')
+          }
+        }
+      }
     }
+
+    // If no explicit done event, call onDone
     onDone?.()
+
+    // Validate result
+    if (!fullText.trim()) {
+      throw new Error('AI返回了空内容，请重试')
+    }
+
     return fullText
   } catch (error) {
     const err = error instanceof Error ? error : new Error(String(error))
@@ -168,8 +253,29 @@ export async function consumeStream(
 }
 
 // ============================================
-// Legacy streaming helper (kept for backwards compatibility)
+// Legacy streaming helpers (kept for backwards compatibility)
 // ============================================
+
+/**
+ * Read a streaming response and yield decoded text chunks.
+ * @deprecated Use `sseStreamReader` for SSE streams instead.
+ */
+export async function* streamReader(
+  stream: ReadableStream<Uint8Array>
+): AsyncGenerator<string> {
+  const reader = stream.getReader()
+  const decoder = new TextDecoder()
+
+  try {
+    while (true) {
+      const { done, value } = await reader.read()
+      if (done) break
+      yield decoder.decode(value, { stream: true })
+    }
+  } finally {
+    reader.releaseLock()
+  }
+}
 
 export async function* streamChat(
   stream: ReadableStream<Uint8Array>,

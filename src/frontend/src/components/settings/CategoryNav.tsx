@@ -1,45 +1,47 @@
 import { useUIStore, useSettingsStore, UIState } from '@/store'
 import { useShallow } from 'zustand/react/shallow'
 import { Button } from '@/components/ui/Button'
-import { Globe, Users, Package, MapPin, Shield, BookOpen, FileText, GitBranch, Feather, Sparkles } from 'lucide-react'
+import { Feather, Sparkles } from 'lucide-react'
+import { EntityIcon } from '@/components/ui/Icon'
 import { motion, AnimatePresence } from 'framer-motion'
 // import { useMemo } from 'react'
 
-const categories: Array<{ key: UIState['settingsCategory']; label: string; icon: typeof Globe }> = [
-  { key: 'world', label: '世界观', icon: Globe },
-  { key: 'character', label: '角色', icon: Users },
-  { key: 'item', label: '物品', icon: Package },
-  { key: 'location', label: '地点', icon: MapPin },
-  { key: 'faction', label: '势力', icon: Shield },
-  { key: 'rule', label: '规则', icon: BookOpen },
-  { key: 'outline', label: '大纲', icon: FileText },
-  { key: 'ifline', label: 'IF线', icon: GitBranch },
+const categories: Array<{ key: UIState['settingsCategory']; label: string; iconType: Parameters<typeof EntityIcon>[0]['type'] }> = [
+  { key: 'world', label: '世界观', iconType: 'world' },
+  { key: 'character', label: '角色', iconType: 'character' },
+  { key: 'item', label: '物品', iconType: 'item' },
+  { key: 'location', label: '地点', iconType: 'location' },
+  { key: 'faction', label: '势力', iconType: 'faction' },
+  { key: 'rule', label: '规则', iconType: 'rule' },
+  { key: 'outline', label: '大纲', iconType: 'outline' },
+  { key: 'ifline', label: 'IF线', iconType: 'ifline' },
 ]
 
 // Categories that support AI review
 const reviewableCategories = ['world', 'character', 'item', 'location', 'faction', 'rule']
 
-// Color system
-const categoryColors: Record<string, string> = {
-  world: '#5e6ad2',
-  character: '#e8b87d',
-  item: '#9b7ed9',
-  location: '#5eb5a6',
-  faction: '#d45d5d',
-  rule: '#7eb84a',
-  outline: '#5b8ee8',
-  ifline: '#7eb84a',
+// Color system - uses CSS variables for theme consistency
+const categoryColorVars: Record<string, string> = {
+  world: 'var(--color-world)',
+  character: 'var(--color-character)',
+  item: 'var(--color-item)',
+  location: 'var(--color-location)',
+  faction: 'var(--color-faction)',
+  rule: 'var(--color-rule)',
+  outline: 'var(--color-outline)',
+  ifline: 'var(--color-ifline)',
 }
 
+// Glow colors for hover/active effects (rgba needed for animations)
 const categoryGlowColors: Record<string, string> = {
-  world: 'rgba(94,106,210,0.15)',
-  character: 'rgba(232,184,125,0.15)',
-  item: 'rgba(155,126,217,0.15)',
-  location: 'rgba(94,181,166,0.15)',
-  faction: 'rgba(212,93,93,0.15)',
-  rule: 'rgba(126,184,74,0.15)',
-  outline: 'rgba(91,142,232,0.15)',
-  ifline: 'rgba(126,184,74,0.15)',
+  world: 'rgba(94,106,210,0.12)',
+  character: 'rgba(232,184,125,0.12)',
+  item: 'rgba(155,126,217,0.12)',
+  location: 'rgba(94,181,166,0.12)',
+  faction: 'rgba(212,93,93,0.12)',
+  rule: 'rgba(126,184,74,0.12)',
+  outline: 'rgba(91,142,232,0.12)',
+  ifline: 'rgba(126,184,74,0.12)',
 }
 
 // Animated counter for badge counts
@@ -53,9 +55,10 @@ function CountBadge({ count, color }: { count: number; color: string }) {
       transition={{ type: 'spring', stiffness: 500, damping: 25 }}
       className="ml-auto text-[10px] px-1.5 py-0.5 rounded-full font-medium min-w-[20px] text-center"
       style={{
-        backgroundColor: `${color}20`,
+        backgroundColor: `${color}18`,
         color: color,
-        boxShadow: `0 0 8px ${color}30`,
+        boxShadow: `0 0 6px ${color}25`,
+        border: `1px solid ${color}20`,
       }}
     >
       {count}
@@ -111,9 +114,9 @@ export function CategoryNav() {
 
       {/* Navigation list with rich interactions */}
       <nav className="flex-1 overflow-y-auto py-3">
-        {categories.map(({ key, label, icon: Icon }) => {
+        {categories.map(({ key, label, iconType }) => {
           const isActive = settingsCategory === key
-          const color = categoryColors[key]
+          const color = categoryColorVars[key]
           const glowColor = categoryGlowColors[key]
           const count = counts[key]
 
@@ -138,10 +141,10 @@ export function CategoryNav() {
                     exit={{ opacity: 0, scaleY: 0 }}
                     style={{
                       width: '3px',
-                      height: '20px',
+                      height: '24px',
                       backgroundColor: color,
-                      borderRadius: '0 2px 2px 0',
-                      boxShadow: `0 0 8px ${color}, 0 0 16px ${color}40`,
+                      borderRadius: '0 3px 3px 0',
+                      boxShadow: `0 0 6px ${color}, 0 0 12px ${color}35`,
                     }}
                     transition={{ type: 'spring', stiffness: 400, damping: 30 }}
                   />
@@ -151,15 +154,15 @@ export function CategoryNav() {
               {/* Hover slide indicator */}
               {!isActive && (
                 <motion.div
-                  className="absolute left-0 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100"
+                  className="absolute left-0 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-60"
                   initial={{ x: -4 }}
                   whileHover={{ x: 0 }}
                   transition={{ duration: 0.15 }}
                   style={{
                     width: '3px',
-                    height: '12px',
-                    backgroundColor: 'rgba(255,255,255,0.15)',
-                    borderRadius: '0 2px 2px 0',
+                    height: '16px',
+                    backgroundColor: 'var(--text-tertiary)',
+                    borderRadius: '0 3px 3px 0',
                   }}
                 />
               )}
@@ -171,7 +174,7 @@ export function CategoryNav() {
                 animate={isActive ? { opacity: 0 } : { opacity: 0 }}
                 transition={{ duration: 0.2 }}
                 style={{
-                  background: `radial-gradient(ellipse at left, ${glowColor}, transparent 70%)`,
+                  background: `radial-gradient(ellipse at 20% center, ${glowColor}, transparent 70%)`,
                 }}
               />
 
@@ -185,8 +188,10 @@ export function CategoryNav() {
                 }}
                 className="relative"
               >
-                <Icon
-                  className="w-4 h-4 flex-shrink-0 transition-colors duration-200"
+                <EntityIcon
+                  type={iconType}
+                  size="sm"
+                  className="flex-shrink-0 transition-colors duration-200"
                   style={{ color: isActive ? color : 'var(--color-text-muted)' }}
                 />
                 {/* Icon glow effect when active */}
@@ -197,7 +202,7 @@ export function CategoryNav() {
                     animate={{ opacity: 0.5 }}
                     style={{ color }}
                   >
-                    <Icon className="w-4 h-4" />
+                    <EntityIcon type={iconType} size="sm" />
                   </motion.div>
                 )}
               </motion.div>
@@ -215,7 +220,7 @@ export function CategoryNav() {
 
               {/* Count badge */}
               {count > 0 && (
-                <CountBadge count={count} color={isActive ? color : '#6b7280'} />
+                <CountBadge count={count} color={isActive ? color : 'var(--text-tertiary)'} />
               )}
             </motion.button>
           )
