@@ -141,6 +141,7 @@ class IFLineResponse(BaseModel):
     linked_character_id: Optional[int]
     description: Optional[str]
     sync_mode: str
+    progress: Optional[int] = None
     created_at: datetime
     updated_at: datetime
 

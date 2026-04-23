@@ -795,11 +795,46 @@ async def websocket_chat(
                 })
                 continue
 
-            # Broadcast to all connections in this session
-            await manager.send_to_session(session_id, {
-                "type": "message",
-                "content": message_data.get("content", ""),
-                "role": message_data.get("role", "user"),
+            # Handle different message types
+            msg_type = message_data.get("type", "message")
+
+            if msg_type == "ping":
+                # Respond to client ping with pong
+                await manager.send_personal(websocket, {
+                    "type": "pong",
+                    "timestamp": time.time()
+                })
+                continue
+
+            if msg_type == "message":
+                # Acknowledge receipt
+                await manager.send_personal(websocket, {
+                    "type": "ack",
+                    "timestamp": time.time()
+                })
+                # Broadcast to all connections in this session
+                await manager.send_to_session(session_id, {
+                    "type": "message",
+                    "content": message_data.get("content", ""),
+                    "role": message_data.get("role", "user"),
+                    "timestamp": time.time()
+                })
+                continue
+
+            if msg_type == "typing":
+                # Broadcast typing indicator to other connections in session
+                await manager.send_to_session(session_id, {
+                    "type": "typing",
+                    "role": message_data.get("role", "user"),
+                    "timestamp": time.time()
+                })
+                continue
+
+            # Unknown message type - just echo back
+            await manager.send_personal(websocket, {
+                "type": "ack",
+                "received": True,
+                "original_type": msg_type
             })
     except WebSocketDisconnect:
         logger.debug(f"WebSocket disconnected normally: session={session_id}")

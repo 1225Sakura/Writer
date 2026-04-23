@@ -344,21 +344,49 @@ async def generate_content(
     style = style if style is not None else "default"
 
     async def stream_response() -> AsyncIterator[str]:
-        async for chunk in ai_service.generate(
-            prompt=request.prompt,
-            operation=request.operation,
-            human_ai_ratio=human_ai_ratio,
-            style=style
-        ):
-            yield chunk
+        """Stream AI response in SSE format with progress tracking.
+
+        Yields SSE-formatted events:
+        - event: progress\ndata: {"percent": N}\n\n
+        - event: chunk\ndata: <text>\n\n
+        - event: done\ndata: {"total_chars": N}\n\n
+        """
+        accumulated = ""
+        chunk_count = 0
+        # Estimate total chunks for progress (rough heuristic: ~50 chars per chunk)
+        estimated_total_chunks = max(1, len(request.prompt) // 50)
+
+        yield f"event: progress\ndata: {{\"percent\": 5}}\n\n"
+
+        try:
+            async for chunk in ai_service.generate(
+                prompt=request.prompt,
+                operation=request.operation,
+                human_ai_ratio=human_ai_ratio,
+                style=style
+            ):
+                if not chunk:
+                    continue
+                accumulated += chunk
+                chunk_count += 1
+                # Calculate progress (cap at 95% until done)
+                progress = min(95, int((chunk_count / estimated_total_chunks) * 100))
+                yield f"event: progress\ndata: {{\"percent\": {progress}}}\n\n"
+                yield f"event: chunk\ndata: {chunk}\n\n"
+
+            yield f"event: done\ndata: {{\"total_chars\": {len(accumulated)}}}\n\n"
+        except Exception as exc:
+            yield f"event: error\ndata: {{\"message\": \"{str(exc).replace(chr(34), chr(92)+chr(34))}\"}}\n\n"
 
     return StreamingResponse(
         stream_response(),
-        media_type="text/plain",
+        media_type="text/event-stream",
         headers={
             "X-Operation": request.operation,
             "X-Human-AI-Ratio": str(human_ai_ratio),
-            "X-Style": style
+            "X-Style": style,
+            "Cache-Control": "no-cache",
+            "Connection": "keep-alive",
         }
     )
 

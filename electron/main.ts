@@ -1,61 +1,157 @@
 /**
  * Electron Main Process
- * Handles window management, IPC communication, and Python backend process management.
+ * Handles window management, IPC communication, Python backend process management,
+ * backend health monitoring, auto-restart, and window state persistence.
  */
 
-import { app, BrowserWindow, ipcMain, shell, dialog } from 'electron';
+import { app, BrowserWindow, ipcMain, shell, dialog, screen } from 'electron';
 import { spawn, ChildProcess } from 'child_process';
 import path from 'path';
 import fs from 'fs';
 import http from 'http';
 
+// ============================================
 // Configuration
+// ============================================
+
 const BACKEND_PORT = 8000;
-const BACKEND_HOST = 'localhost';
+const BACKEND_HOST = '127.0.0.1';
 const isDev = process.env.NODE_ENV === 'development' || !app.isPackaged;
 
-// Window reference
-let mainWindow: BrowserWindow | null = null;
-let backendProcess: ChildProcess | null = null;
+// Paths
+const STATE_DIR = path.join(app.getPath('userData'), 'state');
+const WINDOW_STATE_FILE = path.join(STATE_DIR, 'window-state.json');
 
-// In-memory API key storage (persists for app lifetime)
+// ============================================
+// State
+// ============================================
+
+let mainWindow: BrowserWindow | null = null;
+let splashWindow: BrowserWindow | null = null;
+let backendProcess: ChildProcess | null = null;
+let backendRestartCount = 0;
+let backendRestartTimer: NodeJS.Timeout | null = null;
+let healthCheckTimer: NodeJS.Timeout | null = null;
+let isShuttingDown = false;
 let cachedApiKey: string | null = null;
 
-/**
- * Find the correct Python executable.
- * Prefers project venv, then falls back to system python.
- */
+interface WindowState {
+  width: number;
+  height: number;
+  x?: number;
+  y?: number;
+  isMaximized?: boolean;
+  isFullScreen?: boolean;
+}
+
+const DEFAULT_WINDOW_STATE: WindowState = {
+  width: 1400,
+  height: 900,
+};
+
+// ============================================
+// Window State Persistence
+// ============================================
+
+function loadWindowState(): WindowState {
+  try {
+    if (fs.existsSync(WINDOW_STATE_FILE)) {
+      const data = fs.readFileSync(WINDOW_STATE_FILE, 'utf-8');
+      const state = JSON.parse(data) as WindowState;
+      // Validate bounds are on a visible screen
+      const displays = screen.getAllDisplays();
+      const isVisible = displays.some((d: Electron.Display) => {
+        const { x, y, width, height } = d.workArea;
+        const wx = state.x ?? 0;
+        const wy = state.y ?? 0;
+        return wx + (state.width * 0.5) >= x &&
+               wx <= x + width &&
+               wy + (state.height * 0.5) >= y &&
+               wy <= y + height;
+      });
+      if (isVisible) {
+        return { ...DEFAULT_WINDOW_STATE, ...state };
+      }
+    }
+  } catch (err) {
+    console.error('[Electron] Failed to load window state:', err);
+  }
+  return { ...DEFAULT_WINDOW_STATE };
+}
+
+function saveWindowState(): void {
+  if (!mainWindow) return;
+  try {
+    const bounds = mainWindow.getBounds();
+    const state: WindowState = {
+      width: bounds.width,
+      height: bounds.height,
+      x: bounds.x,
+      y: bounds.y,
+      isMaximized: mainWindow.isMaximized(),
+      isFullScreen: mainWindow.isFullScreen(),
+    };
+    if (!fs.existsSync(STATE_DIR)) {
+      fs.mkdirSync(STATE_DIR, { recursive: true });
+    }
+    fs.writeFileSync(WINDOW_STATE_FILE, JSON.stringify(state), 'utf-8');
+  } catch (err) {
+    console.error('[Electron] Failed to save window state:', err);
+  }
+}
+
+// ============================================
+// Python Discovery
+// ============================================
+
 function findPython(): string {
   const candidates: string[] = [];
 
   if (process.platform === 'win32') {
     if (!isDev) {
-      // Packaged mode: use bundled venv
       const bundledVenv = path.join(process.resourcesPath!, 'python_venv', 'Scripts', 'python.exe');
       candidates.push(bundledVenv);
     }
-    // Dev mode or fallback
     candidates.push(
-      // Project venv (dev mode)
-      path.join(__dirname, '..', '..', '..', 'src', 'backend', '.venv', 'Scripts', 'python.exe'),
-      path.join(__dirname, '..', '..', '..', '.venv', 'Scripts', 'python.exe'),
-      // Python Launcher for Windows (most reliable on Win)
-      'py',
-      // Direct python commands
-      'python',
-      'python3'
+      path.join(__dirname, '..', '..', 'src', 'backend', '.venv', 'Scripts', 'python.exe'),
+      path.join(__dirname, '..', '..', '.venv', 'Scripts', 'python.exe'),
     );
+    // Commands that need to be resolved via PATH
+    const pathCommands = ['py', 'python', 'python3'];
+    for (const cmd of pathCommands) {
+      try {
+        // Use 'where' on Windows to resolve PATH commands
+        const { execSync } = require('child_process');
+        const resolved = execSync(`where ${cmd}`, { encoding: 'utf-8' }).trim().split('\n')[0];
+        if (resolved) {
+          candidates.push(resolved);
+        }
+      } catch {
+        // command not in PATH
+      }
+    }
   } else {
     if (!isDev) {
       const bundledVenv = path.join(process.resourcesPath!, 'python_venv', 'bin', 'python');
       candidates.push(bundledVenv);
     }
     candidates.push(
-      path.join(__dirname, '..', '..', '..', 'src', 'backend', '.venv', 'bin', 'python'),
-      path.join(__dirname, '..', '..', '..', '.venv', 'bin', 'python'),
-      'python3',
-      'python'
+      path.join(__dirname, '..', '..', 'src', 'backend', '.venv', 'bin', 'python'),
+      path.join(__dirname, '..', '..', '.venv', 'bin', 'python'),
     );
+    // Commands that need to be resolved via PATH
+    const pathCommands = ['python3', 'python'];
+    for (const cmd of pathCommands) {
+      try {
+        const { execSync } = require('child_process');
+        const resolved = execSync(`which ${cmd}`, { encoding: 'utf-8' }).trim();
+        if (resolved) {
+          candidates.push(resolved);
+        }
+      } catch {
+        // command not in PATH
+      }
+    }
   }
 
   for (const cmd of candidates) {
@@ -63,41 +159,71 @@ function findPython(): string {
       fs.accessSync(cmd, fs.constants.X_OK);
       return cmd;
     } catch {
-      // not found or not executable, try next
+      // not found or not executable
     }
   }
-  return candidates[candidates.length - 1]; // fallback
+  // Last resort: return 'python' and hope it's in PATH
+  return process.platform === 'win32' ? 'python' : 'python3';
 }
 
-/**
- * Start the Python backend process
- */
+// ============================================
+// Backend Lifecycle
+// ============================================
+
+function getBackendPaths(): { backendPath: string; launcherPath: string } {
+  if (isDev) {
+    // In dev, electron/main.ts is at project-root/electron/main.ts
+    // __dirname = project-root/electron/dist-electron (after tsc build)
+    // So we go up 2 levels to reach project-root, then into src/backend
+    const backendPath = path.join(__dirname, '..', '..', 'src', 'backend');
+    return {
+      backendPath,
+      launcherPath: path.join(backendPath, 'electron_launcher.py'),
+    };
+  } else {
+    const backendPath = path.join(process.resourcesPath!, 'backend');
+    return {
+      backendPath,
+      launcherPath: path.join(backendPath, 'electron_launcher.py'),
+    };
+  }
+}
+
 function startBackend(): Promise<void> {
   return new Promise((resolve, reject) => {
-    const backendPath = isDev
-      ? path.join(__dirname, '..', 'src', 'backend')
-      : path.join(process.resourcesPath, 'backend');
+    const { backendPath, launcherPath } = getBackendPaths();
 
-    // Verify backend directory exists
     if (!fs.existsSync(backendPath)) {
       reject(new Error(`Backend directory not found: ${backendPath}`));
+      return;
+    }
+    if (!fs.existsSync(launcherPath)) {
+      reject(new Error(`Launcher script not found: ${launcherPath}`));
       return;
     }
 
     const pythonCmd = findPython();
     console.log(`[Electron] Using Python: ${pythonCmd}`);
     console.log(`[Electron] Backend path: ${backendPath}`);
+    console.log(`[Electron] Launcher path: ${launcherPath}`);
 
-    // Use launcher script to handle import path setup
-    const launcherPath = path.join(backendPath, 'electron_launcher.py');
+    // Set environment for the backend
+    const env = {
+      ...process.env,
+      WRITER_ELECTRON_MODE: '1',
+      WRITER_DATA_DIR: path.join(app.getPath('userData'), 'data'),
+    };
+
     backendProcess = spawn(pythonCmd, [
       launcherPath,
       BACKEND_HOST,
       BACKEND_PORT.toString(),
     ], {
       cwd: backendPath,
-      env: { ...process.env },
+      env,
       stdio: ['pipe', 'pipe', 'pipe'],
+      // Detach on Unix so SIGTERM doesn't propagate to Python
+      detached: process.platform !== 'win32',
     });
 
     backendProcess.on('error', (err) => {
@@ -106,54 +232,214 @@ function startBackend(): Promise<void> {
     });
 
     backendProcess.stdout?.on('data', (data: Buffer) => {
-      console.log(`[Backend] ${data.toString().trim()}`);
+      const lines = data.toString().trim().split('\n');
+      for (const line of lines) {
+        if (line.trim()) {
+          console.log(`[Backend] ${line}`);
+        }
+      }
     });
 
     backendProcess.stderr?.on('data', (data: Buffer) => {
-      console.error(`[Backend] ${data.toString().trim()}`);
+      const lines = data.toString().trim().split('\n');
+      for (const line of lines) {
+        if (line.trim()) {
+          console.error(`[Backend] ${line}`);
+        }
+      }
     });
 
-    backendProcess.on('exit', (code) => {
-      console.log(`[Electron] Backend process exited with code ${code}`);
+    backendProcess.on('exit', (code, signal) => {
+      console.log(`[Electron] Backend process exited with code ${code}, signal ${signal}`);
       backendProcess = null;
+
+      if (!isShuttingDown) {
+        console.error('[Electron] Backend crashed unexpectedly. Scheduling restart...');
+        scheduleBackendRestart();
+      }
     });
 
     // Wait for backend to be ready
-    waitForBackend(BACKEND_PORT, 30000)
+    waitForBackend(BACKEND_PORT, 45000)
       .then(() => {
         console.log('[Electron] Backend is ready');
+        backendRestartCount = 0;
+        startHealthCheck();
         resolve();
       })
       .catch((err) => {
         console.error('[Electron] Backend failed to start:', err);
+        stopBackend();
         reject(err);
       });
   });
 }
 
-/**
- * Wait for backend to be ready by polling health endpoint
- */
+function stopBackend(): void {
+  if (backendRestartTimer) {
+    clearTimeout(backendRestartTimer);
+    backendRestartTimer = null;
+  }
+  stopHealthCheck();
+
+  if (backendProcess) {
+    console.log('[Electron] Stopping backend process...');
+    if (process.platform === 'win32') {
+      if (backendProcess.pid) {
+        try {
+          spawn('taskkill', ['/pid', backendProcess.pid.toString(), '/f', '/t']);
+        } catch (err) {
+          console.error('[Electron] taskkill failed:', err);
+        }
+      }
+    } else {
+      // Try graceful shutdown first
+      try {
+        process.kill(-backendProcess.pid!, 'SIGTERM');
+      } catch {
+        backendProcess.kill('SIGTERM');
+      }
+      // Force kill after 5 seconds
+      setTimeout(() => {
+        try {
+          if (backendProcess && !backendProcess.killed) {
+            process.kill(-backendProcess.pid!, 'SIGKILL');
+          }
+        } catch {
+          backendProcess?.kill('SIGKILL');
+        }
+      }, 5000);
+    }
+    backendProcess = null;
+  }
+}
+
+function scheduleBackendRestart(): void {
+  if (isShuttingDown) return;
+
+  backendRestartCount++;
+  const maxRestarts = 5;
+  const delayMs = Math.min(1000 * Math.pow(2, backendRestartCount - 1), 30000);
+
+  if (backendRestartCount > maxRestarts) {
+    console.error(`[Electron] Backend has crashed ${maxRestarts} times. Giving up.`);
+    dialog.showErrorBox(
+      '后端服务异常',
+      'Python 后端服务多次启动失败，请检查环境配置后重启应用。'
+    );
+    return;
+  }
+
+  console.log(`[Electron] Will attempt to restart backend in ${delayMs}ms (attempt ${backendRestartCount}/${maxRestarts})`);
+
+  backendRestartTimer = setTimeout(async () => {
+    if (isShuttingDown) return;
+    try {
+      await startBackend();
+      console.log('[Electron] Backend restarted successfully');
+    } catch (err) {
+      console.error('[Electron] Backend restart failed:', err);
+    }
+  }, delayMs);
+}
+
+// ============================================
+// Backend Health Check
+// ============================================
+
+function startHealthCheck(): void {
+  stopHealthCheck();
+
+  let consecutiveFailures = 0;
+  const MAX_FAILURES = 3;
+
+  healthCheckTimer = setInterval(() => {
+    if (isShuttingDown || !backendProcess) return;
+
+    const req = http.get(
+      `http://${BACKEND_HOST}:${BACKEND_PORT}/api/v1/health`,
+      { timeout: 5000 },
+      (res) => {
+        if (res.statusCode === 200) {
+          consecutiveFailures = 0;
+        } else {
+          console.warn(`[Electron] Backend health check returned ${res.statusCode}`);
+          consecutiveFailures++;
+        }
+      }
+    );
+
+    req.on('error', (err) => {
+      console.warn('[Electron] Backend health check failed:', err.message);
+      consecutiveFailures++;
+
+      // Only restart after consecutive failures to avoid false positives
+      if (consecutiveFailures >= MAX_FAILURES && backendProcess && !backendProcess.killed) {
+        console.error(`[Electron] Backend is unresponsive (${MAX_FAILURES} consecutive failures). Restarting...`);
+        stopBackend();
+        scheduleBackendRestart();
+        consecutiveFailures = 0;
+      }
+    });
+
+    req.on('timeout', () => {
+      req.destroy();
+      consecutiveFailures++;
+    });
+  }, 30000); // Check every 30 seconds
+}
+
+function stopHealthCheck(): void {
+  if (healthCheckTimer) {
+    clearInterval(healthCheckTimer);
+    healthCheckTimer = null;
+  }
+}
+
+// ============================================
+// Backend Readiness Polling
+// ============================================
+
 function waitForBackend(port: number, timeout: number): Promise<void> {
   return new Promise((resolve, reject) => {
     const startTime = Date.now();
     const pollInterval = 500;
+    let attempts = 0;
 
     const check = () => {
-      const req = http.get(`http://${BACKEND_HOST}:${port}/api/v1/health`, (res) => {
-        if (res.statusCode === 200) {
-          resolve();
-        } else {
-          setTimeout(check, pollInterval);
+      attempts++;
+      const elapsed = Date.now() - startTime;
+
+      if (elapsed > timeout) {
+        reject(new Error(`后端服务启动超时 (${timeout}ms)。请检查 Python 环境是否正确配置。`));
+        return;
+      }
+
+      // Log progress every ~5 seconds
+      if (attempts % 10 === 0) {
+        console.log(`[Electron] Waiting for backend... (${Math.round(elapsed / 1000)}s / ${Math.round(timeout / 1000)}s)`);
+      }
+
+      const req = http.get(
+        `http://${BACKEND_HOST}:${port}/api/v1/health`,
+        { timeout: 3000 },
+        (res) => {
+          if (res.statusCode === 200) {
+            console.log(`[Electron] Backend ready after ${elapsed}ms (${attempts} attempts)`);
+            resolve();
+          } else {
+            setTimeout(check, pollInterval);
+          }
         }
-      });
+      );
 
       req.on('error', () => {
-        if (Date.now() - startTime > timeout) {
-          reject(new Error('Backend timeout'));
-        } else {
-          setTimeout(check, pollInterval);
-        }
+        setTimeout(check, pollInterval);
+      });
+
+      req.on('timeout', () => {
+        req.destroy();
+        setTimeout(check, pollInterval);
       });
     };
 
@@ -161,29 +447,130 @@ function waitForBackend(port: number, timeout: number): Promise<void> {
   });
 }
 
-/**
- * Stop the Python backend process
- */
-function stopBackend(): void {
-  if (backendProcess) {
-    if (process.platform === 'win32') {
-      if (backendProcess.pid) {
-        spawn('taskkill', ['/pid', backendProcess.pid.toString(), '/f', '/t']);
-      }
-    } else {
-      backendProcess.kill('SIGTERM');
-    }
-    backendProcess = null;
+// ============================================
+// Window Management
+// ============================================
+
+function createSplashWindow(): BrowserWindow {
+  const splash = new BrowserWindow({
+    width: 400,
+    height: 300,
+    frame: false,
+    alwaysOnTop: true,
+    transparent: true,
+    resizable: false,
+    show: false,
+    webPreferences: {
+      nodeIntegration: false,
+      contextIsolation: true,
+    },
+  });
+
+  // Simple HTML splash screen
+  const splashHtml = `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="UTF-8">
+      <style>
+        body {
+          margin: 0;
+          padding: 0;
+          width: 400px;
+          height: 300px;
+          background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+          color: #f5f0e6;
+          border-radius: 12px;
+          overflow: hidden;
+        }
+        .logo {
+          font-size: 48px;
+          margin-bottom: 16px;
+        }
+        .title {
+          font-size: 20px;
+          font-weight: 600;
+          margin-bottom: 8px;
+        }
+        .subtitle {
+          font-size: 13px;
+          color: #a0a0a0;
+          margin-bottom: 24px;
+        }
+        .status {
+          font-size: 12px;
+          color: #c45c5c;
+          animation: pulse 1.5s ease-in-out infinite;
+        }
+        @keyframes pulse {
+          0%, 100% { opacity: 0.6; }
+          50% { opacity: 1; }
+        }
+        .progress-bar {
+          width: 200px;
+          height: 3px;
+          background: rgba(255,255,255,0.1);
+          border-radius: 2px;
+          margin-top: 16px;
+          overflow: hidden;
+        }
+        .progress-fill {
+          height: 100%;
+          width: 0%;
+          background: #c45c5c;
+          border-radius: 2px;
+          animation: progress 2s ease-in-out infinite;
+        }
+        @keyframes progress {
+          0% { width: 0%; margin-left: 0%; }
+          50% { width: 60%; margin-left: 20%; }
+          100% { width: 0%; margin-left: 100%; }
+        }
+      </style>
+    </head>
+    <body>
+      <div class="logo">✍️</div>
+      <div class="title">Writer</div>
+      <div class="subtitle">自动化写作软件</div>
+      <div class="status" id="status">正在启动后端服务...</div>
+      <div class="progress-bar"><div class="progress-fill"></div></div>
+    </body>
+    </html>
+  `;
+
+  splash.loadURL(`data:text/html;charset=utf-8,${encodeURIComponent(splashHtml)}`);
+  splash.once('ready-to-show', () => splash.show());
+  return splash;
+}
+
+function updateSplashStatus(message: string): void {
+  if (splashWindow && !splashWindow.isDestroyed()) {
+    splashWindow.webContents.executeJavaScript(`
+      document.getElementById('status').textContent = ${JSON.stringify(message)};
+    `).catch(() => {});
   }
 }
 
-/**
- * Create the main application window
- */
+function closeSplashWindow(): void {
+  if (splashWindow && !splashWindow.isDestroyed()) {
+    splashWindow.close();
+    splashWindow = null;
+  }
+}
+
 async function createWindow(): Promise<void> {
+  const state = loadWindowState();
+
   mainWindow = new BrowserWindow({
-    width: 1400,
-    height: 900,
+    width: state.width,
+    height: state.height,
+    x: state.x,
+    y: state.y,
     minWidth: 1024,
     minHeight: 768,
     title: 'Writer - 自动化写作软件',
@@ -196,9 +583,30 @@ async function createWindow(): Promise<void> {
     },
   });
 
+  // Restore maximized/fullscreen state
+  if (state.isMaximized) {
+    mainWindow.maximize();
+  }
+  if (state.isFullScreen) {
+    mainWindow.setFullScreen(true);
+  }
+
+  // Save state on changes
+  const saveStateDebounced = debounce(saveWindowState, 500);
+  mainWindow.on('resize', saveStateDebounced);
+  mainWindow.on('move', saveStateDebounced);
+  mainWindow.on('maximize', saveWindowState);
+  mainWindow.on('unmaximize', saveWindowState);
+  mainWindow.on('enter-full-screen', saveWindowState);
+  mainWindow.on('leave-full-screen', saveWindowState);
+
   // Show window when ready
   mainWindow.once('ready-to-show', () => {
+    closeSplashWindow();
     mainWindow?.show();
+    if (isDev) {
+      mainWindow?.webContents.openDevTools();
+    }
   });
 
   // Handle external links
@@ -209,77 +617,111 @@ async function createWindow(): Promise<void> {
 
   // Load the app
   if (isDev) {
-    // Development: use Vite dev server
     await mainWindow.loadURL('http://localhost:5173');
-    mainWindow.webContents.openDevTools();
   } else {
-    // Production: use built files
     await mainWindow.loadFile(path.join(__dirname, '..', 'frontend-build', 'index.html'));
   }
 }
 
-/**
- * Register IPC handlers for renderer process communication
- */
+// ============================================
+// IPC Handlers
+// ============================================
+
 function registerIpcHandlers(): void {
-  // Get backend URL for API calls
+  // Backend URL - renderer uses this to know where the API is
   ipcMain.handle('get-backend-url', () => {
     return `http://${BACKEND_HOST}:${BACKEND_PORT}`;
   });
 
-  // API key management for local auth
-  ipcMain.handle('get-api-key', () => {
-    return cachedApiKey;
+  // Backend status
+  ipcMain.handle('get-backend-status', async () => {
+    return new Promise((resolve) => {
+      const req = http.get(
+        `http://${BACKEND_HOST}:${BACKEND_PORT}/api/v1/health`,
+        { timeout: 3000 },
+        (res) => {
+          resolve({
+            running: true,
+            healthy: res.statusCode === 200,
+            port: BACKEND_PORT,
+            pid: backendProcess?.pid ?? null,
+          });
+        }
+      );
+      req.on('error', () => {
+        resolve({
+          running: false,
+          healthy: false,
+          port: BACKEND_PORT,
+          pid: null,
+        });
+      });
+      req.on('timeout', () => {
+        req.destroy();
+        resolve({
+          running: false,
+          healthy: false,
+          port: BACKEND_PORT,
+          pid: null,
+        });
+      });
+    });
   });
 
-  ipcMain.handle('set-api-key', (_, key: string) => {
-    cachedApiKey = key;
+  // Restart backend (for manual recovery)
+  ipcMain.handle('restart-backend', async () => {
+    console.log('[Electron] Manual backend restart requested');
+    stopBackend();
+    backendRestartCount = 0;
+    try {
+      await startBackend();
+      return { success: true };
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      return { success: false, error: msg };
+    }
   });
 
-  // Open external URL in browser
-  ipcMain.handle('open-external', (_, url: string) => {
-    return shell.openExternal(url);
-  });
+  // API key management
+  ipcMain.handle('get-api-key', () => cachedApiKey);
+  ipcMain.handle('set-api-key', (_, key: string) => { cachedApiKey = key; });
 
-  // Show save dialog for export
+  // External links
+  ipcMain.handle('open-external', (_, url: string) => shell.openExternal(url));
+
+  // File dialogs
   ipcMain.handle('show-save-dialog', async (_, options: Electron.SaveDialogOptions) => {
     if (!mainWindow) return null;
     const result = await dialog.showSaveDialog(mainWindow, options);
     return result.canceled ? null : result.filePath;
   });
 
-  // Show open dialog for import
   ipcMain.handle('show-open-dialog', async (_, options: Electron.OpenDialogOptions) => {
     if (!mainWindow) return null;
     const result = await dialog.showOpenDialog(mainWindow, options);
     return result.canceled ? null : result.filePaths;
   });
 
-  // Read file (for import)
+  // File operations
   ipcMain.handle('read-file', async (_, filePath: string) => {
     return fs.promises.readFile(filePath, 'utf-8');
   });
 
-  // Write file (for export)
   ipcMain.handle('write-file', async (_, filePath: string, content: string) => {
     await fs.promises.writeFile(filePath, content, 'utf-8');
     return true;
   });
 
   // App info
-  ipcMain.handle('get-app-info', () => {
-    return {
-      version: app.getVersion(),
-      name: app.getName(),
-      isDev,
-    };
-  });
+  ipcMain.handle('get-app-info', () => ({
+    version: app.getVersion(),
+    name: app.getName(),
+    isDev,
+    platform: process.platform,
+  }));
 
   // Window controls
-  ipcMain.on('minimize-window', () => {
-    mainWindow?.minimize();
-  });
-
+  ipcMain.on('minimize-window', () => mainWindow?.minimize());
   ipcMain.on('maximize-window', () => {
     if (mainWindow?.isMaximized()) {
       mainWindow.unmaximize();
@@ -287,28 +729,43 @@ function registerIpcHandlers(): void {
       mainWindow?.maximize();
     }
   });
-
-  ipcMain.on('close-window', () => {
-    mainWindow?.close();
-  });
-
-  ipcMain.handle('is-maximized', () => {
-    return mainWindow?.isMaximized() ?? false;
-  });
+  ipcMain.on('close-window', () => mainWindow?.close());
+  ipcMain.handle('is-maximized', () => mainWindow?.isMaximized() ?? false);
 }
 
-// App lifecycle
+// ============================================
+// Utilities
+// ============================================
+
+function debounce<T extends (...args: unknown[]) => void>(fn: T, ms: number): (...args: Parameters<T>) => void {
+  let timer: NodeJS.Timeout | null = null;
+  return (...args: Parameters<T>) => {
+    if (timer) clearTimeout(timer);
+    timer = setTimeout(() => fn(...args), ms);
+  };
+}
+
+// ============================================
+// App Lifecycle
+// ============================================
+
 app.whenReady().then(async () => {
-  console.log('[Electron] App ready');
+  console.log('[Electron] App ready, mode:', isDev ? 'development' : 'production');
 
   registerIpcHandlers();
 
+  // Show splash screen while backend starts
+  splashWindow = createSplashWindow();
+
   try {
+    updateSplashStatus('正在启动 Python 后端服务...');
     await startBackend();
+    updateSplashStatus('正在加载应用界面...');
     await createWindow();
   } catch (err) {
     console.error('[Electron] Failed to start:', err);
     const msg = err instanceof Error ? err.message : String(err);
+    closeSplashWindow();
     dialog.showErrorBox(
       '启动失败',
       `无法启动后端服务，请检查 Python 环境\n\n详情: ${msg}`
@@ -324,6 +781,9 @@ app.whenReady().then(async () => {
 });
 
 app.on('window-all-closed', () => {
+  isShuttingDown = true;
+  closeSplashWindow();
+  saveWindowState();
   stopBackend();
   if (process.platform !== 'darwin') {
     app.quit();
@@ -331,5 +791,17 @@ app.on('window-all-closed', () => {
 });
 
 app.on('before-quit', () => {
+  isShuttingDown = true;
+  closeSplashWindow();
+  saveWindowState();
   stopBackend();
+});
+
+// Handle uncaught errors
+process.on('uncaughtException', (err) => {
+  console.error('[Electron] Uncaught exception:', err);
+});
+
+process.on('unhandledRejection', (reason) => {
+  console.error('[Electron] Unhandled rejection:', reason);
 });

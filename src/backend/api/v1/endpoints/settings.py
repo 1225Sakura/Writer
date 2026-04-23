@@ -175,6 +175,31 @@ async def create_character_relationship(
     return await service.create_relationship(relationship.model_dump())
 
 
+@router.delete(
+    "/characters/{character_id}/relationships/{relationship_id}",
+    summary="删除角色关系",
+    description="删除指定角色关系。",
+)
+async def delete_character_relationship(
+    character_id: int,
+    relationship_id: int,
+    db: AsyncSession = Depends(get_db)
+):
+    """Delete a character relationship."""
+    result = await db.execute(
+        select(CharacterRelationship).where(
+            CharacterRelationship.id == relationship_id,
+            CharacterRelationship.character_id == character_id
+        )
+    )
+    relationship = result.scalar_one_or_none()
+    if not relationship:
+        raise HTTPException(status_code=404, detail="Relationship not found")
+    await db.delete(relationship)
+    get_cache_service().clear_entity_cache("character_relationship")
+    return {"message": "Relationship deleted"}
+
+
 # Character storylines
 @router.get(
     "/characters/{character_id}/storylines",
@@ -203,6 +228,63 @@ async def create_character_storyline(
 ):
     """Create a storyline for a character."""
     return await service.create_storyline(storyline.model_dump())
+
+
+@router.patch(
+    "/characters/{character_id}/storylines/{storyline_id}",
+    response_model=CharacterStorylineResponse,
+    summary="更新角色故事线",
+    description="更新指定角色故事线。",
+)
+async def update_character_storyline(
+    character_id: int,
+    storyline_id: int,
+    storyline: CharacterStorylineCreateRequest,
+    db: AsyncSession = Depends(get_db)
+):
+    """Update a character storyline."""
+    result = await db.execute(
+        select(CharacterStoryline).where(
+            CharacterStoryline.id == storyline_id,
+            CharacterStoryline.character_id == character_id
+        )
+    )
+    db_storyline = result.scalar_one_or_none()
+    if not db_storyline:
+        raise HTTPException(status_code=404, detail="Storyline not found")
+
+    for key, value in storyline.model_dump(exclude_unset=True).items():
+        setattr(db_storyline, key, value)
+
+    await db.flush()
+    await db.refresh(db_storyline)
+    get_cache_service().clear_entity_cache("character_storyline")
+    return db_storyline
+
+
+@router.delete(
+    "/characters/{character_id}/storylines/{storyline_id}",
+    summary="删除角色故事线",
+    description="删除指定角色故事线。",
+)
+async def delete_character_storyline(
+    character_id: int,
+    storyline_id: int,
+    db: AsyncSession = Depends(get_db)
+):
+    """Delete a character storyline."""
+    result = await db.execute(
+        select(CharacterStoryline).where(
+            CharacterStoryline.id == storyline_id,
+            CharacterStoryline.character_id == character_id
+        )
+    )
+    storyline = result.scalar_one_or_none()
+    if not storyline:
+        raise HTTPException(status_code=404, detail="Storyline not found")
+    await db.delete(storyline)
+    get_cache_service().clear_entity_cache("character_storyline")
+    return {"message": "Storyline deleted"}
 
 
 # Items
@@ -240,6 +322,21 @@ async def create_item(item: ItemCreateRequest, db: AsyncSession = Depends(get_db
     await db.refresh(db_item)
     get_cache_service().clear_entity_cache("item")
     return db_item
+
+
+@router.get(
+    "/items/{item_id}",
+    response_model=ItemResponse,
+    summary="获取物品详情",
+    description="获取指定ID的物品详细信息。",
+)
+async def get_item(item_id: int, db: AsyncSession = Depends(get_db)):
+    """Get a specific item by ID."""
+    result = await db.execute(select(Item).where(Item.id == item_id))
+    item = result.scalar_one_or_none()
+    if not item:
+        raise HTTPException(status_code=404, detail="Item not found")
+    return item
 
 
 @router.patch(
@@ -347,6 +444,21 @@ async def update_location(
     return db_location
 
 
+@router.get(
+    "/locations/{location_id}",
+    response_model=LocationResponse,
+    summary="获取地点详情",
+    description="获取指定ID的地点详细信息。",
+)
+async def get_location(location_id: int, db: AsyncSession = Depends(get_db)):
+    """Get a specific location by ID."""
+    result = await db.execute(select(Location).where(Location.id == location_id))
+    location = result.scalar_one_or_none()
+    if not location:
+        raise HTTPException(status_code=404, detail="Location not found")
+    return location
+
+
 @router.delete(
     "/locations/{location_id}",
     summary="删除地点",
@@ -426,6 +538,21 @@ async def update_faction(
     return db_faction
 
 
+@router.get(
+    "/factions/{faction_id}",
+    response_model=FactionResponse,
+    summary="获取势力详情",
+    description="获取指定ID的势力详细信息。",
+)
+async def get_faction(faction_id: int, db: AsyncSession = Depends(get_db)):
+    """Get a specific faction by ID."""
+    result = await db.execute(select(Faction).where(Faction.id == faction_id))
+    faction = result.scalar_one_or_none()
+    if not faction:
+        raise HTTPException(status_code=404, detail="Faction not found")
+    return faction
+
+
 @router.delete(
     "/factions/{faction_id}",
     summary="删除势力",
@@ -476,6 +603,21 @@ async def create_world_setting(
     await db.refresh(db_setting)
     get_cache_service().clear_entity_cache("world_setting")
     return db_setting
+
+
+@router.get(
+    "/world/{setting_id}",
+    response_model=WorldSettingResponse,
+    summary="获取世界观设定详情",
+    description="获取指定ID的世界观设定详细信息。",
+)
+async def get_world_setting(setting_id: int, db: AsyncSession = Depends(get_db)):
+    """Get a specific world setting by ID."""
+    result = await db.execute(select(WorldSetting).where(WorldSetting.id == setting_id))
+    setting = result.scalar_one_or_none()
+    if not setting:
+        raise HTTPException(status_code=404, detail="World setting not found")
+    return setting
 
 
 @router.patch(
@@ -555,6 +697,21 @@ async def create_rule(rule: RuleCreateRequest, db: AsyncSession = Depends(get_db
     await db.refresh(db_rule)
     get_cache_service().clear_entity_cache("rule")
     return db_rule
+
+
+@router.get(
+    "/rules/{rule_id}",
+    response_model=RuleResponse,
+    summary="获取规则详情",
+    description="获取指定ID的规则详细信息。",
+)
+async def get_rule(rule_id: int, db: AsyncSession = Depends(get_db)):
+    """Get a specific rule by ID."""
+    result = await db.execute(select(Rule).where(Rule.id == rule_id))
+    rule = result.scalar_one_or_none()
+    if not rule:
+        raise HTTPException(status_code=404, detail="Rule not found")
+    return rule
 
 
 @router.patch(

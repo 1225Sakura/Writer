@@ -1,45 +1,89 @@
 /**
  * Electron Preload Script
  * Exposes secure IPC bridge to renderer process via contextBridge.
+ *
+ * Security rules:
+ * - Never expose ipcRenderer directly
+ * - Never expose Node.js APIs directly
+ * - All IPC channels are whitelisted and typed
+ * - process.platform is read at preload time and exposed as a string value
  */
 
 import { contextBridge, ipcRenderer } from 'electron';
 
-// Expose protected methods that allow the renderer process to use
-// ipcRenderer without exposing the entire object
+// Read platform at preload time and expose as a plain string
+// This avoids exposing the Node.js process object to the renderer
+const PLATFORM = process.platform;
+
+// Whitelisted IPC channel names for type safety and auditability
+const IPC_CHANNELS = {
+  backend: {
+    getBackendUrl: 'get-backend-url',
+    getBackendStatus: 'get-backend-status',
+    restartBackend: 'restart-backend',
+  },
+  auth: {
+    getApiKey: 'get-api-key',
+    setApiKey: 'set-api-key',
+  },
+  shell: {
+    openExternal: 'open-external',
+  },
+  dialog: {
+    showSaveDialog: 'show-save-dialog',
+    showOpenDialog: 'show-open-dialog',
+  },
+  file: {
+    readFile: 'read-file',
+    writeFile: 'write-file',
+  },
+  app: {
+    getAppInfo: 'get-app-info',
+  },
+  window: {
+    minimizeWindow: 'minimize-window',
+    maximizeWindow: 'maximize-window',
+    closeWindow: 'close-window',
+    isMaximized: 'is-maximized',
+  },
+} as const;
+
+// Expose the secure API to the renderer
 contextBridge.exposeInMainWorld('electronAPI', {
   // Backend
-  getBackendUrl: () => ipcRenderer.invoke('get-backend-url'),
+  getBackendUrl: () => ipcRenderer.invoke(IPC_CHANNELS.backend.getBackendUrl),
+  getBackendStatus: () => ipcRenderer.invoke(IPC_CHANNELS.backend.getBackendStatus),
+  restartBackend: () => ipcRenderer.invoke(IPC_CHANNELS.backend.restartBackend),
 
   // Auth - API key management for local desktop auth
-  getApiKey: () => ipcRenderer.invoke('get-api-key'),
-  setApiKey: (key: string) => ipcRenderer.invoke('set-api-key', key),
+  getApiKey: () => ipcRenderer.invoke(IPC_CHANNELS.auth.getApiKey),
+  setApiKey: (key: string) => ipcRenderer.invoke(IPC_CHANNELS.auth.setApiKey, key),
 
   // External links
-  openExternal: (url: string) => ipcRenderer.invoke('open-external', url),
+  openExternal: (url: string) => ipcRenderer.invoke(IPC_CHANNELS.shell.openExternal, url),
 
   // File dialogs
   showSaveDialog: (options: Electron.SaveDialogOptions) =>
-    ipcRenderer.invoke('show-save-dialog', options),
+    ipcRenderer.invoke(IPC_CHANNELS.dialog.showSaveDialog, options),
   showOpenDialog: (options: Electron.OpenDialogOptions) =>
-    ipcRenderer.invoke('show-open-dialog', options),
+    ipcRenderer.invoke(IPC_CHANNELS.dialog.showOpenDialog, options),
 
   // File operations
-  readFile: (filePath: string) => ipcRenderer.invoke('read-file', filePath),
+  readFile: (filePath: string) => ipcRenderer.invoke(IPC_CHANNELS.file.readFile, filePath),
   writeFile: (filePath: string, content: string) =>
-    ipcRenderer.invoke('write-file', filePath, content),
+    ipcRenderer.invoke(IPC_CHANNELS.file.writeFile, filePath, content),
 
   // App info
-  getAppInfo: () => ipcRenderer.invoke('get-app-info'),
+  getAppInfo: () => ipcRenderer.invoke(IPC_CHANNELS.app.getAppInfo),
 
   // Window controls
-  minimizeWindow: () => ipcRenderer.send('minimize-window'),
-  maximizeWindow: () => ipcRenderer.send('maximize-window'),
-  closeWindow: () => ipcRenderer.send('close-window'),
-  isMaximized: () => ipcRenderer.invoke('is-maximized'),
+  minimizeWindow: () => ipcRenderer.send(IPC_CHANNELS.window.minimizeWindow),
+  maximizeWindow: () => ipcRenderer.send(IPC_CHANNELS.window.maximizeWindow),
+  closeWindow: () => ipcRenderer.send(IPC_CHANNELS.window.closeWindow),
+  isMaximized: () => ipcRenderer.invoke(IPC_CHANNELS.window.isMaximized),
 
-  // Platform info
-  platform: process.platform,
+  // Platform info (static string, not live process reference)
+  platform: PLATFORM,
 });
 
 // Type declaration for renderer process
@@ -47,6 +91,13 @@ declare global {
   interface Window {
     electronAPI: {
       getBackendUrl: () => Promise<string>;
+      getBackendStatus: () => Promise<{
+        running: boolean;
+        healthy: boolean;
+        port: number;
+        pid: number | null;
+      }>;
+      restartBackend: () => Promise<{ success: boolean; error?: string }>;
       getApiKey: () => Promise<string | null>;
       setApiKey: (key: string) => Promise<void>;
       openExternal: (url: string) => Promise<void>;
@@ -54,7 +105,7 @@ declare global {
       showOpenDialog: (options: Electron.OpenDialogOptions) => Promise<string[] | null>;
       readFile: (filePath: string) => Promise<string>;
       writeFile: (filePath: string, content: string) => Promise<boolean>;
-      getAppInfo: () => Promise<{ version: string; name: string; isDev: boolean }>;
+      getAppInfo: () => Promise<{ version: string; name: string; isDev: boolean; platform: string }>;
       minimizeWindow: () => void;
       maximizeWindow: () => void;
       closeWindow: () => void;

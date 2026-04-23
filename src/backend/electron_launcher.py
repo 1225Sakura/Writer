@@ -47,9 +47,18 @@ for _name in _ALIASES:
 
 # Auto-initialize database if needed using alembic migrations
 def ensure_database():
-    """Ensure database exists and is initialized using alembic migrations."""
-    # Data directory is at backend/data/ (same as config.py resolves to)
-    data_dir = Path(__file__).parent / 'data'
+    """Ensure database exists and is initialized using alembic migrations.
+
+    In Electron mode, the data directory is set by the main process via
+    WRITER_DATA_DIR env var. Falls back to backend/data/ for standalone runs.
+    """
+    # Respect Electron's data directory if provided
+    electron_data_dir = os.environ.get('WRITER_DATA_DIR')
+    if electron_data_dir:
+        data_dir = Path(electron_data_dir)
+    else:
+        data_dir = Path(__file__).parent / 'data'
+
     data_dir.mkdir(parents=True, exist_ok=True)
     db_path = data_dir / 'writer.db'
 
