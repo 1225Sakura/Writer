@@ -1,4 +1,4 @@
-import { useState, useCallback, useMemo } from 'react'
+import { useState, useCallback, useMemo, useEffect } from 'react'
 import {
   ChevronDown, Check, X, Sparkles, AlertTriangle, AlertCircle,
   Info, Lightbulb, RotateCw, History, ArrowRight, Clock,
@@ -750,7 +750,7 @@ export function AISuggestionPanel() {
   }, [aiReviewResult])
 
   // Add current result to history when it changes
-  useMemo(() => {
+  useEffect(() => {
     if (currentSuggestions.length > 0 && aiReviewResult) {
       const iterationId = `iter_${Date.now()}`
       const severityCounts = {
@@ -781,8 +781,7 @@ export function AISuggestionPanel() {
         }))
       }
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [aiReviewResult?.raw_response])
+  }, [aiReviewResult?.raw_response, currentSuggestions.length])
 
   // Filter suggestions
   const filteredSuggestions = useMemo(() => {

@@ -1,4 +1,5 @@
 import { useUIStore, useSettingsStore, UIState } from '@/store'
+import { useShallow } from 'zustand/react/shallow'
 import { Button } from '@/components/ui/Button'
 import { Globe, Users, Package, MapPin, Shield, BookOpen, FileText, GitBranch, Feather, Sparkles } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -70,7 +71,7 @@ export function CategoryNav() {
   const isLoading = useSettingsStore((state) => state.isLoading)
 
   // Get entity counts for badges
-  const counts = useSettingsStore((state) => ({
+  const counts = useSettingsStore(useShallow((state) => ({
     world: state.worldSettings.length,
     character: state.characters.length,
     item: state.items.length,
@@ -79,7 +80,7 @@ export function CategoryNav() {
     rule: state.rules.length,
     outline: state.chapters.length,
     ifline: state.ifLines.length,
-  }))
+  })))
 
   const handleCategoryChange = (key: UIState['settingsCategory']) => {
     setSettingsCategory(key)
