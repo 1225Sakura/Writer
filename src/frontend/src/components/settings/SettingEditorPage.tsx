@@ -148,12 +148,14 @@ export function SettingEditorPage() {
           }}
         />
       </div>
-      {/* Left: CategoryNav */}
+      {/* Left: CategoryNav - 移动端隐藏，使用汉堡菜单 */}
       <motion.div
-        className="flex-shrink-0 h-full overflow-hidden flex flex-col relative bg-[var(--color-surface-base)] border-r border-[var(--border-default)]"
+        className="flex-shrink-0 h-full overflow-hidden flex flex-col relative bg-[var(--color-surface-base)] border-r border-[var(--border-default)]
+                   hidden lg:flex"
         style={{
           width: 'var(--layout-sidebar-width, 200px)',
-          minWidth: '120px',
+          minWidth: '160px',
+          maxWidth: '280px',
           zIndex: 1,
         }}
         initial={{ x: -20, opacity: 0 }}
@@ -241,12 +243,13 @@ export function SettingEditorPage() {
         <StatusBar />
       </motion.div>
 
-      {/* Right: RelationGraph */}
+      {/* Right: RelationGraph - 移动端隐藏 */}
       <motion.div
-        className="flex-shrink-0 h-full flex flex-col overflow-hidden relative bg-[var(--color-surface-raised)] border-l border-[var(--border-default)]"
+        className="flex-shrink-0 h-full flex flex-col overflow-hidden relative bg-[var(--color-surface-raised)] border-l border-[var(--border-default)]
+                   hidden xl:flex"
         style={{
           width: 'var(--layout-rightpanel-width, 320px)',
-          minWidth: '240px',
+          minWidth: '280px',
           zIndex: 1,
         }}
         initial={{ x: 20, opacity: 0 }}

@@ -144,8 +144,10 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
           />
         )}
 
-        {loading && <Loader2 className="w-4 h-4 text-[var(--icon-secondary)] animate-spin motion-reduce:animate-none" />}
-        <span className="relative z-10">{children}</span>
+        <span className="relative z-10 inline-flex flex-row items-center justify-center gap-2">
+          {loading && <Loader2 className="w-4 h-4 text-[var(--icon-secondary)] animate-spin motion-reduce:animate-none" />}
+          {children}
+        </span>
 
         {/* Ripple effects */}
         {ripples.map((ripple) => (

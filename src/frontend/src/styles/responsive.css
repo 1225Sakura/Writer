@@ -584,6 +584,66 @@
 }
 
 /* ============================================================
+   MOBILE NAVBAR TOOLBAR FIXES
+   ============================================================ */
+
+@media (max-width: 767px) {
+  /* 确保工具栏按钮触摸目标足够大 */
+  .layout-topbar button {
+    min-height: 44px;
+    min-width: 44px;
+    padding: 8px;
+  }
+
+  /* 工具栏容器不换行但可滚动 */
+  .layout-topbar {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+
+  .layout-topbar::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* 确保抽屉在移动端全宽 */
+  .drawer-responsive.drawer-right,
+  .drawer-responsive.drawer-left {
+    width: 100% !important;
+    max-width: 100vw;
+  }
+
+  /* 移动端隐藏次要工具栏元素 */
+  .writing-toolbar-secondary {
+    display: none !important;
+  }
+
+  /* 隐藏长文本标签，保留图标 */
+  .writing-toolbar .toolbar-label {
+    display: none;
+  }
+
+  .writing-toolbar .toolbar-label-icon-only {
+    display: flex;
+  }
+}
+
+/* ============================================================
+   MOBILE SAFE AREA INSETS
+   ============================================================ */
+
+@supports (padding: env(safe-area-inset-bottom)) {
+  .mobile-safe-area-bottom {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+
+  .mobile-safe-area-top {
+    padding-top: env(safe-area-inset-top);
+  }
+}
+
+/* ============================================================
    PRINT / REDUCED MOTION
    ============================================================ */
 

@@ -87,10 +87,10 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
               className="absolute right-3 top-1/2 -translate-y-1/2"
             >
               {status === 'success' && (
-                <Check className="w-4 h-4" style={{ color: 'var(--color-ifline)' }} />
+                <Check className="w-4 h-4 text-[var(--icon-success)]" />
               )}
               {status === 'error' && (
-                <AlertCircle className="w-4 h-4" style={{ color: 'var(--color-vermillion)' }} />
+                <AlertCircle className="w-4 h-4 text-[var(--icon-danger)]" />
               )}
             </motion.div>
           )}

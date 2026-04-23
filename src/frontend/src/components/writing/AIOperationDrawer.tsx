@@ -515,7 +515,7 @@ export function AIOperationDrawer() {
                   border: '1px solid color-mix(in srgb, var(--color-vermillion) 20%, transparent)',
                 }}
               >
-                <AlertCircle className="w-4 h-4 flex-shrink-0" style={{ color: 'var(--color-vermillion)' }} />
+                <AlertCircle className="w-4 h-4 flex-shrink-0 text-[var(--icon-danger)]" />
                 <div className="flex-1 min-w-0">
                   <div className="text-xs font-medium" style={{ color: 'var(--text-primary)' }}>
                     {getOperationLabel(job.type)}失败
@@ -634,7 +634,7 @@ function AIOperationButton({
       disabled={isDisabled}
       whileHover={{ scale: isDisabled ? 1 : 1.03 }}
       whileTap={{ scale: isDisabled ? 1 : 0.97 }}
-      className={`relative flex flex-col items-center gap-1.5 p-3 rounded-xl border transition-all duration-200 overflow-hidden
+      className={`relative flex flex-row items-center gap-2 p-3 rounded-xl border transition-all duration-200 overflow-hidden
         ${isLoading
           ? 'border-[var(--accent-primary)]/40 bg-[var(--accent-primary)]/10'
           : 'border-[var(--border-default)] bg-[var(--color-surface-base)] hover:border-[var(--border-strong)] hover:bg-[var(--hover-bg)]'
@@ -669,8 +669,8 @@ function AIOperationButton({
       >
         {isLoading ? operation.activeIcon : operation.icon}
       </motion.span>
-      <span className="text-sm font-medium text-[var(--text-primary)]">{operation.label}</span>
-      <span className="text-[10px] text-[var(--text-tertiary)]">{operation.description}</span>
+      <span className="shrink-0 text-sm font-medium text-[var(--text-primary)]">{operation.label}</span>
+      <span className="shrink-0 text-[10px] text-[var(--text-tertiary)]">{operation.description}</span>
 
       {/* Mini progress bar when loading */}
       {isLoading && progress !== undefined && progress > 0 && (

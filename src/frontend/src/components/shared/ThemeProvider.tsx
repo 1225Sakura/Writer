@@ -105,8 +105,19 @@ function applyThemeColors(theme: Theme) {
   const root = document.documentElement
   const colors = themeColors[theme]
 
-  Object.entries(colors).forEach(([key, value]) => {
-    root.style.setProperty(key, value)
+  // Add transition class briefly for smooth theme switch
+  root.classList.add('theme-transitioning')
+
+  // Small delay to ensure transition class is applied before CSS vars change
+  requestAnimationFrame(() => {
+    Object.entries(colors).forEach(([key, value]) => {
+      root.style.setProperty(key, value)
+    })
+
+    // Remove transition class after the transition completes
+    setTimeout(() => {
+      root.classList.remove('theme-transitioning')
+    }, 300)
   })
 }
 

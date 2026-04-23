@@ -138,30 +138,32 @@ export function WritingToolbar() {
   ] as const
 
   return (
-    <div className="h-[var(--layout-topbar-height)] flex items-center px-4 gap-2 layout-topbar">
+    <div className="h-[var(--layout-topbar-height)] flex items-center px-2 sm:px-4 gap-1 sm:gap-2 layout-topbar overflow-x-auto">
       {/* 左侧：返回聊天 + 返回设定 */}
       <Button
         onClick={() => setCurrentInterface('chat')}
         variant="ghost"
         size="sm"
+        className="flex-shrink-0 touch-target-min"
       >
         <MessageCircle className="w-4 h-4" />
-        <span>返回聊天</span>
+        <span className="hidden sm:inline">返回聊天</span>
       </Button>
 
       <Button
         onClick={() => setCurrentInterface('settings')}
         variant="ghost"
         size="sm"
+        className="flex-shrink-0 touch-target-min"
       >
         <ArrowLeft className="w-4 h-4" />
-        <span>返回设定</span>
+        <span className="hidden sm:inline">返回设定</span>
       </Button>
 
-      <div className="w-px h-6 bg-[var(--border-default)]" />
+      <div className="w-px h-6 bg-[var(--border-default)] flex-shrink-0" />
 
       {/* 中间：工具按钮 */}
-      <div className="flex items-center gap-1">
+      <div className="flex items-center gap-1 flex-shrink-0">
         <ToolbarButton
           icon={<Pen className="w-4 h-4" />}
           label="写作"
@@ -190,7 +192,7 @@ export function WritingToolbar() {
       </div>
 
       {/* 中间偏右：人机比例快捷滑块 + 快捷AI操作 */}
-      <div className="flex items-center gap-2 ml-2">
+      <div className="hidden md:flex items-center gap-2 ml-2 flex-shrink-0">
         <div className="w-px h-6 bg-[var(--border-default)]" />
 
         {/* Human-AI ratio mini control - refined visual */}
@@ -212,7 +214,7 @@ export function WritingToolbar() {
               className="w-full"
             />
           </div>
-          <User className="w-4 h-4" style={{ color: 'var(--color-ifline)' }} />
+          <User className="w-4 h-4 text-[var(--icon-secondary)]" />
           <span
             className="text-[10px] w-8 text-center font-medium"
             style={{ color: 'var(--text-tertiary)' }}
@@ -283,7 +285,7 @@ export function WritingToolbar() {
                       `}
                       style={{ color: 'var(--text-secondary)' }}
                     >
-                      <span style={{ color: op.color }}>{op.icon}</span>
+                      <span className="inline-flex items-center justify-center shrink-0" style={{ color: op.color }}>{op.icon}</span>
                       <span className="flex-1 text-left">{op.label}</span>
                       <span className="text-[10px]" style={{ color: 'var(--text-tertiary)' }}>⇧{op.shortcut}</span>
                     </button>
@@ -296,7 +298,7 @@ export function WritingToolbar() {
       </div>
 
       {/* 右侧：字数统计、警告和主题切换 */}
-      <div className="ml-auto flex items-center gap-2">
+      <div className="ml-auto flex items-center gap-1 sm:gap-2 flex-shrink-0">
         {/* AI生成状态指示 */}
         <AnimatePresence>
           {isAIGenerating && (
@@ -436,8 +438,8 @@ const ToolbarButton = memo(function ToolbarButton({
           : 'hover:scale-[1.02] hover:bg-[rgba(255,255,255,0.04)]'
       }`}
     >
-      <span className="flex items-center justify-center w-4 h-4">{icon}</span>
-      <span className="ml-1">{label}</span>
+      <span className="inline-flex items-center justify-center shrink-0 w-4 h-4">{icon}</span>
+      <span className="inline-flex items-center ml-1">{label}</span>
       {isActive && (
         <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-2/3 h-[2px] rounded-full bg-gradient-to-r from-[var(--accent-primary)] to-[var(--color-ifline)] opacity-70" />
       )}

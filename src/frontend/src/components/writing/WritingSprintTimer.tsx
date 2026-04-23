@@ -185,7 +185,7 @@ export function WritingSprintTimer() {
             className="h-7 w-7"
             title="关闭"
           >
-            <X className="w-3.5 h-3.5" style={{ color: 'var(--text-secondary)' }} />
+            <X className="w-3.5 h-3.5 text-[var(--icon-secondary)]" />
           </Button>
         </div>
       </div>

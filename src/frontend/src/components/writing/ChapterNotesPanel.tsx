@@ -157,7 +157,7 @@ export function ChapterNotesPanel() {
                      bg-[var(--color-surface-raised)] border border-[var(--border-default)] text-[var(--text-secondary)] shadow-drawer"
           title="章节笔记"
         >
-          <StickyNote className="w-4 h-4" style={{ color: 'var(--color-character)' }} />
+          <StickyNote className="w-4 h-4 text-[var(--icon-secondary)]" />
           <span>笔记</span>
           {noteContent && (
             <motion.span
@@ -187,7 +187,7 @@ export function ChapterNotesPanel() {
                 animate={{ rotate: 0 }}
                 transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
               >
-                <StickyNote className="w-4 h-4 text-[var(--color-character)]" />
+                <StickyNote className="w-4 h-4 text-[var(--icon-secondary)]" />
               </motion.div>
               <span className="text-sm font-medium text-[var(--text-primary)]">章节笔记</span>
             </div>
@@ -199,7 +199,7 @@ export function ChapterNotesPanel() {
                 className="h-7 w-7 hover:bg-[rgba(126,184,74,0.1)] transition-colors duration-150"
                 title="保存笔记"
               >
-                <Save className="w-3.5 h-3.5 text-[var(--color-ifline)]" />
+                <Save className="w-3.5 h-3.5 text-[var(--icon-secondary)]" />
               </Button>
               <Button
                 onClick={handleClear}
@@ -208,7 +208,7 @@ export function ChapterNotesPanel() {
                 className="h-7 w-7 hover:bg-[rgba(196,92,92,0.1)] transition-colors duration-150"
                 title="清空笔记"
               >
-                <Trash2 className="w-3.5 h-3.5 text-[var(--color-vermillion)]" />
+                <Trash2 className="w-3.5 h-3.5 text-[var(--icon-danger)]" />
               </Button>
               <Button
                 onClick={() => setIsOpen(false)}
@@ -217,7 +217,7 @@ export function ChapterNotesPanel() {
                 className="h-7 w-7 transition-colors duration-150"
                 title="关闭"
               >
-                <X className="w-3.5 h-3.5 text-[var(--text-secondary)]" />
+                <X className="w-3.5 h-3.5 text-[var(--icon-secondary)]" />
               </Button>
             </div>
           </div>
@@ -225,7 +225,7 @@ export function ChapterNotesPanel() {
           {/* Category Tags */}
           <div className="px-3 pt-3 pb-2">
             <div className="flex items-center gap-1.5 flex-wrap">
-              <Tag className="w-3 h-3 mr-0.5 text-[var(--text-tertiary)]" />
+              <Tag className="w-3 h-3 mr-0.5 text-[var(--icon-muted)]" />
               {NOTE_CATEGORIES.map((category, index) => (
                 <motion.button
                   key={category.id}

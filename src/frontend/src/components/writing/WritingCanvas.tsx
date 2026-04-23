@@ -296,14 +296,13 @@ export function WritingCanvas() {
         {/* 浮动工具栏 */}
         <EditorToolbar editor={editor} />
 
-        {/* 写作卡片容器 - centered on large screens with refined visual */}
+        {/* 写作卡片容器 - centered on large screens with paper-like background */}
         <div
-          className="my-8 rounded-2xl max-w-[var(--writing-max-width)] mx-auto writing-card"
+          className="my-8 rounded-2xl max-w-[var(--writing-max-width)] mx-auto writing-card paper-texture"
           style={{
-            backgroundColor: 'color-mix(in srgb, var(--writing-text) 2%, transparent)',
+            backgroundColor: 'var(--writing-bg)',
             border: '1px solid var(--border-subtle)',
-            backdropFilter: 'blur(12px)',
-            boxShadow: '0 1px 3px rgba(0,0,0,0.1), 0 4px 20px rgba(0,0,0,0.08)',
+            boxShadow: '0 2px 8px rgba(0,0,0,0.12), 0 8px 32px rgba(0,0,0,0.08)',
           }}
         >
           {/* 章节标题 - 与正文融合过渡 */}
@@ -402,7 +401,7 @@ export function WritingCanvas() {
                 animate={prefersReducedMotion ? {} : { opacity: [1, 0.3, 1] }}
                 transition={prefersReducedMotion ? {} : { duration: 1.2, repeat: Infinity, ease: 'easeInOut' }}
               >
-                <Type className="w-3 h-3" style={{ color: 'var(--color-ifline)' }} />
+                <Type className="w-3 h-3 text-[var(--icon-primary)]" />
               </motion.div>
               <span className="text-[10px] font-medium" style={{ color: 'var(--color-ifline)' }}>写作中</span>
             </motion.div>

@@ -123,10 +123,10 @@ function FloatingLabelInput({
               <Loader2 className="w-4 h-4 animate-spin motion-reduce:animate-none" style={{ color: 'var(--accent-primary)' }} />
             )}
             {validation.state === 'saved' && (
-              <Check className="w-4 h-4" style={{ color: 'var(--color-success)' }} />
+              <Check className="w-4 h-4 text-[var(--icon-success)]" />
             )}
             {(validation.state === 'invalid' || validation.state === 'error') && (
-              <AlertCircle className="w-4 h-4" style={{ color: 'var(--color-danger)' }} />
+              <AlertCircle className="w-4 h-4 text-[var(--icon-danger)]" />
             )}
           </motion.div>
         )}
@@ -262,7 +262,7 @@ function SaveStateIndicator({ state, message }: { state: ValidationState; messag
             animate={{ scale: 1 }}
             transition={{ type: 'spring', stiffness: 500, damping: 20 }}
           >
-            <Check className="w-3.5 h-3.5" style={{ color: 'var(--color-success)' }} />
+            <Check className="w-3.5 h-3.5 text-[var(--icon-success)]" />
           </motion.div>
           <span className="text-xs" style={{ color: 'var(--color-success)' }}>{message || '已保存'}</span>
         </motion.div>
@@ -275,7 +275,7 @@ function SaveStateIndicator({ state, message }: { state: ValidationState; messag
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: -5 }}
         >
-          <AlertCircle className="w-3.5 h-3.5" style={{ color: 'var(--color-danger)' }} />
+          <AlertCircle className="w-3.5 h-3.5 text-[var(--icon-danger)]" />
           <span className="text-xs" style={{ color: 'var(--color-danger)' }}>{message || '保存失败'}</span>
         </motion.div>
       )}

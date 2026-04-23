@@ -162,7 +162,7 @@ export function WritingStatsOverlay({
               onClick={toggleExpanded}
             >
               <div className="flex items-center gap-1.5">
-                <Zap className="w-3 h-3 text-[var(--color-character)]" />
+                <Zap className="w-3 h-3 text-[var(--icon-primary)]" />
                 <span className="text-[11px] font-medium text-[var(--text-muted)]">写作统计</span>
               </div>
               <div className="flex items-center gap-0.5">
@@ -187,7 +187,7 @@ export function WritingStatsOverlay({
             {/* Compact stats row */}
             <div className="flex items-center gap-3 px-3 py-2">
               <div className="flex items-center gap-1.5">
-                <Type className="w-3 h-3" style={{ color: 'var(--color-location)' }} />
+                <Type className="w-3 h-3 text-[var(--icon-secondary)]" />
                 <motion.span
                   className="text-xs font-medium"
                   style={{ color: 'var(--text-primary)' }}
@@ -215,7 +215,7 @@ export function WritingStatsOverlay({
               </div>
               <div className="w-px h-3 bg-[var(--border-default)]" />
               <div className="flex items-center gap-1.5">
-                <Clock className="w-3 h-3 text-[var(--color-outline)]" />
+                <Clock className="w-3 h-3 text-[var(--icon-secondary)]" />
                 <span className="text-xs font-medium text-[var(--text-primary)]">{sessionWPM}</span>
                 <span className="text-[10px] text-[var(--text-muted)]">字/分</span>
               </div>
@@ -249,7 +249,7 @@ export function WritingStatsOverlay({
                     {/* Reading time */}
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-1.5">
-                        <BookOpen className="w-3 h-3 text-[var(--color-item)]" />
+                        <BookOpen className="w-3 h-3 text-[var(--icon-secondary)]" />
                         <span className="text-[11px] text-[var(--text-muted)]">预计阅读</span>
                       </div>
                       <span className="text-[11px] font-medium text-[var(--text-secondary)]">
@@ -260,7 +260,7 @@ export function WritingStatsOverlay({
                     {/* Session duration */}
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-1.5">
-                        <Clock className="w-3 h-3 text-[var(--color-character)]" />
+                        <Clock className="w-3 h-3 text-[var(--icon-secondary)]" />
                         <span className="text-[11px] text-[var(--text-muted)]">本次时长</span>
                       </div>
                       <span className="text-[11px] font-medium text-[var(--text-secondary)]">

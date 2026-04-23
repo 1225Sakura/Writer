@@ -66,7 +66,7 @@ function CollaborationStatus() {
       <div className="p-3">
         <div className="flex items-center justify-between mb-2">
           <div className="flex items-center gap-2">
-            <Activity className="w-4 h-4 text-[var(--accent-primary)]" />
+            <Activity className="w-4 h-4 text-[var(--icon-primary)]" />
             <span className="text-sm font-medium text-[var(--text-primary)]">协作状态</span>
           </div>
           <motion.div
@@ -151,7 +151,7 @@ function RatioSliderSection() {
   return (
     <CollapsibleSection
       title="人机比例调节"
-      icon={<GitBranch className="w-4 h-4" />}
+      icon={<GitBranch className="w-4 h-4 text-[var(--icon-secondary)]" />}
       isExpanded={true}
       onToggle={() => {}}
     >
@@ -187,7 +187,7 @@ function IFLinesSection() {
   return (
     <CollapsibleSection
       title="IF线"
-      icon={<GitBranch className="w-4 h-4" />}
+      icon={<GitBranch className="w-4 h-4 text-[var(--icon-secondary)]" />}
       isExpanded={isExpanded}
       onToggle={() => setIsExpanded(!isExpanded)}
       badge={ifLines.length}
@@ -279,7 +279,7 @@ function CharacterStorylines() {
   return (
     <CollapsibleSection
       title="配角故事线"
-      icon={<Users className="w-4 h-4" />}
+      icon={<Users className="w-4 h-4 text-[var(--icon-secondary)]" />}
       isExpanded={isExpanded}
       onToggle={() => setIsExpanded(!isExpanded)}
       badge={charactersWithProgress.length}
@@ -357,7 +357,7 @@ function BattleStation() {
   return (
     <CollapsibleSection
       title="本章作战台"
-      icon={<Target className="w-4 h-4" />}
+      icon={<Target className="w-4 h-4 text-[var(--icon-secondary)]" />}
       isExpanded={isExpanded}
       onToggle={() => setIsExpanded(!isExpanded)}
     >
@@ -456,7 +456,7 @@ function PlotTracker() {
   return (
     <CollapsibleSection
       title="伏笔追踪"
-      icon={<AlertCircle className="w-4 h-4" />}
+      icon={<AlertCircle className="w-4 h-4 text-[var(--icon-danger)]" />}
       isExpanded={isExpanded}
       onToggle={() => setIsExpanded(!isExpanded)}
       badge={openThreads.length}
@@ -488,7 +488,7 @@ function PlotTracker() {
                 title="标记为已揭示"
                 className="!h-7 !w-7"
               >
-                <Check className="w-4 h-4 text-[var(--color-ifline)]" />
+                <Check className="w-4 h-4 text-[var(--icon-secondary)]" />
               </Button>
             </div>
           ))

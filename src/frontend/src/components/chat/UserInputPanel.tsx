@@ -156,17 +156,18 @@ export function UserInputPanel() {
               <motion.button
                 key={reply.label}
                 onClick={() => handleQuickReply(reply.message)}
-                className="flex items-center gap-1.5 px-3 py-1.5 text-xs rounded-full border border-default
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs rounded-full border border-default
                            text-secondary hover:bg-surface-raised hover:text-primary hover:border-strong
                            transition-colors"
+                style={{ whiteSpace: 'nowrap' }}
                 initial={{ opacity: 0, x: -8 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: i * 0.05, duration: 0.2 }}
                 whileHover={{ y: -1, scale: 1.02 }}
                 whileTap={{ scale: 0.95 }}
               >
-                <span className="opacity-60">{reply.icon}</span>
-                {reply.label}
+                <span className="flex-shrink-0 opacity-60">{reply.icon}</span>
+                <span>{reply.label}</span>
               </motion.button>
             ))}
           </motion.div>
@@ -176,7 +177,7 @@ export function UserInputPanel() {
       <div className="flex gap-2 items-end">
         {/* New chat button */}
         <motion.button
-          className="p-2.5 flex-shrink-0 rounded-md bg-surface-raised border border-default"
+          className="p-2.5 flex-shrink-0 rounded-md bg-surface-raised border border-default touch-target-min"
           title="开始新对话"
           onClick={handleNewChat}
           whileHover={{ scale: 1.08, backgroundColor: 'var(--color-surface-hover)' }}
@@ -187,7 +188,7 @@ export function UserInputPanel() {
         </motion.button>
 
         {/* Input area */}
-        <div className="flex-1 relative">
+        <div className="flex-1 relative min-w-0">
           <motion.div
             className="relative"
             animate={{

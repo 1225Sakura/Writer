@@ -173,7 +173,7 @@ function DefaultOverlay({
 /** Minimal overlay — simple spinner only */
 function MinimalOverlay({ message }: { message: string }) {
   return (
-    <div className="flex flex-col items-center gap-3">
+    <div className="flex flex-row items-center gap-3">
       <LoadingSpinner variant="ring" size="lg" />
       <motion.p
         initial={{ opacity: 0 }}
@@ -340,7 +340,7 @@ export function InlineSectionLoading({
   message?: string
 }) {
   return (
-    <div className="flex items-center justify-center gap-2 py-8">
+    <div className="flex flex-row items-center justify-center gap-2 py-8">
       <LoadingSpinner variant="dots" size="sm" />
       <span className="text-xs" style={{ color: 'var(--text-tertiary)' }}>
         {message}

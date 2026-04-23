@@ -1,16 +1,19 @@
 import { motion } from 'framer-motion'
 import { Bot, Brain, Loader2 } from 'lucide-react'
+import { usePrefersReducedMotion } from '@/hooks/usePrefersReducedMotion'
 
 /* ============================================================
    SHARED COMPONENTS
    ============================================================ */
 
 function AIAvatarBubble({ icon, isThinking = false }: { icon: React.ReactNode; isThinking?: boolean }) {
+  const prefersReducedMotion = usePrefersReducedMotion()
+
   return (
     <motion.div
       className="flex-shrink-0 mt-1"
-      animate={isThinking ? { scale: [1, 1.05, 1] } : undefined}
-      transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
+      animate={isThinking && !prefersReducedMotion ? { scale: [1, 1.05, 1] } : undefined}
+      transition={prefersReducedMotion ? { duration: 0 } : { duration: 2, repeat: Infinity, ease: 'easeInOut' }}
     >
       <div className="w-7 h-7 rounded-full flex items-center justify-center bg-accent-muted border border-border-focus">
         {icon}
@@ -44,6 +47,8 @@ function MessageContainer({ children }: { children: React.ReactNode }) {
    ============================================================ */
 
 export function TypingIndicator() {
+  const prefersReducedMotion = usePrefersReducedMotion()
+
   return (
     <ThinkingBubble>
       <AIAvatarBubble icon={<Bot className="w-4 h-4 text-accent-primary" />} />
@@ -55,12 +60,12 @@ export function TypingIndicator() {
               <motion.span
                 key={i}
                 className="inline-block w-1.5 h-1.5 rounded-full bg-accent-primary"
-                animate={{
+                animate={prefersReducedMotion ? {} : {
                   opacity: [0.2, 1, 0.2],
                   y: [0, -5, 0],
                   scale: [0.8, 1.1, 0.8],
                 }}
-                transition={{
+                transition={prefersReducedMotion ? { duration: 0 } : {
                   duration: 1.2,
                   repeat: Infinity,
                   delay: i * 0.18,
@@ -80,17 +85,19 @@ export function TypingIndicator() {
    ============================================================ */
 
 export function TypingIndicatorBrain() {
+  const prefersReducedMotion = usePrefersReducedMotion()
+
   return (
     <ThinkingBubble>
       <motion.div
         className="flex-shrink-0 mt-1 relative"
-        animate={{ scale: [1, 1.08, 1] }}
-        transition={{ duration: 1.5, repeat: Infinity, ease: 'easeInOut' }}
+        animate={prefersReducedMotion ? {} : { scale: [1, 1.08, 1] }}
+        transition={prefersReducedMotion ? { duration: 0 } : { duration: 1.5, repeat: Infinity, ease: 'easeInOut' }}
       >
         <motion.div
           className="absolute inset-0 rounded-full bg-accent-muted/30"
-          animate={{ scale: [1, 1.5, 1], opacity: [0.3, 0.6, 0.3] }}
-          transition={{ duration: 1.5, repeat: Infinity, ease: 'easeInOut' }}
+          animate={prefersReducedMotion ? {} : { scale: [1, 1.5, 1], opacity: [0.3, 0.6, 0.3] }}
+          transition={prefersReducedMotion ? { duration: 0 } : { duration: 1.5, repeat: Infinity, ease: 'easeInOut' }}
         />
         <div className="w-7 h-7 rounded-full flex items-center justify-center relative bg-accent-muted border border-border-focus">
           <Brain className="w-4 h-4 text-accent-primary" />
@@ -104,11 +111,11 @@ export function TypingIndicatorBrain() {
               <motion.div
                 key={i}
                 className="w-0.5 rounded-full bg-accent-primary"
-                animate={{
+                animate={prefersReducedMotion ? {} : {
                   height: [4, 16, 4],
                   opacity: [0.3, 0.8, 0.3],
                 }}
-                transition={{
+                transition={prefersReducedMotion ? { duration: 0 } : {
                   duration: 0.8,
                   repeat: Infinity,
                   delay: i * 0.12,
@@ -128,6 +135,8 @@ export function TypingIndicatorBrain() {
    ============================================================ */
 
 export function TypingIndicatorOrbital() {
+  const prefersReducedMotion = usePrefersReducedMotion()
+
   return (
     <ThinkingBubble>
       <AIAvatarBubble icon={<Bot className="w-4 h-4 text-accent-primary" />} />
@@ -145,12 +154,12 @@ export function TypingIndicatorOrbital() {
                   marginTop: -3,
                   marginLeft: -3,
                 }}
-                animate={{
+                animate={prefersReducedMotion ? {} : {
                   x: [0, Math.cos((i * 120 * Math.PI) / 180) * 8, 0],
                   y: [0, Math.sin((i * 120 * Math.PI) / 180) * 8, 0],
                   opacity: [0.4, 1, 0.4],
                 }}
-                transition={{
+                transition={prefersReducedMotion ? { duration: 0 } : {
                   duration: 1.5,
                   repeat: Infinity,
                   delay: i * 0.2,
@@ -170,14 +179,16 @@ export function TypingIndicatorOrbital() {
    ============================================================ */
 
 export function TypingIndicatorLoading() {
+  const prefersReducedMotion = usePrefersReducedMotion()
+
   return (
     <ThinkingBubble>
       <AIAvatarBubble icon={<Bot className="w-4 h-4 text-accent-primary" />} />
       <MessageContainer>
         <div className="flex items-center gap-2.5">
           <motion.div
-            animate={{ rotate: 360 }}
-            transition={{ duration: 1.5, repeat: Infinity, ease: 'linear' }}
+            animate={prefersReducedMotion ? {} : { rotate: 360 }}
+            transition={prefersReducedMotion ? { duration: 0 } : { duration: 1.5, repeat: Infinity, ease: 'linear' }}
           >
             <Loader2 className="w-3.5 h-3.5 text-accent-primary" />
           </motion.div>
@@ -193,6 +204,8 @@ export function TypingIndicatorLoading() {
    ============================================================ */
 
 export function TypingIndicatorWave() {
+  const prefersReducedMotion = usePrefersReducedMotion()
+
   return (
     <ThinkingBubble>
       <AIAvatarBubble icon={<Bot className="w-4 h-4 text-accent-primary" />} />
@@ -204,11 +217,11 @@ export function TypingIndicatorWave() {
               <motion.div
                 key={i}
                 className="w-0.5 rounded-full bg-accent-primary"
-                animate={{
+                animate={prefersReducedMotion ? {} : {
                   height: [3, 12, 3],
                   opacity: [0.3, 0.7, 0.3],
                 }}
-                transition={{
+                transition={prefersReducedMotion ? { duration: 0 } : {
                   duration: 0.6,
                   repeat: Infinity,
                   delay: i * 0.08,

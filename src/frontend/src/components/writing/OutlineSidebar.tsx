@@ -127,7 +127,7 @@ function PlotThreadItem({
         className="opacity-0 group-hover:opacity-100 w-6 h-6 flex items-center justify-center rounded hover:bg-[var(--color-ifline)]/10 transition-opacity"
         title="标记为已揭示"
       >
-        <Check className="w-4 h-4 text-[var(--color-ifline)]" />
+        <Check className="w-4 h-4 text-[var(--icon-success)]" />
       </button>
     </div>
   )

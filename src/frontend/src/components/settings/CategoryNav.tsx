@@ -106,10 +106,10 @@ export function CategoryNav() {
           const count = counts[key]
 
           return (
-            <motion.button
+            <motion.div
               key={key}
               onClick={() => handleCategoryChange(key)}
-              className="w-full flex items-center gap-3 px-4 py-2.5 mb-0.5 text-left relative overflow-hidden group"
+              className="w-full flex items-center gap-3 px-4 py-2.5 mb-0.5 text-left relative overflow-hidden group touch-target-min"
               initial={false}
               animate={isActive ? { backgroundColor: glowColor } : { backgroundColor: 'transparent' }}
               transition={{ duration: 0.2 }}
@@ -152,61 +152,29 @@ export function CategoryNav() {
                 />
               )}
 
-              {/* Hover glow background */}
-              <motion.div
-                className="absolute inset-0 opacity-0 group-hover:opacity-100 pointer-events-none"
-                initial={false}
-                animate={isActive ? { opacity: 0 } : { opacity: 0 }}
-                transition={{ duration: 0.2 }}
-                style={{
-                  background: `radial-gradient(ellipse at 20% center, ${glowColor}, transparent 70%)`,
-                }}
-              />
-
-              {/* Icon */}
-              <motion.div
-                initial={false}
-                animate={isActive ? { scale: 1.15, rotate: [0, -5, 5, 0] } : { scale: 1, rotate: 0 }}
-                transition={{
-                  scale: { type: 'spring', stiffness: 400, damping: 25 },
-                  rotate: { duration: 0.4, ease: 'easeInOut' },
-                }}
-                className="relative"
-              >
+              {/* Icon wrapper - fixed size to ensure alignment */}
+              <div className="w-5 h-5 flex items-center justify-center flex-shrink-0">
                 <EntityIcon
                   type={iconType}
                   size="sm"
-                  className="flex-shrink-0 transition-colors duration-200"
-                  style={{ color: isActive ? color : 'var(--color-text-muted)' }}
+                  className="transition-colors duration-200"
+                  style={{ color: isActive ? color : 'var(--text-tertiary)' }}
                 />
-                {isActive && (
-                  <motion.div
-                    className="absolute inset-0 blur-sm"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 0.5 }}
-                    style={{ color }}
-                  >
-                    <EntityIcon type={iconType} size="sm" />
-                  </motion.div>
-                )}
-              </motion.div>
+              </div>
 
-              {/* Label */}
-              <motion.span
-                className="text-sm font-medium flex-1"
-                style={{ color: isActive ? 'var(--text-primary)' : 'var(--color-text-secondary)' }}
-                initial={false}
-                animate={isActive ? { x: 2 } : { x: 0 }}
-                transition={{ type: 'spring', stiffness: 400, damping: 25 }}
+              {/* Label - single line, no animation that affects layout */}
+              <span
+                className="text-sm font-medium truncate"
+                style={{ color: isActive ? 'var(--text-primary)' : 'var(--text-secondary)' }}
               >
                 {label}
-              </motion.span>
+              </span>
 
               {/* Count badge */}
               {count > 0 && (
                 <CountBadge count={count} color={isActive ? color : 'var(--text-tertiary)'} />
               )}
-            </motion.button>
+            </motion.div>
           )
         })}
       </nav>

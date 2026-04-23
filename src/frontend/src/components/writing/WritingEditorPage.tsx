@@ -151,9 +151,9 @@ export function WritingEditorPage() {
 
   return (
     <div className={`h-full flex flex-col bg-[var(--ink-black)] ${immersiveMode ? 'immersive-mode' : ''}`}>
-      {/* Immersive mode vignette overlay - more subtle */}
+      {/* Immersive mode vignette overlay - always visible in immersive mode */}
       <AnimatePresence>
-        {immersiveMode && chromeVisible && (
+        {immersiveMode && (
           <motion.div
             key="vignette"
             initial={{ opacity: 0 }}
@@ -162,7 +162,7 @@ export function WritingEditorPage() {
             transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
             className="fixed inset-0 pointer-events-none z-30"
             style={{
-              background: 'radial-gradient(ellipse 75% 65% at 50% 45%, transparent 40%, var(--ink-black) 100%)',
+              background: 'radial-gradient(ellipse 80% 70% at 50% 50%, transparent 35%, rgba(26, 26, 46, 0.75) 100%)',
             }}
           />
         )}
@@ -189,7 +189,7 @@ export function WritingEditorPage() {
         )}
       </AnimatePresence>
 
-      {/* 工具栏 - Framer Motion AnimatePresence for smooth show/hide */}
+      {/* 工具栏 - Framer Motion AnimatePresence for smooth show/hide, proper z-index */}
       <AnimatePresence initial={false}>
         {(!immersiveMode || chromeVisible) && (
           <motion.div
@@ -198,14 +198,15 @@ export function WritingEditorPage() {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -12 }}
             transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
+            className="relative z-20"
           >
             <WritingToolbar />
           </motion.div>
         )}
       </AnimatePresence>
 
-      {/* 主内容区 */}
-      <div className="flex-1 flex overflow-hidden">
+      {/* 主内容区 - z-index for immersive mode stacking */}
+      <div className={`flex-1 flex overflow-hidden relative ${immersiveMode ? 'z-10' : ''}`}>
         {/* 写作区域 */}
         <div className="flex-1 overflow-hidden relative">
           <SectionLoadingOverlay
@@ -234,7 +235,7 @@ export function WritingEditorPage() {
               animate={{ width: 280, opacity: 1, x: 0 }}
               exit={{ width: 0, opacity: 0, x: -20 }}
               transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
-              className="border-r border-[var(--border-default)] bg-[var(--color-surface-raised)] flex flex-col overflow-hidden relative"
+              className="border-r border-[var(--border-default)] bg-[var(--color-surface-raised)] flex flex-col overflow-hidden relative z-20"
               style={{
                 boxShadow: '4px 0 24px rgba(91, 142, 232, 0.08)',
               }}
@@ -263,10 +264,11 @@ export function WritingEditorPage() {
               animate={{ width: 320, opacity: 1, x: 0 }}
               exit={{ width: 0, opacity: 0, x: 20 }}
               transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
-              className="drawer-responsive drawer-right border-l border-[var(--border-default)] bg-[var(--color-surface-raised)] flex flex-col overflow-hidden relative"
+              className="drawer-responsive drawer-right border-l border-[var(--border-default)] bg-[var(--color-surface-raised)] flex flex-col overflow-hidden relative z-20
+                         w-full sm:w-[280px] md:w-[320px]"
               style={{
                 boxShadow: '-4px 0 24px color-mix(in srgb, var(--accent-primary) 15%, transparent)',
-                maxWidth: '320px',
+                maxWidth: '100vw',
               }}
             >
               {/* Glow indicator */}
@@ -303,7 +305,7 @@ export function WritingEditorPage() {
               animate={{ width: 280, opacity: 1, x: 0 }}
               exit={{ width: 0, opacity: 0, x: 20 }}
               transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
-              className="drawer-responsive drawer-right border-l border-[var(--border-default)] bg-[var(--color-surface-raised)] flex flex-col overflow-hidden relative"
+              className="drawer-responsive drawer-right border-l border-[var(--border-default)] bg-[var(--color-surface-raised)] flex flex-col overflow-hidden relative z-20"
               style={{
                 boxShadow: '-4px 0 24px color-mix(in srgb, var(--color-ifline) 15%, transparent)',
               }}

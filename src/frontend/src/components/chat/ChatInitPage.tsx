@@ -8,6 +8,7 @@ import { ArrowRight, Settings, PenTool, Sun, Moon, Save, History, Wifi, WifiOff 
 import { motion, AnimatePresence } from 'framer-motion'
 import { ChatSkeleton } from '@/components/shared/SmartSkeleton'
 import { useThemeContext } from '@/components/shared/ThemeProvider'
+import { usePrefersReducedMotion } from '@/hooks/usePrefersReducedMotion'
 import { getWebSocketClient, type WebSocketStatus } from '@/api/websocket'
 
 export function ChatInitPage() {
@@ -16,6 +17,7 @@ export function ChatInitPage() {
   const { theme, toggleTheme } = useThemeContext()
   const [wsStatus, setWsStatus] = useState<WebSocketStatus>('disconnected')
   const [wsReconnectAttempt, setWsReconnectAttempt] = useState(0)
+  const prefersReducedMotion = usePrefersReducedMotion()
 
   // Initialize session on mount
   useEffect(() => {
@@ -63,13 +65,13 @@ export function ChatInitPage() {
       <div className="absolute inset-0 pointer-events-none overflow-hidden">
         <motion.div
           className="absolute -top-40 -left-40 w-96 h-96 rounded-full bg-accent-primary/10"
-          animate={{ scale: [1, 1.1, 1], opacity: [0.6, 0.8, 0.6] }}
-          transition={{ duration: 8, repeat: Infinity, ease: 'easeInOut' }}
+          animate={prefersReducedMotion ? {} : { scale: [1, 1.1, 1], opacity: [0.6, 0.8, 0.6] }}
+          transition={prefersReducedMotion ? { duration: 0 } : { duration: 8, repeat: Infinity, ease: 'easeInOut' }}
         />
         <motion.div
           className="absolute -bottom-20 right-20 w-80 h-80 rounded-full bg-[var(--color-character)]/10"
-          animate={{ scale: [1, 1.15, 1], opacity: [0.5, 0.7, 0.5] }}
-          transition={{ duration: 10, repeat: Infinity, ease: 'easeInOut', delay: 2 }}
+          animate={prefersReducedMotion ? {} : { scale: [1, 1.15, 1], opacity: [0.5, 0.7, 0.5] }}
+          transition={prefersReducedMotion ? { duration: 0 } : { duration: 10, repeat: Infinity, ease: 'easeInOut', delay: 2 }}
         />
       </div>
 
@@ -147,14 +149,14 @@ export function ChatInitPage() {
 
         {/* Right: Settings + Theme Toggle */}
         <motion.div
-          className="flex items-center gap-2"
+          className="flex items-center gap-1 sm:gap-2"
           initial={{ x: 8, opacity: 0 }}
           animate={{ x: 0, opacity: 1 }}
           transition={{ delay: 0.2, duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
         >
           <motion.button
-            className="p-2 rounded-lg bg-surface-raised border border-default text-secondary
-                       hover:bg-surface-hover transition-colors"
+            className="p-2 rounded-lg bg-surface-raised border border-default text-secondary touch-target-min
+                       hover:bg-surface-hover transition-colors hidden sm:flex"
             title="保存会话"
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
@@ -162,8 +164,8 @@ export function ChatInitPage() {
             <Save className="w-4 h-4" />
           </motion.button>
           <motion.button
-            className="p-2 rounded-lg bg-surface-raised border border-default text-secondary
-                       hover:bg-surface-hover transition-colors"
+            className="p-2 rounded-lg bg-surface-raised border border-default text-secondary touch-target-min
+                       hover:bg-surface-hover transition-colors hidden sm:flex"
             title="历史记录"
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
@@ -171,7 +173,7 @@ export function ChatInitPage() {
             <History className="w-4 h-4" />
           </motion.button>
           <motion.button
-            className="p-2 rounded-lg bg-surface-raised border border-default text-secondary
+            className="p-2 rounded-lg bg-surface-raised border border-default text-secondary touch-target-min
                        hover:bg-surface-hover transition-colors"
             title="主题设置"
             onClick={toggleTheme}
@@ -194,9 +196,10 @@ export function ChatInitPage() {
             onClick={() => setCurrentInterface('settings')}
             variant="primary"
             size="sm"
+            className="touch-target-min"
           >
             <Settings className="w-4 h-4" />
-            <span>进入设定</span>
+            <span className="hidden sm:inline">进入设定</span>
             <ArrowRight className="w-3 h-3" />
           </Button>
         </motion.div>
@@ -204,9 +207,9 @@ export function ChatInitPage() {
 
       {/* Main Content Area - Left/Right Split Layout */}
       <div className="flex flex-1 overflow-hidden relative z-10">
-        {/* 左侧：AI聊天区域 (60%) */}
+        {/* 左侧：AI聊天区域 */}
         <motion.div
-          className="flex-1 flex flex-col border-r border-default"
+          className="flex-1 flex flex-col min-w-0"
           initial={{ opacity: 0, x: -20 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.4, delay: 0.1, ease: [0.22, 1, 0.36, 1] }}
@@ -224,9 +227,9 @@ export function ChatInitPage() {
           <UserInputPanel />
         </motion.div>
 
-        {/* 右侧：已收集信息面板 */}
+        {/* 右侧：已收集信息面板 - 移动端隐藏 */}
         <motion.div
-          className="w-[40%] max-w-[480px] min-w-[280px] overflow-y-auto shrink-0 hidden md:block bg-surface-raised"
+          className="w-[40%] max-w-[480px] min-w-[280px] overflow-y-auto shrink-0 hidden lg:block bg-surface-raised border-l border-default"
           initial={{ x: 24, opacity: 0 }}
           animate={{ x: 0, opacity: 1 }}
           transition={{ delay: 0.15, duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
@@ -237,33 +240,35 @@ export function ChatInitPage() {
 
       {/* 底部操作栏 - 48px */}
       <motion.footer
-        className="h-[var(--layout-topbar-height)] flex items-center justify-between px-4 shrink-0 relative z-20
+        className="h-[var(--layout-topbar-height)] flex items-center justify-between px-2 sm:px-4 shrink-0 relative z-20
                    bg-surface-base backdrop-blur-md border-t border-default"
         initial={{ y: 20, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ duration: 0.4, delay: 0.2, ease: [0.22, 1, 0.36, 1] }}
       >
         <div className="flex items-center gap-3">
-          <span className="text-xs text-secondary">
+          <span className="text-xs text-secondary hidden sm:inline">
             AI 正在引导你完善故事设定
           </span>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1 sm:gap-2">
           <Button
             onClick={() => setCurrentInterface('settings')}
             variant="secondary"
             size="sm"
+            className="touch-target-min"
           >
             <Settings className="w-4 h-4" />
-            <span>设定编辑</span>
+            <span className="hidden sm:inline">设定编辑</span>
           </Button>
           <Button
             onClick={() => setCurrentInterface('writing')}
             variant="primary"
             size="sm"
+            className="touch-target-min"
           >
             <PenTool className="w-4 h-4" />
-            <span>开始写作</span>
+            <span className="hidden sm:inline">开始写作</span>
             <ArrowRight className="w-3 h-3" />
           </Button>
         </div>

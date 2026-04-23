@@ -88,10 +88,10 @@ export const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
               className="absolute right-3 top-3"
             >
               {status === 'success' && (
-                <Check className="w-4 h-4" style={{ color: 'var(--color-ifline)' }} />
+                <Check className="w-4 h-4 text-[var(--icon-success)]" />
               )}
               {status === 'error' && (
-                <AlertCircle className="w-4 h-4" style={{ color: 'var(--color-vermillion)' }} />
+                <AlertCircle className="w-4 h-4 text-[var(--icon-danger)]" />
               )}
             </motion.div>
           )}

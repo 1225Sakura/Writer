@@ -108,13 +108,13 @@ export function ChatTemplates({ onSelect, disabled }: ChatTemplatesProps) {
       <motion.button
         onClick={() => !disabled && setIsOpen(!isOpen)}
         disabled={disabled}
-        className="flex items-center gap-1.5 px-3 py-1.5 text-xs rounded-lg border border-default
+        className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs rounded-lg border border-default
                    text-secondary hover:bg-surface-raised hover:text-primary
                    active:scale-95 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
         whileHover={{ y: -1 }}
         whileTap={{ scale: 0.96 }}
       >
-        <Mountain className="w-3.5 h-3.5" />
+        <span className="flex-shrink-0"><Mountain className="w-3.5 h-3.5" /></span>
         <span>快速开始</span>
         <motion.span
           animate={{ rotate: isOpen ? 180 : 0 }}
