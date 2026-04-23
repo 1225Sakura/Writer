@@ -10,6 +10,9 @@ const electron_1 = require("electron");
 electron_1.contextBridge.exposeInMainWorld('electronAPI', {
     // Backend
     getBackendUrl: () => electron_1.ipcRenderer.invoke('get-backend-url'),
+    // Auth - API key management for local desktop auth
+    getApiKey: () => electron_1.ipcRenderer.invoke('get-api-key'),
+    setApiKey: (key) => electron_1.ipcRenderer.invoke('set-api-key', key),
     // External links
     openExternal: (url) => electron_1.ipcRenderer.invoke('open-external', url),
     // File dialogs

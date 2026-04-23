@@ -555,3 +555,8 @@ def invalidate_ai_result_cache(prompt_hash: Optional[str] = None) -> None:
         cache.delete("ai_result", key)
     else:
         cache.clear_entity_cache("ai_result")
+
+
+# Backward-compatible alias for module-level cache_service
+# (legacy code imports this as: from services.cache_service import cache_service)
+cache_service = get_cache_service()

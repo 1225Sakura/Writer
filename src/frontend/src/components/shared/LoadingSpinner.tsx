@@ -48,7 +48,7 @@ function RingSpinner({
   const borderWidth = Math.max(2, size / 8)
   return (
     <div
-      className={cn('animate-spin', className)}
+      className={cn('animate-spin motion-reduce:animate-none', className)}
       style={{
         width: size,
         height: size,
@@ -73,11 +73,11 @@ function PulseSpinner({
   return (
     <div className={cn('relative', className)} style={{ width: size, height: size }}>
       <div
-        className="absolute inset-0 rounded-full animate-pulse-ring"
+        className="absolute inset-0 rounded-full animate-pulse-ring motion-reduce:animate-none"
         style={{ backgroundColor: `${color}30` }}
       />
       <div
-        className="absolute inset-0 rounded-full animate-pulse-ring"
+        className="absolute inset-0 rounded-full animate-pulse-ring motion-reduce:animate-none"
         style={{
           backgroundColor: `${color}20`,
           animationDelay: '0.5s',
@@ -253,7 +253,7 @@ function ShimmerSpinner({
         }}
       />
       <div
-        className="absolute inset-0 rounded-full animate-shimmer"
+        className="absolute inset-0 rounded-full animate-shimmer motion-reduce:animate-none"
         style={{
           background: `linear-gradient(90deg, transparent, ${color}40, transparent)`,
           backgroundSize: '200% 100%',

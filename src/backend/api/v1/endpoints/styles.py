@@ -5,7 +5,7 @@ from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, Field
 from typing import List
 
-from backend.services.cache_service import cached, cache_service
+from backend.services.cache_service import cached
 from backend.config import settings
 from backend.middleware.auth import require_auth
 

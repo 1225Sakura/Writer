@@ -252,7 +252,7 @@ export function UserInputPanel() {
           transition={{ duration: 0.15 }}
         >
           {isLoading || isStreaming ? (
-            <Loader2 className="w-4 h-4 animate-spin" />
+            <Loader2 className="w-4 h-4 animate-spin motion-reduce:animate-none" />
           ) : (
             <motion.div
               animate={canSend ? { x: [0, 3, 0] } : {}}

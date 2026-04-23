@@ -31,6 +31,7 @@ import type {
   Chapter,
   IFLine,
   EntityType,
+  WritingSettings,
 } from '../shared/types'
 
 // Re-export EntityType for external usage
@@ -140,6 +141,7 @@ interface SettingsState {
   outline: Outline | null
   chapters: Chapter[]
   ifLines: IFLine[]
+  writingSettings: WritingSettings | null
 
   // Loading & Error
   isLoading: boolean
@@ -263,6 +265,7 @@ export const useSettingsStore = create<SettingsState & SettingsActions>()(
           outline: null,
           chapters: [],
           ifLines: [],
+          writingSettings: null,
           isLoading: false,
           error: null,
           aiReviewResult: null,
@@ -343,6 +346,7 @@ export const useSettingsStore = create<SettingsState & SettingsActions>()(
                 state.outline = outline
                 state.chapters = chapters
                 state.ifLines = ifLines
+                state.writingSettings = writingSettings
                 state.isLoading = false
               })
             } catch (error) {
@@ -1355,3 +1359,5 @@ export const selectEntityCounts = (state: SettingsState) => ({
   rules: state.rules.length,
   ifLines: state.ifLines.length,
 })
+
+export const selectWritingSettings = (state: SettingsState) => state.writingSettings

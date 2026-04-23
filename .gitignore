@@ -95,3 +95,20 @@ out/
 *.key
 credentials.json
 secrets.json
+
+# Electron
+electron/dist-electron/
+electron/release/
+
+# Data
+data/
+
+# Database
+src/backend/db/*.db
+src/backend/.db
+
+# Pytest
+.pytest_cache/
+tests/.pytest_cache/
+.pytest_cache/
+.pytest_cache/

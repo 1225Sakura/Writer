@@ -19,6 +19,47 @@ const isDev = process.env.NODE_ENV === 'development' || !electron_1.app.isPackag
 // Window reference
 let mainWindow = null;
 let backendProcess = null;
+// In-memory API key storage (persists for app lifetime)
+let cachedApiKey = null;
+/**
+ * Find the correct Python executable.
+ * Prefers project venv, then falls back to system python.
+ */
+function findPython() {
+    const candidates = [];
+    if (process.platform === 'win32') {
+        if (!isDev) {
+            // Packaged mode: use bundled venv
+            const bundledVenv = path_1.default.join(process.resourcesPath, 'python_venv', 'Scripts', 'python.exe');
+            candidates.push(bundledVenv);
+        }
+        // Dev mode or fallback
+        candidates.push(
+        // Project venv (dev mode)
+        path_1.default.join(__dirname, '..', '..', '..', 'src', 'backend', '.venv', 'Scripts', 'python.exe'), path_1.default.join(__dirname, '..', '..', '..', '.venv', 'Scripts', 'python.exe'), 
+        // Python Launcher for Windows (most reliable on Win)
+        'py', 
+        // Direct python commands
+        'python', 'python3');
+    }
+    else {
+        if (!isDev) {
+            const bundledVenv = path_1.default.join(process.resourcesPath, 'python_venv', 'bin', 'python');
+            candidates.push(bundledVenv);
+        }
+        candidates.push(path_1.default.join(__dirname, '..', '..', '..', 'src', 'backend', '.venv', 'bin', 'python'), path_1.default.join(__dirname, '..', '..', '..', '.venv', 'bin', 'python'), 'python3', 'python');
+    }
+    for (const cmd of candidates) {
+        try {
+            fs_1.default.accessSync(cmd, fs_1.default.constants.X_OK);
+            return cmd;
+        }
+        catch {
+            // not found or not executable, try next
+        }
+    }
+    return candidates[candidates.length - 1]; // fallback
+}
 /**
  * Start the Python backend process
  */
@@ -27,21 +68,34 @@ function startBackend() {
         const backendPath = isDev
             ? path_1.default.join(__dirname, '..', 'src', 'backend')
             : path_1.default.join(process.resourcesPath, 'backend');
-        const pythonCmd = process.platform === 'win32' ? 'python' : 'python3';
-        // Start uvicorn server
+        // Verify backend directory exists
+        if (!fs_1.default.existsSync(backendPath)) {
+            reject(new Error(`Backend directory not found: ${backendPath}`));
+            return;
+        }
+        const pythonCmd = findPython();
+        console.log(`[Electron] Using Python: ${pythonCmd}`);
+        console.log(`[Electron] Backend path: ${backendPath}`);
+        // Use launcher script to handle import path setup
+        const launcherPath = path_1.default.join(backendPath, 'electron_launcher.py');
         backendProcess = (0, child_process_1.spawn)(pythonCmd, [
-            '-m', 'uvicorn',
-            'main:app',
-            '--host', BACKEND_HOST,
-            '--port', BACKEND_PORT.toString(),
+            launcherPath,
+            BACKEND_HOST,
+            BACKEND_PORT.toString(),
         ], {
             cwd: backendPath,
-            env: { ...process.env, PYTHONPATH: backendPath },
+            env: { ...process.env },
             stdio: ['pipe', 'pipe', 'pipe'],
         });
         backendProcess.on('error', (err) => {
             console.error('[Electron] Backend process error:', err);
-            reject(err);
+            reject(new Error(`无法启动 Python 后端: ${err.message}\n请确认已安装 Python 并创建了 venv`));
+        });
+        backendProcess.stdout?.on('data', (data) => {
+            console.log(`[Backend] ${data.toString().trim()}`);
+        });
+        backendProcess.stderr?.on('data', (data) => {
+            console.error(`[Backend] ${data.toString().trim()}`);
         });
         backendProcess.on('exit', (code) => {
             console.log(`[Electron] Backend process exited with code ${code}`);
@@ -93,7 +147,9 @@ function waitForBackend(port, timeout) {
 function stopBackend() {
     if (backendProcess) {
         if (process.platform === 'win32') {
-            (0, child_process_1.spawn)('taskkill', ['/pid', backendProcess.pid.toString(), '/f', '/t']);
+            if (backendProcess.pid) {
+                (0, child_process_1.spawn)('taskkill', ['/pid', backendProcess.pid.toString(), '/f', '/t']);
+            }
         }
         else {
             backendProcess.kill('SIGTERM');
@@ -136,7 +192,7 @@ async function createWindow() {
     }
     else {
         // Production: use built files
-        await mainWindow.loadFile(path_1.default.join(__dirname, '..', 'dist', 'index.html'));
+        await mainWindow.loadFile(path_1.default.join(__dirname, '..', 'frontend-build', 'index.html'));
     }
 }
 /**
@@ -146,6 +202,13 @@ function registerIpcHandlers() {
     // Get backend URL for API calls
     electron_1.ipcMain.handle('get-backend-url', () => {
         return `http://${BACKEND_HOST}:${BACKEND_PORT}`;
+    });
+    // API key management for local auth
+    electron_1.ipcMain.handle('get-api-key', () => {
+        return cachedApiKey;
+    });
+    electron_1.ipcMain.handle('set-api-key', (_, key) => {
+        cachedApiKey = key;
     });
     // Open external URL in browser
     electron_1.ipcMain.handle('open-external', (_, url) => {
@@ -211,7 +274,8 @@ electron_1.app.whenReady().then(async () => {
     }
     catch (err) {
         console.error('[Electron] Failed to start:', err);
-        electron_1.dialog.showErrorBox('启动失败', '无法启动后端服务，请检查Python环境');
+        const msg = err instanceof Error ? err.message : String(err);
+        electron_1.dialog.showErrorBox('启动失败', `无法启动后端服务，请检查 Python 环境\n\n详情: ${msg}`);
         electron_1.app.quit();
     }
     electron_1.app.on('activate', async () => {

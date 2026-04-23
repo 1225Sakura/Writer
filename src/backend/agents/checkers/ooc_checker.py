@@ -15,7 +15,7 @@ from .base import BaseChecker, CheckerResult
 from backend.core.services.ai.ai_service import AIService
 
 
-class OOChecker(BaseChecker):
+class OOCChecker(BaseChecker):
     """Checks if characters act consistently with their personality."""
 
     def __init__(self, ai_service: AIService | None = None) -> None:

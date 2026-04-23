@@ -441,7 +441,7 @@ function StreamingBubble({ content }: { content: string }) {
           </motion.div>
           <div className="mt-1 ml-1 flex items-center gap-1.5">
             <span className="relative flex h-1.5 w-1.5">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#5e6ad2] opacity-60"></span>
+              <span className="animate-ping motion-reduce:animate-none absolute inline-flex h-full w-full rounded-full bg-[#5e6ad2] opacity-60"></span>
               <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-[#5e6ad2]"></span>
             </span>
             <span className="text-xs" style={{ color: 'var(--text-secondary)' }}>正在输入...</span>

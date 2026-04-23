@@ -91,6 +91,7 @@ export interface IFLine {
   linked_character_id?: number;
   description?: string;
   sync_mode: string;
+  progress?: number;
   created_at: string;
   updated_at: string;
 }

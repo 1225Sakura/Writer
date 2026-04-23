@@ -6,7 +6,7 @@ import shadowing issues where the same module gets loaded under different names
 redefinition errors.
 
 Import backend-prefixed services directly when needed:
-    from backend.services.cache_service import cache_service
+    from backend.services.cache_service import get_cache_service
     from backend.core.services.ai.ai_service import AIService
 """
 

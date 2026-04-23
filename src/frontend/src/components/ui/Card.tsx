@@ -3,10 +3,24 @@ import { clsx } from 'clsx'
 import { twMerge } from 'tailwind-merge'
 import { motion } from 'framer-motion'
 
-export interface CardProps extends React.HTMLAttributes<HTMLDivElement> {
+// Re-export GlassCard for advanced glass morphism effects
+export {
+  GlassCard,
+  GlassPanel,
+  GlassBadge,
+  GlassButton,
+  GlassDivider,
+  type GlassIntensity,
+  type GlassBorder,
+  type GlassVariant,
+} from '../shared/GlassCard'
+
+export interface CardProps {
+  className?: string
   variant?: 'default' | 'glass' | 'gradientBorder' | 'elevated' | 'glow'
   hoverLift?: boolean
   animated?: boolean
+  children?: React.ReactNode
 }
 
 const cardVariants = {
@@ -37,30 +51,35 @@ const cardVariants = {
 }
 
 export const Card = React.forwardRef<HTMLDivElement, CardProps>(
-  ({ className, variant = 'default', hoverLift = false, animated = true, ...props }, ref) => {
+  ({ className, variant = 'default', hoverLift = false, animated = true, children, ...props }, ref) => {
     const v = cardVariants[variant]
+    const baseClasses = clsx(v.base, 'before' in v ? v.before : '', 'after' in v ? v.after : '')
 
     if (!animated) {
       return (
         <div
           ref={ref}
           className={twMerge(
-            clsx(v.base, v.before, v.after, hoverLift && 'hover:-translate-y-1 hover:shadow-elevated'),
+            clsx(baseClasses, hoverLift && 'hover:-translate-y-1 hover:shadow-elevated'),
             className
           )}
           {...props}
-        />
+        >
+          {children}
+        </div>
       )
     }
 
     return (
       <motion.div
         ref={ref}
-        className={twMerge(clsx(v.base, v.before, v.after), className)}
+        className={twMerge(baseClasses, className)}
         whileHover={v.hover as Record<string, string | number>}
         transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
         {...props}
-      />
+      >
+        {children}
+      </motion.div>
     )
   }
 )

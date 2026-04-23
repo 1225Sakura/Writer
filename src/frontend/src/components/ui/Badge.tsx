@@ -84,7 +84,7 @@ export const Badge = React.forwardRef<HTMLSpanElement, BadgeProps>(
             className={clsx(
               'w-1.5 h-1.5 rounded-full flex-shrink-0',
               dotColors[variant],
-              pulse && 'animate-pulse'
+              pulse && 'animate-pulse motion-reduce:animate-none'
             )}
           />
         )}

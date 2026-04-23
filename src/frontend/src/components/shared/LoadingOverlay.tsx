@@ -74,8 +74,8 @@ export function LoadingOverlay({
               onClick={onCancel}
               className="mt-6 px-4 py-2 text-xs rounded-md border transition-colors hover:bg-white/5"
               style={{
-                color: '#8a8f98',
-                borderColor: 'rgba(255, 255, 255, 0.1)',
+                color: 'var(--text-tertiary)',
+                borderColor: 'var(--border-default)',
               }}
             >
               取消
@@ -99,11 +99,11 @@ function DefaultOverlay({
     <>
       <div className="relative flex items-center justify-center mb-6">
         <div
-          className="absolute w-16 h-16 rounded-full animate-pulse-ring"
+          className="absolute w-16 h-16 rounded-full animate-pulse-ring motion-reduce:animate-none"
           style={{ backgroundColor: 'rgba(94, 106, 210, 0.2)' }}
         />
         <div
-          className="absolute w-16 h-16 rounded-full animate-pulse-ring"
+          className="absolute w-16 h-16 rounded-full animate-pulse-ring motion-reduce:animate-none"
           style={{
             backgroundColor: 'rgba(94, 106, 210, 0.15)',
             animationDelay: '0.5s',
@@ -125,7 +125,7 @@ function DefaultOverlay({
               border: '1px solid rgba(94, 106, 210, 0.3)',
             }}
           >
-            <Feather className="w-6 h-6" style={{ color: '#5e6ad2' }} />
+            <Feather className="w-6 h-6" style={{ color: 'var(--accent-primary)' }} />
           </div>
         </motion.div>
       </div>
@@ -135,7 +135,7 @@ function DefaultOverlay({
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.1, duration: 0.2 }}
         className="text-sm font-medium"
-        style={{ color: '#d0d6e0' }}
+        style={{ color: 'var(--text-secondary)' }}
       >
         {message}
       </motion.p>
@@ -152,7 +152,7 @@ function DefaultOverlay({
           <motion.span
             key={i}
             className="inline-block w-1.5 h-1.5 rounded-full"
-            style={{ backgroundColor: '#5e6ad2' }}
+            style={{ backgroundColor: 'var(--accent-primary)' }}
             animate={{
               opacity: [0.3, 1, 0.3],
               scale: [0.8, 1.2, 0.8],
@@ -180,7 +180,7 @@ function MinimalOverlay({ message }: { message: string }) {
         animate={{ opacity: 1 }}
         transition={{ delay: 0.15 }}
         className="text-xs"
-        style={{ color: '#8a8f98' }}
+        style={{ color: 'var(--text-tertiary)' }}
       >
         {message}
       </motion.p>
@@ -188,7 +188,7 @@ function MinimalOverlay({ message }: { message: string }) {
   )
 }
 
-/** Branded overlay — full brand animation with book icon */
+/** Branded overlay — simplified brand animation with book icon */
 function BrandedOverlay({
   message,
   progress,
@@ -199,33 +199,17 @@ function BrandedOverlay({
   return (
     <>
       <div className="relative flex items-center justify-center mb-8">
-        {/* Outer glow */}
-        <div
-          className="absolute w-24 h-24 rounded-full animate-breathe"
-          style={{
-            background: 'radial-gradient(circle, rgba(94, 106, 210, 0.15) 0%, transparent 70%)',
-          }}
-        />
-        {/* Rotating ring */}
+        {/* Single rotating ring with icon */}
         <motion.div
           animate={{ rotate: 360 }}
           transition={{ duration: 3, repeat: Infinity, ease: 'linear' }}
-          className="absolute w-20 h-20 rounded-full"
-          style={{
-            border: '1px dashed rgba(94, 106, 210, 0.3)',
-          }}
-        />
-        {/* Inner icon */}
-        <motion.div
-          animate={{ scale: [1, 1.05, 1] }}
-          transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
           className="relative z-10 w-14 h-14 rounded-full flex items-center justify-center"
           style={{
-            backgroundColor: 'rgba(94, 106, 210, 0.12)',
-            border: '1px solid rgba(94, 106, 210, 0.25)',
+            backgroundColor: 'var(--accent-muted)',
+            border: '1px solid var(--accent-primary)',
           }}
         >
-          <BookOpen className="w-7 h-7" style={{ color: '#5e6ad2' }} />
+          <BookOpen className="w-7 h-7" style={{ color: 'var(--accent-primary)' }} />
         </motion.div>
       </div>
 
@@ -234,7 +218,7 @@ function BrandedOverlay({
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.1 }}
         className="text-base font-medium"
-        style={{ color: '#d0d6e0' }}
+        style={{ color: 'var(--text-secondary)' }}
       >
         {message}
       </motion.p>
@@ -246,7 +230,7 @@ function BrandedOverlay({
         animate={{ opacity: 1 }}
         transition={{ delay: 0.3 }}
         className="text-xs mt-2"
-        style={{ color: '#5c5f63' }}
+        style={{ color: 'var(--text-disabled)' }}
       >
         自动化写作软件
       </motion.p>
@@ -259,17 +243,17 @@ function SkeletonOverlay({ message }: { message: string }) {
   return (
     <div className="flex flex-col items-center gap-4 w-full max-w-xs">
       <div className="w-full space-y-3">
-        <div className="h-4 rounded-md animate-shimmer w-3/4 mx-auto" />
-        <div className="h-3 rounded-md animate-shimmer w-full" />
-        <div className="h-3 rounded-md animate-shimmer w-5/6" />
-        <div className="h-3 rounded-md animate-shimmer w-4/5" />
+        <div className="h-4 rounded-md animate-shimmer motion-reduce:animate-none w-3/4 mx-auto" />
+        <div className="h-3 rounded-md animate-shimmer motion-reduce:animate-none w-full" />
+        <div className="h-3 rounded-md animate-shimmer motion-reduce:animate-none w-5/6" />
+        <div className="h-3 rounded-md animate-shimmer motion-reduce:animate-none w-4/5" />
       </div>
       <motion.p
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 0.2 }}
         className="text-xs"
-        style={{ color: '#8a8f98' }}
+        style={{ color: 'var(--text-tertiary)' }}
       >
         {message}
       </motion.p>
@@ -284,8 +268,8 @@ function ProgressBar({ progress }: { progress: number }) {
   return (
     <div className="w-48 mt-4">
       <div className="flex justify-between text-xs mb-1.5">
-        <span style={{ color: '#8a8f98' }}>进度</span>
-        <span style={{ color: '#d0d6e0' }}>{Math.round(clampedProgress)}%</span>
+        <span style={{ color: 'var(--text-tertiary)' }}>进度</span>
+        <span style={{ color: 'var(--text-secondary)' }}>{Math.round(clampedProgress)}%</span>
       </div>
       <div
         className="h-1 rounded-full overflow-hidden"
@@ -293,7 +277,7 @@ function ProgressBar({ progress }: { progress: number }) {
       >
         <motion.div
           className="h-full rounded-full"
-          style={{ backgroundColor: '#5e6ad2' }}
+          style={{ backgroundColor: 'var(--accent-primary)' }}
           initial={{ width: 0 }}
           animate={{ width: `${clampedProgress}%` }}
           transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
@@ -334,9 +318,9 @@ export function SectionLoadingOverlay({
                 animate={{ rotate: 360 }}
                 transition={{ duration: 1.5, repeat: Infinity, ease: 'linear' }}
               >
-                <Feather className="w-5 h-5" style={{ color: '#5e6ad2' }} />
+                <Feather className="w-5 h-5" style={{ color: 'var(--accent-primary)' }} />
               </motion.div>
-              <span className="text-xs mt-2" style={{ color: '#8a8f98' }}>
+              <span className="text-xs mt-2" style={{ color: 'var(--text-tertiary)' }}>
                 {message}
               </span>
             </>
@@ -358,7 +342,7 @@ export function InlineSectionLoading({
   return (
     <div className="flex items-center justify-center gap-2 py-8">
       <LoadingSpinner variant="dots" size="sm" />
-      <span className="text-xs" style={{ color: '#8a8f98' }}>
+      <span className="text-xs" style={{ color: 'var(--text-tertiary)' }}>
         {message}
       </span>
     </div>

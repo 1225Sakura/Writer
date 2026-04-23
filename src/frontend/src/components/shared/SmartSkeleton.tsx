@@ -43,7 +43,7 @@ function ShimmerBlock({
   return (
     <div
       className={cn(
-        'animate-shimmer',
+        'animate-shimmer motion-reduce:animate-none',
         rounded && 'rounded-md',
         className
       )}

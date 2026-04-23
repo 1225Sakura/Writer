@@ -849,8 +849,8 @@ export function RelationGraph() {
               const isSelected = selectedNode?.node.id === node.id
               const yOffset = Math.sqrt(node.val) * 6 + 4 + fontSize * 0.8
 
-              // Glow effect for hovered/selected (disabled in simple mode)
-              if (renderMode !== 'simple' && (isHovered || isSelected)) {
+              // Glow effect for hovered/selected nodes
+              if (isHovered || isSelected) {
                 ctx.shadowColor = node.color
                 ctx.shadowBlur = 12
               }
@@ -860,8 +860,8 @@ export function RelationGraph() {
 
               ctx.shadowBlur = 0
 
-              // Type indicator dot (disabled in simple mode)
-              if (renderMode !== 'simple' && isHovered) {
+              // Type indicator dot for hovered nodes
+              if (isHovered) {
                 const config = ENTITY_TYPE_CONFIG[node.type as EntityNodeType]
                 ctx.beginPath()
                 ctx.arc((node.x as number) - ctx.measureText(label).width / 2 - 6, (node.y as number) + yOffset, 3, 0, 2 * Math.PI)

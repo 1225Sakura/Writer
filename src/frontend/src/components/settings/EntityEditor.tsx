@@ -120,7 +120,7 @@ function FloatingLabelInput({
             transition={{ type: 'spring', stiffness: 500, damping: 25 }}
           >
             {validation.state === 'saving' && (
-              <Loader2 className="w-4 h-4 animate-spin" style={{ color: '#5e6ad2' }} />
+              <Loader2 className="w-4 h-4 animate-spin motion-reduce:animate-none" style={{ color: '#5e6ad2' }} />
             )}
             {validation.state === 'saved' && (
               <Check className="w-4 h-4" style={{ color: '#7eb84a' }} />
@@ -244,7 +244,7 @@ function SaveStateIndicator({ state, message }: { state: ValidationState; messag
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: -5 }}
         >
-          <Loader2 className="w-3.5 h-3.5 animate-spin" style={{ color: '#5e6ad2' }} />
+          <Loader2 className="w-3.5 h-3.5 animate-spin motion-reduce:animate-none" style={{ color: '#5e6ad2' }} />
           <span className="text-xs" style={{ color: '#5e6ad2' }}>保存中...</span>
         </motion.div>
       )}
@@ -507,7 +507,7 @@ function EntityForm<T extends { name: string; description?: string }>({
           >
             {saveState === 'saving' ? (
               <>
-                <Loader2 className="w-4 h-4 animate-spin" />
+                <Loader2 className="w-4 h-4 animate-spin motion-reduce:animate-none" />
                 保存中
               </>
             ) : (
@@ -773,7 +773,7 @@ function AddEntityForm({
             whileTap={{ scale: 0.97 }}
           >
             {saveState === 'saving' ? (
-              <Loader2 className="w-3.5 h-3.5 animate-spin" />
+              <Loader2 className="w-3.5 h-3.5 animate-spin motion-reduce:animate-none" />
             ) : (
               <Plus className="w-3.5 h-3.5" />
             )}

@@ -43,7 +43,7 @@ export function ChatInitPage() {
         <motion.div
           className="absolute -top-40 -left-40 w-96 h-96 rounded-full"
           style={{
-            background: 'radial-gradient(circle, rgba(94, 106, 210, 0.08) 0%, transparent 70%)',
+            background: 'radial-gradient(circle, var(--accent-primary) 0%, transparent 70%)',
           }}
           animate={{ scale: [1, 1.1, 1], opacity: [0.6, 0.8, 0.6] }}
           transition={{ duration: 8, repeat: Infinity, ease: 'easeInOut' }}
@@ -51,7 +51,7 @@ export function ChatInitPage() {
         <motion.div
           className="absolute -bottom-20 right-20 w-80 h-80 rounded-full"
           style={{
-            background: 'radial-gradient(circle, rgba(232, 184, 125, 0.05) 0%, transparent 70%)',
+            background: 'radial-gradient(circle, var(--color-character) 0%, transparent 70%)',
           }}
           animate={{ scale: [1, 1.15, 1], opacity: [0.5, 0.7, 0.5] }}
           transition={{ duration: 10, repeat: Infinity, ease: 'easeInOut', delay: 2 }}
@@ -62,10 +62,10 @@ export function ChatInitPage() {
       <motion.header
         className="h-12 flex items-center justify-between px-4 z-20 relative shrink-0"
         style={{
-          backgroundColor: 'rgba(15, 16, 17, 0.8)',
+          backgroundColor: 'var(--color-surface-base)',
           backdropFilter: 'blur(12px) saturate(1.2)',
           WebkitBackdropFilter: 'blur(12px) saturate(1.2)',
-          borderBottom: '1px solid rgba(255, 255, 255, 0.06)',
+          borderBottom: '1px solid var(--color-border)',
         }}
         initial={{ y: -20, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
@@ -118,8 +118,8 @@ export function ChatInitPage() {
           <motion.button
             className="p-2 rounded-lg"
             style={{
-              backgroundColor: 'rgba(255,255,255,0.03)',
-              border: '1px solid rgba(255,255,255,0.06)',
+              backgroundColor: 'var(--color-surface-raised)',
+              border: '1px solid var(--color-border)',
               color: 'var(--text-secondary)',
             }}
             title="保存会话"
@@ -131,8 +131,8 @@ export function ChatInitPage() {
           <motion.button
             className="p-2 rounded-lg"
             style={{
-              backgroundColor: 'rgba(255,255,255,0.03)',
-              border: '1px solid rgba(255,255,255,0.06)',
+              backgroundColor: 'var(--color-surface-raised)',
+              border: '1px solid var(--color-border)',
               color: 'var(--text-secondary)',
             }}
             title="历史记录"
@@ -144,8 +144,8 @@ export function ChatInitPage() {
           <motion.button
             className="p-2 rounded-lg"
             style={{
-              backgroundColor: 'rgba(255,255,255,0.03)',
-              border: '1px solid rgba(255,255,255,0.06)',
+              backgroundColor: 'var(--color-surface-raised)',
+              border: '1px solid var(--color-border)',
               color: 'var(--text-secondary)',
             }}
             title="主题设置"
@@ -200,9 +200,9 @@ export function ChatInitPage() {
           <UserInputPanel />
         </motion.div>
 
-        {/* 右侧：已收集信息面板 (40%) */}
+        {/* 右侧：已收集信息面板 */}
         <motion.div
-          className="w-[40%] max-w-[480px] overflow-y-auto shrink-0"
+          className="w-[40%] max-w-[480px] min-w-[280px] overflow-y-auto shrink-0"
           style={{ backgroundColor: 'var(--ui-card)' }}
           initial={{ x: 24, opacity: 0 }}
           animate={{ x: 0, opacity: 1 }}
@@ -216,10 +216,10 @@ export function ChatInitPage() {
       <motion.footer
         className="h-14 flex items-center justify-between px-4 shrink-0 relative z-20"
         style={{
-          backgroundColor: 'rgba(15, 16, 17, 0.8)',
+          backgroundColor: 'var(--color-surface-base)',
           backdropFilter: 'blur(12px) saturate(1.2)',
           WebkitBackdropFilter: 'blur(12px) saturate(1.2)',
-          borderTop: '1px solid rgba(255, 255, 255, 0.06)',
+          borderTop: '1px solid var(--color-border)',
         }}
         initial={{ y: 20, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}

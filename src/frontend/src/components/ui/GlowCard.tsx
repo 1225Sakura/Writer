@@ -83,7 +83,7 @@ export const GlowCard = React.forwardRef<HTMLDivElement, GlowCardProps>(
             'transition-all duration-300',
             'hover:border-[rgba(255,255,255,0.12)]',
             'group',
-            pulse && 'animate-glow'
+            pulse && 'animate-glow motion-reduce:animate-none'
           ),
           className
         )}

@@ -419,36 +419,36 @@ export function SkeletonOverlay({
   const content = {
     text: (
       <div className="w-full space-y-3 max-w-xs">
-        <div className="h-4 rounded-md animate-shimmer w-3/4" />
-        <div className="h-3 rounded-md animate-shimmer w-full" />
-        <div className="h-3 rounded-md animate-shimmer w-5/6" />
-        <div className="h-3 rounded-md animate-shimmer w-4/5" />
+        <div className="h-4 rounded-md animate-shimmer motion-reduce:animate-none w-3/4" />
+        <div className="h-3 rounded-md animate-shimmer motion-reduce:animate-none w-full" />
+        <div className="h-3 rounded-md animate-shimmer motion-reduce:animate-none w-5/6" />
+        <div className="h-3 rounded-md animate-shimmer motion-reduce:animate-none w-4/5" />
       </div>
     ),
     card: (
       <div className="grid gap-4 w-full max-w-sm">
-        <div className="h-32 rounded-xl animate-shimmer" style={{ backgroundColor: 'var(--elevation-3)' }} />
+        <div className="h-32 rounded-xl animate-shimmer motion-reduce:animate-none" style={{ backgroundColor: 'var(--elevation-3)' }} />
         <div className="grid grid-cols-3 gap-3">
-          <div className="h-20 rounded-lg animate-shimmer" style={{ backgroundColor: 'var(--elevation-3)' }} />
-          <div className="h-20 rounded-lg animate-shimmer" style={{ backgroundColor: 'var(--elevation-3)' }} />
-          <div className="h-20 rounded-lg animate-shimmer" style={{ backgroundColor: 'var(--elevation-3)' }} />
+          <div className="h-20 rounded-lg animate-shimmer motion-reduce:animate-none" style={{ backgroundColor: 'var(--elevation-3)' }} />
+          <div className="h-20 rounded-lg animate-shimmer motion-reduce:animate-none" style={{ backgroundColor: 'var(--elevation-3)' }} />
+          <div className="h-20 rounded-lg animate-shimmer motion-reduce:animate-none" style={{ backgroundColor: 'var(--elevation-3)' }} />
         </div>
       </div>
     ),
     detail: (
       <div className="w-full max-w-md space-y-4">
         <div className="flex items-center gap-4">
-          <div className="w-12 h-12 rounded-full animate-shimmer" style={{ backgroundColor: 'var(--elevation-3)' }} />
+          <div className="w-12 h-12 rounded-full animate-shimmer motion-reduce:animate-none" style={{ backgroundColor: 'var(--elevation-3)' }} />
           <div className="flex-1 space-y-2">
-            <div className="h-4 rounded-md animate-shimmer w-1/3" />
-            <div className="h-3 rounded-md animate-shimmer w-1/2" />
+            <div className="h-4 rounded-md animate-shimmer motion-reduce:animate-none w-1/3" />
+            <div className="h-3 rounded-md animate-shimmer motion-reduce:animate-none w-1/2" />
           </div>
         </div>
-        <div className="h-40 rounded-lg animate-shimmer" style={{ backgroundColor: 'var(--elevation-3)' }} />
+        <div className="h-40 rounded-lg animate-shimmer motion-reduce:animate-none" style={{ backgroundColor: 'var(--elevation-3)' }} />
         <div className="space-y-2">
-          <div className="h-3 rounded-md animate-shimmer w-full" />
-          <div className="h-3 rounded-md animate-shimmer w-5/6" />
-          <div className="h-3 rounded-md animate-shimmer w-4/5" />
+          <div className="h-3 rounded-md animate-shimmer motion-reduce:animate-none w-full" />
+          <div className="h-3 rounded-md animate-shimmer motion-reduce:animate-none w-5/6" />
+          <div className="h-3 rounded-md animate-shimmer motion-reduce:animate-none w-4/5" />
         </div>
       </div>
     ),

@@ -1,38 +1,40 @@
-export { useUIStore, type InterfaceType, type UIState } from './uiStore'
+// Store exports with backward compatibility
+// New modular stores
+export { useSessionStore, selectCurrentSession, selectSessionCount } from './sessionStore'
+export { useMessageStore, selectMessageCount, selectIsEmptySession, selectUserMessages, selectAssistantMessages } from './messageStore'
+export { useChatEntityStore, selectConfirmedEntities, selectPendingEntities, selectEntitiesByType } from './chatEntityStore'
+export { useEntityStore, selectCharacterCount, selectEntityCounts, selectCharactersByTier } from './entityStore'
+export { useRelationStore } from './relationStore'
+export { useFilterStore, selectActiveFilter, selectTags } from './filterStore'
+
+// Backward compatibility - re-export original stores
 export {
   useChatStore,
-  type ChatMessageLocal as ChatMessage,
-  type ExtractedEntityLocal as ExtractedEntity,
-  type EntityExtractionState,
-  type MessageCache,
-  selectConfirmedEntities,
-  selectPendingEntities,
-  selectMessageCount,
-  selectIsEmptySession,
+  selectConfirmedEntities as chatSelectConfirmed,
+  selectPendingEntities as chatSelectPending,
+  selectMessageCount as chatSelectMessageCount,
+  selectIsEmptySession as chatSelectIsEmpty,
 } from './chatStore'
 export {
   useSettingsStore,
-  type Relationship,
-  type EntityType,
-  type CharacterLocal,
-  type Tag,
-  type FilterCriteria,
-  type HistoryEntry,
-  type BatchOperation,
-  selectCharacterCount,
-  selectEntityCounts,
+  selectCharacterCount as settingsSelectCharacterCount,
+  selectEntityCounts as settingsSelectEntityCounts,
 } from './settingsStore'
-export type {
-  Character,
-  Item,
-  Location,
-  Faction,
-  WorldSetting,
-  Rule,
-  Outline,
-  Chapter,
-  IFLine,
-} from '../api/types'
+
+// Types from chatStore
+export type { ChatMessageLocal as ChatMessage, ExtractedEntityLocal as ExtractedEntity, EntityExtractionState, MessageCache } from './chatStore'
+
+// Types from settingsStore
+export type { Relationship, CharacterLocal, Tag, FilterCriteria, HistoryEntry, BatchOperation, CharacterStorylineLocal } from './settingsStore'
+
+// Entity types
+export type { EntityType } from '../shared/types'
+export type { Character, Item, Location, Faction, WorldSetting, Rule, Outline, Chapter, IFLine } from '../api/types'
+
+// UI Store
+export { useUIStore, type InterfaceType, type UIState } from './uiStore'
+
+// Writing Store
 export {
   useWritingStore,
   type WritingStyle,
@@ -46,6 +48,8 @@ export {
   selectPendingJobs,
   selectCompletedJobs,
 } from './writingStore'
+
+// History Store
 export {
   useHistoryStore,
   type HistoryActionType,
@@ -55,6 +59,8 @@ export {
   selectRecentHistory,
   selectUnsyncedCount,
 } from './historyStore'
+
+// Sync Store
 export {
   useSyncStore,
   type SyncStatus,

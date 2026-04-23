@@ -164,18 +164,15 @@ jobs:
         working-directory: ./electron
         run: npm ci
 
-      - name: Build frontend
-        run: |
-          cd src/frontend
-          npm ci
-          npm run build
+      - name: Download frontend artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: frontend-build
+          path: ./frontend-build
 
       - name: Build Electron app
         working-directory: ./electron
         run: |
-          cd ../src/frontend
-          npm run build
-          cd ../electron
           npm run build:electron
           npm run dist:${{ matrix.platform }}
 

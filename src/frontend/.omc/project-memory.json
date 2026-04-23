@@ -151,10 +151,34 @@
   },
   "hotPaths": [
     {
+      "path": "src\\store\\writingStore.ts",
+      "accessCount": 30,
+      "lastAccessed": 1776828577767,
+      "type": "file"
+    },
+    {
       "path": "src",
-      "accessCount": 12,
-      "lastAccessed": 1776768015834,
+      "accessCount": 13,
+      "lastAccessed": 1776883461544,
       "type": "directory"
+    },
+    {
+      "path": "src\\components\\settings\\RelationGraph.tsx",
+      "accessCount": 12,
+      "lastAccessed": 1776828982540,
+      "type": "file"
+    },
+    {
+      "path": "src\\components\\settings\\EntityEditor.tsx",
+      "accessCount": 11,
+      "lastAccessed": 1776828836191,
+      "type": "file"
+    },
+    {
+      "path": "src\\components\\shared\\ShortcutManager.tsx",
+      "accessCount": 8,
+      "lastAccessed": 1776828983542,
+      "type": "file"
     },
     {
       "path": "src\\styles\\globals.css",
@@ -163,9 +187,21 @@
       "type": "file"
     },
     {
-      "path": "src\\components\\settings\\RelationGraph.tsx",
-      "accessCount": 4,
-      "lastAccessed": 1776767897161,
+      "path": "src\\store\\settingsStore.ts",
+      "accessCount": 5,
+      "lastAccessed": 1776828202571,
+      "type": "file"
+    },
+    {
+      "path": "src\\components\\shared\\StaggerChildren.tsx",
+      "accessCount": 5,
+      "lastAccessed": 1776828984034,
+      "type": "file"
+    },
+    {
+      "path": "C:\\Users\\36084\\.claude\\teams\\frontend-ui-ux\\config.json",
+      "accessCount": 5,
+      "lastAccessed": 1776829234314,
       "type": "file"
     },
     {
@@ -175,21 +211,51 @@
       "type": "file"
     },
     {
+      "path": "src\\components\\settings\\AISuggestionPanel.tsx",
+      "accessCount": 3,
+      "lastAccessed": 1776828615332,
+      "type": "file"
+    },
+    {
+      "path": "src\\components\\settings\\CategoryNav.tsx",
+      "accessCount": 3,
+      "lastAccessed": 1776828615354,
+      "type": "file"
+    },
+    {
+      "path": "src\\components\\chat\\CollectedInfoPanel.tsx",
+      "accessCount": 3,
+      "lastAccessed": 1776828750451,
+      "type": "file"
+    },
+    {
+      "path": "src\\components\\shared\\AnimatedLayout.tsx",
+      "accessCount": 3,
+      "lastAccessed": 1776828902170,
+      "type": "file"
+    },
+    {
       "path": "C:\\Users\\36084\\.claude\\teams\\writer-backend-frontend-v1\\config.json",
       "accessCount": 2,
       "lastAccessed": 1776760978288,
       "type": "file"
     },
     {
-      "path": "src\\components\\settings\\AISuggestionPanel.tsx",
+      "path": "src\\api\\writing.ts",
       "accessCount": 2,
-      "lastAccessed": 1776767895360,
+      "lastAccessed": 1776828154502,
       "type": "file"
     },
     {
-      "path": "src\\components\\settings\\CategoryNav.tsx",
+      "path": "src\\store\\uiStore.ts",
       "accessCount": 2,
-      "lastAccessed": 1776767895969,
+      "lastAccessed": 1776828599373,
+      "type": "file"
+    },
+    {
+      "path": "src\\components\\shared\\PageTransition.tsx",
+      "accessCount": 2,
+      "lastAccessed": 1776828983057,
       "type": "file"
     },
     {
@@ -220,6 +286,66 @@
       "path": "src\\index.css",
       "accessCount": 1,
       "lastAccessed": 1776768303548,
+      "type": "file"
+    },
+    {
+      "path": "src\\api\\settings.ts",
+      "accessCount": 1,
+      "lastAccessed": 1776827884133,
+      "type": "file"
+    },
+    {
+      "path": "src\\api\\types.ts",
+      "accessCount": 1,
+      "lastAccessed": 1776827884206,
+      "type": "file"
+    },
+    {
+      "path": "src\\api\\aiReview.ts",
+      "accessCount": 1,
+      "lastAccessed": 1776827884260,
+      "type": "file"
+    },
+    {
+      "path": "src\\api\\chat.ts",
+      "accessCount": 1,
+      "lastAccessed": 1776827884304,
+      "type": "file"
+    },
+    {
+      "path": "src\\store\\chatStore.ts",
+      "accessCount": 1,
+      "lastAccessed": 1776827917868,
+      "type": "file"
+    },
+    {
+      "path": "",
+      "accessCount": 1,
+      "lastAccessed": 1776828354438,
+      "type": "directory"
+    },
+    {
+      "path": "src\\constants\\shortcuts.ts",
+      "accessCount": 1,
+      "lastAccessed": 1776828546573,
+      "type": "file"
+    },
+    {
+      "path": "src\\components\\settings\\EntityCard.tsx",
+      "accessCount": 1,
+      "lastAccessed": 1776828615404,
+      "type": "file"
+    },
+    {
+      "path": "src\\App.tsx",
+      "accessCount": 1,
+      "lastAccessed": 1776883456454,
+      "type": "file"
+    },
+    {
+      "path": "src\\main.tsx",
+      "accessCount": 1,
+      "lastAccessed": 1776883456513,
       "type": "file"
     }
   ],

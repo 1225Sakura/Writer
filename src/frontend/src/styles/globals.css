@@ -59,7 +59,7 @@
   --color-location:   #5eb5a6;
   --color-faction:    #d45d5d;
   --color-outline:    #5b8ee8;
-  --color-ifline:     #7eb74a;
+  --color-ifline:     #7eb84a;
   --color-world:      #5e6ad2;
   --color-rule:       #7eb74a;
 
@@ -1681,7 +1681,13 @@ code, pre {
   .grain,
   .border-glow,
   .particle-float,
-  .animate-glow-border {
+  .animate-glow-border,
+  .animate-dot-bounce,
+  .animate-dot-bounce-delay-1,
+  .animate-dot-bounce-delay-2,
+  .animate-typing-dot-bounce,
+  .animate-ping,
+  .animate-ripple {
     animation: none !important;
     transition: none !important;
   }
