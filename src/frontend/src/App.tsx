@@ -28,30 +28,40 @@ function AppContent() {
     }
   }, [theme])
 
-  // 渲染当前界面 with lazy loading
+  // 渲染当前界面 with per-component Suspense boundaries to isolate loading states
   const renderInterface = () => {
-    const content = () => {
-      switch (currentInterface) {
-        case 'chat':
-          return <ChatInitPage />
-        case 'settings':
-          return <SettingEditorPage />
-        case 'writing':
-          return <WritingEditorPage />
-        default:
-          return <ChatInitPage />
-      }
-    }
-
-    return (
-      <Suspense fallback={
-        <div className="h-screen w-screen overflow-hidden bg-[#08090a] flex items-center justify-center">
-          <LoadingOverlay visible={true} message="正在加载..." fullscreen={false} />
-        </div>
-      }>
-        {content()}
-      </Suspense>
+    const loadingFallback = (
+      <div className="h-screen w-screen overflow-hidden bg-[#08090a] flex items-center justify-center">
+        <LoadingOverlay visible={true} message="正在加载..." fullscreen={false} />
+      </div>
     )
+
+    switch (currentInterface) {
+      case 'chat':
+        return (
+          <Suspense fallback={loadingFallback}>
+            <ChatInitPage />
+          </Suspense>
+        )
+      case 'settings':
+        return (
+          <Suspense fallback={loadingFallback}>
+            <SettingEditorPage />
+          </Suspense>
+        )
+      case 'writing':
+        return (
+          <Suspense fallback={loadingFallback}>
+            <WritingEditorPage />
+          </Suspense>
+        )
+      default:
+        return (
+          <Suspense fallback={loadingFallback}>
+            <ChatInitPage />
+          </Suspense>
+        )
+    }
   }
 
   return (
