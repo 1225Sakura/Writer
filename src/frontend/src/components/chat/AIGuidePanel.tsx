@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react'
 import { useChatStore, ChatMessage, ExtractedEntity } from '@/store'
-import { Bot, User, Pencil, Trash2, Check, X, Sparkles, MessageSquareText, Wand2 } from 'lucide-react'
+import { Bot, User, Pencil, Trash2, Check, X, Sparkles, MessageSquareText, Wand2, Lightbulb, PenTool } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { TypingIndicator } from './TypingIndicator'
 import { EntityTag } from './EntityTag'
@@ -592,8 +592,9 @@ function EmptyState() {
         <div className="h-px flex-1 bg-gradient-to-l from-transparent via-border-strong to-transparent" />
       </motion.div>
 
+      {/* Genre quick-start tags */}
       <motion.div
-        className="flex flex-wrap justify-center gap-2.5"
+        className="flex flex-wrap justify-center gap-2.5 mb-8"
         initial={prefersReducedMotion ? {} : { y: 8, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={prefersReducedMotion ? { duration: 0.1 } : { delay: 0.25, duration: 0.3, ease: [0.4, 0, 0.2, 1] }}
@@ -620,6 +621,37 @@ function EmptyState() {
             <span>{tag}</span>
           </motion.button>
         ))}
+      </motion.div>
+
+      {/* Tips section */}
+      <motion.div
+        className="w-full max-w-sm"
+        initial={prefersReducedMotion ? {} : { y: 8, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={prefersReducedMotion ? { duration: 0.1 } : { delay: 0.45, duration: 0.3, ease: [0.4, 0, 0.2, 1] }}
+      >
+        <div className="flex items-center gap-2 mb-3 px-1">
+          <Lightbulb className="w-3.5 h-3.5 text-accent-primary/70" />
+          <span className="text-xs text-tertiary font-medium">小贴士</span>
+        </div>
+        <div className="space-y-2">
+          {[
+            { icon: PenTool, text: '描述你的世界设定，AI 会自动提取关键信息' },
+            { icon: Sparkles, text: '随时点击已收集的设定进行确认或修改' },
+            { icon: Wand2, text: '完成设定后可进入编辑器开始正式写作' },
+          ].map((tip, i) => (
+            <motion.div
+              key={tip.text}
+              className="flex items-start gap-3 px-3 py-2.5 rounded-lg bg-surface-base/60 border border-default/50"
+              initial={prefersReducedMotion ? { opacity: 1 } : { opacity: 0, x: -8 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={prefersReducedMotion ? { duration: 0.1 } : { delay: 0.5 + i * 0.08, duration: 0.25 }}
+            >
+              <tip.icon className="w-4 h-4 text-accent-primary/60 mt-0.5 flex-shrink-0" />
+              <span className="text-xs text-secondary leading-relaxed">{tip.text}</span>
+            </motion.div>
+          ))}
+        </div>
       </motion.div>
     </motion.div>
   )
