@@ -141,6 +141,39 @@
 
 ---
 
+## 构建系统
+
+### 本地自动化构建
+
+项目配置了 Git hooks 实现本地自动构建：
+
+- **post-commit hook**: 每次 `git commit` 后自动触发完整构建
+  - 位置: `.git/hooks/post-commit`
+  - 执行: `build-local.bat` → `scripts\local-build.ps1`
+  - 日志: `.build_logs/commit_<timestamp>.log`
+
+- **构建脚本**:
+  - `build-local.bat` - Windows 构建入口（调用 PowerShell）
+  - `scripts\local-build.ps1` - PowerShell 构建脚本
+  - `scripts\build.sh` - Linux/macOS 构建脚本
+
+### 构建流程
+
+1. 前端构建 (`src/frontend` npm run build)
+2. 复制产物到 `electron/frontend-build`
+3. Electron TypeScript 编译
+4. electron-builder 打包
+5. 输出: `electron/release/Writer Setup 1.0.0.exe`
+
+### 构建产物
+
+| 文件 | 说明 |
+|------|------|
+| `Writer Setup 1.0.0.exe` | Windows 安装程序 |
+| `win-unpacked/Writer.exe` | 便携版（无需安装）|
+
+---
+
 ## 待完善章节
 
 | 缺失内容 | 状态 | 说明 |
