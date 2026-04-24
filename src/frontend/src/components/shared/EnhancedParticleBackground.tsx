@@ -119,10 +119,16 @@ export function EnhancedParticleBackground({
 
   // 低性能设备自动降级粒子数量
   const isLowPerf = useMemo(() => isLowPerformanceDevice(), [])
+  const isMobile = useMemo(() => {
+    return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
+      navigator.userAgent
+    ) || window.innerWidth < 768
+  }, [])
   const particleCount = useMemo(() => {
     if (propParticleCount) return propParticleCount
+    if (isMobile) return 6
     return isLowPerf ? Math.floor(12) : 20
-  }, [propParticleCount, isLowPerf])
+  }, [propParticleCount, isLowPerf, isMobile])
 
   // Design spec colors as default palette
   const palette = colors ?? (useThemeColors ? designColors : defaultColors)

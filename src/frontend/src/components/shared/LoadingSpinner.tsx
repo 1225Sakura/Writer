@@ -10,14 +10,15 @@
  *   typing    — Typing indicator dots
  *   shimmer   — Shimmer sweep effect
  *   book      — Book page flip (writing themed)
+ *   rings     — Multi-layer gradient rotating rings (enhanced)
  *
- * Sizes: xs (12px), sm (16px), md (24px), lg (32px), xl (48px), 2xl (64px)
+ * Sizes: xs (12px), sm (16px), md (24px), lg (32px), xl (48px), 2xl (64px), 3xl (96px)
  */
 
 import { cn } from '@/lib/utils'
 
-export type SpinnerVariant = 'ring' | 'pulse' | 'dots' | 'wave' | 'orbit' | 'typing' | 'shimmer' | 'book'
-export type SpinnerSize = 'xs' | 'sm' | 'md' | 'lg' | 'xl' | '2xl'
+export type SpinnerVariant = 'ring' | 'pulse' | 'dots' | 'wave' | 'orbit' | 'typing' | 'shimmer' | 'book' | 'rings'
+export type SpinnerSize = 'xs' | 'sm' | 'md' | 'lg' | 'xl' | '2xl' | '3xl'
 
 interface LoadingSpinnerProps {
   variant?: SpinnerVariant
@@ -33,6 +34,7 @@ const sizeMap: Record<SpinnerSize, number> = {
   lg: 32,
   xl: 48,
   '2xl': 64,
+  '3xl': 96,
 }
 
 /** Ring spinner — rotating circular border */
@@ -321,6 +323,81 @@ function BookSpinner({
   )
 }
 
+/** Multi-layer gradient rotating rings — enhanced visual */
+function RingsSpinner({
+  size,
+  color,
+  className,
+}: {
+  size: number
+  color: string
+  className?: string
+}) {
+  const ringCount = 3
+  const rings = Array.from({ length: ringCount }, (_, i) => {
+    const ratio = (i + 1) / ringCount
+    const ringSize = size * (0.4 + ratio * 0.6)
+    const opacity = 0.5 - i * 0.12
+    const duration = 2 + i * 0.8
+    const direction = i % 2 === 0 ? 'normal' : 'reverse'
+    const borderWidth = Math.max(1.5, size / 20)
+
+    // Generate gradient colors from the base color
+    const gradientColors = [
+      color,
+      `${color}90`,
+      `${color}50`,
+      `${color}90`,
+      color,
+    ]
+
+    return {
+      size: ringSize,
+      opacity,
+      duration,
+      direction,
+      borderWidth,
+      gradient: `conic-gradient(from 0deg, ${gradientColors.join(', ')})`,
+      delay: i * 0.2,
+    }
+  })
+
+  return (
+    <div
+      className={cn('relative flex items-center justify-center', className)}
+      style={{ width: size, height: size }}
+    >
+      {rings.map((ring, i) => (
+        <div
+          key={i}
+          className="absolute rounded-full motion-reduce:animate-none"
+          style={{
+            width: ring.size,
+            height: ring.size,
+            background: ring.gradient,
+            opacity: ring.opacity,
+            mask: `radial-gradient(circle, transparent ${ring.size / 2 - ring.borderWidth}px, black ${ring.size / 2 - ring.borderWidth + 0.5}px)`,
+            WebkitMask: `radial-gradient(circle, transparent ${ring.size / 2 - ring.borderWidth}px, black ${ring.size / 2 - ring.borderWidth + 0.5}px)`,
+            animation: `spin ${ring.duration}s linear infinite ${ring.direction}`,
+            animationDelay: `${ring.delay}s`,
+          }}
+        />
+      ))}
+      {/* Center dot */}
+      <div
+        className="absolute rounded-full"
+        style={{
+          width: size * 0.12,
+          height: size * 0.12,
+          backgroundColor: color,
+          opacity: 0.8,
+          boxShadow: `0 0 ${size * 0.15}px ${color}60`,
+        }}
+      />
+    </div>
+  )
+}
+
 /** Main LoadingSpinner component */
 export function LoadingSpinner({
   variant = 'ring',
@@ -347,6 +424,8 @@ export function LoadingSpinner({
       return <ShimmerSpinner size={pixelSize} color={color} className={className} />
     case 'book':
       return <BookSpinner size={pixelSize} color={color} className={className} />
+    case 'rings':
+      return <RingsSpinner size={pixelSize} color={color} className={className} />
     default:
       return <RingSpinner size={pixelSize} color={color} className={className} />
   }
@@ -395,7 +474,7 @@ export function ButtonLoading({
 /** Full page loading with centered spinner and message */
 export function PageLoading({
   message = '加载中...',
-  variant = 'ring',
+  variant = 'rings',
   size = 'xl',
 }: {
   message?: string
@@ -406,7 +485,7 @@ export function PageLoading({
     <div className="flex flex-col items-center justify-center gap-4 min-h-[200px]">
       <LoadingSpinner variant={variant} size={size} />
       {message && (
-        <p className="text-sm text-[var(--text-tertiary)]">
+        <p className="text-sm text-[var(--text-tertiary)] tracking-wide">
           {message}
         </p>
       )}

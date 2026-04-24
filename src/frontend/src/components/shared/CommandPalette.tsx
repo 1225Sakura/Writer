@@ -1,7 +1,13 @@
+/**
+ * CommandPalette — Enhanced command palette with glowing search,
+ * gradient hover effects, elegant kbd shortcuts, and refined empty state
+ */
+
 import { useEffect, useState, useCallback, useRef, useMemo } from 'react'
 import { createPortal } from 'react-dom'
 import { useUIStore, useWritingStore, useSettingsStore, useChatStore } from '@/store'
 import { showToast } from '@/components/ui/Toast'
+import { motion } from 'framer-motion'
 import {
   FilePlus,
   MessageCircle,
@@ -32,6 +38,7 @@ import {
   Command,
   X,
   ArrowRight,
+  Feather,
 } from 'lucide-react'
 import type { AIOperationType } from '@/constants/shortcuts'
 
@@ -80,6 +87,18 @@ const CATEGORY_ORDER: CommandCategory[] = [
   'system',
 ]
 
+/** Category accent colors for visual distinction */
+const CATEGORY_COLORS: Record<CommandCategory, string> = {
+  navigation: 'var(--accent-primary)',
+  file: 'var(--color-success)',
+  view: 'var(--color-info)',
+  ai: 'var(--color-warning)',
+  theme: 'var(--color-item)',
+  settings: 'var(--color-character)',
+  search: 'var(--color-location)',
+  system: 'var(--text-tertiary)',
+}
+
 // ============ 模糊搜索 ============
 function fuzzyMatch(query: string, text: string, keywords?: string[]): boolean {
   const lowerQuery = query.toLowerCase().trim()
@@ -117,7 +136,7 @@ function highlightMatch(query: string, text: string): React.ReactNode {
         result.push(text.slice(lastIndex, i))
       }
       result.push(
-        <span key={i} className="text-white font-medium">
+        <span key={i} className="font-semibold" style={{ color: 'var(--text-primary)' }}>
           {text[i]}
         </span>
       )
@@ -700,6 +719,23 @@ export function useCommandPalette() {
   }
 }
 
+/** Elegant keyboard shortcut pill */
+function KbdPill({ shortcut }: { shortcut: string }) {
+  return (
+    <span
+      className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[10px] font-mono font-medium"
+      style={{
+        background: 'rgba(255, 255, 255, 0.06)',
+        border: '1px solid rgba(255, 255, 255, 0.1)',
+        color: 'var(--text-tertiary)',
+        boxShadow: 'inset 0 1px 0 rgba(255, 255, 255, 0.04)',
+      }}
+    >
+      {shortcut}
+    </span>
+  )
+}
+
 // ============ 组件 ============
 export function CommandPalette() {
   const {
@@ -727,54 +763,101 @@ export function CommandPalette() {
   const sortedCategories = CATEGORY_ORDER.filter((cat) => grouped[cat] && grouped[cat].length > 0)
 
   const content = (
-    <div
-      className="fixed inset-0 z-50 flex items-start justify-center pt-[15vh]"
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.2 }}
+      className="fixed inset-0 z-50 flex items-start justify-center pt-[12vh]"
       onClick={close}
     >
-      {/* Backdrop */}
-      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm transition-opacity" />
+      {/* Backdrop with subtle gradient */}
+      <div
+        className="absolute inset-0 transition-opacity"
+        style={{
+          background: 'rgba(0, 0, 0, 0.65)',
+          backdropFilter: 'blur(8px)',
+          WebkitBackdropFilter: 'blur(8px)',
+        }}
+      />
 
       {/* Modal */}
-      <div
-        className="relative w-full max-w-xl rounded-xl border border-[rgba(255,255,255,0.08)] bg-[#1a1a1e] shadow-2xl overflow-hidden"
+      <motion.div
+        initial={{ opacity: 0, y: -20, scale: 0.96 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        exit={{ opacity: 0, y: -10, scale: 0.98 }}
+        transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
+        className="relative w-full max-w-xl rounded-2xl border overflow-hidden"
+        style={{
+          background: 'rgba(22, 22, 28, 0.95)',
+          borderColor: 'rgba(255, 255, 255, 0.1)',
+          boxShadow: '0 24px 64px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.04)',
+        }}
         onClick={(e) => e.stopPropagation()}
         onKeyDown={handleKeyDown}
       >
-        {/* Search input */}
-        <div className="flex items-center gap-3 px-4 py-3.5 border-b border-[rgba(255,255,255,0.08)] bg-[rgba(0,0,0,0.2)]">
-          <div className="relative">
-            <Search className="w-4 h-4 text-[#8a8f98] flex-shrink-0 absolute left-0 top-1/2 -translate-y-1/2" />
-            <input
-              ref={inputRef}
-              type="text"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder="输入命令或搜索..."
-              className="w-[280px] pl-8 pr-3 py-2 bg-[rgba(255,255,255,0.04] border border-[rgba(255,255,255,0.1)] rounded-lg text-sm text-[#d0d6e0] placeholder:text-[#8a8f98] focus:outline-none focus:border-[#c45c5c]/50 focus:ring-1 focus:ring-[#c45c5c]/20 transition-all font-[510]"
-            />
-          </div>
+        {/* Search input with glow effect */}
+        <div
+          className="flex items-center gap-3 px-4 py-3.5 border-b"
+          style={{
+            borderColor: 'rgba(255, 255, 255, 0.08)',
+            background: 'rgba(0, 0, 0, 0.25)',
+          }}
+        >
+          <Search className="w-4 h-4 flex-shrink-0" style={{ color: 'var(--text-tertiary)' }} />
+          <input
+            ref={inputRef}
+            type="text"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="输入命令或搜索..."
+            className="flex-1 bg-transparent border-none text-sm placeholder:text-[var(--text-tertiary)] focus:outline-none focus:ring-0"
+            style={{ color: 'var(--text-primary)' }}
+          />
           <button
             onClick={close}
-            className="p-1.5 hover:bg-white/10 rounded-md transition-colors"
+            className="p-1.5 rounded-md transition-all duration-200 hover:bg-white/10 hover:scale-105 active:scale-95"
+            style={{ color: 'var(--text-tertiary)' }}
           >
-            <X className="w-4 h-4 text-[#8a8f98]" />
+            <X className="w-4 h-4" />
           </button>
         </div>
 
         {/* Command list */}
-        <div className="max-h-[60vh] overflow-y-auto py-2">
+        <div className="max-h-[55vh] overflow-y-auto py-2">
           {filteredCommands.length === 0 ? (
-            <div className="px-4 py-10 text-center">
-              <Search className="w-8 h-8 text-[#8a8f98] mx-auto mb-3 opacity-50" />
-              <p className="text-sm text-[#8a8f98]">未找到匹配的命令</p>
-              <p className="text-xs text-[#8a8f98]/60 mt-1">尝试其他关键词</p>
+            <div className="px-4 py-12 text-center">
+              <motion.div
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 0.2 }}
+              >
+                <Feather
+                  className="w-10 h-10 mx-auto mb-4"
+                  style={{ color: 'var(--text-tertiary)', opacity: 0.4 }}
+                />
+                <p className="text-sm font-medium" style={{ color: 'var(--text-secondary)' }}>
+                  未找到匹配的命令
+                </p>
+                <p className="text-xs mt-1.5" style={{ color: 'var(--text-tertiary)' }}>
+                  尝试其他关键词或检查拼写
+                </p>
+              </motion.div>
             </div>
           ) : (
             (() => {
               let globalIndex = 0
               return sortedCategories.map((category) => (
                 <div key={category}>
-                  <div className="px-4 py-1.5 text-xs font-medium text-[#8a8f98] uppercase tracking-wider flex items-center gap-2">
+                  {/* Category header with accent color */}
+                  <div
+                    className="px-4 py-1.5 text-[11px] font-semibold uppercase tracking-wider flex items-center gap-2"
+                    style={{ color: CATEGORY_COLORS[category] }}
+                  >
+                    <div
+                      className="w-1.5 h-1.5 rounded-full"
+                      style={{ backgroundColor: CATEGORY_COLORS[category] }}
+                    />
                     {CATEGORY_LABELS[category as CommandCategory]}
                   </div>
                   {grouped[category].map((cmd) => {
@@ -785,27 +868,45 @@ export function CommandPalette() {
                         key={cmd.id}
                         onClick={() => cmd.action()}
                         onMouseEnter={() => setSelectedIndex(currentIndex)}
-                        className={`w-full flex items-center gap-3 px-4 py-2.5 text-sm text-left transition-all duration-150 ${
-                          isSelected
-                            ? 'bg-[#c45c5c]/20 text-white border-l-2 border-l-[#c45c5c]'
-                            : 'text-[#d0d6e0] hover:bg-[rgba(255,255,255,0.06)] border-l-2 border-l-transparent'
-                        } ${cmd.disabled ? 'opacity-40 cursor-not-allowed' : ''}`}
+                        className="relative w-full flex items-center gap-3 px-4 py-2.5 text-sm text-left transition-all duration-150 group"
                         disabled={cmd.disabled}
+                        style={{
+                          opacity: cmd.disabled ? 0.4 : 1,
+                          cursor: cmd.disabled ? 'not-allowed' : 'pointer',
+                          background: isSelected
+                            ? 'linear-gradient(90deg, rgba(94, 106, 210, 0.12) 0%, rgba(94, 106, 210, 0.04) 100%)'
+                            : 'transparent',
+                          borderLeft: isSelected
+                            ? '3px solid var(--accent-primary)'
+                            : '3px solid transparent',
+                        }}
                       >
+                        {/* Hover gradient overlay */}
+                        <div
+                          className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-150 pointer-events-none"
+                          style={{
+                            background: 'linear-gradient(90deg, rgba(255, 255, 255, 0.03) 0%, transparent 100%)',
+                          }}
+                        />
+
                         <span
-                          className={`flex-shrink-0 transition-colors duration-150 ${
-                            isSelected ? 'text-[#c45c5c]' : 'text-[#8a8f98] group-hover:text-white'
-                          }`}
+                          className="relative flex-shrink-0 transition-colors duration-150"
+                          style={{
+                            color: isSelected ? 'var(--accent-primary)' : 'var(--text-tertiary)',
+                          }}
                         >
                           {cmd.icon}
                         </span>
-                        <span className="flex-1">
+                        <span
+                          className="relative flex-1"
+                          style={{
+                            color: isSelected ? 'var(--text-primary)' : 'var(--text-secondary)',
+                          }}
+                        >
                           {highlightMatch(search, cmd.label)}
                         </span>
                         {cmd.shortcut && (
-                          <span className="text-xs text-[#8a8f98]/80 font-mono bg-[rgba(255,255,255,0.08)] px-1.5 py-0.5 rounded border border-[rgba(255,255,255,0.1)]">
-                            {cmd.shortcut}
-                          </span>
+                          <KbdPill shortcut={cmd.shortcut} />
                         )}
                       </button>
                     )
@@ -816,31 +917,44 @@ export function CommandPalette() {
           )}
         </div>
 
-        {/* Footer */}
-        <div className="px-4 py-2.5 border-t border-[rgba(255,255,255,0.08)] flex items-center justify-between text-xs text-[#8a8f98] bg-[rgba(0,0,0,0.15)]">
-          <div className="flex items-center gap-4">
-            <span className="flex items-center gap-1.5">
-              <span className="inline-flex items-center justify-center w-5 h-5 rounded bg-[rgba(255,255,255,0.1)] border border-[rgba(255,255,255,0.15)] text-[10px] font-medium">↑</span>
-              <span className="inline-flex items-center justify-center w-5 h-5 rounded bg-[rgba(255,255,255,0.1)] border border-[rgba(255,255,255,0.15)] text-[10px] font-medium">↓</span>
+        {/* Footer with elegant kbd hints */}
+        <div
+          className="px-4 py-2.5 border-t flex items-center justify-between text-[11px]"
+          style={{
+            borderColor: 'rgba(255, 255, 255, 0.08)',
+            background: 'rgba(0, 0, 0, 0.2)',
+            color: 'var(--text-tertiary)',
+          }}
+        >
+          <div className="flex items-center gap-3">
+            <span className="flex items-center gap-1">
+              <KbdPill shortcut="↑" />
+              <KbdPill shortcut="↓" />
               <span className="ml-1">导航</span>
             </span>
-            <span className="flex items-center gap-1.5">
-              <span className="inline-flex items-center justify-center w-5 h-5 rounded bg-[rgba(255,255,255,0.1)] border border-[rgba(255,255,255,0.15)] text-[10px] font-medium">↵</span>
+            <span className="flex items-center gap-1">
+              <KbdPill shortcut="↵" />
               <span className="ml-1">执行</span>
             </span>
-            <span className="flex items-center gap-1.5">
-              <span className="inline-flex items-center justify-center w-5 h-5 rounded bg-[rgba(255,255,255,0.1)] border border-[rgba(255,255,255,0.15)] text-[10px] font-medium">Esc</span>
+            <span className="flex items-center gap-1">
+              <KbdPill shortcut="Esc" />
               <span className="ml-1">关闭</span>
             </span>
           </div>
-          <div className="flex items-center gap-1.5 px-2 py-1 rounded bg-[rgba(255,255,255,0.05)] border border-[rgba(255,255,255,0.1)]">
-            <Command className="w-3.5 h-3.5" />
+          <div
+            className="flex items-center gap-1.5 px-2 py-1 rounded-md"
+            style={{
+              background: 'rgba(255, 255, 255, 0.05)',
+              border: '1px solid rgba(255, 255, 255, 0.08)',
+            }}
+          >
+            <Command className="w-3 h-3" />
             <span className="font-medium">K</span>
-            <span className="text-[#8a8f98]/60">打开</span>
+            <span style={{ opacity: 0.6 }}>打开</span>
           </div>
         </div>
-      </div>
-    </div>
+      </motion.div>
+    </motion.div>
   )
 
   return createPortal(content, document.body)

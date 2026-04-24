@@ -606,32 +606,41 @@ function SuggestionCard({
     <motion.div
       variants={cardVariants}
       layout
-      className="rounded-lg group overflow-hidden"
+      className="rounded-xl group overflow-hidden relative"
       style={{
         background: isApplied
           ? 'linear-gradient(135deg, rgba(94,181,166,0.06) 0%, var(--color-surface-raised) 100%)'
           : 'linear-gradient(135deg, rgba(94,106,210,0.04) 0%, var(--color-surface-raised) 100%)',
         border: `1px solid ${isApplied ? 'rgba(94,181,166,0.15)' : 'var(--border-subtle)'}`,
-        borderLeft: `3px solid ${isApplied ? 'var(--color-success)' : accentBorderColor}`,
       }}
       onMouseEnter={(e) => {
         if (!isApplied) {
           e.currentTarget.style.background = 'linear-gradient(135deg, rgba(94,106,210,0.08) 0%, var(--color-surface-overlay) 100%)'
           e.currentTarget.style.borderColor = 'var(--border-default)'
-          e.currentTarget.style.borderLeftColor = accentBorderColor
         }
       }}
       onMouseLeave={(e) => {
         if (!isApplied) {
           e.currentTarget.style.background = 'linear-gradient(135deg, rgba(94,106,210,0.04) 0%, var(--color-surface-raised) 100%)'
           e.currentTarget.style.borderColor = 'var(--border-subtle)'
-          e.currentTarget.style.borderLeftColor = accentBorderColor
         }
       }}
       exit={{ opacity: 0, x: -16, height: 0, marginBottom: 0, padding: 0 }}
       transition={{ duration: 0.18 }}
     >
-      <div className="p-3">
+      {/* Gradient left border accent */}
+      <div
+        className="absolute left-0 top-2 bottom-2 w-[3px] rounded-full"
+        style={{
+          background: isApplied
+            ? 'var(--color-success)'
+            : `linear-gradient(180deg, ${accentBorderColor}80, ${accentBorderColor}, ${accentBorderColor}80)`,
+          boxShadow: isApplied
+            ? '0 0 8px var(--color-success)40'
+            : `0 0 8px ${accentBorderColor}40`,
+        }}
+      />
+      <div className="p-3 pl-4">
         <div className="flex items-start justify-between">
           <div className="flex-1 min-w-0">
             {/* Severity + Type badges */}
@@ -916,14 +925,20 @@ export function AISuggestionPanel() {
   return (
     <div className="relative bg-[var(--color-surface-base)]"
     >
-      {/* Decorative gradient accent */}
-      <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-[rgba(94,106,210,0.3)] to-transparent"
+      {/* Decorative gradient accent - enhanced */}
+      <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-[var(--accent-100)] to-transparent opacity-30"
+      />
+      {/* Subtle AI branding glow */}
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-32 h-8 opacity-[0.04] pointer-events-none"
+        style={{
+          background: 'radial-gradient(ellipse at center, var(--accent-100), transparent 70%)',
+        }}
       />
       {/* Header */}
       <motion.button
         onClick={() => setIsExpanded(!isExpanded)}
-        className="w-full px-4 py-3 flex items-center justify-between transition-all hover:bg-[var(--color-surface-raised)]"
-        style={{ borderBottom: isExpanded ? '1px solid rgba(255,255,255,0.06)' : 'none' }}
+        className="w-full px-4 py-3 flex items-center justify-between transition-all hover:bg-[var(--color-surface-raised)] relative"
+        style={{ borderBottom: isExpanded ? '1px solid var(--border-subtle)' : 'none' }}
         animate={isReviewing ? 'active' : 'idle'}
         variants={pulseGlowVariants}
       >

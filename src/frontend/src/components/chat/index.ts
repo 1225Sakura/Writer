@@ -1,4 +1,8 @@
 export { ChatInitPage } from './ChatInitPage'
+export { ChatArea } from './ChatArea'
+export { ChatHeader } from './ChatHeader'
+export { ChatSidebar } from './ChatSidebar'
+export { ChatFooter } from './ChatFooter'
 export { AIGuidePanel } from './AIGuidePanel'
 export { UserInputPanel } from './UserInputPanel'
 export { CollectedInfoPanel } from './CollectedInfoPanel'

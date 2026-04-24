@@ -105,7 +105,7 @@ const AnimatedTabs = React.forwardRef<
         <motion.div
           className="absolute top-1 bottom-1 rounded-lg bg-[var(--color-bg-surface)] shadow-sm border border-[var(--color-border)]/30"
           initial={false}
-          animate={indicatorStyle}
+          animate={indicatorStyle as any}
           transition={{
             type: "spring",
             stiffness: 400,

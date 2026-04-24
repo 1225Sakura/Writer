@@ -25,11 +25,19 @@ interface OutlineItem {
 /* ============================================================
    TreeNode — 大纲章节树节点
    改进点：
-   1. 层级指示线 (indent guide)
-   2. 当前章节高亮（左边框 + accent 背景）
-   3. 拖拽排序视觉反馈（placeholder + 半透明）
-   4. 优化 hover 效果（subtle 背景变化）
+   1. 层级指示线 (indent guide) + 颜色编码
+   2. 当前章节高亮（左边框 + accent 背景 + glow）
+   3. 拖拽排序视觉反馈（placeholder + 半透明 + 缩放）
+   4. 优化 hover 效果（subtle 背景变化 + glow）
    ============================================================ */
+
+const depthColorMap = [
+  'var(--accent-primary)',      // depth 0
+  'var(--color-character)',     // depth 1
+  'var(--color-item)',          // depth 2
+  'var(--color-location)',      // depth 3
+  'var(--color-outline)',       // depth 4
+]
 
 function TreeNode({
   item,
@@ -52,53 +60,60 @@ function TreeNode({
   const hasChildren = item.children.length > 0
   const isSelected = selectedId === item.id
 
+  const indentColor = depthColorMap[Math.min(depth, depthColorMap.length - 1)]
+
   return (
     <div className="select-none relative">
       {/* 拖拽放置指示线 — before */}
       {isDragOver && dragOverPosition === 'before' && (
         <div className="absolute -top-[1px] left-0 right-0 z-10">
-          <div className="h-[2px] rounded-full bg-[var(--accent-primary)] shadow-[0_0_6px_rgba(94,106,210,0.6)]" />
-          <div className="absolute -top-[3px] left-0 w-2 h-2 rounded-full bg-[var(--accent-primary)] shadow-[0_0_4px_rgba(94,106,210,0.8)]" />
+          <div className="h-[2px] rounded-full bg-[var(--accent-primary)] shadow-[0_0_8px_rgba(94,106,210,0.7)]" />
+          <div className="absolute -top-[3px] left-0 w-2.5 h-2.5 rounded-full bg-[var(--accent-primary)] shadow-[0_0_6px_rgba(94,106,210,0.9)]" />
         </div>
       )}
 
       {/* 拖拽放置指示线 — after */}
       {isDragOver && dragOverPosition === 'after' && (
         <div className="absolute -bottom-[1px] left-0 right-0 z-10">
-          <div className="h-[2px] rounded-full bg-[var(--accent-primary)] shadow-[0_0_6px_rgba(94,106,210,0.6)]" />
-          <div className="absolute -top-[3px] left-0 w-2 h-2 rounded-full bg-[var(--accent-primary)] shadow-[0_0_4px_rgba(94,106,210,0.8)]" />
+          <div className="h-[2px] rounded-full bg-[var(--accent-primary)] shadow-[0_0_8px_rgba(94,106,210,0.7)]" />
+          <div className="absolute -top-[3px] left-0 w-2.5 h-2.5 rounded-full bg-[var(--accent-primary)] shadow-[0_0_6px_rgba(94,106,210,0.9)]" />
         </div>
       )}
 
       <div
         className={`
-          flex items-center gap-1.5 rounded-lg cursor-pointer transition-all duration-150 group relative
+          flex items-center gap-1.5 rounded-lg cursor-pointer transition-all duration-200 group relative
           ${isSelected
-            ? 'bg-[var(--accent-primary)]/12 text-[var(--accent-primary)]'
+            ? 'text-[var(--accent-primary)]'
             : 'hover:bg-[var(--color-surface-hover)] text-[var(--text-secondary)]'
           }
-          ${isDragging ? 'opacity-40 scale-[0.98]' : 'opacity-100'}
+          ${isDragging ? 'opacity-30 scale-[0.97] rotate-1' : 'opacity-100'}
         `}
         style={{
           paddingLeft: `${depth * 18 + 10}px`,
           paddingRight: '8px',
           paddingTop: '5px',
           paddingBottom: '5px',
+          background: isSelected
+            ? 'linear-gradient(90deg, color-mix(in srgb, var(--accent-primary) 10%, transparent) 0%, color-mix(in srgb, var(--accent-primary) 5%, transparent) 50%, transparent 100%)'
+            : undefined,
         }}
         onClick={() => onSelect(item.id)}
       >
-        {/* 当前选中左边框指示 */}
+        {/* 当前选中左边框指示 - 带glow效果 */}
         {isSelected && (
-          <div
-            className="absolute left-0 top-1.5 bottom-1.5 w-[3px] rounded-r-full"
+          <motion.div
+            layoutId="outline-selected-indicator"
+            className="absolute left-0 top-1 bottom-1 w-[3px] rounded-r-full"
             style={{
-              background: 'linear-gradient(180deg, var(--accent-primary) 0%, var(--accent-90) 100%)',
-              boxShadow: '0 0 8px rgba(94, 106, 210, 0.5)',
+              background: `linear-gradient(180deg, ${indentColor} 0%, color-mix(in srgb, ${indentColor} 60%, transparent) 100%)`,
+              boxShadow: `0 0 10px color-mix(in srgb, ${indentColor} 40%, transparent), 0 0 20px color-mix(in srgb, ${indentColor} 20%, transparent)`,
             }}
+            transition={{ type: 'spring', stiffness: 500, damping: 35 }}
           />
         )}
 
-        {/* 层级缩进指示线 */}
+        {/* 层级缩进指示线 - 颜色编码 */}
         {depth > 0 && (
           <div
             className="absolute pointer-events-none"
@@ -106,8 +121,9 @@ function TreeNode({
               left: `${(depth - 1) * 18 + 18}px`,
               top: '0',
               bottom: '0',
-              width: '1px',
-              background: 'linear-gradient(180deg, var(--border-subtle) 0%, var(--border-default) 50%, var(--border-subtle) 100%)',
+              width: '1.5px',
+              background: `linear-gradient(180deg, color-mix(in srgb, ${indentColor} 25%, transparent) 0%, color-mix(in srgb, ${indentColor} 15%, transparent) 50%, color-mix(in srgb, ${indentColor} 25%, transparent) 100%)`,
+              opacity: 0.6,
             }}
           />
         )}
@@ -142,11 +158,16 @@ function TreeNode({
           )}
         </button>
 
-        {/* Title */}
+        {/* Title - 层级颜色编码 */}
         <span className={`
           flex-1 text-sm truncate transition-colors duration-150
-          ${isSelected ? 'font-medium text-[var(--accent-primary)]' : 'font-normal'}
-        `}>
+          ${isSelected ? 'font-medium' : 'font-normal'}
+        `}
+          style={{
+            color: isSelected ? indentColor : undefined,
+            paddingLeft: depth > 0 ? '2px' : undefined,
+          }}
+        >
           {item.title}
         </span>
 
@@ -168,18 +189,19 @@ function TreeNode({
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: 'auto', opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: 0.18, ease: [0.16, 1, 0.3, 1] }}
+            transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
             className="overflow-hidden relative"
           >
-            {/* 子节点区域左侧层级线 */}
+            {/* 子节点区域左侧层级线 - 颜色编码 */}
             <div
               className="absolute pointer-events-none"
               style={{
                 left: `${depth * 18 + 18}px`,
                 top: '0',
                 bottom: '4px',
-                width: '1px',
-                background: 'linear-gradient(180deg, var(--border-default) 0%, transparent 100%)',
+                width: '1.5px',
+                background: `linear-gradient(180deg, color-mix(in srgb, ${indentColor} 20%, transparent) 0%, transparent 100%)`,
+                opacity: 0.5,
               }}
             />
             {item.children.map((child) => (

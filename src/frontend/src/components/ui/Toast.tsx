@@ -12,36 +12,32 @@ export interface ToastProps {
 
 const typeConfig = {
   info: {
-    bg: 'bg-gradient-to-br from-[#5b8ee8] to-[#4a7ad0]',
-    borderColor: 'rgba(91, 142, 232, 0.4)',
     icon: Info,
-    progressColor: 'bg-white/30',
-    textColor: 'text-white',
-    shadowColor: 'rgba(91, 142, 232, 0.25)',
+    leftBorder: 'var(--color-info)',
+    iconColor: 'var(--color-info)',
+    glowColor: 'rgba(91, 142, 232, 0.15)',
+    progressColor: 'rgba(91, 142, 232, 0.5)',
   },
   success: {
-    bg: 'bg-gradient-to-br from-[#7eb84a] to-[#6aa33d]',
-    borderColor: 'rgba(126, 184, 74, 0.4)',
     icon: CheckCircle,
-    progressColor: 'bg-white/30',
-    textColor: 'text-white',
-    shadowColor: 'rgba(126, 184, 74, 0.25)',
+    leftBorder: 'var(--color-success)',
+    iconColor: 'var(--color-success)',
+    glowColor: 'rgba(126, 184, 74, 0.15)',
+    progressColor: 'rgba(126, 184, 74, 0.5)',
   },
   warning: {
-    bg: 'bg-gradient-to-br from-[#e8b87d] to-[#d4a366]',
-    borderColor: 'rgba(232, 184, 125, 0.4)',
     icon: AlertTriangle,
-    progressColor: 'bg-white/30',
-    textColor: 'text-white',
-    shadowColor: 'rgba(232, 184, 125, 0.25)',
+    leftBorder: 'var(--color-warning)',
+    iconColor: 'var(--color-warning)',
+    glowColor: 'rgba(232, 184, 125, 0.15)',
+    progressColor: 'rgba(232, 184, 125, 0.5)',
   },
   error: {
-    bg: 'bg-gradient-to-br from-[#c45c5c] to-[#b04a4a]',
-    borderColor: 'rgba(196, 92, 92, 0.4)',
     icon: AlertCircle,
-    progressColor: 'bg-white/30',
-    textColor: 'text-white',
-    shadowColor: 'rgba(196, 92, 92, 0.25)',
+    leftBorder: 'var(--color-danger)',
+    iconColor: 'var(--color-danger)',
+    glowColor: 'rgba(196, 92, 92, 0.15)',
+    progressColor: 'rgba(196, 92, 92, 0.5)',
   },
 }
 
@@ -76,18 +72,18 @@ export function Toast({ message, type = 'info', duration = 3000, onClose }: Toas
   const config = typeConfig[type]
   const Icon = config.icon
 
-  // 根据 reduced-motion 选择动画参数 - 优化进入/退出动画
+  // Enhanced entrance/exit animations with slide + fade + scale
   const enterAnimation = reducedMotion
     ? { opacity: 0 }
-    : { x: 80, opacity: 0, scale: 0.92, rotateY: -8 }
+    : { x: 100, opacity: 0, scale: 0.9 }
 
   const activeAnimation = reducedMotion
     ? { opacity: 1 }
-    : { x: 0, opacity: 1, scale: 1, rotateY: 0 }
+    : { x: 0, opacity: 1, scale: 1 }
 
   const exitAnimation = reducedMotion
     ? { opacity: 0 }
-    : { x: 60, opacity: 0, scale: 0.88, rotateY: 4 }
+    : { x: 60, opacity: 0, scale: 0.85 }
 
   return (
     <motion.div
@@ -100,32 +96,69 @@ export function Toast({ message, type = 'info', duration = 3000, onClose }: Toas
           ? { duration: 0.15 }
           : {
               type: 'spring',
-              stiffness: 380,
-              damping: 30,
-              mass: 0.7,
+              stiffness: 400,
+              damping: 28,
+              mass: 0.8,
             }
       }
+      className="relative flex items-start gap-3 px-4 py-3.5 rounded-xl border backdrop-blur-md overflow-hidden min-w-[320px] max-w-[440px]"
       style={{
-        boxShadow: `0 8px 32px ${config.shadowColor}, 0 2px 8px rgba(0,0,0,0.12)`,
+        background: 'rgba(26, 26, 30, 0.85)',
+        borderColor: 'rgba(255, 255, 255, 0.08)',
+        borderLeftWidth: '3px',
+        borderLeftColor: config.leftBorder,
+        boxShadow: `
+          0 8px 32px rgba(0, 0, 0, 0.28),
+          0 2px 8px rgba(0, 0, 0, 0.14),
+          inset 0 1px 0 rgba(255, 255, 255, 0.04),
+          0 0 20px ${config.glowColor}
+        `,
       }}
-      className={`relative flex items-center gap-3 px-4 py-3.5 rounded-2xl border backdrop-blur-sm overflow-hidden ${config.bg} ${config.textColor} min-w-[300px] max-w-[420px]`}
     >
-      <div className="relative">
-        <Icon className="w-5 h-5 flex-shrink-0 drop-shadow-md" />
+      {/* Subtle gradient overlay */}
+      <div
+        className="absolute inset-0 pointer-events-none rounded-xl"
+        style={{
+          background: `linear-gradient(135deg, ${config.glowColor} 0%, transparent 60%)`,
+        }}
+      />
+
+      {/* Icon */}
+      <div className="relative flex-shrink-0 mt-0.5">
+        <Icon
+          className="w-5 h-5"
+          style={{ color: config.iconColor }}
+        />
       </div>
-      <span className="text-sm font-medium flex-1 pr-2 leading-tight">{message}</span>
+
+      {/* Message */}
+      <span
+        className="text-sm font-medium flex-1 pr-2 leading-relaxed"
+        style={{ color: 'var(--text-primary)' }}
+      >
+        {message}
+      </span>
+
+      {/* Close button */}
       <button
         onClick={onClose}
-        className="p-1.5 hover:bg-white/15 rounded-lg transition-all duration-200 flex-shrink-0 hover:scale-110 active:scale-95"
+        className="relative flex-shrink-0 p-1.5 rounded-lg transition-all duration-200 hover:bg-white/10 hover:scale-110 active:scale-95"
+        style={{ color: 'var(--text-tertiary)' }}
       >
         <X className="w-4 h-4" />
       </button>
 
       {/* Progress bar */}
-      <div className="absolute bottom-0 left-0 right-0 h-1 bg-black/10">
+      <div
+        className="absolute bottom-0 left-0 right-0 h-[2px] overflow-hidden rounded-b-xl"
+        style={{ backgroundColor: 'rgba(255, 255, 255, 0.04)' }}
+      >
         <motion.div
-          className={`h-full ${config.progressColor}`}
-          style={{ width: `${progress}%` }}
+          className="h-full rounded-full"
+          style={{
+            width: `${progress}%`,
+            backgroundColor: config.progressColor,
+          }}
           transition={{ duration: 0 }}
         />
       </div>
@@ -161,7 +194,10 @@ export function ToastContainer() {
   }, [addToast])
 
   return (
-    <div className="fixed bottom-5 right-5 z-[9999] flex flex-col gap-3 items-end">
+    <div
+      className="fixed bottom-6 right-6 z-[9999] flex flex-col gap-3 items-end"
+      style={{ maxWidth: '440px' }}
+    >
       <AnimatePresence mode="popLayout">
         {toasts.map(toast => (
           <Toast

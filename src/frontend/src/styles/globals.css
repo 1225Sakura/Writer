@@ -76,7 +76,12 @@
   --shadow-elevation-4: 0 8px 18px rgba(0, 0, 0, 0.26), 0 4px 8px rgba(0, 0, 0, 0.16);
   --shadow-elevation-5: 0 10px 28px rgba(0, 0, 0, 0.30), 0 6px 12px rgba(0, 0, 0, 0.18);
 
-  /* Legacy aliases */
+  /* --- Legacy Elevation Aliases (DEPRECATED) ---
+     These aliases map to surface colors, NOT shadows.
+     They conflict semantically with --shadow-elevation-*.
+     Kept for backward compat with existing components.
+     Prefer --color-surface-* or --shadow-elevation-* directly.
+     --- */
   --elevation-1: var(--color-surface-base);
   --elevation-2: var(--color-surface-raised);
   --elevation-3: var(--color-surface-overlay);
@@ -131,6 +136,7 @@
     'Microsoft YaHei', sans-serif;
   --font-mono: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', 'SF Mono',
     'Consolas', 'Monaco', monospace;
+  --font-stats: 'JetBrains Mono', monospace;
   --font-serif-en: 'Noto Serif SC', 'Georgia', 'Times New Roman', 'Cambria', serif;
 
   --text-xs:   12px;
@@ -244,6 +250,42 @@
   --glass-border:    rgba(255, 255, 255, 0.12);
   --glass-blur:      20px;
 
+  /* Finer glass effect tokens */
+  --glass-bg-subtle:   rgba(15, 16, 17, 0.45);
+  --glass-bg-medium:   rgba(15, 16, 17, 0.65);
+  --glass-border-subtle: rgba(255, 255, 255, 0.06);
+  --glass-border-strong: rgba(255, 255, 255, 0.18);
+  --glass-saturation:  1.2;
+  --glass-saturation-high: 1.4;
+
+  /* --- Richer Shadow Levels --- */
+  --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.08);
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.08);
+  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.14), 0 2px 4px rgba(0, 0, 0, 0.08);
+  --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.16), 0 4px 6px rgba(0, 0, 0, 0.10);
+  --shadow-xl: 0 20px 25px rgba(0, 0, 0, 0.20), 0 8px 10px rgba(0, 0, 0, 0.12);
+  --shadow-2xl: 0 25px 50px rgba(0, 0, 0, 0.30), 0 12px 20px rgba(0, 0, 0, 0.16);
+  --shadow-inner-soft: inset 0 1px 3px rgba(0, 0, 0, 0.08);
+  --shadow-inner-md: inset 0 2px 6px rgba(0, 0, 0, 0.10);
+
+  /* --- New Color Mappings --- */
+  --color-surface-pressed: #151618;
+  --color-surface-elevated: #2a2c30;
+  --color-surface-floating: #303236;
+  --color-overlay: rgba(0, 0, 0, 0.55);
+  --color-overlay-light: rgba(0, 0, 0, 0.25);
+  --color-backdrop: rgba(13, 13, 18, 0.65);
+
+  /* Semantic surface aliases */
+  --surface-base:    var(--color-surface-base);
+  --surface-raised:  var(--color-surface-raised);
+  --surface-overlay: var(--color-surface-overlay);
+  --surface-input:   var(--color-surface-input);
+  --surface-hover:   var(--color-surface-hover);
+  --surface-pressed: var(--color-surface-pressed);
+  --surface-elevated: var(--color-surface-elevated);
+  --surface-floating: var(--color-surface-floating);
+
   /* --- Selection --- */
   --selection-bg:   rgba(94, 106, 210, 0.40);
   --selection-color: var(--paper-100);
@@ -321,9 +363,9 @@
   /* Paper texture noise opacity for light theme - subtle warmth */
   --paper-texture-opacity: 0.03;
 
-  /* Light theme glow - softer and more subtle */
-  --glow-primary: rgba(94, 106, 210, 0.25);
-  --glow-primary-sm: rgba(94, 106, 210, 0.12);
+  /* Light theme - glow disabled, using borders instead per SPEC 7.1/7.2 */
+  --glow-primary: transparent;
+  --glow-primary-sm: transparent;
 
   --hover-bg:      rgba(245, 240, 230, 0.85);
   --hover-border:  rgba(0, 0, 0, 0.14);
@@ -1044,7 +1086,7 @@ code, pre {
   text-indent: 0;
 }
 
-/* Tiptap Editor */
+/* Tiptap Editor - refined with elegant spacing and smooth transitions */
 .writing-area .tiptap {
   font-family: var(--font-serif-cn), var(--font-serif-en);
   font-size: var(--writing-font-size);
@@ -1059,12 +1101,16 @@ code, pre {
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
   font-feature-settings: "kern" 1, "liga" 1;
+  min-height: 100%;
 }
 
+/* Elegant paragraph spacing with refined rhythm */
 .writing-area .tiptap p {
-  margin-bottom: 1.2em;
+  margin-bottom: 1.35em;
   text-indent: 2em;
-  transition: color var(--transition-fast);
+  transition: all 0.25s var(--ease-out);
+  position: relative;
+  line-height: var(--writing-line-height);
 }
 
 .writing-area .tiptap p.is-editor-empty:first-child::before {
@@ -1108,90 +1154,26 @@ code, pre {
   transition: background 0.3s ease;
 }
 
-/* Cursor */
+/* Cursor - refined with elegant glow */
 .writing-area .tiptap .ProseMirror-focused {
   outline: none;
 }
 
 .writing-area .tiptap {
-  caret-color: var(--color-character);
-  caret-shape: bar;
-}
-
-.writing-area .tiptap[contenteditable="true"] {
   caret-color: transparent;
 }
 
-.writing-area .tiptap[contenteditable="true"]::after {
-  content: '';
-  position: absolute;
-  width: 2px;
-  height: 1.2em;
-  background: linear-gradient(180deg, var(--accent-100) 0%, var(--accent-80) 100%);
-  animation: cursor-blink 1.1s ease-in-out infinite;
-  pointer-events: none;
-  margin-left: -1px;
-  border-radius: 1px;
-  opacity: 0;
-}
-
-@keyframes cursor-blink {
-  0%, 100% { opacity: 0; }
-  50% { opacity: 1; }
-}
-
-/* Selection */
+/* Refined selection with subtle glow */
 .writing-area .tiptap ::selection {
   background: var(--writing-selection) !important;
   color: var(--writing-text) !important;
+  text-shadow: none;
 }
 
 .writing-area .tiptap ::-moz-selection {
   background: var(--writing-selection) !important;
   color: var(--writing-text) !important;
-}
-
-/* Paragraph hover indicator - uses theme-aware glow-primary */
-.writing-area .tiptap p {
-  margin-bottom: 1.2em;
-  text-indent: 2em;
-  transition: all 0.2s ease;
-  position: relative;
-}
-
-.writing-area .tiptap p:hover::before {
-  content: '';
-  position: absolute;
-  left: -12px;
-  top: 0;
-  bottom: 0;
-  width: 3px;
-  background: linear-gradient(180deg, var(--glow-primary) 0%, transparent 100%);
-  border-radius: 2px;
-  opacity: 0;
-  animation: paragraph-indicator-fade-in 0.2s ease forwards;
-}
-
-@keyframes paragraph-indicator-fade-in {
-  from { opacity: 0; transform: translateX(-2px); }
-  to   { opacity: 1; transform: translateX(0); }
-}
-
-.writing-area .tiptap p.has-focus {
-  position: relative;
-}
-
-.writing-area .tiptap p.has-focus::after {
-  content: '';
-  position: absolute;
-  left: -8px;
-  right: -8px;
-  top: -4px;
-  bottom: -4px;
-  background: linear-gradient(90deg, rgba(126, 184, 122, 0.06) 0%, rgba(126, 184, 122, 0.03) 50%, rgba(126, 184, 122, 0.06) 100%);
-  border-radius: 6px;
-  pointer-events: none;
-  z-index: -1;
+  text-shadow: none;
 }
 
 /* Headings */
@@ -1266,6 +1248,462 @@ code, pre {
 /* Smooth scroll */
 .writing-area .tiptap {
   scroll-behavior: smooth;
+}
+
+/* ============================================================
+   SECTION 10A: ENHANCED WRITING EDITOR STYLES
+   ============================================================ */
+
+/* Refined editor container with subtle glow border */
+.writing-card {
+  position: relative;
+  transition:
+    box-shadow var(--transition-slow) var(--ease-out),
+    border-color var(--transition-normal) var(--ease-out);
+}
+
+.writing-card::before {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  padding: 1px;
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--accent-primary) 12%, transparent) 0%,
+    color-mix(in srgb, var(--border-subtle) 30%, transparent) 30%,
+    transparent 60%,
+    color-mix(in srgb, var(--border-subtle) 20%, transparent) 100%
+  );
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+  opacity: 0.6;
+  transition: opacity var(--transition-normal) var(--ease-out);
+}
+
+.writing-card:hover::before {
+  opacity: 0.9;
+}
+
+/* Elegant shadow layers for writing card */
+.writing-card-shadow {
+  box-shadow:
+    0 2px 8px color-mix(in srgb, var(--ink-100) 10%, transparent),
+    0 8px 24px color-mix(in srgb, var(--ink-100) 8%, transparent),
+    0 16px 48px color-mix(in srgb, var(--ink-100) 5%, transparent),
+    inset 0 1px 0 var(--border-subtle),
+    inset 0 -1px 0 color-mix(in srgb, var(--paper-100) 20%, transparent);
+}
+
+/* Paper edge decoration - optional subtle texture */
+.writing-card--paper-edge {
+  position: relative;
+}
+
+.writing-card--paper-edge::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(
+    90deg,
+    color-mix(in srgb, var(--color-character) 20%, transparent) 0%,
+    color-mix(in srgb, var(--accent-primary) 15%, transparent) 25%,
+    color-mix(in srgb, var(--color-vermillion) 12%, transparent) 50%,
+    color-mix(in srgb, var(--accent-primary) 15%, transparent) 75%,
+    color-mix(in srgb, var(--color-character) 20%, transparent) 100%
+  );
+  border-radius: 2px 2px 0 0;
+  opacity: 0.4;
+  pointer-events: none;
+}
+
+/* First paragraph no indent */
+.writing-area .tiptap > p:first-child,
+.writing-area .tiptap > h1 + p,
+.writing-area .tiptap > h2 + p,
+.writing-area .tiptap > h3 + p {
+  text-indent: 0;
+}
+
+/* Current paragraph highlight (iA Writer-style focus mode) */
+.writing-area .tiptap p.is-current-paragraph {
+  position: relative;
+}
+
+.writing-area .tiptap p.is-current-paragraph::before {
+  content: '';
+  position: absolute;
+  left: -16px;
+  top: -2px;
+  bottom: -2px;
+  width: 3px;
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--accent-primary) 60%, transparent) 0%,
+    color-mix(in srgb, var(--color-character) 40%, transparent) 100%
+  );
+  border-radius: 2px;
+  opacity: 0.7;
+  animation: current-paragraph-indicator-in 0.3s var(--ease-out) forwards;
+}
+
+@keyframes current-paragraph-indicator-in {
+  from { opacity: 0; transform: translateX(-4px); }
+  to { opacity: 0.7; transform: translateX(0); }
+}
+
+/* Enhanced selection highlight */
+.writing-area .tiptap ::selection {
+  background: var(--writing-selection) !important;
+  color: var(--writing-text) !important;
+  text-shadow: none;
+}
+
+.writing-area .tiptap ::-moz-selection {
+  background: var(--writing-selection) !important;
+  color: var(--writing-text) !important;
+  text-shadow: none;
+}
+
+/* Refined cursor styling */
+.writing-area .tiptap {
+  caret-color: transparent;
+}
+
+.writing-area .tiptap .ProseMirror-focused {
+  outline: none;
+}
+
+/* Custom cursor with theme-aware glow */
+.writing-area .tiptap[contenteditable="true"] {
+  position: relative;
+}
+
+.writing-area .tiptap[contenteditable="true"] .ProseMirror-focused::after {
+  content: '';
+  position: absolute;
+  width: 2px;
+  height: 1.3em;
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--accent-primary) 90%, transparent) 0%,
+    color-mix(in srgb, var(--color-character) 70%, transparent) 100%
+  );
+  animation: cursor-blink-refined 1.1s ease-in-out infinite;
+  pointer-events: none;
+  margin-left: -1px;
+  border-radius: 1px;
+  box-shadow:
+    0 0 4px color-mix(in srgb, var(--accent-primary) 40%, transparent),
+    0 0 8px color-mix(in srgb, var(--accent-primary) 20%, transparent);
+}
+
+@keyframes cursor-blink-refined {
+  0%, 100% { opacity: 0; }
+  45%, 55% { opacity: 1; }
+}
+
+/* Paragraph focus mode - dim non-current paragraphs */
+.paragraph-focus-mode .writing-area .tiptap p {
+  transition: opacity 0.35s var(--ease-out), filter 0.35s var(--ease-out);
+}
+
+.paragraph-focus-mode .writing-area .tiptap p:not(.is-current-paragraph):not(:hover) {
+  opacity: 0.45;
+  filter: blur(0.3px);
+}
+
+.paragraph-focus-mode .writing-area .tiptap p.is-current-paragraph {
+  opacity: 1;
+  filter: none;
+}
+
+/* Typewriter scroll mode - keep cursor centered */
+.typewriter-mode .writing-area .tiptap {
+  scroll-padding-top: 45vh;
+  scroll-padding-bottom: 45vh;
+}
+
+.typewriter-mode .writing-surface {
+  scroll-behavior: smooth;
+}
+
+/* Enhanced paragraph hover indicator */
+.writing-area .tiptap p:hover::before {
+  content: '';
+  position: absolute;
+  left: -12px;
+  top: 2px;
+  bottom: 2px;
+  width: 2px;
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--glow-primary) 80%, transparent) 0%,
+    transparent 100%
+  );
+  border-radius: 1px;
+  opacity: 0;
+  animation: paragraph-indicator-fade-in 0.2s ease forwards;
+}
+
+@keyframes paragraph-indicator-fade-in {
+  from { opacity: 0; transform: translateX(-2px); }
+  to { opacity: 0.6; transform: translateX(0); }
+}
+
+/* Enhanced has-focus highlight with theme-aware colors */
+.writing-area .tiptap p.has-focus::after {
+  content: '';
+  position: absolute;
+  left: -10px;
+  right: -10px;
+  top: -3px;
+  bottom: -3px;
+  background: linear-gradient(
+    90deg,
+    color-mix(in srgb, var(--writing-line-highlight) 80%, transparent) 0%,
+    color-mix(in srgb, var(--writing-line-highlight) 30%, transparent) 50%,
+    color-mix(in srgb, var(--writing-line-highlight) 80%, transparent) 100%
+  );
+  border-radius: 6px;
+  pointer-events: none;
+  z-index: -1;
+}
+
+/* Floating word count pill */
+.word-count-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 12px;
+  border-radius: var(--radius-pill);
+  font-size: 11px;
+  font-weight: 500;
+  font-family: var(--font-stats);
+  letter-spacing: 0.02em;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  transition: all 0.25s var(--ease-out);
+  cursor: default;
+  user-select: none;
+}
+
+.word-count-pill--floating {
+  position: fixed;
+  bottom: 52px;
+  right: 20px;
+  z-index: 40;
+  background: color-mix(in srgb, var(--color-surface-overlay) 85%, transparent);
+  border: 1px solid color-mix(in srgb, var(--border-subtle) 60%, transparent);
+  color: var(--text-tertiary);
+  box-shadow:
+    0 2px 8px rgba(0, 0, 0, 0.12),
+    0 4px 16px rgba(0, 0, 0, 0.08);
+}
+
+.word-count-pill--floating:hover {
+  background: color-mix(in srgb, var(--color-surface-overlay) 95%, transparent);
+  border-color: color-mix(in srgb, var(--border-default) 80%, transparent);
+  color: var(--text-secondary);
+  box-shadow:
+    0 4px 12px rgba(0, 0, 0, 0.16),
+    0 8px 24px rgba(0, 0, 0, 0.10);
+  transform: translateY(-1px);
+}
+
+.word-count-pill__number {
+  font-variant-numeric: tabular-nums;
+  color: var(--text-secondary);
+  font-weight: 600;
+}
+
+.word-count-pill__label {
+  font-size: 10px;
+  opacity: 0.8;
+}
+
+/* Loading state for writing area */
+.writing-loading {
+  position: relative;
+  overflow: hidden;
+}
+
+.writing-loading::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    color-mix(in srgb, var(--accent-primary) 3%, transparent) 50%,
+    transparent 100%
+  );
+  animation: writing-loading-shimmer 1.8s ease-in-out infinite;
+  pointer-events: none;
+}
+
+@keyframes writing-loading-shimmer {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+
+/* Empty state prompt */
+.writing-empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 300px;
+  text-align: center;
+  padding: 2rem;
+}
+
+.writing-empty-state__icon {
+  width: 48px;
+  height: 48px;
+  border-radius: var(--radius-xl);
+  background: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--accent-primary) 12%, transparent) 0%,
+    color-mix(in srgb, var(--color-character) 8%, transparent) 100%
+  );
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 16px;
+  color: var(--text-secondary);
+  border: 1px solid color-mix(in srgb, var(--border-subtle) 50%, transparent);
+}
+
+.writing-empty-state__title {
+  font-size: var(--text-lg);
+  font-weight: var(--weight-medium);
+  color: var(--text-secondary);
+  margin-bottom: 8px;
+  font-family: var(--font-serif-cn);
+}
+
+.writing-empty-state__hint {
+  font-size: var(--text-sm);
+  color: var(--text-tertiary);
+  line-height: var(--leading-relaxed);
+  max-width: 320px;
+}
+
+/* Theme-aware adjustments for light themes */
+[data-theme="light"] .writing-card::before,
+[data-theme="warm-paper"] .writing-card::before {
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--accent-primary) 8%, transparent) 0%,
+    color-mix(in srgb, var(--border-subtle) 20%, transparent) 30%,
+    transparent 60%,
+    color-mix(in srgb, var(--border-subtle) 15%, transparent) 100%
+  );
+}
+
+[data-theme="light"] .writing-area .tiptap[contenteditable="true"] .ProseMirror-focused::after,
+[data-theme="warm-paper"] .writing-area .tiptap[contenteditable="true"] .ProseMirror-focused::after {
+  box-shadow:
+    0 0 3px color-mix(in srgb, var(--accent-primary) 25%, transparent),
+    0 0 6px color-mix(in srgb, var(--accent-primary) 12%, transparent);
+}
+
+[data-theme="eye-care"] .writing-area .tiptap[contenteditable="true"] .ProseMirror-focused::after {
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--accent-primary) 80%, transparent) 0%,
+    color-mix(in srgb, var(--color-ifline) 60%, transparent) 100%
+  );
+}
+
+[data-theme="midnight-blue"] .writing-area .tiptap[contenteditable="true"] .ProseMirror-focused::after {
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--accent-primary) 95%, transparent) 0%,
+    color-mix(in srgb, var(--accent-80) 80%, transparent) 100%
+  );
+  box-shadow:
+    0 0 5px color-mix(in srgb, var(--accent-primary) 50%, transparent),
+    0 0 10px color-mix(in srgb, var(--accent-primary) 25%, transparent);
+}
+
+[data-theme="forest-green"] .writing-area .tiptap[contenteditable="true"] .ProseMirror-focused::after {
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--accent-primary) 90%, transparent) 0%,
+    color-mix(in srgb, var(--color-ifline) 60%, transparent) 100%
+  );
+  box-shadow:
+    0 0 4px color-mix(in srgb, var(--accent-primary) 40%, transparent),
+    0 0 8px color-mix(in srgb, var(--accent-primary) 20%, transparent);
+}
+
+/* Enhanced writing card shadow for dark themes */
+[data-theme="dark"] .writing-card,
+[data-theme="midnight-blue"] .writing-card {
+  box-shadow:
+    0 1px 2px color-mix(in srgb, var(--ink-100) 10%, transparent),
+    0 4px 16px color-mix(in srgb, var(--ink-100) 8%, transparent),
+    0 12px 40px color-mix(in srgb, var(--ink-100) 5%, transparent),
+    inset 0 1px 0 color-mix(in srgb, var(--paper-100) 6%, transparent) !important;
+}
+
+/* Light theme writing card adjustments */
+[data-theme="light"] .writing-card,
+[data-theme="warm-paper"] .writing-card {
+  box-shadow:
+    0 1px 3px color-mix(in srgb, var(--ink-100) 6%, transparent),
+    0 4px 12px color-mix(in srgb, var(--ink-100) 4%, transparent),
+    0 8px 24px color-mix(in srgb, var(--ink-100) 2%, transparent) !important;
+}
+
+/* Eye-care theme adjustments */
+[data-theme="eye-care"] .writing-card {
+  box-shadow:
+    0 1px 2px color-mix(in srgb, var(--ink-100) 5%, transparent),
+    0 4px 12px color-mix(in srgb, var(--ink-100) 3%, transparent) !important;
+}
+
+/* Forest green theme adjustments */
+[data-theme="forest-green"] .writing-card {
+  box-shadow:
+    0 1px 2px color-mix(in srgb, #0a1f0a 12%, transparent),
+    0 4px 16px color-mix(in srgb, #0a1f0a 8%, transparent),
+    0 12px 40px color-mix(in srgb, #0a1f0a 5%, transparent) !important;
+}
+
+/* Enhanced empty state icon glow per theme */
+[data-theme="midnight-blue"] .writing-empty-state__icon {
+  background: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--accent-primary) 18%, transparent) 0%,
+    color-mix(in srgb, var(--color-outline) 12%, transparent) 100%
+  );
+}
+
+[data-theme="forest-green"] .writing-empty-state__icon {
+  background: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--color-ifline) 18%, transparent) 0%,
+    color-mix(in srgb, var(--accent-primary) 12%, transparent) 100%
+  );
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  .writing-card::before,
+  .writing-area .tiptap p,
+  .word-count-pill,
+  .writing-loading::after {
+    animation: none !important;
+    transition: none !important;
+  }
 }
 
 /* ============================================================
@@ -1485,6 +1923,287 @@ code, pre {
 }
 
 /* ============================================================
+   SECTION 14B: MOBILE RESPONSIVE UTILITIES
+   ============================================================ */
+
+/* Mobile layout tokens */
+:root {
+  --mobile-bottom-bar-height: 56px;
+  --mobile-topbar-height: 48px;
+  --mobile-drawer-width: 100vw;
+  --mobile-safe-bottom: env(safe-area-inset-bottom, 0px);
+  --mobile-safe-top: env(safe-area-inset-top, 0px);
+}
+
+/* Touch target minimum 44x44px */
+.touch-target-min {
+  min-height: 44px;
+  min-width: 44px;
+}
+
+.touch-target-button {
+  min-height: 44px;
+  min-width: 44px;
+}
+
+/* Mobile bottom sheet overlay */
+.mobile-bottom-sheet {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 50;
+  background: var(--color-surface-raised);
+  border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+  border-top: 1px solid var(--border-default);
+  box-shadow: 0 -4px 24px rgba(0, 0, 0, 0.25);
+  max-height: 85vh;
+  transform: translateY(100%);
+  transition: transform 0.3s var(--ease-out);
+}
+
+.mobile-bottom-sheet--open {
+  transform: translateY(0);
+}
+
+/* Mobile fullscreen overlay for drawers */
+.mobile-drawer-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  background: var(--color-overlay);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease;
+}
+
+.mobile-drawer-overlay--open {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* Mobile hamburger menu button */
+.mobile-menu-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-md);
+  background: var(--color-surface-raised);
+  border: 1px solid var(--border-default);
+  color: var(--text-secondary);
+  transition: all 0.15s ease;
+}
+
+.mobile-menu-btn:active {
+  background: var(--color-surface-hover);
+  transform: scale(0.95);
+}
+
+/* Mobile compact toolbar */
+.mobile-toolbar {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: var(--space-1) var(--space-2);
+  overflow-x: auto;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.mobile-toolbar::-webkit-scrollbar {
+  display: none;
+}
+
+/* Mobile action bar at bottom */
+.mobile-action-bar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 30;
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  padding: var(--space-2) var(--space-3);
+  padding-bottom: calc(var(--space-2) + var(--mobile-safe-bottom));
+  background: var(--glass-bg-strong);
+  backdrop-filter: blur(20px) saturate(1.2);
+  -webkit-backdrop-filter: blur(20px) saturate(1.2);
+  border-top: 1px solid var(--border-default);
+  gap: var(--space-2);
+}
+
+/* Mobile swipe hint indicator */
+.mobile-swipe-hint {
+  position: relative;
+}
+
+.mobile-swipe-hint::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  width: 4px;
+  height: 40px;
+  border-radius: 2px;
+  background: var(--border-subtle);
+  transform: translateY(-50%);
+}
+
+.mobile-swipe-hint--left::after {
+  left: 2px;
+}
+
+.mobile-swipe-hint--right::after {
+  right: 2px;
+}
+
+/* Mobile-optimized writing canvas padding */
+@media (max-width: 768px) {
+  .writing-area .tiptap {
+    padding: 1rem !important;
+    font-size: 16px !important; /* Prevent iOS zoom on focus */
+  }
+
+  .writing-area .tiptap p {
+    text-indent: 1.5em;
+    margin-bottom: 1em;
+  }
+
+  /* Reduce particle count on mobile via CSS */
+  .particle-background .particle:nth-child(n+9) {
+    display: none;
+  }
+
+  /* Simplify ambient glow on mobile */
+  .ambient-glow::before {
+    display: none;
+  }
+
+  /* Mobile drawer takes full width */
+  .drawer-responsive {
+    position: fixed !important;
+    top: 0;
+    bottom: 0;
+    width: 85vw !important;
+    max-width: 360px;
+    z-index: 50;
+  }
+
+  .drawer-responsive.drawer-right {
+    right: 0;
+    left: auto;
+  }
+
+  .drawer-responsive.drawer-left {
+    left: 0;
+    right: auto;
+  }
+
+  /* Mobile bottom sheet for panels */
+  .mobile-panel-sheet {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 50;
+    background: var(--color-surface-raised);
+    border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+    border-top: 1px solid var(--border-default);
+    box-shadow: 0 -8px 32px rgba(0, 0, 0, 0.3);
+    max-height: 80vh;
+    overflow-y: auto;
+  }
+
+  /* Hide desktop-only elements */
+  .desktop-only {
+    display: none !important;
+  }
+
+  /* Mobile horizontal scroll for button groups */
+  .mobile-scroll-x {
+    display: flex;
+    gap: var(--space-2);
+    overflow-x: auto;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    padding-bottom: var(--space-1);
+  }
+
+  .mobile-scroll-x::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Compact mobile header */
+  .mobile-header-compact {
+    height: var(--mobile-topbar-height);
+    padding: 0 var(--space-3);
+  }
+
+  /* Mobile-safe padding for content above bottom bar */
+  .mobile-safe-bottom {
+    padding-bottom: calc(var(--mobile-bottom-bar-height) + var(--mobile-safe-bottom));
+  }
+}
+
+/* Tablet adjustments (641px - 1024px) */
+@media (min-width: 769px) and (max-width: 1024px) {
+  .drawer-responsive.drawer-right {
+    width: 320px !important;
+  }
+
+  .drawer-responsive.drawer-left {
+    width: 220px !important;
+  }
+}
+
+/* Desktop - hide mobile-only elements */
+@media (min-width: 769px) {
+  .mobile-only {
+    display: none !important;
+  }
+}
+
+/* Small phone adjustments */
+@media (max-width: 480px) {
+  :root {
+    --layout-topbar-height: 44px;
+    --mobile-bottom-bar-height: 52px;
+  }
+
+  .writing-area .tiptap {
+    padding: 0.75rem !important;
+  }
+
+  /* Further reduce particles on small screens */
+  .particle-background .particle:nth-child(n+6) {
+    display: none;
+  }
+
+  /* Stack buttons vertically on very small screens */
+  .mobile-stack {
+    flex-direction: column !important;
+    gap: var(--space-2) !important;
+  }
+
+  .mobile-stack > * {
+    width: 100%;
+  }
+}
+
+/* Virtual keyboard handling - adjust layout when keyboard is open */
+@media (max-height: 500px) and (max-width: 768px) {
+  .mobile-action-bar {
+    display: none;
+  }
+
+  .mobile-hide-keyboard-open {
+    display: none !important;
+  }
+}
+
+/* ============================================================
    SECTION 15: RESPONSIVE UTILITIES (Enhanced)
    ============================================================ */
 
@@ -1544,6 +2263,244 @@ code, pre {
 @media (min-width: 641px) and (max-width: 1024px) {
   .drawer-wide, .drawer-xtra-wide { width: 320px; }
   .drawer-normal { width: 240px; }
+}
+
+/* ============================================================
+   SECTION 15B: MOBILE GESTURE & KEYBOARD UTILITIES
+   ============================================================ */
+
+/* Swipe gesture capture areas for writing editor */
+.mobile-swipe-area {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 16px;
+  z-index: 5;
+  pointer-events: auto;
+  touch-action: pan-y;
+}
+
+.mobile-swipe-area--left {
+  left: 0;
+}
+
+.mobile-swipe-area--right {
+  right: 0;
+}
+
+/* Mobile drawer as full-screen overlay */
+@media (max-width: 768px) {
+  .drawer-fullscreen-mobile {
+    position: fixed !important;
+    top: 0 !important;
+    bottom: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    width: 100vw !important;
+    max-width: 100vw !important;
+    height: 100vh !important;
+    max-height: 100vh !important;
+    z-index: 50 !important;
+    border-radius: 0 !important;
+    border: none !important;
+  }
+
+  /* Mobile bottom sheet with handle */
+  .mobile-sheet-handle {
+    width: 36px;
+    height: 4px;
+    border-radius: 2px;
+    background: var(--border-default);
+    margin: 8px auto;
+  }
+
+  /* Mobile compact button group */
+  .mobile-btn-group {
+    display: flex;
+    gap: 4px;
+    overflow-x: auto;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    padding: 2px;
+  }
+
+  .mobile-btn-group::-webkit-scrollbar {
+    display: none;
+  }
+
+  .mobile-btn-group > button {
+    flex-shrink: 0;
+    min-height: 40px;
+    min-width: 40px;
+    padding: 8px 12px;
+    font-size: 13px;
+  }
+
+  /* Mobile toolbar - single row scrollable */
+  .mobile-toolbar-scroll {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    overflow-x: auto;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    padding: 4px 8px;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .mobile-toolbar-scroll::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Mobile writing canvas adjustments */
+  .mobile-writing-canvas {
+    padding: 12px !important;
+  }
+
+  .mobile-writing-canvas .ProseMirror {
+    padding: 12px !important;
+    font-size: 16px !important;
+    line-height: 1.75 !important;
+  }
+
+  /* Hide decorative elements on mobile for performance */
+  .mobile-hide-decorative {
+    display: none !important;
+  }
+
+  /* Mobile status bar compact */
+  .mobile-status-compact {
+    height: 36px;
+    padding: 0 12px;
+    font-size: 11px;
+  }
+
+  /* Mobile category nav as bottom sheet */
+  .mobile-category-sheet {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 50;
+    background: var(--color-surface-raised);
+    border-radius: 16px 16px 0 0;
+    border-top: 1px solid var(--border-default);
+    box-shadow: 0 -8px 32px rgba(0, 0, 0, 0.3);
+    max-height: 70vh;
+    overflow-y: auto;
+  }
+
+  /* Mobile entity cards - full width */
+  .mobile-entity-card {
+    width: 100%;
+    margin-bottom: 8px;
+  }
+
+  /* Mobile search input */
+  .mobile-search-input {
+    height: 40px;
+    font-size: 16px;
+  }
+
+  /* Mobile form fields */
+  .mobile-form-field {
+    margin-bottom: 12px;
+  }
+
+  .mobile-form-field label {
+    font-size: 13px;
+    margin-bottom: 4px;
+  }
+
+  .mobile-form-field input,
+  .mobile-form-field textarea,
+  .mobile-form-field select {
+    min-height: 44px;
+    font-size: 16px;
+    padding: 10px 12px;
+  }
+
+  /* Mobile chat area */
+  .mobile-chat-area {
+    padding: 12px;
+  }
+
+  .mobile-chat-bubble {
+    max-width: 90%;
+    padding: 10px 14px;
+    font-size: 14px;
+  }
+
+  /* Mobile input panel */
+  .mobile-input-panel {
+    padding: 8px 12px;
+    padding-bottom: calc(8px + var(--mobile-safe-bottom));
+  }
+
+  .mobile-input-panel textarea {
+    min-height: 44px;
+    font-size: 16px;
+    padding: 10px 12px;
+  }
+}
+
+/* Small phone specific (480px and below) */
+@media (max-width: 480px) {
+  .mobile-xs-hide {
+    display: none !important;
+  }
+
+  .mobile-xs-full {
+    width: 100% !important;
+  }
+
+  /* Even more compact toolbar */
+  .mobile-toolbar-compact {
+    padding: 2px 4px;
+  }
+
+  .mobile-toolbar-compact button {
+    min-height: 36px;
+    min-width: 36px;
+    padding: 6px 8px;
+  }
+
+  /* Smaller writing canvas padding */
+  .mobile-writing-canvas-xs {
+    padding: 8px !important;
+  }
+
+  .mobile-writing-canvas-xs .ProseMirror {
+    padding: 8px !important;
+  }
+}
+
+/* Tablet landscape optimization */
+@media (min-width: 769px) and (max-width: 1024px) and (orientation: landscape) {
+  .tablet-landscape-sidebar {
+    width: 200px !important;
+  }
+
+  .tablet-landscape-drawer {
+    width: 300px !important;
+  }
+}
+
+/* Virtual keyboard handling */
+@media (max-height: 500px) and (max-width: 768px) {
+  .keyboard-hide {
+    display: none !important;
+  }
+
+  .keyboard-compact {
+    padding: 4px 8px !important;
+    min-height: 36px !important;
+  }
+
+  .keyboard-adjust {
+    margin-bottom: 0 !important;
+    padding-bottom: 4px !important;
+  }
 }
 
 /* ============================================================
@@ -1635,15 +2592,6 @@ code, pre {
   40%           { transform: translateY(-6px); }
 }
 
-@keyframes float {
-  0%, 100% { transform: translateY(0px); }
-  50%      { transform: translateY(-6px); }
-}
-
-@keyframes breathe {
-  0%, 100% { transform: scale(1); opacity: 1; }
-  50%      { transform: scale(1.02); opacity: 0.85; }
-}
 
 @keyframes typing-dot-bounce {
   0%, 60%, 100% { transform: translateY(0); }
@@ -1653,6 +2601,26 @@ code, pre {
 @keyframes cursor-blink {
   0%, 100% { opacity: 0; }
   50%      { opacity: 1; }
+}
+
+/* Ambient orb float animation for immersive mode glow orbs */
+@keyframes ambient-orb-float {
+  0%, 100% {
+    transform: translate(0, 0) scale(1);
+    opacity: 0.6;
+  }
+  25% {
+    transform: translate(3%, -2%) scale(1.05);
+    opacity: 0.8;
+  }
+  50% {
+    transform: translate(-2%, 3%) scale(0.95);
+    opacity: 0.7;
+  }
+  75% {
+    transform: translate(2%, 2%) scale(1.02);
+    opacity: 0.75;
+  }
 }
 
 @keyframes paragraph-indicator-fade-in {
@@ -1681,6 +2649,12 @@ code, pre {
 }
 
 @keyframes gradient-shift {
+  0%   { background-position: 0% 50%; }
+  50%  { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+@keyframes gradient-flow {
   0%   { background-position: 0% 50%; }
   50%  { background-position: 100% 50%; }
   100% { background-position: 0% 50%; }
@@ -1748,13 +2722,6 @@ code, pre {
   animation: ripple 600ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
-.animate-float {
-  animation: float 3s ease-in-out infinite;
-}
-
-.animate-breathe {
-  animation: breathe 4s ease-in-out infinite;
-}
 
 .animate-typing-dot-bounce {
   animation: typing-dot-bounce 1.4s ease-in-out infinite;
@@ -1807,6 +2774,163 @@ code, pre {
 .rounded-full { border-radius: var(--radius-full); }
 
 /* ============================================================
+   SECTION 19A: WRITING APP UTILITY CLASSES
+   ============================================================ */
+
+/* Vignette overlay - darkens edges for immersive focus */
+.vignette-overlay {
+  position: relative;
+}
+.vignette-overlay::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(ellipse at center, transparent 50%, rgba(0, 0, 0, 0.35) 100%);
+  z-index: 1;
+}
+.vignette-overlay--subtle::after {
+  background: radial-gradient(ellipse at center, transparent 60%, rgba(0, 0, 0, 0.18) 100%);
+}
+.vignette-overlay--strong::after {
+  background: radial-gradient(ellipse at center, transparent 40%, rgba(0, 0, 0, 0.55) 100%);
+}
+
+/* Typewriter mode - hides UI chrome, maximizes writing space */
+.typewriter-mode {
+  --layout-sidebar-width: 0px;
+  --layout-topbar-height: 0px;
+  --layout-rightpanel-width: 0px;
+}
+.typewriter-mode .layout-sidebar,
+.typewriter-mode .layout-topbar,
+.typewriter-mode .layout-right-panel {
+  display: none !important;
+}
+.typewriter-mode .writing-area {
+  max-width: var(--writing-max-width);
+  margin: 0 auto;
+  padding: 4rem 2rem;
+}
+
+/* Focus dim - dims non-focused content for concentration */
+.focus-dim {
+  transition: opacity 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.focus-dim .focus-dim__target {
+  opacity: 1;
+  transition: opacity 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.focus-dim--active .focus-dim__target:not(:hover):not(:focus-within):not(.focus-dim__exclude) {
+  opacity: 0.35;
+  filter: saturate(0.6);
+}
+.focus-dim--active .focus-dim__target:hover,
+.focus-dim--active .focus-dim__target:focus-within {
+  opacity: 1;
+  filter: saturate(1);
+}
+
+/* Ambient glow - subtle pulsing light around element */
+.ambient-glow {
+  position: relative;
+}
+.ambient-glow::before {
+  content: '';
+  position: absolute;
+  inset: -20px;
+  background: radial-gradient(ellipse at center, var(--glow-primary) 0%, transparent 70%);
+  opacity: 0.4;
+  pointer-events: none;
+  animation: ambient-glow-pulse 6s ease-in-out infinite;
+  z-index: -1;
+}
+.ambient-glow--subtle::before {
+  opacity: 0.2;
+  inset: -10px;
+}
+.ambient-glow--strong::before {
+  opacity: 0.7;
+  inset: -30px;
+}
+
+/* Textured paper - adds paper grain and fiber texture */
+.textured-paper {
+  position: relative;
+  background-color: var(--writing-bg);
+}
+.textured-paper::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
+  opacity: var(--paper-texture-opacity, 0.04);
+  pointer-events: none;
+  mix-blend-mode: overlay;
+}
+.textured-paper::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(180deg, rgba(245, 240, 230, 0.02) 0%, transparent 30%, transparent 70%, rgba(0, 0, 0, 0.02) 100%);
+  pointer-events: none;
+}
+
+/* Writing app combined patterns */
+.writing-immersive {
+  position: relative;
+  background-color: var(--writing-bg);
+}
+.writing-immersive::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(ellipse at center, transparent 50%, rgba(0, 0, 0, 0.35) 100%);
+  z-index: 1;
+}
+.writing-immersive::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
+  opacity: var(--paper-texture-opacity, 0.04);
+  pointer-events: none;
+  mix-blend-mode: overlay;
+}
+
+.writing-focus-mode {
+  --layout-sidebar-width: 0px;
+  --layout-topbar-height: 0px;
+  --layout-rightpanel-width: 0px;
+  transition: opacity 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.writing-focus-mode .layout-sidebar,
+.writing-focus-mode .layout-topbar,
+.writing-focus-mode .layout-right-panel {
+  display: none !important;
+}
+.writing-focus-mode .writing-area {
+  max-width: var(--writing-max-width);
+  margin: 0 auto;
+  padding: 4rem 2rem;
+}
+.writing-focus-mode .focus-dim__target {
+  opacity: 1;
+  transition: opacity 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.writing-focus-mode--active .focus-dim__target:not(:hover):not(:focus-within):not(.focus-dim__exclude) {
+  opacity: 0.35;
+  filter: saturate(0.6);
+}
+.writing-focus-mode--active .focus-dim__target:hover,
+.writing-focus-mode--active .focus-dim__target:focus-within {
+  opacity: 1;
+  filter: saturate(1);
+}
+
+/* ============================================================
    SECTION 19: INTERACTION FEEDBACK
    ============================================================ */
 
@@ -1843,7 +2967,7 @@ code, pre {
   mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
   -webkit-mask-composite: xor;
   mask-composite: exclude;
-  animation: glow-pulse 2s ease-in-out infinite;
+  box-shadow: 0 0 20px rgba(94, 106, 210, 0.3), 0 0 40px rgba(94, 181, 166, 0.2);
   pointer-events: none;
 }
 
@@ -2252,6 +3376,33 @@ code, pre {
   background-color: color-mix(in srgb, var(--writing-text) 3%, transparent);
   border: 1px solid var(--border-subtle);
   backdrop-filter: blur(8px);
+}
+
+/* Enhanced writing card with glow border effect */
+.writing-card--glow {
+  box-shadow:
+    0 2px 8px color-mix(in srgb, var(--ink-100) 10%, transparent),
+    0 8px 24px color-mix(in srgb, var(--ink-100) 8%, transparent),
+    0 16px 48px color-mix(in srgb, var(--ink-100) 5%, transparent),
+    inset 0 1px 0 var(--border-subtle),
+    inset 0 -1px 0 color-mix(in srgb, var(--paper-100) 20%, transparent);
+}
+
+/* Subtle inner glow at top of writing card */
+.writing-card__top-glow {
+  position: absolute;
+  inset-inline: 32px;
+  top: 0;
+  height: 1px;
+  border-radius: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    color-mix(in srgb, var(--color-character) 15%, transparent) 50%,
+    transparent
+  );
+  box-shadow: 0 0 12px color-mix(in srgb, var(--color-character) 10%, transparent);
+  pointer-events: none;
 }
 
 .immersive-mode {
@@ -2926,4 +4077,82 @@ code, pre {
   background:
     radial-gradient(ellipse at 50% 50%, rgba(180, 112, 64, 0.02) 0%, transparent 60%),
     #faf4e4;
+}
+
+/* ============================================================
+   Eye-care theme interface backgrounds - soft green tones
+   ============================================================ */
+[data-theme="eye-care"] .bg-chat,
+.eye-care .bg-chat {
+  background:
+    radial-gradient(ellipse at 20% 0%, rgba(111, 168, 108, 0.06) 0%, transparent 50%),
+    radial-gradient(ellipse at 80% 100%, rgba(156, 184, 150, 0.04) 0%, transparent 50%),
+    linear-gradient(180deg, var(--color-surface-base) 0%, #1a211a 100%);
+}
+
+[data-theme="eye-care"] .bg-settings,
+.eye-care .bg-settings {
+  background:
+    radial-gradient(ellipse at 30% 30%, rgba(111, 168, 108, 0.05) 0%, transparent 50%),
+    radial-gradient(ellipse at 70% 70%, rgba(90, 140, 90, 0.03) 0%, transparent 50%),
+    linear-gradient(180deg, var(--color-surface-base) 0%, #1a211a 100%);
+}
+
+[data-theme="eye-care"] .bg-writing,
+.eye-care .bg-writing {
+  background:
+    radial-gradient(ellipse at 50% 50%, rgba(111, 168, 108, 0.02) 0%, transparent 60%),
+    var(--color-surface-base);
+}
+
+/* ============================================================
+   Midnight-blue theme interface backgrounds - deep blue tones
+   ============================================================ */
+[data-theme="midnight-blue"] .bg-chat,
+.midnight-blue .bg-chat {
+  background:
+    radial-gradient(ellipse at 20% 0%, rgba(91, 152, 248, 0.07) 0%, transparent 50%),
+    radial-gradient(ellipse at 80% 100%, rgba(157, 180, 207, 0.04) 0%, transparent 50%),
+    linear-gradient(180deg, var(--color-surface-base) 0%, #0a1020 100%);
+}
+
+[data-theme="midnight-blue"] .bg-settings,
+.midnight-blue .bg-settings {
+  background:
+    radial-gradient(ellipse at 30% 30%, rgba(91, 152, 248, 0.05) 0%, transparent 50%),
+    radial-gradient(ellipse at 70% 70%, rgba(60, 117, 212, 0.03) 0%, transparent 50%),
+    linear-gradient(180deg, var(--color-surface-base) 0%, #0a1020 100%);
+}
+
+[data-theme="midnight-blue"] .bg-writing,
+.midnight-blue .bg-writing {
+  background:
+    radial-gradient(ellipse at 50% 50%, rgba(91, 152, 248, 0.02) 0%, transparent 60%),
+    var(--color-surface-base);
+}
+
+/* ============================================================
+   Forest-green theme interface backgrounds - natural green tones
+   ============================================================ */
+[data-theme="forest-green"] .bg-chat,
+.forest-green .bg-chat {
+  background:
+    radial-gradient(ellipse at 20% 0%, rgba(90, 175, 114, 0.07) 0%, transparent 50%),
+    radial-gradient(ellipse at 80% 100%, rgba(148, 184, 148, 0.04) 0%, transparent 50%),
+    linear-gradient(180deg, var(--color-surface-base) 0%, #0d1610 100%);
+}
+
+[data-theme="forest-green"] .bg-settings,
+.forest-green .bg-settings {
+  background:
+    radial-gradient(ellipse at 30% 30%, rgba(90, 175, 114, 0.05) 0%, transparent 50%),
+    radial-gradient(ellipse at 70% 70%, rgba(60, 140, 80, 0.03) 0%, transparent 50%),
+    linear-gradient(180deg, var(--color-surface-base) 0%, #0d1610 100%);
+}
+
+[data-theme="forest-green"] .bg-writing,
+.forest-green .bg-writing {
+  background:
+    radial-gradient(ellipse at 50% 50%, rgba(90, 175, 114, 0.02) 0%, transparent 60%),
+    var(--color-surface-base);
 }

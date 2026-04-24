@@ -74,19 +74,22 @@ export function CategoryNav() {
   }
 
   return (
-    <div className="h-full flex flex-col bg-[var(--color-bg-surface)]">
-      {/* Header */}
-      <div className="px-4 py-5 relative overflow-hidden border-b border-[var(--color-border)]">
-        <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-[color-mix(in_srgb,var(--accent-100)_40%,transparent)] to-transparent" />
-        <h2 className="font-semibold text-base text-[var(--text-primary)]">
+    <div className="h-full flex flex-col bg-[var(--color-surface-base)]">
+      {/* Header with subtle gradient accent */}
+      <div className="px-4 py-5 relative overflow-hidden border-b border-[var(--border-subtle)]">
+        <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-[var(--accent-100)] to-transparent opacity-40" />
+        <div className="absolute -top-8 -right-8 w-24 h-24 rounded-full opacity-[0.06]"
+          style={{ background: 'radial-gradient(circle, var(--accent-100), transparent 70%)' }}
+        />
+        <h2 className="font-semibold text-base text-[var(--text-primary)] relative">
           设定编辑
         </h2>
-        <p className="text-xs mt-1.5 text-[var(--color-text-muted)]">
+        <p className="text-xs mt-1.5 text-[var(--text-tertiary)] relative">
           管理你的世界观、角色、物品等
         </p>
       </div>
 
-      {/* Navigation list */}
+      {/* Navigation list with flowing light indicator */}
       <nav className="flex-1 overflow-y-auto py-3 category-nav-scroll">
         <AnimatePresence>
           {categories.map(({ key, label, iconType }, index) => {
@@ -104,7 +107,7 @@ export function CategoryNav() {
                   transition-all duration-200 ease-out
                   ${isActive
                     ? ''
-                    : 'hover:bg-[var(--color-surface-hover)] hover:pl-5'
+                    : 'hover:bg-[var(--color-surface-hover)]'
                   }
                 `}
                 initial={{ opacity: 0, x: -12 }}
@@ -117,16 +120,16 @@ export function CategoryNav() {
                 whileHover={isActive ? {} : { x: 2 }}
                 whileTap={{ scale: 0.98 }}
                 style={isActive ? {
-                  backgroundColor: `${color}12`,
+                  backgroundColor: `${color}10`,
                 } : undefined}
               >
-                {/* Active accent indicator bar with spring animation */}
+                {/* Flowing light indicator - gradient left border glow */}
                 <motion.div
                   className="absolute left-0 top-1/2 -translate-y-1/2 rounded-r-full"
                   initial={false}
                   animate={{
                     width: isActive ? 3 : 0,
-                    height: isActive ? 20 : 12,
+                    height: isActive ? 24 : 12,
                     opacity: isActive ? 1 : 0,
                   }}
                   transition={{
@@ -136,8 +139,12 @@ export function CategoryNav() {
                     mass: 0.8,
                   }}
                   style={{
-                    backgroundColor: isActive ? color : 'var(--text-tertiary)',
-                    boxShadow: isActive ? `0 0 8px ${color}60, 0 0 16px ${color}30` : 'none',
+                    background: isActive
+                      ? `linear-gradient(180deg, ${color}00, ${color}, ${color}00)`
+                      : 'var(--text-tertiary)',
+                    boxShadow: isActive
+                      ? `0 0 12px ${color}80, 0 0 24px ${color}40, 0 0 36px ${color}20`
+                      : 'none',
                   }}
                 />
 
@@ -147,21 +154,21 @@ export function CategoryNav() {
                   initial={false}
                   animate={{
                     width: !isActive ? 2 : 0,
-                    opacity: !isActive ? 0.5 : 0,
+                    opacity: !isActive ? 0.4 : 0,
                   }}
                   transition={{ duration: 0.15 }}
                   style={{
                     height: 12,
-                    backgroundColor: color,
+                    background: `linear-gradient(180deg, ${color}00, ${color}60, ${color}00)`,
                   }}
                 />
 
                 {/* Icon wrapper with animated background glow */}
                 <motion.div
-                  className="w-6 h-6 flex items-center justify-center flex-shrink-0 rounded-md"
+                  className="w-7 h-7 flex items-center justify-center flex-shrink-0 rounded-lg"
                   animate={isActive ? {
-                    backgroundColor: `${color}18`,
-                    boxShadow: `0 0 10px ${color}25`,
+                    backgroundColor: `${color}15`,
+                    boxShadow: `0 0 12px ${color}20, inset 0 0 8px ${color}10`,
                   } : {
                     backgroundColor: 'transparent',
                     boxShadow: 'none',
@@ -202,8 +209,9 @@ export function CategoryNav() {
         </AnimatePresence>
       </nav>
 
-      {/* Footer: AI tools with improved animation */}
-      <div className="p-4 flex flex-col gap-2 border-t border-[var(--color-border)]">
+      {/* Footer: AI tools with refined styling */}
+      <div className="p-4 flex flex-col gap-2 border-t border-[var(--border-subtle)] relative">
+        <div className="absolute top-0 left-4 right-4 h-px bg-gradient-to-r from-transparent via-[var(--border-default)] to-transparent" />
         <AnimatePresence mode="wait">
           {reviewableCategories.includes(settingsCategory) && (
             <motion.div

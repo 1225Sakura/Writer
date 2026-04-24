@@ -14,9 +14,9 @@ import { motion } from 'framer-motion'
 import type { ReactNode, CSSProperties } from 'react'
 import { cn } from '@/lib/utils'
 
-export type GlassIntensity = 'light' | 'medium' | 'strong' | 'heavy' | 'subtle' | 'ultra'
-export type GlassBorder = 'none' | 'subtle' | 'glow' | 'gradient' | 'accent'
-export type GlassVariant = 'default' | 'elevated' | 'floating' | 'outlined' | 'filled'
+export type GlassIntensity = 'light' | 'medium' | 'strong' | 'heavy' | 'subtle' | 'ultra' | 'writing'
+export type GlassBorder = 'none' | 'subtle' | 'glow' | 'gradient' | 'accent' | 'soft' | 'entity'
+export type GlassVariant = 'default' | 'elevated' | 'floating' | 'outlined' | 'filled' | 'writing'
 
 interface GlassCardProps {
   children: ReactNode
@@ -50,6 +50,8 @@ interface GlassCardProps {
   shimmer?: boolean
   /** 透明度 */
   opacity?: number
+  /** 实体颜色编码（用于 entity 边框） */
+  entityColor?: 'character' | 'item' | 'location' | 'faction' | 'outline' | 'ifline' | 'accent'
 }
 
 const intensityStyles: Record<GlassIntensity, CSSProperties> = {
@@ -83,11 +85,58 @@ const intensityStyles: Record<GlassIntensity, CSSProperties> = {
     backdropFilter: 'blur(48px) saturate(1.5)',
     WebkitBackdropFilter: 'blur(48px) saturate(1.5)',
   },
+  writing: {
+    background: 'rgba(13, 13, 18, 0.92)',
+    backdropFilter: 'blur(20px) saturate(1.1)',
+    WebkitBackdropFilter: 'blur(20px) saturate(1.1)',
+  },
+}
+
+const lightIntensityStyles: Record<GlassIntensity, CSSProperties> = {
+  light: {
+    background: 'rgba(255, 255, 255, 0.55)',
+    backdropFilter: 'blur(8px) saturate(1.1)',
+    WebkitBackdropFilter: 'blur(8px) saturate(1.1)',
+  },
+  subtle: {
+    background: 'rgba(255, 255, 255, 0.65)',
+    backdropFilter: 'blur(12px) saturate(1.15)',
+    WebkitBackdropFilter: 'blur(12px) saturate(1.15)',
+  },
+  medium: {
+    background: 'rgba(255, 255, 255, 0.72)',
+    backdropFilter: 'blur(16px) saturate(1.2)',
+    WebkitBackdropFilter: 'blur(16px) saturate(1.2)',
+  },
+  strong: {
+    background: 'rgba(255, 255, 255, 0.82)',
+    backdropFilter: 'blur(24px) saturate(1.3)',
+    WebkitBackdropFilter: 'blur(24px) saturate(1.3)',
+  },
+  heavy: {
+    background: 'rgba(255, 255, 255, 0.9)',
+    backdropFilter: 'blur(32px) saturate(1.4)',
+    WebkitBackdropFilter: 'blur(32px) saturate(1.4)',
+  },
+  ultra: {
+    background: 'rgba(255, 255, 255, 0.95)',
+    backdropFilter: 'blur(48px) saturate(1.5)',
+    WebkitBackdropFilter: 'blur(48px) saturate(1.5)',
+  },
+  writing: {
+    background: 'rgba(250, 248, 245, 0.92)',
+    backdropFilter: 'blur(20px) saturate(1.1)',
+    WebkitBackdropFilter: 'blur(20px) saturate(1.1)',
+  },
 }
 
 const borderStyles: Record<GlassBorder, CSSProperties> = {
   none: { border: '1px solid transparent' },
   subtle: { border: '1px solid rgba(255, 255, 255, 0.08)' },
+  soft: {
+    border: '1px solid rgba(255, 255, 255, 0.12)',
+    boxShadow: 'inset 0 1px 0 rgba(255, 255, 255, 0.06)',
+  },
   glow: {
     border: '1px solid rgba(94, 106, 210, 0.25)',
     boxShadow: '0 0 16px rgba(94, 106, 210, 0.12), inset 0 0 16px rgba(94, 106, 210, 0.06)',
@@ -100,6 +149,38 @@ const borderStyles: Record<GlassBorder, CSSProperties> = {
   accent: {
     border: '1px solid rgba(94, 106, 210, 0.35)',
     boxShadow: '0 0 20px rgba(94, 106, 210, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.08)',
+  },
+  entity: {
+    border: '1px solid transparent',
+    backgroundClip: 'padding-box',
+    position: 'relative' as const,
+  },
+}
+
+const lightBorderStyles: Record<GlassBorder, CSSProperties> = {
+  none: { border: '1px solid transparent' },
+  subtle: { border: '1px solid rgba(0, 0, 0, 0.06)' },
+  soft: {
+    border: '1px solid rgba(0, 0, 0, 0.1)',
+    boxShadow: 'inset 0 1px 0 rgba(255, 255, 255, 0.5)',
+  },
+  glow: {
+    border: '1px solid rgba(94, 106, 210, 0.2)',
+    boxShadow: '0 0 16px rgba(94, 106, 210, 0.08), inset 0 0 16px rgba(94, 106, 210, 0.04)',
+  },
+  gradient: {
+    border: '1px solid transparent',
+    backgroundClip: 'padding-box',
+    position: 'relative' as const,
+  },
+  accent: {
+    border: '1px solid rgba(94, 106, 210, 0.25)',
+    boxShadow: '0 0 20px rgba(94, 106, 210, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.3)',
+  },
+  entity: {
+    border: '1px solid transparent',
+    backgroundClip: 'padding-box',
+    position: 'relative' as const,
   },
 }
 
@@ -123,6 +204,42 @@ const variantStyles: Record<GlassVariant, CSSProperties> = {
     backdropFilter: 'none',
     WebkitBackdropFilter: 'none',
   },
+  writing: {
+    background: 'rgba(13, 13, 18, 0.94)',
+    backdropFilter: 'blur(24px) saturate(1.05)',
+    WebkitBackdropFilter: 'blur(24px) saturate(1.05)',
+    border: '1px solid rgba(255, 255, 255, 0.05)',
+    boxShadow: '0 4px 24px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.03)',
+  },
+}
+
+const lightVariantStyles: Record<GlassVariant, CSSProperties> = {
+  default: {},
+  elevated: {
+    boxShadow: '0 2px 8px rgba(0, 0, 0, 0.06), 0 8px 24px rgba(0, 0, 0, 0.04), inset 0 1px 0 rgba(255, 255, 255, 0.8)',
+  },
+  floating: {
+    boxShadow: '0 4px 12px rgba(0, 0, 0, 0.08), 0 16px 40px rgba(0, 0, 0, 0.06), inset 0 1px 0 rgba(255, 255, 255, 0.9)',
+    transform: 'translateY(0)',
+  },
+  outlined: {
+    background: 'transparent',
+    backdropFilter: 'none',
+    WebkitBackdropFilter: 'none',
+    border: '1px solid rgba(0, 0, 0, 0.1)',
+  },
+  filled: {
+    background: 'rgba(0, 0, 0, 0.04)',
+    backdropFilter: 'none',
+    WebkitBackdropFilter: 'none',
+  },
+  writing: {
+    background: 'rgba(250, 248, 245, 0.94)',
+    backdropFilter: 'blur(24px) saturate(1.05)',
+    WebkitBackdropFilter: 'blur(24px) saturate(1.05)',
+    border: '1px solid rgba(0, 0, 0, 0.06)',
+    boxShadow: '0 4px 24px rgba(0, 0, 0, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.5)',
+  },
 }
 
 const roundedMap: Record<string, string> = {
@@ -142,15 +259,35 @@ const paddingMap: Record<string, string> = {
   xl: '32px',
 }
 
+const entityColorMap: Record<string, string> = {
+  character: 'rgba(232, 184, 125, 0.5)',
+  item: 'rgba(155, 126, 217, 0.5)',
+  location: 'rgba(94, 181, 166, 0.5)',
+  faction: 'rgba(212, 93, 93, 0.5)',
+  outline: 'rgba(91, 142, 232, 0.5)',
+  ifline: 'rgba(126, 183, 74, 0.5)',
+  accent: 'rgba(94, 106, 210, 0.5)',
+}
+
+const entityGlowMap: Record<string, string> = {
+  character: 'rgba(232, 184, 125, 0.15)',
+  item: 'rgba(155, 126, 217, 0.15)',
+  location: 'rgba(94, 181, 166, 0.15)',
+  faction: 'rgba(212, 93, 93, 0.15)',
+  outline: 'rgba(91, 142, 232, 0.15)',
+  ifline: 'rgba(126, 183, 74, 0.15)',
+  accent: 'rgba(94, 106, 210, 0.15)',
+}
+
 /**
  * GlassCard - 毛玻璃效果卡片
  *
  * 特性：
- * - 多种玻璃强度可选（light, subtle, medium, strong, heavy, ultra）
- * - 多种边框样式（none, subtle, glow, gradient, accent）
- * - 多种变体（default, elevated, floating, outlined, filled）
+ * - 多种玻璃强度可选（light, subtle, medium, strong, heavy, ultra, writing）
+ * - 多种边框样式（none, subtle, soft, glow, gradient, accent, entity）
+ * - 多种变体（default, elevated, floating, outlined, filled, writing）
  * - 悬停/点击微动效
- * - 自动适配主题
+ * - 自动适配主题（深色/浅色）
  * - 支持 Framer Motion layout
  * - 可选光泽动画
  */
@@ -172,18 +309,29 @@ export function GlassCard({
   layoutId,
   shimmer = false,
   opacity,
+  entityColor = 'accent',
 }: GlassCardProps) {
+  const isLight = typeof document !== 'undefined'
+    ? document.documentElement.getAttribute('data-theme') === 'light'
+    : false
+
+  const currentIntensity = isLight ? lightIntensityStyles : intensityStyles
+  const currentBorder = isLight ? lightBorderStyles : borderStyles
+  const currentVariant = isLight ? lightVariantStyles : variantStyles
+
   const baseStyle: CSSProperties = {
-    ...intensityStyles[intensity],
-    ...borderStyles[border],
-    ...variantStyles[variant],
+    ...currentIntensity[intensity],
+    ...currentBorder[border],
+    ...currentVariant[variant],
     borderRadius: roundedMap[rounded],
     padding: paddingMap[padding],
     ...(bgColor && { background: bgColor }),
     ...(borderColor && { border: `1px solid ${borderColor}` }),
     ...(opacity !== undefined && { opacity }),
     ...(variant !== 'elevated' && variant !== 'floating' && shadow && {
-      boxShadow: '0 4px 24px rgba(0, 0, 0, 0.15), 0 1px 2px rgba(0, 0, 0, 0.1)',
+      boxShadow: isLight
+        ? '0 4px 24px rgba(0, 0, 0, 0.08), 0 1px 2px rgba(0, 0, 0, 0.06)'
+        : '0 4px 24px rgba(0, 0, 0, 0.15), 0 1px 2px rgba(0, 0, 0, 0.1)',
     }),
   }
 
@@ -195,24 +343,30 @@ export function GlassCard({
       layoutId={layoutId}
       className={cn(
         'relative overflow-hidden',
-        hover && 'transition-all duration-200 cursor-pointer',
-        hover && 'hover:shadow-lg hover:shadow-black/20 hover:-translate-y-0.5',
-        press && 'active:scale-[0.98]',
+        hover && 'cursor-pointer',
         onClick && 'cursor-pointer',
         className
       )}
       style={baseStyle}
       onClick={onClick}
-      whileHover={hover ? { y: -2, opacity: 0.98 } : undefined}
-      transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
+      whileHover={hover ? {
+        y: -2,
+        boxShadow: isLight
+          ? '0 8px 24px rgba(0, 0, 0, 0.1), 0 2px 6px rgba(0, 0, 0, 0.06)'
+          : '0 8px 24px rgba(0, 0, 0, 0.2), 0 2px 6px rgba(0, 0, 0, 0.1)',
+      } : undefined}
+      whileTap={press ? { scale: 0.98 } : undefined}
+      transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
     >
-      {/* Gradient border overlay - 降低透明度 */}
+      {/* Gradient border overlay */}
       {border === 'gradient' && (
         <div
           className="absolute inset-0 rounded-inherit pointer-events-none"
           style={{
             padding: '1px',
-            background: 'linear-gradient(135deg, rgba(94, 106, 210, 0.25), rgba(94, 181, 166, 0.2), rgba(232, 184, 125, 0.22))',
+            background: isLight
+              ? 'linear-gradient(135deg, rgba(94, 106, 210, 0.35), rgba(94, 181, 166, 0.25), rgba(232, 184, 125, 0.3))'
+              : 'linear-gradient(135deg, rgba(94, 106, 210, 0.35), rgba(94, 181, 166, 0.25), rgba(232, 184, 125, 0.3))',
             WebkitMask: 'linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)',
             WebkitMaskComposite: 'xor',
             maskComposite: 'exclude',
@@ -221,12 +375,44 @@ export function GlassCard({
         />
       )}
 
-      {/* Shimmer animation overlay - 仅在显式启用时显示，降低透明度 */}
+      {/* Entity color border overlay */}
+      {border === 'entity' && (
+        <motion.div
+          className="absolute inset-0 rounded-inherit pointer-events-none"
+          style={{
+            padding: '1.5px',
+            background: `linear-gradient(135deg, ${entityColorMap[entityColor]}, ${entityGlowMap[entityColor]})`,
+            WebkitMask: 'linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)',
+            WebkitMaskComposite: 'xor',
+            maskComposite: 'exclude',
+            borderRadius: 'inherit',
+          }}
+        />
+      )}
+
+      {/* Hover glow overlay for glow/accent borders */}
+      {(border === 'glow' || border === 'accent') && hover && (
+        <motion.div
+          className="absolute inset-0 rounded-inherit pointer-events-none"
+          initial={{ opacity: 0 }}
+          whileHover={{ opacity: 1 }}
+          transition={{ duration: 0.3 }}
+          style={{
+            background: isLight
+              ? 'radial-gradient(ellipse at 50% 0%, rgba(94, 106, 210, 0.06) 0%, transparent 60%)'
+              : 'radial-gradient(ellipse at 50% 0%, rgba(94, 106, 210, 0.08) 0%, transparent 60%)',
+          }}
+        />
+      )}
+
+      {/* Shimmer animation overlay */}
       {shimmer && (
         <motion.div
           className="absolute inset-0 pointer-events-none rounded-inherit"
           style={{
-            background: 'linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.03), transparent)',
+            background: isLight
+              ? 'linear-gradient(90deg, transparent, rgba(94, 106, 210, 0.04), transparent)'
+              : 'linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.03), transparent)',
             backgroundSize: '200% 100%',
           }}
           animate={{ backgroundPosition: ['200% 0', '-200% 0'] }}
@@ -255,13 +441,21 @@ export function GlassPanel({
   border?: GlassBorder
   variant?: GlassVariant
 }) {
+  const isLight = typeof document !== 'undefined'
+    ? document.documentElement.getAttribute('data-theme') === 'light'
+    : false
+
+  const currentIntensity = isLight ? lightIntensityStyles : intensityStyles
+  const currentBorder = isLight ? lightBorderStyles : borderStyles
+  const currentVariant = isLight ? lightVariantStyles : variantStyles
+
   return (
     <div
       className={cn('relative overflow-hidden', className)}
       style={{
-        ...intensityStyles[intensity],
-        ...borderStyles[border],
-        ...variantStyles[variant],
+        ...currentIntensity[intensity],
+        ...currentBorder[border],
+        ...currentVariant[variant],
         height: '100%',
       }}
     >

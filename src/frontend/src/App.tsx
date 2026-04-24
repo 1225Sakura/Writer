@@ -17,26 +17,57 @@ const SettingEditorPage = lazy(() => import('@/components/settings/SettingEditor
 const WritingEditorPage = lazy(() => import('@/components/writing/WritingEditorPage').then(m => ({ default: m.WritingEditorPage as ComponentType<any> })))
 
 /**
- * 根据当前界面类型获取对应的背景模式
- * chat -> particle (温暖活跃的粒子)
- * settings -> grid (结构化网格)
- * writing -> starfield (静谧星空)
+ * Background mode mapping per interface type
+ * Each interface has a unique visual personality
  */
 function getBackgroundMode(interfaceType: string): BackgroundMode {
   switch (interfaceType) {
     case 'chat':
-      return 'particle'
+      return 'particle' // Warm, active, social
     case 'settings':
-      return 'grid'
+      return 'grid'     // Structured, organized
     case 'writing':
-      return 'starfield'
+      return 'starfield' // Calm, focused, immersive
     default:
       return 'particle'
   }
 }
 
 /**
- * 根据当前界面类型获取对应的背景CSS类
+ * Background density mapping per interface
+ * Writing gets lower density for focus
+ */
+function getBackgroundDensity(interfaceType: string): 'low' | 'medium' | 'high' {
+  switch (interfaceType) {
+    case 'chat':
+      return 'medium'
+    case 'settings':
+      return 'medium'
+    case 'writing':
+      return 'low' // Minimal distraction
+    default:
+      return 'medium'
+  }
+}
+
+/**
+ * Background speed mapping per interface
+ */
+function getBackgroundSpeed(interfaceType: string): 'slow' | 'normal' | 'fast' {
+  switch (interfaceType) {
+    case 'chat':
+      return 'normal'
+    case 'settings':
+      return 'slow'
+    case 'writing':
+      return 'slow' // Calm, steady
+    default:
+      return 'normal'
+  }
+}
+
+/**
+ * CSS class for interface-specific base background
  */
 function getInterfaceBgClass(interfaceType: string): string {
   switch (interfaceType) {
@@ -51,13 +82,30 @@ function getInterfaceBgClass(interfaceType: string): string {
   }
 }
 
+/**
+ * 3-layer background stacking strategy:
+ * Layer 0 (z-index: -3): Solid color base via bg-layered::before
+ * Layer 1 (z-index: -2): Canvas dynamic background (DynamicBackground)
+ * Layer 2 (z-index: -1): CSS particle overlay (ParticleBackground)
+ * Layer 3 (z-index: 0+): Page content
+ *
+ * Coordination strategy:
+ * - Canvas layer provides main dynamic visual interest
+ * - CSS particles provide subtle floating accents
+ * - Canvas uses opacity 0.4-0.6, CSS particles use very low opacity 0.01-0.02
+ * - All layers use consistent theme color palette
+ * - Interface switching triggers smooth background transitions
+ * - Writing interface minimizes both layers for focus
+ */
 function AppContent() {
   const { currentInterface } = useUIStore()
 
   const backgroundMode = useMemo(() => getBackgroundMode(currentInterface), [currentInterface])
+  const backgroundDensity = useMemo(() => getBackgroundDensity(currentInterface), [currentInterface])
+  const backgroundSpeed = useMemo(() => getBackgroundSpeed(currentInterface), [currentInterface])
   const bgClass = useMemo(() => getInterfaceBgClass(currentInterface), [currentInterface])
 
-  // Render current interface with per-component Suspense boundaries to isolate loading states
+  // Render current interface with per-component Suspense boundaries
   const renderInterface = () => {
     const loadingFallback = (
       <div className="h-screen w-screen overflow-hidden bg-[var(--color-black)] flex items-center justify-center">
@@ -95,18 +143,24 @@ function AppContent() {
 
   return (
     <div className={`h-screen w-screen overflow-hidden relative bg-layered ${bgClass}`}>
-      {/* Layer 1: CSS Particle Background (纯CSS，零JS开销) */}
+      {/* Layer 1: CSS Particle Background (pure CSS, zero JS overhead) */}
+      {/* Subtle floating particles above Canvas for depth */}
       <div className="bg-layered__particles">
-        <ParticleBackground particleCount={16} showConnections={false} />
+        <ParticleBackground
+          particleCount={currentInterface === 'writing' ? 4 : 8}
+          interfaceType={currentInterface as 'chat' | 'settings' | 'writing'}
+        />
       </div>
 
-      {/* Layer 2: Canvas Dynamic Background (根据界面切换模式) */}
+      {/* Layer 2: Canvas Dynamic Background (mode switches with interface) */}
+      {/* Primary visual interest - adapts to interface personality */}
       <div className="bg-layered__gradient">
         <DynamicBackground
           mode={backgroundMode}
-          density="medium"
-          speed="slow"
+          density={backgroundDensity}
+          speed={backgroundSpeed}
           className="opacity-50"
+          interfaceType={currentInterface as 'chat' | 'settings' | 'writing'}
         />
       </div>
 

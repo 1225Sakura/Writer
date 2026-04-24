@@ -3,19 +3,18 @@
  * Uses Framer Motion for smooth entrance/exit animations
  *
  * Variants:
- *   default  — Feather icon with pulse rings and glow
+ *   default  — Multi-layer rotating rings with gradient glow
  *   minimal  — Simple spinner only
  *   branded  — Full brand animation with progress
  *   skeleton — Skeleton placeholder with overlay
  */
 
 import { motion, AnimatePresence } from 'framer-motion'
-import { Feather, BookOpen } from 'lucide-react'
+import { BookOpen } from 'lucide-react'
 import { LoadingSpinner } from './LoadingSpinner'
 import { cn } from '@/lib/utils'
 
 export type OverlayVariant = 'default' | 'minimal' | 'branded' | 'skeleton'
-
 export type OverlaySize = 'fullscreen' | 'floating' | 'inline' | 'toolbar'
 
 interface LoadingOverlayProps {
@@ -35,23 +34,47 @@ interface LoadingOverlayProps {
 const sizeStyles: Record<OverlaySize, { container: string; blur: string; bgOpacity: string }> = {
   fullscreen: {
     container: 'fixed inset-0 z-[100]',
-    blur: 'blur(20px)',
-    bgOpacity: 'rgba(10, 11, 14, 0.88)',
+    blur: 'blur(24px)',
+    bgOpacity: 'rgba(10, 11, 14, 0.92)',
   },
   floating: {
     container: 'absolute inset-0 z-50 rounded-xl',
-    blur: 'blur(12px)',
-    bgOpacity: 'rgba(10, 11, 14, 0.75)',
+    blur: 'blur(16px)',
+    bgOpacity: 'rgba(10, 11, 14, 0.80)',
   },
   inline: {
     container: 'absolute inset-0 z-40 rounded-lg',
-    blur: 'blur(8px)',
-    bgOpacity: 'rgba(10, 11, 14, 0.65)',
+    blur: 'blur(12px)',
+    bgOpacity: 'rgba(10, 11, 14, 0.70)',
   },
   toolbar: {
     container: 'absolute inset-0 rounded-md',
-    blur: 'blur(4px)',
-    bgOpacity: 'rgba(10, 11, 14, 0.5)',
+    blur: 'blur(6px)',
+    bgOpacity: 'rgba(10, 11, 14, 0.55)',
+  },
+}
+
+/** Typography scale for loading messages */
+const messageStyles: Record<OverlaySize, { text: string; subtext: string; tracking: string }> = {
+  fullscreen: {
+    text: 'text-base font-medium',
+    subtext: 'text-sm',
+    tracking: 'tracking-wide',
+  },
+  floating: {
+    text: 'text-sm font-medium',
+    subtext: 'text-xs',
+    tracking: 'tracking-wide',
+  },
+  inline: {
+    text: 'text-sm font-medium',
+    subtext: 'text-xs',
+    tracking: 'tracking-normal',
+  },
+  toolbar: {
+    text: 'text-xs font-medium',
+    subtext: 'text-[10px]',
+    tracking: 'tracking-normal',
   },
 }
 
@@ -67,6 +90,7 @@ export function LoadingOverlay({
   onCancel,
 }: LoadingOverlayProps) {
   const sizeStyle = fullscreen ? sizeStyles.fullscreen : (size === 'toolbar' ? sizeStyles.toolbar : sizeStyles.floating)
+  const msgStyle = fullscreen ? messageStyles.fullscreen : messageStyles[size]
 
   return (
     <AnimatePresence>
@@ -75,7 +99,7 @@ export function LoadingOverlay({
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
+          transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
           className={cn(
             sizeStyle.container,
             'flex flex-col items-center justify-center',
@@ -87,24 +111,27 @@ export function LoadingOverlay({
             WebkitBackdropFilter: sizeStyle.blur,
           }}
         >
-          {/* Radial gradient glow */}
+          {/* Multi-layer radial gradient glow */}
           <div
             className="absolute inset-0 pointer-events-none"
             style={{
-              background: 'radial-gradient(circle at center, rgba(94, 106, 210, 0.08) 0%, transparent 70%)',
+              background: `
+                radial-gradient(circle at 30% 40%, rgba(94, 106, 210, 0.06) 0%, transparent 50%),
+                radial-gradient(circle at 70% 60%, rgba(196, 92, 92, 0.04) 0%, transparent 50%)
+              `,
             }}
           />
 
-          {variant === 'default' && <DefaultOverlay message={message} progress={progress} />}
-          {variant === 'minimal' && <MinimalOverlay message={message} size={fullscreen ? 'lg' : 'md'} />}
-          {variant === 'branded' && <BrandedOverlay message={message} progress={progress} />}
-          {variant === 'skeleton' && <SkeletonOverlay message={message} />}
+          {variant === 'default' && <DefaultOverlay message={message} progress={progress} msgStyle={msgStyle} size={size} />}
+          {variant === 'minimal' && <MinimalOverlay message={message} size={fullscreen ? 'lg' : 'md'} msgStyle={msgStyle} />}
+          {variant === 'branded' && <BrandedOverlay message={message} progress={progress} msgStyle={msgStyle} />}
+          {variant === 'skeleton' && <SkeletonOverlay message={message} msgStyle={msgStyle} />}
 
           {showCancel && onCancel && (
             <motion.button
               initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.35, duration: 0.2 }}
+              transition={{ delay: 0.4, duration: 0.2 }}
               onClick={onCancel}
               className="mt-8 px-5 py-2.5 text-sm rounded-lg border transition-all duration-200 hover:scale-105 active:scale-95"
               style={{
@@ -123,62 +150,49 @@ export function LoadingOverlay({
   )
 }
 
-/** Default overlay — feather icon with enhanced glow rings */
+/** Default overlay — multi-layer gradient rotating rings with enhanced glow */
 function DefaultOverlay({
   message,
   progress,
+  msgStyle,
+  size,
 }: {
   message: string
   progress?: number
+  msgStyle: { text: string; subtext: string; tracking: string }
+  size: OverlaySize
 }) {
+  const isLarge = size === 'fullscreen' || size === 'floating'
+
   return (
     <>
       {/* Outer glow ring */}
-      <div
-        className="absolute w-24 h-24 rounded-full animate-pulse-ring motion-reduce:animate-none"
+      <motion.div
+        className="absolute rounded-full motion-reduce:hidden"
         style={{
-          backgroundColor: 'rgba(94, 106, 210, 0.12)',
-          boxShadow: '0 0 40px rgba(94, 106, 210, 0.15)',
+          width: isLarge ? 160 : 100,
+          height: isLarge ? 160 : 100,
+          background: 'radial-gradient(circle, rgba(94, 106, 210, 0.08) 0%, transparent 70%)',
         }}
-      />
-      {/* Middle glow ring */}
-      <div
-        className="absolute w-20 h-20 rounded-full animate-pulse-ring motion-reduce:animate-none"
-        style={{
-          backgroundColor: 'rgba(94, 106, 210, 0.18)',
-          animationDelay: '0.4s',
-          boxShadow: '0 0 30px rgba(94, 106, 210, 0.2)',
-        }}
+        animate={{ scale: [1, 1.1, 1], opacity: [0.5, 0.8, 0.5] }}
+        transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
       />
 
+      {/* Multi-layer rotating rings spinner */}
       <div className="relative flex items-center justify-center mb-6">
-        <motion.div
-          animate={{ rotate: 360 }}
-          transition={{
-            duration: 2.5,
-            repeat: Infinity,
-            ease: 'linear',
-          }}
-          className="relative z-10"
-        >
-          <div
-            className="w-14 h-14 rounded-full flex items-center justify-center"
-            style={{
-              backgroundColor: 'rgba(94, 106, 210, 0.12)',
-              border: '1.5px solid rgba(94, 106, 210, 0.35)',
-              boxShadow: '0 0 20px rgba(94, 106, 210, 0.25), inset 0 0 15px rgba(94, 106, 210, 0.1)',
-            }}
-          >
-            <Feather className="w-7 h-7" style={{ color: 'var(--accent-primary)' }} />
-          </div>
-        </motion.div>
+        <LoadingSpinner
+          variant="rings"
+          size={isLarge ? '2xl' : 'xl'}
+          color="var(--accent-primary)"
+        />
       </div>
 
+      {/* Elegant loading message */}
       <motion.p
         initial={{ opacity: 0, y: 8 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.15, duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
-        className="text-sm font-medium tracking-wide"
+        transition={{ delay: 0.15, duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
+        className={cn(msgStyle.text, msgStyle.tracking)}
         style={{ color: 'var(--text-secondary)' }}
       >
         {message}
@@ -186,10 +200,11 @@ function DefaultOverlay({
 
       {progress !== undefined && <ProgressBar progress={progress} />}
 
+      {/* Animated dots indicator */}
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        transition={{ delay: 0.25 }}
+        transition={{ delay: 0.3 }}
         className="flex gap-2 mt-4"
       >
         {[0, 1, 2].map((i) => (
@@ -215,7 +230,15 @@ function DefaultOverlay({
 }
 
 /** Minimal overlay — clean spinner with subtle animation */
-function MinimalOverlay({ message, size = 'lg' }: { message: string; size?: 'md' | 'lg' }) {
+function MinimalOverlay({
+  message,
+  size = 'lg',
+  msgStyle,
+}: {
+  message: string
+  size?: 'md' | 'lg'
+  msgStyle: { text: string; subtext: string; tracking: string }
+}) {
   const spinnerSize = size === 'lg' ? 'lg' : 'md'
   return (
     <div className="flex flex-row items-center gap-3">
@@ -224,7 +247,7 @@ function MinimalOverlay({ message, size = 'lg' }: { message: string; size?: 'md'
         initial={{ opacity: 0, x: -8 }}
         animate={{ opacity: 1, x: 0 }}
         transition={{ delay: 0.1, duration: 0.25 }}
-        className="text-sm"
+        className={cn(msgStyle.text, msgStyle.tracking)}
         style={{ color: 'var(--text-secondary)' }}
       >
         {message}
@@ -237,29 +260,33 @@ function MinimalOverlay({ message, size = 'lg' }: { message: string; size?: 'md'
 function BrandedOverlay({
   message,
   progress,
+  msgStyle,
 }: {
   message: string
   progress?: number
+  msgStyle: { text: string; subtext: string; tracking: string }
 }) {
   return (
     <>
       {/* Background glow */}
-      <div
-        className="absolute w-40 h-40 rounded-full animate-pulse-ring motion-reduce:animate-none"
+      <motion.div
+        className="absolute w-48 h-48 rounded-full motion-reduce:hidden"
         style={{
-          background: 'radial-gradient(circle, rgba(94, 106, 210, 0.12) 0%, transparent 70%)',
+          background: 'radial-gradient(circle, rgba(94, 106, 210, 0.1) 0%, transparent 70%)',
         }}
+        animate={{ scale: [1, 1.15, 1], opacity: [0.4, 0.7, 0.4] }}
+        transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
       />
 
       <div className="relative flex items-center justify-center mb-8">
         <motion.div
           animate={{ rotate: 360 }}
-          transition={{ duration: 4, repeat: Infinity, ease: 'linear' }}
-          className="relative z-10 w-16 h-16 rounded-full flex items-center justify-center"
+          transition={{ duration: 6, repeat: Infinity, ease: 'linear' }}
+          className="relative z-10 w-16 h-16 rounded-2xl flex items-center justify-center"
           style={{
             backgroundColor: 'rgba(94, 106, 210, 0.1)',
             border: '1.5px solid rgba(94, 106, 210, 0.3)',
-            boxShadow: '0 0 30px rgba(94, 106, 210, 0.2)',
+            boxShadow: '0 0 40px rgba(94, 106, 210, 0.2), inset 0 0 20px rgba(94, 106, 210, 0.05)',
           }}
         >
           <BookOpen className="w-8 h-8" style={{ color: 'var(--accent-primary)' }} />
@@ -270,7 +297,7 @@ function BrandedOverlay({
         initial={{ opacity: 0, y: 8 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.15, duration: 0.3 }}
-        className="text-base font-medium tracking-wide"
+        className={cn('text-base font-medium', msgStyle.tracking)}
         style={{ color: 'var(--text-secondary)' }}
       >
         {message}
@@ -282,7 +309,7 @@ function BrandedOverlay({
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 0.4 }}
-        className="text-xs mt-3 tracking-widest"
+        className={cn('mt-3 tracking-widest', msgStyle.subtext)}
         style={{ color: 'var(--text-tertiary)' }}
       >
         自动化写作软件
@@ -292,7 +319,13 @@ function BrandedOverlay({
 }
 
 /** Skeleton overlay — shows skeleton placeholder */
-function SkeletonOverlay({ message }: { message: string }) {
+function SkeletonOverlay({
+  message,
+  msgStyle,
+}: {
+  message: string
+  msgStyle: { text: string; subtext: string; tracking: string }
+}) {
   return (
     <div className="flex flex-col items-center gap-4 w-full max-w-xs">
       <div className="w-full space-y-3">
@@ -305,7 +338,7 @@ function SkeletonOverlay({ message }: { message: string }) {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 0.2 }}
-        className="text-xs"
+        className={cn(msgStyle.subtext, msgStyle.tracking)}
         style={{ color: 'var(--text-tertiary)' }}
       >
         {message}
@@ -336,7 +369,7 @@ function ProgressBar({ progress }: { progress: number }) {
           }}
           initial={{ width: 0 }}
           animate={{ width: `${clampedProgress}%` }}
-          transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+          transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
         />
       </div>
     </div>
@@ -363,20 +396,15 @@ export function SectionLoadingOverlay({
           transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
           className="absolute inset-0 z-40 flex flex-col items-center justify-center rounded-lg"
           style={{
-            background: 'rgba(10, 11, 14, 0.7)',
-            backdropFilter: 'blur(10px)',
-            WebkitBackdropFilter: 'blur(10px)',
+            background: 'rgba(10, 11, 14, 0.75)',
+            backdropFilter: 'blur(12px)',
+            WebkitBackdropFilter: 'blur(12px)',
           }}
         >
           {variant === 'default' ? (
             <>
-              <motion.div
-                animate={{ rotate: 360 }}
-                transition={{ duration: 2, repeat: Infinity, ease: 'linear' }}
-              >
-                <Feather className="w-6 h-6" style={{ color: 'var(--accent-primary)' }} />
-              </motion.div>
-              <span className="text-sm mt-3" style={{ color: 'var(--text-secondary)' }}>
+              <LoadingSpinner variant="rings" size="lg" />
+              <span className="text-sm mt-3 tracking-wide" style={{ color: 'var(--text-secondary)' }}>
                 {message}
               </span>
             </>
@@ -403,7 +431,7 @@ export function InlineSectionLoading({
   return (
     <div className="flex flex-row items-center justify-center gap-3 py-8">
       <LoadingSpinner variant="dots" size="sm" />
-      <span className="text-sm" style={{ color: 'var(--text-tertiary)' }}>
+      <span className="text-sm tracking-wide" style={{ color: 'var(--text-tertiary)' }}>
         {message}
       </span>
     </div>

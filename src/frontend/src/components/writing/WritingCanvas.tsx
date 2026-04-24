@@ -10,7 +10,7 @@ import { setEditorInstance } from '@/store/editorRegistry'
 import { useEffect, useRef, useCallback, useState } from 'react'
 import { usePrefersReducedMotion } from '@/hooks'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Save, CheckCircle, AlertCircle } from 'lucide-react'
+import { Save, CheckCircle, AlertCircle, Feather, Keyboard } from 'lucide-react'
 import { FocusModeExtension } from './extensions'
 import { EditorToolbar } from './EditorToolbar'
 import { WritingStatsOverlay } from './WritingStatsOverlay'
@@ -68,6 +68,187 @@ function SaveStatusIndicator({ status, lastSavedAt }: { status: string; lastSave
   return null
 }
 
+/** Refined floating word count pill with subtle glow */
+function FloatingWordCount({ wordCount, isTyping }: { wordCount: number; isTyping: boolean }) {
+  return (
+    <motion.div
+      className="word-count-pill word-count-pill--floating"
+      initial={{ opacity: 0, y: 8, scale: 0.9 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+      transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
+      whileHover={{ y: -2, transition: { duration: 0.2 } }}
+    >
+      <motion.span
+        className="word-count-pill__number"
+        key={wordCount}
+        initial={{ scale: 1.15, opacity: 0.8 }}
+        animate={{ scale: 1, opacity: 1 }}
+        transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
+      >
+        {wordCount}
+      </motion.span>
+      <span className="word-count-pill__label">字</span>
+      <AnimatePresence>
+        {isTyping && (
+          <motion.span
+            initial={{ opacity: 0, scale: 0 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0 }}
+            className="w-1.5 h-1.5 rounded-full"
+            style={{
+              background: 'var(--color-ifline)',
+              boxShadow: '0 0 4px color-mix(in srgb, var(--color-ifline) 50%, transparent)',
+            }}
+            transition={{ duration: 0.2 }}
+          />
+        )}
+      </AnimatePresence>
+    </motion.div>
+  )
+}
+
+/** Elegant empty state prompt with refined animations */
+function EmptyStatePrompt({ onStart }: { onStart?: () => void }) {
+  return (
+    <motion.div
+      className="writing-empty-state"
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+    >
+      <motion.div
+        className="writing-empty-state__icon"
+        initial={{ scale: 0.8, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        transition={{ delay: 0.1, duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+      >
+        <Feather className="w-5 h-5" />
+      </motion.div>
+      <motion.h3
+        className="writing-empty-state__title"
+        initial={{ opacity: 0, y: 8 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.15, duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+      >
+        开始你的创作
+      </motion.h3>
+      <motion.p
+        className="writing-empty-state__hint"
+        initial={{ opacity: 0, y: 6 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.2, duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+      >
+        点击此处开始写作，或使用快捷键 Ctrl+Shift+W 续写
+      </motion.p>
+      <motion.button
+        className="mt-5 px-4 py-2 rounded-lg text-xs font-medium transition-all duration-200"
+        style={{
+          background: 'color-mix(in srgb, var(--accent-primary) 12%, transparent)',
+          border: '1px solid color-mix(in srgb, var(--accent-primary) 20%, transparent)',
+          color: 'var(--accent-primary)',
+        }}
+        initial={{ opacity: 0, y: 6 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.25, duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+        whileHover={{
+          scale: 1.03,
+          background: 'color-mix(in srgb, var(--accent-primary) 18%, transparent)',
+        }}
+        whileTap={{ scale: 0.98 }}
+        onClick={onStart}
+      >
+        开始写作
+      </motion.button>
+      <motion.div
+        className="mt-4 flex items-center gap-2 px-3 py-1.5 rounded-lg"
+        style={{
+          background: 'color-mix(in srgb, var(--color-surface-raised) 60%, transparent)',
+          border: '1px solid var(--border-subtle)',
+        }}
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 0.35 }}
+      >
+        <Keyboard className="w-3 h-3" style={{ color: 'var(--text-tertiary)' }} />
+        <span className="text-[10px]" style={{ color: 'var(--text-tertiary)' }}>
+          Ctrl+Shift+O 优化 / E 扩写 / S 缩写 / R 改写 / W 续写 / P 润色
+        </span>
+      </motion.div>
+    </motion.div>
+  )
+}
+
+/** Refined loading state with multi-layer animation */
+function WritingLoadingState() {
+  return (
+    <motion.div
+      className="writing-loading flex items-center justify-center min-h-[300px]"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+    >
+      <div className="flex flex-col items-center gap-4">
+        <div className="relative w-10 h-10">
+          {/* Outer ring */}
+          <motion.div
+            className="absolute inset-0 rounded-xl"
+            style={{
+              border: '1.5px solid color-mix(in srgb, var(--accent-primary) 15%, transparent)',
+            }}
+            animate={{ rotate: 360 }}
+            transition={{
+              duration: 3,
+              repeat: Infinity,
+              ease: 'linear',
+            }}
+          />
+          {/* Inner gradient orb */}
+          <motion.div
+            className="absolute inset-1.5 rounded-lg"
+            style={{
+              background: 'linear-gradient(135deg, color-mix(in srgb, var(--accent-primary) 25%, transparent), color-mix(in srgb, var(--color-character) 18%, transparent))',
+              boxShadow: '0 0 12px color-mix(in srgb, var(--accent-primary) 15%, transparent)',
+            }}
+            animate={{
+              scale: [1, 1.08, 1],
+              opacity: [0.6, 0.9, 0.6],
+            }}
+            transition={{
+              duration: 2,
+              repeat: Infinity,
+              ease: 'easeInOut',
+            }}
+          />
+          {/* Center dot */}
+          <motion.div
+            className="absolute inset-[15px] rounded-sm"
+            style={{
+              background: 'color-mix(in srgb, var(--accent-primary) 60%, transparent)',
+            }}
+            animate={{
+              scale: [1, 0.8, 1],
+              opacity: [0.8, 0.4, 0.8],
+            }}
+            transition={{
+              duration: 1.5,
+              repeat: Infinity,
+              ease: 'easeInOut',
+            }}
+          />
+        </div>
+        <motion.span
+          className="text-xs font-medium tracking-wide"
+          style={{ color: 'var(--text-tertiary)' }}
+          animate={{ opacity: [0.5, 0.8, 0.5] }}
+          transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
+        >
+          正在准备创作空间...
+        </motion.span>
+      </div>
+    </motion.div>
+  )
+}
+
 export function WritingCanvas() {
   const {
     currentContent,
@@ -91,7 +272,7 @@ export function WritingCanvas() {
     targetWordCount,
   } = useWritingStore()
 
-  const { focusModeEnabled } = useUIStore()
+  const { focusModeEnabled, typewriterMode, paragraphFocusMode, paperEdgeDecoration } = useUIStore()
   const currentChapter = chapters.find((c) => c.id === currentChapterId)
   const chapterTitle = currentChapter?.title || '未选择章节'
   const isSavingRef = useRef(false)
@@ -100,13 +281,28 @@ export function WritingCanvas() {
   const lastWordCountRef = useRef(wordCount)
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null)
   const isTypingRef = useRef(false)
+  const currentParagraphRef = useRef<HTMLElement | null>(null)
+  const editorContainerRef = useRef<HTMLDivElement>(null)
 
   const [sessionDuration, setSessionDuration] = useState(0)
   const [sessionWPM, setSessionWPM] = useState(0)
   const [todayWordCount, setTodayWordCount] = useState(0)
   const [isTyping, setIsTyping] = useState(false)
+  const [isLoading, setIsLoading] = useState(true)
+  const [isEmpty, setIsEmpty] = useState(!currentContent?.trim())
   const typingIndicatorTimeoutRef = useRef<NodeJS.Timeout | null>(null)
   const prefersReducedMotion = usePrefersReducedMotion()
+
+  // Simulate loading on mount
+  useEffect(() => {
+    const timer = setTimeout(() => setIsLoading(false), 400)
+    return () => clearTimeout(timer)
+  }, [])
+
+  // Track empty state
+  useEffect(() => {
+    setIsEmpty(!currentContent?.trim())
+  }, [currentContent])
 
   const editor = useEditor({
     extensions: [
@@ -163,6 +359,25 @@ export function WritingCanvas() {
         document.dispatchEvent(new CustomEvent('immersive-typing-stop'))
       }, 1000)
     },
+    onSelectionUpdate: ({ editor }) => {
+      // Track current paragraph for paragraph focus mode
+      if (paragraphFocusMode && editorContainerRef.current) {
+        const { from } = editor.state.selection
+        const domAtPos = editor.view.domAtPos(from)
+        const node = domAtPos.node as HTMLElement
+        const paragraph = node.closest?.('p') as HTMLElement | null
+
+        if (paragraph && paragraph !== currentParagraphRef.current) {
+          // Remove previous current paragraph marker
+          if (currentParagraphRef.current) {
+            currentParagraphRef.current.classList.remove('is-current-paragraph')
+          }
+          // Add to new current paragraph
+          paragraph.classList.add('is-current-paragraph')
+          currentParagraphRef.current = paragraph
+        }
+      }
+    },
     editorProps: {
       attributes: {
         class: 'writing-area max-w-none focus:outline-none min-h-full px-8 py-6 immersive-canvas',
@@ -175,10 +390,31 @@ export function WritingCanvas() {
   useEffect(() => {
     if (editor?.view?.dom) {
       const dom = editor.view.dom
-      dom.style.scrollPaddingTop = '33vh'
-      dom.style.scrollPaddingBottom = '67vh'
+      if (typewriterMode) {
+        dom.style.scrollPaddingTop = '45vh'
+        dom.style.scrollPaddingBottom = '45vh'
+      } else {
+        dom.style.scrollPaddingTop = '33vh'
+        dom.style.scrollPaddingBottom = '67vh'
+      }
     }
-  }, [editor])
+  }, [editor, typewriterMode])
+
+  // Sync paragraph focus mode class on container
+  useEffect(() => {
+    const container = editorContainerRef.current
+    if (!container) return
+    if (paragraphFocusMode) {
+      container.classList.add('paragraph-focus-mode')
+    } else {
+      container.classList.remove('paragraph-focus-mode')
+      // Clean up current paragraph markers
+      container.querySelectorAll('.is-current-paragraph').forEach((el) => {
+        el.classList.remove('is-current-paragraph')
+      })
+      currentParagraphRef.current = null
+    }
+  }, [paragraphFocusMode])
 
   // 同步外部内容变化
   useEffect(() => {
@@ -281,7 +517,11 @@ export function WritingCanvas() {
   }, [editor])
 
   return (
-    <div className="h-full flex flex-col" style={{ backgroundColor: 'var(--writing-bg)' }}>
+    <div
+      ref={editorContainerRef}
+      className={`h-full flex flex-col ${typewriterMode ? 'typewriter-mode' : ''}`}
+      style={{ backgroundColor: 'var(--writing-bg)' }}
+    >
       {/* 写作区域 - enhanced paper texture with layered gradients */}
       <div
         className="flex-1 overflow-y-auto relative writing-surface"
@@ -298,33 +538,31 @@ export function WritingCanvas() {
         {/* 浮动工具栏 */}
         <EditorToolbar editor={editor} />
 
-        {/* 写作卡片容器 - enhanced with refined shadow and subtle glow */}
+        {/* 写作卡片容器 - refined with elegant glow border and layered shadows */}
         <div
-          className="my-8 rounded-2xl max-w-[var(--writing-max-width)] mx-auto writing-card paper-texture relative"
+          className={`my-8 rounded-2xl max-w-[var(--writing-max-width)] mx-auto writing-card relative
+            ${paperEdgeDecoration ? 'writing-card--paper-edge' : ''}`}
           style={{
             backgroundColor: 'var(--writing-bg)',
-            border: '1px solid var(--border-subtle)',
             boxShadow: `
-              0 2px 8px color-mix(in srgb, var(--ink-100) 10%, transparent),
-              0 8px 24px color-mix(in srgb, var(--ink-100) 8%, transparent),
-              0 16px 48px color-mix(in srgb, var(--ink-100) 5%, transparent),
-              inset 0 1px 0 var(--border-subtle),
-              inset 0 -1px 0 color-mix(in srgb, var(--paper-100) 20%, transparent)
+              0 1px 2px color-mix(in srgb, var(--ink-100) 8%, transparent),
+              0 4px 12px color-mix(in srgb, var(--ink-100) 6%, transparent),
+              0 12px 32px color-mix(in srgb, var(--ink-100) 4%, transparent),
+              inset 0 1px 0 color-mix(in srgb, var(--paper-100) 8%, transparent)
             `,
           }}
         >
           {/* Subtle inner glow at top */}
           <div
-            className="absolute inset-x-8 top-0 h-px rounded-full"
+            className="absolute top-0 left-4 right-4 h-px pointer-events-none"
             style={{
-              background: 'linear-gradient(90deg, transparent, color-mix(in srgb, var(--color-character) 15%, transparent) 50%, transparent)',
-              boxShadow: '0 0 12px color-mix(in srgb, var(--color-character) 10%, transparent)',
+              background: 'linear-gradient(90deg, transparent 0%, color-mix(in srgb, var(--accent-primary) 15%, transparent) 50%, transparent 100%)',
             }}
           />
 
-          {/* 章节标题 - refined with subtle text shadow */}
+          {/* 章节标题 - refined with elegant typography */}
           <div className="px-12 pt-12 pb-5">
-            <h1
+            <motion.h1
               className="font-serif-cn text-2xl font-semibold tracking-tight"
               style={{
                 color: 'var(--writing-text)',
@@ -332,29 +570,59 @@ export function WritingCanvas() {
                 letterSpacing: 'var(--tracking-tight)',
                 transition: 'color var(--transition-normal)',
                 fontFamily: 'var(--font-serif-cn)',
-                textShadow: '0 1px 3px rgba(0,0,0,0.12), 0 2px 6px rgba(0,0,0,0.08)',
               }}
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
             >
               {chapterTitle}
-            </h1>
-            {/* Refined underline decoration with gradient */}
-            <div className="mt-5 flex items-center gap-2">
+            </motion.h1>
+            {/* Elegant underline decoration with gradient glow */}
+            <motion.div
+              className="mt-5 flex items-center gap-2"
+              initial={{ opacity: 0, scaleX: 0.8 }}
+              animate={{ opacity: 1, scaleX: 1 }}
+              transition={{ duration: 0.5, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
+            >
               <div className="h-px flex-1 bg-gradient-to-r from-transparent via-[var(--border-strong)] to-transparent opacity-40" />
               <div
-                className="w-10 h-[2px] rounded-full"
+                className="w-12 h-[2px] rounded-full"
                 style={{
                   background: 'linear-gradient(90deg, color-mix(in srgb, var(--color-character) 50%, transparent), color-mix(in srgb, var(--color-vermillion) 50%, transparent))',
-                  boxShadow: '0 0 8px color-mix(in srgb, var(--color-character) 30%, transparent)',
+                  boxShadow: '0 0 8px color-mix(in srgb, var(--color-character) 25%, transparent), 0 0 16px color-mix(in srgb, var(--accent-primary) 10%, transparent)',
                 }}
               />
               <div className="h-px flex-1 bg-gradient-to-r from-transparent via-[var(--border-strong)] to-transparent opacity-40" />
-            </div>
+            </motion.div>
           </div>
 
           {/* 正文编辑器 */}
-          <EditorContent editor={editor} className="min-h-full px-12 pb-16" />
+          <div className="min-h-full px-12 pb-16 relative">
+            <AnimatePresence mode="wait">
+              {isLoading ? (
+                <WritingLoadingState key="loading" />
+              ) : isEmpty && !currentContent?.trim() ? (
+                <EmptyStatePrompt
+                  key="empty"
+                  onStart={() => editor?.commands.focus('end')}
+                />
+              ) : (
+                <motion.div
+                  key="editor"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ duration: 0.3 }}
+                >
+                  <EditorContent editor={editor} />
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
         </div>
       </div>
+
+      {/* Floating word count pill */}
+      <FloatingWordCount wordCount={wordCount} isTyping={isTyping} />
 
       {/* 写作统计悬浮组件 */}
       <WritingStatsOverlay

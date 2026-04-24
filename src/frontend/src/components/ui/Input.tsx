@@ -11,8 +11,8 @@ export interface InputProps extends Omit<React.InputHTMLAttributes<HTMLInputElem
   errorMessage?: string
   label?: string
   helperText?: string
-  prefix?: React.ReactNode
-  suffix?: React.ReactNode
+  inputPrefix?: React.ReactNode
+  inputSuffix?: React.ReactNode
   size?: 'sm' | 'md' | 'lg'
   showPasswordToggle?: boolean
 }
@@ -31,8 +31,8 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
     disabled,
     label,
     helperText,
-    prefix,
-    suffix,
+    inputPrefix: prefix,
+    inputSuffix: suffix,
     size = 'md',
     showPasswordToggle,
     type,

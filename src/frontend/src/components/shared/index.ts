@@ -29,6 +29,10 @@ export {
 export {
   RippleEffect,
   ButtonFeedback,
+  PressFeedback,
+  StaggerListEntrance,
+  CardHoverGlow,
+  InputFocusGlow,
   IconButton,
   Toggle,
   HoverCard,
@@ -36,6 +40,11 @@ export {
   ShimmerButton,
   MagneticEffect,
   CountUpNumber,
+  ShakeFeedback,
+  microVariants,
+  easeOutSmooth,
+  easeSpring,
+  useReducedMotion,
 } from './MicroInteractions'
 
 export {
@@ -58,6 +67,7 @@ export {
 export {
   ScrollReveal,
   ScrollRevealGroup,
+  ScrollRevealStagger,
   type RevealAnimation,
 } from './ScrollReveal'
 
@@ -68,6 +78,16 @@ export {
   StaggerList,
   type StaggerPreset,
 } from './StaggerChildren'
+
+// Animated text
+export {
+  AnimatedText,
+  AnimatedHeading,
+  Typewriter,
+  RevealText,
+  HighlightText,
+  type TextAnimationType,
+} from './AnimatedText'
 
 // Loading overlay variants
 export {
@@ -135,3 +155,43 @@ export {
   SkeletonList,
   SkeletonGraph,
 } from './Skeleton'
+
+// Ambient light effects
+export {
+  AmbientLight,
+  AmbientLightGroup,
+  AmbientGlow,
+} from './AmbientLight'
+export type {
+  AmbientLightProps,
+  AmbientColor,
+  AmbientPosition,
+  AmbientSize,
+  AmbientShape,
+} from './AmbientLight'
+
+// Textured backgrounds
+export {
+  TexturedBackground,
+  WritingPaper,
+  NoiseOverlay,
+  GridOverlay,
+} from './TexturedBackground'
+export type {
+  TexturedBackgroundProps,
+  TextureType,
+  TextureIntensity,
+} from './TexturedBackground'
+
+// Keyboard shortcut display
+export {
+  Kbd,
+  KbdCombo,
+  KbdShortcut,
+  KbdHelp,
+} from './Kbd'
+export type {
+  KbdProps,
+  KbdSize,
+  KbdVariant,
+} from './Kbd'

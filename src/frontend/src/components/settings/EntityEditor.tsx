@@ -1,5 +1,5 @@
 import { useSettingsStore, type CharacterLocal, UIState, Chapter } from '@/store'
-import { Trash2, Edit2, Users, Plus, FileText, X, Sparkles, Check, AlertCircle, Loader2, Save } from 'lucide-react'
+import { Trash2, Edit2, Users, Plus, FileText, X, Sparkles, Check, AlertCircle, Loader2, Save, MapPin, Swords, Globe, BookOpen, GitBranch } from 'lucide-react'
 import { useState, useCallback } from 'react'
 import { TagInput } from './TagInput'
 import { EntityCard, entityColors, cardStyle } from './EntityCard'
@@ -1393,6 +1393,83 @@ function ChapterSummaryModal({
   )
 }
 
+// Stagger animation variants for entity lists
+const entityListVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.05,
+      delayChildren: 0.05,
+    },
+  },
+  exit: {
+    opacity: 0,
+    transition: {
+      staggerChildren: 0.02,
+      staggerDirection: -1,
+    },
+  },
+}
+
+const entityItemVariants = {
+  hidden: { opacity: 0, y: 12, scale: 0.98 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    scale: 1,
+    transition: { duration: 0.25, ease: [0.16, 1, 0.3, 1] as const },
+  },
+  exit: {
+    opacity: 0,
+    x: -20,
+    transition: { duration: 0.15 },
+  },
+}
+
+// Empty state component with refined visuals
+function EmptyState({
+  icon: Icon,
+  title,
+  subtitle,
+  color = 'var(--text-tertiary)',
+}: {
+  icon: typeof Users
+  title: string
+  subtitle?: string
+  color?: string
+}) {
+  return (
+    <motion.div
+      className="text-center py-10"
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
+    >
+      <motion.div
+        className="relative w-14 h-14 mx-auto mb-3 rounded-xl flex items-center justify-center"
+        style={{
+          background: `linear-gradient(135deg, ${color}12, ${color}06)`,
+          border: `1px solid ${color}15`,
+        }}
+        initial={{ scale: 0.9 }}
+        animate={{ scale: 1 }}
+        transition={{ type: 'spring', stiffness: 400, damping: 25 }}
+      >
+        <Icon className="w-6 h-6" style={{ color, opacity: 0.6 }} />
+      </motion.div>
+      <p className="text-sm font-medium" style={{ color: 'var(--text-secondary)' }}>
+        {title}
+      </p>
+      {subtitle && (
+        <p className="text-xs mt-1" style={{ color: 'var(--text-tertiary)' }}>
+          {subtitle}
+        </p>
+      )}
+    </motion.div>
+  )
+}
+
 export function EntityEditor({ category }: EntityEditorProps) {
   const {
     characters,
@@ -1422,30 +1499,36 @@ export function EntityEditor({ category }: EntityEditorProps) {
             onAdd={() => setShowAddForm(true)}
             onGenerate={() => handleGenerate('character')}
           />
-          <div className="space-y-3">
+          <motion.div
+            className="space-y-3"
+            variants={entityListVariants}
+            initial="hidden"
+            animate="visible"
+            exit="exit"
+          >
             <AnimatePresence mode="popLayout">
               {characters.map((char) => (
                 <motion.div
                   key={char.id}
                   layout
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, x: -20 }}
-                  transition={{ type: 'spring', stiffness: 400, damping: 30 }}
+                  variants={entityItemVariants}
                 >
                   <CharacterCard character={char} />
                 </motion.div>
               ))}
             </AnimatePresence>
             {characters.length === 0 && (
-              <div className="text-center py-8" style={{ color: 'var(--text-tertiary)' }}>
-                <Users className="w-10 h-10 mx-auto mb-2 opacity-50" />
-                <p className="text-sm">暂无角色</p>
-                <p className="text-xs mt-1 opacity-70">点击下方按钮创建第一个角色</p>
-              </div>
+              <EmptyState
+                icon={Users}
+                title="暂无角色"
+                subtitle="点击下方按钮创建第一个角色"
+                color="var(--color-character)"
+              />
             )}
-            <NewCharacterForm />
-          </div>
+            <motion.div variants={entityItemVariants}>
+              <NewCharacterForm />
+            </motion.div>
+          </motion.div>
         </div>
       )
 
@@ -1458,16 +1541,19 @@ export function EntityEditor({ category }: EntityEditorProps) {
             onAdd={() => setShowAddForm(true)}
             onGenerate={() => handleGenerate('item')}
           />
-          <div className="space-y-3">
+          <motion.div
+            className="space-y-3"
+            variants={entityListVariants}
+            initial="hidden"
+            animate="visible"
+            exit="exit"
+          >
             <AnimatePresence mode="popLayout">
               {items.map((item) => (
                 <motion.div
                   key={item.id}
                   layout
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, x: -20 }}
-                  transition={{ type: 'spring', stiffness: 400, damping: 30 }}
+                  variants={entityItemVariants}
                 >
                   <EntityCard
                     name={item.name}
@@ -1483,21 +1569,26 @@ export function EntityEditor({ category }: EntityEditorProps) {
               ))}
             </AnimatePresence>
             {items.length === 0 && (
-              <div className="text-center py-8" style={{ color: 'var(--text-tertiary)' }}>
-                <p className="text-sm">暂无物品</p>
-              </div>
-            )}
-            {showAddForm && (
-              <AddEntityForm
-                placeholder="输入物品名称..."
-                onAdd={(name) => {
-                  useSettingsStore.getState().addItem({ name })
-                  setShowAddForm(false)
-                }}
-                onCancel={() => setShowAddForm(false)}
+              <EmptyState
+                icon={Plus}
+                title="暂无物品"
+                subtitle="点击下方按钮创建第一个物品"
+                color="var(--color-item)"
               />
             )}
-          </div>
+            {showAddForm && (
+              <motion.div variants={entityItemVariants}>
+                <AddEntityForm
+                  placeholder="输入物品名称..."
+                  onAdd={(name) => {
+                    useSettingsStore.getState().addItem({ name })
+                    setShowAddForm(false)
+                  }}
+                  onCancel={() => setShowAddForm(false)}
+                />
+              </motion.div>
+            )}
+          </motion.div>
         </div>
       )
 
@@ -1510,16 +1601,19 @@ export function EntityEditor({ category }: EntityEditorProps) {
             onAdd={() => setShowAddForm(true)}
             onGenerate={() => handleGenerate('location')}
           />
-          <div className="space-y-3">
+          <motion.div
+            className="space-y-3"
+            variants={entityListVariants}
+            initial="hidden"
+            animate="visible"
+            exit="exit"
+          >
             <AnimatePresence mode="popLayout">
               {locations.map((loc) => (
                 <motion.div
                   key={loc.id}
                   layout
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, x: -20 }}
-                  transition={{ type: 'spring', stiffness: 400, damping: 30 }}
+                  variants={entityItemVariants}
                 >
                   <EntityCard
                     name={loc.name}
@@ -1535,21 +1629,26 @@ export function EntityEditor({ category }: EntityEditorProps) {
               ))}
             </AnimatePresence>
             {locations.length === 0 && (
-              <div className="text-center py-8" style={{ color: 'var(--text-tertiary)' }}>
-                <p className="text-sm">暂无地点</p>
-              </div>
-            )}
-            {showAddForm && (
-              <AddEntityForm
-                placeholder="输入地点名称..."
-                onAdd={(name) => {
-                  useSettingsStore.getState().addLocation({ name, importance: 'minor' })
-                  setShowAddForm(false)
-                }}
-                onCancel={() => setShowAddForm(false)}
+              <EmptyState
+                icon={MapPin}
+                title="暂无地点"
+                subtitle="点击下方按钮创建第一个地点"
+                color="var(--color-location)"
               />
             )}
-          </div>
+            {showAddForm && (
+              <motion.div variants={entityItemVariants}>
+                <AddEntityForm
+                  placeholder="输入地点名称..."
+                  onAdd={(name) => {
+                    useSettingsStore.getState().addLocation({ name, importance: 'minor' })
+                    setShowAddForm(false)
+                  }}
+                  onCancel={() => setShowAddForm(false)}
+                />
+              </motion.div>
+            )}
+          </motion.div>
         </div>
       )
 
@@ -1562,16 +1661,19 @@ export function EntityEditor({ category }: EntityEditorProps) {
             onAdd={() => setShowAddForm(true)}
             onGenerate={() => handleGenerate('faction')}
           />
-          <div className="space-y-3">
+          <motion.div
+            className="space-y-3"
+            variants={entityListVariants}
+            initial="hidden"
+            animate="visible"
+            exit="exit"
+          >
             <AnimatePresence mode="popLayout">
               {factions.map((fac) => (
                 <motion.div
                   key={fac.id}
                   layout
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, x: -20 }}
-                  transition={{ type: 'spring', stiffness: 400, damping: 30 }}
+                  variants={entityItemVariants}
                 >
                   <EntityCard
                     name={fac.name}
@@ -1587,21 +1689,26 @@ export function EntityEditor({ category }: EntityEditorProps) {
               ))}
             </AnimatePresence>
             {factions.length === 0 && (
-              <div className="text-center py-8" style={{ color: 'var(--text-tertiary)' }}>
-                <p className="text-sm">暂无势力</p>
-              </div>
-            )}
-            {showAddForm && (
-              <AddEntityForm
-                placeholder="输入势力名称..."
-                onAdd={(name) => {
-                  useSettingsStore.getState().addFaction({ name, type: 'other' })
-                  setShowAddForm(false)
-                }}
-                onCancel={() => setShowAddForm(false)}
+              <EmptyState
+                icon={Swords}
+                title="暂无势力"
+                subtitle="点击下方按钮创建第一个势力"
+                color="var(--color-faction)"
               />
             )}
-          </div>
+            {showAddForm && (
+              <motion.div variants={entityItemVariants}>
+                <AddEntityForm
+                  placeholder="输入势力名称..."
+                  onAdd={(name) => {
+                    useSettingsStore.getState().addFaction({ name, type: 'other' })
+                    setShowAddForm(false)
+                  }}
+                  onCancel={() => setShowAddForm(false)}
+                />
+              </motion.div>
+            )}
+          </motion.div>
         </div>
       )
 
@@ -1614,16 +1721,19 @@ export function EntityEditor({ category }: EntityEditorProps) {
             onAdd={() => setShowAddForm(true)}
             onGenerate={() => handleGenerate('world')}
           />
-          <div className="space-y-3">
+          <motion.div
+            className="space-y-3"
+            variants={entityListVariants}
+            initial="hidden"
+            animate="visible"
+            exit="exit"
+          >
             <AnimatePresence mode="popLayout">
               {worldSettings.map((world) => (
                 <motion.div
                   key={world.id}
                   layout
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, x: -20 }}
-                  transition={{ type: 'spring', stiffness: 400, damping: 30 }}
+                  variants={entityItemVariants}
                 >
                   <EntityCard
                     name={world.name}
@@ -1638,21 +1748,26 @@ export function EntityEditor({ category }: EntityEditorProps) {
               ))}
             </AnimatePresence>
             {worldSettings.length === 0 && (
-              <div className="text-center py-8" style={{ color: 'var(--text-tertiary)' }}>
-                <p className="text-sm">暂无世界观设定</p>
-              </div>
-            )}
-            {showAddForm && (
-              <AddEntityForm
-                placeholder="输入世界观设定名称..."
-                onAdd={(name) => {
-                  useSettingsStore.getState().addWorldSetting({ name, description: '' })
-                  setShowAddForm(false)
-                }}
-                onCancel={() => setShowAddForm(false)}
+              <EmptyState
+                icon={Globe}
+                title="暂无世界观设定"
+                subtitle="点击下方按钮创建第一个设定"
+                color="var(--color-world)"
               />
             )}
-          </div>
+            {showAddForm && (
+              <motion.div variants={entityItemVariants}>
+                <AddEntityForm
+                  placeholder="输入世界观设定名称..."
+                  onAdd={(name) => {
+                    useSettingsStore.getState().addWorldSetting({ name, description: '' })
+                    setShowAddForm(false)
+                  }}
+                  onCancel={() => setShowAddForm(false)}
+                />
+              </motion.div>
+            )}
+          </motion.div>
         </div>
       )
 
@@ -1665,16 +1780,19 @@ export function EntityEditor({ category }: EntityEditorProps) {
             onAdd={() => setShowAddForm(true)}
             onGenerate={() => handleGenerate('rule')}
           />
-          <div className="space-y-3">
+          <motion.div
+            className="space-y-3"
+            variants={entityListVariants}
+            initial="hidden"
+            animate="visible"
+            exit="exit"
+          >
             <AnimatePresence mode="popLayout">
               {rules.map((rule) => (
                 <motion.div
                   key={rule.id}
                   layout
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, x: -20 }}
-                  transition={{ type: 'spring', stiffness: 400, damping: 30 }}
+                  variants={entityItemVariants}
                 >
                   <EntityCard
                     name={rule.name}
@@ -1690,21 +1808,26 @@ export function EntityEditor({ category }: EntityEditorProps) {
               ))}
             </AnimatePresence>
             {rules.length === 0 && (
-              <div className="text-center py-8" style={{ color: 'var(--text-tertiary)' }}>
-                <p className="text-sm">暂无规则设定</p>
-              </div>
-            )}
-            {showAddForm && (
-              <AddEntityForm
-                placeholder="输入规则名称..."
-                onAdd={(name) => {
-                  useSettingsStore.getState().addRule({ name, description: '', type: 'other' })
-                  setShowAddForm(false)
-                }}
-                onCancel={() => setShowAddForm(false)}
+              <EmptyState
+                icon={BookOpen}
+                title="暂无规则设定"
+                subtitle="点击下方按钮创建第一个规则"
+                color="var(--color-rule)"
               />
             )}
-          </div>
+            {showAddForm && (
+              <motion.div variants={entityItemVariants}>
+                <AddEntityForm
+                  placeholder="输入规则名称..."
+                  onAdd={(name) => {
+                    useSettingsStore.getState().addRule({ name, description: '', type: 'other' })
+                    setShowAddForm(false)
+                  }}
+                  onCancel={() => setShowAddForm(false)}
+                />
+              </motion.div>
+            )}
+          </motion.div>
         </div>
       )
 
@@ -1720,16 +1843,19 @@ export function EntityEditor({ category }: EntityEditorProps) {
             onAdd={() => setShowAddForm(true)}
             onGenerate={generateRelations}
           />
-          <div className="space-y-3">
+          <motion.div
+            className="space-y-3"
+            variants={entityListVariants}
+            initial="hidden"
+            animate="visible"
+            exit="exit"
+          >
             <AnimatePresence mode="popLayout">
               {ifLines.map((ifline) => (
                 <motion.div
                   key={ifline.id}
                   layout
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, x: -20 }}
-                  transition={{ type: 'spring', stiffness: 400, damping: 30 }}
+                  variants={entityItemVariants}
                 >
                   <EntityCard
                     name={ifline.title}
@@ -1745,21 +1871,26 @@ export function EntityEditor({ category }: EntityEditorProps) {
               ))}
             </AnimatePresence>
             {ifLines.length === 0 && (
-              <div className="text-center py-8" style={{ color: 'var(--text-tertiary)' }}>
-                <p className="text-sm">暂无IF线</p>
-              </div>
-            )}
-            {showAddForm && (
-              <AddEntityForm
-                placeholder="输入IF线标题..."
-                onAdd={(title) => {
-                  useSettingsStore.getState().addIFLine({ title, sync_mode: 'manual', created_at: new Date().toISOString(), updated_at: new Date().toISOString() })
-                  setShowAddForm(false)
-                }}
-                onCancel={() => setShowAddForm(false)}
+              <EmptyState
+                icon={GitBranch}
+                title="暂无IF线"
+                subtitle="点击下方按钮创建第一条IF线"
+                color="var(--color-ifline)"
               />
             )}
-          </div>
+            {showAddForm && (
+              <motion.div variants={entityItemVariants}>
+                <AddEntityForm
+                  placeholder="输入IF线标题..."
+                  onAdd={(title) => {
+                    useSettingsStore.getState().addIFLine({ title, sync_mode: 'manual', created_at: new Date().toISOString(), updated_at: new Date().toISOString() })
+                    setShowAddForm(false)
+                  }}
+                  onCancel={() => setShowAddForm(false)}
+                />
+              </motion.div>
+            )}
+          </motion.div>
         </div>
       )
 

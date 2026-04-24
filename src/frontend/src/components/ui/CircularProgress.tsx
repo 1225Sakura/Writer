@@ -16,23 +16,6 @@ export interface CircularProgressProps {
   glowIntensity?: number
 }
 
-function useAnimatedNumber(value: number, animated: boolean, digits: number = 0) {
-  const springValue = useSpring(value, {
-    stiffness: 100,
-    damping: 16,
-    mass: 0.6,
-  })
-  const displayValue = useTransform(springValue, (v) =>
-    digits > 0 ? v.toFixed(digits) : Math.round(v).toString()
-  )
-
-  useEffect(() => {
-    springValue.set(value)
-  }, [value, springValue])
-
-  return { springValue, displayValue }
-}
-
 export function CircularProgress({
   value,
   size = 64,

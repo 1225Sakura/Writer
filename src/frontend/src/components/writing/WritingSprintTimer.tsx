@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { Button } from '@/components/ui/Button'
+import { motion } from 'framer-motion'
 import { Timer, Play, Pause, RotateCcw, Settings, X, Coffee } from 'lucide-react'
 
 const DEFAULT_SPRINT_MINUTES = 25
@@ -128,7 +129,7 @@ export function WritingSprintTimer() {
       ? timer.isBreak
         ? 'bg-[var(--color-ifline)]/10'
         : 'bg-[var(--accent-primary)]/10'
-      : 'bg-[var(--border-subtle)]'
+      : 'bg-[var(--color-surface-raised)]'
     const timerBorder = timer.isRunning
       ? timer.isBreak
         ? 'border-[var(--color-ifline)]/30'
@@ -139,54 +140,111 @@ export function WritingSprintTimer() {
         ? 'text-[var(--color-ifline)]'
         : 'text-[var(--accent-primary)]'
       : 'text-[var(--text-secondary)]'
+    const timerGlow = timer.isRunning
+      ? timer.isBreak
+        ? 'shadow-[0_0_12px_rgba(126,184,74,0.15)]'
+        : 'shadow-[0_0_12px_rgba(94,106,210,0.15)]'
+      : 'shadow-drawer'
 
     return (
-      <button
+      <motion.button
+        initial={{ opacity: 0, scale: 0.9 }}
+        animate={{ opacity: 1, scale: 1 }}
+        whileHover={{ scale: 1.03, y: -1 }}
+        whileTap={{ scale: 0.97 }}
         onClick={() => setIsOpen(true)}
-        className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium
-                   transition-all duration-200 border ${timerBg} ${timerBorder} ${timerText}`}
+        className={`fixed right-4 top-16 z-50 flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-medium
+                   transition-all duration-200 border ${timerBg} ${timerBorder} ${timerText} ${timerGlow}`}
+        style={{
+          backdropFilter: 'blur(12px)',
+          WebkitBackdropFilter: 'blur(12px)',
+        }}
         title="写作冲刺计时器"
       >
-        <Timer className="w-3.5 h-3.5" />
-        <span>{formatTime(timer.timeRemaining)}</span>
+        {timer.isRunning ? (
+          <motion.div
+            animate={{ rotate: 360 }}
+            transition={{ duration: 4, repeat: Infinity, ease: 'linear' }}
+          >
+            <Timer className="w-3.5 h-3.5" />
+          </motion.div>
+        ) : (
+          <Timer className="w-3.5 h-3.5" />
+        )}
+        <span className="tabular-nums font-semibold">{formatTime(timer.timeRemaining)}</span>
         {timer.isBreak && <Coffee className="w-3 h-3" />}
-      </button>
+        {timer.isRunning && (
+          <motion.span
+            className="w-1.5 h-1.5 rounded-full"
+            style={{
+              background: timer.isBreak ? 'var(--color-ifline)' : 'var(--accent-primary)',
+            }}
+            animate={{ opacity: [1, 0.3, 1] }}
+            transition={{ duration: 1.5, repeat: Infinity }}
+          />
+        )}
+      </motion.button>
     )
   }
 
   return (
-    <div className="fixed right-4 top-16 z-50 w-64 flex flex-col rounded-xl overflow-hidden
-                    bg-[var(--color-surface-raised)] border border-[var(--border-default)] shadow-float"
+    <motion.div
+      initial={{ opacity: 0, scale: 0.92, y: -8 }}
+      animate={{ opacity: 1, scale: 1, y: 0 }}
+      exit={{ opacity: 0, scale: 0.92, y: -8 }}
+      transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
+      className="fixed right-4 top-16 z-50 w-64 flex flex-col rounded-2xl overflow-hidden"
+      style={{
+        background: 'var(--color-surface-raised)',
+        border: '1px solid var(--border-default)',
+        boxShadow: '0 16px 48px rgba(0,0,0,0.30), 0 4px 12px rgba(0,0,0,0.18), 0 0 0 1px rgba(255,255,255,0.03)',
+        backdropFilter: 'blur(16px)',
+        WebkitBackdropFilter: 'blur(16px)',
+      }}
     >
-      {/* Header */}
-      <div className="flex items-center justify-between px-3 py-2.5 border-b border-[var(--border-default)]">
-        <div className="flex items-center gap-2">
-          <Timer
-            className={`w-4 h-4 ${timer.isBreak ? 'text-[var(--color-ifline)]' : 'text-[var(--accent-primary)]'}`}
-          />
-          <span className="text-sm font-medium text-[var(--text-primary)]">
+      {/* Refined Header */}
+      <div className="flex items-center justify-between px-4 py-3 border-b border-[var(--border-default)] relative overflow-hidden">
+        {/* Subtle header gradient */}
+        <div
+          className="absolute inset-0 pointer-events-none opacity-30"
+          style={{
+            background: timer.isBreak
+              ? 'linear-gradient(135deg, color-mix(in srgb, var(--color-ifline) 4%, transparent) 0%, transparent 60%)'
+              : 'linear-gradient(135deg, color-mix(in srgb, var(--accent-primary) 4%, transparent) 0%, transparent 60%)',
+          }}
+        />
+        <div className="flex items-center gap-2.5 relative z-10">
+          <motion.div
+            animate={timer.isRunning ? { rotate: 360 } : {}}
+            transition={{ duration: 8, repeat: Infinity, ease: 'linear' }}
+          >
+            <Timer
+              className={`w-4 h-4 ${timer.isBreak ? 'text-[var(--color-ifline)]' : 'text-[var(--accent-primary)]'}`}
+            />
+          </motion.div>
+          <span className="text-sm font-semibold text-[var(--text-primary)]">
             {timer.isBreak ? '休息时间' : '写作冲刺'}
           </span>
         </div>
-        <div className="flex items-center gap-1">
-          <Button
+        <div className="flex items-center gap-0.5 relative z-10">
+          <motion.button
+            whileHover={{ scale: 1.1 }}
+            whileTap={{ scale: 0.9 }}
             onClick={() => setShowSettings(!showSettings)}
-            variant="ghost"
-            size="icon"
-            className="h-7 w-7"
+            className="h-7 w-7 flex items-center justify-center rounded-lg hover:bg-[var(--color-surface-hover)] transition-colors duration-150"
             title="设置"
           >
             <Settings className="w-3.5 h-3.5 text-[var(--text-secondary)]" />
-          </Button>
-          <Button
+          </motion.button>
+          <motion.button
+            whileHover={{ scale: 1.1, rotate: 90 }}
+            whileTap={{ scale: 0.9 }}
             onClick={() => setIsOpen(false)}
-            variant="ghost"
-            size="icon"
-            className="h-7 w-7"
+            className="h-7 w-7 flex items-center justify-center rounded-lg hover:bg-[var(--color-surface-hover)] transition-colors duration-150"
             title="关闭"
           >
             <X className="w-3.5 h-3.5 text-[var(--icon-secondary)]" />
-          </Button>
+          </motion.button>
         </div>
       </div>
 
@@ -320,7 +378,7 @@ export function WritingSprintTimer() {
           </div>
         </div>
       )}
-    </div>
+    </motion.div>
   )
 }
 

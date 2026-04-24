@@ -58,6 +58,9 @@ export interface UIState {
   fullscreenWriting: boolean
   immersiveMode: boolean
   focusModeEnabled: boolean
+  typewriterMode: boolean
+  paragraphFocusMode: boolean
+  paperEdgeDecoration: boolean
 
   // Theme (expanded to match useTheme hook)
   theme: 'light' | 'dark' | 'eye-care' | 'midnight-blue' | 'warm-paper' | 'forest-green'
@@ -112,6 +115,15 @@ interface UIActions {
   toggleFocusMode: () => void
   setFocusMode: (focusMode: boolean) => void
 
+  toggleTypewriterMode: () => void
+  setTypewriterMode: (enabled: boolean) => void
+
+  toggleParagraphFocusMode: () => void
+  setParagraphFocusMode: (enabled: boolean) => void
+
+  togglePaperEdgeDecoration: () => void
+  setPaperEdgeDecoration: (enabled: boolean) => void
+
   // Theme
   setTheme: (theme: 'light' | 'dark' | 'eye-care' | 'midnight-blue' | 'warm-paper' | 'forest-green') => void
   toggleTheme: () => void
@@ -158,6 +170,9 @@ export const useUIStore = create<UIState & UIActions>()(
           fullscreenWriting: false,
           immersiveMode: false,
           focusModeEnabled: false,
+          typewriterMode: false,
+          paragraphFocusMode: false,
+          paperEdgeDecoration: false,
           theme: 'dark',
           settingsCategory: 'world',
           settingsSidebarWidth: 240,
@@ -353,6 +368,30 @@ export const useUIStore = create<UIState & UIActions>()(
             set((state) => { state.focusModeEnabled = focusMode })
           },
 
+          toggleTypewriterMode: () => {
+            set((state) => { state.typewriterMode = !state.typewriterMode })
+          },
+
+          setTypewriterMode: (enabled) => {
+            set((state) => { state.typewriterMode = enabled })
+          },
+
+          toggleParagraphFocusMode: () => {
+            set((state) => { state.paragraphFocusMode = !state.paragraphFocusMode })
+          },
+
+          setParagraphFocusMode: (enabled) => {
+            set((state) => { state.paragraphFocusMode = enabled })
+          },
+
+          togglePaperEdgeDecoration: () => {
+            set((state) => { state.paperEdgeDecoration = !state.paperEdgeDecoration })
+          },
+
+          setPaperEdgeDecoration: (enabled) => {
+            set((state) => { state.paperEdgeDecoration = enabled })
+          },
+
           // ----------------------------------------
           // Theme
           // ----------------------------------------
@@ -429,6 +468,9 @@ export const useUIStore = create<UIState & UIActions>()(
             settingsSidebarWidth: state.settingsSidebarWidth,
             immersiveMode: state.immersiveMode,
             focusModeEnabled: state.focusModeEnabled,
+            typewriterMode: state.typewriterMode,
+            paragraphFocusMode: state.paragraphFocusMode,
+            paperEdgeDecoration: state.paperEdgeDecoration,
           }),
           version: 2,
         }
@@ -480,6 +522,9 @@ export const selectDisplayModes = (state: UIState) =>
     fullscreenWriting: state.fullscreenWriting,
     immersiveMode: state.immersiveMode,
     focusModeEnabled: state.focusModeEnabled,
+    typewriterMode: state.typewriterMode,
+    paragraphFocusMode: state.paragraphFocusMode,
+    paperEdgeDecoration: state.paperEdgeDecoration,
   })
 
 /** 清理 UI store 临时状态 */

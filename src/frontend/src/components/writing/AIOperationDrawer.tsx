@@ -1,5 +1,4 @@
-import { useState, useCallback } from 'react'
-// Note: ripple effect removed for cleaner visual design
+import { useState, useCallback, useEffect } from 'react'
 import { useWritingStore, WritingStyle } from '@/store'
 import { getEditorInstance } from '@/store/editorRegistry'
 import { showToast } from '@/components/ui/Toast'
@@ -28,6 +27,8 @@ import {
   Gauge,
   AlertCircle,
   RotateCcw,
+  Bot,
+  History,
 } from 'lucide-react'
 
 const writingStyles: Array<{ value: WritingStyle; label: string; description: string; color: string }> = [
@@ -229,6 +230,173 @@ function DiffPreview({
   )
 }
 
+// AI Operation History Timeline
+function OperationHistoryTimeline() {
+  const { aiJobQueue } = useWritingStore()
+  const completedJobs = aiJobQueue.filter((j) => j.status === 'completed').slice(-5).reverse()
+
+  if (completedJobs.length === 0) return null
+
+  return (
+    <div className="space-y-2">
+      <div className="flex items-center gap-2 mb-2">
+        <History className="w-3.5 h-3.5" style={{ color: 'var(--text-tertiary)' }} />
+        <span className="text-[11px] font-medium uppercase tracking-wider" style={{ color: 'var(--text-tertiary)' }}>操作历史</span>
+      </div>
+      <div className="relative pl-3">
+        {/* Timeline vertical line */}
+        <div
+          className="absolute left-[5px] top-1 bottom-1 w-px"
+          style={{ background: 'linear-gradient(180deg, var(--accent-primary) 0%, var(--border-subtle) 100%)' }}
+        />
+        <div className="space-y-2.5">
+          {completedJobs.map((job, index) => (
+            <motion.div
+              key={job.id}
+              initial={{ opacity: 0, x: -8 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: index * 0.05 }}
+              className="relative flex items-center gap-2.5"
+            >
+              {/* Timeline dot */}
+              <div
+                className="absolute left-[-7px] w-[11px] h-[11px] rounded-full border-2 flex-shrink-0"
+                style={{
+                  borderColor: 'var(--color-surface-raised)',
+                  background: getOperationColor(job.type),
+                  boxShadow: `0 0 6px ${getOperationColor(job.type)}50`,
+                }}
+              />
+              <div className="flex-1 min-w-0 pl-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-medium" style={{ color: 'var(--text-secondary)' }}>
+                    {getOperationLabel(job.type)}
+                  </span>
+                  <span className="text-[10px] tabular-nums" style={{ color: 'var(--text-tertiary)' }}>
+                    {job.completedAt ? formatTimeAgo(job.completedAt) : ''}
+                  </span>
+                </div>
+                <div className="text-[10px] truncate" style={{ color: 'var(--text-tertiary)' }}>
+                  {job.content?.slice(0, 30)}...
+                </div>
+              </div>
+            </motion.div>
+          ))}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function getOperationColor(op: string): string {
+  const colors: Record<string, string> = {
+    optimize: 'var(--accent-primary)',
+    expand: 'var(--color-ifline)',
+    condense: 'var(--color-character)',
+    rewrite: 'var(--color-item)',
+    continue: 'var(--color-location)',
+    polish: 'var(--color-vermillion)',
+  }
+  return colors[op] || 'var(--accent-primary)'
+}
+
+function formatTimeAgo(timestamp: number): string {
+  const seconds = Math.floor((Date.now() - timestamp) / 1000)
+  if (seconds < 60) return '刚刚'
+  if (seconds < 3600) return `${Math.floor(seconds / 60)}分钟前`
+  if (seconds < 86400) return `${Math.floor(seconds / 3600)}小时前`
+  return `${Math.floor(seconds / 86400)}天前`
+}
+
+// Haptic feedback helper
+function triggerHaptic() {
+  if (typeof navigator !== 'undefined' && 'vibrate' in navigator) {
+    navigator.vibrate(8)
+  }
+}
+
+// Refined AI Drawer Header with pulse glow + gradient title
+function DrawerHeader() {
+  return (
+    <div className="flex items-center gap-3 pb-3 mb-1">
+      <div className="relative flex-shrink-0">
+        <div
+          className="w-9 h-9 rounded-xl flex items-center justify-center relative z-10"
+          style={{
+            background: 'linear-gradient(135deg, rgba(94, 106, 210, 0.22) 0%, rgba(94, 106, 210, 0.08) 100%)',
+            border: '1px solid rgba(94, 106, 210, 0.3)',
+            boxShadow: '0 0 16px rgba(94, 106, 210, 0.15), inset 0 1px 0 rgba(94, 106, 210, 0.1)',
+          }}
+        >
+          <Bot className="w-5 h-5" style={{ color: 'var(--accent-primary)' }} />
+        </div>
+        {/* Pulse glow ring */}
+        <span
+          className="absolute inset-[-2px] rounded-xl animate-ping opacity-25 motion-reduce:animate-none"
+          style={{
+            background: 'rgba(94, 106, 210, 0.15)',
+            animationDuration: '2.5s',
+            boxShadow: '0 0 12px rgba(94, 106, 210, 0.2)',
+          }}
+        />
+        {/* Inner glow */}
+        <span
+          className="absolute inset-0 rounded-xl opacity-40"
+          style={{
+            boxShadow: 'inset 0 0 8px rgba(94, 106, 210, 0.2)',
+          }}
+        />
+      </div>
+      <div className="flex-1 min-w-0">
+        <h3
+          className="text-sm font-bold tracking-tight"
+          style={{
+            background: 'linear-gradient(90deg, var(--accent-primary) 0%, var(--accent-90) 50%, #8b96e8 100%)',
+            WebkitBackgroundClip: 'text',
+            WebkitTextFillColor: 'transparent',
+            backgroundClip: 'text',
+          }}
+        >
+          AI 写作助手
+        </h3>
+        <p className="text-[10px] leading-tight flex items-center gap-1.5" style={{ color: 'var(--text-tertiary)' }}>
+          <span
+            className="inline-block w-1 h-1 rounded-full animate-pulse motion-reduce:animate-none"
+            style={{ background: 'var(--accent-primary)', boxShadow: '0 0 4px var(--accent-primary)' }}
+          />
+          智能辅助 · 实时生成
+        </p>
+      </div>
+    </div>
+  )
+}
+
+// Refined loading skeleton for AI operations
+function AILoadingSkeleton() {
+  return (
+    <div className="space-y-3 p-1">
+      <div className="flex items-center gap-3">
+        <div className="w-9 h-9 rounded-xl skeleton-shimmer" />
+        <div className="flex-1 space-y-2">
+          <div className="h-3 rounded-md skeleton-shimmer w-24" />
+          <div className="h-2 rounded-md skeleton-shimmer w-16" />
+        </div>
+      </div>
+      <div className="grid grid-cols-2 gap-2">
+        <div className="h-20 rounded-xl skeleton-shimmer" />
+        <div className="h-20 rounded-xl skeleton-shimmer" />
+        <div className="h-20 rounded-xl skeleton-shimmer" />
+        <div className="h-20 rounded-xl skeleton-shimmer" />
+      </div>
+      <div className="h-1.5 rounded-full skeleton-shimmer" />
+      <div className="space-y-2">
+        <div className="h-3 rounded-md skeleton-shimmer w-full" />
+        <div className="h-3 rounded-md skeleton-shimmer w-3/4" />
+      </div>
+    </div>
+  )
+}
+
 export function AIOperationDrawer() {
   const {
     humanAIRatio,
@@ -255,6 +423,13 @@ export function AIOperationDrawer() {
     result: string
     qualityScore: number
   } | null>(null)
+  const [isMinimized, _setIsMinimized] = useState(false)
+  const [isLoading, setIsLoading] = useState(false)
+
+  // Trigger haptic on mount
+  useEffect(() => {
+    triggerHaptic()
+  }, [])
 
   // Track current job for progress display
   const currentJob = aiJobQueue.find((j) => j.id === currentJobId)
@@ -274,6 +449,7 @@ export function AIOperationDrawer() {
     }
 
     setPreviewResult(null)
+    setIsLoading(true)
 
     try {
       let result: string
@@ -309,9 +485,13 @@ export function AIOperationDrawer() {
         result,
         qualityScore,
       })
+      // Content update toast style
+      showToast(`${getOperationLabel(operation)}完成`, 'success')
     } catch (error) {
       console.error(`[写作操作] ${operation} failed:`, error)
       showToast(`${getOperationLabel(operation)}失败: ${error instanceof Error ? error.message : '未知错误'}`, 'error')
+    } finally {
+      setIsLoading(false)
     }
   }
 
@@ -359,202 +539,270 @@ export function AIOperationDrawer() {
 
   return (
     <div className="flex-1 overflow-y-auto p-4 space-y-3 ai-drawer-scroll">
-      {/* 全文操作 */}
-      <Section
-        title="全文操作"
-        icon={<FileText className="w-4 h-4" />}
-        isExpanded={expandedSections.has('global')}
-        onToggle={() => toggleSection('global')}
-      >
-        <div className="space-y-2">
-          <GlobalOperationButton
-            icon={<Feather className="w-4 h-4" />}
-            label="生成下一章"
-            description="基于当前剧情自动生成"
-            onClick={() => showToast('正在生成下一章...', 'info')}
-          />
-          <GlobalOperationButton
-            icon={<Sparkles className="w-4 h-4" />}
-            label="优化全文"
-            description="提升整体表达质量"
-            onClick={() => showToast('正在优化全文...', 'info')}
-          />
-          <GlobalOperationButton
-            icon={<Wand2 className="w-4 h-4" />}
-            label="文笔重塑"
-            description="按选定风格重写"
-            onClick={() => showToast('正在重塑文笔...', 'info')}
-          />
-        </div>
-      </Section>
+      {/* Refined AI Drawer Header */}
+      <DrawerHeader />
 
-      {/* 人机比例 */}
-      <Section
-        title="人机协作比例"
-        icon={<Gauge className="w-4 h-4" />}
-        isExpanded={expandedSections.has('ratio')}
-        onToggle={() => toggleSection('ratio')}
-      >
-        <div className="space-y-3">
-          <HumanAIRatioSlider
-            value={humanAIRatio}
-            onChange={setHumanAIRatio}
-          />
-          {/* Ratio indicator */}
-          <div className="flex items-center gap-3 p-2.5 rounded-xl" style={{ background: 'var(--color-surface-raised)' }}>
-            <div className="flex-1 h-1.5 rounded-full overflow-hidden" style={{ background: 'var(--border-subtle)' }}>
-              <motion.div
-                className="h-full rounded-full"
-                style={{
-                  background: 'linear-gradient(90deg, var(--accent-primary) 0%, var(--color-ifline) 100%)',
-                }}
-                initial={false}
-                animate={{ width: `${humanAIRatio}%` }}
-                transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
-              />
-            </div>
-            <span className="text-xs font-medium min-w-[3.5em] text-right" style={{ color: 'var(--text-secondary)' }}>
-              {humanAIRatio < 30 ? 'AI辅助' : humanAIRatio < 70 ? '协作模式' : 'AI主导'}
-            </span>
-          </div>
-        </div>
-      </Section>
-
-      {/* 文笔风格 */}
-      <Section
-        title="文笔风格"
-        icon={<Edit3 className="w-4 h-4" />}
-        isExpanded={expandedSections.has('style')}
-        onToggle={() => toggleSection('style')}
-      >
-        <div className="space-y-1.5">
-          {writingStyles.map((style) => (
-            <StyleButton
-              key={style.value}
-              label={style.label}
-              description={style.description}
-              color={style.color}
-              isActive={writingStyle === style.value}
-              onClick={() => setWritingStyle(style.value)}
-            />
-          ))}
-        </div>
-      </Section>
-
-      {/* 写作操作 */}
-      <Section
-        title="AI写作操作"
-        icon={<Sparkles className="w-4 h-4" />}
-        isExpanded={expandedSections.has('selection')}
-        onToggle={() => toggleSection('selection')}
-      >
-        <div className="grid grid-cols-2 gap-2">
-          {aiOperations.map((op) => (
-            <AIOperationButton
-              key={op.key}
-              operation={op}
-              isLoading={activeOperation === op.key}
-              isDisabled={activeOperation !== null && activeOperation !== op.key}
-              progress={activeOperation === op.key ? (currentJob?.progress ?? 0) : 0}
-              onClick={() => handleOperation(op.key)}
-            />
-          ))}
-        </div>
-
-        {/* Progress bar for active operation */}
-        <AnimatePresence>
-          {currentJob && currentJob.status === 'processing' && (
-            <motion.div
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: 'auto' }}
-              exit={{ opacity: 0, height: 0 }}
-              className="mt-4 space-y-2.5"
+      {/* Minimize/Maximize control */}
+      <AnimatePresence mode="wait">
+        {!isMinimized ? (
+          <motion.div
+            key="expanded"
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            exit={{ opacity: 0, height: 0 }}
+            transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
+            className="space-y-3"
+          >
+            {/* 全文操作 */}
+            <Section
+              title="全文操作"
+              icon={<FileText className="w-4 h-4" />}
+              isExpanded={expandedSections.has('global')}
+              onToggle={() => toggleSection('global')}
             >
-              <div className="flex items-center justify-between text-xs" style={{ color: 'var(--text-secondary)' }}>
-                <span className="font-medium">{getOperationLabel(currentJob.type)}中...
-                  {currentJob.retryCount > 0 && (
-                    <span style={{ color: 'var(--color-vermillion)' }}> (重试 {currentJob.retryCount}/3)</span>
-                  )}
-                </span>
-                <span className="font-mono">{currentJob.progress}%</span>
-              </div>
-              <div className="h-1.5 rounded-full overflow-hidden" style={{ background: 'var(--border-subtle)' }}>
-                <motion.div
-                  className="h-full rounded-full"
-                  style={{ background: 'var(--accent-primary)' }}
-                  initial={{ width: 0 }}
-                  animate={{ width: `${currentJob.progress}%` }}
-                  transition={{ duration: 0.3 }}
+              <div className="space-y-2">
+                <GlobalOperationButton
+                  icon={<Feather className="w-4 h-4" />}
+                  label="生成下一章"
+                  description="基于当前剧情自动生成"
+                  onClick={() => showToast('正在生成下一章...', 'info')}
+                />
+                <GlobalOperationButton
+                  icon={<Sparkles className="w-4 h-4" />}
+                  label="优化全文"
+                  description="提升整体表达质量"
+                  onClick={() => showToast('正在优化全文...', 'info')}
+                />
+                <GlobalOperationButton
+                  icon={<Wand2 className="w-4 h-4" />}
+                  label="文笔重塑"
+                  description="按选定风格重写"
+                  onClick={() => showToast('正在重塑文笔...', 'info')}
                 />
               </div>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="w-full text-xs"
-                onClick={handleCancel}
-              >
-                <X className="w-3 h-3 mr-1" />
-                取消生成
-              </Button>
-            </motion.div>
-          )}
-        </AnimatePresence>
+            </Section>
 
-        {/* Failed job with retry */}
-        <AnimatePresence>
-          {aiJobQueue.map((job) =>
-            job.status === 'failed' && job.id === currentJobId ? (
-              <motion.div
-                key={job.id}
-                initial={{ opacity: 0, y: 8 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: 8 }}
-                className="mt-4 p-3 rounded-xl flex items-center gap-3"
-                style={{
-                  background: 'color-mix(in srgb, var(--color-vermillion) 8%, transparent)',
-                  border: '1px solid color-mix(in srgb, var(--color-vermillion) 15%, transparent)',
-                }}
-              >
-                <AlertCircle className="w-4 h-4 flex-shrink-0 text-[var(--icon-danger)]" />
-                <div className="flex-1 min-w-0">
-                  <div className="text-xs font-semibold" style={{ color: 'var(--text-primary)' }}>
-                    {getOperationLabel(job.type)}失败
+            {/* 人机比例 */}
+            <Section
+              title="人机协作比例"
+              icon={<Gauge className="w-4 h-4" />}
+              isExpanded={expandedSections.has('ratio')}
+              onToggle={() => toggleSection('ratio')}
+            >
+              <div className="space-y-3">
+                <HumanAIRatioSlider
+                  value={humanAIRatio}
+                  onChange={setHumanAIRatio}
+                />
+                {/* Ratio indicator */}
+                <div className="flex items-center gap-3 p-2.5 rounded-xl" style={{ background: 'var(--color-surface-raised)' }}>
+                  <div className="flex-1 h-1.5 rounded-full overflow-hidden" style={{ background: 'var(--border-subtle)' }}>
+                    <motion.div
+                      className="h-full rounded-full"
+                      style={{
+                        background: 'linear-gradient(90deg, var(--accent-primary) 0%, var(--color-ifline) 100%)',
+                      }}
+                      initial={false}
+                      animate={{ width: `${humanAIRatio}%` }}
+                      transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
+                    />
                   </div>
-                  <div className="text-[10px] truncate" style={{ color: 'var(--text-secondary)' }}>
-                    {job.error || '未知错误'}
+                  <span className="text-xs font-medium min-w-[3.5em] text-right" style={{ color: 'var(--text-secondary)' }}>
+                    {humanAIRatio < 30 ? 'AI辅助' : humanAIRatio < 70 ? '协作模式' : 'AI主导'}
+                  </span>
+                </div>
+              </div>
+            </Section>
+
+            {/* 文笔风格 */}
+            <Section
+              title="文笔风格"
+              icon={<Edit3 className="w-4 h-4" />}
+              isExpanded={expandedSections.has('style')}
+              onToggle={() => toggleSection('style')}
+            >
+              <div className="space-y-1.5">
+                {writingStyles.map((style) => (
+                  <StyleButton
+                    key={style.value}
+                    label={style.label}
+                    description={style.description}
+                    color={style.color}
+                    isActive={writingStyle === style.value}
+                    onClick={() => setWritingStyle(style.value)}
+                  />
+                ))}
+              </div>
+            </Section>
+
+            {/* 写作操作 */}
+            <Section
+              title="AI写作操作"
+              icon={<Sparkles className="w-4 h-4" />}
+              isExpanded={expandedSections.has('selection')}
+              onToggle={() => toggleSection('selection')}
+            >
+              {isLoading && !previewResult ? (
+                <AILoadingSkeleton />
+              ) : (
+                <div className="space-y-3">
+                  {/* Operation buttons with grouping */}
+                  <div className="grid grid-cols-2 gap-2">
+                    {aiOperations.slice(0, 3).map((op) => (
+                      <AIOperationButton
+                        key={op.key}
+                        operation={op}
+                        isLoading={activeOperation === op.key}
+                        isDisabled={activeOperation !== null && activeOperation !== op.key}
+                        progress={activeOperation === op.key ? (currentJob?.progress ?? 0) : 0}
+                        onClick={() => handleOperation(op.key)}
+                      />
+                    ))}
+                  </div>
+                  {/* Subtle divider between groups */}
+                  <div className="relative py-1">
+                    <div className="absolute inset-0 flex items-center">
+                      <div className="w-full h-px" style={{ background: 'linear-gradient(90deg, transparent 0%, var(--border-subtle) 30%, var(--border-subtle) 70%, transparent 100%)' }} />
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-2">
+                    {aiOperations.slice(3).map((op) => (
+                      <AIOperationButton
+                        key={op.key}
+                        operation={op}
+                        isLoading={activeOperation === op.key}
+                        isDisabled={activeOperation !== null && activeOperation !== op.key}
+                        progress={activeOperation === op.key ? (currentJob?.progress ?? 0) : 0}
+                        onClick={() => handleOperation(op.key)}
+                      />
+                    ))}
+                  </div>
+
+                  {/* Progress bar for active operation */}
+                  <AnimatePresence>
+                    {currentJob && currentJob.status === 'processing' && (
+                      <motion.div
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: 'auto' }}
+                        exit={{ opacity: 0, height: 0 }}
+                        className="mt-4 space-y-2.5"
+                      >
+                        <div className="flex items-center justify-between text-xs" style={{ color: 'var(--text-secondary)' }}>
+                          <span className="font-medium">{getOperationLabel(currentJob.type)}中...
+                            {currentJob.retryCount > 0 && (
+                              <span style={{ color: 'var(--color-vermillion)' }}> (重试 {currentJob.retryCount}/3)</span>
+                            )}
+                          </span>
+                          <span className="font-mono">{currentJob.progress}%</span>
+                        </div>
+                        <div className="h-1.5 rounded-full overflow-hidden" style={{ background: 'var(--border-subtle)' }}>
+                          <motion.div
+                            className="h-full rounded-full"
+                            style={{ background: 'var(--accent-primary)' }}
+                            initial={{ width: 0 }}
+                            animate={{ width: `${currentJob.progress}%` }}
+                            transition={{ duration: 0.3 }}
+                          />
+                        </div>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="w-full text-xs"
+                          onClick={handleCancel}
+                        >
+                          <X className="w-3 h-3 mr-1" />
+                          取消生成
+                        </Button>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+
+                  {/* Failed job with retry */}
+                  <AnimatePresence>
+                    {aiJobQueue.map((job) =>
+                      job.status === 'failed' && job.id === currentJobId ? (
+                        <motion.div
+                          key={job.id}
+                          initial={{ opacity: 0, y: 8 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0, y: 8 }}
+                          className="mt-4 p-3 rounded-xl flex items-center gap-3"
+                          style={{
+                            background: 'color-mix(in srgb, var(--color-vermillion) 8%, transparent)',
+                            border: '1px solid color-mix(in srgb, var(--color-vermillion) 15%, transparent)',
+                          }}
+                        >
+                          <AlertCircle className="w-4 h-4 flex-shrink-0 text-[var(--icon-danger)]" />
+                          <div className="flex-1 min-w-0">
+                            <div className="text-xs font-semibold" style={{ color: 'var(--text-primary)' }}>
+                              {getOperationLabel(job.type)}失败
+                            </div>
+                            <div className="text-[10px] truncate" style={{ color: 'var(--text-secondary)' }}>
+                              {job.error || '未知错误'}
+                            </div>
+                          </div>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="text-xs flex-shrink-0"
+                            onClick={() => handleRetry(job.id)}
+                          >
+                            <RotateCcw className="w-3 h-3 mr-1" />
+                            重试
+                          </Button>
+                        </motion.div>
+                      ) : null
+                    )}
+                  </AnimatePresence>
+
+                  <p className="text-xs mt-3 text-center" style={{ color: 'var(--text-tertiary)' }}>
+                    选中文字后点击或使用快捷键
+                  </p>
+
+                  {/* Result preview */}
+                  <AnimatePresence>
+                    {previewResult && (
+                      <DiffPreview
+                        original={previewResult.original}
+                        result={previewResult.result}
+                        qualityScore={previewResult.qualityScore}
+                        onAccept={handleAcceptResult}
+                        onReject={handleRejectResult}
+                      />
+                    )}
+                  </AnimatePresence>
+
+                  {/* Operation History Timeline */}
+                  <div className="mt-4 pt-3" style={{ borderTop: '1px solid var(--border-subtle)' }}>
+                    <OperationHistoryTimeline />
                   </div>
                 </div>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="text-xs flex-shrink-0"
-                  onClick={() => handleRetry(job.id)}
-                >
-                  <RotateCcw className="w-3 h-3 mr-1" />
-                  重试
-                </Button>
-              </motion.div>
-            ) : null
-          )}
-        </AnimatePresence>
-
-        <p className="text-xs mt-3 text-center" style={{ color: 'var(--text-tertiary)' }}>
-          选中文字后点击或使用快捷键
-        </p>
-
-        {/* Result preview */}
-        <AnimatePresence>
-          {previewResult && (
-            <DiffPreview
-              original={previewResult.original}
-              result={previewResult.result}
-              qualityScore={previewResult.qualityScore}
-              onAccept={handleAcceptResult}
-              onReject={handleRejectResult}
-            />
-          )}
-        </AnimatePresence>
-      </Section>
+              )}
+            </Section>
+          </motion.div>
+        ) : (
+          <motion.div
+            key="minimized"
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.9 }}
+            transition={{ duration: 0.2 }}
+            className="flex flex-col items-center gap-3 py-4"
+          >
+            <div
+              className="w-12 h-12 rounded-2xl flex items-center justify-center"
+              style={{
+                background: 'linear-gradient(135deg, rgba(94, 106, 210, 0.2) 0%, rgba(94, 106, 210, 0.08) 100%)',
+                border: '1px solid rgba(94, 106, 210, 0.25)',
+                boxShadow: '0 0 20px rgba(94, 106, 210, 0.15)',
+              }}
+            >
+              <Bot className="w-6 h-6" style={{ color: 'var(--accent-primary)' }} />
+            </div>
+            <span className="text-xs font-medium" style={{ color: 'var(--text-tertiary)' }}>已最小化</span>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   )
 }
@@ -661,16 +909,21 @@ function AIOperationButton({
     <motion.button
       onClick={onClick}
       disabled={isDisabled}
-      whileHover={{ scale: isDisabled ? 1 : 1.03 }}
-      whileTap={{ scale: isDisabled ? 1 : 0.97 }}
+      whileHover={isDisabled ? {} : { y: -3, boxShadow: `0 8px 24px color-mix(in srgb, ${operation.color} 25%, transparent), 0 0 16px color-mix(in srgb, ${operation.color} 15%, transparent)` }}
+      whileTap={{ scale: isDisabled ? 1 : 0.95 }}
       transition={{ type: 'spring', stiffness: 400, damping: 25 }}
       className={`relative flex flex-col items-center gap-1.5 p-3 rounded-xl border transition-all duration-200 overflow-hidden touch-target-button
         ${isLoading
           ? 'border-[var(--accent-primary)]/50 bg-[var(--accent-primary)]/8 animate-glow-border'
-          : 'border-[var(--border-default)] bg-[var(--color-surface-base)] hover:border-[var(--border-strong)] hover:bg-[var(--hover-bg)] hover:shadow-glow-sm'
+          : 'border-[var(--border-default)] bg-[var(--color-surface-base)] hover:border-[var(--border-strong)]'
         }
         ${isDisabled && !isLoading ? 'opacity-40 cursor-not-allowed' : 'cursor-pointer'}
       `}
+      style={{
+        boxShadow: isLoading
+          ? `0 0 20px color-mix(in srgb, ${operation.color} 20%, transparent), inset 0 1px 0 color-mix(in srgb, ${operation.color} 10%, transparent)`
+          : undefined,
+      }}
     >
       {/* Loading overlay */}
       <AnimatePresence>
@@ -706,7 +959,7 @@ function AIOperationButton({
             ? 'none'
             : `0 0 16px color-mix(in srgb, ${operation.color} 25%, transparent), inset 0 1px 0 color-mix(in srgb, ${operation.color} 20%, transparent)`,
         }}
-        whileHover={isLoading ? {} : { scale: 1.1, boxShadow: `0 0 20px color-mix(in srgb, ${operation.color} 35%, transparent)` }}
+        whileHover={isLoading ? {} : { scale: 1.1, boxShadow: `0 0 24px color-mix(in srgb, ${operation.color} 40%, transparent)` }}
       >
         {isLoading ? operation.activeIcon : operation.icon}
       </motion.span>

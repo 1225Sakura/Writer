@@ -216,6 +216,25 @@ export function EditorToolbar({ editor }: EditorToolbarProps) {
     }),
   }
 
+  const renderDivider = (index: number) => (
+    <motion.div
+      key={`divider-${index}`}
+      initial={{ opacity: 0, scaleY: 0 }}
+      animate={{ opacity: 1, scaleY: 1 }}
+      transition={{ delay: index * 0.03, duration: 0.15 }}
+      className="w-px h-5 mx-1 relative overflow-hidden"
+      style={{ background: 'transparent' }}
+    >
+      <div
+        className="absolute inset-0"
+        style={{
+          background: 'linear-gradient(180deg, transparent 0%, var(--border-default) 20%, var(--border-strong) 50%, var(--border-default) 80%, transparent 100%)',
+          opacity: 0.5,
+        }}
+      />
+    </motion.div>
+  )
+
   const renderButton = (btn: ToolbarButton, index: number, groupIndex: number = 0) => (
     <motion.button
       key={btn.title}
@@ -230,22 +249,61 @@ export function EditorToolbar({ editor }: EditorToolbarProps) {
       onMouseDown={(e) => e.preventDefault()}
       title={`${btn.title}${btn.shortcut ? ` (${btn.shortcut})` : ''}`}
       className={`group relative flex items-center justify-center w-8 h-8 rounded-lg transition-all duration-200
-                 hover:scale-108 active:scale-95 ${
+                 hover:scale-105 active:scale-95 ${
                    btn.isActive()
-                     ? 'text-[var(--accent-primary)] bg-[color-mix(in_srgb,var(--accent-primary)_12%,transparent)] shadow-[inset_0_0_0_1px_var(--accent-primary)/30]'
-                     : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[rgba(255,255,255,0.08)]'
+                     ? 'text-[var(--accent-primary)]'
+                     : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
                  }`}
+      style={btn.isActive() ? {
+        background: 'color-mix(in srgb, var(--accent-primary) 12%, transparent)',
+        boxShadow: 'inset 0 0 0 1px color-mix(in srgb, var(--accent-primary) 25%, transparent), 0 0 8px color-mix(in srgb, var(--accent-primary) 15%, transparent)',
+      } : {
+        background: 'transparent',
+      }}
+      onMouseEnter={(e) => {
+        if (!btn.isActive()) {
+          (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.06)'
+        }
+      }}
+      onMouseLeave={(e) => {
+        if (!btn.isActive()) {
+          (e.currentTarget as HTMLElement).style.background = 'transparent'
+        }
+      }}
     >
-      <span className={`transition-all duration-200 ${btn.isActive() ? 'filter drop-shadow-[0_0_6px_var(--accent-primary)/50]' : ''}`}>
+      <span className={`transition-all duration-200 ${btn.isActive() ? 'drop-shadow-[0_0_5px_var(--accent-primary)]' : ''}`}>
         {btn.icon}
       </span>
+      {/* Subtle hover glow for inactive buttons */}
+      {!btn.isActive() && (
+        <span
+          className="absolute inset-0 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none"
+          style={{
+            boxShadow: 'inset 0 0 0 1px color-mix(in srgb, var(--border-default) 50%, transparent), 0 0 6px color-mix(in srgb, var(--glow-primary-sm) 30%, transparent)',
+          }}
+        />
+      )}
       {/* Tooltip */}
       <span className="absolute top-full left-1/2 -translate-x-1/2 mt-2 px-2 py-1 text-[10px] font-medium
-                     text-[var(--text-primary)] bg-[var(--color-surface-overlay)] rounded-md
+                     text-[var(--text-primary)] rounded-md
                      opacity-0 invisible group-hover:opacity-100 group-hover:visible
-                     transition-all duration-150 whitespace-nowrap shadow-lg border border-[var(--border-default)]/40
+                     transition-all duration-150 whitespace-nowrap
                      before:absolute before:content-[''] before:top-0 before:left-1/2 before:-translate-x-1/2
-                     before:-translate-y-full before:border-[5px] before:border-transparent before:border-t-[var(--color-surface-overlay)]">
+                     before:-translate-y-full before:border-[5px] before:border-transparent"
+        style={{
+          background: 'var(--color-surface-overlay)',
+          boxShadow: '0 4px 12px rgba(0,0,0,0.2), 0 2px 4px rgba(0,0,0,0.1), inset 0 1px 0 rgba(255,255,255,0.06)',
+          border: '1px solid var(--border-default)',
+        }}
+      >
+        <span
+          className="absolute -top-[5px] left-1/2 -translate-x-1/2 w-0 h-0"
+          style={{
+            borderLeft: '5px solid transparent',
+            borderRight: '5px solid transparent',
+            borderBottom: '5px solid var(--color-surface-overlay)',
+          }}
+        />
         {btn.title}
       </span>
     </motion.button>
@@ -260,9 +318,14 @@ export function EditorToolbar({ editor }: EditorToolbarProps) {
           animate={{ opacity: 1, y: 0, scale: 1 }}
           exit={{ opacity: 0, y: -8, scale: 0.96 }}
           transition={{ duration: 0.18, ease: [0.16, 1, 0.3, 1] }}
-          className="absolute top-3 left-1/2 -translate-x-1/2 z-50 flex items-center gap-0.5 px-2.5 py-1.5 rounded-xl
-                     glass-strong shadow-[0_8px_32px_rgba(0,0,0,0.28),0_4px_12px_rgba(0,0,0,0.16),inset_0_1px_0_rgba(255,255,255,0.08)]
-                     border border-[var(--border-default)]/50"
+          className="absolute top-3 left-1/2 -translate-x-1/2 z-50 flex items-center gap-0.5 px-2.5 py-1.5 rounded-xl"
+          style={{
+            background: 'linear-gradient(180deg, rgba(25, 26, 27, 0.92) 0%, rgba(20, 21, 22, 0.96) 100%)',
+            border: '1px solid rgba(255, 255, 255, 0.08)',
+            boxShadow: '0 8px 32px rgba(0,0,0,0.28), 0 4px 12px rgba(0,0,0,0.16), inset 0 1px 0 rgba(255,255,255,0.06)',
+            backdropFilter: 'blur(16px)',
+            WebkitBackdropFilter: 'blur(16px)',
+          }}
         >
           {/* Paragraph style selector */}
           <div className="relative" ref={styleMenuRef}>
@@ -278,9 +341,15 @@ export function EditorToolbar({ editor }: EditorToolbarProps) {
               className={`group flex items-center gap-1.5 px-2.5 h-8 rounded-lg transition-all duration-200
                          hover:scale-102 active:scale-98 ${
                            styleMenuOpen || paragraphStyles.some(s => s.isActive())
-                             ? 'text-[var(--accent-primary)] bg-[color-mix(in_srgb,var(--accent-primary)_10%,transparent)]'
-                             : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[rgba(255,255,255,0.06)]'
+                             ? 'text-[var(--accent-primary)]'
+                             : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
                          }`}
+              style={styleMenuOpen || paragraphStyles.some(s => s.isActive()) ? {
+                background: 'color-mix(in srgb, var(--accent-primary) 10%, transparent)',
+                boxShadow: 'inset 0 0 0 1px color-mix(in srgb, var(--accent-primary) 20%, transparent)',
+              } : {
+                background: 'transparent',
+              }}
             >
               <Type className="w-3.5 h-3.5" />
               <span className="text-[11px] font-medium">{getActiveStyleLabel()}</span>
@@ -294,52 +363,70 @@ export function EditorToolbar({ editor }: EditorToolbarProps) {
                   animate={{ opacity: 1, y: 0, scale: 1 }}
                   exit={{ opacity: 0, y: -4, scale: 0.96 }}
                   transition={{ duration: 0.15, ease: [0.16, 1, 0.3, 1] }}
-                  className="absolute top-full left-0 mt-1.5 py-1.5 rounded-xl z-50
-                             bg-[var(--color-surface-overlay)] shadow-[0_8px_24px_rgba(0,0,0,0.24),0_2px_8px_rgba(0,0,0,0.12)]
-                             border border-[var(--border-default)]/60"
-                  style={{ minWidth: '150px' }}
+                  className="absolute top-full left-0 mt-1.5 py-1.5 rounded-xl z-50"
+                  style={{
+                    minWidth: '150px',
+                    background: 'linear-gradient(180deg, rgba(28, 29, 30, 0.96) 0%, rgba(22, 23, 24, 0.98) 100%)',
+                    boxShadow: '0 8px 24px rgba(0,0,0,0.24), 0 2px 8px rgba(0,0,0,0.12), inset 0 1px 0 rgba(255,255,255,0.04)',
+                    border: '1px solid rgba(255, 255, 255, 0.08)',
+                    backdropFilter: 'blur(16px)',
+                    WebkitBackdropFilter: 'blur(16px)',
+                  }}
                 >
-                  {paragraphStyles.map((style) => (
-                    <button
+                  {paragraphStyles.map((style, idx) => (
+                    <motion.button
                       key={style.label}
+                      initial={{ opacity: 0, x: -4 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: idx * 0.03, duration: 0.12 }}
                       onClick={(e) => {
                         e.preventDefault()
                         style.action()
                         setStyleMenuOpen(false)
                       }}
                       onMouseDown={(e) => e.preventDefault()}
-                      className={`flex items-center gap-2.5 w-full px-3 py-2 text-left transition-all duration-100
+                      className={`flex items-center gap-2.5 w-full px-3 py-2 text-left transition-all duration-150
                                  hover:bg-[rgba(255,255,255,0.04)] ${
                         style.isActive()
-                          ? 'text-[var(--accent-primary)] bg-[color-mix(in_srgb,var(--accent-primary)_8%,transparent)]'
+                          ? 'text-[var(--accent-primary)]'
                           : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
                       }`}
+                      style={style.isActive() ? {
+                        background: 'color-mix(in srgb, var(--accent-primary) 6%, transparent)',
+                      } : {}}
                     >
-                      <span className={style.isActive() ? 'filter drop-shadow-[0_0_4px_var(--accent-primary)/40]' : ''}>
+                      <span className={style.isActive() ? 'drop-shadow-[0_0_4px_var(--accent-primary)]' : ''}>
                         {style.icon}
                       </span>
                       <span className="text-xs font-medium">{style.label}</span>
-                    </button>
+                      {style.isActive() && (
+                        <motion.div
+                          layoutId="activeStyleIndicator"
+                          className="ml-auto w-1 h-1 rounded-full"
+                          style={{ background: 'var(--accent-primary)' }}
+                        />
+                      )}
+                    </motion.button>
                   ))}
                 </motion.div>
               )}
             </AnimatePresence>
           </div>
 
-          {/* Divider */}
-          <div className="w-px h-4 mx-0.5 bg-[var(--border-default)]" />
+          {/* Gradient divider */}
+          {renderDivider(0)}
 
           {/* Format buttons */}
           {formatButtons.map((btn, i) => renderButton(btn, i, 0))}
 
-          {/* Divider */}
-          <div className="w-px h-4 mx-0.5 bg-[var(--border-default)]" />
+          {/* Gradient divider */}
+          {renderDivider(1)}
 
           {/* Alignment buttons */}
           {alignButtons.map((btn, i) => renderButton(btn, i, 1))}
 
-          {/* Divider */}
-          <div className="w-px h-4 mx-0.5 bg-[var(--border-default)]" />
+          {/* Gradient divider */}
+          {renderDivider(2)}
 
           {/* Quick format buttons */}
           {quickFormatButtons.map((btn, i) => renderButton(btn, i, 2))}

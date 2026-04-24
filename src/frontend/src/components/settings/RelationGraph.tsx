@@ -955,10 +955,6 @@ export function RelationGraph() {
         // Quadratic bezier point calculation
         const px = (1 - t) * (1 - t) * sx + 2 * (1 - t) * t * cx + t * t * ex
         const py = (1 - t) * (1 - t) * sy + 2 * (1 - t) * t * cy + t * t * ey
-        // Tangent for orientation
-        const dtx = 2 * (1 - t) * (cx - sx) + 2 * t * (ex - cx)
-        const dty = 2 * (1 - t) * (cy - sy) + 2 * t * (ey - cy)
-
         const particleSize = 3 - t * 2
 
         ctx.beginPath()
@@ -998,15 +994,28 @@ export function RelationGraph() {
     return (
       <div className="h-full flex items-center justify-center text-center p-4 bg-[var(--color-surface-base)] relative overflow-hidden">
         <GraphBackground />
-        <div className="relative z-10">
-          <div className="relative mx-auto mb-4 w-14 h-14">
-            <div className="absolute inset-0 rounded-2xl rotate-45 border border-[var(--border-subtle)]" />
-            <div className="absolute inset-2 rounded-xl rotate-45 border border-[var(--border-subtle)] opacity-50" />
-            <LinkIcon className="w-6 h-6 absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-[var(--text-disabled)]" />
-          </div>
-          <p className="text-sm mb-1 text-[var(--text-tertiary)] font-medium">添加角色后</p>
-          <p className="text-xs text-[var(--text-disabled)]">这里将显示关系图谱</p>
-        </div>
+        <motion.div
+          className="relative z-10"
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+        >
+          <motion.div
+            className="relative mx-auto mb-4 w-16 h-16 rounded-2xl flex items-center justify-center"
+            style={{
+              background: 'linear-gradient(135deg, rgba(94, 106, 210, 0.08), rgba(94, 106, 210, 0.03))',
+              border: '1px solid rgba(94, 106, 210, 0.12)',
+              boxShadow: '0 0 24px rgba(94, 106, 210, 0.06)',
+            }}
+            initial={{ scale: 0.9 }}
+            animate={{ scale: 1 }}
+            transition={{ type: 'spring', stiffness: 400, damping: 25 }}
+          >
+            <LinkIcon className="w-6 h-6 text-[var(--accent-primary)] opacity-50" />
+          </motion.div>
+          <p className="text-sm mb-1 text-[var(--text-secondary)] font-medium">添加角色后</p>
+          <p className="text-xs text-[var(--text-tertiary)]">这里将显示关系图谱</p>
+        </motion.div>
       </div>
     )
   }
@@ -1015,18 +1024,27 @@ export function RelationGraph() {
     return (
       <div className="h-full flex items-center justify-center text-center p-4 bg-[var(--color-surface-base)] relative overflow-hidden">
         <GraphBackground />
-        <div className="relative z-10">
-          <div className="relative mx-auto mb-4 w-12 h-12 rounded-xl flex items-center justify-center"
+        <motion.div
+          className="relative z-10"
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+        >
+          <motion.div
+            className="relative mx-auto mb-4 w-14 h-14 rounded-xl flex items-center justify-center"
             style={{
               background: 'linear-gradient(135deg, rgba(94, 106, 210, 0.1), rgba(94, 106, 210, 0.05))',
               border: '1px solid rgba(94, 106, 210, 0.15)',
             }}
+            initial={{ scale: 0.9 }}
+            animate={{ scale: 1 }}
+            transition={{ type: 'spring', stiffness: 400, damping: 25 }}
           >
             <Filter className="w-5 h-5 text-[var(--accent-primary)]" />
-          </div>
-          <p className="text-sm mb-1 text-[var(--text-tertiary)] font-medium">筛选条件过于严格</p>
-          <p className="text-xs text-[var(--text-disabled)]">没有符合条件的节点</p>
-        </div>
+          </motion.div>
+          <p className="text-sm mb-1 text-[var(--text-secondary)] font-medium">筛选条件过于严格</p>
+          <p className="text-xs text-[var(--text-tertiary)]">没有符合条件的节点</p>
+        </motion.div>
       </div>
     )
   }

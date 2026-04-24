@@ -7,8 +7,7 @@ import { CollaborationPanel } from './CollaborationPanel'
 import { OutlineSidebar } from './OutlineSidebar'
 import { ChapterNotesPanel } from './ChapterNotesPanel'
 import { WritingSprintTimer } from './WritingSprintTimer'
-import { Button } from '@/components/ui/Button'
-import { X } from 'lucide-react'
+import { X, ArrowLeft, ArrowRight } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { WritingSkeleton } from '@/components/shared/SmartSkeleton'
 import { SectionLoadingOverlay } from '@/components/shared/LoadingOverlay'
@@ -20,6 +19,25 @@ const IMMERSIVE_HIDE_DELAY = 3000 // 3 seconds
 const IMMERSIVE_SPRING = { type: 'spring' as const, stiffness: 300, damping: 30 }
 const IMMERSIVE_EASE = [0.16, 1, 0.3, 1] as const
 
+// Staggered entrance animation variants for drawer content
+const staggerContainer = {
+  hidden: { opacity: 0 },
+  show: {
+    opacity: 1,
+    transition: { staggerChildren: 0.04, delayChildren: 0.08 },
+  },
+  exit: {
+    opacity: 0,
+    transition: { staggerChildren: 0.02, staggerDirection: -1 },
+  },
+}
+
+const staggerItem = {
+  hidden: { opacity: 0, y: 8 },
+  show: { opacity: 1, y: 0, transition: { duration: 0.25, ease: IMMERSIVE_EASE } },
+  exit: { opacity: 0, y: 4, transition: { duration: 0.15 } },
+}
+
 export function WritingEditorPage() {
   const {
     aiDrawerOpen,
@@ -27,6 +45,7 @@ export function WritingEditorPage() {
     outlineDrawerOpen,
     toggleAIDrawer,
     toggleCollaborationDrawer,
+    toggleOutlineDrawer,
     immersiveMode,
     setImmersiveMode
   } = useUIStore()
@@ -36,10 +55,33 @@ export function WritingEditorPage() {
   const hideTimeoutRef = useRef<NodeJS.Timeout | null>(null)
   const lastTypingRef = useRef<number>(Date.now())
   const isTypingRef = useRef(false)
+  const touchStartX = useRef<number>(0)
+  const touchEndX = useRef<number>(0)
+  const swipeThreshold = 50
+  const [showSwipeHint, setShowSwipeHint] = useState(false)
+  const [swipeHintDismissed, setSwipeHintDismissed] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('writer-swipe-hint-dismissed') === '1'
+    }
+    return false
+  })
 
   useEffect(() => {
     init()
   }, [init])
+
+  // Show swipe hint on mobile after a delay
+  useEffect(() => {
+    if (swipeHintDismissed || window.innerWidth > 768) return
+    const timer = setTimeout(() => setShowSwipeHint(true), 2000)
+    return () => clearTimeout(timer)
+  }, [swipeHintDismissed])
+
+  const dismissSwipeHint = () => {
+    setShowSwipeHint(false)
+    setSwipeHintDismissed(true)
+    localStorage.setItem('writer-swipe-hint-dismissed', '1')
+  }
 
   // Reset chrome visibility when immersive mode is toggled off
   useEffect(() => {
@@ -99,6 +141,43 @@ export function WritingEditorPage() {
     }
   }, [scheduleHideChrome])
 
+  // Mobile swipe gesture handler (left for outline, right for AI panel)
+  useEffect(() => {
+    const handleTouchStart = (e: TouchEvent) => {
+      touchStartX.current = e.changedTouches[0].screenX
+    }
+
+    const handleTouchEnd = (e: TouchEvent) => {
+      touchEndX.current = e.changedTouches[0].screenX
+      const diff = touchEndX.current - touchStartX.current
+      const absDiff = Math.abs(diff)
+
+      // Only process swipes on mobile/tablet
+      if (window.innerWidth > 768) return
+      if (absDiff < swipeThreshold) return
+
+      if (diff > 0) {
+        // Swipe right - toggle outline sidebar
+        if (!outlineDrawerOpen) {
+          toggleOutlineDrawer()
+        }
+      } else {
+        // Swipe left - toggle AI drawer
+        if (!aiDrawerOpen) {
+          toggleAIDrawer()
+        }
+      }
+    }
+
+    document.addEventListener('touchstart', handleTouchStart, { passive: true })
+    document.addEventListener('touchend', handleTouchEnd, { passive: true })
+
+    return () => {
+      document.removeEventListener('touchstart', handleTouchStart)
+      document.removeEventListener('touchend', handleTouchEnd)
+    }
+  }, [outlineDrawerOpen, aiDrawerOpen, toggleOutlineDrawer, toggleAIDrawer])
+
   // Mouse move handler to show chrome
   useEffect(() => {
     if (!immersiveMode) return
@@ -155,7 +234,7 @@ export function WritingEditorPage() {
 
   return (
     <div className={`h-full flex flex-col bg-[var(--ink-black)] ${immersiveMode ? 'immersive-mode' : ''}`}>
-      {/* Layered vignette overlay - subtle multi-layer gradient for natural edge darkening */}
+      {/* Layered vignette overlay - refined multi-layer radial gradients for depth */}
       <AnimatePresence>
         {immersiveMode && (
           <motion.div
@@ -163,54 +242,76 @@ export function WritingEditorPage() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            transition={{ duration: 0.8, ease: IMMERSIVE_EASE }}
+            transition={{ duration: 1.0, ease: IMMERSIVE_EASE }}
             className="fixed inset-0 pointer-events-none z-30 immersive-vignette"
             style={{
               background: `
-                radial-gradient(ellipse 90% 80% at 50% 50%, transparent 40%, color-mix(in srgb, var(--ink-100) 40%, transparent) 75%, color-mix(in srgb, var(--ink-100) 70%, transparent) 100%),
-                radial-gradient(ellipse 70% 60% at 50% 50%, transparent 50%, color-mix(in srgb, var(--ink-90) 30%, transparent) 85%, color-mix(in srgb, var(--ink-90) 50%, transparent) 100%)
+                /* Outer deep vignette */
+                radial-gradient(ellipse 95% 90% at 50% 50%, transparent 35%, color-mix(in srgb, var(--ink-100) 50%, transparent) 70%, color-mix(in srgb, var(--ink-100) 85%, transparent) 100%),
+                /* Middle vignette layer */
+                radial-gradient(ellipse 80% 70% at 50% 50%, transparent 45%, color-mix(in srgb, var(--ink-95) 35%, transparent) 80%, color-mix(in srgb, var(--ink-95) 55%, transparent) 100%),
+                /* Inner subtle warm glow at center */
+                radial-gradient(ellipse 40% 35% at 50% 50%, color-mix(in srgb, var(--color-character) 3%, transparent) 0%, transparent 60%)
               `,
             }}
           />
         )}
       </AnimatePresence>
 
-      {/* Subtle ambient glow orbs - adds depth to immersive mode */}
+      {/* Subtle ambient glow orbs - smoother, more refined animations */}
       <AnimatePresence>
         {immersiveMode && (
           <motion.div
             key="ambient-glow"
-            initial={{ opacity: 0, scale: 0.8 }}
+            initial={{ opacity: 0, scale: 0.85 }}
             animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.8 }}
-            transition={{ duration: 1.2, ease: IMMERSIVE_EASE }}
+            exit={{ opacity: 0, scale: 0.85 }}
+            transition={{ duration: 1.5, ease: IMMERSIVE_EASE }}
             className="fixed inset-0 pointer-events-none z-25"
           >
-            {/* Top-right warm glow */}
+            {/* Top-right warm glow - character orange */}
             <div
-              className="absolute w-96 h-96 rounded-full blur-3xl"
+              className="absolute rounded-full blur-[100px]"
               style={{
-                top: '-10%',
-                right: '-5%',
-                background: 'radial-gradient(circle, color-mix(in srgb, var(--color-character) 6%, transparent) 0%, transparent 70%)',
-                animation: 'pulse-glow 8s ease-in-out infinite',
+                width: '28rem',
+                height: '28rem',
+                top: '-12%',
+                right: '-8%',
+                background: 'radial-gradient(circle, color-mix(in srgb, var(--color-character) 5%, transparent) 0%, transparent 65%)',
+                animation: 'ambient-orb-float 12s ease-in-out infinite',
               }}
             />
-            {/* Bottom-left cool glow */}
+            {/* Bottom-left cool glow - outline blue */}
             <div
-              className="absolute w-80 h-80 rounded-full blur-3xl"
+              className="absolute rounded-full blur-[100px]"
               style={{
-                bottom: '-8%',
-                left: '-3%',
-                background: 'radial-gradient(circle, color-mix(in srgb, var(--color-outline) 5%, transparent) 0%, transparent 70%)',
-                animation: 'pulse-glow 10s ease-in-out infinite reverse',
+                width: '24rem',
+                height: '24rem',
+                bottom: '-10%',
+                left: '-5%',
+                background: 'radial-gradient(circle, color-mix(in srgb, var(--color-outline) 4%, transparent) 0%, transparent 65%)',
+                animation: 'ambient-orb-float 14s ease-in-out infinite reverse',
+              }}
+            />
+            {/* Subtle center glow for depth */}
+            <div
+              className="absolute rounded-full blur-[120px]"
+              style={{
+                width: '20rem',
+                height: '20rem',
+                top: '40%',
+                left: '50%',
+                transform: 'translate(-50%, -50%)',
+                background: 'radial-gradient(circle, color-mix(in srgb, var(--accent-primary) 2%, transparent) 0%, transparent 60%)',
+                animation: 'ambient-orb-float 16s ease-in-out infinite',
+                animationDelay: '-4s',
               }}
             />
           </motion.div>
         )}
       </AnimatePresence>
 
-      {/* Refined immersive mode indicator - glass pill design */}
+      {/* Elegant glass-pill immersive indicator */}
       <AnimatePresence>
         {immersiveMode && chromeVisible && (
           <motion.div
@@ -218,29 +319,34 @@ export function WritingEditorPage() {
             initial={{ opacity: 0, x: -20, scale: 0.9 }}
             animate={{ opacity: 1, x: 0, scale: 1 }}
             exit={{ opacity: 0, x: -20, scale: 0.9 }}
-            transition={{ ...IMMERSIVE_SPRING, delay: 0.15 }}
-            className="fixed top-4 left-4 z-40 flex items-center gap-2 px-3 py-1.5 rounded-full immersive-indicator"
+            transition={{ ...IMMERSIVE_SPRING, delay: 0.2 }}
+            className="fixed top-4 left-4 z-40 flex items-center gap-2.5 px-3.5 py-2 rounded-full immersive-indicator"
             style={{
-              background: 'color-mix(in srgb, var(--ink-90) 60%, transparent)',
-              backdropFilter: 'blur(12px)',
-              WebkitBackdropFilter: 'blur(12px)',
-              border: '1px solid color-mix(in srgb, var(--color-character) 20%, transparent)',
-              boxShadow: '0 2px 12px color-mix(in srgb, var(--ink-100) 20%, transparent), inset 0 1px 0 var(--border-subtle)',
+              background: 'color-mix(in srgb, var(--ink-90) 50%, transparent)',
+              backdropFilter: 'blur(16px) saturate(1.2)',
+              WebkitBackdropFilter: 'blur(16px) saturate(1.2)',
+              border: '1px solid color-mix(in srgb, var(--color-character) 15%, transparent)',
+              boxShadow: `
+                0 2px 16px color-mix(in srgb, var(--ink-100) 15%, transparent),
+                inset 0 1px 0 color-mix(in srgb, var(--paper-100) 8%, transparent)
+              `,
             }}
           >
             <motion.div
               animate={{ rotate: 360 }}
-              transition={{ duration: 8, repeat: Infinity, ease: 'linear' }}
+              transition={{ duration: 12, repeat: Infinity, ease: 'linear' }}
             >
-              <Sparkles className="w-3 h-3" style={{ color: 'color-mix(in srgb, var(--color-character) 80%, transparent)' }} />
+              <Sparkles className="w-3 h-3" style={{ color: 'color-mix(in srgb, var(--color-character) 70%, transparent)' }} />
             </motion.div>
-            <span className="text-[11px] font-medium tracking-wide" style={{ color: 'color-mix(in srgb, var(--color-character) 90%, transparent)' }}>沉浸模式</span>
-            <div
-              className="w-1 h-1 rounded-full"
+            <span className="text-[11px] font-medium tracking-wider" style={{ color: 'color-mix(in srgb, var(--color-character) 85%, transparent)' }}>沉浸模式</span>
+            <motion.div
+              className="w-1.5 h-1.5 rounded-full"
               style={{
                 background: 'color-mix(in srgb, var(--color-character) 60%, transparent)',
-                boxShadow: '0 0 4px color-mix(in srgb, var(--color-character) 40%, transparent)',
+                boxShadow: '0 0 6px color-mix(in srgb, var(--color-character) 40%, transparent)',
               }}
+              animate={{ opacity: [0.5, 1, 0.5] }}
+              transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
             />
           </motion.div>
         )}
@@ -262,16 +368,23 @@ export function WritingEditorPage() {
         )}
       </AnimatePresence>
 
-      {/* 主内容区 - z-index for immersive mode stacking */}
+      {/* 主内容区 - refined z-index and spacing for immersive mode stacking */}
       <div className={`flex-1 flex overflow-hidden relative ${immersiveMode ? 'z-10' : ''}`}>
-        {/* 写作区域 */}
+        {/* 写作区域 - subtle writing-bg texture */}
         <div className="flex-1 overflow-hidden relative">
+          {/* Subtle writing background texture */}
+          <div
+            className="absolute inset-0 pointer-events-none z-0 opacity-[0.03]"
+            style={{
+              backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
+            }}
+          />
           <SectionLoadingOverlay
             visible={loading.chapters || loading.outlines}
             message="加载章节数据..."
           />
           {(loading.chapters || loading.outlines) ? (
-            <div className="h-full bg-[var(--writing-bg)] overflow-y-auto">
+            <div className="h-full bg-[var(--writing-bg)] overflow-y-auto relative z-10">
               <WritingSkeleton />
             </div>
           ) : (
@@ -283,7 +396,7 @@ export function WritingEditorPage() {
         <ChapterNotesPanel />
         <WritingSprintTimer />
 
-        {/* 大纲侧边栏 (可收起) */}
+        {/* 大纲侧边栏 (可收起) - enhanced with refined visual indicators */}
         <AnimatePresence initial={false}>
           {outlineDrawerOpen && (!immersiveMode || chromeVisible) && (
             <motion.div
@@ -291,20 +404,25 @@ export function WritingEditorPage() {
               initial={{ width: 0, opacity: 0, x: -20 }}
               animate={{ width: 280, opacity: 1, x: 0 }}
               exit={{ width: 0, opacity: 0, x: -20 }}
-              transition={{ duration: 0.3, ease: IMMERSIVE_EASE }}
+              transition={{
+                width: { type: 'spring', stiffness: 280, damping: 28, restSpeed: 0.5 },
+                opacity: { duration: 0.25, ease: IMMERSIVE_EASE },
+                x: { type: 'spring', stiffness: 280, damping: 28, restSpeed: 0.5 },
+              }}
               className="border-r border-[var(--border-default)] bg-[var(--color-surface-raised)] flex flex-col overflow-hidden relative z-20"
               style={{
-                boxShadow: '4px 0 24px color-mix(in srgb, var(--color-outline) 8%, transparent)',
+                boxShadow: '4px 0 32px color-mix(in srgb, var(--color-outline) 10%, transparent), 2px 0 8px color-mix(in srgb, var(--color-outline) 5%, transparent)',
               }}
             >
-              {/* Glow indicator */}
+              {/* Edge glow indicator */}
               <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                className="absolute top-0 right-0 w-px h-full"
+                initial={{ opacity: 0, scaleY: 0 }}
+                animate={{ opacity: 1, scaleY: 1 }}
+                exit={{ opacity: 0, scaleY: 0 }}
+                transition={{ duration: 0.5, ease: IMMERSIVE_EASE }}
+                className="absolute top-0 right-0 w-px h-full origin-top"
                 style={{
-                  background: 'linear-gradient(180deg, var(--glow-primary) 0%, transparent 100%)',
+                  background: 'linear-gradient(180deg, var(--color-outline) 0%, color-mix(in srgb, var(--color-outline) 40%, transparent) 40%, transparent 100%)',
                 }}
               />
               <OutlineSidebar />
@@ -312,7 +430,7 @@ export function WritingEditorPage() {
           )}
         </AnimatePresence>
 
-        {/* AI操作抽屉 - Enhanced spring animation with smooth expansion */}
+        {/* AI操作抽屉 - refined header with gradient title + glow close button + staggered content */}
         <AnimatePresence initial={false}>
           {aiDrawerOpen && (!immersiveMode || chromeVisible) && (
             <motion.div
@@ -322,41 +440,63 @@ export function WritingEditorPage() {
               exit={{ width: 0, opacity: 0, x: 40 }}
               transition={{
                 width: { type: 'spring', stiffness: 260, damping: 26, restSpeed: 0.5 },
-                opacity: { duration: 0.25, ease: IMMERSIVE_EASE },
+                opacity: { duration: 0.3, ease: IMMERSIVE_EASE },
                 x: { type: 'spring', stiffness: 260, damping: 26, restSpeed: 0.5 }
               }}
               className="drawer-responsive drawer-right border-l border-[var(--border-default)] bg-[var(--color-surface-raised)] flex flex-col overflow-hidden relative z-20
-                         w-[280px] md:w-[320px] lg:w-[360px]"
+                         max-md:fixed max-md:inset-0 max-md:w-full max-md:h-full max-md:z-50 max-md:border-none
+                         md:w-[320px] lg:w-[360px]"
               style={{
-                boxShadow: '-4px 0 32px color-mix(in srgb, var(--accent-primary) 20%, transparent), -2px 0 12px color-mix(in srgb, var(--accent-primary) 10%, transparent)',
-                maxWidth: '100vw',
+                boxShadow: '-4px 0 40px color-mix(in srgb, var(--accent-primary) 18%, transparent), -2px 0 16px color-mix(in srgb, var(--accent-primary) 8%, transparent)',
               }}
             >
-              {/* Animated glow indicator */}
+              {/* Animated edge glow indicator */}
               <motion.div
                 initial={{ opacity: 0, scaleY: 0 }}
                 animate={{ opacity: 1, scaleY: 1 }}
                 exit={{ opacity: 0, scaleY: 0 }}
-                transition={{ duration: 0.4, ease: IMMERSIVE_EASE }}
+                transition={{ duration: 0.5, ease: IMMERSIVE_EASE }}
                 className="absolute top-0 left-0 w-px h-full origin-top"
                 style={{
                   background: 'linear-gradient(180deg, var(--accent-primary) 0%, color-mix(in srgb, var(--accent-primary) 50%, transparent) 50%, transparent 100%)',
+                  boxShadow: '0 0 8px color-mix(in srgb, var(--accent-primary) 30%, transparent)',
                 }}
               />
-              <div className="p-4 border-b border-[var(--border-default)] flex items-center justify-between min-w-0 w-full">
+              {/* Refined header with gradient title */}
+              <div className="p-4 border-b border-[var(--border-default)] flex items-center justify-between min-w-0 w-full relative overflow-hidden">
+                {/* Subtle header gradient background */}
+                <div
+                  className="absolute inset-0 pointer-events-none opacity-50"
+                  style={{
+                    background: 'linear-gradient(135deg, color-mix(in srgb, var(--accent-primary) 4%, transparent) 0%, transparent 60%)',
+                  }}
+                />
                 <motion.span
-                  initial={{ opacity: 0, x: -10 }}
+                  initial={{ opacity: 0, x: -12 }}
                   animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: 0.1, duration: 0.3, ease: IMMERSIVE_EASE }}
-                  className="font-medium text-sm text-[var(--text-primary)]"
+                  transition={{ delay: 0.12, duration: 0.35, ease: IMMERSIVE_EASE }}
+                  className="font-semibold text-sm relative z-10"
+                  style={{
+                    background: 'linear-gradient(135deg, var(--text-primary) 0%, color-mix(in srgb, var(--accent-primary) 80%, var(--text-primary)) 100%)',
+                    WebkitBackgroundClip: 'text',
+                    WebkitTextFillColor: 'transparent',
+                    backgroundClip: 'text',
+                  }}
                 >
                   写作操作
                 </motion.span>
                 <motion.button
+                  initial={{ opacity: 0, rotate: -45 }}
+                  animate={{ opacity: 1, rotate: 0 }}
+                  transition={{ delay: 0.18, duration: 0.3, ease: IMMERSIVE_EASE }}
                   onClick={toggleAIDrawer}
-                  className="flex items-center justify-center w-8 h-8 rounded-lg transition-colors"
-                  whileHover={{ scale: 1.08, backgroundColor: 'color-mix(in srgb, var(--color-vermillion) 12%, transparent)' }}
-                  whileTap={{ scale: 0.95 }}
+                  className="relative z-10 flex items-center justify-center w-8 h-8 rounded-lg transition-colors"
+                  whileHover={{
+                    scale: 1.1,
+                    backgroundColor: 'color-mix(in srgb, var(--color-vermillion) 12%, transparent)',
+                    boxShadow: '0 0 12px color-mix(in srgb, var(--color-vermillion) 25%, transparent)',
+                  }}
+                  whileTap={{ scale: 0.92 }}
                   style={{ background: 'transparent' }}
                 >
                   <motion.div
@@ -367,12 +507,23 @@ export function WritingEditorPage() {
                   </motion.div>
                 </motion.button>
               </div>
-              <AIOperationDrawer />
+              {/* Staggered content entrance */}
+              <motion.div
+                variants={staggerContainer}
+                initial="hidden"
+                animate="show"
+                exit="exit"
+                className="flex-1 overflow-y-auto"
+              >
+                <motion.div variants={staggerItem}>
+                  <AIOperationDrawer />
+                </motion.div>
+              </motion.div>
             </motion.div>
           )}
         </AnimatePresence>
 
-        {/* 协作面板 - Enhanced spring animation with matching style */}
+        {/* 协作面板 - refined header with gradient title + glow close button + staggered content */}
         <AnimatePresence initial={false}>
           {collaborationDrawerOpen && (!immersiveMode || chromeVisible) && (
             <motion.div
@@ -382,39 +533,62 @@ export function WritingEditorPage() {
               exit={{ width: 0, opacity: 0, x: 30 }}
               transition={{
                 width: { type: 'spring', stiffness: 260, damping: 26, restSpeed: 0.5 },
-                opacity: { duration: 0.25, ease: IMMERSIVE_EASE },
+                opacity: { duration: 0.3, ease: IMMERSIVE_EASE },
                 x: { type: 'spring', stiffness: 260, damping: 26, restSpeed: 0.5 }
               }}
-              className="drawer-responsive drawer-right border-l border-[var(--border-default)] bg-[var(--color-surface-raised)] flex flex-col overflow-hidden relative z-20"
+              className="drawer-responsive drawer-right border-l border-[var(--border-default)] bg-[var(--color-surface-raised)] flex flex-col overflow-hidden relative z-20
+                         max-md:fixed max-md:inset-0 max-md:w-full max-md:h-full max-md:z-50 max-md:border-none"
               style={{
-                boxShadow: '-4px 0 32px color-mix(in srgb, var(--color-ifline) 18%, transparent), -2px 0 12px color-mix(in srgb, var(--color-ifline) 10%, transparent)',
+                boxShadow: '-4px 0 40px color-mix(in srgb, var(--color-ifline) 16%, transparent), -2px 0 16px color-mix(in srgb, var(--color-ifline) 8%, transparent)',
               }}
             >
-              {/* Animated glow indicator */}
+              {/* Animated edge glow indicator */}
               <motion.div
                 initial={{ opacity: 0, scaleY: 0 }}
                 animate={{ opacity: 1, scaleY: 1 }}
                 exit={{ opacity: 0, scaleY: 0 }}
-                transition={{ duration: 0.4, ease: IMMERSIVE_EASE }}
+                transition={{ duration: 0.5, ease: IMMERSIVE_EASE }}
                 className="absolute top-0 left-0 w-px h-full origin-top"
                 style={{
                   background: 'linear-gradient(180deg, var(--color-ifline) 0%, color-mix(in srgb, var(--color-ifline) 50%, transparent) 50%, transparent 100%)',
+                  boxShadow: '0 0 8px color-mix(in srgb, var(--color-ifline) 25%, transparent)',
                 }}
               />
-              <div className="p-4 border-b border-[var(--border-default)] flex items-center justify-between min-w-0 w-full">
+              {/* Refined header with gradient title */}
+              <div className="p-4 border-b border-[var(--border-default)] flex items-center justify-between min-w-0 w-full relative overflow-hidden">
+                {/* Subtle header gradient background */}
+                <div
+                  className="absolute inset-0 pointer-events-none opacity-50"
+                  style={{
+                    background: 'linear-gradient(135deg, color-mix(in srgb, var(--color-ifline) 4%, transparent) 0%, transparent 60%)',
+                  }}
+                />
                 <motion.span
-                  initial={{ opacity: 0, x: -10 }}
+                  initial={{ opacity: 0, x: -12 }}
                   animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: 0.1, duration: 0.3, ease: IMMERSIVE_EASE }}
-                  className="font-medium text-sm text-[var(--text-primary)]"
+                  transition={{ delay: 0.12, duration: 0.35, ease: IMMERSIVE_EASE }}
+                  className="font-semibold text-sm relative z-10"
+                  style={{
+                    background: 'linear-gradient(135deg, var(--text-primary) 0%, color-mix(in srgb, var(--color-ifline) 80%, var(--text-primary)) 100%)',
+                    WebkitBackgroundClip: 'text',
+                    WebkitTextFillColor: 'transparent',
+                    backgroundClip: 'text',
+                  }}
                 >
                   协作面板
                 </motion.span>
                 <motion.button
+                  initial={{ opacity: 0, rotate: -45 }}
+                  animate={{ opacity: 1, rotate: 0 }}
+                  transition={{ delay: 0.18, duration: 0.3, ease: IMMERSIVE_EASE }}
                   onClick={toggleCollaborationDrawer}
-                  className="flex items-center justify-center w-8 h-8 rounded-lg transition-colors"
-                  whileHover={{ scale: 1.08, backgroundColor: 'color-mix(in srgb, var(--color-ifline) 12%, transparent)' }}
-                  whileTap={{ scale: 0.95 }}
+                  className="relative z-10 flex items-center justify-center w-8 h-8 rounded-lg transition-colors"
+                  whileHover={{
+                    scale: 1.1,
+                    backgroundColor: 'color-mix(in srgb, var(--color-ifline) 12%, transparent)',
+                    boxShadow: '0 0 12px color-mix(in srgb, var(--color-ifline) 20%, transparent)',
+                  }}
+                  whileTap={{ scale: 0.92 }}
                   style={{ background: 'transparent' }}
                 >
                   <motion.div
@@ -425,11 +599,100 @@ export function WritingEditorPage() {
                   </motion.div>
                 </motion.button>
               </div>
-              <CollaborationPanel />
+              {/* Staggered content entrance */}
+              <motion.div
+                variants={staggerContainer}
+                initial="hidden"
+                animate="show"
+                exit="exit"
+                className="flex-1 overflow-y-auto"
+              >
+                <motion.div variants={staggerItem}>
+                  <CollaborationPanel />
+                </motion.div>
+              </motion.div>
             </motion.div>
           )}
         </AnimatePresence>
       </div>
+
+      {/* Mobile swipe hint overlay */}
+      <AnimatePresence>
+        {showSwipeHint && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.4 }}
+            className="fixed inset-0 z-50 flex items-center justify-center md:hidden"
+            style={{
+              background: 'rgba(0,0,0,0.4)',
+              backdropFilter: 'blur(2px)',
+            }}
+            onClick={dismissSwipeHint}
+          >
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              transition={{ type: 'spring', stiffness: 400, damping: 30 }}
+              className="mx-6 p-5 rounded-2xl max-w-xs w-full"
+              style={{
+                background: 'var(--color-surface-raised)',
+                border: '1px solid var(--border-default)',
+                boxShadow: '0 20px 60px rgba(0,0,0,0.3)',
+              }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="flex items-center justify-between mb-3">
+                <span className="text-sm font-medium text-primary">手势操作提示</span>
+                <button
+                  onClick={dismissSwipeHint}
+                  className="p-1 rounded-lg hover:bg-surface-base transition-colors"
+                >
+                  <X className="w-4 h-4 text-secondary" />
+                </button>
+              </div>
+              <div className="space-y-3">
+                <div className="flex items-center gap-3">
+                  <div className="flex-shrink-0 w-10 h-10 rounded-xl bg-surface-base flex items-center justify-center">
+                    <motion.div
+                      animate={{ x: [0, 8, 0] }}
+                      transition={{ duration: 1.5, repeat: Infinity, ease: 'easeInOut' }}
+                    >
+                      <ArrowLeft className="w-5 h-5 text-accent-primary" />
+                    </motion.div>
+                  </div>
+                  <div>
+                    <div className="text-sm text-primary">从左向右滑</div>
+                    <div className="text-xs text-secondary">打开大纲侧边栏</div>
+                  </div>
+                </div>
+                <div className="flex items-center gap-3">
+                  <div className="flex-shrink-0 w-10 h-10 rounded-xl bg-surface-base flex items-center justify-center">
+                    <motion.div
+                      animate={{ x: [0, -8, 0] }}
+                      transition={{ duration: 1.5, repeat: Infinity, ease: 'easeInOut', delay: 0.3 }}
+                    >
+                      <ArrowRight className="w-5 h-5 text-accent-primary" />
+                    </motion.div>
+                  </div>
+                  <div>
+                    <div className="text-sm text-primary">从右向左滑</div>
+                    <div className="text-xs text-secondary">打开 AI 操作面板</div>
+                  </div>
+                </div>
+              </div>
+              <button
+                onClick={dismissSwipeHint}
+                className="w-full mt-4 py-2 text-xs rounded-lg bg-accent-primary text-white hover:bg-accent-hover transition-colors"
+              >
+                知道了
+              </button>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   )
 }

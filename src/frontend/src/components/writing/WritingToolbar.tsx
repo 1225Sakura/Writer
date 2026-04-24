@@ -152,9 +152,10 @@ export function WritingToolbar() {
 
   return (
     <div
-      className="h-[var(--layout-topbar-height)] flex items-center px-3 sm:px-4 gap-1.5 sm:gap-2 layout-topbar overflow-x-auto"
+      className="h-[var(--layout-topbar-height)] flex items-center px-3 sm:px-4 gap-1.5 sm:gap-2 layout-topbar overflow-x-auto writing-toolbar"
       style={{
-        boxShadow: '0 1px 0 0 var(--border-subtle), 0 4px 16px color-mix(in srgb, var(--ink-100) 12%, transparent)',
+        boxShadow: '0 1px 0 0 var(--border-subtle), 0 4px 20px color-mix(in srgb, var(--ink-100) 10%, transparent)',
+        background: 'var(--color-surface-base)',
       }}
     >
       {/* 左侧：返回聊天 + 返回设定 */}
@@ -162,12 +163,14 @@ export function WritingToolbar() {
         onClick={() => setCurrentInterface('chat')}
         icon={<MessageCircle className="w-4 h-4" />}
         label="返回聊天"
+        mobileLabel="聊天"
       />
 
       <NavButton
         onClick={() => setCurrentInterface('settings')}
         icon={<ArrowLeft className="w-4 h-4" />}
         label="返回设定"
+        mobileLabel="设定"
       />
 
       <Divider />
@@ -205,17 +208,22 @@ export function WritingToolbar() {
       <div className="hidden lg:flex items-center gap-2 ml-2 flex-shrink-0">
         <Divider />
 
-        {/* Human-AI ratio mini control - refined visual */}
+        {/* Human-AI ratio mini control - refined visual with glow track */}
         <div
-          className="flex items-center gap-2 px-3 py-1.5 rounded-xl"
+          className="flex items-center gap-2.5 px-3.5 py-2 rounded-xl"
           style={{
             background: 'var(--color-surface-raised)',
             border: '1px solid var(--border-default)',
-            boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.15)',
+            boxShadow: 'inset 0 1px 3px rgba(0,0,0,0.2), 0 1px 0 color-mix(in srgb, var(--paper-100) 3%, transparent)',
           }}
         >
-          <Bot className="w-3.5 h-3.5" style={{ color: 'var(--accent-primary)' }} />
-          <div className="w-24">
+          <motion.div
+            whileHover={{ scale: 1.15 }}
+            transition={{ type: 'spring', stiffness: 400, damping: 15 }}
+          >
+            <Bot className="w-3.5 h-3.5" style={{ color: 'var(--accent-primary)' }} />
+          </motion.div>
+          <div className="w-28">
             <RatioSlider
               value={[humanAIRatio]}
               min={0}
@@ -224,10 +232,21 @@ export function WritingToolbar() {
               onValueChange={(value) => setHumanAIRatio(value[0])}
             />
           </div>
-          <User className="w-3.5 h-3.5 text-[var(--icon-secondary)]" />
+          <motion.div
+            whileHover={{ scale: 1.15 }}
+            transition={{ type: 'spring', stiffness: 400, damping: 15 }}
+          >
+            <User className="w-3.5 h-3.5 text-[var(--icon-secondary)]" />
+          </motion.div>
           <span
-            className="text-[10px] w-8 text-center font-semibold tracking-wide"
-            style={{ color: 'var(--text-tertiary)' }}
+            className="text-[10px] w-9 text-center font-semibold tracking-wide tabular-nums"
+            style={{
+              color: humanAIRatio < 30
+                ? 'var(--accent-primary)'
+                : humanAIRatio < 70
+                  ? 'var(--color-ifline)'
+                  : 'var(--color-character)',
+            }}
           >
             {humanAIRatio < 30 ? 'AI' : humanAIRatio < 70 ? '协作' : '用户'}
           </span>
@@ -290,7 +309,7 @@ export function WritingToolbar() {
               initial={{ opacity: 0, x: 8, scale: 0.95 }}
               animate={{ opacity: 1, x: 0, scale: 1 }}
               exit={{ opacity: 0, x: 8, scale: 0.95 }}
-              transition={{ duration: 0.3, ease: IMMERSIVE_EASE }}
+              transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
               className="flex items-center gap-1.5 px-2.5 py-1 rounded-full"
               style={{
                 backgroundColor: 'color-mix(in srgb, var(--accent-primary) 15%, transparent)',
@@ -414,17 +433,19 @@ const NavButton = memo(function NavButton({
   onClick,
   icon,
   label,
+  mobileLabel,
 }: {
   onClick: () => void
   icon: React.ReactNode
   label: string
+  mobileLabel?: string
 }) {
   return (
     <motion.button
       whileHover={{ scale: 1.03 }}
       whileTap={{ scale: 0.97 }}
       onClick={onClick}
-      className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-colors duration-150 flex-shrink-0"
+      className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-colors duration-150 flex-shrink-0 touch-target-min"
       style={{
         color: 'var(--text-secondary)',
         background: 'transparent',
@@ -443,6 +464,7 @@ const NavButton = memo(function NavButton({
     >
       {icon}
       <span className="hidden sm:inline">{label}</span>
+      {mobileLabel && <span className="sm:hidden">{mobileLabel}</span>}
     </motion.button>
   )
 })
@@ -465,18 +487,19 @@ const ToolbarButton = memo(function ToolbarButton({
       whileHover={{ scale: 1.04 }}
       whileTap={{ scale: 0.96 }}
       onClick={onClick}
-      className="relative flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all duration-200 overflow-hidden flex-shrink-0"
+      className="relative flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all duration-200 overflow-hidden flex-shrink-0 group touch-target-min"
       style={{
         color: isActive ? 'var(--text-primary)' : 'var(--text-secondary)',
         background: isActive ? 'var(--accent-primary)' : 'transparent',
         border: isActive ? '1px solid color-mix(in srgb, var(--accent-primary) 60%, transparent)' : '1px solid transparent',
-        boxShadow: isActive ? '0 0 12px color-mix(in srgb, var(--accent-primary) 25%, transparent)' : 'none',
+        boxShadow: isActive ? '0 0 16px color-mix(in srgb, var(--accent-primary) 30%, transparent), inset 0 1px 0 rgba(255,255,255,0.08)' : 'none',
       }}
       onMouseEnter={(e) => {
         if (!isActive) {
           e.currentTarget.style.background = 'var(--color-surface-raised)'
           e.currentTarget.style.borderColor = 'var(--border-default)'
           e.currentTarget.style.color = 'var(--text-primary)'
+          e.currentTarget.style.boxShadow = '0 0 12px color-mix(in srgb, var(--accent-primary) 12%, transparent), inset 0 1px 0 rgba(255,255,255,0.05)'
         }
       }}
       onMouseLeave={(e) => {
@@ -484,10 +507,21 @@ const ToolbarButton = memo(function ToolbarButton({
           e.currentTarget.style.background = 'transparent'
           e.currentTarget.style.borderColor = 'transparent'
           e.currentTarget.style.color = 'var(--text-secondary)'
+          e.currentTarget.style.boxShadow = 'none'
         }
       }}
     >
-      <span className="inline-flex items-center justify-center shrink-0 w-4 h-4">{icon}</span>
+      <span className="inline-flex items-center justify-center shrink-0 w-4 h-4 relative">
+        {icon}
+        {/* Hover glow ring */}
+        {!isActive && (
+          <span className="absolute inset-0 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+            style={{
+              background: 'radial-gradient(circle, color-mix(in srgb, var(--accent-primary) 15%, transparent) 0%, transparent 70%)',
+            }}
+          />
+        )}
+      </span>
       <span className="inline-flex items-center">{label}</span>
       {isActive && (
         <motion.span
@@ -528,7 +562,7 @@ const IconButton = memo(function IconButton({
       whileTap={{ scale: 0.92 }}
       onClick={onClick}
       title={title}
-      className="relative flex items-center justify-center w-8 h-8 rounded-full transition-all duration-200 flex-shrink-0"
+      className="relative flex items-center justify-center w-8 h-8 rounded-full transition-all duration-200 flex-shrink-0 touch-target-min"
       style={{
         color: isActive ? 'var(--text-primary)' : 'var(--text-secondary)',
         background: isActive
@@ -684,28 +718,33 @@ const RatioSlider = React.forwardRef<
   <SliderPrimitive.Root
     ref={ref}
     className={cn(
-      'relative flex w-full touch-none select-none items-center',
+      'relative flex w-full touch-none select-none items-center group/slider',
       className
     )}
     {...props}
   >
     <SliderPrimitive.Track
-      className="relative h-1 w-full grow overflow-hidden rounded-full"
-      style={{ background: 'var(--border-default)' }}
+      className="relative h-1.5 w-full grow overflow-hidden rounded-full"
+      style={{
+        background: 'var(--border-default)',
+        boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.3)',
+      }}
     >
       <SliderPrimitive.Range
         className="absolute h-full rounded-full"
         style={{
           background: 'linear-gradient(90deg, var(--accent-primary) 0%, var(--color-ifline) 100%)',
+          boxShadow: '0 0 8px color-mix(in srgb, var(--accent-primary) 30%, transparent)',
         }}
       />
     </SliderPrimitive.Track>
     <SliderPrimitive.Thumb
-      className="block h-4 w-4 rounded-full border-2 transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-primary)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--color-surface-base)] disabled:pointer-events-none disabled:opacity-50"
+      className="block h-5 w-5 rounded-full border-2 transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-primary)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--color-surface-base)] disabled:pointer-events-none disabled:opacity-50
+                 hover:scale-110 active:scale-95 group-hover/slider:shadow-[0_0_12px_rgba(94,106,210,0.4)]"
       style={{
         borderColor: 'var(--accent-primary)',
         background: 'var(--color-surface-raised)',
-        boxShadow: '0 0 8px rgba(94, 106, 210, 0.3), 0 2px 4px rgba(0,0,0,0.2)',
+        boxShadow: '0 0 8px color-mix(in srgb, var(--accent-primary) 25%, transparent), 0 2px 4px rgba(0,0,0,0.25)',
       }}
     />
   </SliderPrimitive.Root>

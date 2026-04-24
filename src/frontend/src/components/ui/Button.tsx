@@ -3,6 +3,7 @@ import { clsx } from 'clsx'
 import { twMerge } from 'tailwind-merge'
 import { Slot } from '@radix-ui/react-slot'
 import { Loader2 } from 'lucide-react'
+import { motion, AnimatePresence } from 'framer-motion'
 
 export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   variant?:
@@ -16,6 +17,9 @@ export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElemen
     | 'secondary'
     | 'glow'
     | 'gradient'
+    | 'premium'
+    | 'ink'
+    | 'paper'
   size?: 'sm' | 'md' | 'lg' | 'icon'
   asChild?: boolean
   loading?: boolean
@@ -35,6 +39,9 @@ const variantStyles: Record<string, string> = {
   destructive: 'text-[var(--text-primary)]',
   glow: 'text-[var(--text-primary)]',
   gradient: 'text-[var(--text-primary)]',
+  premium: 'text-[var(--text-primary)]',
+  ink: 'text-[var(--paper-100)]',
+  paper: 'text-[var(--ink-100)]',
 }
 
 const variantBackgrounds: Record<string, string> = {
@@ -48,6 +55,9 @@ const variantBackgrounds: Record<string, string> = {
   destructive: 'var(--color-danger)',
   glow: 'var(--accent-primary)',
   gradient: 'transparent',
+  premium: 'transparent',
+  ink: 'var(--ink-90)',
+  paper: 'var(--paper-100)',
 }
 
 const sizeStyles = {
@@ -71,6 +81,9 @@ const variantHoverStyles: Record<string, string> = {
   destructive: 'hover:brightness-110 active:brightness-90',
   glow: '',
   gradient: 'hover:brightness-110 active:brightness-90',
+  premium: '',
+  ink: 'hover:bg-[var(--ink-85)] active:bg-[var(--ink-80)]',
+  paper: 'hover:bg-[var(--paper-95)] active:bg-[var(--paper-90)]',
 }
 
 const variantBorderStyles: Record<string, string> = {
@@ -84,6 +97,116 @@ const variantBorderStyles: Record<string, string> = {
   destructive: '',
   glow: '',
   gradient: '',
+  premium: 'border border-[var(--border-default)]',
+  ink: 'border border-[var(--ink-70)] hover:border-[var(--ink-60)]',
+  paper: 'border border-[var(--paper-80)] hover:border-[var(--paper-75)]',
+}
+
+/** Premium variant: subtle gradient overlay with glow on hover */
+function PremiumBackground({ isHovered, isPressed }: { isHovered: boolean; isPressed: boolean }) {
+  return (
+    <motion.span
+      className="absolute inset-0 rounded-inherit pointer-events-none"
+      style={{
+        background: 'linear-gradient(135deg, rgba(94, 106, 210, 0.15) 0%, rgba(94, 181, 166, 0.08) 50%, rgba(232, 184, 125, 0.1) 100%)',
+      }}
+      animate={{
+        opacity: isHovered ? 1 : 0.6,
+        scale: isPressed ? 0.98 : 1,
+      }}
+      transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
+    />
+  )
+}
+
+/** Premium variant: animated glow border on hover */
+function PremiumGlowBorder({ isHovered }: { isHovered: boolean }) {
+  return (
+    <motion.span
+      className="absolute inset-0 rounded-inherit pointer-events-none"
+      style={{
+        padding: '1px',
+        background: 'linear-gradient(135deg, rgba(94, 106, 210, 0.5), rgba(94, 181, 166, 0.3), rgba(232, 184, 125, 0.4))',
+        WebkitMask: 'linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)',
+        WebkitMaskComposite: 'xor',
+        maskComposite: 'exclude',
+        borderRadius: 'inherit',
+      }}
+      animate={{ opacity: isHovered ? 1 : 0 }}
+      transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
+    />
+  )
+}
+
+/** Ink variant: subtle inner glow for writing interface */
+function InkInnerGlow({ isHovered }: { isHovered: boolean }) {
+  return (
+    <motion.span
+      className="absolute inset-0 rounded-inherit pointer-events-none"
+      style={{
+        background: 'radial-gradient(ellipse at 50% 0%, rgba(245, 240, 230, 0.04) 0%, transparent 60%)',
+      }}
+      animate={{ opacity: isHovered ? 1 : 0.5 }}
+      transition={{ duration: 0.2 }}
+    />
+  )
+}
+
+/** Paper variant: subtle shadow for light theme feel */
+function PaperShadow({ isHovered }: { isHovered: boolean }) {
+  return (
+    <motion.span
+      className="absolute inset-0 rounded-inherit pointer-events-none"
+      animate={{
+        boxShadow: isHovered
+          ? '0 2px 8px rgba(0, 0, 0, 0.08), 0 1px 3px rgba(0, 0, 0, 0.06)'
+          : '0 1px 3px rgba(0, 0, 0, 0.04)',
+      }}
+      transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
+    />
+  )
+}
+
+/** Enhanced loading spinner with Framer Motion */
+function LoadingSpinner({ size }: { size: ButtonProps['size'] }) {
+  const sizeMap = {
+    sm: 'w-3.5 h-3.5',
+    md: 'w-4 h-4',
+    lg: 'w-5 h-5',
+    icon: 'w-4 h-4',
+  }
+
+  return (
+    <motion.span
+      className={twMerge('inline-flex items-center justify-center', sizeMap[size || 'md'])}
+      animate={{ rotate: 360 }}
+      transition={{
+        duration: 0.8,
+        repeat: Infinity,
+        ease: 'linear',
+      }}
+    >
+      <Loader2 className={twMerge('text-current', sizeMap[size || 'md'])} />
+    </motion.span>
+  )
+}
+
+/** Ripple effect with improved animation */
+function Ripple({ x, y, onComplete }: { x: number; y: number; onComplete: () => void }) {
+  return (
+    <motion.span
+      className="absolute rounded-full pointer-events-none"
+      style={{
+        left: x,
+        top: y,
+        background: 'radial-gradient(circle, rgba(94, 106, 210, 0.2) 0%, rgba(94, 106, 210, 0.08) 40%, transparent 70%)',
+      }}
+      initial={{ width: 0, height: 0, x: 0, y: 0, opacity: 0.6 }}
+      animate={{ width: 240, height: 240, x: -120, y: -120, opacity: 0 }}
+      transition={{ duration: 0.55, ease: [0.16, 1, 0.3, 1] }}
+      onAnimationComplete={onComplete}
+    />
+  )
 }
 
 export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
@@ -110,6 +233,7 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
     >([])
     const buttonRef = React.useRef<HTMLButtonElement>(null)
     const [isPressed, setIsPressed] = React.useState(false)
+    const [isHovered, setIsHovered] = React.useState(false)
 
     const handleClick = React.useCallback(
       (e: React.MouseEvent<HTMLButtonElement>) => {
@@ -122,9 +246,6 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
           const y = e.clientY - rect.top
           const id = Date.now()
           setRipples((prev) => [...prev, { id, x, y }])
-          setTimeout(() => {
-            setRipples((prev) => prev.filter((r) => r.id !== id))
-          }, 600)
         }
 
         onClick?.(e)
@@ -132,7 +253,14 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
       [loading, disabled, onClick]
     )
 
+    const removeRipple = React.useCallback((id: number) => {
+      setRipples((prev) => prev.filter((r) => r.id !== id))
+    }, [])
+
     const isGlow = variant === 'glow'
+    const isPremium = variant === 'premium'
+    const isInk = variant === 'ink'
+    const isPaper = variant === 'paper'
     const isDisabled = disabled || loading
 
     return (
@@ -149,7 +277,6 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
             'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-primary)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--color-surface-base)]',
             'disabled:pointer-events-none',
             'transition-all duration-[var(--transition-base)] ease-out',
-            'hover:scale-[1.02] active:scale-[0.98]',
             variantStyles[variant],
             variantHoverStyles[variant],
             variantBorderStyles[variant],
@@ -165,33 +292,64 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
             ...(isGlow ? {
               boxShadow: `0 0 16px ${glowColor}40, 0 0 32px ${glowColor}20, inset 0 1px 0 rgba(255,255,255,0.1)`,
             } : {}),
+            ...(isPremium ? {
+              background: 'var(--color-surface-raised)',
+              border: '1px solid var(--border-default)',
+            } : {}),
           }
         }
         onClick={handleClick}
         onMouseDown={() => setIsPressed(true)}
         onMouseUp={() => setIsPressed(false)}
-        onMouseLeave={() => setIsPressed(false)}
+        onMouseLeave={() => { setIsPressed(false); setIsHovered(false) }}
+        onMouseEnter={() => setIsHovered(true)}
         {...props}
       >
         {/* Glow variant animated background */}
         {isGlow && (
-          <span
-            className="absolute inset-0 opacity-0 hover:opacity-100 active:opacity-100 transition-opacity duration-300"
+          <motion.span
+            className="absolute inset-0 rounded-inherit pointer-events-none"
             style={{
               background: `radial-gradient(circle at 50% 50%, ${glowColor}40 0%, transparent 70%)`,
             }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: isHovered ? 1 : 0 }}
+            transition={{ duration: 0.3 }}
           />
         )}
 
         {/* Glow pulse animation */}
         {isGlow && (
-          <span
-            className="absolute inset-0 animate-glow-pulse opacity-50"
+          <motion.span
+            className="absolute inset-0 glow pointer-events-none"
             style={{
               background: `radial-gradient(circle at 50% 50%, ${glowColor}20 0%, transparent 60%)`,
             }}
+            animate={{
+              opacity: [0.3, 0.5, 0.3],
+              scale: [1, 1.05, 1],
+            }}
+            transition={{
+              duration: 2.5,
+              repeat: Infinity,
+              ease: 'easeInOut',
+            }}
           />
         )}
+
+        {/* Premium variant backgrounds */}
+        {isPremium && (
+          <>
+            <PremiumBackground isHovered={isHovered} isPressed={isPressed} />
+            <PremiumGlowBorder isHovered={isHovered} />
+          </>
+        )}
+
+        {/* Ink variant inner glow */}
+        {isInk && <InkInnerGlow isHovered={isHovered} />}
+
+        {/* Paper variant shadow */}
+        {isPaper && <PaperShadow isHovered={isHovered} />}
 
         {/* Gradient background for gradient variant */}
         {variant === 'gradient' && (
@@ -203,10 +361,7 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
         {/* Content wrapper */}
         <span className="relative z-10 inline-flex flex-row items-center justify-center gap-2">
           {loading ? (
-            <Loader2 className={twMerge(
-              'text-[var(--icon-secondary)] animate-spin',
-              size === 'sm' ? 'w-3.5 h-3.5' : size === 'lg' ? 'w-5 h-5' : 'w-4 h-4'
-            )} />
+            <LoadingSpinner size={size} />
           ) : leftIcon ? (
             <span className="inline-flex items-center justify-center flex-shrink-0">{leftIcon}</span>
           ) : null}
@@ -220,18 +375,17 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
           )}
         </span>
 
-        {/* Ripple effects */}
-        {ripples.map((ripple) => (
-          <span
-            key={ripple.id}
-            className="absolute rounded-full bg-white/25 pointer-events-none animate-ripple motion-reduce:animate-none"
-            style={{
-              left: ripple.x,
-              top: ripple.y,
-              transform: 'translate(-50%, -50%)',
-            }}
-          />
-        ))}
+        {/* Ripple effects with AnimatePresence */}
+        <AnimatePresence>
+          {ripples.map((ripple) => (
+            <Ripple
+              key={ripple.id}
+              x={ripple.x}
+              y={ripple.y}
+              onComplete={() => removeRipple(ripple.id)}
+            />
+          ))}
+        </AnimatePresence>
 
         {/* Inner highlight for raised variants */}
         {!isDisabled && variant !== 'outline' && variant !== 'ghost' && variant !== 'ghostHover' && (

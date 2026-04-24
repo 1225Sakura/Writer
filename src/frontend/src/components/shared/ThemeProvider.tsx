@@ -1,4 +1,14 @@
-import { createContext, useContext, ReactNode, useEffect, useCallback } from 'react'
+/**
+ * ThemeProvider - 主题提供者
+ *
+ * 集成6种主题与Ink/Parchment设计令牌系统
+ * - dark, light, eye-care, midnight-blue, warm-paper, forest-green
+ * - 每个主题完整映射所有CSS变量
+ * - 提供视觉预览色板
+ * - 平滑主题切换过渡
+ */
+
+import { createContext, useContext, ReactNode, useEffect, useCallback, useMemo } from 'react'
 import { useTheme, type Theme } from '@/hooks/useTheme'
 
 interface ThemeContextValue {
@@ -10,33 +20,129 @@ interface ThemeContextValue {
   setFollowSystem: (follow: boolean) => void
   isDark: boolean
   themeList: Theme[]
+  themeMeta: ThemeMeta[]
+}
+
+interface ThemeMeta {
+  id: Theme
+  label: string
+  description: string
+  isDark: boolean
+  preview: {
+    surface: string
+    text: string
+    accent: string
+    border: string
+  }
 }
 
 const ThemeContext = createContext<ThemeContextValue | null>(null)
 
-// CSS variable mappings for all theme variants
-// These supplement the globals.css [data-theme] selectors for shadcn/ui HSL variables
-const themeColors: Record<string, Record<string, string>> = {
+/**
+ * 完整主题元数据，包含视觉预览色板
+ */
+const themeMetaList: ThemeMeta[] = [
+  {
+    id: 'dark',
+    label: '深墨',
+    description: '经典深色，专注写作',
+    isDark: true,
+    preview: {
+      surface: '#0d0d12',
+      text: '#f5f0e6',
+      accent: '#5e6ad2',
+      border: 'rgba(255,255,255,0.10)',
+    },
+  },
+  {
+    id: 'light',
+    label: '宣纸',
+    description: '明亮浅色，清晰阅读',
+    isDark: false,
+    preview: {
+      surface: '#f5f0e6',
+      text: '#1a1a2e',
+      accent: '#5e6ad2',
+      border: 'rgba(0,0,0,0.10)',
+    },
+  },
+  {
+    id: 'eye-care',
+    label: '护眼',
+    description: '柔和绿色，减轻疲劳',
+    isDark: true,
+    preview: {
+      surface: '#1a1f1a',
+      text: '#d4e4cc',
+      accent: '#6fa86c',
+      border: 'rgba(255,255,255,0.06)',
+    },
+  },
+  {
+    id: 'midnight-blue',
+    label: '午夜蓝',
+    description: '深邃蓝色，沉浸创作',
+    isDark: true,
+    preview: {
+      surface: '#080c14',
+      text: '#e4ecf7',
+      accent: '#5b98f8',
+      border: 'rgba(96,165,250,0.12)',
+    },
+  },
+  {
+    id: 'warm-paper',
+    label: '暖纸',
+    description: '复古暖色，温润书写',
+    isDark: false,
+    preview: {
+      surface: '#f7f2e8',
+      text: '#3d3020',
+      accent: '#b87040',
+      border: 'rgba(61,48,32,0.08)',
+    },
+  },
+  {
+    id: 'forest-green',
+    label: '森林',
+    description: '自然深绿，静谧灵感',
+    isDark: true,
+    preview: {
+      surface: '#0a120e',
+      text: '#c8dcc8',
+      accent: '#5aaf72',
+      border: 'rgba(100,180,120,0.10)',
+    },
+  },
+]
+
+/**
+ * 完整CSS变量映射 - 每个主题覆盖所有shadcn/ui设计令牌
+ * 这些变量补充globals.css中的[data-theme]选择器
+ * 用于shadcn/ui HSL变量和运行时动态调整
+ */
+const themeVariableMap: Record<Theme, Record<string, string>> = {
   dark: {
-    '--background': '0 0% 3.5%',
+    '--background': '240 10% 3.5%',
     '--foreground': '0 0% 98%',
-    '--card': '0 0% 5%',
+    '--card': '240 10% 5%',
     '--card-foreground': '0 0% 98%',
-    '--popover': '0 0% 5%',
+    '--popover': '240 10% 5%',
     '--popover-foreground': '0 0% 98%',
     '--primary': '238 83% 66%',
     '--primary-foreground': '0 0% 98%',
-    '--secondary': '240 3.7% 15.9%',
+    '--secondary': '240 4% 16%',
     '--secondary-foreground': '0 0% 98%',
-    '--muted': '240 3.7% 15.9%',
-    '--muted-foreground': '240 5% 64.9%',
-    '--accent': '240 3.7% 15.9%',
+    '--muted': '240 4% 16%',
+    '--muted-foreground': '240 5% 65%',
+    '--accent': '240 4% 16%',
     '--accent-foreground': '0 0% 98%',
     '--destructive': '0 84% 60%',
     '--destructive-foreground': '0 0% 98%',
-    '--border': '240 3.7% 15.9%',
-    '--input': '240 3.7% 15.9%',
+    '--border': '240 4% 16%',
+    '--input': '240 4% 16%',
     '--ring': '238 83% 66%',
+    '--radius': '0.5rem',
   },
   light: {
     '--background': '45 30% 96%',
@@ -58,6 +164,7 @@ const themeColors: Record<string, Record<string, string>> = {
     '--border': '40 15% 85%',
     '--input': '40 15% 90%',
     '--ring': '238 83% 55%',
+    '--radius': '0.5rem',
   },
   'eye-care': {
     '--background': '120 8% 10%',
@@ -79,6 +186,7 @@ const themeColors: Record<string, Record<string, string>> = {
     '--border': '120 8% 20%',
     '--input': '120 8% 20%',
     '--ring': '120 35% 60%',
+    '--radius': '0.5rem',
   },
   'midnight-blue': {
     '--background': '215 35% 5%',
@@ -100,9 +208,9 @@ const themeColors: Record<string, Record<string, string>> = {
     '--border': '215 25% 16%',
     '--input': '215 25% 16%',
     '--ring': '215 75% 62%',
+    '--radius': '0.5rem',
   },
   'warm-paper': {
-    /* Enhanced warm-paper - richer amber tones for vintage paper feel */
     '--background': '38 30% 94%',
     '--foreground': '32 25% 20%',
     '--card': '38 28% 98%',
@@ -122,9 +230,9 @@ const themeColors: Record<string, Record<string, string>> = {
     '--border': '35 18% 82%',
     '--input': '35 22% 88%',
     '--ring': '28 55% 48%',
+    '--radius': '0.5rem',
   },
   'forest-green': {
-    /* Deep forest green with natural moss undertones */
     '--background': '140 15% 7%',
     '--foreground': '120 15% 80%',
     '--card': '140 12% 11%',
@@ -144,19 +252,141 @@ const themeColors: Record<string, Record<string, string>> = {
     '--border': '140 12% 18%',
     '--input': '140 10% 18%',
     '--ring': '140 35% 50%',
+    '--radius': '0.5rem',
   },
 }
 
-function applyThemeColors(theme: Theme) {
+/**
+ * 应用主题CSS变量到DOM
+ */
+function applyThemeVariables(theme: Theme) {
   const root = document.documentElement
-  const colors = themeColors[theme]
-  if (!colors) return
+  const variables = themeVariableMap[theme]
+  if (!variables) return
 
   requestAnimationFrame(() => {
-    Object.entries(colors).forEach(([key, value]) => {
+    Object.entries(variables).forEach(([key, value]) => {
       root.style.setProperty(key, value)
     })
   })
+}
+
+/**
+ * 主题色板预览组件
+ * 显示4个颜色小方块代表主题特征色
+ */
+export function ThemePreviewSwatches({ themeId, size = 'sm' }: { themeId: Theme; size?: 'sm' | 'md' }) {
+  const meta = themeMetaList.find((t) => t.id === themeId)
+  if (!meta) return null
+
+  const sizeClass = size === 'sm' ? 'w-3 h-3' : 'w-4 h-4'
+  const gapClass = size === 'sm' ? 'gap-0.5' : 'gap-1'
+
+  return (
+    <div className={`flex ${gapClass} items-center`} aria-hidden="true">
+      <div
+        className={`${sizeClass} rounded-sm border border-[var(--border-subtle)]`}
+        style={{ backgroundColor: meta.preview.surface }}
+        title="背景色"
+      />
+      <div
+        className={`${sizeClass} rounded-sm border border-[var(--border-subtle)]`}
+        style={{ backgroundColor: meta.preview.text }}
+        title="文字色"
+      />
+      <div
+        className={`${sizeClass} rounded-sm border border-[var(--border-subtle)]`}
+        style={{ backgroundColor: meta.preview.accent }}
+        title="强调色"
+      />
+      <div
+        className={`${sizeClass} rounded-sm border border-[var(--border-subtle)]`}
+        style={{ backgroundColor: meta.preview.border }}
+        title="边框色"
+      />
+    </div>
+  )
+}
+
+/**
+ * 主题选择器组件 - 带视觉预览
+ */
+export function ThemeSelector({
+  currentTheme,
+  onThemeChange,
+  className,
+}: {
+  currentTheme: Theme
+  onThemeChange: (theme: Theme) => void
+  className?: string
+}) {
+  return (
+    <div className={`grid grid-cols-2 gap-2 ${className || ''}`} role="radiogroup" aria-label="主题选择">
+      {themeMetaList.map((meta) => (
+        <button
+          key={meta.id}
+          role="radio"
+          aria-checked={currentTheme === meta.id}
+          onClick={() => onThemeChange(meta.id)}
+          className={`
+            flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-left
+            transition-all duration-200 border
+            ${
+              currentTheme === meta.id
+                ? 'border-[var(--accent-primary)] bg-[var(--accent-muted)]'
+                : 'border-[var(--border-subtle)] bg-[var(--color-surface-raised)] hover:border-[var(--border-default)]'
+            }
+          `}
+        >
+          <ThemePreviewSwatches themeId={meta.id} size="md" />
+          <div className="flex-1 min-w-0">
+            <div className="text-sm font-medium text-[var(--text-primary)] truncate">{meta.label}</div>
+            <div className="text-xs text-[var(--text-tertiary)] truncate">{meta.description}</div>
+          </div>
+        </button>
+      ))}
+    </div>
+  )
+}
+
+/**
+ * 小型主题选择器 - 用于工具栏等紧凑空间
+ */
+export function ThemeSelectorCompact({
+  currentTheme,
+  onThemeChange,
+}: {
+  currentTheme: Theme
+  onThemeChange: (theme: Theme) => void
+}) {
+  return (
+    <div className="flex gap-1 p-1 rounded-lg" style={{ backgroundColor: 'var(--color-surface-overlay)' }}>
+      {themeMetaList.map((meta) => (
+        <button
+          key={meta.id}
+          onClick={() => onThemeChange(meta.id)}
+          title={`${meta.label} - ${meta.description}`}
+          className={`
+            relative p-1.5 rounded-md transition-all duration-200
+            ${currentTheme === meta.id ? 'ring-2 ring-[var(--accent-primary)]' : 'hover:bg-[var(--color-surface-hover)]'}
+          `}
+        >
+          <div
+            className="w-5 h-5 rounded-full border"
+            style={{
+              backgroundColor: meta.preview.surface,
+              borderColor: meta.preview.border,
+            }}
+          >
+            <div
+              className="w-2 h-2 rounded-full mx-auto mt-1"
+              style={{ backgroundColor: meta.preview.accent }}
+            />
+          </div>
+        </button>
+      ))}
+    </div>
+  )
 }
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
@@ -164,7 +394,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
 
   // Apply CSS variables when theme changes
   useEffect(() => {
-    applyThemeColors(theme)
+    applyThemeVariables(theme)
   }, [theme])
 
   // Handle smooth theme transitions and reduced motion
@@ -178,7 +408,6 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
       root.classList.remove('motion-reduce')
     }
 
-    // Add smooth transitions (disabled for reduced motion)
     const handleTransition = () => {
       if (mediaQuery.matches) {
         root.style.setProperty('--transition-duration', '0ms')
@@ -192,12 +421,15 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     return () => mediaQuery.removeEventListener('change', handleTransition)
   }, [])
 
-  const handleSetTheme = useCallback((newTheme: Theme) => {
-    setTheme(newTheme)
-  }, [setTheme])
+  const handleSetTheme = useCallback(
+    (newTheme: Theme) => {
+      setTheme(newTheme)
+    },
+    [setTheme]
+  )
 
-  return (
-    <ThemeContext.Provider value={{
+  const value = useMemo(
+    () => ({
       theme,
       setTheme: handleSetTheme,
       toggleTheme,
@@ -206,10 +438,12 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
       setFollowSystem,
       isDark,
       themeList,
-    }}>
-      {children}
-    </ThemeContext.Provider>
+      themeMeta: themeMetaList,
+    }),
+    [theme, handleSetTheme, toggleTheme, cycleTheme, followSystem, setFollowSystem, isDark, themeList]
   )
+
+  return <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>
 }
 
 export function useThemeContext() {

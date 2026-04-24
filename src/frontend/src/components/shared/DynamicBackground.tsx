@@ -2,16 +2,18 @@
  * DynamicBackground - 动态背景组件
  *
  * 支持多种背景模式可切换：
- * - particle: Canvas 粒子效果（EnhancedParticleBackground 的增强版）
+ * - particle: Canvas 粒子效果
  * - grid: 动态网格线
  * - wave: 波浪线条
  * - starfield: 星空效果
  *
  * 特性：
  * - Canvas 渲染，性能优化
- * - 支持主题色同步
+ * - FPS 节流（30fps cap for low-end devices）
+ * - 统一视觉风格（Ink/Parchment色系）
+ * - 平滑主题色同步过渡
  * - prefers-reduced-motion 支持
- * - 使用 requestAnimationFrame + 节流
+ * - 界面类型个性化（chat/settings/writing）
  */
 
 import { useEffect, useRef, useState, useCallback, useMemo } from 'react'
@@ -29,20 +31,22 @@ interface DynamicBackgroundProps {
   speed?: 'slow' | 'normal' | 'fast'
   /** 是否使用主题色 */
   useThemeColors?: boolean
+  /** 界面类型，影响背景个性 */
+  interfaceType?: 'chat' | 'settings' | 'writing'
 }
 
-// 密度配置 - SPEC 3.2: 减少50%粒子数量以降低视觉干扰
+// 密度配置
 const densityConfig = {
-  low: { particle: 5, grid: 3, wave: 1, starfield: 20 },
-  medium: { particle: 10, grid: 5, wave: 2, starfield: 40 },
-  high: { particle: 15, grid: 7, wave: 3, starfield: 60 },
+  low: { particle: 6, grid: 4, wave: 1, starfield: 25 },
+  medium: { particle: 10, grid: 6, wave: 2, starfield: 40 },
+  high: { particle: 15, grid: 8, wave: 3, starfield: 60 },
 }
 
 // 低性能设备密度配置（自动降级）
 const lowPerformanceDensityConfig = {
-  low: { particle: 6, grid: 4, wave: 1, starfield: 25 },
-  medium: { particle: 8, grid: 6, wave: 2, starfield: 35 },
-  high: { particle: 12, grid: 8, wave: 2, starfield: 50 },
+  low: { particle: 4, grid: 3, wave: 1, starfield: 15 },
+  medium: { particle: 6, grid: 4, wave: 1, starfield: 25 },
+  high: { particle: 10, grid: 6, wave: 2, starfield: 40 },
 }
 
 // 速度配置
@@ -52,14 +56,40 @@ const speedConfig = {
   fast: 1.2,
 }
 
-// 主题色
-const themeColors = [
-  'rgba(94, 106, 210, 0.4)',
-  'rgba(232, 184, 125, 0.35)',
-  'rgba(94, 181, 166, 0.35)',
-  'rgba(155, 126, 217, 0.3)',
-  'rgba(196, 92, 92, 0.25)',
-]
+/**
+ * 获取当前主题的统一色系
+ * 所有模式使用协调的Ink/Parchment色系
+ */
+function getThemeColors(): string[] {
+  const root = getComputedStyle(document.documentElement)
+  const accent = root.getPropertyValue('--accent-100').trim() || '#5e6ad2'
+  const character = root.getPropertyValue('--color-character').trim() || '#e8b87d'
+  const location = root.getPropertyValue('--color-location').trim() || '#5eb5a6'
+  const item = root.getPropertyValue('--color-item').trim() || '#9b7ed9'
+  const vermillion = root.getPropertyValue('--vermillion-100').trim() || '#c45c5c'
+
+  return [
+    accent,
+    character,
+    location,
+    item,
+    vermillion,
+  ]
+}
+
+function hexToRgba(hex: string, alpha: number): string {
+  // 处理CSS变量可能返回的rgb格式
+  if (hex.startsWith('rgb') || hex.startsWith('rgba')) {
+    return hex.replace(/rgba?\(([^)]+)\)/, `rgba($1, ${alpha})`).replace(/,\s*[^,]+\)$/, `, ${alpha})`)
+  }
+  // 处理hex
+  const clean = hex.replace('#', '')
+  const bigint = parseInt(clean, 16)
+  const r = (bigint >> 16) & 255
+  const g = (bigint >> 8) & 255
+  const b = bigint & 255
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`
+}
 
 /**
  * 检测低性能设备
@@ -70,7 +100,7 @@ function isLowPerformanceDevice(): boolean {
   )
   const isSmallScreen = window.innerWidth < 768
   const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
-  // @ts-ignore - deviceMemory is not in all browsers
+  // @ts-ignore
   const isLowMemory = navigator.deviceMemory !== undefined && navigator.deviceMemory < 4
 
   return isMobile || isSmallScreen || prefersReducedMotion || isLowMemory
@@ -99,7 +129,7 @@ interface Particle {
   pulsePhase: number
 }
 
-function initParticles(count: number, width: number, height: number, speed: number): Particle[] {
+function initParticles(count: number, width: number, height: number, speed: number, colors: string[]): Particle[] {
   const rand = seededRandom(123)
   const particles: Particle[] = []
   for (let i = 0; i < count; i++) {
@@ -109,7 +139,7 @@ function initParticles(count: number, width: number, height: number, speed: numb
       vx: (rand() - 0.5) * 0.3 * speed,
       vy: (rand() - 0.5) * 0.3 * speed,
       size: 1.5 + rand() * 2,
-      color: themeColors[Math.floor(rand() * themeColors.length)],
+      color: colors[Math.floor(rand() * colors.length)],
       opacity: 0.04 + rand() * 0.08,
       pulsePhase: rand() * Math.PI * 2,
     })
@@ -140,14 +170,13 @@ function drawParticles(
 
     ctx.beginPath()
     ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2)
-    ctx.fillStyle = p.color.replace(/[\d.]+\)$/, `${currentOpacity})`)
+    ctx.fillStyle = hexToRgba(p.color, currentOpacity)
     ctx.fill()
   })
 
-  // 优化：限制连接线数量，使用更低的透明度
-  // 只绘制最近的粒子之间的连接
+  // 限制连接线数量
   const connectionDist = 80
-  const maxConnections = 30 // 限制最大连接数
+  const maxConnections = 20
   let connectionCount = 0
 
   for (let i = 0; i < particles.length && connectionCount < maxConnections; i++) {
@@ -157,11 +186,11 @@ function drawParticles(
       const dist = Math.sqrt(dx * dx + dy * dy)
 
       if (dist < connectionDist) {
-        const opacity = (1 - dist / connectionDist) * 0.015
+        const opacity = (1 - dist / connectionDist) * 0.012
         ctx.beginPath()
         ctx.moveTo(particles[i].x, particles[i].y)
         ctx.lineTo(particles[j].x, particles[j].y)
-        ctx.strokeStyle = `rgba(94, 106, 210, ${opacity})`
+        ctx.strokeStyle = hexToRgba(particles[i].color, opacity)
         ctx.lineWidth = 0.3
         ctx.stroke()
         connectionCount++
@@ -184,18 +213,16 @@ function initGrid(count: number, width: number, height: number, speed: number): 
   const spacing = Math.min(width, height) / count
 
   for (let i = 0; i <= count; i++) {
-    // 水平线
     lines.push({
       x: 0,
       y: i * spacing,
-      opacity: 0.02 + rand() * 0.03,
+      opacity: 0.015 + rand() * 0.025,
       speed: (0.1 + rand() * 0.2) * speed,
     })
-    // 垂直线
     lines.push({
       x: i * spacing,
       y: 0,
-      opacity: 0.02 + rand() * 0.03,
+      opacity: 0.015 + rand() * 0.025,
       speed: (0.1 + rand() * 0.2) * speed,
     })
   }
@@ -208,15 +235,17 @@ function drawGrid(
   lines: GridLine[],
   width: number,
   height: number,
-  time: number
+  time: number,
+  colors: string[]
 ) {
   ctx.clearRect(0, 0, width, height)
 
   const spacing = Math.min(width, height) / (lines.length / 2)
+  const primaryColor = colors[0] || '#5e6ad2'
 
   lines.forEach((line, i) => {
     const isHorizontal = i % 2 === 0
-    const offset = Math.sin(time * 0.0003 * line.speed + i) * 10
+    const offset = Math.sin(time * 0.0003 * line.speed + i) * 8
 
     ctx.beginPath()
     if (isHorizontal) {
@@ -228,22 +257,22 @@ function drawGrid(
     }
 
     const pulse = Math.sin(time * 0.0005 + i * 0.5) * 0.5 + 0.5
-    ctx.strokeStyle = `rgba(94, 106, 210, ${line.opacity * pulse})`
+    ctx.strokeStyle = hexToRgba(primaryColor, line.opacity * pulse)
     ctx.lineWidth = 0.5
     ctx.stroke()
   })
 
-  // 交叉点光点
+  // 交叉点光点 - 减少数量
   const gridCount = Math.floor(lines.length / 2)
-  for (let i = 0; i < gridCount; i += 2) {
-    for (let j = 0; j < gridCount; j += 2) {
+  for (let i = 0; i < gridCount; i += 3) {
+    for (let j = 0; j < gridCount; j += 3) {
       const x = j * spacing
       const y = i * spacing
       const pulse = Math.sin(time * 0.001 + i + j) * 0.5 + 0.5
 
       ctx.beginPath()
-      ctx.arc(x, y, 1.5, 0, Math.PI * 2)
-      ctx.fillStyle = `rgba(94, 106, 210, ${0.03 * pulse})`
+      ctx.arc(x, y, 1.2, 0, Math.PI * 2)
+      ctx.fillStyle = hexToRgba(primaryColor, 0.025 * pulse)
       ctx.fill()
     }
   }
@@ -259,17 +288,17 @@ interface Wave {
   yOffset: number
 }
 
-function initWaves(count: number, _width: number, height: number, speed: number): Wave[] {
+function initWaves(count: number, _width: number, height: number, speed: number, colors: string[]): Wave[] {
   const rand = seededRandom(789)
   const waves: Wave[] = []
 
   for (let i = 0; i < count; i++) {
     waves.push({
-      amplitude: 15 + rand() * 30,
+      amplitude: 12 + rand() * 25,
       frequency: 0.002 + rand() * 0.004,
       speed: (0.0003 + rand() * 0.0005) * speed,
       phase: rand() * Math.PI * 2,
-      color: themeColors[Math.floor(rand() * themeColors.length)],
+      color: colors[Math.floor(rand() * colors.length)],
       yOffset: height * (0.2 + (i / count) * 0.6),
     })
   }
@@ -290,14 +319,14 @@ function drawWaves(
     ctx.beginPath()
     ctx.moveTo(0, wave.yOffset)
 
-    for (let x = 0; x <= width; x += 2) {
+    for (let x = 0; x <= width; x += 3) {
       const y =
         wave.yOffset +
         Math.sin(x * wave.frequency + time * wave.speed + wave.phase) * wave.amplitude
       ctx.lineTo(x, y)
     }
 
-    ctx.strokeStyle = wave.color.replace(/[\d.]+\)$/, '0.08)')
+    ctx.strokeStyle = hexToRgba(wave.color, 0.06)
     ctx.lineWidth = 1
     ctx.stroke()
 
@@ -307,7 +336,7 @@ function drawWaves(
     ctx.closePath()
 
     const gradient = ctx.createLinearGradient(0, wave.yOffset, 0, height)
-    gradient.addColorStop(0, wave.color.replace(/[\d.]+\)$/, '0.02)'))
+    gradient.addColorStop(0, hexToRgba(wave.color, 0.015))
     gradient.addColorStop(1, 'transparent')
     ctx.fillStyle = gradient
     ctx.fill()
@@ -322,7 +351,7 @@ interface Star {
   opacity: number
   twinkleSpeed: number
   twinklePhase: number
-  depth: number // 视差深度
+  depth: number
 }
 
 function initStarfield(count: number, width: number, height: number): Star[] {
@@ -333,9 +362,9 @@ function initStarfield(count: number, width: number, height: number): Star[] {
     stars.push({
       x: rand() * width,
       y: rand() * height,
-      size: 0.5 + rand() * 2,
-      opacity: 0.1 + rand() * 0.4,
-      twinkleSpeed: 0.5 + rand() * 2,
+      size: 0.5 + rand() * 1.8,
+      opacity: 0.08 + rand() * 0.35,
+      twinkleSpeed: 0.3 + rand() * 1.5,
       twinklePhase: rand() * Math.PI * 2,
       depth: 0.2 + rand() * 0.8,
     })
@@ -354,19 +383,19 @@ function drawStarfield(
   ctx.clearRect(0, 0, width, height)
 
   stars.forEach((star) => {
-    const twinkle = Math.sin(time * 0.001 * star.twinkleSpeed + star.twinklePhase) * 0.5 + 0.5
+    const twinkle = Math.sin(time * 0.0008 * star.twinkleSpeed + star.twinklePhase) * 0.5 + 0.5
     const currentOpacity = star.opacity * twinkle
 
     // 星光十字效果（大星星）
-    if (star.size > 1.5) {
-      const armLength = star.size * 3
+    if (star.size > 1.2) {
+      const armLength = star.size * 2.5
       ctx.beginPath()
       ctx.moveTo(star.x - armLength, star.y)
       ctx.lineTo(star.x + armLength, star.y)
       ctx.moveTo(star.x, star.y - armLength)
       ctx.lineTo(star.x, star.y + armLength)
-      ctx.strokeStyle = `rgba(245, 240, 230, ${currentOpacity * 0.15})`
-      ctx.lineWidth = 0.5
+      ctx.strokeStyle = `rgba(245, 240, 230, ${currentOpacity * 0.12})`
+      ctx.lineWidth = 0.4
       ctx.stroke()
     }
 
@@ -377,15 +406,15 @@ function drawStarfield(
     ctx.fill()
 
     // 大星星的光晕
-    if (star.size > 1.5) {
+    if (star.size > 1.2) {
       const glowGradient = ctx.createRadialGradient(
         star.x, star.y, 0,
-        star.x, star.y, star.size * 4
+        star.x, star.y, star.size * 3
       )
-      glowGradient.addColorStop(0, `rgba(245, 240, 230, ${currentOpacity * 0.1})`)
+      glowGradient.addColorStop(0, `rgba(245, 240, 230, ${currentOpacity * 0.08})`)
       glowGradient.addColorStop(1, 'transparent')
       ctx.beginPath()
-      ctx.arc(star.x, star.y, star.size * 4, 0, Math.PI * 2)
+      ctx.arc(star.x, star.y, star.size * 3, 0, Math.PI * 2)
       ctx.fillStyle = glowGradient
       ctx.fill()
     }
@@ -407,6 +436,9 @@ export function DynamicBackground({
   const reducedMotionRef = useRef(false)
   const stateRef = useRef<any>(null)
   const resizeTimeoutRef = useRef<number>()
+  const lastFrameTimeRef = useRef(0)
+  const themeColorsRef = useRef<string[]>([])
+  const modeRef = useRef(mode)
 
   const speedFactor = speedConfig[speed]
 
@@ -415,23 +447,45 @@ export function DynamicBackground({
   const densityCfg = isLowPerf ? lowPerformanceDensityConfig : densityConfig
   const count = densityCfg[density][mode]
 
+  // FPS cap: 30fps for low-end, 60fps for normal
+  const targetFrameInterval = isLowPerf ? 33.33 : 16.67
+
+  // effectiveMode mirrors mode prop for internal consistency
+  // interfaceType is passed from App.tsx for semantic clarity but mode is already determined
+  const effectiveMode = mode
+
+  // 同步主题色
+  useEffect(() => {
+    const updateColors = () => {
+      themeColorsRef.current = getThemeColors()
+    }
+    updateColors()
+
+    // 监听主题变化
+    const observer = new MutationObserver(updateColors)
+    observer.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] })
+
+    return () => observer.disconnect()
+  }, [])
+
   // 初始化各模式状态
   const initMode = useCallback(
     (width: number, height: number) => {
-      switch (mode) {
+      const colors = themeColorsRef.current.length > 0 ? themeColorsRef.current : getThemeColors()
+      switch (effectiveMode) {
         case 'particle':
-          return initParticles(count, width, height, speedFactor)
+          return initParticles(count, width, height, speedFactor, colors)
         case 'grid':
           return initGrid(count, width, height, speedFactor)
         case 'wave':
-          return initWaves(count, width, height, speedFactor)
+          return initWaves(count, width, height, speedFactor, colors)
         case 'starfield':
           return initStarfield(count, width, height)
         default:
           return null
       }
     },
-    [mode, count, speedFactor]
+    [effectiveMode, count, speedFactor]
   )
 
   // 绘制各模式
@@ -443,12 +497,13 @@ export function DynamicBackground({
       height: number,
       time: number
     ) => {
-      switch (mode) {
+      const colors = themeColorsRef.current.length > 0 ? themeColorsRef.current : getThemeColors()
+      switch (effectiveMode) {
         case 'particle':
           drawParticles(ctx, state, width, height, time)
           break
         case 'grid':
-          drawGrid(ctx, state, width, height, time)
+          drawGrid(ctx, state, width, height, time, colors)
           break
         case 'wave':
           drawWaves(ctx, state, width, height, time)
@@ -458,10 +513,10 @@ export function DynamicBackground({
           break
       }
     },
-    [mode]
+    [effectiveMode]
   )
 
-  // 主动画循环
+  // 主动画循环 - 带FPS节流
   useEffect(() => {
     if (!enabled || !isVisible) return
 
@@ -501,8 +556,16 @@ export function DynamicBackground({
 
     const startTime = performance.now()
 
-    const animate = () => {
-      const time = performance.now() - startTime
+    const animate = (timestamp: number) => {
+      // FPS 节流
+      const elapsed = timestamp - lastFrameTimeRef.current
+      if (elapsed < targetFrameInterval) {
+        animationRef.current = requestAnimationFrame(animate)
+        return
+      }
+      lastFrameTimeRef.current = timestamp - (elapsed % targetFrameInterval)
+
+      const time = timestamp - startTime
       drawMode(ctx, stateRef.current, width, height, time)
       animationRef.current = requestAnimationFrame(animate)
     }
@@ -518,7 +581,7 @@ export function DynamicBackground({
         cancelAnimationFrame(resizeTimeoutRef.current)
       }
     }
-  }, [enabled, isVisible, mode, initMode, drawMode])
+  }, [enabled, isVisible, effectiveMode, initMode, drawMode, targetFrameInterval])
 
   // IntersectionObserver
   useEffect(() => {
@@ -534,6 +597,16 @@ export function DynamicBackground({
     return () => observer.disconnect()
   }, [])
 
+  // 模式变化时重新初始化
+  useEffect(() => {
+    modeRef.current = mode
+    const canvas = canvasRef.current
+    const container = containerRef.current
+    if (!canvas || !container) return
+    const rect = container.getBoundingClientRect()
+    stateRef.current = initMode(rect.width, rect.height)
+  }, [mode, initMode])
+
   if (!enabled) {
     return <div ref={containerRef} className={className} aria-hidden="true" />
   }
@@ -548,7 +621,7 @@ export function DynamicBackground({
         ref={canvasRef}
         className="absolute inset-0 w-full h-full"
         style={{
-          opacity: mode === 'starfield' ? 0.7 : 0.5,
+          opacity: mode === 'starfield' ? 0.6 : 0.45,
           willChange: 'transform',
         }}
       />
@@ -566,11 +639,11 @@ export function BackgroundModeSelector({
   currentMode: BackgroundMode
   onModeChange: (mode: BackgroundMode) => void
 }) {
-  const modes: { value: BackgroundMode; label: string }[] = [
-    { value: 'particle', label: '粒子' },
-    { value: 'grid', label: '网格' },
-    { value: 'wave', label: '波浪' },
-    { value: 'starfield', label: '星空' },
+  const modes: { value: BackgroundMode; label: string; description: string }[] = [
+    { value: 'particle', label: '粒子', description: '温暖活跃' },
+    { value: 'grid', label: '网格', description: '结构化' },
+    { value: 'wave', label: '波浪', description: '流动感' },
+    { value: 'starfield', label: '星空', description: '静谧' },
   ]
 
   return (
@@ -579,6 +652,7 @@ export function BackgroundModeSelector({
         <button
           key={m.value}
           onClick={() => onModeChange(m.value)}
+          title={`${m.label} - ${m.description}`}
           className={cn(
             'px-3 py-1 text-xs rounded-md transition-all duration-200',
             currentMode === m.value

@@ -137,3 +137,16 @@ export {
 } from './select'
 
 export { Toggle, toggleVariants } from './toggle'
+
+// Advanced visual components
+export { GradientText, AnimatedGradientText, ShimmerText } from './GradientText'
+export type { GradientTextProps, GradientTextColor, GradientTextDirection } from './GradientText'
+
+export { SpotlightCard, SpotlightGrid } from './SpotlightCard'
+export type { SpotlightCardProps, SpotlightColor, SpotlightIntensity } from './SpotlightCard'
+
+export { BentoGrid, BentoItem, BentoSection, BentoStat } from './BentoGrid'
+export type { BentoGridProps, BentoItemProps, BentoItemSize, BentoItemColor } from './BentoGrid'
+
+export { PremiumCard, PremiumCardHeader, PremiumCardContent, PremiumCardFooter } from './PremiumCard'
+export type { PremiumCardProps, PremiumCardHeaderProps, PremiumCardContentProps, PremiumCardFooterProps } from './PremiumCard'

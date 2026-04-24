@@ -65,6 +65,35 @@ export default {
           info:    'var(--color-info)',
         },
 
+        /* === Surface Colors (Theme-aware) === */
+        surface: {
+          base:     'var(--color-surface-base)',
+          raised:   'var(--color-surface-raised)',
+          overlay:  'var(--color-surface-overlay)',
+          input:    'var(--color-surface-input)',
+          hover:    'var(--color-surface-hover)',
+          pressed:  'var(--color-surface-pressed)',
+          elevated: 'var(--color-surface-elevated)',
+          floating: 'var(--color-surface-floating)',
+        },
+
+        /* === Glass Colors === */
+        glass: {
+          DEFAULT:  'var(--glass-bg)',
+          subtle:   'var(--glass-bg-subtle)',
+          medium:   'var(--glass-bg-medium)',
+          strong:   'var(--glass-bg-strong)',
+          border:   'var(--glass-border)',
+        },
+
+        /* === Writing Colors === */
+        writing: {
+          bg:        'var(--writing-bg)',
+          text:      'var(--writing-text)',
+          muted:     'var(--writing-muted)',
+          selection: 'var(--writing-selection)',
+        },
+
         /* === shadcn/ui CSS Variable Bridge === */
         background: 'hsl(var(--background))',
         foreground: 'hsl(var(--foreground))',
@@ -172,7 +201,10 @@ export default {
       transitionDuration: {
         fast: '150ms',
         normal: '250ms',
-        slow: '400ms'
+        slow: '400ms',
+        instant: '50ms',
+        base: '180ms',
+        spring: '400ms',
       },
 
       transitionTimingFunction: {
@@ -184,7 +216,19 @@ export default {
         'snappy': 'cubic-bezier(0.25, 0.46, 0.45, 0.94)',
       },
 
+      transitionProperty: {
+        'colors-shadow': 'color, background-color, border-color, box-shadow',
+        'transform-opacity': 'transform, opacity',
+        'all-filter': 'all, filter',
+      },
+
       screens: {
+        'xs': '480px',
+        'sm': '640px',
+        'md': '768px',
+        'lg': '1024px',
+        'xl': '1280px',
+        '2xl': '1536px',
         'mobile': '480px',
         'tablet': '768px',
         'desktop': '1024px',
@@ -204,21 +248,37 @@ export default {
           '0%': { backgroundPosition: '-100% 0' },
           '100%': { backgroundPosition: '100% 0' }
         },
-        float: {
-          '0%, 100%': { transform: 'translateY(0px)' },
-          '50%': { transform: 'translateY(-6px)' }
+        'float-gentle': {
+          '0%, 100%': { transform: 'translateY(0) rotate(0deg)' },
+          '25%': { transform: 'translateY(-4px) rotate(0.5deg)' },
+          '75%': { transform: 'translateY(2px) rotate(-0.5deg)' }
+        },
+        'glow-breathe': {
+          '0%, 100%': {
+            boxShadow: '0 0 4px rgba(94, 106, 210, 0.2), 0 0 8px rgba(94, 106, 210, 0.1)',
+            opacity: '1'
+          },
+          '50%': {
+            boxShadow: '0 0 12px rgba(94, 106, 210, 0.4), 0 0 24px rgba(94, 106, 210, 0.2)',
+            opacity: '0.95'
+          }
+        },
+        'shimmer-sweep': {
+          '0%': { backgroundPosition: '-200% 0' },
+          '100%': { backgroundPosition: '200% 0' }
+        },
+        'text-reveal': {
+          '0%': { clipPath: 'inset(0 100% 0 0)', opacity: '0' },
+          '50%': { opacity: '1' },
+          '100%': { clipPath: 'inset(0 0% 0 0)', opacity: '1' }
+        },
+        'progress-fill': {
+          '0%': { transform: 'scaleX(0)', transformOrigin: 'left' },
+          '100%': { transform: 'scaleX(1)', transformOrigin: 'left' }
         },
         glow: {
           '0%, 100%': { boxShadow: '0 0 4px rgba(94, 106, 210, 0.3)' },
           '50%': { boxShadow: '0 0 16px rgba(94, 106, 210, 0.6)' }
-        },
-        'glow-pulse': {
-          '0%, 100%': { opacity: '0.3' },
-          '50%': { opacity: '0.6' }
-        },
-        breathe: {
-          '0%, 100%': { transform: 'scale(1)', opacity: '1' },
-          '50%': { transform: 'scale(1.02)', opacity: '0.85' }
         },
         ripple: {
           '0%': { transform: 'translate(-50%, -50%) scale(0)', opacity: '0.5' },
@@ -235,14 +295,18 @@ export default {
       },
 
       animation: {
-        'pulse-slow': 'pulse-slow 3s ease-in-out infinite',
-        shimmer: 'shimmer 2s linear infinite',
-        'shimmer-subtle': 'shimmer-subtle 1.5s linear infinite',
-        /* REMOVED per SPEC 8.2: float, glow-pulse, breathe - use static glow instead */
-        glow: 'glow 2s ease-in-out infinite',
-        ripple: 'ripple 0.4s ease-out forwards',
-        'accordion-down': 'accordion-down 0.2s ease-out',
-        'accordion-up': 'accordion-up 0.2s ease-out'
+        'pulse-slow': 'pulse-slow 3s cubic-bezier(0.22, 1, 0.36, 1) infinite',
+        shimmer: 'shimmer 2s cubic-bezier(0.22, 1, 0.36, 1) infinite',
+        'shimmer-subtle': 'shimmer-subtle 1.5s cubic-bezier(0.22, 1, 0.36, 1) infinite',
+        'float-gentle': 'float-gentle 4s cubic-bezier(0.22, 1, 0.36, 1) infinite',
+        'glow-breathe': 'glow-breathe 3s cubic-bezier(0.22, 1, 0.36, 1) infinite',
+        'shimmer-sweep': 'shimmer-sweep 2.5s cubic-bezier(0.22, 1, 0.36, 1) infinite',
+        'text-reveal': 'text-reveal 0.8s cubic-bezier(0.22, 1, 0.36, 1) forwards',
+        'progress-fill': 'progress-fill 0.6s cubic-bezier(0.22, 1, 0.36, 1) forwards',
+        glow: 'glow 2s cubic-bezier(0.22, 1, 0.36, 1) infinite',
+        ripple: 'ripple 0.4s cubic-bezier(0.22, 1, 0.36, 1) forwards',
+        'accordion-down': 'accordion-down 0.2s cubic-bezier(0.22, 1, 0.36, 1)',
+        'accordion-up': 'accordion-up 0.2s cubic-bezier(0.22, 1, 0.36, 1)'
       },
 
       backgroundImage: {
@@ -296,6 +360,24 @@ export default {
         'glow-jade': '0 0 12px rgba(94, 181, 166, 0.35)',
         'glow-accent': '0 0 18px rgba(94, 106, 210, 0.4), 0 0 36px rgba(94, 106, 210, 0.2), 0 0 72px rgba(94, 106, 210, 0.1)',
         'glow-primary': '0 0 12px var(--glow-primary-sm), 0 0 24px var(--glow-primary)',
+        /* New shadow levels */
+        'shadow-xs': 'var(--shadow-xs)',
+        'shadow-sm-token': 'var(--shadow-sm)',
+        'shadow-md-token': 'var(--shadow-md)',
+        'shadow-lg-token': 'var(--shadow-lg)',
+        'shadow-xl-token': 'var(--shadow-xl)',
+        'shadow-2xl-token': 'var(--shadow-2xl)',
+        'inner-soft': 'var(--shadow-inner-soft)',
+        'inner-md': 'var(--shadow-inner-md)',
+        /* Elevation system (shadow-based, not color-based) */
+        'elevation-1': 'var(--shadow-elevation-1)',
+        'elevation-2': 'var(--shadow-elevation-2)',
+        'elevation-3': 'var(--shadow-elevation-3)',
+        'elevation-4': 'var(--shadow-elevation-4)',
+        'elevation-5': 'var(--shadow-elevation-5)',
+        /* Glass shadow */
+        'glass': '0 8px 32px rgba(0, 0, 0, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.05)',
+        'glass-lg': '0 16px 48px rgba(0, 0, 0, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.06)',
       },
 
       opacity: {
@@ -418,6 +500,90 @@ export default {
         '.gpu-accelerate': {
           'transform': 'translateZ(0)',
           'will-change': 'transform',
+        },
+        /* Mobile touch target utilities */
+        '.touch-target-min': {
+          'min-height': '44px',
+          'min-width': '44px',
+        },
+        '.touch-target-button': {
+          'min-height': '44px',
+          'min-width': '44px',
+        },
+        '.safe-area-inset-bottom': {
+          'padding-bottom': 'env(safe-area-inset-bottom, 0px)',
+        },
+        '.safe-area-inset-top': {
+          'padding-top': 'env(safe-area-inset-top, 0px)',
+        },
+        /* Mobile scrollbar hide */
+        '.mobile-scrollbar-hide': {
+          '-ms-overflow-style': 'none',
+          'scrollbar-width': 'none',
+          '&::-webkit-scrollbar': {
+            display: 'none',
+          },
+        },
+        /* Mobile text utilities */
+        '.text-mobile-sm': {
+          'font-size': '12px',
+          'line-height': '1.4',
+        },
+        '.text-mobile-base': {
+          'font-size': '14px',
+          'line-height': '1.5',
+        },
+        /* Writing app utility classes */
+        '.vignette-overlay': {
+          'position': 'relative',
+        },
+        '.vignette-overlay::after': {
+          content: "''",
+          'position': 'absolute',
+          'inset': '0',
+          'pointer-events': 'none',
+          'background': 'radial-gradient(ellipse at center, transparent 50%, rgba(0, 0, 0, 0.35) 100%)',
+          'z-index': '1',
+        },
+        '.typewriter-mode': {
+          '--layout-sidebar-width': '0px',
+          '--layout-topbar-height': '0px',
+          '--layout-rightpanel-width': '0px',
+        },
+        '.focus-dim': {
+          'transition': 'opacity 0.4s cubic-bezier(0.16, 1, 0.3, 1)',
+        },
+        '.ambient-glow': {
+          'position': 'relative',
+        },
+        '.ambient-glow::before': {
+          content: "''",
+          'position': 'absolute',
+          'inset': '-20px',
+          'background': 'radial-gradient(ellipse at center, var(--glow-primary) 0%, transparent 70%)',
+          'opacity': '0.4',
+          'pointer-events': 'none',
+          'animation': 'ambient-glow-pulse 6s ease-in-out infinite',
+          'z-index': '-1',
+        },
+        '.textured-paper': {
+          'position': 'relative',
+          'background-color': 'var(--writing-bg)',
+        },
+        '.textured-paper::before': {
+          content: "''",
+          'position': 'absolute',
+          'inset': '0',
+          'background-image': "url(\"data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E\")",
+          'opacity': 'var(--paper-texture-opacity, 0.04)',
+          'pointer-events': 'none',
+          'mix-blend-mode': 'overlay',
+        },
+        '.text-balance': {
+          'text-wrap': 'balance',
+        },
+        '.text-pretty': {
+          'text-wrap': 'pretty',
         },
       });
     }),

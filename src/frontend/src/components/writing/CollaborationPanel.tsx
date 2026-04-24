@@ -27,24 +27,53 @@ import {
   Layers,
 } from 'lucide-react'
 
-// Panel header with enhanced visual hierarchy
+// Panel header with refined visual hierarchy - collab icon + online status
 function PanelHeader() {
+  const { loading } = useWritingStore()
+  const isOnline = !loading.ai // Using AI loading as proxy for sync status
+
   return (
     <div className="px-4 pt-3 pb-2">
       <div className="flex items-center gap-2.5">
-        <div
-          className="w-8 h-8 rounded-lg flex items-center justify-center"
-          style={{
-            background: 'linear-gradient(135deg, rgba(126, 184, 74, 0.15) 0%, rgba(126, 184, 74, 0.08) 100%)',
-            border: '1px solid rgba(126, 184, 74, 0.2)',
-          }}
-        >
-          <Users className="w-4 h-4 text-[var(--color-ifline)]" />
+        <div className="relative flex-shrink-0">
+          <div
+            className="w-9 h-9 rounded-xl flex items-center justify-center"
+            style={{
+              background: 'linear-gradient(135deg, rgba(126, 184, 74, 0.18) 0%, rgba(126, 184, 74, 0.08) 100%)',
+              border: '1px solid rgba(126, 184, 74, 0.25)',
+            }}
+          >
+            <Users className="w-5 h-5 text-[var(--color-ifline)]" />
+          </div>
+          {/* Online status indicator */}
+          <span
+            className="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-2 flex items-center justify-center"
+            style={{
+              borderColor: 'var(--color-surface-raised)',
+              background: isOnline ? 'var(--color-ifline)' : 'var(--color-vermillion)',
+            }}
+          >
+            {isOnline && (
+              <span
+                className="absolute inset-0 rounded-full animate-ping opacity-40 motion-reduce:animate-none"
+                style={{ background: 'var(--color-ifline)', animationDuration: '2s' }}
+              />
+            )}
+          </span>
         </div>
-        <div>
-          <span className="font-semibold text-sm text-[var(--text-primary)] tracking-tight">协作面板</span>
-          <div className="text-[10px] text-[var(--text-tertiary)] leading-tight">
-            人机协作 · 进度追踪
+        <div className="flex-1 min-w-0">
+          <span className="font-bold text-sm tracking-tight" style={{ color: 'var(--text-primary)' }}>协作面板</span>
+          <div className="text-[10px] leading-tight flex items-center gap-1.5">
+            <span
+              className="inline-block w-1.5 h-1.5 rounded-full"
+              style={{
+                background: isOnline ? 'var(--color-ifline)' : 'var(--color-vermillion)',
+                boxShadow: isOnline ? '0 0 4px var(--color-ifline)' : 'none',
+              }}
+            />
+            <span style={{ color: 'var(--text-tertiary)' }}>
+              {isOnline ? '在线同步中' : '同步暂停'}
+            </span>
           </div>
         </div>
       </div>
@@ -78,12 +107,15 @@ export function CollaborationPanel() {
 }
 
 // Shared card style for panel sections with hover effect
-function PanelCard({ children, className = '' }: { children: React.ReactNode; className?: string }) {
+function PanelCard({ children, className = '', glowColor }: { children: React.ReactNode; className?: string; glowColor?: string }) {
   return (
     <div
       className={`rounded-xl overflow-hidden bg-[var(--color-surface-base)] border border-[var(--border-default)]
                   transition-all duration-200 hover:border-[var(--border-strong)] hover:shadow-[0_2px_12px_rgba(0,0,0,0.12)]
                   ${className}`}
+      style={{
+        boxShadow: glowColor ? `0 0 0 1px ${glowColor}10, inset 0 1px 0 ${glowColor}08` : undefined,
+      }}
     >
       {children}
     </div>
@@ -105,7 +137,7 @@ function CollaborationStatus() {
   const mode = getModeLabel(humanAIRatio)
 
   return (
-    <PanelCard>
+    <PanelCard glowColor={mode.color}>
       <div className="p-3">
         <div className="flex items-center justify-between mb-2">
           <div className="flex items-center gap-2">
@@ -246,7 +278,52 @@ function RatioSliderSection() {
   )
 }
 
-// IF线追踪
+// Elegant collaborator avatar stack
+function CollaboratorAvatars() {
+  const { characters } = useSettingsStore()
+  const visibleChars = characters.slice(0, 4)
+
+  if (visibleChars.length === 0) return null
+
+  return (
+    <div className="flex items-center">
+      <div className="flex -space-x-2">
+        {visibleChars.map((char, i) => (
+          <motion.div
+            key={char.id}
+            initial={{ opacity: 0, scale: 0.8, x: -10 }}
+            animate={{ opacity: 1, scale: 1, x: 0 }}
+            transition={{ delay: i * 0.08 }}
+            className="relative w-7 h-7 rounded-full flex items-center justify-center text-[10px] font-bold border-2"
+            style={{
+              backgroundColor: i % 2 === 0 ? 'var(--color-ifline)' : 'var(--color-character)',
+              borderColor: 'var(--color-surface-raised)',
+              color: 'var(--ink-100)',
+              zIndex: visibleChars.length - i,
+            }}
+            title={char.name}
+          >
+            {char.name.charAt(0)}
+            {/* Online indicator ring for active characters */}
+            {i === 0 && (
+              <span
+                className="absolute -bottom-0.5 -right-0.5 w-2 h-2 rounded-full border border-[var(--color-surface-raised)]"
+                style={{ background: 'var(--color-ifline)' }}
+              />
+            )}
+          </motion.div>
+        ))}
+      </div>
+      {characters.length > 4 && (
+        <span className="ml-2 text-[10px] font-medium" style={{ color: 'var(--text-tertiary)' }}>
+          +{characters.length - 4}
+        </span>
+      )}
+    </div>
+  )
+}
+
+// IF线追踪 - green theme enhanced
 function IFLinesSection() {
   const [isExpanded, setIsExpanded] = useState(true)
   const { ifLines, fetchIFLines } = useWritingStore()
@@ -258,12 +335,20 @@ function IFLinesSection() {
   return (
     <CollapsibleSection
       title="IF线"
-      icon={<GitBranch className="w-4 h-4 text-[var(--icon-secondary)]" />}
+      icon={<GitBranch className="w-4 h-4" style={{ color: 'var(--color-ifline)' }} />}
       isExpanded={isExpanded}
       onToggle={() => setIsExpanded(!isExpanded)}
       badge={ifLines.length}
+      accentColor="#7eb84a"
     >
       <div className="space-y-2">
+        {/* Collaborator avatar stack */}
+        {ifLines.length > 0 && (
+          <div className="flex items-center justify-between px-1 pb-1">
+            <span className="text-[10px] font-medium" style={{ color: 'var(--text-tertiary)' }}>协作者</span>
+            <CollaboratorAvatars />
+          </div>
+        )}
         {ifLines.length === 0 ? (
           <EmptyState icon={<GitBranch className="w-5 h-5" />} text="暂无IF线" />
         ) : (
@@ -273,16 +358,26 @@ function IFLinesSection() {
               initial={{ opacity: 0, x: -8 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: index * 0.05 }}
-              className="group p-2.5 rounded-lg bg-[var(--color-surface-base)] border border-[var(--border-default)]
-                         hover:border-[var(--color-ifline)]/30 hover:shadow-[0_0_12px_rgba(126,184,74,0.08)]
-                         transition-all duration-200 cursor-default"
+              className="group p-2.5 rounded-xl bg-[var(--color-surface-base)] border transition-all duration-200 cursor-default"
+              style={{
+                borderColor: 'var(--border-default)',
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.borderColor = 'rgba(126, 184, 74, 0.35)'
+                e.currentTarget.style.boxShadow = '0 0 16px rgba(126, 184, 74, 0.08), inset 0 1px 0 rgba(126, 184, 74, 0.06)'
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.borderColor = 'var(--border-default)'
+                e.currentTarget.style.boxShadow = 'none'
+              }}
             >
               <div className="flex items-center gap-2 mb-1.5">
                 {/* Enhanced IF line indicator with glow */}
-                <span className="w-3 h-3 rounded-full flex-shrink-0 bg-[var(--color-ifline)] relative">
+                <span className="w-3 h-3 rounded-full flex-shrink-0 relative" style={{ background: 'var(--color-ifline)' }}>
                   <span
-                    className="absolute inset-0 rounded-full bg-[var(--color-ifline)] animate-ping opacity-50 motion-reduce:animate-none"
+                    className="absolute inset-0 rounded-full animate-ping opacity-50 motion-reduce:animate-none"
                     style={{
+                      background: 'var(--color-ifline)',
                       animationDuration: '2s',
                       boxShadow: '0 0 8px var(--color-ifline), 0 0 16px rgba(126, 184, 74, 0.3)',
                     }}
@@ -293,7 +388,7 @@ function IFLinesSection() {
                   />
                 </span>
                 <div className="flex-1 min-w-0">
-                  <div className="text-sm font-medium text-[var(--text-primary)] truncate group-hover:text-[var(--color-ifline)] transition-colors">{line.title}</div>
+                  <div className="text-sm font-medium truncate transition-colors group-hover:text-[var(--color-ifline)]" style={{ color: 'var(--text-primary)' }}>{line.title}</div>
                 </div>
                 <span
                   className="text-[10px] px-1.5 py-0.5 rounded-full font-medium"
@@ -306,17 +401,17 @@ function IFLinesSection() {
                 </span>
               </div>
               {line.description && (
-                <div className="text-xs text-[var(--text-tertiary)] truncate mb-1.5 pl-4">
+                <div className="text-xs truncate mb-1.5 pl-4" style={{ color: 'var(--text-tertiary)' }}>
                   {line.description}
                 </div>
               )}
               {/* Progress indicator with gradient */}
               <div className="pl-4 space-y-1">
-                <div className="flex justify-between text-[10px] text-[var(--text-tertiary)]">
+                <div className="flex justify-between text-[10px]" style={{ color: 'var(--text-tertiary)' }}>
                   <span>进度</span>
-                  <span className="tabular-nums font-medium text-[var(--color-ifline)]">{line.progress || 0}%</span>
+                  <span className="tabular-nums font-medium" style={{ color: 'var(--color-ifline)' }}>{line.progress || 0}%</span>
                 </div>
-                <div className="h-1.5 bg-[var(--border-subtle)] rounded-full overflow-hidden">
+                <div className="h-1.5 rounded-full overflow-hidden" style={{ background: 'var(--border-subtle)' }}>
                   <motion.div
                     className="h-full rounded-full"
                     style={{
@@ -389,17 +484,20 @@ function CharacterStorylines() {
                   {/* Avatar with status ring */}
                   <div className="relative flex-shrink-0">
                     <div
-                      className="w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold text-[var(--ink-100)]"
-                      style={{ backgroundColor: statusConfig.color }}
+                      className="w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold"
+                      style={{ backgroundColor: statusConfig.color, color: 'var(--ink-100)' }}
                     >
                       {char.name.charAt(0)}
                     </div>
                     <span
-                      className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full border-2 border-[var(--color-surface-base)]"
-                      style={{ backgroundColor: statusConfig.color }}
+                      className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full border-2"
+                      style={{
+                        borderColor: 'var(--color-surface-base)',
+                        backgroundColor: statusConfig.color,
+                      }}
                     />
                   </div>
-                  <span className="flex-1 text-sm font-medium text-[var(--text-primary)] truncate group-hover:text-[var(--color-character)] transition-colors">
+                  <span className="flex-1 text-sm font-medium truncate transition-colors group-hover:text-[var(--color-character)]" style={{ color: 'var(--text-primary)' }}>
                     {char.name}
                   </span>
                   <div
@@ -415,11 +513,11 @@ function CharacterStorylines() {
                 </div>
                 {/* Storyline progress */}
                 <div className="space-y-1 pl-8">
-                  <div className="flex justify-between text-[10px] text-[var(--text-tertiary)]">
+                  <div className="flex justify-between text-[10px]" style={{ color: 'var(--text-tertiary)' }}>
                     <span>故事线进度</span>
                     <span className="tabular-nums font-medium" style={{ color: statusConfig.color }}>{char.progress}%</span>
                   </div>
-                  <div className="h-1.5 bg-[var(--border-subtle)] rounded-full overflow-hidden">
+                  <div className="h-1.5 rounded-full overflow-hidden" style={{ background: 'var(--border-subtle)' }}>
                     <motion.div
                       className="h-full rounded-full"
                       style={{
@@ -431,7 +529,7 @@ function CharacterStorylines() {
                       transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
                     />
                   </div>
-                  <div className="text-[10px] text-[var(--text-tertiary)]">
+                  <div className="text-[10px]" style={{ color: 'var(--text-tertiary)' }}>
                     上次活跃: {char.lastActive}
                   </div>
                 </div>
@@ -502,7 +600,7 @@ function BattleInput({
 }) {
   return (
     <div>
-      <label className="text-xs text-[var(--text-tertiary)] font-medium">{label}</label>
+      <label className="text-xs font-medium" style={{ color: 'var(--text-tertiary)' }}>{label}</label>
       <input
         type="text"
         value={value}
@@ -575,10 +673,10 @@ function PlotTracker() {
               <span className="text-[var(--color-ifline)] font-bold text-sm mt-0.5 opacity-80 group-hover:opacity-100 transition-opacity"
               >❶</span>
               <div className="flex-1 min-w-0">
-                <div className="font-medium text-sm text-[var(--text-primary)] truncate group-hover:text-[var(--color-ifline)] transition-colors"
+                <div className="font-medium text-sm truncate transition-colors group-hover:text-[var(--color-ifline)]" style={{ color: 'var(--text-primary)' }}
                 >{thread.title}</div>
                 {thread.description && (
-                  <div className="text-xs text-[var(--text-tertiary)] truncate">
+                  <div className="text-xs truncate" style={{ color: 'var(--text-tertiary)' }}>
                     {thread.description}
                   </div>
                 )}
@@ -654,14 +752,14 @@ function ChapterProgress() {
     >
       <div className="space-y-3">
         <div className="space-y-1.5">
-          <div className="flex justify-between text-sm text-[var(--text-primary)]">
+          <div className="flex justify-between text-sm" style={{ color: 'var(--text-primary)' }}>
             <span className="flex items-center gap-1.5">
               <BookOpen className="w-3.5 h-3.5 text-[var(--accent-primary)]" />
               本章: {wordCount} / {targetWordCount} 字
             </span>
             <span className="font-medium tabular-nums">{Math.round(progress)}%</span>
           </div>
-          <div className="h-2 rounded-full overflow-hidden bg-[var(--border-subtle)] relative">
+          <div className="h-2 rounded-full overflow-hidden relative" style={{ background: 'var(--border-subtle)' }}>
             <motion.div
               className="h-full rounded-full relative"
               style={{
@@ -674,19 +772,19 @@ function ChapterProgress() {
             />
           </div>
         </div>
-        <div className="pt-2 border-t border-[var(--border-subtle)] space-y-1.5">
-          <div className="flex justify-between text-xs text-[var(--text-secondary)]">
+        <div className="pt-2 border-t space-y-1.5" style={{ borderColor: 'var(--border-subtle)' }}>
+          <div className="flex justify-between text-xs" style={{ color: 'var(--text-secondary)' }}>
             <span className="flex items-center gap-1">
-              <Layers className="w-3 h-3 text-[var(--text-tertiary)]" />
+              <Layers className="w-3 h-3" style={{ color: 'var(--text-tertiary)' }} />
               总章节: {chapters.length}
             </span>
             <span className="flex items-center gap-1">
-              <Feather className="w-3 h-3 text-[var(--text-tertiary)]" />
+              <Feather className="w-3 h-3" style={{ color: 'var(--text-tertiary)' }} />
               总字数: {totalWords.toLocaleString()}
             </span>
           </div>
           {currentChapter && (
-            <div className="flex items-center gap-1 text-xs truncate text-[var(--accent-primary)]">
+            <div className="flex items-center gap-1 text-xs truncate" style={{ color: 'var(--accent-primary)' }}>
               <Zap className="w-3 h-3" />
               当前: {currentChapter.title || `第${currentChapter.chapter_order}章`}
             </div>
@@ -701,21 +799,22 @@ function ChapterProgress() {
 function EmptyState({ icon, text }: { icon: React.ReactNode; text: string }) {
   return (
     <div className="flex flex-col items-center justify-center py-5 px-4 text-center">
-      <div className="w-10 h-10 rounded-xl bg-[var(--color-surface-raised)] border border-[var(--border-default)] flex items-center justify-center mb-2.5 text-[var(--text-tertiary)]">
+      <div className="w-10 h-10 rounded-xl border flex items-center justify-center mb-2.5" style={{ background: 'var(--color-surface-raised)', borderColor: 'var(--border-default)', color: 'var(--text-tertiary)' }}>
         {icon}
       </div>
-      <p className="text-xs text-[var(--text-tertiary)]">{text}</p>
+      <p className="text-xs" style={{ color: 'var(--text-tertiary)' }}>{text}</p>
     </div>
   )
 }
 
-// Enhanced collapsible section with better hover effects
+// Enhanced collapsible section with accent color support
 function CollapsibleSection({
   title,
   icon,
   isExpanded,
   onToggle,
   badge,
+  accentColor,
   children,
 }: {
   title: string
@@ -723,22 +822,27 @@ function CollapsibleSection({
   isExpanded: boolean
   onToggle: () => void
   badge?: number
+  accentColor?: string
   children: React.ReactNode
 }) {
   return (
-    <div className="rounded-xl overflow-hidden bg-[var(--color-surface-base)] border border-[var(--border-default)]
-                    transition-all duration-200 hover:border-[var(--border-strong)] hover:shadow-[0_2px_12px_rgba(0,0,0,0.12)]"
+    <div
+      className="rounded-xl overflow-hidden bg-[var(--color-surface-base)] border transition-all duration-200 hover:border-[var(--border-strong)] hover:shadow-[0_2px_12px_rgba(0,0,0,0.12)]"
+      style={{
+        borderColor: 'var(--border-default)',
+        boxShadow: accentColor ? `0 0 0 1px ${accentColor}08, inset 0 1px 0 ${accentColor}06` : undefined,
+      }}
     >
       <button
         onClick={onToggle}
         className="w-full px-3 py-2.5 flex items-center gap-2.5 active:scale-[0.99] transition-all group"
       >
         {icon && (
-          <span className="text-[var(--accent-primary)] transition-transform duration-200 group-hover:scale-110">
+          <span className="transition-transform duration-200 group-hover:scale-110">
             {icon}
           </span>
         )}
-        <span className="flex-1 text-left text-sm font-medium text-[var(--text-primary)]">{title}</span>
+        <span className="flex-1 text-left text-sm font-medium" style={{ color: 'var(--text-primary)' }}>{title}</span>
         {badge !== undefined && badge > 0 && (
           <span
             className="px-1.5 py-0.5 text-xs rounded-full font-medium"
@@ -752,7 +856,8 @@ function CollapsibleSection({
           </span>
         )}
         <ChevronDown
-          className={`w-4 h-4 transition-transform duration-200 text-[var(--text-tertiary)] group-hover:text-[var(--text-secondary)] ${isExpanded ? 'rotate-180' : ''}`}
+          className={`w-4 h-4 transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`}
+          style={{ color: 'var(--text-tertiary)' }}
         />
       </button>
       <AnimatePresence initial={false}>

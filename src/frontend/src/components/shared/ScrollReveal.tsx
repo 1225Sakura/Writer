@@ -4,6 +4,7 @@
  * 使用 IntersectionObserver 检测元素是否进入视口
  * 支持多种动画效果：fade、slide-up、slide-left、slide-right、scale、blur
  * 可配置触发阈值、延迟、持续时间
+ * 自动检测 prefers-reduced-motion 进行降级
  */
 
 import { useRef, useState, useEffect, type ReactNode } from 'react'
@@ -18,6 +19,7 @@ export type RevealAnimation =
   | 'scale'
   | 'blur'
   | 'slide-up-fade'
+  | 'slide-up-blur'
 
 interface ScrollRevealProps {
   children: ReactNode
@@ -40,7 +42,14 @@ interface ScrollRevealProps {
   customAnimate?: React.CSSProperties
   /** 是否在视口外保持隐藏 */
   keepHidden?: boolean
+  /** 进入视口回调 */
+  onEnter?: () => void
+  /** 动画完成后回调 */
+  onComplete?: () => void
 }
+
+/** 标准缓动曲线：cubic-bezier(0.22, 1, 0.36, 1) */
+const easeOutSmooth = 'cubic-bezier(0.22, 1, 0.36, 1)'
 
 const animationStyles: Record<RevealAnimation, { initial: React.CSSProperties; animate: React.CSSProperties }> = {
   fade: {
@@ -75,6 +84,25 @@ const animationStyles: Record<RevealAnimation, { initial: React.CSSProperties; a
     initial: { opacity: 0, transform: 'translateY(12px) scale(0.98)' },
     animate: { opacity: 1, transform: 'translateY(0) scale(1)' },
   },
+  'slide-up-blur': {
+    initial: { opacity: 0, transform: 'translateY(12px)', filter: 'blur(3px)' },
+    animate: { opacity: 1, transform: 'translateY(0)', filter: 'blur(0px)' },
+  },
+}
+
+/** 检测是否应减少动画 */
+function useReducedMotion(): boolean {
+  const [reduced, setReduced] = useState(false)
+
+  useEffect(() => {
+    const mq = window.matchMedia('(prefers-reduced-motion: reduce)')
+    setReduced(mq.matches)
+    const handler = (e: MediaQueryListEvent) => setReduced(e.matches)
+    mq.addEventListener('change', handler)
+    return () => mq.removeEventListener('change', handler)
+  }, [])
+
+  return reduced
 }
 
 /**
@@ -82,23 +110,27 @@ const animationStyles: Record<RevealAnimation, { initial: React.CSSProperties; a
  *
  * 当元素滚动进入视口时触发动画
  * 使用 IntersectionObserver 实现高性能检测
+ * 优化：更早触发（rootMargin 扩大），更平滑的缓动
  */
 export function ScrollReveal({
   children,
   animation = 'slide-up-fade',
-  threshold = 0.1,
-  rootMargin = '0px 0px -20px 0px',
+  threshold = 0.05,
+  rootMargin = '0px 0px -30px 0px',
   delay = 0,
-  duration = 400,
+  duration = 450,
   once = true,
   className,
   customInitial,
   customAnimate,
   keepHidden = false,
+  onEnter,
+  onComplete,
 }: ScrollRevealProps) {
   const ref = useRef<HTMLDivElement>(null)
   const [isVisible, setIsVisible] = useState(false)
   const [hasAnimated, setHasAnimated] = useState(false)
+  const reducedMotion = useReducedMotion()
 
   useEffect(() => {
     const element = ref.current
@@ -108,9 +140,12 @@ export function ScrollReveal({
       ([entry]) => {
         if (entry.isIntersecting) {
           setIsVisible(true)
+          onEnter?.()
           if (once) {
             setHasAnimated(true)
             observer.unobserve(element)
+            // 动画完成后回调（估算时间）
+            setTimeout(() => onComplete?.(), delay + duration)
           }
         } else if (!once) {
           setIsVisible(false)
@@ -121,13 +156,22 @@ export function ScrollReveal({
 
     observer.observe(element)
     return () => observer.disconnect()
-  }, [threshold, rootMargin, once])
+  }, [threshold, rootMargin, once, delay, duration, onEnter, onComplete])
 
   const styles = animationStyles[animation]
   const initialStyle = customInitial ?? styles.initial
   const animateStyle = customAnimate ?? styles.animate
 
   const shouldShow = once ? (hasAnimated || isVisible) : isVisible
+
+  // 减少动画模式下直接显示
+  if (reducedMotion) {
+    return (
+      <div ref={ref} className={cn(className)}>
+        {children}
+      </div>
+    )
+  }
 
   return (
     <div
@@ -136,7 +180,7 @@ export function ScrollReveal({
       style={{
         ...initialStyle,
         ...(shouldShow ? animateStyle : keepHidden ? initialStyle : {}),
-        transition: `all ${duration}ms cubic-bezier(0.4, 0, 0.2, 1) ${delay}ms`,
+        transition: `all ${duration}ms ${easeOutSmooth} ${delay}ms`,
         willChange: 'transform, opacity',
       }}
     >
@@ -149,6 +193,7 @@ export function ScrollReveal({
  * ScrollRevealGroup - 一组子元素依次揭示
  *
  * 自动为每个子元素添加递增的延迟
+ * 优化：更合理的 stagger 延迟，更平滑的入场
  */
 interface ScrollRevealGroupProps {
   children: ReactNode[]
@@ -158,16 +203,18 @@ interface ScrollRevealGroupProps {
   className?: string
   itemClassName?: string
   once?: boolean
+  rootMargin?: string
 }
 
 export function ScrollRevealGroup({
   children,
   animation = 'slide-up-fade',
-  staggerDelay = 60,
+  staggerDelay = 50,
   threshold = 0.05,
   className,
   itemClassName,
   once = true,
+  rootMargin = '0px 0px -30px 0px',
 }: ScrollRevealGroupProps) {
   return (
     <div className={className}>
@@ -177,11 +224,94 @@ export function ScrollRevealGroup({
           animation={animation}
           delay={i * staggerDelay}
           threshold={threshold}
+          rootMargin={rootMargin}
           once={once}
           className={itemClassName}
         >
           {child}
         </ScrollReveal>
+      ))}
+    </div>
+  )
+}
+
+/**
+ * ScrollRevealStagger - 滚动揭示 + 子元素依次动画
+ *
+ * 结合 ScrollReveal 和 stagger 效果，子元素在进入视口后依次动画
+ */
+interface ScrollRevealStaggerProps {
+  children: ReactNode[]
+  className?: string
+  itemClassName?: string
+  threshold?: number
+  rootMargin?: string
+  staggerDelay?: number
+  itemDelay?: number
+  duration?: number
+  once?: boolean
+}
+
+export function ScrollRevealStagger({
+  children,
+  className,
+  itemClassName,
+  threshold = 0.05,
+  rootMargin = '0px 0px -30px 0px',
+  staggerDelay = 60,
+  itemDelay = 0,
+  duration = 400,
+  once = true,
+}: ScrollRevealStaggerProps) {
+  const ref = useRef<HTMLDivElement>(null)
+  const [isVisible, setIsVisible] = useState(false)
+  const reducedMotion = useReducedMotion()
+
+  useEffect(() => {
+    const element = ref.current
+    if (!element) return
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setIsVisible(true)
+          if (once) observer.unobserve(element)
+        }
+      },
+      { threshold, rootMargin }
+    )
+
+    observer.observe(element)
+    return () => observer.disconnect()
+  }, [threshold, rootMargin, once])
+
+  if (reducedMotion) {
+    return (
+      <div ref={ref} className={cn(className)}>
+        {children.map((child, i) => (
+          <div key={i} className={itemClassName}>
+            {child}
+          </div>
+        ))}
+      </div>
+    )
+  }
+
+  return (
+    <div ref={ref} className={cn(className)}>
+      {children.map((child, i) => (
+        <div
+          key={i}
+          className={cn(itemClassName)}
+          style={{
+            opacity: isVisible ? 1 : 0,
+            transform: isVisible ? 'translateY(0)' : 'translateY(12px)',
+            transition: `all ${duration}ms ${easeOutSmooth} ${itemDelay + i * staggerDelay}ms`,
+            willChange: 'transform, opacity',
+          }}
+        >
+          {child}
+        </div>
       ))}
     </div>
   )

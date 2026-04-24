@@ -3,11 +3,13 @@
  *
  * 使用 Framer Motion 的 staggerChildren 实现子元素依次进入动画
  * 支持多种预设动画和自定义配置
+ * 自动检测 prefers-reduced-motion 进行降级
  */
 
 import { motion, type Variants } from 'framer-motion'
 import type { ReactNode } from 'react'
 import { cn } from '@/lib/utils'
+import * as React from 'react'
 
 export type StaggerPreset =
   | 'fade-up'
@@ -38,6 +40,30 @@ interface StaggerChildrenProps {
   trigger?: 'onMount' | 'inView'
   /** 自定义子元素变体 */
   childVariants?: Variants
+  /** inView 阈值 */
+  inViewThreshold?: number
+  /** inView 根边距 */
+  inViewMargin?: string
+  /** 动画完成后回调 */
+  onComplete?: () => void
+}
+
+/** 标准缓动曲线：cubic-bezier(0.22, 1, 0.36, 1) */
+const easeOutSmooth = [0.22, 1, 0.36, 1] as const
+
+/** 检测是否应减少动画 */
+function useReducedMotion(): boolean {
+  const [reduced, setReduced] = React.useState(false)
+
+  React.useEffect(() => {
+    const mq = window.matchMedia('(prefers-reduced-motion: reduce)')
+    setReduced(mq.matches)
+    const handler = (e: MediaQueryListEvent) => setReduced(e.matches)
+    mq.addEventListener('change', handler)
+    return () => mq.removeEventListener('change', handler)
+  }, [])
+
+  return reduced
 }
 
 const presetVariants: Record<StaggerPreset, { container: Variants; child: Variants }> = {
@@ -57,7 +83,7 @@ const presetVariants: Record<StaggerPreset, { container: Variants; child: Varian
       visible: {
         opacity: 1,
         y: 0,
-        transition: { duration: 0.3, ease: [0.4, 0, 0.2, 1] },
+        transition: { duration: 0.35, ease: easeOutSmooth },
       },
     },
   },
@@ -77,7 +103,7 @@ const presetVariants: Record<StaggerPreset, { container: Variants; child: Varian
       visible: {
         opacity: 1,
         y: 0,
-        transition: { duration: 0.3, ease: [0.4, 0, 0.2, 1] },
+        transition: { duration: 0.35, ease: easeOutSmooth },
       },
     },
   },
@@ -97,7 +123,7 @@ const presetVariants: Record<StaggerPreset, { container: Variants; child: Varian
       visible: {
         opacity: 1,
         x: 0,
-        transition: { duration: 0.3, ease: [0.4, 0, 0.2, 1] },
+        transition: { duration: 0.35, ease: easeOutSmooth },
       },
     },
   },
@@ -117,7 +143,7 @@ const presetVariants: Record<StaggerPreset, { container: Variants; child: Varian
       visible: {
         opacity: 1,
         x: 0,
-        transition: { duration: 0.3, ease: [0.4, 0, 0.2, 1] },
+        transition: { duration: 0.35, ease: easeOutSmooth },
       },
     },
   },
@@ -137,7 +163,7 @@ const presetVariants: Record<StaggerPreset, { container: Variants; child: Varian
       visible: {
         opacity: 1,
         scale: 1,
-        transition: { duration: 0.25, ease: [0.4, 0, 0.2, 1] },
+        transition: { duration: 0.3, ease: easeOutSmooth },
       },
     },
   },
@@ -157,7 +183,7 @@ const presetVariants: Record<StaggerPreset, { container: Variants; child: Varian
       visible: {
         opacity: 1,
         y: 0,
-        transition: { duration: 0.35, ease: [0.4, 0, 0.2, 1] },
+        transition: { duration: 0.4, ease: easeOutSmooth },
       },
     },
   },
@@ -177,7 +203,7 @@ const presetVariants: Record<StaggerPreset, { container: Variants; child: Varian
       visible: {
         opacity: 1,
         filter: 'blur(0px)',
-        transition: { duration: 0.35, ease: 'easeOut' },
+        transition: { duration: 0.4, ease: easeOutSmooth },
       },
     },
   },
@@ -208,9 +234,34 @@ export function StaggerChildren({
   className,
   childClassName,
   enabled = true,
+  trigger = 'onMount',
   childVariants,
+  inViewThreshold = 0.1,
+  inViewMargin = '0px 0px -40px 0px',
+  onComplete,
 }: StaggerChildrenProps) {
-  if (!enabled) {
+  const reducedMotion = useReducedMotion()
+  const ref = React.useRef<HTMLDivElement>(null)
+  const [isInView, setIsInView] = React.useState(trigger === 'onMount')
+
+  React.useEffect(() => {
+    if (trigger !== 'inView' || !ref.current) return
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setIsInView(true)
+          observer.disconnect()
+        }
+      },
+      { threshold: inViewThreshold, rootMargin: inViewMargin }
+    )
+
+    observer.observe(ref.current)
+    return () => observer.disconnect()
+  }, [trigger, inViewThreshold, inViewMargin])
+
+  if (!enabled || reducedMotion) {
     return <div className={className}>{children}</div>
   }
 
@@ -246,9 +297,11 @@ export function StaggerChildren({
 
   return (
     <motion.div
+      ref={ref}
       variants={containerVariants}
       initial="hidden"
-      animate="visible"
+      animate={isInView ? 'visible' : 'hidden'}
+      onAnimationComplete={onComplete}
       className={cn(className)}
     >
       {children}
@@ -273,7 +326,11 @@ export function StaggerItem({
   const presetData = presetVariants[preset]
 
   return (
-    <motion.div variants={presetData.child} className={cn(className)}>
+    <motion.div
+      variants={presetData.child}
+      className={cn(className)}
+      style={{ willChange: 'transform, opacity' }}
+    >
       {children}
     </motion.div>
   )
@@ -294,6 +351,7 @@ interface StaggerListProps<T> {
   className?: string
   itemClassName?: string
   enabled?: boolean
+  trigger?: 'onMount' | 'inView'
 }
 
 export function StaggerList<T>({
@@ -306,6 +364,7 @@ export function StaggerList<T>({
   className,
   itemClassName,
   enabled = true,
+  trigger = 'onMount',
 }: StaggerListProps<T>) {
   return (
     <StaggerChildren
@@ -314,6 +373,7 @@ export function StaggerList<T>({
       delayChildren={delayChildren}
       className={className}
       enabled={enabled}
+      trigger={trigger}
     >
       {items.map((item, index) => (
         <StaggerItem key={keyExtractor(item, index)} className={itemClassName} preset={preset}>

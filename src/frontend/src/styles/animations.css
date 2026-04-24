@@ -3,8 +3,8 @@
    统一动画时长规范：
    - 微交互：100-150ms (var(--transition-fast) / var(--transition-base))
    - 组件状态：200ms (var(--transition-normal))
-   - 页面过渡：250-300ms (var(--transition-slow))
-   - 缓动函数：var(--ease-out)
+   - 页面过渡：250-350ms (var(--transition-slow))
+   - 缓动函数：var(--ease-out) = cubic-bezier(0.22, 1, 0.36, 1)
 
    新增视觉特效：
    - 页面转场动画 (page-transition)
@@ -12,11 +12,27 @@
    - loading状态和骨架屏 (skeleton-*, loading-*)
    - toast通知样式 (toast-*)
    - 滚动渐变隐藏效果 (scroll-fade-*)
+   - 装饰元素浮动 (float-gentle)
+   - 呼吸发光 (glow-breathe)
+   - 扫光效果 (shimmer-sweep)
+   - 文字揭示 (text-reveal)
+   - 进度条填充 (progress-fill)
    ============================================================ */
 
 /* ============================================================
+   EASING FUNCTIONS
+   统一使用 cubic-bezier(0.22, 1, 0.36, 1)
+   ============================================================ */
+
+:root {
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --ease-smooth: cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-snappy: cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+/* ============================================================
    PAGE TRANSITION ANIMATIONS
-   Design spec: cubic-bezier(0.22, 1, 0.36, 1), 250-350ms
    ============================================================ */
 
 @keyframes page-enter {
@@ -76,11 +92,11 @@
 }
 
 .drawer-slide-in {
-  animation: drawer-slide-in var(--transition-normal) var(--ease-out) forwards;
+  animation: drawer-slide-in var(--transition-normal) cubic-bezier(0.22, 1, 0.36, 1) forwards;
 }
 
 .drawer-slide-out {
-  animation: drawer-slide-out var(--transition-normal) var(--ease-out) forwards;
+  animation: drawer-slide-out var(--transition-normal) cubic-bezier(0.22, 1, 0.36, 1) forwards;
 }
 
 /* ============================================================
@@ -99,7 +115,7 @@
 }
 
 .modal-zoom-in {
-  animation: modal-zoom-in var(--transition-normal) var(--ease-out) forwards;
+  animation: modal-zoom-in var(--transition-normal) cubic-bezier(0.22, 1, 0.36, 1) forwards;
 }
 
 /* ============================================================
@@ -121,12 +137,12 @@
   position: absolute;
   border-radius: 50%;
   background: rgba(94, 106, 210, 0.15);
-  animation: ripple-effect 350ms var(--ease-out) forwards;
+  animation: ripple-effect 350ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
   pointer-events: none;
 }
 
 /* ============================================================
-   SHIMMER ANIMATIONS (Improved)
+   SHIMMER ANIMATIONS
    ============================================================ */
 
 @keyframes shimmer-smooth {
@@ -148,15 +164,12 @@
 @keyframes shimmer-skeleton {
   0% {
     background-position: -200% 0;
-    transform: translateX(0);
   }
   50% {
     background-position: 200% 0;
-    transform: translateX(0);
   }
   100% {
     background-position: -200% 0;
-    transform: translateX(0);
   }
 }
 
@@ -172,11 +185,108 @@
   will-change: background-position;
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .animate-shimmer-skeleton {
-    animation: none;
-    background: var(--color-surface-overlay);
+/* ============================================================
+   NEW KEYFRAMES - Visual Effects
+   ============================================================ */
+
+/* float-gentle - subtle floating for decorative elements */
+@keyframes float-gentle {
+  0%, 100% {
+    transform: translateY(0) rotate(0deg);
   }
+  25% {
+    transform: translateY(-4px) rotate(0.5deg);
+  }
+  75% {
+    transform: translateY(2px) rotate(-0.5deg);
+  }
+}
+
+/* glow-breathe - glow breathing for emphasis */
+@keyframes glow-breathe {
+  0%, 100% {
+    box-shadow: 0 0 4px rgba(94, 106, 210, 0.2), 0 0 8px rgba(94, 106, 210, 0.1);
+    opacity: 1;
+  }
+  50% {
+    box-shadow: 0 0 12px rgba(94, 106, 210, 0.4), 0 0 24px rgba(94, 106, 210, 0.2);
+    opacity: 0.95;
+  }
+}
+
+/* shimmer-sweep - light sweep for premium cards */
+@keyframes shimmer-sweep {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+/* text-reveal - character-by-character text reveal */
+@keyframes text-reveal {
+  0% {
+    clip-path: inset(0 100% 0 0);
+    opacity: 0;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    clip-path: inset(0 0% 0 0);
+    opacity: 1;
+  }
+}
+
+/* progress-fill - progress bar fill animation */
+@keyframes progress-fill {
+  0% {
+    transform: scaleX(0);
+    transform-origin: left;
+  }
+  100% {
+    transform: scaleX(1);
+    transform-origin: left;
+  }
+}
+
+/* ============================================================
+   NEW ANIMATION UTILITY CLASSES
+   ============================================================ */
+
+.animate-float-gentle {
+  animation: float-gentle 4s cubic-bezier(0.22, 1, 0.36, 1) infinite;
+  will-change: transform;
+}
+
+.animate-glow-breathe {
+  animation: glow-breathe 3s cubic-bezier(0.22, 1, 0.36, 1) infinite;
+  will-change: box-shadow, opacity;
+}
+
+.animate-shimmer-sweep {
+  background: linear-gradient(
+    105deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.03) 25%,
+    rgba(255, 255, 255, 0.08) 45%,
+    rgba(255, 255, 255, 0.03) 65%,
+    transparent 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer-sweep 2.5s cubic-bezier(0.22, 1, 0.36, 1) infinite;
+  will-change: background-position;
+}
+
+.animate-text-reveal {
+  animation: text-reveal 0.8s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  will-change: clip-path, opacity;
+}
+
+.animate-progress-fill {
+  animation: progress-fill 0.6s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  will-change: transform;
 }
 
 /* ============================================================
@@ -247,7 +357,7 @@
 }
 
 .list-stagger > * {
-  animation: list-item-enter var(--transition-normal) var(--ease-out) forwards;
+  animation: list-item-enter var(--transition-normal) cubic-bezier(0.22, 1, 0.36, 1) forwards;
   opacity: 0;
 }
 
@@ -274,7 +384,7 @@
     rgba(255, 255, 255, 0.03) 100%
   );
   background-size: 250% 100%;
-  animation: shimmer-smooth 2s cubic-bezier(0.45, 0, 0.55, 1) infinite;
+  animation: shimmer-smooth 2s cubic-bezier(0.22, 1, 0.36, 1) infinite;
 }
 
 .animate-shimmer-smooth {
@@ -287,35 +397,39 @@
     rgba(255, 255, 255, 0.04) 100%
   );
   background-size: 300% 100%;
-  animation: shimmer-smooth 2s cubic-bezier(0.45, 0, 0.55, 1) infinite;
+  animation: shimmer-smooth 2s cubic-bezier(0.22, 1, 0.36, 1) infinite;
 }
 
 .animate-ripple-expand {
-  animation: ripple-expand 450ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation: ripple-expand 450ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
 }
 
 .animate-toast-enter {
-  animation: toast-slide-up 350ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation: toast-slide-up 350ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
 }
 
 .animate-toast-exit {
-  animation: toast-slide-out 250ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation: toast-slide-out 250ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
 }
 
 .animate-scale-in {
-  animation: scale-in-soft 250ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation: scale-in-soft 250ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
 }
 
 .animate-scale-out {
-  animation: scale-out-soft 200ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation: scale-out-soft 200ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
 }
 
 .animate-slide-up-soft {
-  animation: slide-up-soft 300ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation: slide-up-soft 300ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
 }
 
 .animate-fade-in-soft {
-  animation: fade-in-soft 200ms ease forwards;
+  animation: fade-in-soft 200ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+.animate-button-press {
+  animation: button-press 200ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 /* ============================================================
@@ -323,8 +437,8 @@
    ============================================================ */
 
 .hover-lift {
-  transition: transform 250ms cubic-bezier(0.16, 1, 0.3, 1),
-              box-shadow 250ms cubic-bezier(0.16, 1, 0.3, 1);
+  transition: transform 250ms cubic-bezier(0.22, 1, 0.36, 1),
+              box-shadow 250ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 .hover-lift:hover {
@@ -333,7 +447,7 @@
 }
 
 .press-down {
-  transition: transform 120ms cubic-bezier(0.16, 1, 0.3, 1);
+  transition: transform 120ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 .press-down:active {
@@ -341,9 +455,9 @@
 }
 
 .card-hover-lift {
-  transition: transform 250ms cubic-bezier(0.16, 1, 0.3, 1),
-              box-shadow 250ms cubic-bezier(0.16, 1, 0.3, 1),
-              border-color 200ms ease;
+  transition: transform 250ms cubic-bezier(0.22, 1, 0.36, 1),
+              box-shadow 250ms cubic-bezier(0.22, 1, 0.36, 1),
+              border-color 200ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 .card-hover-lift:hover {
@@ -351,12 +465,24 @@
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15), 0 2px 6px rgba(0, 0, 0, 0.08);
 }
 
+/* Card hover glow expansion */
+.card-hover-glow {
+  transition: transform 250ms cubic-bezier(0.22, 1, 0.36, 1),
+              box-shadow 250ms cubic-bezier(0.22, 1, 0.36, 1),
+              border-color 200ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.card-hover-glow:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 0 20px rgba(94, 106, 210, 0.15), 0 0 40px rgba(94, 106, 210, 0.08), 0 8px 24px rgba(0, 0, 0, 0.12);
+}
+
 .btn-interactive {
   position: relative;
   overflow: hidden;
-  transition: transform 120ms cubic-bezier(0.16, 1, 0.3, 1),
-              box-shadow 200ms ease,
-              background-color 150ms ease;
+  transition: transform 120ms cubic-bezier(0.22, 1, 0.36, 1),
+              box-shadow 200ms cubic-bezier(0.22, 1, 0.36, 1),
+              background-color 150ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 .btn-interactive:hover {
@@ -369,8 +495,21 @@
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
 }
 
+/* Button press feedback - subtle scale */
+.btn-press-feedback {
+  transition: transform 100ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.btn-press-feedback:hover {
+  transform: scale(1.02);
+}
+
+.btn-press-feedback:active {
+  transform: scale(0.97);
+}
+
 .scale-feedback {
-  transition: transform 150ms cubic-bezier(0.16, 1, 0.3, 1);
+  transition: transform 150ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 .scale-feedback:hover {
@@ -381,14 +520,24 @@
   transform: scale(0.97);
 }
 
+/* Input focus glow expansion */
 .input-glow:focus {
-  animation: input-glow-expand 600ms cubic-bezier(0.16, 1, 0.3, 1);
+  animation: input-glow-expand 600ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.input-focus-glow {
+  transition: border-color 200ms cubic-bezier(0.22, 1, 0.36, 1),
+              box-shadow 200ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.input-focus-glow:focus {
+  border-color: var(--border-focus);
+  box-shadow: 0 0 0 3px var(--accent-muted), 0 0 12px rgba(94, 106, 210, 0.15);
 }
 
 /* ============================================================
    PAGE TRANSITION ENHANCEMENTS
    Smooth page transitions with directional slides
-   Design spec easing: cubic-bezier(0.22, 1, 0.36, 1)
    ============================================================ */
 
 @keyframes page-slide-left-enter {
@@ -492,7 +641,6 @@
   }
 }
 
-/* 设计规范 easing: cubic-bezier(0.22, 1, 0.36, 1) */
 .page-slide-left-enter {
   animation: page-slide-left-enter 300ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
 }
@@ -532,7 +680,9 @@
 
 /* Button hover - subtle opacity shift */
 .hover-button {
-  transition: opacity 150ms ease, background-color 150ms ease, border-color 150ms ease;
+  transition: opacity 150ms cubic-bezier(0.22, 1, 0.36, 1),
+              background-color 150ms cubic-bezier(0.22, 1, 0.36, 1),
+              border-color 150ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 .hover-button:hover {
@@ -546,9 +696,9 @@
 
 /* Card hover - subtle lift with shadow */
 .hover-card {
-  transition: transform 200ms cubic-bezier(0.16, 1, 0.3, 1),
-              box-shadow 200ms cubic-bezier(0.16, 1, 0.3, 1),
-              border-color 150ms ease;
+  transition: transform 200ms cubic-bezier(0.22, 1, 0.36, 1),
+              box-shadow 200ms cubic-bezier(0.22, 1, 0.36, 1),
+              border-color 150ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 .hover-card:hover {
@@ -558,7 +708,7 @@
 
 /* Icon hover - subtle scale */
 .hover-icon {
-  transition: transform 150ms cubic-bezier(0.16, 1, 0.3, 1), opacity 150ms ease;
+  transition: transform 150ms cubic-bezier(0.22, 1, 0.36, 1), opacity 150ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 .hover-icon:hover {
@@ -571,7 +721,7 @@
 
 /* Link hover - color transition */
 .hover-link {
-  transition: color 150ms ease;
+  transition: color 150ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 .hover-link:hover {
@@ -580,7 +730,8 @@
 
 /* Input focus glow */
 .hover-input-focus {
-  transition: border-color 200ms ease, box-shadow 200ms ease;
+  transition: border-color 200ms cubic-bezier(0.22, 1, 0.36, 1),
+              box-shadow 200ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 .hover-input-focus:focus {
@@ -611,12 +762,12 @@
     var(--color-surface-overlay) 100%
   );
   background-size: 200% 100%;
-  animation: shimmer-skeleton 1.8s ease-in-out infinite;
+  animation: shimmer-skeleton 1.8s cubic-bezier(0.22, 1, 0.36, 1) infinite;
   will-change: background-position;
 }
 
 .skeleton-pulse {
-  animation: skeleton-pulse 1.5s ease-in-out infinite;
+  animation: skeleton-pulse 1.5s cubic-bezier(0.22, 1, 0.36, 1) infinite;
 }
 
 /* Skeleton line variants */
@@ -696,7 +847,7 @@
   height: 6px;
   background: var(--accent-100);
   border-radius: var(--radius-full);
-  animation: loading-dot-pulse 1.2s ease-in-out infinite;
+  animation: loading-dot-pulse 1.2s cubic-bezier(0.22, 1, 0.36, 1) infinite;
 }
 
 .loading-dots__dot:nth-child(2) { animation-delay: 0.2s; }
@@ -763,11 +914,11 @@
 }
 
 .toast--enter {
-  animation: toast-enter 300ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation: toast-enter 300ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
 }
 
 .toast--exit {
-  animation: toast-exit 200ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation: toast-exit 200ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
 }
 
 .toast--success {
@@ -831,7 +982,7 @@
     transparent 100%
   );
   opacity: 0;
-  transition: opacity 200ms ease;
+  transition: opacity 200ms cubic-bezier(0.22, 1, 0.36, 1);
   pointer-events: none;
   z-index: 10;
 }
@@ -873,7 +1024,7 @@
 }
 
 .command-palette-item-enter {
-  animation: selection-indicator 200ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation: selection-indicator 200ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
   transform-origin: left;
 }
 
@@ -884,12 +1035,40 @@
   bottom: 0;
   width: 3px;
   background: var(--color-accent);
-  animation: selection-indicator 150ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation: selection-indicator 150ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
   transform-origin: top;
 }
 
 /* ============================================================
-   REDUCED MOTION SUPPORT
+   PERFORMANCE OPTIMIZATIONS
+   GPU acceleration hints for animated elements
+   ============================================================ */
+
+.gpu-accelerate {
+  transform: translateZ(0);
+  will-change: transform;
+  backface-visibility: hidden;
+}
+
+.gpu-accelerate-opacity {
+  will-change: opacity;
+}
+
+.gpu-accelerate-composite {
+  transform: translateZ(0);
+  will-change: transform, opacity;
+  backface-visibility: hidden;
+}
+
+/* Content visibility for off-screen animated elements */
+.content-visibility-auto {
+  content-visibility: auto;
+  contain-intrinsic-size: 0 500px;
+}
+
+/* ============================================================
+   LOW-END DEVICE DEGRADATION
+   Automatic performance degradation
    ============================================================ */
 
 @media (prefers-reduced-motion: reduce) {
@@ -909,6 +1088,7 @@
   .animate-shimmer,
   .animate-shimmer-smooth,
   .animate-shimmer-skeleton,
+  .animate-shimmer-sweep,
   .animate-ripple-expand,
   .animate-toast-enter,
   .animate-toast-exit,
@@ -916,6 +1096,11 @@
   .animate-scale-out,
   .animate-slide-up-soft,
   .animate-fade-in-soft,
+  .animate-button-press,
+  .animate-float-gentle,
+  .animate-glow-breathe,
+  .animate-text-reveal,
+  .animate-progress-fill,
   .skeleton-shimmer,
   .skeleton-pulse,
   .loading-spinner,
@@ -930,19 +1115,23 @@
 
   .hover-lift,
   .card-hover-lift,
+  .card-hover-glow,
   .btn-interactive,
+  .btn-press-feedback,
   .scale-feedback,
   .press-down,
   .hover-button,
   .hover-card,
   .hover-icon,
   .hover-link,
-  .hover-input-focus {
+  .hover-input-focus,
+  .input-focus-glow {
     transition: none !important;
   }
 
   .hover-lift:hover,
   .card-hover-lift:hover,
+  .card-hover-glow:hover,
   .btn-interactive:hover,
   .hover-button:hover,
   .hover-card:hover {
@@ -956,6 +1145,7 @@
 
   .press-down:active,
   .btn-interactive:active,
+  .btn-press-feedback:active,
   .scale-feedback:active,
   .hover-button:active {
     transform: none !important;
@@ -963,5 +1153,42 @@
 
   .scroll-fade-mask::before {
     display: none;
+  }
+
+  .gpu-accelerate,
+  .gpu-accelerate-composite {
+    will-change: auto;
+    transform: none;
+  }
+}
+
+/* Low-end device detection via resolution/performance hints */
+@media (update: slow) {
+  .animate-float-gentle,
+  .animate-glow-breathe,
+  .animate-shimmer-sweep {
+    animation-duration: 6s !important;
+  }
+
+  .animate-shimmer,
+  .animate-shimmer-smooth,
+  .animate-shimmer-skeleton {
+    animation-duration: 3s !important;
+  }
+
+  .gpu-accelerate,
+  .gpu-accelerate-composite {
+    will-change: auto;
+  }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .ripple-effect {
+    background: rgba(94, 106, 210, 0.3);
+  }
+
+  .animate-glow-breathe {
+    box-shadow: 0 0 8px rgba(94, 106, 210, 0.5);
   }
 }

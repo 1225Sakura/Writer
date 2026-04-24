@@ -1,6 +1,5 @@
 import { useState, useCallback, useEffect, useRef } from 'react'
 import { useWritingStore } from '@/store'
-import { Button } from '@/components/ui/Button'
 import { Textarea } from '@/components/ui/textarea'
 import {
   StickyNote,
@@ -148,82 +147,108 @@ export function ChapterNotesPanel() {
       {!isOpen ? (
         <motion.button
           key="notes-trigger"
-          initial={{ opacity: 0, scale: 0.9, y: 8 }}
+          initial={{ opacity: 0, scale: 0.85, y: 12 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
-          exit={{ opacity: 0, scale: 0.9, y: 8 }}
-          transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
+          exit={{ opacity: 0, scale: 0.85, y: 12 }}
+          transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
           onClick={() => setIsOpen(true)}
-          className="fixed right-4 bottom-14 z-50 flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-medium transition-all duration-200 hover:-translate-y-0.5
-                     bg-[var(--color-surface-raised)] border border-[var(--border-default)] text-[var(--text-secondary)] shadow-drawer"
+          className="fixed right-4 bottom-14 z-50 flex items-center gap-2 px-3.5 py-2.5 rounded-xl text-xs font-medium
+                     bg-[var(--color-surface-raised)] border border-[var(--border-default)] text-[var(--text-secondary)]
+                     shadow-float transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_12px_40px_rgba(0,0,0,0.35)]"
+          style={{
+            backdropFilter: 'blur(12px)',
+            WebkitBackdropFilter: 'blur(12px)',
+          }}
           title="章节笔记"
         >
-          <StickyNote className="w-4 h-4 text-[var(--icon-secondary)]" />
+          <motion.div
+            animate={{ rotate: [0, -5, 5, 0] }}
+            transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut', repeatDelay: 3 }}
+          >
+            <StickyNote className="w-4 h-4 text-[var(--icon-secondary)]" />
+          </motion.div>
           <span>笔记</span>
           {noteContent && (
             <motion.span
               initial={{ scale: 0 }}
               animate={{ scale: 1 }}
-              className="w-1.5 h-1.5 rounded-full"
-              style={{ background: 'var(--color-ifline)' }}
+              className="w-2 h-2 rounded-full"
+              style={{
+                background: 'var(--color-ifline)',
+                boxShadow: '0 0 6px color-mix(in srgb, var(--color-ifline) 40%, transparent)',
+              }}
             />
           )}
         </motion.button>
       ) : (
         <motion.div
           key="notes-panel"
-          initial={{ opacity: 0, scale: 0.92, y: 16, x: 20 }}
+          initial={{ opacity: 0, scale: 0.9, y: 20, x: 20 }}
           animate={{ opacity: 1, scale: 1, y: 0, x: 0 }}
-          exit={{ opacity: 0, scale: 0.92, y: 16, x: 20 }}
-          transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
-          className="fixed right-4 bottom-14 z-50 w-80 flex flex-col rounded-xl overflow-hidden
-                     bg-[var(--color-surface-raised)] border border-[var(--border-default)] shadow-float"
+          exit={{ opacity: 0, scale: 0.9, y: 20, x: 20 }}
+          transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
+          className="fixed right-4 bottom-14 z-50 w-80 flex flex-col rounded-2xl overflow-hidden"
+          style={{
+            background: 'var(--color-surface-raised)',
+            border: '1px solid var(--border-default)',
+            boxShadow: '0 16px 48px rgba(0,0,0,0.35), 0 4px 12px rgba(0,0,0,0.2), 0 0 0 1px rgba(255,255,255,0.03)',
+            backdropFilter: 'blur(16px)',
+            WebkitBackdropFilter: 'blur(16px)',
+          }}
         >
-          {/* Header */}
-          <div className="flex items-center justify-between px-3 py-2.5 border-b border-[var(--border-subtle)]"
+          {/* Refined Header */}
+          <div className="flex items-center justify-between px-4 py-3 border-b border-[var(--border-subtle)] relative overflow-hidden"
           >
-            <div className="flex items-center gap-2">
+            {/* Subtle header gradient */}
+            <div
+              className="absolute inset-0 pointer-events-none opacity-40"
+              style={{
+                background: 'linear-gradient(135deg, color-mix(in srgb, var(--color-ifline) 3%, transparent) 0%, transparent 60%)',
+              }}
+            />
+            <div className="flex items-center gap-2.5 relative z-10">
               <motion.div
-                initial={{ rotate: -10 }}
-                animate={{ rotate: 0 }}
-                transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
+                initial={{ rotate: -15, scale: 0.8 }}
+                animate={{ rotate: 0, scale: 1 }}
+                transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1], delay: 0.05 }}
               >
-                <StickyNote className="w-4 h-4 text-[var(--icon-secondary)]" />
+                <StickyNote className="w-4 h-4 text-[var(--color-ifline)]" />
               </motion.div>
-              <span className="text-sm font-medium text-[var(--text-primary)]">章节笔记</span>
+              <span className="text-sm font-semibold text-[var(--text-primary)]">章节笔记</span>
             </div>
-            <div className="flex items-center gap-1">
-              <Button
+            <div className="flex items-center gap-0.5 relative z-10">
+              <motion.button
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.9 }}
                 onClick={handleSave}
-                variant="ghost"
-                size="icon"
-                className="h-7 w-7 hover:bg-[rgba(126,184,74,0.1)] transition-colors duration-150"
+                className="h-7 w-7 flex items-center justify-center rounded-lg hover:bg-[color-mix(in_srgb,var(--color-ifline)_10%,transparent)] transition-colors duration-150"
                 title="保存笔记"
               >
                 <Save className="w-3.5 h-3.5 text-[var(--icon-secondary)]" />
-              </Button>
-              <Button
+              </motion.button>
+              <motion.button
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.9 }}
                 onClick={handleClear}
-                variant="ghost"
-                size="icon"
-                className="h-7 w-7 hover:bg-[rgba(196,92,92,0.1)] transition-colors duration-150"
+                className="h-7 w-7 flex items-center justify-center rounded-lg hover:bg-[color-mix(in_srgb,var(--color-vermillion)_10%,transparent)] transition-colors duration-150"
                 title="清空笔记"
               >
                 <Trash2 className="w-3.5 h-3.5 text-[var(--icon-danger)]" />
-              </Button>
-              <Button
+              </motion.button>
+              <motion.button
+                whileHover={{ scale: 1.1, rotate: 90 }}
+                whileTap={{ scale: 0.9 }}
                 onClick={() => setIsOpen(false)}
-                variant="ghost"
-                size="icon"
-                className="h-7 w-7 transition-colors duration-150"
+                className="h-7 w-7 flex items-center justify-center rounded-lg hover:bg-[var(--color-surface-hover)] transition-colors duration-150"
                 title="关闭"
               >
                 <X className="w-3.5 h-3.5 text-[var(--icon-secondary)]" />
-              </Button>
+              </motion.button>
             </div>
           </div>
 
           {/* Category Tags */}
-          <div className="px-3 pt-3 pb-2">
+          <div className="px-4 pt-3 pb-2">
             <div className="flex items-center gap-1.5 flex-wrap">
               <Tag className="w-3 h-3 mr-0.5 text-[var(--icon-muted)]" />
               {NOTE_CATEGORIES.map((category, index) => (
@@ -233,22 +258,25 @@ export function ChapterNotesPanel() {
                   animate={{ opacity: 1, scale: 1 }}
                   transition={{
                     delay: index * 0.04,
-                    duration: 0.15,
+                    duration: 0.2,
                     ease: [0.16, 1, 0.3, 1],
                   }}
                   onClick={() => handleCategorySelect(category.id)}
-                  className="flex items-center gap-1 px-2 py-1 rounded-md text-[11px] font-medium
+                  className="flex items-center gap-1 px-2 py-1 rounded-lg text-[11px] font-medium
                              transition-all duration-150 hover:scale-105 active:scale-95"
                   style={{
-                    color: selectedCategory === category.id ? category.color : '#8a8f98',
+                    color: selectedCategory === category.id ? category.color : 'var(--text-tertiary)',
                     background:
                       selectedCategory === category.id
                         ? category.bgColor
-                        : 'rgba(255, 255, 255, 0.03)',
+                        : 'color-mix(in srgb, var(--paper-100) 3%, transparent)',
                     border:
                       selectedCategory === category.id
                         ? `1px solid ${category.color}30`
                         : '1px solid transparent',
+                    boxShadow: selectedCategory === category.id
+                      ? `0 0 8px ${category.color}20`
+                      : 'none',
                   }}
                   title={`插入${category.label}标签`}
                 >

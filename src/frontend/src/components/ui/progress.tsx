@@ -1,6 +1,6 @@
 import * as React from 'react'
 import * as ProgressPrimitive from '@radix-ui/react-progress'
-import { motion, useSpring, useTransform, useMotionValue } from 'framer-motion'
+import { motion, useSpring, useTransform } from 'framer-motion'
 import { cn } from '@/lib/utils'
 
 export interface ProgressProps extends React.ComponentPropsWithoutRef<typeof ProgressPrimitive.Root> {
@@ -15,7 +15,7 @@ const Progress = React.forwardRef<
   ProgressProps
 >(({ className, value, gradient = false, gradientColors, glowIntensity, ...props }, ref) => {
   const clampedValue = Math.min(Math.max(value || 0, 0), 100)
-  const [displayValue, setDisplayValue] = React.useState(clampedValue)
+  const [_displayValue, _setDisplayValue] = React.useState(clampedValue)
 
   const springValue = useSpring(clampedValue, {
     stiffness: 120,
@@ -23,7 +23,6 @@ const Progress = React.forwardRef<
     mass: 0.8,
   })
 
-  const displayPercent = useTransform(springValue, (v) => Math.round(v))
   const scaleX = useTransform(springValue, [0, 100], [0, 1])
 
   React.useEffect(() => {
@@ -32,11 +31,6 @@ const Progress = React.forwardRef<
 
   const defaultGradientColors: [string, string] = ['#5e6ad2', '#7c7fff']
   const [from, to] = gradientColors || defaultGradientColors
-
-  const springPercent = useSpring(clampedValue, {
-    stiffness: 100,
-    damping: 20,
-  })
 
   return (
     <ProgressPrimitive.Root

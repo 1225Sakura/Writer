@@ -12,9 +12,98 @@
  */
 
 import * as React from 'react'
-import { motion, type HTMLMotionProps, AnimatePresence } from 'framer-motion'
+import { motion, type HTMLMotionProps, AnimatePresence, type Variants } from 'framer-motion'
 import type { ReactNode, CSSProperties } from 'react'
 import { cn } from '@/lib/utils'
+
+// ==================== Reusable Framer Motion Variants ====================
+
+/** 标准缓动曲线：cubic-bezier(0.22, 1, 0.36, 1) */
+export const easeOutSmooth = [0.22, 1, 0.36, 1] as const
+
+/** 弹性缓动曲线 */
+export const easeSpring = [0.34, 1.56, 0.64, 1] as const
+
+/** 微交互变体集合 */
+export const microVariants: Record<string, Variants> = {
+  /** 按钮按压反馈 */
+  buttonPress: {
+    initial: { scale: 1 },
+    hover: { scale: 1.02 },
+    tap: { scale: 0.97 },
+  },
+  /** 列表项依次进入 */
+  listItem: {
+    hidden: { opacity: 0, y: 8 },
+    visible: (i: number) => ({
+      opacity: 1,
+      y: 0,
+      transition: {
+        delay: i * 0.05,
+        duration: 0.3,
+        ease: easeOutSmooth,
+      },
+    }),
+  },
+  /** 卡片悬停发光扩展 */
+  cardGlow: {
+    initial: { boxShadow: '0 0 0 rgba(94, 106, 210, 0)' },
+    hover: {
+      boxShadow: '0 0 20px rgba(94, 106, 210, 0.15), 0 0 40px rgba(94, 106, 210, 0.08), 0 8px 24px rgba(0, 0, 0, 0.12)',
+      y: -2,
+      transition: { duration: 0.25, ease: easeOutSmooth },
+    },
+  },
+  /** 输入框聚焦发光扩展 */
+  inputGlow: {
+    initial: { boxShadow: '0 0 0 0 rgba(94, 106, 210, 0)' },
+    focus: {
+      boxShadow: '0 0 0 3px rgba(94, 106, 210, 0.15), 0 0 12px rgba(94, 106, 210, 0.1)',
+      transition: { duration: 0.2, ease: easeOutSmooth },
+    },
+  },
+  /** 淡入上滑 */
+  fadeUp: {
+    hidden: { opacity: 0, y: 12 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: { duration: 0.3, ease: easeOutSmooth },
+    },
+  },
+  /** 缩放淡入 */
+  scaleIn: {
+    hidden: { opacity: 0, scale: 0.95 },
+    visible: {
+      opacity: 1,
+      scale: 1,
+      transition: { duration: 0.25, ease: easeOutSmooth },
+    },
+  },
+  /** 抖动（错误反馈） */
+  shake: {
+    initial: { x: 0 },
+    shake: {
+      x: [0, -6, 6, -4, 4, -2, 2, 0],
+      transition: { duration: 0.4, ease: 'easeInOut' },
+    },
+  },
+}
+
+/** 检测是否应减少动画（prefers-reduced-motion 或低性能设备） */
+export function useReducedMotion(): boolean {
+  const [reduced, setReduced] = React.useState(false)
+
+  React.useEffect(() => {
+    const mq = window.matchMedia('(prefers-reduced-motion: reduce)')
+    setReduced(mq.matches)
+    const handler = (e: MediaQueryListEvent) => setReduced(e.matches)
+    mq.addEventListener('change', handler)
+    return () => mq.removeEventListener('change', handler)
+  }, [])
+
+  return reduced
+}
 
 // ==================== Button Feedback ====================
 
@@ -33,7 +122,7 @@ export function RippleEffect({ color = 'rgba(255, 255, 255, 0.2)', ...props }: R
       className={cn('absolute inset-0 pointer-events-none', props.className)}
       initial={{ scale: 0, opacity: 1 }}
       animate={{ scale: 2.5, opacity: 0 }}
-      transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
+      transition={{ duration: 0.35, ease: easeOutSmooth }}
       style={{
         backgroundColor: color,
         borderRadius: '50%',
@@ -63,21 +152,226 @@ export function ButtonFeedback({
   scaleOnClick?: boolean
 } & Omit<HTMLMotionProps<'button'>, 'children'>) {
   const [isPressed, setIsPressed] = React.useState(false)
+  const reducedMotion = useReducedMotion()
 
   return (
     <motion.button
       className={cn('relative overflow-hidden cursor-pointer', className)}
-      whileHover={{ opacity: 0.9 }}
-      whileTap={scaleOnClick ? { scale: 0.98 } : undefined}
-      transition={{ duration: 0.1, ease: [0.16, 1, 0.3, 1] }}
+      whileHover={reducedMotion ? undefined : { opacity: 0.9 }}
+      whileTap={scaleOnClick && !reducedMotion ? { scale: 0.98 } : undefined}
+      transition={{ duration: 0.1, ease: easeOutSmooth }}
       onPointerDown={() => setIsPressed(true)}
       onPointerUp={() => setIsPressed(false)}
       onPointerLeave={() => setIsPressed(false)}
       {...props}
     >
       {children}
-      {ripple && isPressed && <RippleEffect color={rippleColor} />}
+      {ripple && isPressed && !reducedMotion && <RippleEffect color={rippleColor} />}
     </motion.button>
+  )
+}
+
+// ==================== Button Press Feedback (Subtle Scale) ====================
+
+interface PressFeedbackProps extends HTMLMotionProps<'button'> {
+  children: ReactNode
+  hoverScale?: number
+  pressScale?: number
+}
+
+/**
+ * PressFeedback - 按钮按压反馈
+ * 悬停时轻微放大，按下时轻微缩小
+ */
+export function PressFeedback({
+  children,
+  className,
+  hoverScale = 1.02,
+  pressScale = 0.97,
+  ...props
+}: PressFeedbackProps) {
+  const reducedMotion = useReducedMotion()
+
+  return (
+    <motion.button
+      className={cn('relative cursor-pointer', className)}
+      whileHover={reducedMotion ? undefined : { scale: hoverScale }}
+      whileTap={reducedMotion ? undefined : { scale: pressScale }}
+      transition={{ duration: 0.1, ease: easeOutSmooth }}
+      {...props}
+    >
+      {children}
+    </motion.button>
+  )
+}
+
+// ==================== List Staggered Entrance ====================
+
+interface StaggerListProps {
+  children: ReactNode[]
+  className?: string
+  itemClassName?: string
+  staggerDelay?: number
+  initialDelay?: number
+  direction?: 'up' | 'down' | 'left' | 'right'
+}
+
+/**
+ * StaggerListEntrance - 列表项依次进入动画
+ * 子元素依次以淡入+位移方式出现
+ */
+export function StaggerListEntrance({
+  children,
+  className,
+  itemClassName,
+  staggerDelay = 0.05,
+  initialDelay = 0,
+  direction = 'up',
+}: StaggerListProps) {
+  const reducedMotion = useReducedMotion()
+
+  const directionOffset = {
+    up: { y: 8 },
+    down: { y: -8 },
+    left: { x: 8 },
+    right: { x: -8 },
+  }
+
+  const itemVariants: Variants = {
+    hidden: { opacity: 0, ...directionOffset[direction] },
+    visible: (i: number) => ({
+      opacity: 1,
+      x: 0,
+      y: 0,
+      transition: {
+        delay: initialDelay + i * staggerDelay,
+        duration: 0.3,
+        ease: easeOutSmooth,
+      },
+    }),
+  }
+
+  if (reducedMotion) {
+    return <div className={className}>{children}</div>
+  }
+
+  return (
+    <div className={className}>
+      {children.map((child, i) => (
+        <motion.div
+          key={i}
+          custom={i}
+          variants={itemVariants}
+          initial="hidden"
+          animate="visible"
+          className={itemClassName}
+        >
+          {child}
+        </motion.div>
+      ))}
+    </div>
+  )
+}
+
+// ==================== Card Hover Glow Expansion ====================
+
+interface CardHoverGlowProps extends HTMLMotionProps<'div'> {
+  children: ReactNode
+  glowColor?: string
+  glowIntensity?: number
+}
+
+/**
+ * CardHoverGlow - 卡片悬停发光扩展
+ * 悬停时卡片上浮并扩展发光效果
+ */
+export function CardHoverGlow({
+  children,
+  className,
+  glowColor = 'rgba(94, 106, 210, 0.15)',
+  glowIntensity = 1,
+  ...props
+}: CardHoverGlowProps) {
+  const reducedMotion = useReducedMotion()
+
+  return (
+    <motion.div
+      className={cn('relative', className)}
+      initial={{ y: 0, boxShadow: '0 0 0 rgba(0,0,0,0)' }}
+      whileHover={
+        reducedMotion
+          ? undefined
+          : {
+              y: -2,
+              boxShadow: `0 0 ${20 * glowIntensity}px ${glowColor}, 0 0 ${40 * glowIntensity}px ${glowColor.replace('0.15', '0.08')}, 0 8px 24px rgba(0, 0, 0, 0.12)`,
+            }
+      }
+      transition={{ duration: 0.25, ease: easeOutSmooth }}
+      {...props}
+    >
+      {children}
+    </motion.div>
+  )
+}
+
+// ==================== Input Focus Glow Expansion ====================
+
+interface InputFocusGlowProps extends React.InputHTMLAttributes<HTMLInputElement> {
+  glowColor?: string
+  containerClassName?: string
+}
+
+/**
+ * InputFocusGlow - 输入框聚焦发光扩展
+ * 聚焦时扩展发光效果
+ */
+export function InputFocusGlow({
+  className,
+  containerClassName,
+  glowColor = 'rgba(94, 106, 210, 0.15)',
+  onFocus,
+  onBlur,
+  ...props
+}: InputFocusGlowProps) {
+  const [isFocused, setIsFocused] = React.useState(false)
+  const reducedMotion = useReducedMotion()
+
+  const handleFocus = (e: React.FocusEvent<HTMLInputElement>) => {
+    setIsFocused(true)
+    onFocus?.(e)
+  }
+
+  const handleBlur = (e: React.FocusEvent<HTMLInputElement>) => {
+    setIsFocused(false)
+    onBlur?.(e)
+  }
+
+  const glowStyle = isFocused && !reducedMotion
+    ? {
+        boxShadow: `0 0 0 3px ${glowColor}, 0 0 12px ${glowColor.replace('0.15', '0.1')}`,
+        borderColor: 'var(--border-focus)',
+      }
+    : {}
+
+  return (
+    <motion.div
+      className={cn('relative', containerClassName)}
+      animate={glowStyle as any}
+      transition={{ duration: 0.2, ease: easeOutSmooth }}
+    >
+      <input
+        className={cn(
+          'w-full rounded-lg border border-border-default bg-elevation-2 px-3 py-2',
+          'text-sm text-text-primary placeholder:text-text-tertiary',
+          'focus:outline-none focus:border-border-focus',
+          'transition-colors duration-200',
+          className
+        )}
+        onFocus={handleFocus}
+        onBlur={handleBlur}
+        {...props}
+      />
+    </motion.div>
   )
 }
 
@@ -149,7 +443,7 @@ export function IconButton({
       }}
       whileHover={{ opacity: 0.85 }}
       whileTap={{ scale: 0.97 }}
-      transition={{ duration: 0.1, ease: [0.16, 1, 0.3, 1] }}
+      transition={{ duration: 0.1, ease: easeOutSmooth }}
       aria-label={label}
       {...props}
     >
@@ -248,7 +542,7 @@ export function HoverCard({
             initial={{ opacity: 0, y: 3 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 3 }}
-            transition={{ duration: 0.12, ease: [0.16, 1, 0.3, 1] }}
+            transition={{ duration: 0.12, ease: easeOutSmooth }}
             className={cn(
               'absolute z-50 p-3 rounded-lg border shadow-lg',
               'bg-elevation-3 border-border-default',
@@ -344,7 +638,7 @@ export function ShimmerButton({
       style={{ backgroundColor: variantBg[variant] }}
       whileHover={{ opacity: 0.9 }}
       whileTap={{ scale: 0.98 }}
-      transition={{ duration: 0.1, ease: [0.16, 1, 0.3, 1] }}
+      transition={{ duration: 0.1, ease: easeOutSmooth }}
       {...props}
     >
       <motion.div
@@ -376,9 +670,10 @@ interface MagneticEffectProps {
 export function MagneticEffect({ children, strength = 0.15, className }: MagneticEffectProps) {
   const ref = React.useRef<HTMLDivElement>(null)
   const [position, setPosition] = React.useState({ x: 0, y: 0 })
+  const reducedMotion = useReducedMotion()
 
   const handleMouseMove = (e: React.MouseEvent) => {
-    if (!ref.current) return
+    if (!ref.current || reducedMotion) return
     const rect = ref.current.getBoundingClientRect()
     const centerX = rect.left + rect.width / 2
     const centerY = rect.top + rect.height / 2
@@ -424,8 +719,14 @@ export function CountUpNumber({
   formatter = (v) => v.toString(),
 }: CountUpNumberProps) {
   const [displayValue, setDisplayValue] = React.useState(0)
+  const reducedMotion = useReducedMotion()
 
   React.useEffect(() => {
+    if (reducedMotion) {
+      setDisplayValue(value)
+      return
+    }
+
     let startTime: number | null = null
     const startValue = displayValue
 
@@ -441,7 +742,31 @@ export function CountUpNumber({
     }
 
     requestAnimationFrame(animate)
-  }, [value, duration])
+  }, [value, duration, reducedMotion])
 
   return <span className={className}>{formatter(displayValue)}</span>
+}
+
+// ==================== Shake Feedback ====================
+
+interface ShakeFeedbackProps {
+  children: ReactNode
+  trigger: boolean
+  className?: string
+}
+
+/**
+ * ShakeFeedback - 抖动反馈（用于错误提示）
+ * 触发时子元素左右抖动
+ */
+export function ShakeFeedback({ children, trigger, className }: ShakeFeedbackProps) {
+  return (
+    <motion.div
+      className={className}
+      animate={trigger ? { x: [0, -6, 6, -4, 4, -2, 2, 0] } : { x: 0 }}
+      transition={{ duration: 0.4, ease: 'easeInOut' }}
+    >
+      {children}
+    </motion.div>
+  )
 }
