@@ -59,8 +59,8 @@
   --color-faction:   var(--vermillion-90);
   --color-outline:   #5b8ee8;
   --color-ifline:    #7eb84a;
-  --color-world:     var(--accent-100);
-  --color-rule:      #7eb84a;
+  --color-world:     #c9a96e;
+  --color-rule:      #8b9dc3;
 
   /* --- Surface Mappings (Dark Default) --- */
   --color-surface-base:    var(--ink-100);
