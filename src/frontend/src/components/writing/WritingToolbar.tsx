@@ -180,18 +180,21 @@ export function WritingToolbar() {
         <ToolbarButton
           icon={<Pen className="w-4 h-4" />}
           label="写作"
+          shortcut="Ctrl+1"
           isActive={currentInterface === 'writing'}
           onClick={() => setCurrentInterface('writing')}
         />
         <ToolbarButton
           icon={<List className="w-4 h-4" />}
           label="大纲"
+          shortcut="Ctrl+2"
           isActive={outlineDrawerOpen}
           onClick={toggleOutlineDrawer}
         />
         <ToolbarButton
           icon={<MessageCircle className="w-4 h-4" />}
           label="AI操作"
+          shortcut="Ctrl+3"
           isActive={aiDrawerOpen}
           onClick={toggleAIDrawer}
           badge={aiDrawerOpen ? undefined : ' '}
@@ -199,6 +202,7 @@ export function WritingToolbar() {
         <ToolbarButton
           icon={<Users className="w-4 h-4" />}
           label="协作"
+          shortcut="Ctrl+4"
           isActive={collaborationDrawerOpen}
           onClick={toggleCollaborationDrawer}
         />
@@ -475,12 +479,14 @@ const ToolbarButton = memo(function ToolbarButton({
   isActive,
   onClick,
   badge,
+  shortcut,
 }: {
   icon: React.ReactNode
   label: string
   isActive?: boolean
   onClick?: () => void
   badge?: string
+  shortcut?: string
 }) {
   return (
     <motion.button
@@ -510,6 +516,7 @@ const ToolbarButton = memo(function ToolbarButton({
           e.currentTarget.style.boxShadow = 'none'
         }
       }}
+      title={shortcut ? `${label} (${shortcut})` : label}
     >
       <span className="inline-flex items-center justify-center shrink-0 w-4 h-4 relative">
         {icon}
@@ -523,6 +530,16 @@ const ToolbarButton = memo(function ToolbarButton({
         )}
       </span>
       <span className="inline-flex items-center">{label}</span>
+      {shortcut && (
+        <span className="hidden xl:inline-flex text-[9px] px-1 py-px rounded font-mono opacity-0 group-hover:opacity-60 transition-opacity duration-200"
+          style={{
+            background: isActive ? 'rgba(255,255,255,0.15)' : 'var(--color-surface-hover)',
+            color: isActive ? 'var(--text-primary)' : 'var(--text-tertiary)',
+          }}
+        >
+          {shortcut}
+        </span>
+      )}
       {isActive && (
         <motion.span
           layoutId="toolbar-active-indicator"

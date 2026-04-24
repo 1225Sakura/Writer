@@ -29,6 +29,7 @@ import {
 	Maximize2,
 	Minimize2,
 	Sparkles,
+	Info,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -68,6 +69,13 @@ interface NodeDetail {
 	y: number;
 }
 
+interface HoverTooltipState {
+	node: GraphNode;
+	x: number;
+	y: number;
+}
+
+// Enhanced entity type config with glow variants and ring colors
 const ENTITY_TYPE_CONFIG: Record<
 	EntityNodeType,
 	{
@@ -75,6 +83,8 @@ const ENTITY_TYPE_CONFIG: Record<
 		color: string;
 		icon: typeof Users;
 		glowColor: string;
+		glowStrong: string;
+		ringColor: string;
 		size: number;
 	}
 > = {
@@ -83,6 +93,8 @@ const ENTITY_TYPE_CONFIG: Record<
 		color: "#e8b87d",
 		icon: Users,
 		glowColor: "rgba(232, 184, 125, 0.5)",
+		glowStrong: "rgba(232, 184, 125, 0.8)",
+		ringColor: "rgba(232, 184, 125, 0.25)",
 		size: 8,
 	},
 	item: {
@@ -90,6 +102,8 @@ const ENTITY_TYPE_CONFIG: Record<
 		color: "#9b7ed9",
 		icon: Scroll,
 		glowColor: "rgba(155, 126, 217, 0.5)",
+		glowStrong: "rgba(155, 126, 217, 0.8)",
+		ringColor: "rgba(155, 126, 217, 0.25)",
 		size: 6,
 	},
 	location: {
@@ -97,6 +111,8 @@ const ENTITY_TYPE_CONFIG: Record<
 		color: "#5eb5a6",
 		icon: MapPin,
 		glowColor: "rgba(94, 181, 166, 0.5)",
+		glowStrong: "rgba(94, 181, 166, 0.8)",
+		ringColor: "rgba(94, 181, 166, 0.25)",
 		size: 7,
 	},
 	faction: {
@@ -104,6 +120,8 @@ const ENTITY_TYPE_CONFIG: Record<
 		color: "#d45d5d",
 		icon: Swords,
 		glowColor: "rgba(212, 93, 93, 0.5)",
+		glowStrong: "rgba(212, 93, 93, 0.8)",
+		ringColor: "rgba(212, 93, 93, 0.25)",
 		size: 7,
 	},
 	world: {
@@ -111,6 +129,8 @@ const ENTITY_TYPE_CONFIG: Record<
 		color: "#5e6ad2",
 		icon: Globe,
 		glowColor: "rgba(94, 106, 210, 0.5)",
+		glowStrong: "rgba(94, 106, 210, 0.8)",
+		ringColor: "rgba(94, 106, 210, 0.25)",
 		size: 6,
 	},
 	rule: {
@@ -118,6 +138,8 @@ const ENTITY_TYPE_CONFIG: Record<
 		color: "#c8aa6e",
 		icon: BookOpen,
 		glowColor: "rgba(200, 170, 110, 0.5)",
+		glowStrong: "rgba(200, 170, 110, 0.8)",
+		ringColor: "rgba(200, 170, 110, 0.25)",
 		size: 5,
 	},
 	outline: {
@@ -125,6 +147,8 @@ const ENTITY_TYPE_CONFIG: Record<
 		color: "#5b8ee8",
 		icon: BookOpen,
 		glowColor: "rgba(91, 142, 232, 0.5)",
+		glowStrong: "rgba(91, 142, 232, 0.8)",
+		ringColor: "rgba(91, 142, 232, 0.25)",
 		size: 5,
 	},
 	ifline: {
@@ -132,6 +156,8 @@ const ENTITY_TYPE_CONFIG: Record<
 		color: "#7eb84a",
 		icon: Scroll,
 		glowColor: "rgba(126, 184, 74, 0.5)",
+		glowStrong: "rgba(126, 184, 74, 0.8)",
+		ringColor: "rgba(126, 184, 74, 0.25)",
 		size: 6,
 	},
 };
@@ -314,7 +340,6 @@ function useGraphData() {
 function GraphFallback() {
 	return (
 		<div className="h-full flex items-center justify-center bg-[var(--color-surface-base)] relative overflow-hidden">
-			{/* Animated background dots */}
 			<div className="absolute inset-0 opacity-30">
 				<div
 					className="absolute inset-0"
@@ -342,6 +367,81 @@ function GraphFallback() {
 				</p>
 			</div>
 		</div>
+	);
+}
+
+// Node hover tooltip with rich info following cursor
+function NodeHoverTooltip({
+	tooltip,
+	containerRef,
+}: {
+	tooltip: HoverTooltipState;
+	containerRef: React.RefObject<HTMLDivElement | null>;
+}) {
+	const config = ENTITY_TYPE_CONFIG[tooltip.node.type];
+	const Icon = config.icon;
+
+	return (
+		<motion.div
+			initial={{ opacity: 0, scale: 0.92 }}
+			animate={{ opacity: 1, scale: 1 }}
+			exit={{ opacity: 0, scale: 0.92 }}
+			transition={{ duration: 0.15, ease: [0.16, 1, 0.3, 1] }}
+			className="absolute z-30 rounded-xl p-3 min-w-[180px] max-w-[240px] pointer-events-none"
+			style={{
+				left: Math.min(
+					tooltip.x + 16,
+					(containerRef.current?.clientWidth || 800) - 260,
+				),
+				top: Math.max(tooltip.y - 12, 8),
+				background:
+					"linear-gradient(145deg, rgba(22, 24, 28, 0.98), rgba(15, 16, 20, 0.98))",
+				border: `1px solid ${config.color}30`,
+				boxShadow: `0 12px 40px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.02), 0 0 30px ${config.glowColor}25`,
+				backdropFilter: "blur(20px)",
+			}}
+		>
+			<div
+				className="absolute top-0 left-3 right-3 h-px rounded-full"
+				style={{
+					background: `linear-gradient(90deg, transparent, ${config.color}, transparent)`,
+				}}
+			/>
+			<div className="flex items-center gap-2 mb-2">
+				<div
+					className="w-7 h-7 rounded-lg flex items-center justify-center"
+					style={{
+						background: `linear-gradient(135deg, ${config.color}20, ${config.color}08)`,
+						boxShadow: `0 0 10px ${config.glowColor}30`,
+					}}
+				>
+					<Icon className="w-3.5 h-3.5" style={{ color: config.color }} />
+				</div>
+				<div className="min-w-0">
+					<p className="text-sm font-semibold text-[var(--text-primary)] truncate">
+						{tooltip.node.name}
+					</p>
+					<p className="text-[10px] text-[var(--text-tertiary)] uppercase tracking-wider">
+						{config.label}
+					</p>
+				</div>
+			</div>
+			{tooltip.node.description && (
+				<p className="text-[11px] text-[var(--text-secondary)] leading-relaxed line-clamp-2 mb-2">
+					{tooltip.node.description}
+				</p>
+			)}
+			<div className="flex items-center gap-3 text-[10px] text-[var(--text-tertiary)]">
+				<span className="flex items-center gap-1">
+					<LinkIcon className="w-3 h-3" style={{ color: config.color }} />
+					{tooltip.node.val - 1} 条关系
+				</span>
+				<span className="flex items-center gap-1">
+					<Info className="w-3 h-3" style={{ color: config.color }} />
+					ID: {tooltip.node.entityId}
+				</span>
+			</div>
+		</motion.div>
 	);
 }
 
@@ -375,7 +475,6 @@ function NodeDetailPanel({
 				backdropFilter: "blur(20px)",
 			}}
 		>
-			{/* Glow accent line */}
 			<div
 				className="absolute top-0 left-4 right-4 h-px rounded-full"
 				style={{
@@ -445,7 +544,6 @@ function FilterControls({
 
 	return (
 		<div className="absolute top-3 left-3 z-10 flex flex-col gap-2">
-			{/* Zoom controls */}
 			<div
 				className="flex flex-col gap-0.5 rounded-xl p-1.5"
 				style={{
@@ -465,7 +563,6 @@ function FilterControls({
 				<FilterButton icon={RotateCcw} title="重置视图" onClick={onResetView} />
 			</div>
 
-			{/* Entity type filter */}
 			<div
 				className="rounded-xl p-1.5"
 				style={{
@@ -554,7 +651,6 @@ function FilterControls({
 								})}
 							</div>
 
-							{/* Relation filter */}
 							<div className="pt-2 mt-2 border-t border-white/5">
 								<p className="text-[10px] mb-1.5 px-2 text-[var(--text-tertiary)] font-medium">
 									关系类型
@@ -648,7 +744,6 @@ function Legend({
 				backdropFilter: "blur(20px)",
 			}}
 		>
-			{/* Header */}
 			<div className="flex items-center justify-between px-3 py-2.5 border-b border-white/5">
 				<span className="text-[10px] font-semibold text-[rgba(255,255,255,0.5)] uppercase tracking-wider">
 					图例
@@ -662,7 +757,6 @@ function Legend({
 			</div>
 
 			<div className="p-3">
-				{/* Entity types grid */}
 				<div className="grid grid-cols-2 gap-x-3 gap-y-2 mb-3">
 					{(
 						Object.entries(ENTITY_TYPE_CONFIG) as [
@@ -685,7 +779,6 @@ function Legend({
 					))}
 				</div>
 
-				{/* Relation types */}
 				{uniqueTypes.length > 0 && (
 					<>
 						<div className="border-t border-white/5 pt-2.5">
@@ -771,7 +864,6 @@ function StatsBar({
 function GraphBackground() {
 	return (
 		<div className="absolute inset-0 pointer-events-none overflow-hidden">
-			{/* Subtle dot grid */}
 			<div
 				className="absolute inset-0 opacity-[0.08]"
 				style={{
@@ -780,7 +872,6 @@ function GraphBackground() {
 					backgroundSize: "32px 32px",
 				}}
 			/>
-			{/* Radial gradient vignette */}
 			<div
 				className="absolute inset-0"
 				style={{
@@ -788,7 +879,6 @@ function GraphBackground() {
 						"radial-gradient(ellipse at center, transparent 0%, rgba(0,0,0,0.12) 100%)",
 				}}
 			/>
-			{/* Subtle top accent glow */}
 			<div
 				className="absolute top-0 left-1/2 -translate-x-1/2 w-[500px] h-[250px] opacity-[0.04]"
 				style={{
@@ -821,6 +911,9 @@ export function RelationGraph() {
 	const [showLegend, setShowLegend] = useState(true);
 	const [selectedNode, setSelectedNode] = useState<NodeDetail | null>(null);
 	const [hoveredNodeId, setHoveredNodeId] = useState<string | null>(null);
+	const [hoverTooltip, setHoverTooltip] = useState<HoverTooltipState | null>(
+		null,
+	);
 	const [isFullscreen, setIsFullscreen] = useState(false);
 
 	const { nodes: allNodes, links: allLinks } = useGraphData();
@@ -939,6 +1032,16 @@ export function RelationGraph() {
 		}, 2000);
 	}, []);
 
+	// Track node position for hover tooltip during drag
+	const handleNodeDrag = useCallback((node: any) => {
+		if (!node) return;
+		setHoverTooltip({
+			node: node as GraphNode,
+			x: (node.x as number) || 0,
+			y: (node.y as number) || 0,
+		});
+	}, []);
+
 	// Custom node canvas renderer with enhanced visuals
 	const nodeCanvasObject = useCallback(
 		(node: any, ctx: CanvasRenderingContext2D, globalScale: number) => {
@@ -956,10 +1059,10 @@ export function RelationGraph() {
 			const pulseScale = isHovered ? 1 + Math.sin(Date.now() / 200) * 0.08 : 1;
 			const finalRadius = radius * pulseScale;
 
-			// Multi-layer glow effect
+			// Multi-layer glow effect with stronger outer glow
 			if (isHovered || isSelected) {
-				for (let i = 3; i > 0; i--) {
-					const glowRadius = finalRadius + i * 6;
+				for (let i = 4; i > 0; i--) {
+					const glowRadius = finalRadius + i * 7;
 					const glowGradient = ctx.createRadialGradient(
 						x,
 						y,
@@ -970,7 +1073,7 @@ export function RelationGraph() {
 					);
 					glowGradient.addColorStop(
 						0,
-						`${config?.glowColor || "rgba(94, 106, 210, 0.2)"}`,
+						config?.glowStrong || "rgba(94, 106, 210, 0.3)",
 					);
 					glowGradient.addColorStop(1, "transparent");
 					ctx.fillStyle = glowGradient;
@@ -978,6 +1081,19 @@ export function RelationGraph() {
 					ctx.arc(x, y, glowRadius, 0, 2 * Math.PI);
 					ctx.fill();
 				}
+			}
+
+			// Orbit ring animation for hovered nodes
+			if (isHovered && renderMode === "full") {
+				const time = Date.now() / 1500;
+				const ringRadius = finalRadius + 12;
+				ctx.beginPath();
+				ctx.arc(x, y, ringRadius, time, time + Math.PI * 1.5);
+				ctx.strokeStyle = config?.ringColor || "rgba(94, 106, 210, 0.3)";
+				ctx.lineWidth = 1.5;
+				ctx.setLineDash([4, 4]);
+				ctx.stroke();
+				ctx.setLineDash([]);
 			}
 
 			// Outer ring shadow
@@ -1060,7 +1176,6 @@ export function RelationGraph() {
 
 			const yOffset = finalRadius + fontSize * 1.2;
 
-			// Label background with rounded corners for readability
 			const displayLabel = label.length > 8 ? label.slice(0, 8) + ".." : label;
 			const textMetrics = ctx.measureText(displayLabel);
 			const textWidth = textMetrics.width;
@@ -1106,7 +1221,7 @@ export function RelationGraph() {
 				ctx.shadowBlur = 0;
 			}
 		},
-		[hoveredNodeId, selectedNode],
+		[hoveredNodeId, selectedNode, renderMode],
 	);
 
 	// Custom link renderer with gradient and animated flow
@@ -1141,12 +1256,9 @@ export function RelationGraph() {
 			const opacity = isDimmed ? 0.05 : isHighlighted ? 1 : 0.45;
 			const lineWidth = isHighlighted ? 3 : isDimmed ? 0.5 : 1.5;
 
-			// Get color from the updated RELATION_TYPE_COLORS
 			const color = link.color || "#6b7280";
 
-			// Parse color to rgba for gradient
 			const parseColor = (c: string, a: number) => {
-				// Handle hex colors
 				if (c.startsWith("#")) {
 					const r = parseInt(c.slice(1, 3), 16);
 					const g = parseInt(c.slice(3, 5), 16);
@@ -1188,7 +1300,6 @@ export function RelationGraph() {
 
 				for (let i = 0; i < particleCount; i++) {
 					const t = (time * 0.5 + i / particleCount) % 1;
-					// Quadratic bezier point calculation
 					const px = (1 - t) * (1 - t) * sx + 2 * (1 - t) * t * cx + t * t * ex;
 					const py = (1 - t) * (1 - t) * sy + 2 * (1 - t) * t * cy + t * t * ey;
 					const particleSize = 3 - t * 2;
@@ -1446,9 +1557,13 @@ export function RelationGraph() {
 						onBackgroundClick={handleBackgroundClick}
 						onNodeHover={
 							renderMode !== "simple"
-								? (node: any) => setHoveredNodeId(node?.id || null)
+								? (node: any) => {
+										setHoveredNodeId(node?.id || null);
+										if (!node) setHoverTooltip(null);
+									}
 								: undefined
 						}
+						onNodeDrag={renderMode !== "simple" ? handleNodeDrag : undefined}
 						onEngineStop={() => {
 							if (fgRef.current) {
 								const centerGraph = fgRef.current.centerAt();
@@ -1508,7 +1623,17 @@ export function RelationGraph() {
 				)}
 			</Suspense>
 
-			{/* Node detail panel */}
+			{/* Node hover tooltip */}
+			<AnimatePresence>
+				{hoverTooltip && !selectedNode && (
+					<NodeHoverTooltip
+						tooltip={hoverTooltip}
+						containerRef={containerRef}
+					/>
+				)}
+			</AnimatePresence>
+
+			{/* Node detail panel (click) */}
 			<AnimatePresence>
 				{selectedNode && (
 					<NodeDetailPanel

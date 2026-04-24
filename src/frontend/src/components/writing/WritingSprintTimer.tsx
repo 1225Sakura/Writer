@@ -60,7 +60,7 @@ function CircularProgress({
           strokeDashoffset={offset}
           className="transition-all duration-1000 ease-linear"
           style={{
-            filter: `drop-shadow(0 0 6px ${color}40)`,
+            filter: `drop-shadow(0 0 6px color-mix(in srgb, ${color} 25%, transparent))`,
           }}
         />
         {/* Glow effect underneath */}
@@ -93,7 +93,7 @@ function CelebrationAnimation({ onComplete }: { onComplete: () => void }) {
   const particles = Array.from({ length: 12 }, (_, i) => ({
     id: i,
     angle: (i / 12) * 360,
-    color: ['#e8b87d', '#7eb84a', '#5eb5a6', '#5b8ee8', '#c45c5c', '#9b7ed9'][i % 6],
+    color: ['var(--color-character)', 'var(--color-ifline)', 'var(--color-location)', 'var(--color-outline)', 'var(--color-vermillion)', 'var(--color-item)'][i % 6],
     distance: 40 + Math.random() * 40,
     size: 4 + Math.random() * 4,
   }))
@@ -121,7 +121,7 @@ function CelebrationAnimation({ onComplete }: { onComplete: () => void }) {
             width: p.size,
             height: p.size,
             background: p.color,
-            boxShadow: `0 0 8px ${p.color}80`,
+            boxShadow: `0 0 8px color-mix(in srgb, ${p.color} 50%, transparent)`,
           }}
         />
       ))}
@@ -135,8 +135,8 @@ function CelebrationAnimation({ onComplete }: { onComplete: () => void }) {
         <div
           className="w-16 h-16 rounded-full flex items-center justify-center"
           style={{
-            background: 'linear-gradient(135deg, rgba(126, 184, 74, 0.2) 0%, rgba(94, 181, 166, 0.2) 100%)',
-            border: '1px solid rgba(126, 184, 74, 0.3)',
+            background: 'linear-gradient(135deg, color-mix(in srgb, var(--color-ifline) 20%, transparent) 0%, color-mix(in srgb, var(--color-success) 20%, transparent) 100%)',
+            border: '1px solid color-mix(in srgb, var(--color-ifline) 30%, transparent)',
           }}
         >
           <Trophy className="w-7 h-7 text-[var(--color-success)]" />
@@ -286,8 +286,8 @@ export function WritingSprintTimer() {
       : 'text-[var(--text-secondary)]'
     const timerGlow = timer.isRunning
       ? timer.isBreak
-        ? 'shadow-[0_0_12px_rgba(126,184,74,0.15)]'
-        : 'shadow-[0_0_12px_rgba(94,106,210,0.15)]'
+        ? 'shadow-[0_0_12px_color-mix(in_srgb,var(--color-ifline)_15%,transparent)]'
+        : 'shadow-[0_0_12px_color-mix(in_srgb,var(--accent-primary)_15%,transparent)]'
       : 'shadow-drawer'
 
     return (
@@ -344,7 +344,7 @@ export function WritingSprintTimer() {
       style={{
         background: 'var(--color-surface-raised)',
         border: '1px solid var(--border-default)',
-        boxShadow: '0 16px 48px rgba(0,0,0,0.30), 0 4px 12px rgba(0,0,0,0.18), 0 0 0 1px rgba(255,255,255,0.03)',
+        boxShadow: 'var(--shadow-float), 0 0 0 1px var(--border-subtle)',
         backdropFilter: 'blur(16px)',
         WebkitBackdropFilter: 'blur(16px)',
       }}

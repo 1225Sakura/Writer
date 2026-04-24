@@ -275,7 +275,7 @@ export function ShortcutsHelpTrigger({ className = '' }: { className?: string })
   return (
     <button
       onClick={handleClick}
-      className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm text-[#8a8f98] hover:text-[#d0d6e0] hover:bg-white/5 transition-colors ${className}`}
+      className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm text-[var(--text-tertiary)] hover:text-[var(--text-secondary)] hover:bg-white/5 transition-colors ${className}`}
       title="快捷键帮助 (Ctrl+Shift+?)"
     >
       <Keyboard className="w-4 h-4" />

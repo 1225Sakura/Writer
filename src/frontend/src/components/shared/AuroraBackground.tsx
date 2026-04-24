@@ -77,7 +77,7 @@ function isLowPerformanceDevice(): boolean {
   return isMobile || isSmallScreen || prefersReducedMotion
 }
 
-function initBands(width: number, height: number, speed: number, palette: typeof paletteConfig.northern): AuroraBand[] {
+function initBands(_width: number, height: number, speed: number, palette: typeof paletteConfig.northern): AuroraBand[] {
   const rand = seededRandom(888)
   const bands: AuroraBand[] = []
   const bandCount = 3

@@ -19,7 +19,7 @@ const typeColors: Record<string, string> = {
 }
 
 /* ============================================================
-   TYPING EFFECT HOOK
+   TYPING EFFECT HOOK — Optimized to prevent re-init on parent re-render
    ============================================================ */
 
 function useTypingEffect(text: string, speed: number = 18, enabled: boolean = true) {
@@ -27,24 +27,32 @@ function useTypingEffect(text: string, speed: number = 18, enabled: boolean = tr
   const [isComplete, setIsComplete] = useState(false)
   const indexRef = useRef(0)
   const rafRef = useRef<number>()
+  const textRef = useRef(text)
 
   useEffect(() => {
     if (!enabled) {
       setDisplayed(text)
       setIsComplete(true)
+      textRef.current = text
       return
     }
-    setDisplayed('')
-    setIsComplete(false)
-    indexRef.current = 0
+
+    // Only reset if text content actually changed
+    const textChanged = textRef.current !== text
+    if (textChanged) {
+      setDisplayed('')
+      setIsComplete(false)
+      indexRef.current = 0
+      textRef.current = text
+    }
 
     let lastTime = 0
     const tick = (time: number) => {
       if (time - lastTime >= speed) {
         lastTime = time
         indexRef.current += 1
-        setDisplayed(text.slice(0, indexRef.current))
-        if (indexRef.current >= text.length) {
+        setDisplayed(textRef.current.slice(0, indexRef.current))
+        if (indexRef.current >= textRef.current.length) {
           setIsComplete(true)
           return
         }
@@ -52,10 +60,15 @@ function useTypingEffect(text: string, speed: number = 18, enabled: boolean = tr
       rafRef.current = requestAnimationFrame(tick)
     }
 
-    rafRef.current = requestAnimationFrame(tick)
+    // Only start RAF if not complete
+    if (indexRef.current < text.length || textChanged) {
+      rafRef.current = requestAnimationFrame(tick)
+    }
+
     return () => {
       if (rafRef.current) cancelAnimationFrame(rafRef.current)
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [text, speed, enabled])
 
   return { displayed, isComplete }
@@ -244,13 +257,18 @@ function MessageStatus({ status, timestamp }: { status?: 'sending' | 'sent' | 'e
    CHAT BUBBLE with staggered slide-up entrance
    ============================================================ */
 
-function ChatBubble({ message, onEdit, onDelete, onConfirmEntity, index }: {
+interface ChatBubbleProps {
   message: ChatMessage
   onEdit?: (id: string, content: string) => void
   onDelete?: (id: string) => void
   onConfirmEntity?: (id: string) => void
   index: number
-}) {
+  isGrouped?: boolean
+  isFirstInGroup?: boolean
+  isLastInGroup?: boolean
+}
+
+function ChatBubble({ message, onEdit, onDelete, onConfirmEntity, index, isGrouped = false, isFirstInGroup = true }: ChatBubbleProps) {
   const isAssistant = message.role === 'assistant'
   const [isEditing, setIsEditing] = useState(false)
   const [editContent, setEditContent] = useState(message.content)
@@ -296,17 +314,18 @@ function ChatBubble({ message, onEdit, onDelete, onConfirmEntity, index }: {
               delay: Math.min(index * 0.06, 0.2),
             }
       }
-      className={`flex ${isAssistant ? 'justify-start' : 'justify-end'} mb-5`}
+      className={`flex ${isAssistant ? 'justify-start' : 'justify-end'} ${isGrouped && !isFirstInGroup ? 'mb-1' : 'mb-5'}`}
       onMouseEnter={() => setShowActions(true)}
       onMouseLeave={() => setShowActions(false)}
     >
       <div className={`flex gap-3 max-w-[80%] ${isAssistant ? 'flex-row' : 'flex-row-reverse'}`}>
-        {/* Avatar */}
+        {/* Avatar - only show for first message in group */}
         <motion.div
           className="flex-shrink-0 mt-1"
           initial={prefersReducedMotion ? {} : { opacity: 0, scale: 0.8 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.25, delay: 0.1 }}
+          style={{ visibility: isFirstInGroup ? 'visible' : 'hidden', width: isFirstInGroup ? 'auto' : '32px' }}
         >
           {isAssistant ? (
             <AIAvatar />
@@ -326,8 +345,8 @@ function ChatBubble({ message, onEdit, onDelete, onConfirmEntity, index }: {
           <motion.div
             className={`relative px-4 py-3.5 transition-all duration-200 ${
               isAssistant
-                ? 'bg-surface-raised text-primary rounded-2xl rounded-tl-2xl rounded-tr-lg rounded-bl-md rounded-br-lg'
-                : 'bg-accent-primary text-white rounded-2xl rounded-tl-lg rounded-tr-2xl rounded-bl-lg rounded-br-md'
+                ? `bg-surface-raised text-primary ${isFirstInGroup ? 'rounded-2xl rounded-tl-2xl rounded-tr-lg rounded-bl-md rounded-br-lg' : 'rounded-lg rounded-tl-md rounded-tr-lg rounded-bl-md rounded-br-lg'}`
+                : `bg-accent-primary text-white ${isFirstInGroup ? 'rounded-2xl rounded-tl-lg rounded-tr-2xl rounded-bl-lg rounded-br-md' : 'rounded-lg rounded-tl-lg rounded-tr-md rounded-bl-lg rounded-br-md'}`
             }`}
             style={{
               boxShadow: isAssistant
@@ -666,16 +685,28 @@ export function ChatArea() {
             )}
 
             <AnimatePresence initial={false}>
-              {messages.map((msg, index) => (
-                <ChatBubble
-                  key={msg.id}
-                  message={msg}
-                  index={index}
-                  onEdit={editMessage}
-                  onDelete={deleteMessage}
-                  onConfirmEntity={confirmEntity}
-                />
-              ))}
+              {messages.map((msg, index) => {
+                // Determine message grouping
+                const prevMsg = index > 0 ? messages[index - 1] : null
+                const nextMsg = index < messages.length - 1 ? messages[index + 1] : null
+                const isGrouped = prevMsg?.role === msg.role
+                const isFirstInGroup = prevMsg?.role !== msg.role
+                const isLastInGroup = nextMsg?.role !== msg.role
+
+                return (
+                  <ChatBubble
+                    key={msg.id}
+                    message={msg}
+                    index={index}
+                    onEdit={editMessage}
+                    onDelete={deleteMessage}
+                    onConfirmEntity={confirmEntity}
+                    isGrouped={isGrouped}
+                    isFirstInGroup={isFirstInGroup}
+                    isLastInGroup={isLastInGroup}
+                  />
+                )
+              })}
             </AnimatePresence>
 
             {isStreaming && currentStreamContent && (

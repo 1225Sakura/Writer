@@ -1,8 +1,7 @@
 export { Button } from './Button'
 export type { ButtonProps } from './Button'
 
-export { Card, CardHeader, CardContent, CardFooter } from './card'
-export type { CardProps, CardHeaderProps, CardContentProps, CardFooterProps } from './card'
+export { Card, CardHeader, CardContent, CardFooter, CardTitle, CardDescription } from './card'
 
 export { Input } from './input'
 export type { InputProps } from './input'
@@ -10,7 +9,7 @@ export type { InputProps } from './input'
 export { Textarea } from './textarea'
 export type { TextareaProps } from './textarea'
 
-export { Badge } from './badge'
+export { Badge, badgeVariants } from './badge'
 export type { BadgeProps } from './badge'
 
 export {

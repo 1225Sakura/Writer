@@ -452,7 +452,7 @@ function CharacterStorylines() {
       case 'idle':
         return { color: '#e8b87d', label: '待机', icon: <Pause className="w-3 h-3" /> }
       default:
-        return { color: '#d0d6e0', label: '待出场', icon: <Clock className="w-3 h-3" /> }
+        return { color: '#8a8f98', label: '待出场', icon: <Clock className="w-3 h-3" /> }
     }
   }
 

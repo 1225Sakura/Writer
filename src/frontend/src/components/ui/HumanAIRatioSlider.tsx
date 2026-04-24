@@ -8,9 +8,9 @@ interface HumanAIRatioSliderProps {
 
 export function HumanAIRatioSlider({ value, onChange }: HumanAIRatioSliderProps) {
   const getTrackGradient = () => {
-    if (value < 30) return 'linear-gradient(90deg, #5e6ad2 0%, #6b77e0 100%)'
-    if (value < 70) return 'linear-gradient(90deg, #5e6ad2 0%, #7eb84a 100%)'
-    return 'linear-gradient(90deg, #7eb84a 0%, #e8b87d 100%)'
+    if (value < 30) return 'linear-gradient(90deg, var(--accent-primary) 0%, var(--accent-90) 100%)'
+    if (value < 70) return 'linear-gradient(90deg, var(--accent-primary) 0%, var(--color-ifline) 100%)'
+    return 'linear-gradient(90deg, var(--color-ifline) 0%, var(--color-character) 100%)'
   }
 
   const getModeIcon = () => {
@@ -26,9 +26,9 @@ export function HumanAIRatioSlider({ value, onChange }: HumanAIRatioSliderProps)
   }
 
   const getModeColor = () => {
-    if (value < 30) return '#5e6ad2'
-    if (value < 70) return '#7eb84a'
-    return '#e8b87d'
+    if (value < 30) return 'var(--accent-primary)'
+    if (value < 70) return 'var(--color-ifline)'
+    return 'var(--color-character)'
   }
 
   return (
@@ -60,7 +60,7 @@ export function HumanAIRatioSlider({ value, onChange }: HumanAIRatioSliderProps)
       <div className="flex justify-between items-center px-1">
         <span
           className={`flex items-center gap-1.5 text-xs font-medium transition-all duration-300 ${
-            value < 30 ? 'text-[#5e6ad2]' : 'text-[var(--text-tertiary)]'
+            value < 30 ? 'text-[var(--accent-primary)]' : 'text-[var(--text-tertiary)]'
           }`}
         >
           <Bot className="w-4 h-4" />
@@ -82,7 +82,7 @@ export function HumanAIRatioSlider({ value, onChange }: HumanAIRatioSliderProps)
 
         <span
           className={`flex items-center gap-1.5 text-xs font-medium transition-all duration-300 ${
-            value >= 70 ? 'text-[#e8b87d]' : 'text-[var(--text-tertiary)]'
+            value >= 70 ? 'text-[var(--color-character)]' : 'text-[var(--text-tertiary)]'
           }`}
         >
           <span>人工</span>

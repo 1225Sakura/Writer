@@ -26,7 +26,7 @@
   --paper-95:  #eee9df;
   --paper-90:  #e8e4dc;
   --paper-85:  #dcd6c8;
-  --paper-80:  #d0d6e0;
+  --paper-80:  #d8d2c4;
   --paper-75:  #b8b8b8;
   --paper-70:  #999999;
   --paper-65:  #888888;
@@ -4160,4 +4160,488 @@ code, pre {
   background:
     radial-gradient(ellipse at 50% 50%, rgba(90, 175, 114, 0.02) 0%, transparent 60%),
     var(--color-surface-base);
+}
+
+/* ============================================================
+   SECTION 40: AI OPERATION DRAWER OPTIMIZATIONS
+   ============================================================ */
+
+/* Refined scrollbar for AI drawer content */
+.ai-drawer-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-subtle) transparent;
+}
+
+.ai-drawer-scroll::-webkit-scrollbar {
+  width: 4px;
+}
+
+.ai-drawer-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.ai-drawer-scroll::-webkit-scrollbar-thumb {
+  background: var(--border-subtle);
+  border-radius: 2px;
+}
+
+.ai-drawer-scroll::-webkit-scrollbar-thumb:hover {
+  background: var(--border-default);
+}
+
+/* AI Operation button refinements */
+.ai-drawer-scroll .touch-target-button {
+  position: relative;
+  overflow: hidden;
+}
+
+.ai-drawer-scroll .touch-target-button::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  opacity: 0;
+  background: linear-gradient(135deg, rgba(94, 106, 210, 0.06) 0%, transparent 60%);
+  transition: opacity 0.2s ease;
+  pointer-events: none;
+}
+
+.ai-drawer-scroll .touch-target-button:hover::before {
+  opacity: 1;
+}
+
+/* Loading skeleton shimmer refinement */
+.skeleton-shimmer {
+  background: linear-gradient(
+    90deg,
+    var(--color-surface-raised) 0%,
+    color-mix(in srgb, var(--color-surface-raised) 80%, var(--paper-100)) 50%,
+    var(--color-surface-raised) 100%
+  );
+  background-size: 200% 100%;
+  animation: skeleton-shimmer 1.5s ease-in-out infinite;
+}
+
+@keyframes skeleton-shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+/* Quality score badge glow */
+.quality-score {
+  position: relative;
+}
+
+.quality-score::after {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  opacity: 0;
+  background: linear-gradient(135deg, var(--accent-primary) 0%, var(--color-ifline) 100%);
+  filter: blur(8px);
+  z-index: -1;
+  transition: opacity 0.3s ease;
+}
+
+.quality-score:hover::after {
+  opacity: 0.15;
+}
+
+/* Diff preview card refinements */
+.diff-preview {
+  position: relative;
+}
+
+.diff-preview .original-text {
+  border-left: 2px solid var(--color-vermillion);
+  padding-left: 0.75rem;
+  margin-left: -0.75rem;
+}
+
+.diff-preview .result-text {
+  border-left: 2px solid var(--color-ifline);
+  padding-left: 0.75rem;
+  margin-left: -0.75rem;
+}
+
+/* Operation history timeline dot pulse */
+.operation-history .timeline-dot {
+  position: relative;
+}
+
+.operation-history .timeline-dot::after {
+  content: '';
+  position: absolute;
+  inset: -3px;
+  border-radius: 50%;
+  background: inherit;
+  opacity: 0;
+  filter: blur(4px);
+  animation: timeline-dot-glow 2s ease-in-out infinite;
+}
+
+@keyframes timeline-dot-glow {
+  0%, 100% { opacity: 0; transform: scale(1); }
+  50% { opacity: 0.4; transform: scale(1.3); }
+}
+
+/* Style button active state ring */
+.style-button-active {
+  position: relative;
+}
+
+.style-button-active::before {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  padding: 1px;
+  background: linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-90) 100%);
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  opacity: 0.6;
+}
+
+/* Global operation button hover lift */
+.global-op-button {
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1),
+              box-shadow 0.2s ease,
+              border-color 0.2s ease;
+}
+
+.global-op-button:hover {
+  transform: translateY(-1px);
+}
+
+/* Progress bar shimmer for active AI job */
+.ai-progress-bar {
+  position: relative;
+  overflow: hidden;
+}
+
+.ai-progress-bar::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.15) 50%,
+    transparent 100%
+  );
+  animation: progress-shimmer 1.5s ease-in-out infinite;
+}
+
+@keyframes progress-shimmer {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+
+/* ============================================================
+   SECTION 41: COLLABORATION PANEL OPTIMIZATIONS
+   ============================================================ */
+
+/* Panel card hover refinements */
+.collaboration-panel .panel-card {
+  position: relative;
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1),
+              box-shadow 0.25s ease,
+              border-color 0.2s ease;
+}
+
+.collaboration-panel .panel-card:hover {
+  transform: translateY(-1px);
+}
+
+.collaboration-panel .panel-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  opacity: 0;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.03) 0%, transparent 40%);
+  transition: opacity 0.25s ease;
+  pointer-events: none;
+}
+
+.collaboration-panel .panel-card:hover::before {
+  opacity: 1;
+}
+
+/* Status indicator refined pulse */
+.status-indicator {
+  position: relative;
+}
+
+.status-indicator .pulse-ring {
+  position: absolute;
+  inset: -2px;
+  border-radius: inherit;
+  border: 1px solid currentColor;
+  opacity: 0;
+  animation: status-pulse 2s ease-out infinite;
+}
+
+@keyframes status-pulse {
+  0% { opacity: 0.5; transform: scale(1); }
+  100% { opacity: 0; transform: scale(1.4); }
+}
+
+/* Character storyline card refinements */
+.character-storyline {
+  position: relative;
+  overflow: hidden;
+}
+
+.character-storyline::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 3px;
+  height: 100%;
+  background: linear-gradient(180deg, var(--color-character) 0%, transparent 100%);
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.character-storyline:hover::after {
+  opacity: 0.6;
+}
+
+/* Plot thread item hover accent */
+.plot-thread {
+  position: relative;
+}
+
+.plot-thread::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 0;
+  height: 60%;
+  background: var(--color-ifline);
+  border-radius: 0 2px 2px 0;
+  opacity: 0.5;
+  transition: width 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.plot-thread:hover::before {
+  width: 3px;
+}
+
+/* Activity feed item refinements */
+.activity-feed .activity-item {
+  position: relative;
+  transition: background-color 0.15s ease, transform 0.15s ease;
+}
+
+.activity-feed .activity-item:hover {
+  transform: translateX(2px);
+}
+
+.activity-feed .activity-item::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: var(--accent-primary);
+  opacity: 0;
+  transition: opacity 0.15s ease;
+  border-radius: 0 1px 1px 0;
+}
+
+.activity-feed .activity-item:hover::before {
+  opacity: 0.4;
+}
+
+/* IF line card glow on hover */
+.if-line-card {
+  position: relative;
+}
+
+.if-line-card::before {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  background: linear-gradient(135deg, rgba(126, 184, 74, 0.15) 0%, transparent 50%);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+  z-index: -1;
+}
+
+.if-line-card:hover::before {
+  opacity: 1;
+}
+
+/* Battle input focus refinement */
+.battle-input {
+  transition: border-color 0.2s ease,
+              box-shadow 0.2s ease,
+              transform 0.15s ease;
+}
+
+.battle-input:focus {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+/* Chapter progress bar glow */
+.chapter-progress .progress-track {
+  position: relative;
+}
+
+.chapter-progress .progress-track::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(90deg, var(--accent-primary) 0%, var(--color-ifline) 100%);
+  filter: blur(6px);
+  opacity: 0.3;
+  z-index: -1;
+}
+
+/* Collaborator avatar stack hover */
+.collaborator-avatars .avatar-item {
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1),
+              box-shadow 0.2s ease;
+}
+
+.collaborator-avatars:hover .avatar-item {
+  margin-right: 2px;
+}
+
+.collaborator-avatars .avatar-item:hover {
+  transform: scale(1.15) translateY(-2px);
+  z-index: 10;
+}
+
+/* Collapsible section header refinements */
+.collapsible-section-header {
+  position: relative;
+  overflow: hidden;
+}
+
+.collapsible-section-header::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent 0%, var(--border-subtle) 20%, var(--border-subtle) 80%, transparent 100%);
+  opacity: 0.5;
+}
+
+/* Empty state icon hover */
+.empty-state-icon {
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1),
+              box-shadow 0.3s ease;
+}
+
+.empty-state:hover .empty-state-icon {
+  transform: scale(1.05);
+}
+
+/* Badge glow for IF line count */
+.badge-glow {
+  position: relative;
+}
+
+.badge-glow::after {
+  content: '';
+  position: absolute;
+  inset: -2px;
+  border-radius: inherit;
+  background: var(--color-vermillion);
+  filter: blur(6px);
+  opacity: 0.2;
+  z-index: -1;
+}
+
+/* Panel scrollbar refinement */
+.collaboration-panel {
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-subtle) transparent;
+}
+
+.collaboration-panel::-webkit-scrollbar {
+  width: 4px;
+}
+
+.collaboration-panel::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.collaboration-panel::-webkit-scrollbar-thumb {
+  background: var(--border-subtle);
+  border-radius: 2px;
+}
+
+.collaboration-panel::-webkit-scrollbar-thumb:hover {
+  background: var(--border-default);
+}
+
+/* Online status indicator refined */
+.online-indicator {
+  position: relative;
+}
+
+.online-indicator::after {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  border-radius: 50%;
+  border: 1px solid var(--color-ifline);
+  opacity: 0;
+  animation: online-ring 2s ease-out infinite;
+}
+
+@keyframes online-ring {
+  0% { opacity: 0.6; transform: scale(1); }
+  100% { opacity: 0; transform: scale(1.6); }
+}
+
+/* Reduced motion preferences for drawer/panel */
+@media (prefers-reduced-motion: reduce) {
+  .ai-drawer-scroll .touch-target-button::before,
+  .collaboration-panel .panel-card::before,
+  .character-storyline::after,
+  .plot-thread::before,
+  .if-line-card::before {
+    transition: none !important;
+    animation: none !important;
+  }
+
+  .skeleton-shimmer {
+    animation: none !important;
+    background: var(--color-surface-raised) !important;
+  }
+
+  .ai-progress-bar::after {
+    animation: none !important;
+    display: none !important;
+  }
+
+  .operation-history .timeline-dot::after {
+    animation: none !important;
+  }
+
+  .online-indicator::after {
+    animation: none !important;
+  }
+
+  .status-indicator .pulse-ring {
+    animation: none !important;
+  }
 }
