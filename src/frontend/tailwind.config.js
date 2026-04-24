@@ -212,6 +212,10 @@ export default {
           '0%, 100%': { boxShadow: '0 0 4px rgba(94, 106, 210, 0.3)' },
           '50%': { boxShadow: '0 0 16px rgba(94, 106, 210, 0.6)' }
         },
+        'glow-pulse': {
+          '0%, 100%': { opacity: '0.3' },
+          '50%': { opacity: '0.6' }
+        },
         breathe: {
           '0%, 100%': { transform: 'scale(1)', opacity: '1' },
           '50%': { transform: 'scale(1.02)', opacity: '0.85' }
@@ -234,9 +238,8 @@ export default {
         'pulse-slow': 'pulse-slow 3s ease-in-out infinite',
         shimmer: 'shimmer 2s linear infinite',
         'shimmer-subtle': 'shimmer-subtle 1.5s linear infinite',
-        float: 'float 3s ease-in-out infinite',
+        /* REMOVED per SPEC 8.2: float, glow-pulse, breathe - use static glow instead */
         glow: 'glow 2s ease-in-out infinite',
-        breathe: 'breathe 4s ease-in-out infinite',
         ripple: 'ripple 0.4s ease-out forwards',
         'accordion-down': 'accordion-down 0.2s ease-out',
         'accordion-up': 'accordion-up 0.2s ease-out'
@@ -282,18 +285,16 @@ export default {
         float: '0 0 0 1px rgba(255,255,255,0.08)',
         elevated: '0 4px 12px rgba(0, 0, 0, 0.25)',
         'elevated-lg': '0 8px 24px rgba(0, 0, 0, 0.35)',
-        'glow-sm': '0 0 8px rgba(94, 106, 210, 0.25)',
-        glow: '0 0 16px rgba(94, 106, 210, 0.35)',
+        'glow-sm': '0 0 8px rgba(94, 106, 210, 0.2)',
+        'glow-subtle': '0 0 12px rgba(94, 106, 210, 0.25)',
+        'glow': '0 0 16px rgba(94, 106, 210, 0.35)',
         'glow-lg': '0 0 32px rgba(94, 106, 210, 0.45)',
-        'glow-vermillion': '0 0 12px rgba(196, 92, 92, 0.35)',
-        'inner-glow': 'inset 0 0 12px rgba(94, 106, 210, 0.15)',
-        'inner-glow-md': 'inset 0 0 20px rgba(94, 106, 210, 0.2)',
-        'inner-glow-strong': 'inset 0 0 24px rgba(94, 106, 210, 0.25)',
-        'inner-glow-vermillion': 'inset 0 0 16px rgba(196, 92, 92, 0.2)',
-        'inner-glow-amber': 'inset 0 0 16px rgba(232, 184, 125, 0.2)',
+        'glow-strong': '0 0 48px rgba(94, 106, 210, 0.55)',
+        'glow-vermillion-subtle': '0 0 8px rgba(196, 92, 92, 0.25)',
+        'glow-vermillion': '0 0 16px rgba(196, 92, 92, 0.35)',
         'glow-amber': '0 0 12px rgba(232, 184, 125, 0.35)',
         'glow-jade': '0 0 12px rgba(94, 181, 166, 0.35)',
-        'glow-accent': '0 0 16px rgba(94, 106, 210, 0.4), 0 0 32px rgba(94, 106, 210, 0.2), 0 0 64px rgba(94, 106, 210, 0.1)',
+        'glow-accent': '0 0 18px rgba(94, 106, 210, 0.4), 0 0 36px rgba(94, 106, 210, 0.2), 0 0 72px rgba(94, 106, 210, 0.1)',
         'glow-primary': '0 0 12px var(--glow-primary-sm), 0 0 24px var(--glow-primary)',
       },
 

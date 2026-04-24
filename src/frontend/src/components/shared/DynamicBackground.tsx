@@ -31,11 +31,11 @@ interface DynamicBackgroundProps {
   useThemeColors?: boolean
 }
 
-// 密度配置
+// 密度配置 - SPEC 3.2: 减少50%粒子数量以降低视觉干扰
 const densityConfig = {
-  low: { particle: 10, grid: 6, wave: 2, starfield: 40 },
-  medium: { particle: 20, grid: 10, wave: 4, starfield: 80 },
-  high: { particle: 30, grid: 14, wave: 5, starfield: 120 },
+  low: { particle: 5, grid: 3, wave: 1, starfield: 20 },
+  medium: { particle: 10, grid: 5, wave: 2, starfield: 40 },
+  high: { particle: 15, grid: 7, wave: 3, starfield: 60 },
 }
 
 // 低性能设备密度配置（自动降级）

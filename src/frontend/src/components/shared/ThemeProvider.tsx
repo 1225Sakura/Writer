@@ -167,6 +167,31 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     applyThemeColors(theme)
   }, [theme])
 
+  // Handle smooth theme transitions and reduced motion
+  useEffect(() => {
+    const mediaQuery = window.matchMedia('(prefers-reduced-motion: reduce)')
+    const root = document.documentElement
+
+    if (mediaQuery.matches) {
+      root.classList.add('motion-reduce')
+    } else {
+      root.classList.remove('motion-reduce')
+    }
+
+    // Add smooth transitions (disabled for reduced motion)
+    const handleTransition = () => {
+      if (mediaQuery.matches) {
+        root.style.setProperty('--transition-duration', '0ms')
+      } else {
+        root.style.setProperty('--transition-duration', '250ms')
+      }
+    }
+
+    handleTransition()
+    mediaQuery.addEventListener('change', handleTransition)
+    return () => mediaQuery.removeEventListener('change', handleTransition)
+  }, [])
+
   const handleSetTheme = useCallback((newTheme: Theme) => {
     setTheme(newTheme)
   }, [setTheme])
