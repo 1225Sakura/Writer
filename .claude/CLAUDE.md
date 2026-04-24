@@ -169,8 +169,8 @@
 
 | 文件 | 说明 |
 |------|------|
-| `Writer Setup 1.0.0.exe` | Windows 安装程序 |
-| `win-unpacked/Writer.exe` | 便携版（无需安装）|
+| `Writer Setup 1.0.0.exe` | Windows 安装程序 (85MB) |
+| `win-unpacked/Writer.exe` | 便携版 (无需安装) |
 
 ---
 
