@@ -67,17 +67,17 @@ export interface AmbientLightProps {
 }
 
 const colorMap: Record<AmbientColor, string> = {
-  accent: 'rgba(94, 106, 210, 0.35)',
-  character: 'rgba(232, 184, 125, 0.3)',
-  item: 'rgba(155, 126, 217, 0.3)',
-  location: 'rgba(94, 181, 166, 0.3)',
-  faction: 'rgba(212, 93, 93, 0.3)',
-  outline: 'rgba(91, 142, 232, 0.3)',
-  ifline: 'rgba(126, 183, 74, 0.3)',
-  vermillion: 'rgba(196, 92, 92, 0.3)',
-  warm: 'rgba(232, 184, 125, 0.25)',
-  cool: 'rgba(94, 181, 166, 0.25)',
-  custom: 'rgba(94, 106, 210, 0.35)',
+  accent: 'rgba(94, 106, 210, 0.28)',
+  character: 'rgba(232, 184, 125, 0.22)',
+  item: 'rgba(155, 126, 217, 0.22)',
+  location: 'rgba(94, 181, 166, 0.22)',
+  faction: 'rgba(212, 93, 93, 0.22)',
+  outline: 'rgba(91, 142, 232, 0.22)',
+  ifline: 'rgba(126, 183, 74, 0.22)',
+  vermillion: 'rgba(196, 92, 92, 0.22)',
+  warm: 'rgba(232, 184, 125, 0.18)',
+  cool: 'rgba(94, 181, 166, 0.18)',
+  custom: 'rgba(94, 106, 210, 0.28)',
 }
 
 const sizeMap: Record<AmbientSize, { width: string; height: string }> = {
@@ -165,13 +165,14 @@ export function AmbientLight({
         className={cn('pointer-events-none', className)}
         style={baseStyle}
         animate={{
-          scale: [1, 1.08, 1],
-          opacity: [opacity * 0.7, opacity, opacity * 0.7],
+          scale: [1, 1.06, 0.98, 1.04, 1],
+          opacity: [opacity * 0.75, opacity, opacity * 0.65, opacity * 0.9, opacity * 0.75],
         }}
         transition={{
           duration: animationDuration,
           repeat: Infinity,
           ease: 'easeInOut',
+          times: [0, 0.25, 0.5, 0.75, 1],
         }}
       />
     )

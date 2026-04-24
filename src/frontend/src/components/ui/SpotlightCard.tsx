@@ -61,10 +61,10 @@ const colorMap: Record<SpotlightColor, string> = {
 }
 
 const intensityMap: Record<SpotlightIntensity, { size: number; opacity: number }> = {
-  subtle: { size: 200, opacity: 0.08 },
-  soft: { size: 250, opacity: 0.12 },
-  medium: { size: 300, opacity: 0.18 },
-  strong: { size: 400, opacity: 0.25 },
+  subtle: { size: 180, opacity: 0.06 },
+  soft: { size: 220, opacity: 0.1 },
+  medium: { size: 280, opacity: 0.14 },
+  strong: { size: 350, opacity: 0.2 },
 }
 
 const roundedMap = {

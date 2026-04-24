@@ -72,16 +72,22 @@ function isLowPerformanceDevice(): boolean {
  * - 琥珀 (Amber) #e8b87d
  * - 翠岚 (Jade) #5eb5a6
  */
+/**
+ * 设计规范颜色（墨韵色系）- 优化后更 subtle 的透明度
+ * - 紫辰 (Accent Purple) #5e6ad2
+ * - 琥珀 (Amber) #e8b87d
+ * - 翠岚 (Jade) #5eb5a6
+ */
 const designColors = [
-  'rgba(94, 106, 210, 0.4)',
-  'rgba(232, 184, 125, 0.35)',
-  'rgba(94, 181, 166, 0.35)',
+  'rgba(94, 106, 210, 0.3)',
+  'rgba(232, 184, 125, 0.25)',
+  'rgba(94, 181, 166, 0.25)',
 ]
 
 const defaultColors = [
-  'rgba(94, 106, 210, 0.35)',
-  'rgba(155, 126, 217, 0.3)',
-  'rgba(232, 184, 125, 0.3)',
+  'rgba(94, 106, 210, 0.3)',
+  'rgba(155, 126, 217, 0.25)',
+  'rgba(232, 184, 125, 0.25)',
 ]
 
 /**
@@ -133,6 +139,12 @@ export function EnhancedParticleBackground({
   // Design spec colors as default palette
   const palette = colors ?? (useThemeColors ? designColors : defaultColors)
 
+  // Memoize canvas opacity based on device performance
+  const canvasOpacity = useMemo(() => {
+    if (isMobile) return 0.35
+    return isLowPerf ? 0.4 : 0.5
+  }, [isMobile, isLowPerf])
+
   // Initialize particles
   const initParticles = useCallback((width: number, height: number) => {
     const particles: Particle[] = []
@@ -146,7 +158,7 @@ export function EnhancedParticleBackground({
         vy: (rand() - 0.5) * 0.25 * speedFactor,
         size: particleType === 'dot' ? 1.5 + rand() * 1.5 : 2 + rand() * 2,
         color: palette[Math.floor(rand() * palette.length)],
-        opacity: 0.05 + rand() * 0.08,
+        opacity: 0.04 + rand() * 0.06,
       })
     }
 
@@ -316,7 +328,7 @@ export function EnhancedParticleBackground({
       <canvas
         ref={canvasRef}
         className="absolute inset-0 w-full h-full"
-        style={{ opacity: 0.5 }}
+        style={{ opacity: canvasOpacity }}
       />
     </div>
   )

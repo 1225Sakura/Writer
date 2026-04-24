@@ -44,10 +44,10 @@ export interface TexturedBackgroundProps {
 }
 
 const intensityMap: Record<TextureIntensity, number> = {
-  subtle: 0.015,
-  light: 0.03,
-  medium: 0.05,
-  strong: 0.08,
+  subtle: 0.012,
+  light: 0.025,
+  medium: 0.04,
+  strong: 0.07,
 }
 
 /**

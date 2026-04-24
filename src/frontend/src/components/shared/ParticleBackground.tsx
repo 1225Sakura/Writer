@@ -47,11 +47,12 @@ const themeColors: Record<string, string> = {
 
 /**
  * Particle shape distribution weights - simplified: only lightweight shapes
+ * Increased circle ratio for cleaner, more subtle appearance
  */
 const shapeWeights: ParticleShape[] = [
-  'circle', 'circle', 'circle', 'circle',
+  'circle', 'circle', 'circle', 'circle', 'circle', 'circle',
   'diamond',
-  'line', 'line',
+  'line',
 ]
 
 /**
@@ -94,16 +95,16 @@ function useParticles(count: number = 8): ParticleConfig[] {
       const leftPct = 5 + (i * 90) / count + rand() * 6
       const topPct = 5 + rand() * 90
       configs.push({
-        size: 2 + Math.floor(rand() * 3),
+        size: 1.5 + Math.floor(rand() * 2.5),
         left: `${leftPct}%`,
         top: `${topPct}%`,
-        delay: `${(i * 0.8) % 10}s`,
-        duration: `${18 + rand() * 12}s`,
+        delay: `${(i * 1.2) % 12}s`,
+        duration: `${22 + rand() * 16}s`,
         colorVar: themeColors[colorKey],
-        opacity: 0.01 + rand() * 0.02,
+        opacity: 0.008 + rand() * 0.015,
         shape,
         rotation: Math.floor(rand() * 360),
-        scale: 0.7 + rand() * 0.5,
+        scale: 0.6 + rand() * 0.4,
       })
     }
 
@@ -164,11 +165,14 @@ const particleStyles = `
     0%, 100% {
       transform: translateY(0) rotate(var(--particle-rotation, 0deg)) scale(var(--particle-scale, 1));
     }
-    33% {
-      transform: translateY(-5px) rotate(calc(var(--particle-rotation, 0deg) + 6deg)) scale(var(--particle-scale, 1));
+    25% {
+      transform: translateY(-4px) rotate(calc(var(--particle-rotation, 0deg) + 4deg)) scale(var(--particle-scale, 1));
     }
-    66% {
-      transform: translateY(-2px) rotate(calc(var(--particle-rotation, 0deg) - 4deg)) scale(var(--particle-scale, 1));
+    50% {
+      transform: translateY(-2px) rotate(calc(var(--particle-rotation, 0deg) - 2deg)) scale(var(--particle-scale, 1));
+    }
+    75% {
+      transform: translateY(-3px) rotate(calc(var(--particle-rotation, 0deg) + 3deg)) scale(var(--particle-scale, 1));
     }
   }
 

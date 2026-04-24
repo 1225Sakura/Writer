@@ -13,10 +13,11 @@ import { WritingSkeleton } from '@/components/shared/SmartSkeleton'
 import { SectionLoadingOverlay } from '@/components/shared/LoadingOverlay'
 import { Sparkles } from 'lucide-react'
 
-const IMMERSIVE_HIDE_DELAY = 3000 // 3 seconds
+const IMMERSIVE_HIDE_DELAY = 4000 // 4 seconds - more relaxed timing
 
 // Spring animation config for immersive transitions
-const IMMERSIVE_SPRING = { type: 'spring' as const, stiffness: 300, damping: 30 }
+// Softer spring for more natural, less jarring motion
+const IMMERSIVE_SPRING = { type: 'spring' as const, stiffness: 220, damping: 28 }
 const IMMERSIVE_EASE = [0.16, 1, 0.3, 1] as const
 
 // Staggered entrance animation variants for drawer content
@@ -234,7 +235,7 @@ export function WritingEditorPage() {
 
   return (
     <div className={`h-full flex flex-col bg-[var(--ink-black)] ${immersiveMode ? 'immersive-mode' : ''}`}>
-      {/* Layered vignette overlay - refined multi-layer radial gradients for depth */}
+      {/* Layered vignette overlay - 5-layer radial gradients for depth perception */}
       <AnimatePresence>
         {immersiveMode && (
           <motion.div
@@ -242,125 +243,169 @@ export function WritingEditorPage() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            transition={{ duration: 1.0, ease: IMMERSIVE_EASE }}
+            transition={{ duration: 1.4, ease: IMMERSIVE_EASE }}
             className="fixed inset-0 pointer-events-none z-30 immersive-vignette"
             style={{
               background: `
-                /* Outer deep vignette */
-                radial-gradient(ellipse 95% 90% at 50% 50%, transparent 35%, color-mix(in srgb, var(--ink-100) 50%, transparent) 70%, color-mix(in srgb, var(--ink-100) 85%, transparent) 100%),
-                /* Middle vignette layer */
-                radial-gradient(ellipse 80% 70% at 50% 50%, transparent 45%, color-mix(in srgb, var(--ink-95) 35%, transparent) 80%, color-mix(in srgb, var(--ink-95) 55%, transparent) 100%),
-                /* Inner subtle warm glow at center */
-                radial-gradient(ellipse 40% 35% at 50% 50%, color-mix(in srgb, var(--color-character) 3%, transparent) 0%, transparent 60%)
+                /* Layer 1: Outer deep vignette - softest falloff */
+                radial-gradient(ellipse 100% 95% at 50% 50%, transparent 30%, color-mix(in srgb, var(--ink-100) 25%, transparent) 65%, color-mix(in srgb, var(--ink-100) 70%, transparent) 100%),
+                /* Layer 2: Mid vignette - medium depth */
+                radial-gradient(ellipse 85% 75% at 50% 50%, transparent 40%, color-mix(in srgb, var(--ink-95) 20%, transparent) 75%, color-mix(in srgb, var(--ink-95) 45%, transparent) 100%),
+                /* Layer 3: Inner vignette - tight focus */
+                radial-gradient(ellipse 60% 55% at 50% 50%, transparent 50%, color-mix(in srgb, var(--ink-90) 15%, transparent) 85%, color-mix(in srgb, var(--ink-90) 30%, transparent) 100%),
+                /* Layer 4: Subtle warm center glow for focus */
+                radial-gradient(ellipse 35% 30% at 50% 50%, color-mix(in srgb, var(--color-character) 4%, transparent) 0%, transparent 55%),
+                /* Layer 5: Micro warm highlight at dead center */
+                radial-gradient(ellipse 15% 12% at 50% 50%, color-mix(in srgb, var(--paper-100) 2%, transparent) 0%, transparent 70%)
               `,
             }}
           />
         )}
       </AnimatePresence>
 
-      {/* Subtle ambient glow orbs - smoother, more refined animations */}
+      {/* Ambient glow orbs - organic floating with entity color blending */}
       <AnimatePresence>
         {immersiveMode && (
           <motion.div
             key="ambient-glow"
-            initial={{ opacity: 0, scale: 0.85 }}
+            initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.85 }}
-            transition={{ duration: 1.5, ease: IMMERSIVE_EASE }}
+            exit={{ opacity: 0, scale: 0.9 }}
+            transition={{ duration: 2.0, ease: IMMERSIVE_EASE }}
             className="fixed inset-0 pointer-events-none z-25"
           >
-            {/* Top-right warm glow - character orange */}
+            {/* Orb 1: Top-right warm glow - character orange, large and soft */}
             <div
-              className="absolute rounded-full blur-[100px]"
+              className="absolute rounded-full"
               style={{
-                width: '28rem',
-                height: '28rem',
-                top: '-12%',
-                right: '-8%',
-                background: 'radial-gradient(circle, color-mix(in srgb, var(--color-character) 5%, transparent) 0%, transparent 65%)',
-                animation: 'ambient-orb-float 12s ease-in-out infinite',
+                width: '32rem',
+                height: '32rem',
+                top: '-14%',
+                right: '-10%',
+                background: 'radial-gradient(circle, color-mix(in srgb, var(--color-character) 6%, transparent) 0%, color-mix(in srgb, var(--color-character) 2%, transparent) 35%, transparent 70%)',
+                filter: 'blur(80px)',
+                animation: 'ambient-orb-float 18s cubic-bezier(0.45, 0.05, 0.55, 0.95) infinite',
               }}
             />
-            {/* Bottom-left cool glow - outline blue */}
+            {/* Orb 2: Bottom-left cool glow - outline blue, medium drift */}
             <div
-              className="absolute rounded-full blur-[100px]"
+              className="absolute rounded-full"
+              style={{
+                width: '26rem',
+                height: '26rem',
+                bottom: '-12%',
+                left: '-6%',
+                background: 'radial-gradient(circle, color-mix(in srgb, var(--color-outline) 5%, transparent) 0%, color-mix(in srgb, var(--color-outline) 1.5%, transparent) 40%, transparent 75%)',
+                filter: 'blur(90px)',
+                animation: 'ambient-orb-float 22s cubic-bezier(0.45, 0.05, 0.55, 0.95) infinite reverse',
+              }}
+            />
+            {/* Orb 3: Subtle center glow - primary accent, very soft */}
+            <div
+              className="absolute rounded-full"
               style={{
                 width: '24rem',
                 height: '24rem',
-                bottom: '-10%',
-                left: '-5%',
-                background: 'radial-gradient(circle, color-mix(in srgb, var(--color-outline) 4%, transparent) 0%, transparent 65%)',
-                animation: 'ambient-orb-float 14s ease-in-out infinite reverse',
-              }}
-            />
-            {/* Subtle center glow for depth */}
-            <div
-              className="absolute rounded-full blur-[120px]"
-              style={{
-                width: '20rem',
-                height: '20rem',
-                top: '40%',
+                top: '45%',
                 left: '50%',
                 transform: 'translate(-50%, -50%)',
-                background: 'radial-gradient(circle, color-mix(in srgb, var(--accent-primary) 2%, transparent) 0%, transparent 60%)',
-                animation: 'ambient-orb-float 16s ease-in-out infinite',
-                animationDelay: '-4s',
+                background: 'radial-gradient(circle, color-mix(in srgb, var(--accent-primary) 3%, transparent) 0%, color-mix(in srgb, var(--accent-primary) 1%, transparent) 45%, transparent 80%)',
+                filter: 'blur(100px)',
+                animation: 'ambient-orb-float 20s cubic-bezier(0.45, 0.05, 0.55, 0.95) infinite',
+                animationDelay: '-6s',
+              }}
+            />
+            {/* Orb 4: Small accent - IF line green, upper left */}
+            <div
+              className="absolute rounded-full"
+              style={{
+                width: '18rem',
+                height: '18rem',
+                top: '8%',
+                left: '-4%',
+                background: 'radial-gradient(circle, color-mix(in srgb, var(--color-ifline) 3%, transparent) 0%, transparent 65%)',
+                filter: 'blur(70px)',
+                animation: 'ambient-orb-float 15s cubic-bezier(0.45, 0.05, 0.55, 0.95) infinite',
+                animationDelay: '-3s',
+              }}
+            />
+            {/* Orb 5: Small accent - item purple, lower right */}
+            <div
+              className="absolute rounded-full"
+              style={{
+                width: '16rem',
+                height: '16rem',
+                bottom: '5%',
+                right: '-3%',
+                background: 'radial-gradient(circle, color-mix(in srgb, var(--color-item) 3%, transparent) 0%, transparent 65%)',
+                filter: 'blur(70px)',
+                animation: 'ambient-orb-float 17s cubic-bezier(0.45, 0.05, 0.55, 0.95) infinite reverse',
+                animationDelay: '-8s',
               }}
             />
           </motion.div>
         )}
       </AnimatePresence>
 
-      {/* Elegant glass-pill immersive indicator */}
+      {/* Refined glass-pill immersive indicator */}
       <AnimatePresence>
         {immersiveMode && chromeVisible && (
           <motion.div
             key="immersive-indicator"
-            initial={{ opacity: 0, x: -20, scale: 0.9 }}
-            animate={{ opacity: 1, x: 0, scale: 1 }}
-            exit={{ opacity: 0, x: -20, scale: 0.9 }}
-            transition={{ ...IMMERSIVE_SPRING, delay: 0.2 }}
-            className="fixed top-4 left-4 z-40 flex items-center gap-2.5 px-3.5 py-2 rounded-full immersive-indicator"
+            initial={{ opacity: 0, y: -12, scale: 0.92 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -12, scale: 0.92 }}
+            transition={{ ...IMMERSIVE_SPRING, delay: 0.15 }}
+            className="fixed top-5 left-5 z-40 flex items-center gap-2 px-3 py-1.5 rounded-full immersive-indicator"
             style={{
-              background: 'color-mix(in srgb, var(--ink-90) 50%, transparent)',
-              backdropFilter: 'blur(16px) saturate(1.2)',
-              WebkitBackdropFilter: 'blur(16px) saturate(1.2)',
-              border: '1px solid color-mix(in srgb, var(--color-character) 15%, transparent)',
+              background: 'color-mix(in srgb, var(--ink-90) 40%, transparent)',
+              backdropFilter: 'blur(20px) saturate(1.1)',
+              WebkitBackdropFilter: 'blur(20px) saturate(1.1)',
+              border: '1px solid color-mix(in srgb, var(--paper-100) 8%, transparent)',
               boxShadow: `
-                0 2px 16px color-mix(in srgb, var(--ink-100) 15%, transparent),
-                inset 0 1px 0 color-mix(in srgb, var(--paper-100) 8%, transparent)
+                0 4px 24px color-mix(in srgb, var(--ink-100) 12%, transparent),
+                inset 0 1px 0 color-mix(in srgb, var(--paper-100) 6%, transparent)
               `,
             }}
           >
             <motion.div
               animate={{ rotate: 360 }}
-              transition={{ duration: 12, repeat: Infinity, ease: 'linear' }}
+              transition={{ duration: 16, repeat: Infinity, ease: 'linear' }}
+              className="flex items-center justify-center"
             >
-              <Sparkles className="w-3 h-3" style={{ color: 'color-mix(in srgb, var(--color-character) 70%, transparent)' }} />
+              <Sparkles className="w-3 h-3" style={{ color: 'color-mix(in srgb, var(--color-character) 55%, transparent)' }} />
             </motion.div>
-            <span className="text-[11px] font-medium tracking-wider" style={{ color: 'color-mix(in srgb, var(--color-character) 85%, transparent)' }}>沉浸模式</span>
+            <span className="text-[10px] font-medium tracking-[0.12em] uppercase" style={{ color: 'color-mix(in srgb, var(--paper-100) 55%, transparent)' }}>沉浸模式</span>
             <motion.div
-              className="w-1.5 h-1.5 rounded-full"
+              className="w-1 h-1 rounded-full"
               style={{
-                background: 'color-mix(in srgb, var(--color-character) 60%, transparent)',
-                boxShadow: '0 0 6px color-mix(in srgb, var(--color-character) 40%, transparent)',
+                background: 'color-mix(in srgb, var(--color-character) 50%, transparent)',
+                boxShadow: '0 0 8px color-mix(in srgb, var(--color-character) 30%, transparent)',
               }}
-              animate={{ opacity: [0.5, 1, 0.5] }}
-              transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
+              animate={{
+                opacity: [0.4, 1, 0.4],
+                scale: [0.9, 1.1, 0.9],
+              }}
+              transition={{ duration: 2.5, repeat: Infinity, ease: 'easeInOut' }}
             />
           </motion.div>
         )}
       </AnimatePresence>
 
-      {/* 工具栏 - refined show/hide with smoother spring animation */}
+      {/* Toolbar - smoother spring physics for show/hide */}
       <AnimatePresence initial={false}>
         {(!immersiveMode || chromeVisible) && (
           <motion.div
             key="toolbar"
-            initial={immersiveMode ? { opacity: 0, y: -16 } : false}
+            initial={immersiveMode ? { opacity: 0, y: -20 } : false}
             animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -16 }}
-            transition={{ duration: 0.35, ease: IMMERSIVE_EASE }}
+            exit={{ opacity: 0, y: -20 }}
+            transition={{
+              type: 'spring',
+              stiffness: 180,
+              damping: 24,
+              restDelta: 0.5,
+            }}
             className="relative z-20"
           >
             <WritingToolbar />
@@ -372,11 +417,14 @@ export function WritingEditorPage() {
       <div className={`flex-1 flex overflow-hidden relative ${immersiveMode ? 'z-10' : ''}`}>
         {/* 写作区域 - subtle writing-bg texture */}
         <div className="flex-1 overflow-hidden relative">
-          {/* Subtle writing background texture */}
+          {/* Subtle writing background texture - organic paper grain */}
           <div
-            className="absolute inset-0 pointer-events-none z-0 opacity-[0.03]"
+            className="absolute inset-0 pointer-events-none z-0"
             style={{
-              backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
+              opacity: 0.015,
+              backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E")`,
+              backgroundRepeat: 'repeat',
+              backgroundSize: '200px 200px',
             }}
           />
           <SectionLoadingOverlay
@@ -396,7 +444,7 @@ export function WritingEditorPage() {
         <ChapterNotesPanel />
         <WritingSprintTimer />
 
-        {/* 大纲侧边栏 (可收起) - enhanced with refined visual indicators */}
+        {/* Outline sidebar - refined edge glow */}
         <AnimatePresence initial={false}>
           {outlineDrawerOpen && (!immersiveMode || chromeVisible) && (
             <motion.div
@@ -405,24 +453,29 @@ export function WritingEditorPage() {
               animate={{ width: 280, opacity: 1, x: 0 }}
               exit={{ width: 0, opacity: 0, x: -20 }}
               transition={{
-                width: { type: 'spring', stiffness: 280, damping: 28, restSpeed: 0.5 },
-                opacity: { duration: 0.25, ease: IMMERSIVE_EASE },
-                x: { type: 'spring', stiffness: 280, damping: 28, restSpeed: 0.5 },
+                width: { type: 'spring', stiffness: 260, damping: 26, restSpeed: 0.5 },
+                opacity: { duration: 0.3, ease: IMMERSIVE_EASE },
+                x: { type: 'spring', stiffness: 260, damping: 26, restSpeed: 0.5 },
               }}
               className="border-r border-[var(--border-default)] bg-[var(--color-surface-raised)] flex flex-col overflow-hidden relative z-20"
               style={{
-                boxShadow: '4px 0 32px color-mix(in srgb, var(--color-outline) 10%, transparent), 2px 0 8px color-mix(in srgb, var(--color-outline) 5%, transparent)',
+                boxShadow: `
+                  4px 0 40px color-mix(in srgb, var(--color-outline) 8%, transparent),
+                  2px 0 12px color-mix(in srgb, var(--color-outline) 4%, transparent),
+                  inset -1px 0 0 color-mix(in srgb, var(--color-outline) 12%, transparent)
+                `,
               }}
             >
-              {/* Edge glow indicator */}
+              {/* Refined edge glow indicator */}
               <motion.div
                 initial={{ opacity: 0, scaleY: 0 }}
                 animate={{ opacity: 1, scaleY: 1 }}
                 exit={{ opacity: 0, scaleY: 0 }}
-                transition={{ duration: 0.5, ease: IMMERSIVE_EASE }}
-                className="absolute top-0 right-0 w-px h-full origin-top"
+                transition={{ duration: 0.6, ease: IMMERSIVE_EASE }}
+                className="absolute top-0 right-0 w-[2px] h-full origin-top"
                 style={{
-                  background: 'linear-gradient(180deg, var(--color-outline) 0%, color-mix(in srgb, var(--color-outline) 40%, transparent) 40%, transparent 100%)',
+                  background: 'linear-gradient(180deg, var(--color-outline) 0%, color-mix(in srgb, var(--color-outline) 50%, transparent) 35%, color-mix(in srgb, var(--color-outline) 20%, transparent) 70%, transparent 100%)',
+                  boxShadow: '0 0 12px color-mix(in srgb, var(--color-outline) 20%, transparent)',
                 }}
               />
               <OutlineSidebar />
@@ -430,7 +483,7 @@ export function WritingEditorPage() {
           )}
         </AnimatePresence>
 
-        {/* AI操作抽屉 - refined header with gradient title + glow close button + staggered content */}
+        {/* AI operation drawer - refined edge glow */}
         <AnimatePresence initial={false}>
           {aiDrawerOpen && (!immersiveMode || chromeVisible) && (
             <motion.div
@@ -439,27 +492,31 @@ export function WritingEditorPage() {
               animate={{ width: 320, opacity: 1, x: 0 }}
               exit={{ width: 0, opacity: 0, x: 40 }}
               transition={{
-                width: { type: 'spring', stiffness: 260, damping: 26, restSpeed: 0.5 },
-                opacity: { duration: 0.3, ease: IMMERSIVE_EASE },
-                x: { type: 'spring', stiffness: 260, damping: 26, restSpeed: 0.5 }
+                width: { type: 'spring', stiffness: 240, damping: 24, restSpeed: 0.5 },
+                opacity: { duration: 0.35, ease: IMMERSIVE_EASE },
+                x: { type: 'spring', stiffness: 240, damping: 24, restSpeed: 0.5 }
               }}
               className="drawer-responsive drawer-right border-l border-[var(--border-default)] bg-[var(--color-surface-raised)] flex flex-col overflow-hidden relative z-20
                          max-md:fixed max-md:inset-0 max-md:w-full max-md:h-full max-md:z-50 max-md:border-none
                          md:w-[320px] lg:w-[360px]"
               style={{
-                boxShadow: '-4px 0 40px color-mix(in srgb, var(--accent-primary) 18%, transparent), -2px 0 16px color-mix(in srgb, var(--accent-primary) 8%, transparent)',
+                boxShadow: `
+                  -4px 0 48px color-mix(in srgb, var(--accent-primary) 12%, transparent),
+                  -2px 0 20px color-mix(in srgb, var(--accent-primary) 6%, transparent),
+                  inset 1px 0 0 color-mix(in srgb, var(--accent-primary) 10%, transparent)
+                `,
               }}
             >
-              {/* Animated edge glow indicator */}
+              {/* Refined edge glow indicator */}
               <motion.div
                 initial={{ opacity: 0, scaleY: 0 }}
                 animate={{ opacity: 1, scaleY: 1 }}
                 exit={{ opacity: 0, scaleY: 0 }}
-                transition={{ duration: 0.5, ease: IMMERSIVE_EASE }}
-                className="absolute top-0 left-0 w-px h-full origin-top"
+                transition={{ duration: 0.6, ease: IMMERSIVE_EASE }}
+                className="absolute top-0 left-0 w-[2px] h-full origin-top"
                 style={{
-                  background: 'linear-gradient(180deg, var(--accent-primary) 0%, color-mix(in srgb, var(--accent-primary) 50%, transparent) 50%, transparent 100%)',
-                  boxShadow: '0 0 8px color-mix(in srgb, var(--accent-primary) 30%, transparent)',
+                  background: 'linear-gradient(180deg, var(--accent-primary) 0%, color-mix(in srgb, var(--accent-primary) 55%, transparent) 40%, color-mix(in srgb, var(--accent-primary) 20%, transparent) 75%, transparent 100%)',
+                  boxShadow: '0 0 12px color-mix(in srgb, var(--accent-primary) 25%, transparent)',
                 }}
               />
               {/* Refined header with gradient title */}
@@ -523,7 +580,7 @@ export function WritingEditorPage() {
           )}
         </AnimatePresence>
 
-        {/* 协作面板 - refined header with gradient title + glow close button + staggered content */}
+        {/* Collaboration panel - refined edge glow */}
         <AnimatePresence initial={false}>
           {collaborationDrawerOpen && (!immersiveMode || chromeVisible) && (
             <motion.div
@@ -532,26 +589,30 @@ export function WritingEditorPage() {
               animate={{ width: 300, opacity: 1, x: 0 }}
               exit={{ width: 0, opacity: 0, x: 30 }}
               transition={{
-                width: { type: 'spring', stiffness: 260, damping: 26, restSpeed: 0.5 },
-                opacity: { duration: 0.3, ease: IMMERSIVE_EASE },
-                x: { type: 'spring', stiffness: 260, damping: 26, restSpeed: 0.5 }
+                width: { type: 'spring', stiffness: 240, damping: 24, restSpeed: 0.5 },
+                opacity: { duration: 0.35, ease: IMMERSIVE_EASE },
+                x: { type: 'spring', stiffness: 240, damping: 24, restSpeed: 0.5 }
               }}
               className="drawer-responsive drawer-right border-l border-[var(--border-default)] bg-[var(--color-surface-raised)] flex flex-col overflow-hidden relative z-20
                          max-md:fixed max-md:inset-0 max-md:w-full max-md:h-full max-md:z-50 max-md:border-none"
               style={{
-                boxShadow: '-4px 0 40px color-mix(in srgb, var(--color-ifline) 16%, transparent), -2px 0 16px color-mix(in srgb, var(--color-ifline) 8%, transparent)',
+                boxShadow: `
+                  -4px 0 48px color-mix(in srgb, var(--color-ifline) 10%, transparent),
+                  -2px 0 20px color-mix(in srgb, var(--color-ifline) 5%, transparent),
+                  inset 1px 0 0 color-mix(in srgb, var(--color-ifline) 8%, transparent)
+                `,
               }}
             >
-              {/* Animated edge glow indicator */}
+              {/* Refined edge glow indicator */}
               <motion.div
                 initial={{ opacity: 0, scaleY: 0 }}
                 animate={{ opacity: 1, scaleY: 1 }}
                 exit={{ opacity: 0, scaleY: 0 }}
-                transition={{ duration: 0.5, ease: IMMERSIVE_EASE }}
-                className="absolute top-0 left-0 w-px h-full origin-top"
+                transition={{ duration: 0.6, ease: IMMERSIVE_EASE }}
+                className="absolute top-0 left-0 w-[2px] h-full origin-top"
                 style={{
-                  background: 'linear-gradient(180deg, var(--color-ifline) 0%, color-mix(in srgb, var(--color-ifline) 50%, transparent) 50%, transparent 100%)',
-                  boxShadow: '0 0 8px color-mix(in srgb, var(--color-ifline) 25%, transparent)',
+                  background: 'linear-gradient(180deg, var(--color-ifline) 0%, color-mix(in srgb, var(--color-ifline) 55%, transparent) 40%, color-mix(in srgb, var(--color-ifline) 20%, transparent) 75%, transparent 100%)',
+                  boxShadow: '0 0 12px color-mix(in srgb, var(--color-ifline) 20%, transparent)',
                 }}
               />
               {/* Refined header with gradient title */}

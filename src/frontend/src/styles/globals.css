@@ -1073,7 +1073,7 @@ code, pre {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
-  font-feature-settings: "kern" 1, "liga" 1;
+  font-feature-settings: "kern" 1, "liga" 1, "palt" 1;
 }
 
 .writing-area p {
@@ -1100,15 +1100,15 @@ code, pre {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
-  font-feature-settings: "kern" 1, "liga" 1;
+  font-feature-settings: "kern" 1, "liga" 1, "palt" 1;
   min-height: 100%;
 }
 
 /* Elegant paragraph spacing with refined rhythm */
 .writing-area .tiptap p {
-  margin-bottom: 1.35em;
+  margin-bottom: 1.5em;
   text-indent: 2em;
-  transition: all 0.25s var(--ease-out);
+  transition: opacity 0.3s ease, filter 0.3s ease;
   position: relative;
   line-height: var(--writing-line-height);
 }
@@ -1160,7 +1160,7 @@ code, pre {
 }
 
 .writing-area .tiptap {
-  caret-color: transparent;
+  caret-color: var(--color-character);
 }
 
 /* Refined selection with subtle glow */
@@ -1372,7 +1372,7 @@ code, pre {
 
 /* Refined cursor styling */
 .writing-area .tiptap {
-  caret-color: transparent;
+  caret-color: var(--color-character);
 }
 
 .writing-area .tiptap .ProseMirror-focused {
@@ -1414,8 +1414,8 @@ code, pre {
 }
 
 .paragraph-focus-mode .writing-area .tiptap p:not(.is-current-paragraph):not(:hover) {
-  opacity: 0.45;
-  filter: blur(0.3px);
+  opacity: 0.5;
+  filter: blur(0.2px);
 }
 
 .paragraph-focus-mode .writing-area .tiptap p.is-current-paragraph {
@@ -1488,15 +1488,15 @@ code, pre {
   letter-spacing: 0.02em;
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
-  transition: all 0.25s var(--ease-out);
+  transition: opacity 0.3s ease, filter 0.3s ease;
   cursor: default;
   user-select: none;
 }
 
 .word-count-pill--floating {
   position: fixed;
-  bottom: 52px;
-  right: 20px;
+  bottom: 48px;
+  right: 16px;
   z-index: 40;
   background: color-mix(in srgb, var(--color-surface-overlay) 85%, transparent);
   border: 1px solid color-mix(in srgb, var(--border-subtle) 60%, transparent);
@@ -2603,23 +2603,28 @@ code, pre {
   50%      { opacity: 1; }
 }
 
-/* Ambient orb float animation for immersive mode glow orbs */
+/* Ambient orb float animation for immersive mode glow orbs
+   Organic, smooth trajectories with gentle scale/opacity breathing */
 @keyframes ambient-orb-float {
   0%, 100% {
     transform: translate(0, 0) scale(1);
-    opacity: 0.6;
+    opacity: 0.55;
   }
-  25% {
-    transform: translate(3%, -2%) scale(1.05);
-    opacity: 0.8;
+  20% {
+    transform: translate(2%, -3%) scale(1.04);
+    opacity: 0.72;
   }
-  50% {
-    transform: translate(-2%, 3%) scale(0.95);
-    opacity: 0.7;
+  40% {
+    transform: translate(-1%, 2%) scale(0.97);
+    opacity: 0.62;
   }
-  75% {
-    transform: translate(2%, 2%) scale(1.02);
-    opacity: 0.75;
+  60% {
+    transform: translate(3%, 1%) scale(1.03);
+    opacity: 0.68;
+  }
+  80% {
+    transform: translate(-2%, -1%) scale(0.99);
+    opacity: 0.58;
   }
 }
 
@@ -3373,9 +3378,9 @@ code, pre {
 }
 
 .writing-card {
-  background-color: color-mix(in srgb, var(--writing-text) 3%, transparent);
+  background-color: var(--writing-bg);
   border: 1px solid var(--border-subtle);
-  backdrop-filter: blur(8px);
+  transition: box-shadow 0.3s ease, border-color 0.3s ease;
 }
 
 /* Enhanced writing card with glow border effect */

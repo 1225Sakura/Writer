@@ -170,6 +170,28 @@ export type {
   AmbientShape,
 } from './AmbientLight'
 
+// New background effects
+export {
+  InkFlowBackground,
+} from './InkFlowBackground'
+export type {
+  InkFlowBackgroundProps,
+} from './InkFlowBackground'
+
+export {
+  AuroraBackground,
+} from './AuroraBackground'
+export type {
+  AuroraBackgroundProps,
+} from './AuroraBackground'
+
+export {
+  StarfieldBackground,
+} from './StarfieldBackground'
+export type {
+  StarfieldBackgroundProps,
+} from './StarfieldBackground'
+
 // Textured backgrounds
 export {
   TexturedBackground,
