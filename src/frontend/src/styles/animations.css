@@ -5,40 +5,48 @@
    - 组件状态：200ms (var(--transition-normal))
    - 页面过渡：250-300ms (var(--transition-slow))
    - 缓动函数：var(--ease-out)
+
+   新增视觉特效：
+   - 页面转场动画 (page-transition)
+   - hover微交互效果 (hover-*)
+   - loading状态和骨架屏 (skeleton-*, loading-*)
+   - toast通知样式 (toast-*)
+   - 滚动渐变隐藏效果 (scroll-fade-*)
    ============================================================ */
 
 /* ============================================================
    PAGE TRANSITION ANIMATIONS
+   Design spec: cubic-bezier(0.22, 1, 0.36, 1), 250-350ms
    ============================================================ */
 
 @keyframes page-enter {
   from {
-    transform: translateX(16px);
+    transform: translateX(5%) scale(0.99);
     opacity: 0;
   }
   to {
-    transform: translateX(0);
+    transform: translateX(0) scale(1);
     opacity: 1;
   }
 }
 
 @keyframes page-exit {
   from {
-    transform: translateX(0);
+    transform: translateX(0) scale(1);
     opacity: 1;
   }
   to {
-    transform: translateX(-16px);
+    transform: translateX(-4%) scale(0.99);
     opacity: 0;
   }
 }
 
 .page-enter {
-  animation: page-enter var(--transition-slow) var(--ease-out) forwards;
+  animation: page-enter 300ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
 }
 
 .page-exit {
-  animation: page-exit var(--transition-slow) var(--ease-out) forwards;
+  animation: page-exit 200ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
 }
 
 /* ============================================================
@@ -118,6 +126,112 @@
 }
 
 /* ============================================================
+   SHIMMER ANIMATIONS (Improved)
+   ============================================================ */
+
+@keyframes shimmer-smooth {
+  0%   { background-position: -300% 0; }
+  50%  { background-position: 0% 0; }
+  100% { background-position: 300% 0; }
+}
+
+@keyframes shimmer {
+  0%   { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+/* ============================================================
+   SKELETON SHIMMER ANIMATION
+   Optimized for GPU acceleration with will-change hint
+   ============================================================ */
+
+@keyframes shimmer-skeleton {
+  0% {
+    background-position: -200% 0;
+    transform: translateX(0);
+  }
+  50% {
+    background-position: 200% 0;
+    transform: translateX(0);
+  }
+  100% {
+    background-position: -200% 0;
+    transform: translateX(0);
+  }
+}
+
+.animate-shimmer-skeleton {
+  background: linear-gradient(
+    90deg,
+    var(--color-surface-overlay) 0%,
+    var(--color-surface-hover) 40%,
+    var(--color-surface-overlay) 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer-skeleton var(--duration, 1.8s) cubic-bezier(0.4, 0, 0.2, 1) infinite;
+  will-change: background-position;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-shimmer-skeleton {
+    animation: none;
+    background: var(--color-surface-overlay);
+  }
+}
+
+/* ============================================================
+   MICRO-INTERACTION KEYFRAMES
+   ============================================================ */
+
+@keyframes ripple-expand {
+  0%   { transform: scale(0); opacity: 0.35; }
+  60%  { opacity: 0.15; }
+  100% { transform: scale(3.5); opacity: 0; }
+}
+
+@keyframes input-glow-expand {
+  0%   { box-shadow: 0 0 0 0 rgba(94, 106, 210, 0.35); }
+  70%  { box-shadow: 0 0 0 6px rgba(94, 106, 210, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(94, 106, 210, 0); }
+}
+
+@keyframes toast-slide-up {
+  0%   { transform: translateY(20px) scale(0.96); opacity: 0; }
+  100% { transform: translateY(0) scale(1); opacity: 1; }
+}
+
+@keyframes toast-slide-out {
+  0%   { transform: translateY(0) scale(1); opacity: 1; }
+  100% { transform: translateY(-12px) scale(0.96) translateX(16px); opacity: 0; }
+}
+
+@keyframes scale-in-soft {
+  0%   { transform: scale(0.95); opacity: 0; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+@keyframes scale-out-soft {
+  0%   { transform: scale(1); opacity: 1; }
+  100% { transform: scale(0.95); opacity: 0; }
+}
+
+@keyframes slide-up-soft {
+  0%   { transform: translateY(8px); opacity: 0; }
+  100% { transform: translateY(0); opacity: 1; }
+}
+
+@keyframes fade-in-soft {
+  0%   { opacity: 0; }
+  100% { opacity: 1; }
+}
+
+@keyframes button-press {
+  0%   { transform: scale(1); }
+  40%  { transform: scale(0.96); }
+  100% { transform: scale(1); }
+}
+
+/* ============================================================
    STAGGERED LIST ANIMATIONS
    ============================================================ */
 
@@ -147,20 +261,707 @@
 .list-stagger > *:nth-child(8) { animation-delay: 175ms; }
 
 /* ============================================================
+   ANIMATION UTILITY CLASSES
+   ============================================================ */
+
+.animate-shimmer {
+  background: linear-gradient(
+    105deg,
+    rgba(255, 255, 255, 0.03) 0%,
+    rgba(255, 255, 255, 0.08) 20%,
+    rgba(255, 255, 255, 0.14) 40%,
+    rgba(255, 255, 255, 0.08) 60%,
+    rgba(255, 255, 255, 0.03) 100%
+  );
+  background-size: 250% 100%;
+  animation: shimmer-smooth 2s cubic-bezier(0.45, 0, 0.55, 1) infinite;
+}
+
+.animate-shimmer-smooth {
+  background: linear-gradient(
+    105deg,
+    rgba(255, 255, 255, 0.04) 0%,
+    rgba(255, 255, 255, 0.10) 25%,
+    rgba(255, 255, 255, 0.16) 45%,
+    rgba(255, 255, 255, 0.10) 65%,
+    rgba(255, 255, 255, 0.04) 100%
+  );
+  background-size: 300% 100%;
+  animation: shimmer-smooth 2s cubic-bezier(0.45, 0, 0.55, 1) infinite;
+}
+
+.animate-ripple-expand {
+  animation: ripple-expand 450ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.animate-toast-enter {
+  animation: toast-slide-up 350ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.animate-toast-exit {
+  animation: toast-slide-out 250ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.animate-scale-in {
+  animation: scale-in-soft 250ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.animate-scale-out {
+  animation: scale-out-soft 200ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.animate-slide-up-soft {
+  animation: slide-up-soft 300ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.animate-fade-in-soft {
+  animation: fade-in-soft 200ms ease forwards;
+}
+
+/* ============================================================
+   INTERACTION FEEDBACK CLASSES
+   ============================================================ */
+
+.hover-lift {
+  transition: transform 250ms cubic-bezier(0.16, 1, 0.3, 1),
+              box-shadow 250ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.hover-lift:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15), 0 2px 6px rgba(0, 0, 0, 0.08);
+}
+
+.press-down {
+  transition: transform 120ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.press-down:active {
+  transform: translateY(1px) scale(0.98);
+}
+
+.card-hover-lift {
+  transition: transform 250ms cubic-bezier(0.16, 1, 0.3, 1),
+              box-shadow 250ms cubic-bezier(0.16, 1, 0.3, 1),
+              border-color 200ms ease;
+}
+
+.card-hover-lift:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15), 0 2px 6px rgba(0, 0, 0, 0.08);
+}
+
+.btn-interactive {
+  position: relative;
+  overflow: hidden;
+  transition: transform 120ms cubic-bezier(0.16, 1, 0.3, 1),
+              box-shadow 200ms ease,
+              background-color 150ms ease;
+}
+
+.btn-interactive:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+}
+
+.btn-interactive:active {
+  transform: translateY(0) scale(0.97);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+}
+
+.scale-feedback {
+  transition: transform 150ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.scale-feedback:hover {
+  transform: scale(1.03);
+}
+
+.scale-feedback:active {
+  transform: scale(0.97);
+}
+
+.input-glow:focus {
+  animation: input-glow-expand 600ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* ============================================================
+   PAGE TRANSITION ENHANCEMENTS
+   Smooth page transitions with directional slides
+   Design spec easing: cubic-bezier(0.22, 1, 0.36, 1)
+   ============================================================ */
+
+@keyframes page-slide-left-enter {
+  from {
+    transform: translateX(5%);
+    opacity: 0;
+    scale: 0.99;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+    scale: 1;
+  }
+}
+
+@keyframes page-slide-left-exit {
+  from {
+    transform: translateX(0);
+    opacity: 1;
+    scale: 1;
+  }
+  to {
+    transform: translateX(-4%);
+    opacity: 0;
+    scale: 0.99;
+  }
+}
+
+@keyframes page-slide-right-enter {
+  from {
+    transform: translateX(-5%);
+    opacity: 0;
+    scale: 0.99;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+    scale: 1;
+  }
+}
+
+@keyframes page-slide-right-exit {
+  from {
+    transform: translateX(0);
+    opacity: 1;
+    scale: 1;
+  }
+  to {
+    transform: translateX(4%);
+    opacity: 0;
+    scale: 0.99;
+  }
+}
+
+@keyframes page-fade-scale-enter {
+  from {
+    transform: scale(0.98);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes page-fade-scale-exit {
+  from {
+    transform: scale(1);
+    opacity: 1;
+  }
+  to {
+    transform: scale(0.99);
+    opacity: 0;
+  }
+}
+
+/* 折叠动画 - 用于 Settings↔Writing 切换 */
+@keyframes page-fold-enter {
+  from {
+    transform: translateY(6%);
+    opacity: 0;
+    scale: 0.98;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+    scale: 1;
+  }
+}
+
+@keyframes page-fold-exit {
+  from {
+    transform: translateY(0);
+    opacity: 1;
+    scale: 1;
+  }
+  to {
+    transform: translateY(-4%);
+    opacity: 0;
+    scale: 0.98;
+  }
+}
+
+/* 设计规范 easing: cubic-bezier(0.22, 1, 0.36, 1) */
+.page-slide-left-enter {
+  animation: page-slide-left-enter 300ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+.page-slide-left-exit {
+  animation: page-slide-left-exit 200ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+.page-slide-right-enter {
+  animation: page-slide-right-enter 300ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+.page-slide-right-exit {
+  animation: page-slide-right-exit 200ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+.page-fade-scale-enter {
+  animation: page-fade-scale-enter 350ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+.page-fade-scale-exit {
+  animation: page-fade-scale-exit 250ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+.page-fold-enter {
+  animation: page-fold-enter 350ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+.page-fold-exit {
+  animation: page-fold-exit 250ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+/* ============================================================
+   HOVER MICRO-INTERACTIONS
+   Subtle, restrained hover effects for buttons, cards, links
+   ============================================================ */
+
+/* Button hover - subtle opacity shift */
+.hover-button {
+  transition: opacity 150ms ease, background-color 150ms ease, border-color 150ms ease;
+}
+
+.hover-button:hover {
+  opacity: 0.85;
+}
+
+.hover-button:active {
+  opacity: 0.7;
+  transform: scale(0.98);
+}
+
+/* Card hover - subtle lift with shadow */
+.hover-card {
+  transition: transform 200ms cubic-bezier(0.16, 1, 0.3, 1),
+              box-shadow 200ms cubic-bezier(0.16, 1, 0.3, 1),
+              border-color 150ms ease;
+}
+
+.hover-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.12), 0 2px 6px rgba(0, 0, 0, 0.06);
+}
+
+/* Icon hover - subtle scale */
+.hover-icon {
+  transition: transform 150ms cubic-bezier(0.16, 1, 0.3, 1), opacity 150ms ease;
+}
+
+.hover-icon:hover {
+  transform: scale(1.08);
+}
+
+.hover-icon:active {
+  transform: scale(0.95);
+}
+
+/* Link hover - color transition */
+.hover-link {
+  transition: color 150ms ease;
+}
+
+.hover-link:hover {
+  color: var(--accent-90);
+}
+
+/* Input focus glow */
+.hover-input-focus {
+  transition: border-color 200ms ease, box-shadow 200ms ease;
+}
+
+.hover-input-focus:focus {
+  border-color: var(--border-focus);
+  box-shadow: 0 0 0 3px var(--accent-muted);
+}
+
+/* ============================================================
+   SKELETON LOADING STATES
+   Optimized shimmer animations for content loading
+   ============================================================ */
+
+@keyframes skeleton-pulse {
+  0%, 100% { opacity: 0.5; }
+  50% { opacity: 0.8; }
+}
+
+.skeleton-base {
+  background: var(--color-surface-overlay);
+  border-radius: var(--radius-sm);
+}
+
+.skeleton-shimmer {
+  background: linear-gradient(
+    90deg,
+    var(--color-surface-overlay) 0%,
+    var(--color-surface-hover) 50%,
+    var(--color-surface-overlay) 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer-skeleton 1.8s ease-in-out infinite;
+  will-change: background-position;
+}
+
+.skeleton-pulse {
+  animation: skeleton-pulse 1.5s ease-in-out infinite;
+}
+
+/* Skeleton line variants */
+.skeleton-line {
+  height: 14px;
+  border-radius: var(--radius-sm);
+  background: var(--color-surface-overlay);
+}
+
+.skeleton-line--sm { height: 10px; }
+.skeleton-line--md { height: 16px; }
+.skeleton-line--lg { height: 22px; }
+
+/* Skeleton avatar */
+.skeleton-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-full);
+  background: var(--color-surface-overlay);
+}
+
+.skeleton-avatar--sm { width: 24px; height: 24px; }
+.skeleton-avatar--lg { width: 56px; height: 56px; }
+
+/* Skeleton card */
+.skeleton-card {
+  background: var(--color-surface-raised);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  padding: var(--space-4);
+}
+
+/* ============================================================
+   LOADING SPINNER STYLES
+   ============================================================ */
+
+@keyframes spin-standard {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.loading-spinner {
+  width: 20px;
+  height: 20px;
+  border: 2px solid var(--border-subtle);
+  border-top-color: var(--accent-100);
+  border-radius: var(--radius-full);
+  animation: spin-standard 0.8s linear infinite;
+}
+
+.loading-spinner--sm {
+  width: 14px;
+  height: 14px;
+  border-width: 1.5px;
+}
+
+.loading-spinner--lg {
+  width: 32px;
+  height: 32px;
+  border-width: 3px;
+}
+
+/* Loading dots */
+@keyframes loading-dot-pulse {
+  0%, 80%, 100% { transform: scale(0.6); opacity: 0.5; }
+  40% { transform: scale(1); opacity: 1; }
+}
+
+.loading-dots {
+  display: inline-flex;
+  gap: 4px;
+  align-items: center;
+}
+
+.loading-dots__dot {
+  width: 6px;
+  height: 6px;
+  background: var(--accent-100);
+  border-radius: var(--radius-full);
+  animation: loading-dot-pulse 1.2s ease-in-out infinite;
+}
+
+.loading-dots__dot:nth-child(2) { animation-delay: 0.2s; }
+.loading-dots__dot:nth-child(3) { animation-delay: 0.4s; }
+
+/* ============================================================
+   TOAST NOTIFICATION STYLES
+   Positioned notifications with enter/exit animations
+   ============================================================ */
+
+@keyframes toast-enter {
+  from {
+    transform: translateY(16px) scale(0.96);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes toast-exit {
+  from {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+  }
+  to {
+    transform: translateY(-12px) scale(0.96);
+    opacity: 0;
+  }
+}
+
+@keyframes toast-slide-right {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+.toast-container {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  pointer-events: none;
+}
+
+.toast {
+  pointer-events: auto;
+  background: var(--color-surface-raised);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-lg);
+  padding: 14px 18px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2), 0 2px 8px rgba(0, 0, 0, 0.1);
+  min-width: 280px;
+  max-width: 400px;
+}
+
+.toast--enter {
+  animation: toast-enter 300ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.toast--exit {
+  animation: toast-exit 200ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.toast--success {
+  border-left: 3px solid var(--color-success);
+}
+
+.toast--error {
+  border-left: 3px solid var(--color-danger);
+}
+
+.toast--warning {
+  border-left: 3px solid var(--color-warning);
+}
+
+.toast--info {
+  border-left: 3px solid var(--color-info);
+}
+
+/* ============================================================
+   SCROLL FADE EFFECTS
+   Gradient hide/show effects on scroll for headers/toolbars
+   ============================================================ */
+
+@keyframes scroll-fade-out {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+}
+
+@keyframes scroll-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Scroll fade mask - gradient overlay that reveals/hides content */
+.scroll-fade-mask {
+  position: relative;
+}
+
+.scroll-fade-mask::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 40px;
+  background: linear-gradient(
+    to bottom,
+    var(--color-surface-base) 0%,
+    transparent 100%
+  );
+  opacity: 0;
+  transition: opacity 200ms ease;
+  pointer-events: none;
+  z-index: 10;
+}
+
+.scroll-fade-mask--active::before {
+  opacity: 1;
+}
+
+/* Scroll progress bar */
+.scroll-progress {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: var(--accent-100);
+  transform-origin: left;
+  z-index: 9999;
+  transform: scaleX(0);
+  transition: transform 50ms linear;
+}
+
+/* ============================================================
+   COMMAND PALETTE ANIMATIONS
+   ============================================================ */
+
+@keyframes selection-indicator {
+  0% {
+    transform: scaleX(0);
+    opacity: 0;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    transform: scaleX(1);
+    opacity: 1;
+  }
+}
+
+.command-palette-item-enter {
+  animation: selection-indicator 200ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  transform-origin: left;
+}
+
+.command-palette-indicator {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background: var(--color-accent);
+  animation: selection-indicator 150ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  transform-origin: top;
+}
+
+/* ============================================================
    REDUCED MOTION SUPPORT
    ============================================================ */
 
 @media (prefers-reduced-motion: reduce) {
   .page-enter,
   .page-exit,
+  .page-slide-left-enter,
+  .page-slide-left-exit,
+  .page-slide-right-enter,
+  .page-slide-right-exit,
+  .page-fade-scale-enter,
+  .page-fade-scale-exit,
   .drawer-slide-in,
   .drawer-slide-out,
   .modal-zoom-in,
   .ripple-effect,
-  .list-stagger > * {
+  .list-stagger > *,
+  .animate-shimmer,
+  .animate-shimmer-smooth,
+  .animate-shimmer-skeleton,
+  .animate-ripple-expand,
+  .animate-toast-enter,
+  .animate-toast-exit,
+  .animate-scale-in,
+  .animate-scale-out,
+  .animate-slide-up-soft,
+  .animate-fade-in-soft,
+  .skeleton-shimmer,
+  .skeleton-pulse,
+  .loading-spinner,
+  .loading-dots__dot,
+  .toast--enter,
+  .toast--exit {
     animation: none !important;
     transform: none !important;
     opacity: 1 !important;
     transition: none !important;
+  }
+
+  .hover-lift,
+  .card-hover-lift,
+  .btn-interactive,
+  .scale-feedback,
+  .press-down,
+  .hover-button,
+  .hover-card,
+  .hover-icon,
+  .hover-link,
+  .hover-input-focus {
+    transition: none !important;
+  }
+
+  .hover-lift:hover,
+  .card-hover-lift:hover,
+  .btn-interactive:hover,
+  .hover-button:hover,
+  .hover-card:hover {
+    transform: none !important;
+    box-shadow: none !important;
+  }
+
+  .hover-icon:hover {
+    transform: none !important;
+  }
+
+  .press-down:active,
+  .btn-interactive:active,
+  .scale-feedback:active,
+  .hover-button:active {
+    transform: none !important;
+  }
+
+  .scroll-fade-mask::before {
+    display: none;
   }
 }

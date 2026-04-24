@@ -87,10 +87,10 @@ const intensityStyles: Record<GlassIntensity, CSSProperties> = {
 
 const borderStyles: Record<GlassBorder, CSSProperties> = {
   none: { border: '1px solid transparent' },
-  subtle: { border: '1px solid rgba(255, 255, 255, 0.06)' },
+  subtle: { border: '1px solid rgba(255, 255, 255, 0.08)' },
   glow: {
-    border: '1px solid rgba(94, 106, 210, 0.2)',
-    boxShadow: '0 0 12px rgba(94, 106, 210, 0.1), inset 0 0 12px rgba(94, 106, 210, 0.05)',
+    border: '1px solid rgba(94, 106, 210, 0.25)',
+    boxShadow: '0 0 16px rgba(94, 106, 210, 0.12), inset 0 0 16px rgba(94, 106, 210, 0.06)',
   },
   gradient: {
     border: '1px solid transparent',
@@ -98,18 +98,18 @@ const borderStyles: Record<GlassBorder, CSSProperties> = {
     position: 'relative' as const,
   },
   accent: {
-    border: '1px solid rgba(94, 106, 210, 0.3)',
-    boxShadow: '0 0 16px rgba(94, 106, 210, 0.15)',
+    border: '1px solid rgba(94, 106, 210, 0.35)',
+    boxShadow: '0 0 20px rgba(94, 106, 210, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.08)',
   },
 }
 
 const variantStyles: Record<GlassVariant, CSSProperties> = {
   default: {},
   elevated: {
-    boxShadow: '0 8px 32px rgba(0, 0, 0, 0.25), 0 2px 8px rgba(0, 0, 0, 0.15)',
+    boxShadow: '0 2px 8px rgba(0, 0, 0, 0.12), 0 8px 24px rgba(0, 0, 0, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.05)',
   },
   floating: {
-    boxShadow: '0 16px 48px rgba(0, 0, 0, 0.3), 0 4px 16px rgba(0, 0, 0, 0.2)',
+    boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15), 0 16px 40px rgba(0, 0, 0, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.08)',
     transform: 'translateY(0)',
   },
   outlined: {
@@ -195,16 +195,16 @@ export function GlassCard({
       layoutId={layoutId}
       className={cn(
         'relative overflow-hidden',
-        hover && 'transition-all duration-150 cursor-pointer',
-        hover && 'hover:shadow-md hover:shadow-black/15',
-        press && 'active:scale-[0.99]',
+        hover && 'transition-all duration-200 cursor-pointer',
+        hover && 'hover:shadow-lg hover:shadow-black/20 hover:-translate-y-0.5',
+        press && 'active:scale-[0.98]',
         onClick && 'cursor-pointer',
         className
       )}
       style={baseStyle}
       onClick={onClick}
-      whileHover={hover ? { opacity: 0.97 } : undefined}
-      transition={{ duration: 0.15, ease: [0.16, 1, 0.3, 1] }}
+      whileHover={hover ? { y: -2, opacity: 0.98 } : undefined}
+      transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
     >
       {/* Gradient border overlay - 降低透明度 */}
       {border === 'gradient' && (

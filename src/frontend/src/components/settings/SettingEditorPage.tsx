@@ -131,27 +131,41 @@ export function SettingEditorPage() {
     >
       {/* Background decorative elements */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden z-0">
+        {/* Subtle grid pattern */}
+        <div
+          className="absolute inset-0 opacity-[0.015]"
+          style={{
+            backgroundImage: `radial-gradient(circle, var(--text-tertiary) 1px, transparent 1px)`,
+            backgroundSize: '32px 32px',
+          }}
+        />
         {/* Top-right gradient accent */}
         <div
-          className="absolute top-0 right-0 w-[400px] h-[400px] opacity-20"
+          className="absolute top-0 right-0 w-[400px] h-[400px] opacity-[0.08]"
           style={{
-            background: 'radial-gradient(circle, rgba(94,106,210,0.15) 0%, transparent 70%)',
+            background: 'radial-gradient(circle, color-mix(in srgb, var(--accent-100) 20%, transparent) 0%, transparent 70%)',
             transform: 'translate(30%, -30%)',
           }}
         />
         {/* Bottom-left gradient accent */}
         <div
-          className="absolute bottom-0 left-0 w-[300px] h-[300px] opacity-15"
+          className="absolute bottom-0 left-0 w-[300px] h-[300px] opacity-[0.06]"
           style={{
-            background: 'radial-gradient(circle, rgba(232,184,125,0.1) 0%, transparent 70%)',
+            background: 'radial-gradient(circle, color-mix(in srgb, var(--color-character) 15%, transparent) 0%, transparent 70%)',
             transform: 'translate(-30%, 30%)',
+          }}
+        />
+        {/* Top accent line */}
+        <div className="absolute top-0 left-0 right-0 h-px opacity-40"
+          style={{
+            background: 'linear-gradient(90deg, transparent, var(--accent-100), transparent)',
           }}
         />
       </div>
       {/* Left: CategoryNav - 移动端隐藏，使用汉堡菜单 */}
       <motion.div
         className="flex-shrink-0 h-full overflow-hidden flex flex-col relative bg-[var(--color-surface-base)] border-r border-[var(--border-default)]
-                   hidden lg:flex"
+                   hidden md:flex"
         style={{
           width: 'var(--layout-sidebar-width, 200px)',
           minWidth: '160px',
@@ -250,6 +264,7 @@ export function SettingEditorPage() {
         style={{
           width: 'var(--layout-rightpanel-width, 320px)',
           minWidth: '280px',
+          maxWidth: '400px',
           zIndex: 1,
         }}
         initial={{ x: 20, opacity: 0 }}

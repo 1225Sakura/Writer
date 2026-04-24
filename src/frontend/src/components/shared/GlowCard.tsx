@@ -57,20 +57,20 @@ const glowColorMap: Record<GlowColor, string> = {
 
 const glowIntensityStyles: Record<GlowIntensity, { boxShadow: string; borderColor: string }> = {
   subtle: {
-    boxShadow: '0 0 6px var(--glow-color, rgba(94, 106, 210, 0.15))',
-    borderColor: 'rgba(94, 106, 210, 0.12)',
+    boxShadow: '0 0 8px var(--glow-color, rgba(94, 106, 210, 0.18)), 0 2px 8px rgba(0, 0, 0, 0.08)',
+    borderColor: 'rgba(94, 106, 210, 0.15)',
   },
   soft: {
-    boxShadow: '0 0 12px var(--glow-color, rgba(94, 106, 210, 0.2))',
-    borderColor: 'rgba(94, 106, 210, 0.18)',
+    boxShadow: '0 0 14px var(--glow-color, rgba(94, 106, 210, 0.22)), 0 4px 12px rgba(0, 0, 0, 0.1)',
+    borderColor: 'rgba(94, 106, 210, 0.2)',
   },
   medium: {
-    boxShadow: '0 0 20px var(--glow-color, rgba(94, 106, 210, 0.28))',
-    borderColor: 'rgba(94, 106, 210, 0.22)',
+    boxShadow: '0 0 24px var(--glow-color, rgba(94, 106, 210, 0.3)), 0 6px 20px rgba(0, 0, 0, 0.12)',
+    borderColor: 'rgba(94, 106, 210, 0.25)',
   },
   strong: {
-    boxShadow: '0 0 32px var(--glow-color, rgba(94, 106, 210, 0.4))',
-    borderColor: 'rgba(94, 106, 210, 0.3)',
+    boxShadow: '0 0 36px var(--glow-color, rgba(94, 106, 210, 0.42)), 0 8px 28px rgba(0, 0, 0, 0.15)',
+    borderColor: 'rgba(94, 106, 210, 0.32)',
   },
 }
 
@@ -135,9 +135,9 @@ export function GlowCard({
       className={cn('cursor-pointer', className)}
       style={baseStyles}
       onClick={onClick}
-      whileHover={hover ? { opacity: 0.95 } : undefined}
-      whileTap={press ? { scale: 0.99 } : undefined}
-      transition={{ duration: 0.15, ease: [0.16, 1, 0.3, 1] }}
+      whileHover={hover ? { y: -2, opacity: 0.96 } : undefined}
+      whileTap={press ? { scale: 0.98 } : undefined}
+      transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
     >
       {/* Inner glow overlay - 仅在非 subtle 时显示 */}
       {intensity !== 'subtle' && (

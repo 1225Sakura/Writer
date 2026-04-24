@@ -5,6 +5,8 @@ import { ChatTemplates } from './ChatTemplates'
 import { motion, AnimatePresence } from 'framer-motion'
 import { getWebSocketClient } from '@/api/websocket'
 
+const MAX_INPUT_LENGTH = 500
+
 const quickReplies = [
   { label: '继续', icon: <Zap className="w-3.5 h-3.5" />, message: '继续' },
   { label: '详细点', icon: <Wand2 className="w-3.5 h-3.5" />, message: '请说得更详细一些' },
@@ -17,6 +19,11 @@ export function UserInputPanel() {
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const { sendMessage, createSession, clearSession, sessionId, isLoading, isStreaming, error, messages, exportToOutline } = useChatStore()
   const [showExportConfirm, setShowExportConfirm] = useState(false)
+
+  // Character count for input
+  const charCount = input.length
+  const isNearLimit = charCount >= MAX_INPUT_LENGTH * 0.9
+  const isAtLimit = charCount >= MAX_INPUT_LENGTH
 
   const handleSend = useCallback(async () => {
     if (!input.trim() || isLoading || isStreaming) return
@@ -187,77 +194,158 @@ export function UserInputPanel() {
           <RefreshCw className="w-5 h-5 text-[var(--icon-secondary)]" />
         </motion.button>
 
-        {/* Input area */}
+        {/* Input area with enhanced focus effects */}
         <div className="flex-1 relative min-w-0">
           <motion.div
             className="relative"
             animate={{
               boxShadow: isFocused
-                ? '0 0 0 1px var(--accent-primary), var(--shadow-glow-sm)'
-                : '0 0 0 1px transparent',
+                ? '0 0 0 1px var(--accent-primary), 0 0 0 3px rgba(94, 106, 210, 0.15), 0 0 24px rgba(94, 106, 210, 0.18)'
+                : '0 0 0 1px var(--border-default)',
             }}
-            transition={{ duration: 0.2 }}
+            transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
             style={{ borderRadius: 'var(--radius-md)' }}
           >
             <textarea
               ref={textareaRef}
               value={input}
-              onChange={(e) => setInput(e.target.value)}
+              onChange={(e) => {
+                if (e.target.value.length <= MAX_INPUT_LENGTH) {
+                  setInput(e.target.value)
+                }
+              }}
               onKeyDown={handleKeyDown}
               onFocus={() => setIsFocused(true)}
               onBlur={() => setIsFocused(false)}
               placeholder="输入你的回答... (Enter 发送，Shift+Enter 换行)"
-              className="w-full resize-none min-h-[48px] max-h-32 py-3 px-4 text-sm
+              className="w-full resize-none min-h-[48px] max-h-32 py-3 px-4 pr-16 text-sm
                          bg-surface-input text-primary font-sans
-                         border rounded-md outline-none
-                         transition-colors duration-200
+                         border outline-none transition-all duration-200
                          placeholder:text-tertiary"
               style={{
-                borderColor: isFocused ? 'var(--accent-primary)' : 'var(--color-border)',
+                borderColor: isFocused ? 'var(--accent-primary)' : 'var(--border-default)',
+                borderWidth: '1px',
               }}
               rows={1}
             />
-            {/* Focus glow overlay */}
+
+            {/* Character counter */}
+            <motion.div
+              className="absolute bottom-2 right-12 pointer-events-none select-none"
+              initial={{ opacity: 0, y: 4 }}
+              animate={{
+                opacity: isFocused || isNearLimit ? 1 : 0,
+                y: 0,
+                color: isAtLimit
+                  ? 'var(--color-danger)'
+                  : isNearLimit
+                    ? 'var(--color-warning)'
+                    : 'var(--text-tertiary)'
+              }}
+              transition={{ duration: 0.15 }}
+            >
+              <span
+                className="text-xs font-mono tabular-nums"
+                style={{
+                  fontVariantNumeric: 'tabular-nums',
+                  letterSpacing: '0.02em',
+                }}
+              >
+                {charCount}/{MAX_INPUT_LENGTH}
+              </span>
+            </motion.div>
+
+            {/* Enhanced focus glow overlay */}
             <AnimatePresence>
               {isFocused && (
                 <motion.div
                   className="absolute inset-0 rounded-md pointer-events-none"
-                  style={{
-                    boxShadow: 'inset 0 0 20px rgba(94, 106, 210, 0.03)',
-                  }}
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
                   transition={{ duration: 0.2 }}
+                  style={{
+                    background: 'radial-gradient(ellipse at center, rgba(94, 106, 210, 0.04) 0%, transparent 70%)',
+                  }}
+                />
+              )}
+            </AnimatePresence>
+
+            {/* Subtle animated border on focus */}
+            <AnimatePresence>
+              {isFocused && (
+                <motion.div
+                  className="absolute inset-0 rounded-md pointer-events-none"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.3 }}
+                  style={{
+                    border: '1px solid',
+                    borderColor: 'transparent',
+                    borderRadius: 'inherit',
+                    background: 'linear-gradient(var(--accent-primary), var(--accent-primary)) padding-box, linear-gradient(135deg, rgba(94, 106, 210, 0.5), rgba(94, 181, 166, 0.3), rgba(232, 184, 125, 0.4)) border-box',
+                    animation: 'glow-border-pulse 2s ease-in-out infinite',
+                  }}
                 />
               )}
             </AnimatePresence>
           </motion.div>
         </div>
 
-        {/* Send button with micro-interactions */}
+        {/* Send button with enhanced micro-interactions */}
         <motion.button
           onClick={handleSend}
           disabled={!canSend}
           className="px-5 py-2.5 flex items-center gap-2 text-sm font-medium flex-shrink-0
-                     rounded-md text-primary disabled:opacity-40 disabled:cursor-not-allowed"
+                     rounded-md text-primary disabled:opacity-40 disabled:cursor-not-allowed
+                     transition-colors duration-150 relative overflow-hidden"
           style={{
             backgroundColor: canSend ? 'var(--accent-primary)' : 'var(--color-surface-input)',
+            border: canSend ? '1px solid transparent' : '1px solid var(--border-default)',
           }}
           whileHover={canSend ? {
             scale: 1.05,
-            backgroundColor: 'var(--accent-hover)',
-            boxShadow: 'var(--shadow-glow)',
+            boxShadow: '0 0 24px rgba(94, 106, 210, 0.45), 0 0 48px rgba(94, 106, 210, 0.2)',
           } : {}}
           whileTap={canSend ? { scale: 0.92 } : {}}
           transition={{ duration: 0.15 }}
         >
+          {/* Ripple effect on hover */}
+          {canSend && (
+            <motion.div
+              className="absolute inset-0 rounded-md"
+              initial={{ opacity: 0 }}
+              whileHover={{
+                opacity: [0, 0.3, 0],
+                scale: [1, 1.5],
+              }}
+              transition={{ duration: 0.6, repeat: Infinity, repeatDelay: 1.5 }}
+              style={{
+                background: 'radial-gradient(circle at center, rgba(255,255,255,0.2) 0%, transparent 70%)',
+              }}
+            />
+          )}
+
           {isLoading || isStreaming ? (
-            <Loader2 className="w-4 h-4 animate-spin motion-reduce:animate-none" />
+            <motion.div
+              animate={{ rotate: 360 }}
+              transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
+            >
+              <Loader2 className="w-4 h-4" />
+            </motion.div>
           ) : (
             <motion.div
-              animate={canSend ? { x: [0, 3, 0] } : {}}
-              transition={{ duration: 0.6, repeat: Infinity, repeatDelay: 2.5, ease: 'easeInOut' }}
+              animate={canSend ? {
+                x: [0, 4, 0],
+                y: [0, -2, 0],
+              } : {}}
+              transition={{
+                duration: 0.8,
+                repeat: Infinity,
+                repeatDelay: 3,
+                ease: 'easeInOut',
+              }}
             >
               <Send className="w-4 h-4" />
             </motion.div>
@@ -277,7 +365,12 @@ export function UserInputPanel() {
             exit={{ opacity: 0, y: -4, scale: 0.97 }}
             transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
           >
-            <span className="w-1.5 h-1.5 rounded-full bg-[var(--color-danger)] flex-shrink-0" />
+            <motion.span
+              className="w-1.5 h-1.5 rounded-full flex-shrink-0"
+              animate={{ scale: [1, 1.3, 1] }}
+              transition={{ duration: 0.6, repeat: Infinity }}
+              style={{ backgroundColor: 'var(--color-danger)' }}
+            />
             {error}
           </motion.div>
         )}

@@ -21,14 +21,14 @@ const ENTITY_TYPE_COLORS: Record<string, string> = {
 }
 
 const tagVariants = {
-  initial: { opacity: 0, scale: 0.6, y: 8 },
+  initial: { opacity: 0, scale: 0.7, y: 6 },
   animate: { opacity: 1, scale: 1, y: 0 },
-  exit: { opacity: 0, scale: 0.6, x: -10 },
+  exit: { opacity: 0, scale: 0.5, x: -12, transition: { duration: 0.15 } },
 }
 
 const containerVariants = {
   initial: {},
-  animate: { transition: { staggerChildren: 0.03 } },
+  animate: { transition: { staggerChildren: 0.04, delayChildren: 0.02 } },
 }
 
 function getTagColor(tagName: string, entityType?: string): string {
@@ -77,16 +77,17 @@ export function TagChips({
               exit="exit"
               layout
               transition={{ type: 'spring', stiffness: 500, damping: 30 }}
-              className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium transition-all cursor-default group/tag"
+              className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-medium transition-all cursor-default group/tag"
               style={{
                 backgroundColor: `${color}15`,
                 color: color,
-                border: `1px solid ${color}25`,
+                border: `1px solid ${color}30`,
               }}
               whileHover={{
-                backgroundColor: `${color}25`,
-                borderColor: `${color}40`,
-                boxShadow: `0 0 8px ${color}20`,
+                backgroundColor: `${color}22`,
+                borderColor: `${color}50`,
+                boxShadow: `0 4px 12px ${color}25`,
+                y: -1,
               }}
             >
               <Tag className="w-3 h-3 opacity-70" />
@@ -97,9 +98,9 @@ export function TagChips({
                     e.stopPropagation()
                     onRemove(tag)
                   }}
-                  className="p-0.5 rounded opacity-0 group-hover/tag:opacity-100 transition-opacity"
-                  whileHover={{ scale: 1.2 }}
-                  whileTap={{ scale: 0.9 }}
+                  className="p-0.5 rounded-full opacity-0 group-hover/tag:opacity-100 transition-all"
+                  whileHover={{ scale: 1.3, backgroundColor: `${color}30` }}
+                  whileTap={{ scale: 0.85, rotate: 90 }}
                   style={{ color }}
                 >
                   <X className="w-3 h-3" />

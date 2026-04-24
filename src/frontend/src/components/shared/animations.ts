@@ -317,6 +317,127 @@ export const shimmer: Variants = {
   },
 }
 
+// Skeleton loading variants
+export const skeletonPulse: Variants = {
+  animate: {
+    opacity: [0.4, 0.8, 0.4],
+    transition: {
+      duration: 1.5,
+      repeat: Infinity,
+      ease: 'easeInOut',
+    },
+  },
+}
+
+// Skeleton wave (more pronounced shimmer for content loading)
+export const skeletonWave: Variants = {
+  animate: {
+    backgroundPosition: ['-200% 0', '200% 0'],
+    transition: {
+      duration: 1.8,
+      repeat: Infinity,
+      ease: 'easeInOut',
+    },
+  },
+}
+
+/* ============================================================
+   SCROLL FADE VARIANTS
+   ============================================================ */
+
+// Scroll reveal from bottom
+export const scrollReveal: Variants = {
+  hidden: { opacity: 0, y: 20 },
+  show: {
+    opacity: 1,
+    y: 0,
+    transition: {
+      duration: 0.4,
+      ease: easings.smooth,
+    },
+  },
+}
+
+// Scroll reveal with scale
+export const scrollRevealScale: Variants = {
+  hidden: { opacity: 0, scale: 0.96 },
+  show: {
+    opacity: 1,
+    scale: 1,
+    transition: {
+      duration: 0.35,
+      ease: easings.smooth,
+    },
+  },
+}
+
+// Scroll fade (for header/toolbar hide on scroll)
+export const scrollFade: Variants = {
+  hidden: { opacity: 1 },
+  visible: { opacity: 0 },
+}
+
+/* ============================================================
+   TOAST/NOTIFICATION VARIANTS
+   ============================================================ */
+
+export const toastEnter: Variants = {
+  hidden: { opacity: 0, y: 20, scale: 0.96 },
+  show: {
+    opacity: 1,
+    y: 0,
+    scale: 1,
+    transition: {
+      duration: 0.25,
+      ease: easings.smooth,
+    },
+  },
+  exit: {
+    opacity: 0,
+    y: -12,
+    scale: 0.96,
+    transition: {
+      duration: 0.2,
+      ease: easings.smooth,
+    },
+  },
+}
+
+/* ============================================================
+   LINK HOVER VARIANTS
+   ============================================================ */
+
+export const linkHover = {
+  color: 'var(--accent-90)',
+  transition: { duration: durations.fast, ease: easings.smooth },
+}
+
+/* ============================================================
+   LOADING SPINNER VARIANTS
+   ============================================================ */
+
+export const spinnerRotate: Variants = {
+  animate: {
+    rotate: 360,
+    transition: {
+      duration: 1,
+      repeat: Infinity,
+      ease: 'linear',
+    },
+  },
+}
+
+export const spinnerDash: Variants = {
+  animate: {
+    strokeDashoffset: [140, 70],
+    transition: {
+      duration: 1.2,
+      repeat: Infinity,
+      ease: 'easeInOut',
+    },
+  },
+}
+
 /* ============================================================
    TYPING INDICATOR VARIANTS
    ============================================================ */

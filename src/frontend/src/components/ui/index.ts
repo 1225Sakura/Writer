@@ -77,7 +77,7 @@ export { Slider } from './slider'
 
 export { Switch } from './switch'
 
-export { Tabs, TabsList, TabsTrigger, TabsContent } from './tabs'
+export { Tabs, TabsList, TabsTrigger, TabsContent, AnimatedTabs } from './tabs'
 
 export { Separator } from './separator'
 

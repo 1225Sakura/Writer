@@ -1,7 +1,7 @@
 import * as React from 'react'
 import { clsx } from 'clsx'
 import { twMerge } from 'tailwind-merge'
-import { motion } from 'framer-motion'
+import { motion, useSpring, useTransform } from 'framer-motion'
 
 export interface ProgressRingProps extends React.HTMLAttributes<HTMLDivElement> {
   value: number
@@ -9,6 +9,7 @@ export interface ProgressRingProps extends React.HTMLAttributes<HTMLDivElement> 
   size?: number
   strokeWidth?: number
   color?: string
+  secondaryColor?: string
   trackColor?: string
   showPercentage?: boolean
   showValue?: boolean
@@ -17,6 +18,7 @@ export interface ProgressRingProps extends React.HTMLAttributes<HTMLDivElement> 
   animated?: boolean
   glow?: boolean
   sizePreset?: 'sm' | 'md' | 'lg'
+  gradient?: boolean
 }
 
 const presetConfig = {
@@ -34,6 +36,7 @@ export const ProgressRing = React.forwardRef<HTMLDivElement, ProgressRingProps>(
       size: sizeProp,
       strokeWidth: strokeWidthProp,
       color = '#5e6ad2',
+      secondaryColor,
       trackColor = 'rgba(255,255,255,0.06)',
       showPercentage = true,
       showValue = false,
@@ -42,6 +45,7 @@ export const ProgressRing = React.forwardRef<HTMLDivElement, ProgressRingProps>(
       animated = true,
       glow = false,
       sizePreset = 'md',
+      gradient = false,
       ...props
     },
     ref
@@ -56,6 +60,26 @@ export const ProgressRing = React.forwardRef<HTMLDivElement, ProgressRingProps>(
     const offset = circumference - (percentage / 100) * circumference
 
     const center = size / 2
+
+    const springValue = useSpring(percentage, {
+      stiffness: 100,
+      damping: 16,
+      mass: 0.6,
+    })
+
+    const animatedOffset = useTransform(springValue, (v) => {
+      const p = Math.min(Math.max(v, 0), 100)
+      const c = 2 * Math.PI * radius
+      return c - (p / 100) * c
+    })
+
+    React.useEffect(() => {
+      springValue.set(percentage)
+    }, [percentage, springValue])
+
+    const gradId = React.useRef(
+      `progress-ring-grad-${Math.random().toString(36).slice(2, 9)}`
+    )
 
     return (
       <div
@@ -72,12 +96,20 @@ export const ProgressRing = React.forwardRef<HTMLDivElement, ProgressRingProps>(
           style={
             glow
               ? {
-                  filter: `drop-shadow(0 0 6px ${color}40)`,
+                  filter: `drop-shadow(0 0 8px ${color}50)`,
                 }
               : undefined
           }
         >
-          {/* Track circle */}
+          <defs>
+            {gradient && (
+              <linearGradient id={gradId.current} x1="0%" y1="0%" x2="100%" y2="0%">
+                <stop offset="0%" stopColor={color} />
+                <stop offset="100%" stopColor={secondaryColor || color} />
+              </linearGradient>
+            )}
+          </defs>
+
           <circle
             cx={center}
             cy={center}
@@ -87,20 +119,18 @@ export const ProgressRing = React.forwardRef<HTMLDivElement, ProgressRingProps>(
             strokeWidth={strokeWidth}
           />
 
-          {/* Progress circle */}
           {animated ? (
             <motion.circle
               cx={center}
               cy={center}
               r={radius}
               fill="none"
-              stroke={color}
+              stroke={gradient ? `url(#${gradId.current})` : color}
               strokeWidth={strokeWidth}
               strokeLinecap="round"
               strokeDasharray={circumference}
-              initial={{ strokeDashoffset: circumference }}
-              animate={{ strokeDashoffset: offset }}
-              transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+              style={{ strokeDashoffset: animatedOffset }}
+              transition={{ type: 'spring', stiffness: 100, damping: 16 }}
             />
           ) : (
             <circle
@@ -108,7 +138,7 @@ export const ProgressRing = React.forwardRef<HTMLDivElement, ProgressRingProps>(
               cy={center}
               r={radius}
               fill="none"
-              stroke={color}
+              stroke={gradient ? `url(#${gradId.current})` : color}
               strokeWidth={strokeWidth}
               strokeLinecap="round"
               strokeDasharray={circumference}
@@ -117,24 +147,21 @@ export const ProgressRing = React.forwardRef<HTMLDivElement, ProgressRingProps>(
           )}
         </svg>
 
-        {/* Center content */}
         <div className="absolute inset-0 flex flex-col items-center justify-center">
           {showPercentage && (
             <motion.span
               className={clsx(
                 preset.fontSize,
-                'font-semibold text-[#f7f8f8] tabular-nums'
+                'font-bold text-[#f7f8f8] tabular-nums'
               )}
-              key={Math.round(percentage)}
-              {...(animated
-                ? {
-                    initial: { scale: 0.8, opacity: 0 },
-                    animate: { scale: 1, opacity: 1 },
-                    transition: { duration: 0.3 },
-                  }
-                : {})}
+              style={{
+                textShadow: '0 0 14px rgba(94, 106, 210, 0.5)',
+              }}
             >
-              {showValue ? value : `${Math.round(percentage)}%`}
+              {showValue ? value : `${Math.round(percentage)}`}
+              {!showValue && (
+                <span className="text-[10px] font-medium text-[#8a8f98]">%</span>
+              )}
             </motion.span>
           )}
 

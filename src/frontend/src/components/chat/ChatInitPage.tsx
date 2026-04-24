@@ -22,7 +22,7 @@ const themeMeta: Record<Theme, { label: string; icon: React.ReactNode; color: st
   'eye-care':      { label: '护眼',   icon: <Eye className="w-3.5 h-3.5" />,      color: '#7eb87a' },
   'midnight-blue': { label: '深夜蓝', icon: <Palette className="w-3.5 h-3.5" />,  color: '#60a5fa' },
   'warm-paper':    { label: '暖纸',   icon: <Coffee className="w-3.5 h-3.5" />,   color: '#b46e3c' },
-  'forest-green':  { label: '森林',   icon: <TreePine className="w-3.5 h-3.5" />, color: '#64be82' },
+  'forest-green':  { label: '森林',   icon: <TreePine className="w-3.5 h-3.5" />, color: '#5aaf72' },
 }
 
 function ThemeSelector() {
@@ -45,32 +45,67 @@ function ThemeSelector() {
   return (
     <div ref={containerRef} className="relative">
       <motion.button
-        className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-surface-raised border border-default
-                   text-secondary touch-target-min hover:bg-surface-hover hover:border-border-strong
+        className="flex items-center gap-1.5 px-3 py-2 rounded-xl relative overflow-hidden
+                   bg-surface-raised border border-default text-secondary touch-target-min
                    transition-all duration-200 ease-out"
+        style={{
+          boxShadow: `
+            0 2px 8px color-mix(in srgb, var(--ink-100) 8%, transparent),
+            inset 0 1px 0 color-mix(in srgb, white 5%, transparent),
+            0 0 0 0 color-mix(in srgb, var(--accent-100) 0%, transparent)
+          `,
+        }}
         title="切换主题"
         onClick={() => setOpen(!open)}
-        whileHover={{ scale: 1.04 }}
-        whileTap={{ scale: 0.96 }}
+        whileHover={{
+          scale: 1.03,
+          borderColor: 'var(--border-strong)',
+          boxShadow: `
+            0 4px 16px color-mix(in srgb, var(--ink-100) 12%, transparent),
+            inset 0 1px 0 color-mix(in srgb, white 8%, transparent),
+            0 0 12px color-mix(in srgb, var(--accent-100) 15%, transparent)
+          `,
+        }}
+        whileTap={{ scale: 0.97 }}
+        transition={{ duration: 0.15 }}
       >
-        <span style={{ color: currentMeta.color }}>{currentMeta.icon}</span>
-        <span className="text-xs hidden sm:inline">{currentMeta.label}</span>
-        <ChevronDown className={`w-3 h-3 transition-transform duration-200 ${open ? 'rotate-180' : ''}`} />
+        {/* Button shimmer effect */}
+        <span
+          className="absolute inset-0 opacity-0 hover:opacity-100 transition-opacity duration-300"
+          style={{
+            background: 'linear-gradient(135deg, transparent 0%, color-mix(in srgb, var(--accent-100) 5%, transparent) 50%, transparent 100%)',
+          }}
+        />
+        <span className="relative z-10" style={{ color: currentMeta.color }}>{currentMeta.icon}</span>
+        <span className="text-xs hidden sm:inline relative z-10">{currentMeta.label}</span>
+        <motion.span
+          className="relative z-10"
+          animate={{ rotate: open ? 180 : 0 }}
+          transition={{ duration: 0.2, ease: [0.22, 1, 0.36, 1] }}
+        >
+          <ChevronDown className="w-3 h-3" />
+        </motion.span>
       </motion.button>
 
       <AnimatePresence>
         {open && (
           <motion.div
-            className="absolute right-0 top-full mt-1.5 z-50 p-1.5 rounded-xl min-w-[160px]"
+            className="absolute right-0 top-full mt-2 z-50 p-2 rounded-2xl min-w-[180px]"
             style={{
               background: 'var(--color-surface-raised)',
               border: '1px solid var(--border-default)',
-              boxShadow: '0 8px 30px color-mix(in srgb, var(--ink-100) 20%, transparent), 0 2px 8px color-mix(in srgb, var(--ink-100) 10%, transparent)',
+              boxShadow: `
+                0 12px 40px color-mix(in srgb, var(--ink-100) 25%, transparent),
+                0 4px 16px color-mix(in srgb, var(--ink-100) 12%, transparent),
+                inset 0 1px 0 color-mix(in srgb, white 8%, transparent)
+              `,
+              backdropFilter: 'blur(20px)',
             }}
-            initial={{ opacity: 0, y: -6, scale: 0.96 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: -6, scale: 0.96 }}
-            transition={{ duration: 0.18, ease: [0.22, 1, 0.36, 1] }}
+            initial={{ opacity: 0, y: -8, scale: 0.95, rotateX: -10 }}
+            animate={{ opacity: 1, y: 0, scale: 1, rotateX: 0 }}
+            exit={{ opacity: 0, y: -8, scale: 0.95, rotateX: -10 }}
+            transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
+            layout
           >
             <div className="text-[10px] px-2 py-1 uppercase tracking-wider" style={{ color: 'var(--text-tertiary)' }}>
               选择主题
@@ -169,54 +204,138 @@ export function ChatInitPage() {
       animate={{ opacity: 1 }}
       transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
     >
-      {/* Ambient background glow */}
+      {/* Ambient background glow - Enhanced layered effect */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden">
+        {/* Primary ambient glow - top left */}
         <motion.div
-          className="absolute -top-40 -left-40 w-96 h-96 rounded-full bg-accent-primary/10"
-          animate={prefersReducedMotion ? {} : { scale: [1, 1.1, 1], opacity: [0.6, 0.8, 0.6] }}
-          transition={prefersReducedMotion ? { duration: 0 } : { duration: 8, repeat: Infinity, ease: 'easeInOut' }}
+          className="absolute -top-40 -left-40 w-[28rem] h-[28rem] rounded-full"
+          style={{
+            background: 'radial-gradient(circle, var(--accent-primary) 0%, transparent 70%)',
+            opacity: 0.12,
+            filter: 'blur(40px)',
+          }}
+          animate={prefersReducedMotion ? {} : {
+            scale: [1, 1.15, 1],
+            opacity: [0.08, 0.14, 0.08],
+            x: [0, 15, 0],
+            y: [0, -10, 0],
+          }}
+          transition={prefersReducedMotion ? { duration: 0 } : { duration: 10, repeat: Infinity, ease: 'easeInOut' }}
         />
+        {/* Secondary glow - bottom right */}
         <motion.div
-          className="absolute -bottom-20 right-20 w-80 h-80 rounded-full bg-[var(--color-character)]/10"
-          animate={prefersReducedMotion ? {} : { scale: [1, 1.15, 1], opacity: [0.5, 0.7, 0.5] }}
-          transition={prefersReducedMotion ? { duration: 0 } : { duration: 10, repeat: Infinity, ease: 'easeInOut', delay: 2 }}
+          className="absolute -bottom-24 right-20 w-[24rem] h-[24rem] rounded-full"
+          style={{
+            background: 'radial-gradient(circle, var(--color-character) 0%, transparent 70%)',
+            opacity: 0.1,
+            filter: 'blur(35px)',
+          }}
+          animate={prefersReducedMotion ? {} : {
+            scale: [1, 1.2, 1],
+            opacity: [0.06, 0.12, 0.06],
+            x: [0, -12, 0],
+            y: [0, 8, 0],
+          }}
+          transition={prefersReducedMotion ? { duration: 0 } : { duration: 12, repeat: Infinity, ease: 'easeInOut', delay: 3 }}
+        />
+        {/* Tertiary accent glow - center */}
+        <motion.div
+          className="absolute top-1/3 left-1/2 -translate-x-1/2 w-64 h-64 rounded-full"
+          style={{
+            background: 'radial-gradient(circle, var(--accent-primary) 0%, transparent 70%)',
+            opacity: 0.05,
+            filter: 'blur(50px)',
+          }}
+          animate={prefersReducedMotion ? {} : {
+            scale: [1, 1.3, 1],
+            opacity: [0.03, 0.07, 0.03],
+          }}
+          transition={prefersReducedMotion ? { duration: 0 } : { duration: 8, repeat: Infinity, ease: 'easeInOut', delay: 1.5 }}
         />
       </div>
 
       {/* 顶部导航栏 - 48px */}
       <motion.header
         className="h-[var(--layout-topbar-height)] flex items-center justify-between px-4 z-20 relative shrink-0
-                   bg-surface-base/80 backdrop-blur-md border-b border-transparent"
+                   bg-surface-base/85 backdrop-blur-xl border-b border-transparent"
         style={{
-          borderImage: 'linear-gradient(90deg, transparent 0%, color-mix(in srgb, var(--accent-100) 15%, transparent) 30%, color-mix(in srgb, var(--accent-100) 25%, transparent) 50%, color-mix(in srgb, var(--accent-100) 15%, transparent) 70%, transparent 100%) 1',
+          borderImage: 'linear-gradient(90deg, transparent 0%, color-mix(in srgb, var(--accent-100) 20%, transparent) 30%, color-mix(in srgb, var(--accent-100) 30%, transparent) 50%, color-mix(in srgb, var(--accent-100) 20%, transparent) 70%, transparent 100%) 1',
           borderImageSlice: '0 0 1 0',
+          boxShadow: `
+            0 4px 30px color-mix(in srgb, var(--ink-100) 10%, transparent),
+            0 1px 0 color-mix(in srgb, var(--accent-100) 8%, transparent) inset,
+            0 0 40px color-mix(in srgb, var(--accent-100) 5%, transparent)
+          `,
         }}
         initial={{ y: -20, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
-        transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+        transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
       >
         {/* Left: Logo + Project Name */}
         <div className="flex items-center gap-3">
           <motion.div
-            className="w-8 h-8 rounded-lg flex items-center justify-center bg-accent-muted glow-border"
-            style={{ boxShadow: 'var(--shadow-glow-sm)' }}
-            initial={{ scale: 0.8, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            transition={{ delay: 0.1, duration: 0.3, ease: [0.34, 1.56, 0.64, 1] }}
+            className="w-9 h-9 rounded-xl flex items-center justify-center relative"
+            style={{
+              background: 'linear-gradient(135deg, var(--accent-primary) 0%, color-mix(in srgb, var(--accent-primary) 60%, var(--accent-80)) 100%)',
+              boxShadow: `
+                0 0 20px color-mix(in srgb, var(--accent-100) 35%, transparent),
+                0 4px 12px color-mix(in srgb, var(--accent-100) 20%, transparent),
+                inset 0 1px 1px color-mix(in srgb, white 20%, transparent)
+              `,
+            }}
+            initial={{ scale: 0.8, opacity: 0, rotate: -10 }}
+            animate={{
+              scale: 1,
+              opacity: 1,
+              rotate: 0,
+            }}
+            transition={{ delay: 0.1, duration: 0.4, ease: [0.34, 1.56, 0.64, 1] }}
+            whileHover={{
+              scale: 1.08,
+              boxShadow: `
+                0 0 30px color-mix(in srgb, var(--accent-100) 50%, transparent),
+                0 6px 20px color-mix(in srgb, var(--accent-100) 30%, transparent),
+                inset 0 1px 1px color-mix(in srgb, white 25%, transparent)
+              `,
+            }}
+            whileTap={{ scale: 0.92 }}
           >
-            <PenTool className="w-4 h-4 text-accent-primary" />
+            <PenTool className="w-4 h-4 text-white drop-shadow-lg" />
+            {/* 内嵌光点 */}
+            <span
+              className="absolute inset-0 rounded-xl animate-pulse"
+              style={{
+                background: 'radial-gradient(circle at 30% 30%, color-mix(in srgb, white 40%, transparent) 0%, transparent 60%)',
+                opacity: 0.6,
+              }}
+            />
           </motion.div>
           <motion.h1
-            className="font-medium text-sm text-primary tracking-wide"
+            className="font-semibold text-sm text-primary tracking-wide relative"
             style={{
-              letterSpacing: '0.08em',
-              textShadow: '0 0 20px color-mix(in srgb, var(--accent-100) 15%, transparent), 0 0 40px color-mix(in srgb, var(--accent-100) 8%, transparent)',
+              letterSpacing: '0.1em',
+              textShadow: `
+                0 0 20px color-mix(in srgb, var(--accent-100) 20%, transparent),
+                0 0 40px color-mix(in srgb, var(--accent-100) 10%, transparent),
+                0 2px 4px color-mix(in srgb, var(--accent-100) 8%, transparent)
+              `,
             }}
             initial={{ x: -8, opacity: 0 }}
             animate={{ x: 0, opacity: 1 }}
-            transition={{ delay: 0.15, duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
+            transition={{ delay: 0.15, duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
           >
-            自动化写作软件
+            <span className="relative">
+              自动化写作软件
+              {/* 标题装饰光晕 */}
+              <span
+                className="absolute -inset-2 rounded-lg opacity-30 blur-sm"
+                style={{
+                  background: 'linear-gradient(90deg, transparent, var(--accent-primary), transparent)',
+                  mask: 'linear-gradient(90deg, black 20%, transparent 50%, black 80%)',
+                  WebkitMask: 'linear-gradient(90deg, black 20%, transparent 50%, black 80%)',
+                }}
+              />
+            </span>
           </motion.h1>
           {hasMessages && (
             <motion.span
@@ -284,26 +403,64 @@ export function ChatInitPage() {
           transition={{ delay: 0.2, duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
         >
           <motion.button
-            className="p-2 rounded-lg bg-surface-raised border border-default text-secondary touch-target-min
-                       hover:bg-surface-hover hover:border-border-strong
+            className="p-2 rounded-xl relative overflow-hidden bg-surface-raised border border-default text-secondary touch-target-min
                        transition-all duration-200 ease-out hidden sm:flex"
-            style={{ boxShadow: 'var(--shadow-glow-sm)' }}
+            style={{
+              boxShadow: `
+                0 2px 8px color-mix(in srgb, var(--ink-100) 6%, transparent),
+                inset 0 1px 0 color-mix(in srgb, white 5%, transparent)
+              `,
+            }}
             title="保存会话"
-            whileHover={{ scale: 1.08 }}
-            whileTap={{ scale: 0.92 }}
+            whileHover={{
+              scale: 1.06,
+              borderColor: 'var(--border-strong)',
+              boxShadow: `
+                0 4px 16px color-mix(in srgb, var(--ink-100) 10%, transparent),
+                inset 0 1px 0 color-mix(in srgb, white 8%, transparent),
+                0 0 16px color-mix(in srgb, var(--accent-100) 20%, transparent)
+              `,
+            }}
+            whileTap={{ scale: 0.94 }}
+            transition={{ duration: 0.15 }}
           >
-            <Save className="w-4 h-4" />
+            <span
+              className="absolute inset-0 opacity-0 hover:opacity-100 transition-opacity duration-300"
+              style={{
+                background: 'linear-gradient(135deg, transparent 0%, color-mix(in srgb, var(--accent-100) 4%, transparent) 50%, transparent 100%)',
+              }}
+            />
+            <Save className="w-4 h-4 relative z-10" />
           </motion.button>
           <motion.button
-            className="p-2 rounded-lg bg-surface-raised border border-default text-secondary touch-target-min
-                       hover:bg-surface-hover hover:border-border-strong
+            className="p-2 rounded-xl relative overflow-hidden bg-surface-raised border border-default text-secondary touch-target-min
                        transition-all duration-200 ease-out hidden sm:flex"
-            style={{ boxShadow: 'var(--shadow-glow-sm)' }}
+            style={{
+              boxShadow: `
+                0 2px 8px color-mix(in srgb, var(--ink-100) 6%, transparent),
+                inset 0 1px 0 color-mix(in srgb, white 5%, transparent)
+              `,
+            }}
             title="历史记录"
-            whileHover={{ scale: 1.08 }}
-            whileTap={{ scale: 0.92 }}
+            whileHover={{
+              scale: 1.06,
+              borderColor: 'var(--border-strong)',
+              boxShadow: `
+                0 4px 16px color-mix(in srgb, var(--ink-100) 10%, transparent),
+                inset 0 1px 0 color-mix(in srgb, white 8%, transparent),
+                0 0 16px color-mix(in srgb, var(--accent-100) 20%, transparent)
+              `,
+            }}
+            whileTap={{ scale: 0.94 }}
+            transition={{ duration: 0.15 }}
           >
-            <History className="w-4 h-4" />
+            <span
+              className="absolute inset-0 opacity-0 hover:opacity-100 transition-opacity duration-300"
+              style={{
+                background: 'linear-gradient(135deg, transparent 0%, color-mix(in srgb, var(--accent-100) 4%, transparent) 50%, transparent 100%)',
+              }}
+            />
+            <History className="w-4 h-4 relative z-10" />
           </motion.button>
           <ThemeSelector />
           <Button
@@ -341,12 +498,15 @@ export function ChatInitPage() {
           <UserInputPanel />
         </motion.div>
 
-        {/* 右侧：已收集信息面板 - 移动端隐藏 */}
+        {/* 右侧：已收集信息面板 - 平板端显示窄版 */}
         <motion.div
-          className="w-[40%] max-w-[480px] min-w-[280px] overflow-y-auto shrink-0 hidden lg:block bg-surface-raised border-l border-default"
+          className="w-[280px] xl:w-[40%] xl:max-w-[480px] xl:min-w-[280px] overflow-y-auto shrink-0 hidden md:block bg-surface-raised border-l border-default"
+          style={{
+            boxShadow: 'inset 4px 0 20px color-mix(in srgb, var(--ink-100) 5%, transparent)',
+          }}
           initial={{ x: 24, opacity: 0 }}
           animate={{ x: 0, opacity: 1 }}
-          transition={{ delay: 0.15, duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+          transition={{ delay: 0.15, duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
         >
           <CollectedInfoPanel entities={extractedEntities} onConfirmEntity={confirmEntity} />
         </motion.div>
@@ -355,15 +515,19 @@ export function ChatInitPage() {
       {/* 底部操作栏 - 48px */}
       <motion.footer
         className="h-[var(--layout-topbar-height)] flex items-center justify-between px-2 sm:px-4 shrink-0 relative z-20
-                   bg-[var(--glass-bg-strong)] backdrop-blur-xl border-t border-transparent"
+                   bg-[var(--glass-bg-strong)] backdrop-blur-2xl border-t border-transparent"
         style={{
-          borderImage: 'linear-gradient(90deg, transparent 0%, color-mix(in srgb, var(--accent-100) 30%, transparent) 20%, color-mix(in srgb, var(--color-success) 25%, transparent) 50%, color-mix(in srgb, var(--accent-100) 30%, transparent) 80%, transparent 100%) 1',
+          borderImage: 'linear-gradient(90deg, transparent 0%, color-mix(in srgb, var(--accent-100) 35%, transparent) 20%, color-mix(in srgb, var(--color-success) 30%, transparent) 50%, color-mix(in srgb, var(--accent-100) 35%, transparent) 80%, transparent 100%) 1',
           borderImageSlice: '0 0 1 0',
-          boxShadow: '0 -4px 24px color-mix(in srgb, var(--ink-100) 15%, transparent), inset 0 1px 0 var(--border-subtle)',
+          boxShadow: `
+            0 -6px 30px color-mix(in srgb, var(--ink-100) 12%, transparent),
+            0 -1px 0 color-mix(in srgb, var(--accent-100) 15%, transparent) inset,
+            0 0 50px color-mix(in srgb, var(--accent-100) 5%, transparent)
+          `,
         }}
         initial={{ y: 20, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
-        transition={{ duration: 0.4, delay: 0.2, ease: [0.22, 1, 0.36, 1] }}
+        transition={{ duration: 0.45, delay: 0.2, ease: [0.22, 1, 0.36, 1] }}
       >
         <div className="flex items-center gap-3">
           <motion.div

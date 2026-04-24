@@ -186,35 +186,47 @@ export function EntityList({
                 {typeEntities.length}
               </span>
             </div>
-            <div className="space-y-0.5">
-              {typeEntities.map((entity) => (
-                <EntityListItem
+            <div className="space-y-0">
+              {typeEntities.map((entity, index) => (
+                <motion.div
                   key={`${entity.type}-${entity.id}`}
-                  name={entity.name}
-                  description={entity.description}
-                  type={entity.type}
-                  typeColor={entity.typeColor}
-                  typeLabel={entity.typeLabel}
-                  onClick={() => onEntityClick?.(entity.id)}
-                  onDelete={onEntityDelete ? () => onEntityDelete(entity.id) : undefined}
-                />
+                  initial={{ opacity: 0, x: -8 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: index * 0.03, duration: 0.2 }}
+                >
+                  <EntityListItem
+                    name={entity.name}
+                    description={entity.description}
+                    type={entity.type}
+                    typeColor={entity.typeColor}
+                    typeLabel={entity.typeLabel}
+                    onClick={() => onEntityClick?.(entity.id)}
+                    onDelete={onEntityDelete ? () => onEntityDelete(entity.id) : undefined}
+                  />
+                </motion.div>
               ))}
             </div>
           </div>
         ))
       ) : (
-        <div className="space-y-0.5">
-          {sortedEntities.map((entity) => (
-            <EntityListItem
+        <div className="space-y-0">
+          {sortedEntities.map((entity, index) => (
+            <motion.div
               key={`${entity.type}-${entity.id}`}
-              name={entity.name}
-              description={entity.description}
-              type={entity.type}
-              typeColor={entity.typeColor}
-              typeLabel={entity.typeLabel}
-              onClick={() => onEntityClick?.(entity.id)}
-              onDelete={onEntityDelete ? () => onEntityDelete(entity.id) : undefined}
-            />
+              initial={{ opacity: 0, x: -8 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: index * 0.03, duration: 0.2 }}
+            >
+              <EntityListItem
+                name={entity.name}
+                description={entity.description}
+                type={entity.type}
+                typeColor={entity.typeColor}
+                typeLabel={entity.typeLabel}
+                onClick={() => onEntityClick?.(entity.id)}
+                onDelete={onEntityDelete ? () => onEntityDelete(entity.id) : undefined}
+              />
+            </motion.div>
           ))}
         </div>
       )}

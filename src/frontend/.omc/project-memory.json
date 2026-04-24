@@ -259,6 +259,18 @@
       "type": "file"
     },
     {
+      "path": "src\\components\\shared\\DynamicBackground.tsx",
+      "accessCount": 2,
+      "lastAccessed": 1776962031035,
+      "type": "file"
+    },
+    {
+      "path": "src\\components\\shared\\ParticleBackground.tsx",
+      "accessCount": 2,
+      "lastAccessed": 1776962031485,
+      "type": "file"
+    },
+    {
       "path": "src\\store",
       "accessCount": 1,
       "lastAccessed": 1776768015866,

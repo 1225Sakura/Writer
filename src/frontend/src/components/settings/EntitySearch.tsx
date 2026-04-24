@@ -98,7 +98,7 @@ const resultVariants = {
   visible: (i: number) => ({
     opacity: 1,
     x: 0,
-    transition: { delay: i * 0.03, type: 'spring' as const, stiffness: 400, damping: 30 },
+    transition: { delay: i * 0.04, type: 'spring' as const, stiffness: 400, damping: 30 },
   }),
 }
 
@@ -195,10 +195,20 @@ export function EntitySearch({ onResultClick }: EntitySearchProps) {
           setTimeout(() => inputRef.current?.focus(), 0)
         }}
         className="flex items-center gap-2 px-3 py-1.5 rounded-md text-xs transition-all bg-[var(--color-surface-raised)] border border-[var(--border-default)] text-[var(--text-tertiary)]"
-        whileHover={{ scale: 1.02, backgroundColor: 'var(--color-surface-overlay)' }}
+        whileHover={{
+          scale: 1.02,
+          backgroundColor: 'var(--color-surface-overlay)',
+          borderColor: 'var(--border-strong)',
+          boxShadow: '0 2px 8px rgba(0,0,0,0.12)',
+        }}
         whileTap={{ scale: 0.98 }}
       >
-        <Search className="w-3.5 h-3.5" />
+        <motion.div
+          animate={{ scale: [1, 1.15, 1], rotate: [0, 5, 0] }}
+          transition={{ duration: 0.4 }}
+        >
+          <Search className="w-3.5 h-3.5" />
+        </motion.div>
         <span>搜索实体</span>
         <kbd className="hidden sm:inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-mono ml-1 bg-[var(--color-surface-overlay)] text-[var(--text-tertiary)]">
           Ctrl+K
@@ -224,8 +234,21 @@ export function EntitySearch({ onResultClick }: EntitySearchProps) {
               onClick={(e) => e.stopPropagation()}
             >
               {/* Input area */}
-              <div className="flex items-center gap-3 px-4 py-3 border-b border-[var(--border-default)]">
-                <Search className="w-5 h-5 flex-shrink-0 text-[var(--text-tertiary)]" />
+              <div className="flex items-center gap-3 px-4 py-3 border-b border-[var(--border-default)] bg-[var(--color-surface-raised)]">
+                <motion.div
+                  className="relative"
+                  animate={isOpen ? { scale: [1, 1.1, 1] } : { scale: 1 }}
+                  transition={{ duration: 0.3 }}
+                >
+                  <Search className="w-5 h-5 flex-shrink-0 text-[var(--accent-primary)]" />
+                  <motion.div
+                    className="absolute inset-0 opacity-30 rounded-full blur-md -z-10"
+                    style={{ backgroundColor: 'var(--accent-primary)' }}
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: isOpen ? 0.3 : 0 }}
+                    transition={{ duration: 0.2 }}
+                  />
+                </motion.div>
                 <input
                   ref={inputRef}
                   type="text"
@@ -233,7 +256,19 @@ export function EntitySearch({ onResultClick }: EntitySearchProps) {
                   onChange={(e) => setQuery(e.target.value)}
                   onKeyDown={handleModalKeyDown}
                   placeholder="搜索角色、物品、地点..."
-                  className="flex-1 bg-transparent text-sm outline-none text-[var(--text-primary)] placeholder:text-[var(--text-tertiary)]"
+                  className="flex-1 bg-transparent text-sm outline-none text-[var(--text-primary)] placeholder:text-[var(--text-tertiary)] transition-all"
+                  style={{
+                    borderBottom: '2px solid transparent',
+                    paddingBottom: '2px',
+                  }}
+                  onFocus={(e) => {
+                    e.currentTarget.style.borderBottomColor = 'var(--accent-primary)'
+                    e.currentTarget.style.boxShadow = '0 2px 8px rgba(var(--accent-primary-rgb, 91, 142, 232), 0.15)'
+                  }}
+                  onBlur={(e) => {
+                    e.currentTarget.style.borderBottomColor = 'transparent'
+                    e.currentTarget.style.boxShadow = 'none'
+                  }}
                 />
                 {query && (
                   <motion.button
@@ -268,11 +303,14 @@ export function EntitySearch({ onResultClick }: EntitySearchProps) {
                         color: isActive ? config.color : 'var(--text-tertiary)',
                         border: isActive ? `1px solid ${config.color}30` : '1px solid transparent',
                       }}
-                      whileHover={{ scale: 1.05 }}
+                      initial={{ opacity: 0, y: -8 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: Object.keys(entityTypeConfig).indexOf(type) * 0.02 }}
+                      whileHover={{ scale: 1.05, y: -1 }}
                       whileTap={{ scale: 0.95 }}
                     >
                       <motion.div
-                        animate={isActive ? { rotate: [0, -10, 10, 0] } : { rotate: 0 }}
+                        animate={isActive ? { rotate: [0, -10, 10, 0], scale: [1, 1.2, 1] } : { rotate: 0, scale: 1 }}
                         transition={{ duration: 0.4 }}
                       >
                         {config.iconType === 'search' ? (
@@ -281,7 +319,17 @@ export function EntitySearch({ onResultClick }: EntitySearchProps) {
                           <EntityIcon type={config.iconType} size="xs" />
                         )}
                       </motion.div>
-                      {config.label}
+                      <span className="relative">
+                        {config.label}
+                        {isActive && (
+                          <motion.div
+                            className="absolute -bottom-1 left-0 right-0 h-0.5 rounded-full"
+                            style={{ backgroundColor: config.color }}
+                            layoutId="filterUnderline"
+                            transition={{ type: 'spring', stiffness: 500, damping: 30 }}
+                          />
+                        )}
+                      </span>
                     </motion.button>
                   )
                 })}
@@ -299,17 +347,52 @@ export function EntitySearch({ onResultClick }: EntitySearchProps) {
                     >
                       {results.length === 0 ? (
                         <motion.div
-                          className="py-8 text-center"
-                          initial={{ opacity: 0, y: 10 }}
-                          animate={{ opacity: 1, y: 0 }}
+                          className="py-10 text-center"
+                          initial={{ opacity: 0, scale: 0.95 }}
+                          animate={{ opacity: 1, scale: 1 }}
+                          transition={{ delay: 0.1 }}
                         >
-                          <Search className="w-8 h-8 mx-auto mb-2 text-[var(--text-disabled)]" />
-                          <p className="text-sm text-[var(--text-tertiary)]">
+                          <motion.div
+                            className="relative w-16 h-16 mx-auto mb-4 rounded-full bg-[var(--color-surface-raised)] flex items-center justify-center"
+                            initial={{ rotate: -10, scale: 0.9 }}
+                            animate={{ rotate: 0, scale: 1 }}
+                            transition={{ delay: 0.15, type: 'spring', stiffness: 300 }}
+                          >
+                            <Search className="w-7 h-7 text-[var(--text-disabled)]" />
+                            <motion.div
+                              className="absolute inset-0 rounded-full opacity-20"
+                              style={{ backgroundColor: 'var(--accent-primary)' }}
+                              animate={{ scale: [1, 1.2, 1], opacity: [0.2, 0.1, 0.2] }}
+                              transition={{ duration: 2, repeat: Infinity }}
+                            />
+                          </motion.div>
+                          <p className="text-sm font-medium text-[var(--text-secondary)] mb-1">
                             未找到匹配结果
                           </p>
-                          <p className="text-xs mt-1 text-[var(--text-disabled)]">
-                            尝试其他关键词或切换分类
+                          <p className="text-xs text-[var(--text-disabled)]">
+                            尝试其他关键词或切换分类筛选
                           </p>
+                          <motion.div
+                            className="mt-4 flex items-center justify-center gap-2"
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            transition={{ delay: 0.3 }}
+                          >
+                            {['角色', '物品', '地点'].map((tag) => (
+                              <motion.span
+                                key={tag}
+                                className="px-2 py-1 text-[10px] rounded-full bg-[var(--color-surface-raised)] text-[var(--text-tertiary)] cursor-pointer hover:bg-[var(--color-surface-overlay)]"
+                                whileHover={{ scale: 1.05, y: -2 }}
+                                whileTap={{ scale: 0.95 }}
+                                onClick={() => {
+                                  setQuery(tag)
+                                  inputRef.current?.focus()
+                                }}
+                              >
+                                {tag}
+                              </motion.span>
+                            ))}
+                          </motion.div>
                         </motion.div>
                       ) : (
                         results.map((result, index) => {
@@ -324,17 +407,24 @@ export function EntitySearch({ onResultClick }: EntitySearchProps) {
                               animate="visible"
                               onClick={() => handleSelect(result.type, result.id)}
                               onMouseEnter={() => setSelectedIndex(index)}
-                              className="w-full flex items-center gap-3 px-4 py-2.5 text-left transition-colors group"
+                              className="w-full flex items-center gap-3 px-4 py-2.5 text-left transition-colors group relative overflow-hidden"
                               style={{
-                                backgroundColor: isSelected ? `${config.color}10` : 'transparent',
-                                borderLeft: isSelected ? `2px solid ${config.color}` : '2px solid transparent',
+                                backgroundColor: isSelected ? `${config.color}12` : 'transparent',
                               }}
-                              whileHover={{ x: 2 }}
+                              whileHover={{ x: 2, backgroundColor: `${config.color}08` }}
                             >
+                              {isSelected && (
+                                <motion.div
+                                  className="absolute left-0 top-0 bottom-0 w-0.5 rounded-r-full"
+                                  style={{ backgroundColor: config.color }}
+                                  layoutId="selectedIndicator"
+                                  transition={{ type: 'spring', stiffness: 500, damping: 30 }}
+                                />
+                              )}
                               <motion.div
-                                className="w-8 h-8 rounded-md flex items-center justify-center flex-shrink-0"
-                                style={{ backgroundColor: `${config.color}20` }}
-                                whileHover={{ scale: 1.1, rotate: 5 }}
+                                className="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0 shadow-sm"
+                                style={{ backgroundColor: `${config.color}18` }}
+                                whileHover={{ scale: 1.1, rotate: 3 }}
                                 transition={{ type: 'spring', stiffness: 400 }}
                               >
                                 {config.iconType === 'search' ? (
@@ -348,23 +438,27 @@ export function EntitySearch({ onResultClick }: EntitySearchProps) {
                                   {highlightMatch(result.name, query)}
                                 </div>
                                 {result.description && (
-                                  <p className="text-xs truncate text-[var(--text-tertiary)]">
+                                  <p className="text-xs truncate text-[var(--text-tertiary)] mt-0.5">
                                     {highlightMatch(result.description, query)}
                                   </p>
                                 )}
                               </div>
                               <motion.span
-                                className="text-xs px-2 py-0.5 rounded flex-shrink-0"
+                                className="text-[10px] px-2 py-1 rounded-md flex-shrink-0 font-medium"
                                 style={{
                                   backgroundColor: `${config.color}15`,
                                   color: config.color,
+                                  border: `1px solid ${config.color}25`,
                                 }}
                                 whileHover={{ scale: 1.05 }}
                               >
                                 {config.label}
                               </motion.span>
-                              <motion.div className="opacity-0 group-hover:opacity-100 transition-opacity">
-                                <ArrowRight className="w-3.5 h-3.5" style={{ color: config.color }} />
+                              <motion.div
+                                className="opacity-0 group-hover:opacity-100 transition-all"
+                                whileHover={{ x: 3 }}
+                              >
+                                <ArrowRight className="w-4 h-4" style={{ color: config.color }} />
                               </motion.div>
                             </motion.button>
                           )

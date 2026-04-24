@@ -70,11 +70,11 @@
   --color-surface-hover:   #2a2c2e;
 
   /* --- Elevation Shadow System (Consolidated - Enhanced depth) --- */
-  --shadow-elevation-1: 0 1px 2px rgba(0, 0, 0, 0.12);
-  --shadow-elevation-2: 0 2px 4px rgba(0, 0, 0, 0.14), 0 1px 2px rgba(0, 0, 0, 0.08);
-  --shadow-elevation-3: 0 4px 8px rgba(0, 0, 0, 0.15), 0 2px 4px rgba(0, 0, 0, 0.10);
-  --shadow-elevation-4: 0 6px 16px rgba(0, 0, 0, 0.18), 0 3px 6px rgba(0, 0, 0, 0.12);
-  --shadow-elevation-5: 0 8px 24px rgba(0, 0, 0, 0.22), 0 4px 8px rgba(0, 0, 0, 0.14);
+  --shadow-elevation-1: 0 1px 3px rgba(0, 0, 0, 0.18), 0 1px 2px rgba(0, 0, 0, 0.12);
+  --shadow-elevation-2: 0 3px 6px rgba(0, 0, 0, 0.20), 0 2px 4px rgba(0, 0, 0, 0.12);
+  --shadow-elevation-3: 0 5px 10px rgba(0, 0, 0, 0.22), 0 3px 6px rgba(0, 0, 0, 0.14);
+  --shadow-elevation-4: 0 8px 18px rgba(0, 0, 0, 0.26), 0 4px 8px rgba(0, 0, 0, 0.16);
+  --shadow-elevation-5: 0 10px 28px rgba(0, 0, 0, 0.30), 0 6px 12px rgba(0, 0, 0, 0.18);
 
   /* Legacy aliases */
   --elevation-1: var(--color-surface-base);
@@ -91,10 +91,10 @@
   --text-inverse:   var(--ink-100);
 
   /* --- Borders (Enhanced visibility) --- */
-  --border-default: rgba(255, 255, 255, 0.08);
-  --border-subtle:  rgba(255, 255, 255, 0.05);
-  --border-strong:  rgba(255, 255, 255, 0.14);
-  --border-focus:   rgba(94, 106, 210, 0.55);
+  --border-default: rgba(255, 255, 255, 0.10);
+  --border-subtle:  rgba(255, 255, 255, 0.06);
+  --border-strong:  rgba(255, 255, 255, 0.18);
+  --border-focus:   rgba(94, 106, 210, 0.60);
 
   /* --- Writing Surface (Dark Default) --- */
   --writing-bg:         #1e1e32;
@@ -107,12 +107,12 @@
   --paper-texture-opacity: 0.035;
 
   /* --- Interaction States (Enhanced feedback) --- */
-  --hover-bg:     rgba(255, 255, 255, 0.06);
-  --hover-border: rgba(255, 255, 255, 0.18);
-  --active-bg:    rgba(94, 106, 210, 0.18);
+  --hover-bg:     rgba(255, 255, 255, 0.10);
+  --hover-border: rgba(255, 255, 255, 0.28);
+  --active-bg:    rgba(94, 106, 210, 0.22);
   --active-border: var(--accent-100);
-  --focus-ring:   rgba(94, 106, 210, 0.55);
-  --disabled-opacity: 0.45;
+  --focus-ring:   rgba(94, 106, 210, 0.65);
+  --disabled-opacity: 0.50;
 
   /* --- UI Surface Aliases (backward compat) --- */
   --ui-bg:             var(--color-surface-base);
@@ -195,15 +195,15 @@
   --radius-input:  6px;
 
   /* --- Shadows (Consolidated System - Enhanced layering) --- */
-  --shadow-card:        0 2px 8px rgba(0, 0, 0, 0.10), 0 1px 2px rgba(0, 0, 0, 0.06);
-  --shadow-drawer:      0 4px 24px rgba(0, 0, 0, 0.18), 0 2px 6px rgba(0, 0, 0, 0.10);
-  --shadow-float:       0 8px 32px rgba(0, 0, 0, 0.24), 0 4px 12px rgba(0, 0, 0, 0.14);
-  --shadow-elevated:    0 4px 14px rgba(0, 0, 0, 0.22), 0 2px 4px rgba(0, 0, 0, 0.12);
-  --shadow-elevated-lg: 0 8px 28px rgba(0, 0, 0, 0.28), 0 4px 8px rgba(0, 0, 0, 0.16);
-  --shadow-glow-sm:      0 0 10px rgba(94, 106, 210, 0.30);
-  --shadow-glow:         0 0 20px rgba(94, 106, 210, 0.40), 0 0 40px rgba(94, 106, 210, 0.15);
-  --shadow-glow-lg:      0 0 36px rgba(94, 106, 210, 0.50), 0 0 72px rgba(94, 106, 210, 0.20);
-  --shadow-inner-glow:   inset 0 0 14px rgba(94, 106, 210, 0.18);
+  --shadow-card:        0 3px 10px rgba(0, 0, 0, 0.18), 0 2px 4px rgba(0, 0, 0, 0.10);
+  --shadow-drawer:      0 6px 28px rgba(0, 0, 0, 0.26), 0 4px 10px rgba(0, 0, 0, 0.14);
+  --shadow-float:       0 10px 38px rgba(0, 0, 0, 0.30), 0 6px 16px rgba(0, 0, 0, 0.18);
+  --shadow-elevated:    0 5px 16px rgba(0, 0, 0, 0.26), 0 3px 6px rgba(0, 0, 0, 0.14);
+  --shadow-elevated-lg: 0 10px 32px rgba(0, 0, 0, 0.32), 0 6px 12px rgba(0, 0, 0, 0.18);
+  --shadow-glow-sm:      0 0 12px rgba(94, 106, 210, 0.35);
+  --shadow-glow:         0 0 24px rgba(94, 106, 210, 0.45), 0 0 48px rgba(94, 106, 210, 0.20);
+  --shadow-glow-lg:      0 0 40px rgba(94, 106, 210, 0.55), 0 0 80px rgba(94, 106, 210, 0.25);
+  --shadow-inner-glow:   inset 0 0 16px rgba(94, 106, 210, 0.20);
 
   /* Theme-aware glow colors (auto-adjusted per theme) */
   --glow-primary: rgba(94, 106, 210, 0.45);
@@ -232,10 +232,10 @@
   --writing-max-width:        720px;
 
   /* --- Glass / Texture --- */
-  --glass-bg:        rgba(15, 16, 17, 0.70);
-  --glass-bg-strong: rgba(15, 16, 17, 0.88);
-  --glass-border:    rgba(255, 255, 255, 0.10);
-  --glass-blur:      18px;
+  --glass-bg:        rgba(15, 16, 17, 0.75);
+  --glass-bg-strong: rgba(15, 16, 17, 0.92);
+  --glass-border:    rgba(255, 255, 255, 0.12);
+  --glass-blur:      20px;
 
   /* --- Selection --- */
   --selection-bg:   rgba(94, 106, 210, 0.40);
@@ -295,34 +295,34 @@
   --elevation-5: var(--color-surface-hover);
 
   --text-primary:   var(--ink-90);
-  --text-secondary: var(--paper-60);
-  --text-tertiary:  var(--paper-70);
+  --text-secondary: #5a5a6e;
+  --text-tertiary:  #7a7a8e;
   --text-disabled:  #b0b0b0;
   --text-inverse:   var(--paper-100);
 
-  --border-default: rgba(0, 0, 0, 0.08);
-  --border-subtle:  rgba(0, 0, 0, 0.04);
-  --border-strong:  rgba(0, 0, 0, 0.12);
-  --border-focus:   rgba(94, 106, 210, 0.4);
+  --border-default: rgba(0, 0, 0, 0.10);
+  --border-subtle:  rgba(0, 0, 0, 0.05);
+  --border-strong:  rgba(0, 0, 0, 0.16);
+  --border-focus:   rgba(94, 106, 210, 0.5);
 
   --writing-bg:         #faf6e8;
   --writing-text:      var(--ink-90);
-  --writing-muted:     rgba(26, 26, 46, 0.45);
-  --writing-line-highlight: rgba(94, 106, 210, 0.04);
-  --writing-selection: rgba(232, 184, 125, 0.2);
+  --writing-muted:     rgba(26, 26, 46, 0.42);
+  --writing-line-highlight: rgba(94, 106, 210, 0.05);
+  --writing-selection: rgba(232, 184, 125, 0.22);
 
-  /* Paper texture noise opacity for light theme */
-  --paper-texture-opacity: 0.04;
+  /* Paper texture noise opacity for light theme - subtle warmth */
+  --paper-texture-opacity: 0.03;
 
-  /* Light theme glow adjustments (softer for light backgrounds) */
-  --glow-primary: rgba(94, 106, 210, 0.3);
-  --glow-primary-sm: rgba(94, 106, 210, 0.15);
+  /* Light theme glow - softer and more subtle */
+  --glow-primary: rgba(94, 106, 210, 0.25);
+  --glow-primary-sm: rgba(94, 106, 210, 0.12);
 
-  --hover-bg:      rgba(245, 240, 230, 0.8);
-  --hover-border:  #c0bbb0;
-  --active-bg:     rgba(94, 106, 210, 0.1);
+  --hover-bg:      rgba(245, 240, 230, 0.85);
+  --hover-border:  rgba(0, 0, 0, 0.14);
+  --active-bg:     rgba(94, 106, 210, 0.08);
   --active-border: var(--accent-100);
-  --focus-ring:    rgba(94, 106, 210, 0.4);
+  --focus-ring:    rgba(94, 106, 210, 0.45);
 
   --ui-bg:             var(--color-surface-base);
   --ui-card:           var(--color-surface-raised);
@@ -332,12 +332,19 @@
   --ui-toolbar:        var(--color-surface-base);
   --ui-drawer:         var(--color-surface-raised);
 
-  --glass-bg:        rgba(255, 255, 255, 0.7);
-  --glass-bg-strong: rgba(255, 255, 255, 0.85);
-  --glass-border:    rgba(0, 0, 0, 0.08);
+  --glass-bg:        rgba(255, 255, 255, 0.72);
+  --glass-bg-strong: rgba(255, 255, 255, 0.88);
+  --glass-border:    rgba(0, 0, 0, 0.10);
 
-  --selection-bg:   rgba(94, 106, 210, 0.25);
+  --selection-bg:   rgba(94, 106, 210, 0.22);
   --selection-color: var(--ink-90);
+
+  /* Light theme shadows - warmer, softer for light backgrounds */
+  --shadow-card:        0 1px 4px rgba(61, 52, 40, 0.06), 0 1px 2px rgba(61, 52, 40, 0.04);
+  --shadow-drawer:      0 3px 16px rgba(61, 52, 40, 0.10), 0 2px 4px rgba(61, 52, 40, 0.06);
+  --shadow-float:       0 6px 24px rgba(61, 52, 40, 0.14), 0 3px 8px rgba(61, 52, 40, 0.08);
+  --shadow-elevated:    0 3px 10px rgba(61, 52, 40, 0.12), 0 2px 4px rgba(61, 52, 40, 0.06);
+  --shadow-elevated-lg: 0 6px 20px rgba(61, 52, 40, 0.16), 0 4px 6px rgba(61, 52, 40, 0.08);
 
   /* Legacy aliases for writing area */
   --ink-black:   var(--ink-90);
@@ -360,37 +367,37 @@
   --elevation-4: var(--color-surface-input);
   --elevation-5: var(--color-surface-hover);
 
-  --text-primary:   #e8efe0;
-  --text-secondary: #b8c4a8;
-  --text-tertiary:  #889478;
-  --text-disabled:  #5c6b52;
+  --text-primary:   #d4e4cc;
+  --text-secondary: #9cb896;
+  --text-tertiary:  #728b64;
+  --text-disabled:  #4a5a3c;
   --text-inverse:   #1a1f1a;
 
-  --border-default: rgba(255, 255, 255, 0.05);
-  --border-subtle:  rgba(255, 255, 255, 0.03);
-  --border-strong:  rgba(255, 255, 255, 0.08);
-  --border-focus:   rgba(126, 184, 122, 0.5);
+  --border-default: rgba(255, 255, 255, 0.06);
+  --border-subtle:  rgba(255, 255, 255, 0.04);
+  --border-strong:  rgba(255, 255, 255, 0.10);
+  --border-focus:   rgba(126, 184, 122, 0.55);
 
-  --accent-100:   #7eb87a;
-  --accent-90:    #8fc489;
-  --accent-80:    #6a9e66;
-  --accent-muted: rgba(126, 184, 122, 0.15);
+  --accent-100:   #6fa86c;
+  --accent-90:    #7eb87a;
+  --accent-80:    #5c9958;
+  --accent-muted: rgba(126, 184, 122, 0.12);
 
-  --writing-bg:         #1e241e;
-  --writing-text:      #e8efe0;
-  --writing-muted:     rgba(232, 239, 224, 0.45);
-  --writing-line-highlight: rgba(126, 184, 122, 0.08);
-  --writing-selection: rgba(126, 184, 122, 0.25);
+  --writing-bg:         #1a211a;
+  --writing-text:       #c8dcc0;
+  --writing-muted:      rgba(200, 220, 192, 0.5);
+  --writing-line-highlight: rgba(126, 184, 122, 0.12);
+  --writing-selection:  rgba(126, 184, 122, 0.35);
 
-  /* Eye-care theme glow - green tinted */
-  --glow-primary: rgba(126, 184, 122, 0.4);
-  --glow-primary-sm: rgba(126, 184, 122, 0.2);
+  /* Eye-care theme glow - green tinted, softer for reduced eye strain */
+  --glow-primary: rgba(126, 184, 122, 0.35);
+  --glow-primary-sm: rgba(126, 184, 122, 0.15);
 
-  --hover-bg:      rgba(255, 255, 255, 0.04);
-  --hover-border:  rgba(255, 255, 255, 0.10);
-  --active-bg:     rgba(126, 184, 122, 0.15);
-  --active-border: #7eb87a;
-  --focus-ring:    rgba(126, 184, 122, 0.5);
+  --hover-bg:      rgba(255, 255, 255, 0.06);
+  --hover-border:  rgba(255, 255, 255, 0.14);
+  --active-bg:     rgba(126, 184, 122, 0.16);
+  --active-border: #6fa86c;
+  --focus-ring:    rgba(126, 184, 122, 0.52);
 
   --ui-bg:             var(--color-surface-base);
   --ui-card:           var(--color-surface-raised);
@@ -400,12 +407,12 @@
   --ui-toolbar:        var(--color-surface-base);
   --ui-drawer:         var(--color-surface-raised);
 
-  --glass-bg:        rgba(26, 31, 26, 0.7);
-  --glass-bg-strong: rgba(26, 31, 26, 0.85);
+  --glass-bg:        rgba(26, 33, 26, 0.75);
+  --glass-bg-strong: rgba(26, 33, 26, 0.88);
   --glass-border:    rgba(255, 255, 255, 0.06);
 
-  --selection-bg:   rgba(126, 184, 122, 0.3);
-  --selection-color: #e8efe0;
+  --selection-bg:   rgba(126, 184, 122, 0.35);
+  --selection-color: #1a211a;
 
   --icon-primary:   var(--text-primary);
   --icon-secondary: var(--text-secondary);
@@ -421,14 +428,15 @@
   --smoke:        #323832;
 }
 
-/* --- Warm Paper Theme (Sepia tones) --- */
+/* --- Warm Paper Theme (Sepia tones - Enhanced vintage paper feel) --- */
 [data-theme="warm-paper"],
 .warm-paper {
-  --color-surface-base:    #f5f0e6;
-  --color-surface-raised:  #faf8f3;
-  --color-surface-overlay: #f0ebe3;
-  --color-surface-input:   #e8e4dc;
-  --color-surface-hover:   #ddd8ce;
+  /* Core surfaces - layered parchment tones */
+  --color-surface-base:    #f7f2e8;
+  --color-surface-raised:  #faf6ec;
+  --color-surface-overlay: #f2ede3;
+  --color-surface-input:   #e8e2d6;
+  --color-surface-hover:   #ddd7c8;
 
   --elevation-1: var(--color-surface-base);
   --elevation-2: var(--color-surface-raised);
@@ -436,38 +444,44 @@
   --elevation-4: var(--color-surface-input);
   --elevation-5: var(--color-surface-hover);
 
-  --text-primary:   #3d3428;
-  --text-secondary: #6b5d4d;
-  --text-tertiary:  #9a8b78;
-  --text-disabled:  #c4b8a8;
-  --text-inverse:   #f5f0e6;
+  /* Text hierarchy - warm sepia tones */
+  --text-primary:   #3d3020;
+  --text-secondary: #6b5a45;
+  --text-tertiary:  #9a8672;
+  --text-disabled:  #c4b5a0;
+  --text-inverse:   #f7f2e8;
 
-  --border-default: rgba(61, 52, 40, 0.1);
-  --border-subtle:  rgba(61, 52, 40, 0.06);
-  --border-strong:  rgba(61, 52, 40, 0.18);
-  --border-focus:   rgba(180, 110, 60, 0.5);
+  /* Borders - subtle warm shadows */
+  --border-default: rgba(61, 48, 32, 0.08);
+  --border-subtle:  rgba(61, 48, 32, 0.04);
+  --border-strong:  rgba(61, 48, 32, 0.15);
+  --border-focus:   rgba(180, 100, 50, 0.45);
 
-  --accent-100:   #b46e3c;
-  --accent-90:    #c67d4a;
-  --accent-80:    #9a5c32;
-  --accent-muted: rgba(180, 110, 60, 0.12);
+  /* Accent - rich amber/honey tones */
+  --accent-100:   #b87040;
+  --accent-90:    #c88050;
+  --accent-80:    #9a6035;
+  --accent-muted: rgba(180, 112, 64, 0.12);
 
-  --writing-bg:         #faf6e8;
-  --writing-text:       #3d3428;
-  --writing-muted:      rgba(61, 52, 40, 0.4);
-  --writing-line-highlight: rgba(180, 110, 60, 0.06);
-  --writing-selection:  rgba(180, 110, 60, 0.2);
+  /* Writing surface - aged paper appearance */
+  --writing-bg:         #faf4e4;
+  --writing-text:       #3d3020;
+  --writing-muted:      rgba(61, 48, 32, 0.35);
+  --writing-line-highlight: rgba(180, 112, 64, 0.05);
+  --writing-selection:  rgba(180, 112, 64, 0.18);
 
-  /* Warm paper glow - amber tinted */
-  --glow-primary: rgba(180, 110, 60, 0.35);
-  --glow-primary-sm: rgba(180, 110, 60, 0.15);
+  /* Warm amber glow */
+  --glow-primary: rgba(180, 112, 64, 0.3);
+  --glow-primary-sm: rgba(180, 112, 64, 0.12);
 
-  --hover-bg:      rgba(245, 240, 230, 0.8);
-  --hover-border:  rgba(61, 52, 40, 0.15);
-  --active-bg:     rgba(180, 110, 60, 0.1);
-  --active-border: #b46e3c;
-  --focus-ring:    rgba(180, 110, 60, 0.4);
+  /* Interaction states */
+  --hover-bg:      rgba(250, 246, 236, 0.8);
+  --hover-border:  rgba(61, 48, 32, 0.12);
+  --active-bg:     rgba(180, 112, 64, 0.08);
+  --active-border: #b87040;
+  --focus-ring:    rgba(180, 112, 64, 0.35);
 
+  /* UI surfaces */
   --ui-bg:             var(--color-surface-base);
   --ui-card:           var(--color-surface-raised);
   --ui-text:           var(--text-primary);
@@ -476,28 +490,34 @@
   --ui-toolbar:        var(--color-surface-base);
   --ui-drawer:         var(--color-surface-raised);
 
-  --glass-bg:        rgba(245, 240, 230, 0.75);
-  --glass-bg-strong: rgba(245, 240, 230, 0.88);
-  --glass-border:    rgba(61, 52, 40, 0.1);
+  /* Glass with warm tint */
+  --glass-bg:        rgba(250, 246, 240, 0.78);
+  --glass-bg-strong: rgba(250, 246, 240, 0.90);
+  --glass-border:    rgba(61, 48, 32, 0.08);
 
-  --selection-bg:   rgba(180, 110, 60, 0.2);
-  --selection-color: #3d3428;
+  /* Selection */
+  --selection-bg:   rgba(180, 112, 64, 0.18);
+  --selection-color: #3d3020;
 
   /* Legacy aliases for writing area */
-  --ink-black:   #faf6e8;
-  --paper-white:  #3d3428;
-  --paper-frost:  #6b5d4d;
-  --smoke:        #9a8b78;
+  --ink-black:   #faf4e4;
+  --paper-white:  #3d3020;
+  --paper-frost:  #6b5a45;
+  --smoke:        #9a8672;
+
+  /* Paper texture - enhanced for warm-paper */
+  --paper-texture-opacity: 0.045;
 }
 
 /* --- Midnight Blue Theme --- */
 [data-theme="midnight-blue"],
 .midnight-blue {
-  --color-surface-base:    #0a0e14;
-  --color-surface-raised:  #101820;
-  --color-surface-overlay: #161e28;
-  --color-surface-input:   #1c2430;
-  --color-surface-hover:   #242d3a;
+  /* Deep blue-black base with true midnight feel */
+  --color-surface-base:    #080c14;
+  --color-surface-raised:  #0d1520;
+  --color-surface-overlay: #141c2a;
+  --color-surface-input:   #1a2434;
+  --color-surface-hover:   #212c3e;
 
   --elevation-1: var(--color-surface-base);
   --elevation-2: var(--color-surface-raised);
@@ -505,37 +525,45 @@
   --elevation-4: var(--color-surface-input);
   --elevation-5: var(--color-surface-hover);
 
-  --text-primary:   #e0e6ed;
-  --text-secondary: #a0aec0;
-  --text-tertiary:  #6b7c8f;
-  --text-disabled:  #4a5568;
-  --text-inverse:   #0a0e14;
+  /* Refined text hierarchy with blue undertone */
+  --text-primary:   #e4ecf7;
+  --text-secondary:  #9db5cf;
+  --text-tertiary:   #6a8299;
+  --text-disabled:   #3d5066;
+  --text-inverse:    #080c14;
 
-  --border-default: rgba(96, 165, 250, 0.08);
-  --border-subtle:  rgba(96, 165, 250, 0.04);
-  --border-strong:  rgba(96, 165, 250, 0.14);
-  --border-focus:   rgba(96, 165, 250, 0.5);
+  /* Blue-tinted borders with better visibility */
+  --border-default: rgba(96, 165, 250, 0.12);
+  --border-subtle:   rgba(96, 165, 250, 0.06);
+  --border-strong:   rgba(96, 165, 250, 0.22);
+  --border-focus:    rgba(96, 165, 250, 0.65);
 
-  --accent-100:   #60a5fa;
-  --accent-90:    #7ab8fc;
-  --accent-80:    #5090e8;
-  --accent-muted: rgba(96, 165, 250, 0.12);
+  /* Enhanced blue accent palette with depth */
+  --accent-100:   #5b98f8;
+  --accent-95:    #6ba6fa;
+  --accent-90:    #4a87e6;
+  --accent-85:    #3d75d4;
+  --accent-80:    #2e62c2;
+  --accent-muted: rgba(91, 152, 248, 0.15);
 
-  --writing-bg:         #0c1220;
-  --writing-text:       #e0e6ed;
-  --writing-muted:      rgba(224, 230, 237, 0.5);
-  --writing-line-highlight: rgba(96, 165, 250, 0.06);
-  --writing-selection:  rgba(96, 165, 250, 0.25);
+  /* Writing surface with deep blue tint */
+  --writing-bg:         #0a1020;
+  --writing-text:       #e4ecf7;
+  --writing-muted:      rgba(228, 236, 247, 0.45);
+  --writing-line-highlight: rgba(91, 152, 248, 0.08);
+  --writing-selection:  rgba(91, 152, 248, 0.28);
 
-  /* Midnight blue glow - blue tinted */
-  --glow-primary: rgba(96, 165, 250, 0.4);
-  --glow-primary-sm: rgba(96, 165, 250, 0.2);
+  /* Sophisticated multi-layer blue glow system */
+  --glow-primary: rgba(91, 152, 248, 0.45);
+  --glow-primary-sm: rgba(91, 152, 248, 0.25);
+  --glow-accent: 0 0 20px rgba(91, 152, 248, 0.5), 0 0 40px rgba(91, 152, 248, 0.25), 0 0 80px rgba(91, 152, 248, 0.12);
 
-  --hover-bg:      rgba(96, 165, 250, 0.04);
-  --hover-border:  rgba(96, 165, 250, 0.12);
-  --active-bg:     rgba(96, 165, 250, 0.12);
-  --active-border: #60a5fa;
-  --focus-ring:    rgba(96, 165, 250, 0.5);
+  /* Blue-tinted interaction states */
+  --hover-bg:      rgba(91, 152, 248, 0.10);
+  --hover-border:  rgba(91, 152, 248, 0.24);
+  --active-bg:     rgba(91, 152, 248, 0.18);
+  --active-border: #5b9bf8;
+  --focus-ring:    rgba(91, 152, 248, 0.65);
 
   --ui-bg:             var(--color-surface-base);
   --ui-card:           var(--color-surface-raised);
@@ -545,28 +573,43 @@
   --ui-toolbar:        var(--color-surface-base);
   --ui-drawer:         var(--color-surface-raised);
 
-  --glass-bg:        rgba(16, 24, 32, 0.75);
-  --glass-bg-strong: rgba(16, 24, 32, 0.88);
-  --glass-border:    rgba(96, 165, 250, 0.08);
+  /* Deep blue glass with blue edge highlights */
+  --glass-bg:        rgba(13, 21, 32, 0.78);
+  --glass-bg-strong: rgba(13, 21, 32, 0.90);
+  --glass-border:    rgba(91, 152, 248, 0.12);
 
-  --selection-bg:   rgba(96, 165, 250, 0.25);
-  --selection-color: #e0e6ed;
+  --selection-bg:   rgba(91, 152, 248, 0.28);
+  --selection-color: #e4ecf7;
 
   /* Legacy aliases for writing area */
-  --ink-black:   #0c1220;
-  --paper-white:  #e0e6ed;
-  --paper-frost:  #a0aec0;
-  --smoke:        #6b7c8f;
+  --ink-black:   #0a1020;
+  --paper-white:  #e4ecf7;
+  --paper-frost:  #9db5cf;
+  --smoke:        #6a8299;
+
+  /* Blue-tinted shadows for depth cohesion */
+  --shadow-elevation-1: 0 1px 3px rgba(0, 0, 0, 0.25), 0 1px 2px rgba(0, 0, 0, 0.15);
+  --shadow-elevation-2: 0 3px 6px rgba(0, 0, 0, 0.30), 0 2px 4px rgba(0, 0, 0, 0.18);
+  --shadow-elevation-3: 0 6px 12px rgba(0, 0, 0, 0.35), 0 4px 6px rgba(0, 0, 0, 0.20);
+  --shadow-elevation-4: 0 8px 18px rgba(0, 0, 0, 0.38), 0 5px 8px rgba(0, 0, 0, 0.22);
+  --shadow-elevation-5: 0 10px 24px rgba(0, 0, 0, 0.42), 0 6px 10px rgba(0, 0, 0, 0.26);
+
+  /* Deep midnight background gradient layers */
+  background:
+    radial-gradient(ellipse 80% 50% at 50% 0%, rgba(30, 60, 114, 0.15) 0%, transparent 60%),
+    radial-gradient(ellipse 60% 40% at 80% 100%, rgba(20, 40, 80, 0.10) 0%, transparent 50%),
+    linear-gradient(180deg, #080c14 0%, #0d1520 50%, #080c14 100%);
 }
 
 /* --- Forest Green Theme --- */
 [data-theme="forest-green"],
 .forest-green {
-  --color-surface-base:    #0f1612;
-  --color-surface-raised:  #1a221c;
-  --color-surface-overlay: #222a24;
-  --color-surface-input:   #2a322a;
-  --color-surface-hover:   #323d32;
+  /* Deep forest base with layered green undertones */
+  --color-surface-base:    #0a120e;
+  --color-surface-raised:  #111a14;
+  --color-surface-overlay: #192219;
+  --color-surface-input:   #212c22;
+  --color-surface-hover:   #283428;
 
   --elevation-1: var(--color-surface-base);
   --elevation-2: var(--color-surface-raised);
@@ -574,37 +617,45 @@
   --elevation-4: var(--color-surface-input);
   --elevation-5: var(--color-surface-hover);
 
-  --text-primary:   #d4e4d4;
-  --text-secondary: #a0c0a0;
-  --text-tertiary:  #709070;
-  --text-disabled:  #4a5a4a;
-  --text-inverse:   #0f1612;
+  /* Text hierarchy - natural forest greens */
+  --text-primary:   #c8dcc8;
+  --text-secondary: #94b894;
+  --text-tertiary:  #5e7e5e;
+  --text-disabled:  #3a4a3a;
+  --text-inverse:   #0a120e;
 
-  --border-default: rgba(100, 190, 130, 0.08);
-  --border-subtle:  rgba(100, 190, 130, 0.04);
-  --border-strong:  rgba(100, 190, 130, 0.14);
-  --border-focus:   rgba(100, 190, 130, 0.5);
+  /* Borders - subtle moss-green tints */
+  --border-default: rgba(100, 180, 120, 0.10);
+  --border-subtle:  rgba(100, 180, 120, 0.05);
+  --border-strong:  rgba(100, 180, 120, 0.18);
+  --border-focus:   rgba(100, 190, 130, 0.58);
 
-  --accent-100:   #64be82;
-  --accent-90:    #78cc92;
-  --accent-80:    #56a872;
-  --accent-muted: rgba(100, 190, 130, 0.12);
+  /* Rich forest green accent palette with depth */
+  --accent-100:   #5aaf72;
+  --accent-95:    #68be82;
+  --accent-90:    #4a9f62;
+  --accent-85:    #3a8f52;
+  --accent-80:    #2a7f42;
+  --accent-muted: rgba(90, 175, 114, 0.12);
 
-  --writing-bg:         #111a14;
-  --writing-text:       #d4e4d4;
-  --writing-muted:      rgba(212, 228, 212, 0.5);
-  --writing-line-highlight: rgba(100, 190, 130, 0.06);
-  --writing-selection:  rgba(100, 190, 130, 0.25);
+  /* Writing surface - deep forest clearing feel */
+  --writing-bg:         #0d1610;
+  --writing-text:       #c8dcc8;
+  --writing-muted:      rgba(200, 220, 200, 0.45);
+  --writing-line-highlight: rgba(90, 175, 114, 0.06);
+  --writing-selection:  rgba(90, 175, 114, 0.22);
 
-  /* Forest green glow */
-  --glow-primary: rgba(100, 190, 130, 0.4);
-  --glow-primary-sm: rgba(100, 190, 130, 0.2);
+  /* Sophisticated multi-layer forest green glow */
+  --glow-primary: rgba(90, 175, 114, 0.45);
+  --glow-primary-sm: rgba(90, 175, 114, 0.22);
+  --glow-accent: 0 0 20px rgba(90, 175, 114, 0.5), 0 0 40px rgba(90, 175, 114, 0.25), 0 0 80px rgba(90, 175, 114, 0.10);
 
-  --hover-bg:      rgba(100, 190, 130, 0.04);
-  --hover-border:  rgba(100, 190, 130, 0.12);
-  --active-bg:     rgba(100, 190, 130, 0.12);
-  --active-border: #64be82;
-  --focus-ring:    rgba(100, 190, 130, 0.5);
+  /* Interaction states - natural leaf-green feedback */
+  --hover-bg:      rgba(90, 175, 114, 0.10);
+  --hover-border:  rgba(90, 175, 114, 0.22);
+  --active-bg:     rgba(90, 175, 114, 0.16);
+  --active-border: #5aaf72;
+  --focus-ring:    rgba(90, 175, 114, 0.58);
 
   --ui-bg:             var(--color-surface-base);
   --ui-card:           var(--color-surface-raised);
@@ -614,18 +665,33 @@
   --ui-toolbar:        var(--color-surface-base);
   --ui-drawer:         var(--color-surface-raised);
 
-  --glass-bg:        rgba(26, 34, 28, 0.75);
-  --glass-bg-strong: rgba(26, 34, 28, 0.88);
-  --glass-border:    rgba(100, 190, 130, 0.08);
+  /* Forest glass with subtle green tint */
+  --glass-bg:        rgba(18, 26, 20, 0.78);
+  --glass-bg-strong: rgba(18, 26, 20, 0.90);
+  --glass-border:    rgba(90, 175, 114, 0.08);
 
-  --selection-bg:   rgba(100, 190, 130, 0.25);
-  --selection-color: #d4e4d4;
+  --selection-bg:   rgba(90, 175, 114, 0.25);
+  --selection-color: #c8dcc8;
 
   /* Legacy aliases for writing area */
-  --ink-black:   #111a14;
-  --paper-white:  #d4e4d4;
-  --paper-frost:  #a0c0a0;
-  --smoke:        #709070;
+  --ink-black:   #0d1610;
+  --paper-white:  #c8dcc8;
+  --paper-frost:  #94b894;
+  --smoke:        #5e7e5e;
+
+  /* Green-tinted shadows for depth cohesion */
+  --shadow-elevation-1: 0 1px 3px rgba(0, 0, 0, 0.20), 0 1px 2px rgba(0, 0, 0, 0.12);
+  --shadow-elevation-2: 0 3px 6px rgba(0, 0, 0, 0.25), 0 2px 4px rgba(0, 0, 0, 0.15);
+  --shadow-elevation-3: 0 6px 12px rgba(0, 0, 0, 0.28), 0 4px 6px rgba(0, 0, 0, 0.16);
+  --shadow-elevation-4: 0 8px 18px rgba(0, 0, 0, 0.32), 0 5px 8px rgba(0, 0, 0, 0.18);
+  --shadow-elevation-5: 0 10px 24px rgba(0, 0, 0, 0.36), 0 6px 10px rgba(0, 0, 0, 0.22);
+
+  /* Forest atmosphere - layered natural gradients */
+  background:
+    radial-gradient(ellipse 80% 50% at 50% 0%, rgba(40, 90, 50, 0.12) 0%, transparent 55%),
+    radial-gradient(ellipse 60% 40% at 20% 80%, rgba(30, 70, 40, 0.08) 0%, transparent 45%),
+    radial-gradient(ellipse 50% 30% at 80% 20%, rgba(50, 100, 60, 0.06) 0%, transparent 40%),
+    linear-gradient(180deg, #0a120e 0%, #111a14 50%, #0a120e 100%);
 }
 
 /* ============================================================
@@ -1030,7 +1096,7 @@ code, pre {
 }
 
 .writing-area .tiptap .current-line-highlight {
-  background: linear-gradient(90deg, rgba(94, 106, 210, 0.06) 0%, rgba(232, 184, 125, 0.04) 100%);
+  background: linear-gradient(90deg, rgba(126, 184, 122, 0.08) 0%, rgba(126, 184, 122, 0.04) 100%);
   border-radius: 4px;
   transition: background 0.3s ease;
 }
@@ -1054,7 +1120,7 @@ code, pre {
   position: absolute;
   width: 2px;
   height: 1.2em;
-  background: linear-gradient(180deg, #e8b87d 0%, #c45c5c 100%);
+  background: linear-gradient(180deg, var(--accent-100) 0%, var(--accent-80) 100%);
   animation: cursor-blink 1.1s ease-in-out infinite;
   pointer-events: none;
   margin-left: -1px;
@@ -1115,7 +1181,7 @@ code, pre {
   right: -8px;
   top: -4px;
   bottom: -4px;
-  background: linear-gradient(90deg, rgba(94, 106, 210, 0.04) 0%, rgba(232, 184, 125, 0.03) 50%, rgba(94, 106, 210, 0.04) 100%);
+  background: linear-gradient(90deg, rgba(126, 184, 122, 0.06) 0%, rgba(126, 184, 122, 0.03) 50%, rgba(126, 184, 122, 0.06) 100%);
   border-radius: 6px;
   pointer-events: none;
   z-index: -1;
@@ -1137,10 +1203,10 @@ code, pre {
 
 /* Blockquote */
 .writing-area .tiptap blockquote {
-  border-left: 3px solid rgba(232, 184, 125, 0.3);
+  border-left: 3px solid rgba(126, 184, 122, 0.3);
   padding-left: 1em;
   margin: 1em 0;
-  color: rgba(245, 240, 230, 0.75);
+  color: rgba(200, 220, 192, 0.75);
   font-style: italic;
 }
 
@@ -1148,7 +1214,7 @@ code, pre {
 .writing-area .tiptap hr {
   border: none;
   height: 1px;
-  background: linear-gradient(90deg, transparent 0%, rgba(245, 240, 230, 0.1) 50%, transparent 100%);
+  background: linear-gradient(90deg, transparent 0%, rgba(126, 184, 122, 0.1) 50%, transparent 100%);
   margin: 2em 0;
 }
 
@@ -1165,7 +1231,7 @@ code, pre {
 }
 
 .writing-area .tiptap li::marker {
-  color: rgba(232, 184, 125, 0.5);
+  color: rgba(126, 184, 122, 0.5);
 }
 
 /* Code inline */
@@ -1179,8 +1245,8 @@ code, pre {
 
 /* Highlight */
 .writing-area .tiptap mark {
-  background: rgba(232, 184, 125, 0.2);
-  color: #f5f0e6;
+  background: rgba(126, 184, 122, 0.2);
+  color: var(--writing-text);
   padding: 0.1em 0.2em;
   border-radius: 2px;
 }
@@ -1989,6 +2055,40 @@ code, pre {
   mix-blend-mode: multiply;
 }
 
+/* Warm paper texture - enhanced for vintage/sepia aesthetic */
+.paper-texture-warm {
+  position: relative;
+  background-color: var(--writing-bg, #faf4e4);
+  background-image:
+    radial-gradient(ellipse at 15% 25%, rgba(250, 240, 225, 0.03) 0%, transparent 55%),
+    radial-gradient(ellipse at 85% 75%, rgba(245, 235, 215, 0.025) 0%, transparent 50%),
+    linear-gradient(180deg, rgba(250, 246, 238, 0.01) 0%, transparent 35%, rgba(180, 150, 100, 0.015) 100%);
+}
+
+.paper-texture-warm::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.55' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.025'/%3E%3C/svg%3E");
+  opacity: var(--paper-texture-opacity, 0.045);
+  pointer-events: none;
+  mix-blend-mode: multiply;
+  border-radius: inherit;
+}
+
+.paper-texture-warm::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image:
+    radial-gradient(ellipse at 30% 0%, rgba(180, 140, 90, 0.02) 0%, transparent 60%),
+    radial-gradient(ellipse at 70% 100%, rgba(180, 112, 64, 0.015) 0%, transparent 50%),
+    radial-gradient(ellipse at 50% 50%, rgba(245, 240, 230, 0.01) 0%, transparent 70%);
+  pointer-events: none;
+  mix-blend-mode: soft-light;
+  border-radius: inherit;
+}
+
 .ink-texture {
   position: relative;
 }
@@ -2296,32 +2396,71 @@ code, pre {
     radial-gradient(ellipse at 90% 80%, rgba(232, 184, 125, 0.02) 0%, transparent 50%);
 }
 
+/* Custom scrollbar for collected info panel */
+.collected-info-panel ::-webkit-scrollbar {
+  width: 6px;
+}
+
+.collected-info-panel ::-webkit-scrollbar-track {
+  background: transparent;
+  margin: 4px 0;
+}
+
+.collected-info-panel ::-webkit-scrollbar-thumb {
+  background: var(--border-strong);
+  border-radius: 3px;
+}
+
+.collected-info-panel ::-webkit-scrollbar-thumb:hover {
+  background: var(--text-muted);
+}
+
 /* Entity card styling */
 .entity-card {
   display: flex;
   align-items: stretch;
   gap: 0;
-  margin-bottom: 6px;
-  border-radius: var(--radius-md);
+  margin-bottom: 8px;
+  border-radius: var(--radius-lg);
   background: var(--color-surface-base);
   border: 1px solid var(--border-subtle);
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
   cursor: pointer;
   overflow: hidden;
-  transition: border-color 200ms ease, box-shadow 200ms ease;
+  transition: border-color 250ms ease, box-shadow 250ms ease, transform 200ms ease;
+  position: relative;
 }
 
 .entity-card:hover {
   border-color: var(--border-strong);
+  transform: translateY(-1px);
 }
 
-/* Left color bar */
+/* Shimmer effect overlay */
+.entity-card__shimmer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(
+    135deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.03) 50%,
+    transparent 100%
+  );
+  opacity: 0;
+}
+
+.entity-card:hover .entity-card__shimmer {
+  opacity: 1;
+}
+
+/* Left color bar with enhanced transition */
 .entity-card__color-bar {
   width: 3px;
   flex-shrink: 0;
-  border-radius: var(--radius-md) 0 0 var(--radius-md);
+  border-radius: var(--radius-lg) 0 0 var(--radius-lg);
   opacity: 0.7;
-  transition: opacity 200ms ease, width 200ms ease;
+  transition: opacity 250ms ease, width 250ms ease;
 }
 
 .entity-card:hover .entity-card__color-bar {
@@ -2329,32 +2468,61 @@ code, pre {
   width: 4px;
 }
 
+/* Color glow effect on hover */
+.entity-card__color-glow {
+  pointer-events: none;
+  filter: blur(4px);
+}
+
 /* Card content */
 .entity-card__content {
   flex: 1;
   min-width: 0;
-  padding: 10px 10px 10px 12px;
+  padding: 12px 12px 12px 14px;
   display: flex;
   flex-direction: column;
   justify-content: center;
 }
 
-/* Confirm button */
+/* Confirm button with enhanced hover */
 .entity-card__confirm {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 10px 12px;
+  padding: 12px 14px;
   flex-shrink: 0;
   background: transparent;
   border: none;
   cursor: pointer;
-  border-radius: 0 var(--radius-md) var(--radius-md) 0;
-  transition: background-color 150ms ease;
+  border-radius: 0 var(--radius-lg) var(--radius-lg) 0;
+  transition: background-color 200ms ease;
 }
 
 .entity-card__confirm:hover {
   background-color: var(--hover-bg);
+}
+
+/* Category section styling */
+.category-section {
+  position: relative;
+}
+
+.category-section::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 2px;
+  height: 60%;
+  background: linear-gradient(
+    180deg,
+    transparent,
+    var(--border-subtle) 20%,
+    var(--border-subtle) 80%,
+    transparent
+  );
+  border-radius: 1px;
 }
 
 /* ============================================================
@@ -2593,6 +2761,15 @@ code, pre {
     linear-gradient(180deg, #faf8f3 0%, #f5f0e6 50%, #faf8f3 100%);
 }
 
+/* Warm-paper theme gradient - warm sepia tones */
+[data-theme="warm-paper"] .bg-theme-gradient,
+.warm-paper .bg-theme-gradient {
+  background:
+    radial-gradient(ellipse at 25% 0%, rgba(180, 140, 90, 0.06) 0%, transparent 50%),
+    radial-gradient(ellipse at 75% 100%, rgba(180, 112, 64, 0.04) 0%, transparent 50%),
+    linear-gradient(180deg, #f7f2e8 0%, #f2ede3 50%, #f7f2e8 100%);
+}
+
 /* Ambient glow background */
 .bg-ambient-glow {
   position: relative;
@@ -2718,4 +2895,28 @@ code, pre {
   background:
     radial-gradient(ellipse at 50% 50%, rgba(94, 106, 210, 0.015) 0%, transparent 60%),
     #faf8f3;
+}
+
+/* Warm-paper theme interface backgrounds */
+[data-theme="warm-paper"] .bg-chat,
+.warm-paper .bg-chat {
+  background:
+    radial-gradient(ellipse at 20% 0%, rgba(180, 140, 90, 0.05) 0%, transparent 50%),
+    radial-gradient(ellipse at 80% 100%, rgba(180, 112, 64, 0.03) 0%, transparent 50%),
+    linear-gradient(180deg, #f7f2e8 0%, #f2ede3 100%);
+}
+
+[data-theme="warm-paper"] .bg-settings,
+.warm-paper .bg-settings {
+  background:
+    radial-gradient(ellipse at 30% 30%, rgba(180, 140, 90, 0.04) 0%, transparent 50%),
+    radial-gradient(ellipse at 70% 70%, rgba(180, 112, 64, 0.025) 0%, transparent 50%),
+    linear-gradient(180deg, #f7f2e8 0%, #f2ede3 100%);
+}
+
+[data-theme="warm-paper"] .bg-writing,
+.warm-paper .bg-writing {
+  background:
+    radial-gradient(ellipse at 50% 50%, rgba(180, 112, 64, 0.02) 0%, transparent 60%),
+    #faf4e4;
 }

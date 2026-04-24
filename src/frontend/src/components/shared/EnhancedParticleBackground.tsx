@@ -8,9 +8,15 @@
  * - 移动速度：0.2-0.5px/frame
  * - 透明度：0.05-0.15
  * - 颜色：#5e6ad2, #e8b87d, #5eb5a6
+ *
+ * 性能优化：
+ * - 低性能设备自动降级（减少粒子数）
+ * - 连接线数量限制
+ * - 防抖 resize 处理
+ * - prefers-reduced-motion 支持
  */
 
-import { useEffect, useRef, useState, useCallback } from 'react'
+import { useEffect, useRef, useState, useCallback, useMemo } from 'react'
 import { cn } from '@/lib/utils'
 
 interface Particle {
@@ -46,6 +52,21 @@ interface EnhancedParticleBackgroundProps {
 }
 
 /**
+ * 检测低性能设备
+ */
+function isLowPerformanceDevice(): boolean {
+  const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
+    navigator.userAgent
+  )
+  const isSmallScreen = window.innerWidth < 768
+  const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+  // @ts-ignore - deviceMemory is not in all browsers
+  const isLowMemory = navigator.deviceMemory !== undefined && navigator.deviceMemory < 4
+
+  return isMobile || isSmallScreen || prefersReducedMotion || isLowMemory
+}
+
+/**
  * 设计规范颜色（墨韵色系）
  * - 紫辰 (Accent Purple) #5e6ad2
  * - 琥珀 (Amber) #e8b87d
@@ -72,10 +93,11 @@ const defaultColors = [
  * - 默认关闭鼠标交互和连线，减少视觉干扰
  * - 主题色支持
  * - 支持 prefers-reduced-motion
+ * - 低性能设备自动降级
  */
 export function EnhancedParticleBackground({
   className,
-  particleCount = 20,
+  particleCount: propParticleCount,
   enabled = true,
   particleType = 'dot',
   mouseInteractive = false,
@@ -93,6 +115,14 @@ export function EnhancedParticleBackground({
   const mouseRef = useRef({ x: -1000, y: -1000 })
   const animationRef = useRef<number>()
   const reducedMotionRef = useRef(false)
+  const resizeTimeoutRef = useRef<number>()
+
+  // 低性能设备自动降级粒子数量
+  const isLowPerf = useMemo(() => isLowPerformanceDevice(), [])
+  const particleCount = useMemo(() => {
+    if (propParticleCount) return propParticleCount
+    return isLowPerf ? Math.floor(12) : 20
+  }, [propParticleCount, isLowPerf])
 
   // Design spec colors as default palette
   const palette = colors ?? (useThemeColors ? designColors : defaultColors)
@@ -133,14 +163,19 @@ export function EnhancedParticleBackground({
     const ctx = canvas.getContext('2d')
     if (!ctx) return
 
-    // Handle resize
+    // 防抖 resize 处理
     const handleResize = () => {
-      const rect = container.getBoundingClientRect()
-      const dpr = Math.min(window.devicePixelRatio, 2)
-      canvas.width = rect.width * dpr
-      canvas.height = rect.height * dpr
-      ctx.scale(dpr, dpr)
-      particlesRef.current = initParticles(rect.width, rect.height)
+      if (resizeTimeoutRef.current) {
+        cancelAnimationFrame(resizeTimeoutRef.current)
+      }
+      resizeTimeoutRef.current = requestAnimationFrame(() => {
+        const rect = container.getBoundingClientRect()
+        const dpr = Math.min(window.devicePixelRatio, 2)
+        canvas.width = rect.width * dpr
+        canvas.height = rect.height * dpr
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
+        particlesRef.current = initParticles(rect.width, rect.height)
+      })
     }
 
     handleResize()
@@ -163,6 +198,10 @@ export function EnhancedParticleBackground({
       container.addEventListener('mousemove', handleMouseMove)
       container.addEventListener('mouseleave', handleMouseLeave)
     }
+
+    // 限制最大连接数
+    const maxConnections = 25
+    let connectionCount = 0
 
     // Animation
     const animate = () => {
@@ -202,22 +241,23 @@ export function EnhancedParticleBackground({
         ctx.fill()
       })
 
-      // Draw connections
-      if (showConnections) {
-        for (let i = 0; i < particles.length; i++) {
-          for (let j = i + 1; j < particles.length; j++) {
+      // Draw connections with limit
+      if (showConnections && connectionCount < maxConnections) {
+        for (let i = 0; i < particles.length && connectionCount < maxConnections; i++) {
+          for (let j = i + 1; j < particles.length && connectionCount < maxConnections; j++) {
             const dx = particles[i].x - particles[j].x
             const dy = particles[i].y - particles[j].y
             const distance = Math.sqrt(dx * dx + dy * dy)
 
             if (distance < connectionDistance) {
-              const opacity = (1 - distance / connectionDistance) * 0.08
+              const opacity = (1 - distance / connectionDistance) * 0.05
               ctx.beginPath()
               ctx.moveTo(particles[i].x, particles[i].y)
               ctx.lineTo(particles[j].x, particles[j].y)
               ctx.strokeStyle = `rgba(94, 106, 210, ${opacity})`
-              ctx.lineWidth = 0.5
+              ctx.lineWidth = 0.3
               ctx.stroke()
+              connectionCount++
             }
           }
         }
@@ -236,6 +276,9 @@ export function EnhancedParticleBackground({
       }
       if (animationRef.current) {
         cancelAnimationFrame(animationRef.current)
+      }
+      if (resizeTimeoutRef.current) {
+        cancelAnimationFrame(resizeTimeoutRef.current)
       }
     }
   }, [enabled, isVisible, mouseInteractive, mouseRadius, showConnections, connectionDistance, initParticles])

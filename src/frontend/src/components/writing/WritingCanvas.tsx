@@ -127,10 +127,10 @@ export function WritingCanvas() {
       }),
       FocusModeExtension.configure({
         enabled: focusModeEnabled,
-        dimOpacity: 0.3,
-        blurAmount: 0,
+        dimOpacity: 0.22,
+        blurAmount: 0.3,
         focusRange: 'paragraph',
-        fadeInDuration: 400,
+        fadeInDuration: 500,
         keepHeadingsVisible: true,
         keepEmptyLinesVisible: false,
       }),
@@ -165,7 +165,7 @@ export function WritingCanvas() {
     },
     editorProps: {
       attributes: {
-        class: 'writing-area max-w-none focus:outline-none min-h-full px-8 py-6',
+        class: 'writing-area max-w-none focus:outline-none min-h-full px-8 py-6 immersive-canvas',
         style: 'caret-color: var(--color-character);',
       },
     },
@@ -282,30 +282,47 @@ export function WritingCanvas() {
 
   return (
     <div className="h-full flex flex-col" style={{ backgroundColor: 'var(--writing-bg)' }}>
-      {/* 写作区域 - subtle paper texture background using CSS variables */}
+      {/* 写作区域 - enhanced paper texture with layered gradients */}
       <div
         className="flex-1 overflow-y-auto relative writing-surface"
         style={{
           backgroundImage: `
-            radial-gradient(ellipse 80% 50% at 50% 0%, color-mix(in srgb, var(--accent-primary) 2%, transparent) 0%, transparent 60%),
-            radial-gradient(ellipse 60% 40% at 80% 100%, color-mix(in srgb, var(--color-character) 1.5%, transparent) 0%, transparent 50%),
-            linear-gradient(180deg, rgba(255,255,255,0.005) 0%, transparent 30%, rgba(0,0,0,0.015) 100%)
+            radial-gradient(ellipse 80% 50% at 50% -10%, color-mix(in srgb, var(--accent-primary) 2%, transparent) 0%, transparent 60%),
+            radial-gradient(ellipse 60% 40% at 90% 100%, color-mix(in srgb, var(--color-character) 1.5%, transparent) 0%, transparent 55%),
+            radial-gradient(ellipse 50% 35% at 10% 60%, color-mix(in srgb, var(--color-outline) 1%, transparent) 0%, transparent 45%),
+            radial-gradient(ellipse 100% 60% at 50% 100%, color-mix(in srgb, var(--ink-100) 2%, transparent) 0%, transparent 80%),
+            linear-gradient(180deg, color-mix(in srgb, var(--paper-100) 0.5%, transparent) 0%, transparent 20%, color-mix(in srgb, var(--ink-100) 1.5%, transparent) 100%)
           `,
         }}
       >
         {/* 浮动工具栏 */}
         <EditorToolbar editor={editor} />
 
-        {/* 写作卡片容器 - centered on large screens with paper-like background */}
+        {/* 写作卡片容器 - enhanced with refined shadow and subtle glow */}
         <div
-          className="my-8 rounded-2xl max-w-[var(--writing-max-width)] mx-auto writing-card paper-texture"
+          className="my-8 rounded-2xl max-w-[var(--writing-max-width)] mx-auto writing-card paper-texture relative"
           style={{
             backgroundColor: 'var(--writing-bg)',
             border: '1px solid var(--border-subtle)',
-            boxShadow: '0 2px 8px rgba(0,0,0,0.12), 0 8px 32px rgba(0,0,0,0.08)',
+            boxShadow: `
+              0 2px 8px color-mix(in srgb, var(--ink-100) 10%, transparent),
+              0 8px 24px color-mix(in srgb, var(--ink-100) 8%, transparent),
+              0 16px 48px color-mix(in srgb, var(--ink-100) 5%, transparent),
+              inset 0 1px 0 var(--border-subtle),
+              inset 0 -1px 0 color-mix(in srgb, var(--paper-100) 20%, transparent)
+            `,
           }}
         >
-          {/* 章节标题 - 与正文融合过渡 */}
+          {/* Subtle inner glow at top */}
+          <div
+            className="absolute inset-x-8 top-0 h-px rounded-full"
+            style={{
+              background: 'linear-gradient(90deg, transparent, color-mix(in srgb, var(--color-character) 15%, transparent) 50%, transparent)',
+              boxShadow: '0 0 12px color-mix(in srgb, var(--color-character) 10%, transparent)',
+            }}
+          />
+
+          {/* 章节标题 - refined with subtle text shadow */}
           <div className="px-12 pt-12 pb-5">
             <h1
               className="font-serif-cn text-2xl font-semibold tracking-tight"
@@ -315,12 +332,23 @@ export function WritingCanvas() {
                 letterSpacing: 'var(--tracking-tight)',
                 transition: 'color var(--transition-normal)',
                 fontFamily: 'var(--font-serif-cn)',
+                textShadow: '0 1px 3px rgba(0,0,0,0.12), 0 2px 6px rgba(0,0,0,0.08)',
               }}
             >
               {chapterTitle}
             </h1>
-            {/* 柔和分隔线 */}
-            <div className="mt-5 h-px bg-gradient-to-r from-transparent via-[var(--border-strong)] to-transparent opacity-60" />
+            {/* Refined underline decoration with gradient */}
+            <div className="mt-5 flex items-center gap-2">
+              <div className="h-px flex-1 bg-gradient-to-r from-transparent via-[var(--border-strong)] to-transparent opacity-40" />
+              <div
+                className="w-10 h-[2px] rounded-full"
+                style={{
+                  background: 'linear-gradient(90deg, color-mix(in srgb, var(--color-character) 50%, transparent), color-mix(in srgb, var(--color-vermillion) 50%, transparent))',
+                  boxShadow: '0 0 8px color-mix(in srgb, var(--color-character) 30%, transparent)',
+                }}
+              />
+              <div className="h-px flex-1 bg-gradient-to-r from-transparent via-[var(--border-strong)] to-transparent opacity-40" />
+            </div>
           </div>
 
           {/* 正文编辑器 */}
@@ -341,8 +369,8 @@ export function WritingCanvas() {
       <div
         className="flex items-center px-5 py-2 text-xs font-medium"
         style={{
-          backgroundColor: 'var(--color-surface-base)',
-          borderTop: '1px solid var(--border-subtle)',
+          background: 'linear-gradient(180deg, var(--color-surface-base) 0%, rgba(13, 13, 18, 0.98) 100%)',
+          borderTop: '1px solid rgba(255,255,255,0.03)',
           color: 'var(--text-tertiary)',
           fontFamily: 'var(--font-sans)',
           minHeight: '36px',
@@ -351,34 +379,56 @@ export function WritingCanvas() {
       >
         <span
           className="px-2 py-0.5 rounded-md"
-          style={{ color: 'var(--text-secondary)', background: 'var(--border-subtle)' }}
+          style={{
+            color: 'var(--text-secondary)',
+            background: 'rgba(255,255,255,0.03)',
+            border: '1px solid rgba(255,255,255,0.04)',
+          }}
         >
           {chapterTitle}
         </span>
-        <span className="mx-1.5 opacity-20">|</span>
+        <span className="mx-1.5 opacity-15">|</span>
         <span className="px-1.5">{wordCount} 字</span>
-        <span className="mx-1.5 opacity-20">|</span>
+        <span className="mx-1.5 opacity-15">|</span>
         <span className="px-1.5">
           今日: {todayWordCount} / {targetWordCount} 字
         </span>
-        <span className="mx-1.5 opacity-20">|</span>
+        <span className="mx-1.5 opacity-15">|</span>
         <span className="px-1.5">时长: {formatDuration(sessionDuration)}</span>
-        <span className="mx-1.5 opacity-20">|</span>
+        <span className="mx-1.5 opacity-15">|</span>
         <span className="px-1.5">速度: {sessionWPM} 字/分</span>
-        <span className="mx-1.5 opacity-20">|</span>
+        <span className="mx-1.5 opacity-15">|</span>
         <span className="px-1.5">人机比例: {humanAIRatio}%</span>
-        <span className="mx-1.5 opacity-20">|</span>
+        <span className="mx-1.5 opacity-15">|</span>
         <span className="px-1.5" style={{ color: 'var(--color-character)' }}>
           文笔: {WRITING_STYLE_NAMES[writingStyle] || writingStyle}
         </span>
-        <span className="mx-1.5 opacity-20">|</span>
+        <span className="mx-1.5 opacity-15">|</span>
         <button
           onClick={() => useUIStore.getState().toggleFocusMode()}
           className={`px-2 py-0.5 rounded-md text-xs transition-all duration-200 ${
             focusModeEnabled
-              ? 'bg-[var(--color-outline)]/15 text-[var(--color-outline)]'
-              : 'hover:bg-[var(--border-subtle)] text-[var(--text-tertiary)]'
+              ? 'text-[var(--color-outline)]'
+              : 'text-[var(--text-tertiary)]'
           }`}
+          style={focusModeEnabled ? {
+            background: 'rgba(91, 142, 232, 0.12)',
+            border: '1px solid rgba(91, 142, 232, 0.2)',
+          } : {
+            border: '1px solid transparent',
+          }}
+          onMouseEnter={(e) => {
+            if (!focusModeEnabled) {
+              (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.04)'
+              ;(e.currentTarget as HTMLElement).style.borderColor = 'rgba(255,255,255,0.06)'
+            }
+          }}
+          onMouseLeave={(e) => {
+            if (!focusModeEnabled) {
+              (e.currentTarget as HTMLElement).style.background = 'transparent'
+              ;(e.currentTarget as HTMLElement).style.borderColor = 'transparent'
+            }
+          }}
           title="聚焦模式 (Ctrl+Shift+F)"
         >
           {focusModeEnabled ? '聚焦中' : '聚焦'}
@@ -393,15 +443,15 @@ export function WritingCanvas() {
               exit={{ opacity: 0, scale: 0.8 }}
               className="flex items-center gap-1.5 px-2 py-0.5 rounded-md"
               style={{
-                background: 'color-mix(in srgb, var(--color-ifline) 8%, transparent)',
-                border: '1px solid color-mix(in srgb, var(--color-ifline) 15%, transparent)',
+                background: 'rgba(126, 184, 74, 0.06)',
+                border: '1px solid rgba(126, 184, 74, 0.12)',
               }}
             >
               <motion.div
                 animate={prefersReducedMotion ? {} : { opacity: [1, 0.3, 1] }}
                 transition={prefersReducedMotion ? {} : { duration: 1.2, repeat: Infinity, ease: 'easeInOut' }}
               >
-                <Type className="w-3 h-3 text-[var(--icon-primary)]" />
+                <Type className="w-3 h-3" style={{ color: 'var(--color-ifline)' }} />
               </motion.div>
               <span className="text-[10px] font-medium" style={{ color: 'var(--color-ifline)' }}>写作中</span>
             </motion.div>

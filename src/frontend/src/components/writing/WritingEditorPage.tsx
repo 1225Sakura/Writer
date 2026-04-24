@@ -175,6 +175,41 @@ export function WritingEditorPage() {
         )}
       </AnimatePresence>
 
+      {/* Subtle ambient glow orbs - adds depth to immersive mode */}
+      <AnimatePresence>
+        {immersiveMode && (
+          <motion.div
+            key="ambient-glow"
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.8 }}
+            transition={{ duration: 1.2, ease: IMMERSIVE_EASE }}
+            className="fixed inset-0 pointer-events-none z-25"
+          >
+            {/* Top-right warm glow */}
+            <div
+              className="absolute w-96 h-96 rounded-full blur-3xl"
+              style={{
+                top: '-10%',
+                right: '-5%',
+                background: 'radial-gradient(circle, color-mix(in srgb, var(--color-character) 6%, transparent) 0%, transparent 70%)',
+                animation: 'pulse-glow 8s ease-in-out infinite',
+              }}
+            />
+            {/* Bottom-left cool glow */}
+            <div
+              className="absolute w-80 h-80 rounded-full blur-3xl"
+              style={{
+                bottom: '-8%',
+                left: '-3%',
+                background: 'radial-gradient(circle, color-mix(in srgb, var(--color-outline) 5%, transparent) 0%, transparent 70%)',
+                animation: 'pulse-glow 10s ease-in-out infinite reverse',
+              }}
+            />
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* Refined immersive mode indicator - glass pill design */}
       <AnimatePresence>
         {immersiveMode && chromeVisible && (
@@ -277,80 +312,118 @@ export function WritingEditorPage() {
           )}
         </AnimatePresence>
 
-        {/* AI操作抽屉 - Framer Motion with glow effect */}
+        {/* AI操作抽屉 - Enhanced spring animation with smooth expansion */}
         <AnimatePresence initial={false}>
           {aiDrawerOpen && (!immersiveMode || chromeVisible) && (
             <motion.div
               key="ai-drawer"
-              initial={{ width: 0, opacity: 0, x: 20 }}
+              initial={{ width: 0, opacity: 0, x: 40 }}
               animate={{ width: 320, opacity: 1, x: 0 }}
-              exit={{ width: 0, opacity: 0, x: 20 }}
-              transition={{ duration: 0.35, ease: IMMERSIVE_EASE }}
+              exit={{ width: 0, opacity: 0, x: 40 }}
+              transition={{
+                width: { type: 'spring', stiffness: 260, damping: 26, restSpeed: 0.5 },
+                opacity: { duration: 0.25, ease: IMMERSIVE_EASE },
+                x: { type: 'spring', stiffness: 260, damping: 26, restSpeed: 0.5 }
+              }}
               className="drawer-responsive drawer-right border-l border-[var(--border-default)] bg-[var(--color-surface-raised)] flex flex-col overflow-hidden relative z-20
-                         w-full sm:w-[280px] md:w-[320px]"
+                         w-[280px] md:w-[320px] lg:w-[360px]"
               style={{
-                boxShadow: '-4px 0 24px color-mix(in srgb, var(--accent-primary) 15%, transparent)',
+                boxShadow: '-4px 0 32px color-mix(in srgb, var(--accent-primary) 20%, transparent), -2px 0 12px color-mix(in srgb, var(--accent-primary) 10%, transparent)',
                 maxWidth: '100vw',
               }}
             >
-              {/* Glow indicator */}
+              {/* Animated glow indicator */}
               <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                className="absolute top-0 left-0 w-px h-full"
+                initial={{ opacity: 0, scaleY: 0 }}
+                animate={{ opacity: 1, scaleY: 1 }}
+                exit={{ opacity: 0, scaleY: 0 }}
+                transition={{ duration: 0.4, ease: IMMERSIVE_EASE }}
+                className="absolute top-0 left-0 w-px h-full origin-top"
                 style={{
-                  background: 'linear-gradient(180deg, var(--glow-primary) 0%, transparent 100%)',
+                  background: 'linear-gradient(180deg, var(--accent-primary) 0%, color-mix(in srgb, var(--accent-primary) 50%, transparent) 50%, transparent 100%)',
                 }}
               />
               <div className="p-4 border-b border-[var(--border-default)] flex items-center justify-between min-w-0 w-full">
-                <span className="font-medium text-sm text-[var(--text-primary)]">写作操作</span>
-                <Button
-                  onClick={toggleAIDrawer}
-                  variant="ghost"
-                  size="icon"
+                <motion.span
+                  initial={{ opacity: 0, x: -10 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.1, duration: 0.3, ease: IMMERSIVE_EASE }}
+                  className="font-medium text-sm text-[var(--text-primary)]"
                 >
-                  <X className="w-4 h-4 text-[var(--text-secondary)]" />
-                </Button>
+                  写作操作
+                </motion.span>
+                <motion.button
+                  onClick={toggleAIDrawer}
+                  className="flex items-center justify-center w-8 h-8 rounded-lg transition-colors"
+                  whileHover={{ scale: 1.08, backgroundColor: 'color-mix(in srgb, var(--color-vermillion) 12%, transparent)' }}
+                  whileTap={{ scale: 0.95 }}
+                  style={{ background: 'transparent' }}
+                >
+                  <motion.div
+                    whileHover={{ rotate: 90 }}
+                    transition={{ type: 'spring', stiffness: 400, damping: 15 }}
+                  >
+                    <X className="w-4 h-4 text-[var(--text-secondary)]" />
+                  </motion.div>
+                </motion.button>
               </div>
               <AIOperationDrawer />
             </motion.div>
           )}
         </AnimatePresence>
 
-        {/* 协作面板 - Framer Motion with glow effect */}
+        {/* 协作面板 - Enhanced spring animation with matching style */}
         <AnimatePresence initial={false}>
           {collaborationDrawerOpen && (!immersiveMode || chromeVisible) && (
             <motion.div
               key="collab-drawer"
-              initial={{ width: 0, opacity: 0, x: 20 }}
-              animate={{ width: 280, opacity: 1, x: 0 }}
-              exit={{ width: 0, opacity: 0, x: 20 }}
-              transition={{ duration: 0.35, ease: IMMERSIVE_EASE }}
+              initial={{ width: 0, opacity: 0, x: 30 }}
+              animate={{ width: 300, opacity: 1, x: 0 }}
+              exit={{ width: 0, opacity: 0, x: 30 }}
+              transition={{
+                width: { type: 'spring', stiffness: 260, damping: 26, restSpeed: 0.5 },
+                opacity: { duration: 0.25, ease: IMMERSIVE_EASE },
+                x: { type: 'spring', stiffness: 260, damping: 26, restSpeed: 0.5 }
+              }}
               className="drawer-responsive drawer-right border-l border-[var(--border-default)] bg-[var(--color-surface-raised)] flex flex-col overflow-hidden relative z-20"
               style={{
-                boxShadow: '-4px 0 24px color-mix(in srgb, var(--color-ifline) 15%, transparent)',
+                boxShadow: '-4px 0 32px color-mix(in srgb, var(--color-ifline) 18%, transparent), -2px 0 12px color-mix(in srgb, var(--color-ifline) 10%, transparent)',
               }}
             >
-              {/* Glow indicator */}
+              {/* Animated glow indicator */}
               <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                className="absolute top-0 left-0 w-px h-full"
+                initial={{ opacity: 0, scaleY: 0 }}
+                animate={{ opacity: 1, scaleY: 1 }}
+                exit={{ opacity: 0, scaleY: 0 }}
+                transition={{ duration: 0.4, ease: IMMERSIVE_EASE }}
+                className="absolute top-0 left-0 w-px h-full origin-top"
                 style={{
-                  background: 'linear-gradient(180deg, var(--color-ifline) 0%, transparent 100%)',
+                  background: 'linear-gradient(180deg, var(--color-ifline) 0%, color-mix(in srgb, var(--color-ifline) 50%, transparent) 50%, transparent 100%)',
                 }}
               />
               <div className="p-4 border-b border-[var(--border-default)] flex items-center justify-between min-w-0 w-full">
-                <span className="font-medium text-sm text-[var(--text-primary)]">协作面板</span>
-                <Button
-                  onClick={toggleCollaborationDrawer}
-                  variant="ghost"
-                  size="icon"
+                <motion.span
+                  initial={{ opacity: 0, x: -10 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.1, duration: 0.3, ease: IMMERSIVE_EASE }}
+                  className="font-medium text-sm text-[var(--text-primary)]"
                 >
-                  <X className="w-4 h-4 text-[var(--text-secondary)]" />
-                </Button>
+                  协作面板
+                </motion.span>
+                <motion.button
+                  onClick={toggleCollaborationDrawer}
+                  className="flex items-center justify-center w-8 h-8 rounded-lg transition-colors"
+                  whileHover={{ scale: 1.08, backgroundColor: 'color-mix(in srgb, var(--color-ifline) 12%, transparent)' }}
+                  whileTap={{ scale: 0.95 }}
+                  style={{ background: 'transparent' }}
+                >
+                  <motion.div
+                    whileHover={{ rotate: 90 }}
+                    transition={{ type: 'spring', stiffness: 400, damping: 15 }}
+                  >
+                    <X className="w-4 h-4 text-[var(--text-secondary)]" />
+                  </motion.div>
+                </motion.button>
               </div>
               <CollaborationPanel />
             </motion.div>

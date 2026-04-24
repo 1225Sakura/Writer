@@ -20,7 +20,10 @@ export const cardStyle = {
 }
 
 export const cardGlowStyle = (color: string, isHovered: boolean) => ({
-  boxShadow: isHovered ? `0 0 16px ${color}18, 0 4px 12px rgba(0,0,0,0.15)` : 'none',
+  boxShadow: isHovered
+    ? `0 0 24px ${color}25, 0 8px 32px rgba(0,0,0,0.25), 0 2px 8px rgba(0,0,0,0.15), inset 0 0 0 1px ${color}15`
+    : `0 1px 3px rgba(0,0,0,0.08), 0 0 0 0 transparent`,
+  transition: 'box-shadow 0.25s cubic-bezier(0.16, 1, 0.3, 1), transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.2s ease, background-color 0.2s ease',
 })
 
 interface EntityCardProps {
@@ -54,7 +57,7 @@ export function EntityCard({
 
   return (
     <motion.div
-      className="p-4 rounded-lg relative overflow-hidden bg-[var(--color-surface-raised)] border border-[var(--border-default)] transition-colors duration-150"
+      className="p-4 rounded-lg relative overflow-hidden bg-[var(--color-surface-raised)] border border-[var(--border-default)]"
       style={{
         ...cardGlowStyle(badgeColor?.text || 'var(--accent-primary)', isHovered),
         backgroundColor: isHovered ? 'var(--color-surface-overlay)' : 'var(--color-surface-raised)',
@@ -63,8 +66,8 @@ export function EntityCard({
       }}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
-      whileHover={{ y: -2 }}
-      transition={{ duration: 0.15 }}
+      whileHover={{ y: -4 }}
+      transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
       onClick={onClick}
     >
       {/* Subtle glow on hover */}
@@ -161,12 +164,17 @@ export function EntityListItem({
 
   return (
     <motion.div
-      className="flex items-center gap-3 px-3 py-2.5 rounded-md transition-colors cursor-pointer group relative hover:bg-white/[0.04]"
+      className="flex items-center gap-3 px-3 py-2.5 rounded-md cursor-pointer group relative"
+      style={{
+        backgroundColor: isHovered ? 'rgba(255,255,255,0.03)' : 'transparent',
+        borderBottom: '1px solid var(--border-subtle)',
+        transition: 'background-color 0.2s ease',
+      }}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
       onClick={onClick}
-      whileHover={{ x: 2 }}
-      transition={{ duration: 0.15 }}
+      whileHover={{ x: 3 }}
+      transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
     >
       {/* Hover glow */}
       {isHovered && (
@@ -175,13 +183,15 @@ export function EntityListItem({
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           style={{
-            boxShadow: `inset 0 0 12px ${typeColor}15`,
+            boxShadow: `inset 0 0 16px ${typeColor}12, inset 2px 0 0 ${typeColor}40`,
           }}
         />
       )}
-      <div
+      <motion.div
         className="w-2 h-2 rounded-full flex-shrink-0"
         style={{ backgroundColor: typeColor }}
+        animate={isHovered ? { scale: 1.3 } : { scale: 1 }}
+        transition={{ duration: 0.2 }}
       />
       <div className="flex-1 min-w-0">
         <div className="text-sm font-medium truncate text-[var(--text-primary)]">

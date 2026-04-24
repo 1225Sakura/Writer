@@ -229,14 +229,25 @@ export function EditorToolbar({ editor }: EditorToolbarProps) {
       }}
       onMouseDown={(e) => e.preventDefault()}
       title={`${btn.title}${btn.shortcut ? ` (${btn.shortcut})` : ''}`}
-      className={`flex items-center justify-center w-7 h-7 rounded-md transition-all duration-150
-                 hover:scale-105 active:scale-95 ${
+      className={`group relative flex items-center justify-center w-8 h-8 rounded-lg transition-all duration-200
+                 hover:scale-108 active:scale-95 ${
                    btn.isActive()
-                     ? 'text-[var(--accent-primary)] bg-[rgba(94,106,210,0.15)]'
-                     : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[rgba(255,255,255,0.06)]'
+                     ? 'text-[var(--accent-primary)] bg-[color-mix(in_srgb,var(--accent-primary)_12%,transparent)] shadow-[inset_0_0_0_1px_var(--accent-primary)/30]'
+                     : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[rgba(255,255,255,0.08)]'
                  }`}
     >
-      {btn.icon}
+      <span className={`transition-all duration-200 ${btn.isActive() ? 'filter drop-shadow-[0_0_6px_var(--accent-primary)/50]' : ''}`}>
+        {btn.icon}
+      </span>
+      {/* Tooltip */}
+      <span className="absolute top-full left-1/2 -translate-x-1/2 mt-2 px-2 py-1 text-[10px] font-medium
+                     text-[var(--text-primary)] bg-[var(--color-surface-overlay)] rounded-md
+                     opacity-0 invisible group-hover:opacity-100 group-hover:visible
+                     transition-all duration-150 whitespace-nowrap shadow-lg border border-[var(--border-default)]/40
+                     before:absolute before:content-[''] before:top-0 before:left-1/2 before:-translate-x-1/2
+                     before:-translate-y-full before:border-[5px] before:border-transparent before:border-t-[var(--color-surface-overlay)]">
+        {btn.title}
+      </span>
     </motion.button>
   )
 
@@ -249,7 +260,9 @@ export function EditorToolbar({ editor }: EditorToolbarProps) {
           animate={{ opacity: 1, y: 0, scale: 1 }}
           exit={{ opacity: 0, y: -8, scale: 0.96 }}
           transition={{ duration: 0.18, ease: [0.16, 1, 0.3, 1] }}
-          className="absolute top-3 left-1/2 -translate-x-1/2 z-50 flex items-center gap-0.5 px-2 py-1.5 rounded-lg glass-strong shadow-float"
+          className="absolute top-3 left-1/2 -translate-x-1/2 z-50 flex items-center gap-0.5 px-2.5 py-1.5 rounded-xl
+                     glass-strong shadow-[0_8px_32px_rgba(0,0,0,0.28),0_4px_12px_rgba(0,0,0,0.16),inset_0_1px_0_rgba(255,255,255,0.08)]
+                     border border-[var(--border-default)]/50"
         >
           {/* Paragraph style selector */}
           <div className="relative" ref={styleMenuRef}>
@@ -262,12 +275,16 @@ export function EditorToolbar({ editor }: EditorToolbarProps) {
                 setStyleMenuOpen(!styleMenuOpen)
               }}
               onMouseDown={(e) => e.preventDefault()}
-              className="flex items-center gap-1 px-2 h-7 rounded-md transition-all duration-150
-                         text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[rgba(255,255,255,0.06)]"
+              className={`group flex items-center gap-1.5 px-2.5 h-8 rounded-lg transition-all duration-200
+                         hover:scale-102 active:scale-98 ${
+                           styleMenuOpen || paragraphStyles.some(s => s.isActive())
+                             ? 'text-[var(--accent-primary)] bg-[color-mix(in_srgb,var(--accent-primary)_10%,transparent)]'
+                             : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[rgba(255,255,255,0.06)]'
+                         }`}
             >
               <Type className="w-3.5 h-3.5" />
               <span className="text-[11px] font-medium">{getActiveStyleLabel()}</span>
-              <ChevronDown className={`w-3 h-3 transition-transform duration-150 ${styleMenuOpen ? 'rotate-180' : ''}`} />
+              <ChevronDown className={`w-3 h-3 transition-transform duration-200 ${styleMenuOpen ? 'rotate-180' : ''}`} />
             </motion.button>
 
             <AnimatePresence>
@@ -277,8 +294,10 @@ export function EditorToolbar({ editor }: EditorToolbarProps) {
                   animate={{ opacity: 1, y: 0, scale: 1 }}
                   exit={{ opacity: 0, y: -4, scale: 0.96 }}
                   transition={{ duration: 0.15, ease: [0.16, 1, 0.3, 1] }}
-                  className="absolute top-full left-0 mt-1 py-1 rounded-lg z-50 glass-strong shadow-float"
-                  style={{ minWidth: '140px' }}
+                  className="absolute top-full left-0 mt-1.5 py-1.5 rounded-xl z-50
+                             bg-[var(--color-surface-overlay)] shadow-[0_8px_24px_rgba(0,0,0,0.24),0_2px_8px_rgba(0,0,0,0.12)]
+                             border border-[var(--border-default)]/60"
+                  style={{ minWidth: '150px' }}
                 >
                   {paragraphStyles.map((style) => (
                     <button
@@ -289,14 +308,17 @@ export function EditorToolbar({ editor }: EditorToolbarProps) {
                         setStyleMenuOpen(false)
                       }}
                       onMouseDown={(e) => e.preventDefault()}
-                      className={`flex items-center gap-2 w-full px-3 py-1.5 text-left transition-all duration-100 hover:bg-[rgba(255,255,255,0.06)] ${
+                      className={`flex items-center gap-2.5 w-full px-3 py-2 text-left transition-all duration-100
+                                 hover:bg-[rgba(255,255,255,0.04)] ${
                         style.isActive()
-                          ? 'text-[var(--accent-primary)] bg-[rgba(94,106,210,0.1)]'
-                          : 'text-[var(--text-secondary)]'
+                          ? 'text-[var(--accent-primary)] bg-[color-mix(in_srgb,var(--accent-primary)_8%,transparent)]'
+                          : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
                       }`}
                     >
-                      {style.icon}
-                      <span className="text-xs">{style.label}</span>
+                      <span className={style.isActive() ? 'filter drop-shadow-[0_0_4px_var(--accent-primary)/40]' : ''}>
+                        {style.icon}
+                      </span>
+                      <span className="text-xs font-medium">{style.label}</span>
                     </button>
                   ))}
                 </motion.div>

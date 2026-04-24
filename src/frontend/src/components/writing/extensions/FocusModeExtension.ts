@@ -58,10 +58,10 @@ export const FocusModeExtension = Extension.create<FocusModeOptions>({
   addOptions() {
     return {
       enabled: false,
-      dimOpacity: 0.4,
-      blurAmount: 0,
+      dimOpacity: 0.22,
+      blurAmount: 0.3,
       focusRange: 'paragraph',
-      fadeInDuration: 300,
+      fadeInDuration: 500,
       keepHeadingsVisible: true,
       keepEmptyLinesVisible: false,
     }
@@ -156,11 +156,11 @@ export const FocusModeExtension = Extension.create<FocusModeOptions>({
                   }
                 }
 
-                // If not focused, dim the entire node
+                // If not focused, dim the entire node with subtle blur
                 if (!isFocused) {
                   const blurStyle = options.blurAmount > 0
-                    ? `opacity: ${options.dimOpacity}; filter: blur(${options.blurAmount}px); transition: opacity ${options.fadeInDuration}ms ease, filter ${options.fadeInDuration}ms ease;`
-                    : `opacity: ${options.dimOpacity}; transition: opacity ${options.fadeInDuration}ms ease;`
+                    ? `opacity: ${options.dimOpacity}; filter: blur(${options.blurAmount}px); transition: opacity ${options.fadeInDuration}ms cubic-bezier(0.16, 1, 0.3, 1), filter ${options.fadeInDuration}ms cubic-bezier(0.16, 1, 0.3, 1);`
+                    : `opacity: ${options.dimOpacity}; transition: opacity ${options.fadeInDuration}ms cubic-bezier(0.16, 1, 0.3, 1);`
 
                   decorations.push(
                     Decoration.node(pos, nodeEnd, {

@@ -741,19 +741,21 @@ export function CommandPalette() {
         onKeyDown={handleKeyDown}
       >
         {/* Search input */}
-        <div className="flex items-center gap-3 px-4 py-3.5 border-b border-[rgba(255,255,255,0.08)]">
-          <Search className="w-4 h-4 text-[#8a8f98] flex-shrink-0" />
-          <input
-            ref={inputRef}
-            type="text"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder="输入命令或搜索..."
-            className="flex-1 bg-transparent text-sm text-[#d0d6e0] placeholder:text-[#8a8f98] focus:outline-none font-[510]"
-          />
+        <div className="flex items-center gap-3 px-4 py-3.5 border-b border-[rgba(255,255,255,0.08)] bg-[rgba(0,0,0,0.2)]">
+          <div className="relative">
+            <Search className="w-4 h-4 text-[#8a8f98] flex-shrink-0 absolute left-0 top-1/2 -translate-y-1/2" />
+            <input
+              ref={inputRef}
+              type="text"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="输入命令或搜索..."
+              className="w-[280px] pl-8 pr-3 py-2 bg-[rgba(255,255,255,0.04] border border-[rgba(255,255,255,0.1)] rounded-lg text-sm text-[#d0d6e0] placeholder:text-[#8a8f98] focus:outline-none focus:border-[#c45c5c]/50 focus:ring-1 focus:ring-[#c45c5c]/20 transition-all font-[510]"
+            />
+          </div>
           <button
             onClick={close}
-            className="p-1 hover:bg-white/10 rounded-md transition-colors"
+            className="p-1.5 hover:bg-white/10 rounded-md transition-colors"
           >
             <X className="w-4 h-4 text-[#8a8f98]" />
           </button>
@@ -783,16 +785,16 @@ export function CommandPalette() {
                         key={cmd.id}
                         onClick={() => cmd.action()}
                         onMouseEnter={() => setSelectedIndex(currentIndex)}
-                        className={`w-full flex items-center gap-3 px-4 py-2.5 text-sm text-left transition-colors ${
+                        className={`w-full flex items-center gap-3 px-4 py-2.5 text-sm text-left transition-all duration-150 ${
                           isSelected
-                            ? 'bg-[#3f3f46] text-white'
-                            : 'text-[#d0d6e0] hover:bg-[rgba(255,255,255,0.04)]'
+                            ? 'bg-[#c45c5c]/20 text-white border-l-2 border-l-[#c45c5c]'
+                            : 'text-[#d0d6e0] hover:bg-[rgba(255,255,255,0.06)] border-l-2 border-l-transparent'
                         } ${cmd.disabled ? 'opacity-40 cursor-not-allowed' : ''}`}
                         disabled={cmd.disabled}
                       >
                         <span
-                          className={`flex-shrink-0 ${
-                            isSelected ? 'text-white' : 'text-[#8a8f98]'
+                          className={`flex-shrink-0 transition-colors duration-150 ${
+                            isSelected ? 'text-[#c45c5c]' : 'text-[#8a8f98] group-hover:text-white'
                           }`}
                         >
                           {cmd.icon}
@@ -801,7 +803,7 @@ export function CommandPalette() {
                           {highlightMatch(search, cmd.label)}
                         </span>
                         {cmd.shortcut && (
-                          <span className="text-xs text-[#8a8f98] font-mono bg-[rgba(255,255,255,0.06)] px-1.5 py-0.5 rounded">
+                          <span className="text-xs text-[#8a8f98]/80 font-mono bg-[rgba(255,255,255,0.08)] px-1.5 py-0.5 rounded border border-[rgba(255,255,255,0.1)]">
                             {cmd.shortcut}
                           </span>
                         )}
@@ -815,21 +817,26 @@ export function CommandPalette() {
         </div>
 
         {/* Footer */}
-        <div className="px-4 py-2.5 border-t border-[rgba(255,255,255,0.08)] flex items-center justify-between text-xs text-[#8a8f98]">
-          <div className="flex items-center gap-3">
-            <span className="flex items-center gap-1">
-              <span className="inline-flex items-center justify-center w-5 h-5 rounded bg-[rgba(255,255,255,0.08)] text-[10px]">↑</span>
-              <span className="inline-flex items-center justify-center w-5 h-5 rounded bg-[rgba(255,255,255,0.08)] text-[10px]">↓</span>
-              导航
+        <div className="px-4 py-2.5 border-t border-[rgba(255,255,255,0.08)] flex items-center justify-between text-xs text-[#8a8f98] bg-[rgba(0,0,0,0.15)]">
+          <div className="flex items-center gap-4">
+            <span className="flex items-center gap-1.5">
+              <span className="inline-flex items-center justify-center w-5 h-5 rounded bg-[rgba(255,255,255,0.1)] border border-[rgba(255,255,255,0.15)] text-[10px] font-medium">↑</span>
+              <span className="inline-flex items-center justify-center w-5 h-5 rounded bg-[rgba(255,255,255,0.1)] border border-[rgba(255,255,255,0.15)] text-[10px] font-medium">↓</span>
+              <span className="ml-1">导航</span>
             </span>
-            <span className="flex items-center gap-1">
-              <span className="inline-flex items-center justify-center w-5 h-5 rounded bg-[rgba(255,255,255,0.08)] text-[10px]">↵</span>
-              执行
+            <span className="flex items-center gap-1.5">
+              <span className="inline-flex items-center justify-center w-5 h-5 rounded bg-[rgba(255,255,255,0.1)] border border-[rgba(255,255,255,0.15)] text-[10px] font-medium">↵</span>
+              <span className="ml-1">执行</span>
+            </span>
+            <span className="flex items-center gap-1.5">
+              <span className="inline-flex items-center justify-center w-5 h-5 rounded bg-[rgba(255,255,255,0.1)] border border-[rgba(255,255,255,0.15)] text-[10px] font-medium">Esc</span>
+              <span className="ml-1">关闭</span>
             </span>
           </div>
-          <div className="flex items-center gap-1">
-            <Command className="w-3 h-3" />
-            <span>K</span>
+          <div className="flex items-center gap-1.5 px-2 py-1 rounded bg-[rgba(255,255,255,0.05)] border border-[rgba(255,255,255,0.1)]">
+            <Command className="w-3.5 h-3.5" />
+            <span className="font-medium">K</span>
+            <span className="text-[#8a8f98]/60">打开</span>
           </div>
         </div>
       </div>

@@ -14,7 +14,28 @@ const inputStyle = {
   backgroundColor: 'var(--color-surface-input)',
   border: '1px solid var(--border-default)',
   color: 'var(--text-primary)',
+  borderRadius: '6px',
+  fontSize: '14px',
+  lineHeight: '1.5',
+  transition: 'border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease',
 }
+
+// Focus glow style for inputs
+const inputFocusGlow = (isFocused: boolean, color?: string) =>
+  isFocused
+    ? {
+        boxShadow: `0 0 0 3px ${color || 'rgba(94, 106, 210, 0.15)'}, 0 0 12px ${color || 'rgba(94, 106, 210, 0.08)'}`,
+        borderColor: color || 'var(--border-focus)',
+      }
+    : {}
+
+const labelStyle = {
+  fontSize: '12px',
+  fontWeight: 500,
+  letterSpacing: '0.01em',
+}
+
+const inputPadding = { paddingLeft: '12px', paddingRight: '12px', paddingTop: '18px', paddingBottom: '8px' }
 
 // Validation state type
 type ValidationState = 'idle' | 'valid' | 'invalid' | 'saving' | 'saved' | 'error'
@@ -54,10 +75,10 @@ function FloatingLabelInput({
     switch (validation.state) {
       case 'invalid':
       case 'error':
-        return 'rgba(217,58,58,0.6)'
+        return 'var(--color-danger)'
       case 'valid':
       case 'saved':
-        return 'rgba(46,160,67,0.5)'
+        return 'var(--color-success)'
       case 'saving':
         return 'var(--border-focus)'
       default:
@@ -66,7 +87,7 @@ function FloatingLabelInput({
   }
 
   const getLabelColor = () => {
-    if (!validation) return isFocused ? 'var(--accent-primary)' : 'var(--text-tertiary)'
+    if (!validation) return isFocused ? 'var(--accent-primary)' : 'var(--text-secondary)'
     switch (validation.state) {
       case 'invalid':
       case 'error':
@@ -75,25 +96,39 @@ function FloatingLabelInput({
       case 'saved':
         return 'var(--color-success)'
       default:
-        return isFocused ? 'var(--accent-primary)' : 'var(--text-tertiary)'
+        return isFocused ? 'var(--accent-primary)' : 'var(--text-secondary)'
+    }
+  }
+
+  const getGlowColor = () => {
+    if (!validation) return undefined
+    switch (validation.state) {
+      case 'invalid':
+      case 'error':
+        return 'rgba(196, 92, 92, 0.2)'
+      case 'valid':
+      case 'saved':
+        return 'rgba(94, 184, 106, 0.15)'
+      default:
+        return undefined
     }
   }
 
   return (
     <div className="relative">
       <motion.label
-        className="absolute left-3 pointer-events-none origin-left"
-        style={{ color: getLabelColor() }}
+        className="absolute left-3 pointer-events-none origin-left z-10"
+        style={{ color: getLabelColor(), ...labelStyle }}
         animate={{
-          y: isActive ? -22 : 10,
-          scale: isActive ? 0.85 : 1,
+          y: isActive ? -20 : 12,
+          scale: isActive ? 0.8 : 1,
         }}
         transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
       >
         {label}
-        {required && <span style={{ color: 'var(--color-danger)' }}> *</span>}
+        {required && <span className="ml-0.5" style={{ color: 'var(--color-danger)' }}>*</span>}
       </motion.label>
-      <input
+      <motion.input
         type="text"
         value={value}
         onChange={(e) => onChange(e.target.value)}
@@ -103,17 +138,20 @@ function FloatingLabelInput({
         placeholder={isActive ? placeholder : ''}
         autoFocus={autoFocus}
         maxLength={maxLength}
-        className="w-full px-3 pt-5 pb-2 rounded-md text-sm transition-all focus:outline-none"
+        className="w-full rounded-md focus:outline-none"
         style={{
           ...inputStyle,
+          ...inputPadding,
           borderColor: getBorderColor(),
         }}
+        animate={inputFocusGlow(isFocused, getGlowColor() || (getBorderColor() !== 'var(--border-default)' ? getBorderColor() : undefined))}
+        transition={{ duration: 0.2 }}
       />
       {/* Validation indicator */}
       <AnimatePresence>
         {validation && validation.state !== 'idle' && (
           <motion.div
-            className="absolute right-3 top-1/2 -translate-y-1/2"
+            className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center"
             initial={{ opacity: 0, scale: 0.5 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.5 }}
@@ -123,10 +161,10 @@ function FloatingLabelInput({
               <Loader2 className="w-4 h-4 animate-spin motion-reduce:animate-none" style={{ color: 'var(--accent-primary)' }} />
             )}
             {validation.state === 'saved' && (
-              <Check className="w-4 h-4 text-[var(--icon-success)]" />
+              <Check className="w-4 h-4" style={{ color: 'var(--color-success)' }} />
             )}
             {(validation.state === 'invalid' || validation.state === 'error') && (
-              <AlertCircle className="w-4 h-4 text-[var(--icon-danger)]" />
+              <AlertCircle className="w-4 h-4" style={{ color: 'var(--color-danger)' }} />
             )}
           </motion.div>
         )}
@@ -135,12 +173,13 @@ function FloatingLabelInput({
       <AnimatePresence>
         {validation?.message && (validation.state === 'invalid' || validation.state === 'error') && (
           <motion.p
-            className="text-[10px] mt-1 ml-1"
+            className="text-xs mt-1.5 ml-1 flex items-center gap-1"
             style={{ color: 'var(--color-danger)' }}
             initial={{ opacity: 0, y: -4 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -4 }}
           >
+            <AlertCircle className="w-3 h-3" />
             {validation.message}
           </motion.p>
         )}
@@ -148,7 +187,7 @@ function FloatingLabelInput({
       {/* Character count */}
       {maxLength && value.length > 0 && (
         <span
-          className="absolute right-3 -bottom-4 text-[10px]"
+          className="absolute right-3 -bottom-5 text-xs"
           style={{ color: value.length > maxLength * 0.9 ? 'var(--color-danger)' : 'var(--text-tertiary)' }}
         >
           {value.length}/{maxLength}
@@ -180,16 +219,30 @@ function FloatingLabelTextarea({
   const isActive = isFocused || value.length > 0
 
   const getBorderColor = () => {
-    if (!validation) return isFocused ? 'rgba(94,106,210,0.5)' : 'rgba(255,255,255,0.1)'
+    if (!validation) return isFocused ? 'var(--border-focus)' : 'var(--border-default)'
     switch (validation.state) {
       case 'invalid':
       case 'error':
-        return 'rgba(196,92,92,0.6)'
+        return 'var(--color-danger)'
       case 'valid':
       case 'saved':
-        return 'rgba(126,184,74,0.5)'
+        return 'var(--color-success)'
       default:
-        return isFocused ? 'rgba(94,106,210,0.5)' : 'rgba(255,255,255,0.1)'
+        return isFocused ? 'var(--border-focus)' : 'var(--border-default)'
+    }
+  }
+
+  const getGlowColor = () => {
+    if (!validation) return undefined
+    switch (validation.state) {
+      case 'invalid':
+      case 'error':
+        return 'rgba(196, 92, 92, 0.2)'
+      case 'valid':
+      case 'saved':
+        return 'rgba(94, 184, 106, 0.15)'
+      default:
+        return undefined
     }
   }
 
@@ -197,16 +250,16 @@ function FloatingLabelTextarea({
     <div className="relative">
       <motion.label
         className="absolute left-3 pointer-events-none origin-left z-10"
-        style={{ color: isFocused ? 'var(--accent-primary)' : 'var(--text-tertiary)' }}
+        style={{ color: isFocused ? 'var(--accent-primary)' : 'var(--text-secondary)', ...labelStyle }}
         animate={{
-          y: isActive ? -22 : 10,
-          scale: isActive ? 0.85 : 1,
+          y: isActive ? -20 : 12,
+          scale: isActive ? 0.8 : 1,
         }}
         transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
       >
         {label}
       </motion.label>
-      <textarea
+      <motion.textarea
         value={value}
         onChange={(e) => onChange(e.target.value)}
         onFocus={() => setIsFocused(true)}
@@ -214,15 +267,21 @@ function FloatingLabelTextarea({
         placeholder={isActive ? placeholder : ''}
         rows={rows}
         maxLength={maxLength}
-        className="w-full px-3 pt-5 pb-2 rounded-md text-sm transition-all focus:outline-none resize-none"
+        className="w-full rounded-md text-sm focus:outline-none resize-none"
         style={{
           ...inputStyle,
+          paddingLeft: '12px',
+          paddingRight: '12px',
+          paddingTop: '18px',
+          paddingBottom: '10px',
           borderColor: getBorderColor(),
         }}
+        animate={inputFocusGlow(isFocused, getGlowColor() || (getBorderColor() !== 'var(--border-default)' ? getBorderColor() : undefined))}
+        transition={{ duration: 0.2 }}
       />
       {maxLength && value.length > 0 && (
         <span
-          className="absolute right-3 bottom-2 text-[10px]"
+          className="absolute right-3 bottom-2 text-xs"
           style={{ color: value.length > maxLength * 0.9 ? 'var(--color-danger)' : 'var(--text-tertiary)' }}
         >
           {value.length}/{maxLength}
@@ -440,10 +499,26 @@ function EntityForm<T extends { name: string; description?: string }>({
     return value.trim().length > 0
   })
 
+  // Stagger animation variants for form fields
+  const formFieldVariants = {
+    hidden: { opacity: 0, y: 12 },
+    visible: (i: number) => ({
+      opacity: 1,
+      y: 0,
+      transition: { delay: i * 0.06, duration: 0.25, ease: [0.16, 1, 0.3, 1] as const },
+    }),
+  }
+
   return (
-    <form onSubmit={handleSubmit} className="space-y-4 p-4 rounded-lg relative" style={cardStyle}>
-      {fields.map(({ key, label, type, required, maxLength }) => (
-        <div key={key as string}>
+    <motion.form
+      onSubmit={handleSubmit}
+      className="space-y-4 p-4 rounded-lg relative"
+      style={cardStyle}
+      initial="hidden"
+      animate="visible"
+    >
+      {fields.map(({ key, label, type, required, maxLength }, index) => (
+        <motion.div key={key as string} custom={index} variants={formFieldVariants}>
           {type === 'textarea' ? (
             <FloatingLabelTextarea
               value={(formData[key] as string) || ''}
@@ -464,26 +539,37 @@ function EntityForm<T extends { name: string; description?: string }>({
               maxLength={maxLength}
             />
           )}
-        </div>
+        </motion.div>
       ))}
-      {extraFields}
-      <div className="flex items-center justify-between pt-2">
+      {extraFields && (
+        <motion.div custom={fields.length} variants={formFieldVariants}>
+          {extraFields}
+        </motion.div>
+      )}
+      <motion.div
+        className="flex items-center justify-between pt-4 mt-4"
+        style={{ borderTop: '1px solid var(--border-subtle)' }}
+        custom={fields.length + (extraFields ? 1 : 0)}
+        variants={formFieldVariants}
+      >
         <SaveStateIndicator state={saveState} />
-        <div className="flex gap-2">
+        <div className="flex gap-3">
           <motion.button
             type="button"
             onClick={onCancel}
             className="px-4 py-2 rounded-md text-sm font-medium transition-all"
             style={{
               backgroundColor: 'transparent',
-              color: 'var(--text-tertiary)',
-              border: '1px solid rgba(255,255,255,0.1)',
+              color: 'var(--text-secondary)',
+              border: '1px solid var(--border-default)',
             }}
             onMouseEnter={(e) => {
-              e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.05)'
+              e.currentTarget.style.backgroundColor = 'var(--color-surface-hover)'
+              e.currentTarget.style.borderColor = 'var(--border-strong)'
             }}
             onMouseLeave={(e) => {
               e.currentTarget.style.backgroundColor = 'transparent'
+              e.currentTarget.style.borderColor = 'var(--border-default)'
             }}
             whileTap={{ scale: 0.97 }}
           >
@@ -492,23 +578,28 @@ function EntityForm<T extends { name: string; description?: string }>({
           <motion.button
             type="submit"
             disabled={!isValid || saveState === 'saving'}
-            className="px-4 py-2 rounded-md text-sm font-medium transition-all disabled:opacity-40 flex items-center gap-2"
+            className="px-5 py-2 rounded-md text-sm font-medium transition-all disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-2"
             style={{
-              backgroundColor: 'var(--accent-primary)',
-              color: '#fff',
+              backgroundColor: isValid && saveState !== 'saving' ? 'var(--accent-primary)' : 'var(--color-surface-overlay)',
+              color: isValid && saveState !== 'saving' ? '#fff' : 'var(--text-tertiary)',
+              border: '1px solid transparent',
             }}
             onMouseEnter={(e) => {
-              if (isValid) e.currentTarget.style.backgroundColor = 'var(--accent-hover)'
+              if (isValid && saveState !== 'saving') {
+                e.currentTarget.style.backgroundColor = 'var(--accent-hover)'
+              }
             }}
             onMouseLeave={(e) => {
-              e.currentTarget.style.backgroundColor = 'var(--accent-primary)'
+              if (isValid && saveState !== 'saving') {
+                e.currentTarget.style.backgroundColor = 'var(--accent-primary)'
+              }
             }}
             whileTap={{ scale: 0.97 }}
           >
             {saveState === 'saving' ? (
               <>
                 <Loader2 className="w-4 h-4 animate-spin motion-reduce:animate-none" />
-                保存中
+                保存中...
               </>
             ) : (
               <>
@@ -518,8 +609,8 @@ function EntityForm<T extends { name: string; description?: string }>({
             )}
           </motion.button>
         </div>
-      </div>
-    </form>
+      </motion.div>
+    </motion.form>
   )
 }
 
@@ -735,22 +826,24 @@ function AddEntityForm({
           maxLength={50}
         />
       </div>
-      <div className="flex items-center justify-between mt-3">
+      <div className="flex items-center justify-between mt-4 pt-3" style={{ borderTop: '1px solid var(--border-subtle)' }}>
         <SaveStateIndicator state={saveState} />
         <div className="flex gap-2">
           <motion.button
             onClick={onCancel}
-            className="px-3 py-1.5 rounded-md text-xs font-medium transition-all"
+            className="px-4 py-2 rounded-md text-sm font-medium transition-all"
             style={{
               backgroundColor: 'transparent',
-              color: 'var(--text-tertiary)',
-              border: '1px solid rgba(255,255,255,0.1)',
+              color: 'var(--text-secondary)',
+              border: '1px solid var(--border-default)',
             }}
             onMouseEnter={(e) => {
-              e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.05)'
+              e.currentTarget.style.backgroundColor = 'var(--color-surface-hover)'
+              e.currentTarget.style.borderColor = 'var(--border-strong)'
             }}
             onMouseLeave={(e) => {
               e.currentTarget.style.backgroundColor = 'transparent'
+              e.currentTarget.style.borderColor = 'var(--border-default)'
             }}
             whileTap={{ scale: 0.97 }}
           >
@@ -759,23 +852,23 @@ function AddEntityForm({
           <motion.button
             onClick={handleAdd}
             disabled={!name.trim() || saveState === 'saving'}
-            className="px-3 py-1.5 rounded-md text-xs font-medium disabled:opacity-40 relative overflow-hidden flex items-center gap-1.5"
+            className="px-4 py-2 rounded-md text-sm font-medium disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-2"
             style={{
-              backgroundColor: 'var(--accent-primary)',
-              color: '#fff',
+              backgroundColor: name.trim() && saveState !== 'saving' ? 'var(--accent-primary)' : 'var(--color-surface-overlay)',
+              color: name.trim() && saveState !== 'saving' ? '#fff' : 'var(--text-tertiary)',
             }}
             onMouseEnter={(e) => {
-              if (name.trim()) e.currentTarget.style.backgroundColor = 'var(--accent-hover)'
+              if (name.trim() && saveState !== 'saving') e.currentTarget.style.backgroundColor = 'var(--accent-hover)'
             }}
             onMouseLeave={(e) => {
-              e.currentTarget.style.backgroundColor = 'var(--accent-primary)'
+              if (name.trim() && saveState !== 'saving') e.currentTarget.style.backgroundColor = 'var(--accent-primary)'
             }}
             whileTap={{ scale: 0.97 }}
           >
             {saveState === 'saving' ? (
-              <Loader2 className="w-3.5 h-3.5 animate-spin motion-reduce:animate-none" />
+              <Loader2 className="w-4 h-4 animate-spin motion-reduce:animate-none" />
             ) : (
-              <Plus className="w-3.5 h-3.5" />
+              <Plus className="w-4 h-4" />
             )}
             添加
           </motion.button>

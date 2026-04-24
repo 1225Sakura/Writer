@@ -1,14 +1,36 @@
-import { motion } from 'framer-motion'
+import { motion, useSpring, useTransform } from 'framer-motion'
+import { useEffect, useRef } from 'react'
 
 export interface CircularProgressProps {
   value: number
   size?: number
   strokeWidth?: number
   color?: string
+  secondaryColor?: string
   trackColor?: string
   showPercentage?: boolean
   className?: string
   label?: string
+  animated?: boolean
+  gradient?: boolean
+  glowIntensity?: number
+}
+
+function useAnimatedNumber(value: number, animated: boolean, digits: number = 0) {
+  const springValue = useSpring(value, {
+    stiffness: 100,
+    damping: 16,
+    mass: 0.6,
+  })
+  const displayValue = useTransform(springValue, (v) =>
+    digits > 0 ? v.toFixed(digits) : Math.round(v).toString()
+  )
+
+  useEffect(() => {
+    springValue.set(value)
+  }, [value, springValue])
+
+  return { springValue, displayValue }
 }
 
 export function CircularProgress({
@@ -16,20 +38,58 @@ export function CircularProgress({
   size = 64,
   strokeWidth = 4,
   color = '#5e6ad2',
+  secondaryColor,
   trackColor = 'rgba(255,255,255,0.06)',
   showPercentage = true,
   className,
   label,
+  animated = true,
+  gradient = false,
+  glowIntensity = 0,
 }: CircularProgressProps) {
   const clampedValue = Math.min(Math.max(value, 0), 100)
   const radius = (size - strokeWidth) / 2
   const circumference = 2 * Math.PI * radius
   const offset = circumference - (clampedValue / 100) * circumference
 
+  const springValue = useSpring(clampedValue, {
+    stiffness: 100,
+    damping: 16,
+    mass: 0.6,
+  })
+
+  const animatedOffset = useTransform(springValue, (v) => {
+    const c = 2 * Math.PI * radius
+    return c - (Math.min(Math.max(v, 0), 100) / 100) * c
+  })
+
+  useEffect(() => {
+    springValue.set(clampedValue)
+  }, [clampedValue, springValue])
+
+  const gradId = useRef(`circular-grad-${Math.random().toString(36).slice(2, 9)}`)
+
   return (
     <div className={`relative inline-flex items-center justify-center ${className || ''}`}>
-      <svg width={size} height={size} className="-rotate-90">
-        {/* Track circle */}
+      <svg
+        width={size}
+        height={size}
+        className="-rotate-90"
+        style={
+          glowIntensity && glowIntensity > 0
+            ? { filter: `drop-shadow(0 0 ${glowIntensity}px ${color}50)` }
+            : undefined
+        }
+      >
+        <defs>
+          {gradient && (
+            <linearGradient id={gradId.current} x1="0%" y1="0%" x2="100%" y2="0%">
+              <stop offset="0%" stopColor={color} />
+              <stop offset="100%" stopColor={secondaryColor || color} />
+            </linearGradient>
+          )}
+        </defs>
+
         <circle
           cx={size / 2}
           cy={size / 2}
@@ -38,34 +98,48 @@ export function CircularProgress({
           stroke={trackColor}
           strokeWidth={strokeWidth}
         />
-        {/* Progress circle */}
-        <motion.circle
-          cx={size / 2}
-          cy={size / 2}
-          r={radius}
-          fill="none"
-          stroke={color}
-          strokeWidth={strokeWidth}
-          strokeLinecap="round"
-          strokeDasharray={circumference}
-          initial={{ strokeDashoffset: circumference }}
-          animate={{ strokeDashoffset: offset }}
-          transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-        />
+
+        {animated ? (
+          <motion.circle
+            cx={size / 2}
+            cy={size / 2}
+            r={radius}
+            fill="none"
+            stroke={gradient ? `url(#${gradId.current})` : color}
+            strokeWidth={strokeWidth}
+            strokeLinecap="round"
+            strokeDasharray={circumference}
+            style={{ strokeDashoffset: animatedOffset }}
+            transition={{ type: 'spring', stiffness: 100, damping: 16 }}
+          />
+        ) : (
+          <circle
+            cx={size / 2}
+            cy={size / 2}
+            r={radius}
+            fill="none"
+            stroke={color}
+            strokeWidth={strokeWidth}
+            strokeLinecap="round"
+            strokeDasharray={circumference}
+            strokeDashoffset={offset}
+          />
+        )}
       </svg>
+
       {showPercentage && (
         <div className="absolute inset-0 flex flex-col items-center justify-center">
           <motion.span
-            className="text-sm font-semibold text-[#f7f8f8]"
-            key={clampedValue}
-            initial={{ scale: 0.8, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            transition={{ duration: 0.3 }}
+            className="text-sm font-bold text-[#f7f8f8] tabular-nums"
+            style={{
+              textShadow: '0 0 12px rgba(94, 106, 210, 0.5)',
+            }}
           >
-            {Math.round(clampedValue)}%
+            {Math.round(clampedValue)}
+            <span className="text-[10px] font-medium text-[#8a8f98] ml-[1px]">%</span>
           </motion.span>
           {label && (
-            <span className="text-[10px] text-[#8a8f98] mt-0.5">{label}</span>
+            <span className="text-[10px] text-[#8a8f98] mt-0.5 font-medium">{label}</span>
           )}
         </div>
       )}

@@ -28,9 +28,10 @@ export const DropdownMenuContent = React.forwardRef<
           'text-[var(--text-primary)] text-sm',
           'data-[state=open]:animate-in data-[state=closed]:animate-out',
           'data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0',
-          'data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95',
+          'data-[state=closed]:zoom-out-90 data-[state=open]:zoom-in-95',
           'data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2',
-          'data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2'
+          'data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2',
+          'will-change-transform'
         ),
         className
       )}
@@ -52,8 +53,10 @@ export const DropdownMenuItem = React.forwardRef<
     className={twMerge(
       clsx(
         'relative flex cursor-pointer select-none items-center rounded-[var(--radius-button)] px-2 py-1.5 text-sm outline-none',
-        'transition-colors duration-[var(--transition-fast)]',
-        'focus:bg-[var(--border-strong)]/30 focus:text-[var(--text-primary)]',
+        'transition-all duration-[var(--transition-fast)]',
+        'text-[var(--text-primary)]',
+        'hover:bg-[var(--color-surface-hover)] hover:text-[var(--text-primary)]',
+        'focus:bg-[var(--color-surface-hover)] focus:text-[var(--text-primary)]',
         'data-[disabled]:pointer-events-none data-[disabled]:opacity-50',
         className
       )
@@ -72,7 +75,7 @@ export const DropdownMenuLabel = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <DropdownMenuPrimitive.Label
     ref={ref}
-    className={twMerge(clsx('px-2 py-1.5 text-sm font-semibold text-[var(--text-secondary)]'), className)}
+    className={twMerge(clsx('px-2 py-1.5 text-xs font-semibold uppercase tracking-wider text-[var(--text-secondary)]'), className)}
     {...props}
   />
 ))
@@ -87,7 +90,7 @@ export const DropdownMenuSeparator = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <DropdownMenuPrimitive.Separator
     ref={ref}
-    className={twMerge(clsx('-mx-1 my-1 h-px bg-[var(--border-default)]'), className)}
+    className={twMerge(clsx('-mx-2 my-1.5 h-px bg-[var(--border-default)] opacity-60'), className)}
     {...props}
   />
 ))

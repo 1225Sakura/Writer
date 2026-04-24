@@ -122,6 +122,32 @@ const cardVariants = {
   },
 }
 
+const pulseGlowVariants = {
+  idle: {
+    boxShadow: '0 0 0px rgba(94, 106, 210, 0)',
+  },
+  active: {
+    boxShadow: [
+      '0 0 4px rgba(94, 106, 210, 0.2)',
+      '0 0 12px rgba(94, 106, 210, 0.35)',
+      '0 0 4px rgba(94, 106, 210, 0.2)',
+    ],
+    transition: {
+      duration: 2,
+      repeat: Infinity,
+      ease: 'easeInOut' as const,
+    },
+  },
+}
+
+const shimmerVariants = {
+  initial: { backgroundPosition: '-200% 0' },
+  animate: {
+    backgroundPosition: '200% 0',
+    transition: { duration: 1.5, repeat: Infinity, ease: 'linear' as const },
+  },
+}
+
 // ============================================
 // Helper: Map API severity to local severity
 // ============================================
@@ -131,6 +157,23 @@ function mapSeverity(apiSeverity?: string, apiType?: string): Severity {
   if (apiSeverity === 'medium') return 'warning'
   if (apiType === 'warning') return 'warning'
   return 'suggestion'
+}
+
+// ============================================
+// Component: Skeleton Card for loading state
+// ============================================
+
+function SkeletonCard() {
+  return (
+    <div className="p-3 rounded-lg space-y-2.5" style={{ background: 'var(--color-surface-raised)', border: '1px solid var(--border-subtle)', borderLeft: '3px solid var(--border-subtle)' }}>
+      <div className="flex items-center gap-1.5">
+        <div className="w-16 h-4 rounded animate-shimmer" style={{ background: 'linear-gradient(90deg, var(--color-surface-overlay) 25%, rgba(255,255,255,0.06) 50%, var(--color-surface-overlay) 75%)', backgroundSize: '200% 100%' }} />
+        <div className="w-12 h-4 rounded animate-shimmer" style={{ background: 'linear-gradient(90deg, var(--color-surface-overlay) 25%, rgba(255,255,255,0.06) 50%, var(--color-surface-overlay) 75%)', backgroundSize: '200% 100%' }} />
+      </div>
+      <div className="w-3/4 h-3.5 rounded animate-shimmer" style={{ background: 'linear-gradient(90deg, var(--color-surface-overlay) 25%, rgba(255,255,255,0.06) 50%, var(--color-surface-overlay) 75%)', backgroundSize: '200% 100%' }} />
+      <div className="w-full h-3 rounded animate-shimmer" style={{ background: 'linear-gradient(90deg, var(--color-surface-overlay) 25%, rgba(255,255,255,0.06) 50%, var(--color-surface-overlay) 75%)', backgroundSize: '200% 100%' }} />
+    </div>
+  )
 }
 
 // ============================================
@@ -554,126 +597,154 @@ function SuggestionCard({
 }) {
   const config = SEVERITY_CONFIG[suggestion.severity]
   const Icon = config.icon
+  const [isExpanded, setIsExpanded] = useState(false)
+
+  // Determine left border accent color based on severity
+  const accentBorderColor = config.colors.badge
 
   return (
     <motion.div
       variants={cardVariants}
       layout
-      className="p-3 rounded-lg group transition-colors duration-150"
+      className="rounded-lg group overflow-hidden"
       style={{
-        backgroundColor: isApplied ? 'var(--color-success)06' : 'var(--color-surface-raised)',
-        border: `1px solid ${isApplied ? 'var(--color-success)15' : 'var(--border-subtle)'}`,
+        background: isApplied
+          ? 'linear-gradient(135deg, rgba(94,181,166,0.06) 0%, var(--color-surface-raised) 100%)'
+          : 'linear-gradient(135deg, rgba(94,106,210,0.04) 0%, var(--color-surface-raised) 100%)',
+        border: `1px solid ${isApplied ? 'rgba(94,181,166,0.15)' : 'var(--border-subtle)'}`,
+        borderLeft: `3px solid ${isApplied ? 'var(--color-success)' : accentBorderColor}`,
       }}
       onMouseEnter={(e) => {
         if (!isApplied) {
-          e.currentTarget.style.backgroundColor = 'var(--color-surface-overlay)'
+          e.currentTarget.style.background = 'linear-gradient(135deg, rgba(94,106,210,0.08) 0%, var(--color-surface-overlay) 100%)'
           e.currentTarget.style.borderColor = 'var(--border-default)'
+          e.currentTarget.style.borderLeftColor = accentBorderColor
         }
       }}
       onMouseLeave={(e) => {
         if (!isApplied) {
-          e.currentTarget.style.backgroundColor = 'var(--color-surface-raised)'
+          e.currentTarget.style.background = 'linear-gradient(135deg, rgba(94,106,210,0.04) 0%, var(--color-surface-raised) 100%)'
           e.currentTarget.style.borderColor = 'var(--border-subtle)'
+          e.currentTarget.style.borderLeftColor = accentBorderColor
         }
       }}
       exit={{ opacity: 0, x: -16, height: 0, marginBottom: 0, padding: 0 }}
       transition={{ duration: 0.18 }}
     >
-      <div className="flex items-start justify-between"
-      >
-        <div className="flex-1 min-w-0"
-        >
-          {/* Severity + Type badges */}
-          <div className="flex items-center gap-1.5 mb-1.5 flex-wrap"
-          >
-            <span
-              className="text-[10px] px-1.5 py-0.5 rounded font-medium flex items-center gap-1"
-              style={{
-                backgroundColor: config.colors.bg,
-                color: config.colors.text,
-              }}
-            >
-              <Icon className="w-2.5 h-2.5" />
-              {config.label}
-            </span>
-            {ISSUE_TYPE_LABELS[suggestion.type] && (
+      <div className="p-3">
+        <div className="flex items-start justify-between">
+          <div className="flex-1 min-w-0">
+            {/* Severity + Type badges */}
+            <div className="flex items-center gap-1.5 mb-1.5 flex-wrap">
               <span
-                className="text-[10px] px-1.5 py-0.5 rounded bg-[var(--color-surface-overlay)] text-[var(--text-tertiary)]"
+                className="text-[10px] px-1.5 py-0.5 rounded font-medium flex items-center gap-1"
+                style={{
+                  backgroundColor: config.colors.bg,
+                  color: config.colors.text,
+                }}
               >
-                {ISSUE_TYPE_LABELS[suggestion.type]}
+                <Icon className="w-2.5 h-2.5" />
+                {config.label}
               </span>
-            )}
-            {suggestion.lineReference && (
+              {ISSUE_TYPE_LABELS[suggestion.type] && (
+                <span className="text-[10px] px-1.5 py-0.5 rounded bg-[var(--color-surface-overlay)] text-[var(--text-tertiary)]">
+                  {ISSUE_TYPE_LABELS[suggestion.type]}
+                </span>
+              )}
+              {suggestion.lineReference && (
+                <button
+                  onClick={onClickLocate}
+                  className="text-[10px] px-1.5 py-0.5 rounded hover:bg-white/10 transition-colors flex items-center gap-1 bg-[var(--accent-muted)] text-[var(--accent-primary)]"
+                  title="定位到相关实体"
+                >
+                  <Info className="w-2.5 h-2.5" />
+                  定位
+                </button>
+              )}
+            </div>
+
+            {/* Title */}
+            <p className="text-sm font-medium mb-1 text-[var(--text-primary)]">
+              {suggestion.title}
+            </p>
+
+            {/* Description - expandable */}
+            <motion.div
+              initial={false}
+              animate={{ height: isExpanded ? 'auto' : '3.2em' }}
+              transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
+              className="overflow-hidden"
+            >
+              <p className="text-xs text-[var(--text-tertiary)] leading-relaxed">
+                {suggestion.description}
+              </p>
+            </motion.div>
+
+            {/* Expand/collapse hint */}
+            {suggestion.description.length > 80 && (
               <button
-                onClick={onClickLocate}
-                className="text-[10px] px-1.5 py-0.5 rounded hover:bg-white/10 transition-colors flex items-center gap-1 bg-[var(--accent-muted)] text-[var(--accent-primary)]"
-                title="定位到相关实体"
+                onClick={() => setIsExpanded(!isExpanded)}
+                className="text-[10px] mt-1 text-[var(--accent-primary)] hover:text-[var(--accent-hover)] transition-colors flex items-center gap-0.5"
               >
-                <Info className="w-2.5 h-2.5" />
-                定位
+                <motion.span
+                  animate={{ rotate: isExpanded ? 180 : 0 }}
+                  transition={{ duration: 0.2 }}
+                >
+                  <ChevronDown className="w-3 h-3" />
+                </motion.span>
+                {isExpanded ? '收起' : '展开'}
               </button>
             )}
           </div>
 
-          {/* Title */}
-          <p className="text-sm font-medium mb-1 text-[var(--text-primary)]"
-          >
-            {suggestion.title}
-          </p>
-
-          {/* Description */}
-          <p className="text-xs line-clamp-3 text-[var(--text-tertiary)]"
-          >
-            {suggestion.description}
-          </p>
-        </div>
-
-        {/* Action buttons */}
-        <div className="flex gap-0.5 ml-2 flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity"
-        >
-          {suggestion.autoFixable && (
+          {/* Action buttons */}
+          <div className="flex gap-0.5 ml-2 flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
+            {suggestion.autoFixable && (
+              <motion.button
+                onClick={onApplyFix}
+                className="p-1.5 rounded transition-all relative overflow-hidden"
+                style={{
+                  color: isApplied ? 'var(--color-success)' : 'var(--text-tertiary)',
+                  backgroundColor: isApplied ? 'rgba(94,181,166,0.15)' : 'transparent',
+                }}
+                onMouseEnter={(e) => {
+                  if (!isApplied) {
+                    e.currentTarget.style.backgroundColor = 'rgba(94,181,166,0.15)'
+                    e.currentTarget.style.color = 'var(--color-success)'
+                    e.currentTarget.style.boxShadow = '0 0 8px rgba(94,181,166,0.3)'
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (!isApplied) {
+                    e.currentTarget.style.backgroundColor = 'transparent'
+                    e.currentTarget.style.color = 'var(--text-tertiary)'
+                    e.currentTarget.style.boxShadow = 'none'
+                  }
+                }}
+                title="自动修复"
+                whileTap={{ scale: 0.85 }}
+                disabled={isApplied}
+              >
+                <Check className="w-3.5 h-3.5" />
+              </motion.button>
+            )}
             <motion.button
-              onClick={onApplyFix}
-              className="p-1.5 rounded transition-all"
-              style={{
-                color: isApplied ? 'var(--color-success)' : 'var(--text-tertiary)',
-                backgroundColor: isApplied ? 'var(--color-success)15' : 'transparent',
-              }}
+              onClick={onDismiss}
+              className="p-1.5 rounded transition-all text-[var(--text-tertiary)]"
               onMouseEnter={(e) => {
-                if (!isApplied) {
-                  e.currentTarget.style.backgroundColor = 'var(--color-success)15'
-                  e.currentTarget.style.color = 'var(--color-success)'
-                }
+                e.currentTarget.style.backgroundColor = 'var(--color-surface-overlay)'
+                e.currentTarget.style.color = 'var(--text-secondary)'
               }}
               onMouseLeave={(e) => {
-                if (!isApplied) {
-                  e.currentTarget.style.backgroundColor = 'transparent'
-                  e.currentTarget.style.color = 'var(--text-tertiary)'
-                }
+                e.currentTarget.style.backgroundColor = 'transparent'
+                e.currentTarget.style.color = 'var(--text-tertiary)'
               }}
-              title="自动修复"
+              title="忽略"
               whileTap={{ scale: 0.85 }}
-              disabled={isApplied}
             >
-              <Check className="w-3.5 h-3.5" />
+              <X className="w-3.5 h-3.5" />
             </motion.button>
-          )}
-          <motion.button
-            onClick={onDismiss}
-            className="p-1.5 rounded transition-all text-[var(--text-tertiary)]"
-            onMouseEnter={(e) => {
-              e.currentTarget.style.backgroundColor = 'var(--color-surface-overlay)'
-              e.currentTarget.style.color = 'var(--text-secondary)'
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.backgroundColor = 'transparent'
-              e.currentTarget.style.color = 'var(--text-tertiary)'
-            }}
-            title="忽略"
-            whileTap={{ scale: 0.85 }}
-          >
-            <X className="w-3.5 h-3.5" />
-          </motion.button>
+          </div>
         </div>
       </div>
     </motion.div>
@@ -849,19 +920,41 @@ export function AISuggestionPanel() {
       <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-[rgba(94,106,210,0.3)] to-transparent"
       />
       {/* Header */}
-      <button
+      <motion.button
         onClick={() => setIsExpanded(!isExpanded)}
         className="w-full px-4 py-3 flex items-center justify-between transition-all hover:bg-[var(--color-surface-raised)]"
         style={{ borderBottom: isExpanded ? '1px solid rgba(255,255,255,0.06)' : 'none' }}
+        animate={isReviewing ? 'active' : 'idle'}
+        variants={pulseGlowVariants}
       >
-        <div className="flex items-center gap-2"
+        <div className="flex items-center gap-2.5"
         >
-          <Sparkles className="w-4 h-4 text-[var(--accent-primary)]" />
-          <span className="text-sm font-medium text-[var(--text-primary)]"
+          {/* AI Icon with animated ring when reviewing */}
+          <div className="relative">
+            <Sparkles className="w-4 h-4 text-[var(--accent-primary)]" />
+            {isReviewing && (
+              <motion.div
+                className="absolute inset-0 rounded-full"
+                style={{ border: '1px solid var(--accent-primary)' }}
+                animate={{ scale: [1, 1.8], opacity: [0.6, 0] }}
+                transition={{ duration: 1.5, repeat: Infinity, ease: 'easeOut' }}
+              />
+            )}
+          </div>
+          <div className="flex flex-col items-start"
           >
-            AI 审查建议
-          </span>
-          {severityCounts.all > 0 && (
+            <span className="text-sm font-semibold text-[var(--text-primary)] tracking-tight"
+            >
+              AI 审查建议
+            </span>
+            {isReviewing && (
+              <span className="text-[10px] text-[var(--accent-primary)] animate-pulse"
+              >
+                正在分析设定...
+              </span>
+            )}
+          </div>
+          {severityCounts.all > 0 && !isReviewing && (
             <div className="flex items-center gap-1"
             >
               {severityCounts.error > 0 && (
@@ -935,7 +1028,7 @@ export function AISuggestionPanel() {
             <ChevronDown className="w-4 h-4 text-[var(--text-tertiary)]" />
           </motion.div>
         </div>
-      </button>
+      </motion.button>
 
       {/* Content */}
       <AnimatePresence mode="wait">
@@ -958,30 +1051,53 @@ export function AISuggestionPanel() {
 
             <div className="px-4 pb-4 pt-2 space-y-2 max-h-[400px] overflow-y-auto"
             >
-              {displaySuggestions.length === 0 ? (
+              {/* Loading skeleton state */}
+              <AnimatePresence>
+                {isReviewing && displaySuggestions.length === 0 && (
+                  <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    className="space-y-2"
+                  >
+                    <SkeletonCard />
+                    <SkeletonCard />
+                    <SkeletonCard />
+                  </motion.div>
+                )}
+              </AnimatePresence>
+
+              {!isReviewing && displaySuggestions.length === 0 ? (
                 <motion.div
-                  className="text-center py-6"
+                  className="text-center py-8"
                   initial={{ opacity: 0, scale: 0.9 }}
                   animate={{ opacity: 1, scale: 1 }}
                   transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
                 >
                   <motion.div
+                    className="relative inline-block"
                     initial={{ scale: 0 }}
                     animate={{ scale: 1 }}
                     transition={{ type: 'spring', stiffness: 400, damping: 20, delay: 0.1 }}
                   >
-                    <Check className="w-8 h-8 mx-auto mb-2 text-[var(--color-success)]" />
+                    <div className="absolute inset-0 rounded-full bg-[var(--color-success)] opacity-10 blur-xl"
+                    />
+                    <Check className="w-8 h-8 mx-auto mb-3 text-[var(--color-success)] relative z-10" />
                   </motion.div>
-                  <p className="text-sm text-[var(--text-tertiary)]"
+                  <p className="text-sm font-medium text-[var(--text-secondary)]"
                   >
                     {severityFilter !== 'all'
                       ? `暂无${SEVERITY_CONFIG[severityFilter].label}级别的问题`
                       : '设定一致，暂无建议'}
                   </p>
+                  <p className="text-xs text-[var(--text-tertiary)] mt-1"
+                  >
+                    AI 已完成审查，未发现明显问题
+                  </p>
                   {severityFilter !== 'all' && (
                     <button
                       onClick={() => setSeverityFilter('all')}
-                      className="text-xs mt-1 hover:underline text-[var(--accent-primary)]"
+                      className="text-xs mt-2 hover:underline text-[var(--accent-primary)] transition-colors"
                     >
                       查看全部
                     </button>
@@ -1025,15 +1141,23 @@ export function AISuggestionPanel() {
                           .filter((s) => s.autoFixable)
                           .forEach((s) => handleApplyFix(s.id))
                       }}
-                      className="flex-1 py-2 rounded-lg text-xs font-medium transition-all bg-[var(--color-surface-raised)] text-[var(--text-secondary)] border border-[var(--border-default)] hover:bg-[var(--color-surface-overlay)]"
-                      whileHover={{ scale: 1.01 }}
+                      className="flex-1 py-2 rounded-lg text-xs font-semibold transition-all relative overflow-hidden"
+                      style={{
+                        background: 'linear-gradient(135deg, rgba(94,181,166,0.12) 0%, rgba(94,181,166,0.06) 100%)',
+                        color: 'var(--color-success)',
+                        border: '1px solid rgba(94,181,166,0.25)',
+                      }}
+                      whileHover={{
+                        scale: 1.01,
+                        boxShadow: '0 0 12px rgba(94,181,166,0.25)',
+                      }}
                       whileTap={{ scale: 0.98 }}
                     >
                       应用所有修复
                     </motion.button>
                     <motion.button
                       onClick={() => setDismissed(new Set(displaySuggestions.map((s) => s.id)))}
-                      className="flex-1 py-2 rounded-lg text-xs font-medium transition-all bg-transparent text-[var(--text-tertiary)] border border-[var(--border-default)] hover:bg-white/5"
+                      className="flex-1 py-2 rounded-lg text-xs font-medium transition-all bg-transparent text-[var(--text-tertiary)] border border-[var(--border-default)] hover:bg-white/5 hover:text-[var(--text-secondary)]"
                       whileHover={{ scale: 1.01 }}
                       whileTap={{ scale: 0.98 }}
                     >
@@ -1049,17 +1173,41 @@ export function AISuggestionPanel() {
                 <motion.button
                   onClick={handleReReview}
                   disabled={isReviewing}
-                  className="w-full py-2.5 rounded-lg text-xs font-medium flex items-center justify-center gap-2 transition-all disabled:opacity-50 bg-[var(--accent-muted)] text-[var(--accent-primary)] border border-[var(--accent-primary)]/20 hover:bg-[var(--accent-primary)]/25"
-                  whileHover={!isReviewing ? { scale: 1.01 } : {}}
+                  className="w-full py-2.5 rounded-lg text-xs font-semibold flex items-center justify-center gap-2 transition-all disabled:opacity-50 relative overflow-hidden"
+                  style={{
+                    background: isReviewing
+                      ? 'linear-gradient(135deg, rgba(94,106,210,0.15) 0%, rgba(94,106,210,0.08) 100%)'
+                      : 'linear-gradient(135deg, rgba(94,106,210,0.12) 0%, rgba(94,106,210,0.06) 100%)',
+                    color: 'var(--accent-primary)',
+                    border: '1px solid rgba(94,106,210,0.25)',
+                  }}
+                  whileHover={!isReviewing ? {
+                    scale: 1.01,
+                    boxShadow: '0 0 16px rgba(94,106,210,0.3), 0 0 32px rgba(94,106,210,0.15)',
+                  } : {}}
                   whileTap={!isReviewing ? { scale: 0.98 } : {}}
                 >
+                  {/* Shimmer effect when reviewing */}
+                  {isReviewing && (
+                    <motion.div
+                      className="absolute inset-0"
+                      style={{
+                        background: 'linear-gradient(90deg, transparent 0%, rgba(94,106,210,0.1) 50%, transparent 100%)',
+                        backgroundSize: '200% 100%',
+                      }}
+                      variants={shimmerVariants}
+                      initial="initial"
+                      animate="animate"
+                    />
+                  )}
                   <motion.div
+                    className="relative z-10"
                     animate={isReviewing ? { rotate: 360 } : { rotate: 0 }}
                     transition={isReviewing ? { duration: 1, repeat: Infinity, ease: 'linear' } : {}}
                   >
                     <RotateCw className="w-3.5 h-3.5" />
                   </motion.div>
-                  {isReviewing ? '审查中...' : '重新审查'}
+                  <span className="relative z-10">{isReviewing ? '审查中...' : '重新审查'}</span>
                 </motion.button>
               </div>
             </div>

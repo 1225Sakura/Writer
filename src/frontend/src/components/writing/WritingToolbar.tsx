@@ -1,6 +1,6 @@
 import { useUIStore, useWritingStore } from '@/store'
-import { Button } from '@/components/ui/Button'
-import { Slider } from '@/components/ui/slider'
+import * as SliderPrimitive from '@radix-ui/react-slider'
+import { cn } from '@/lib/utils'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   Pen,
@@ -11,9 +11,12 @@ import {
   AlertTriangle,
   Moon,
   Sun,
+  Eye,
+  Palette,
+  Coffee,
+  TreePine,
   Maximize2,
   Minimize2,
-  Eye,
   EyeOff,
   BarChart3,
   Zap,
@@ -26,14 +29,24 @@ import {
   User,
   Sparkles,
 } from 'lucide-react'
-import { memo, useCallback, useState } from 'react'
+import React, { memo, useCallback, useState } from 'react'
 import { showToast } from '@/components/ui/Toast'
 import { getEditorInstance } from '@/store/editorRegistry'
+import { useThemeContext } from '@/components/shared/ThemeProvider'
+import type { Theme } from '@/hooks/useTheme'
+
+const themeIconMap: Record<Theme, React.ReactNode> = {
+  dark: <Moon className="w-4 h-4" />,
+  light: <Sun className="w-4 h-4" />,
+  'eye-care': <Eye className="w-4 h-4" />,
+  'midnight-blue': <Palette className="w-4 h-4" />,
+  'warm-paper': <Coffee className="w-4 h-4" />,
+  'forest-green': <TreePine className="w-4 h-4" />,
+}
 
 export function WritingToolbar() {
+  const { theme, toggleTheme } = useThemeContext()
   const {
-    theme,
-    toggleTheme,
     aiDrawerOpen,
     collaborationDrawerOpen,
     outlineDrawerOpen,
@@ -138,32 +151,29 @@ export function WritingToolbar() {
   ] as const
 
   return (
-    <div className="h-[var(--layout-topbar-height)] flex items-center px-2 sm:px-4 gap-1 sm:gap-2 layout-topbar overflow-x-auto">
+    <div
+      className="h-[var(--layout-topbar-height)] flex items-center px-3 sm:px-4 gap-1.5 sm:gap-2 layout-topbar overflow-x-auto"
+      style={{
+        boxShadow: '0 1px 0 0 var(--border-subtle), 0 4px 16px color-mix(in srgb, var(--ink-100) 12%, transparent)',
+      }}
+    >
       {/* 左侧：返回聊天 + 返回设定 */}
-      <Button
+      <NavButton
         onClick={() => setCurrentInterface('chat')}
-        variant="ghost"
-        size="sm"
-        className="flex-shrink-0 touch-target-min"
-      >
-        <MessageCircle className="w-4 h-4" />
-        <span className="hidden sm:inline">返回聊天</span>
-      </Button>
+        icon={<MessageCircle className="w-4 h-4" />}
+        label="返回聊天"
+      />
 
-      <Button
+      <NavButton
         onClick={() => setCurrentInterface('settings')}
-        variant="ghost"
-        size="sm"
-        className="flex-shrink-0 touch-target-min"
-      >
-        <ArrowLeft className="w-4 h-4" />
-        <span className="hidden sm:inline">返回设定</span>
-      </Button>
+        icon={<ArrowLeft className="w-4 h-4" />}
+        label="返回设定"
+      />
 
-      <div className="w-px h-6 bg-[var(--border-default)] flex-shrink-0" />
+      <Divider />
 
       {/* 中间：工具按钮 */}
-      <div className="flex items-center gap-1 flex-shrink-0">
+      <div className="flex items-center gap-0.5 flex-shrink-0">
         <ToolbarButton
           icon={<Pen className="w-4 h-4" />}
           label="写作"
@@ -192,31 +202,31 @@ export function WritingToolbar() {
       </div>
 
       {/* 中间偏右：人机比例快捷滑块 + 快捷AI操作 */}
-      <div className="hidden md:flex items-center gap-2 ml-2 flex-shrink-0">
-        <div className="w-px h-6 bg-[var(--border-default)]" />
+      <div className="hidden lg:flex items-center gap-2 ml-2 flex-shrink-0">
+        <Divider />
 
         {/* Human-AI ratio mini control - refined visual */}
         <div
-          className="flex items-center gap-2 px-2.5 py-1.5 rounded-lg"
+          className="flex items-center gap-2 px-3 py-1.5 rounded-xl"
           style={{
-            background: 'var(--border-subtle)',
+            background: 'var(--color-surface-raised)',
             border: '1px solid var(--border-default)',
+            boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.15)',
           }}
         >
-          <Bot className="w-4 h-4" style={{ color: 'var(--accent-primary)' }} />
-          <div className="w-20">
-            <Slider
+          <Bot className="w-3.5 h-3.5" style={{ color: 'var(--accent-primary)' }} />
+          <div className="w-24">
+            <RatioSlider
               value={[humanAIRatio]}
               min={0}
               max={100}
               step={10}
               onValueChange={(value) => setHumanAIRatio(value[0])}
-              className="w-full"
             />
           </div>
-          <User className="w-4 h-4 text-[var(--icon-secondary)]" />
+          <User className="w-3.5 h-3.5 text-[var(--icon-secondary)]" />
           <span
-            className="text-[10px] w-8 text-center font-medium"
+            className="text-[10px] w-8 text-center font-semibold tracking-wide"
             style={{ color: 'var(--text-tertiary)' }}
           >
             {humanAIRatio < 30 ? 'AI' : humanAIRatio < 70 ? '协作' : '用户'}
@@ -225,28 +235,11 @@ export function WritingToolbar() {
 
         {/* Quick AI operations dropdown */}
         <div className="relative">
-          <Button
+          <QuickAIButton
             onClick={() => setShowQuickAIOps(!showQuickAIOps)}
-            variant={showQuickAIOps ? 'primary' : 'ghost'}
-            size="sm"
-            className="relative"
-            disabled={isAIGenerating}
-          >
-            {isAIGenerating ? (
-              <motion.div
-                animate={{ rotate: 360 }}
-                transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
-              >
-                <Sparkles className="w-4 h-4" />
-              </motion.div>
-            ) : (
-              <Zap className="w-4 h-4" />
-            )}
-            <span>快捷AI</span>
-            {isAIGenerating && (
-              <span className="absolute -top-1 -right-1 w-2 h-2 rounded-full animate-pulse motion-reduce:animate-none" style={{ backgroundColor: 'var(--accent-primary)' }} />
-            )}
-          </Button>
+            isActive={showQuickAIOps}
+            isLoading={isAIGenerating}
+          />
 
           <AnimatePresence>
             {showQuickAIOps && (
@@ -255,40 +248,31 @@ export function WritingToolbar() {
                 animate={{ opacity: 1, y: 0, scale: 1 }}
                 exit={{ opacity: 0, y: -4, scale: 0.95 }}
                 transition={{ duration: 0.15 }}
-                className="absolute top-full left-0 mt-1 z-50 p-1.5 rounded-xl shadow-xl min-w-[200px]"
+                className="absolute top-full left-0 mt-1.5 z-50 p-1.5 rounded-xl shadow-2xl min-w-[200px]"
                 style={{
                   background: 'var(--color-surface-raised)',
                   border: '1px solid var(--border-default)',
+                  boxShadow: '0 8px 32px rgba(0,0,0,0.35), 0 0 0 1px var(--border-subtle)',
                 }}
               >
                 <div
-                  className="text-[10px] px-2 py-1 uppercase tracking-wider"
+                  className="text-[10px] px-2 py-1 uppercase tracking-wider font-medium"
                   style={{ color: 'var(--text-tertiary)' }}
                 >
                   选中文字后执行
                 </div>
-                <div className="grid grid-cols-2 gap-1">
+                <div className="grid grid-cols-2 gap-0.5">
                   {quickAIOperations.map((op) => (
-                    <button
+                    <QuickOpButton
                       key={op.key}
+                      op={op}
+                      isLoading={quickOpLoading === op.key}
+                      isDisabled={quickOpLoading !== null}
                       onClick={() => {
                         handleQuickAIOp(op.key)
                         setShowQuickAIOps(false)
                       }}
-                      disabled={quickOpLoading !== null}
-                      className={`flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-xs transition-all
-                        ${quickOpLoading === op.key
-                          ? 'bg-[var(--accent-primary)]/20' : ''}
-                          : 'hover:bg-[var(--border-subtle)]'
-                        }
-                        ${quickOpLoading !== null && quickOpLoading !== op.key ? 'opacity-40' : ''}
-                      `}
-                      style={{ color: 'var(--text-secondary)' }}
-                    >
-                      <span className="inline-flex items-center justify-center shrink-0" style={{ color: op.color }}>{op.icon}</span>
-                      <span className="flex-1 text-left">{op.label}</span>
-                      <span className="text-[10px]" style={{ color: 'var(--text-tertiary)' }}>⇧{op.shortcut}</span>
-                    </button>
+                    />
                   ))}
                 </div>
               </motion.div>
@@ -298,121 +282,170 @@ export function WritingToolbar() {
       </div>
 
       {/* 右侧：字数统计、警告和主题切换 */}
-      <div className="ml-auto flex items-center gap-1 sm:gap-2 flex-shrink-0">
-        {/* AI生成状态指示 */}
+      <div className="ml-auto flex items-center gap-1 sm:gap-1.5 flex-shrink-0">
+        {/* AI生成状态指示 - enhanced with glow animation */}
         <AnimatePresence>
           {isAIGenerating && (
             <motion.div
-              initial={{ opacity: 0, x: 8 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: 8 }}
-              className="flex items-center gap-1.5 px-2 py-0.5 rounded-full"
+              initial={{ opacity: 0, x: 8, scale: 0.95 }}
+              animate={{ opacity: 1, x: 0, scale: 1 }}
+              exit={{ opacity: 0, x: 8, scale: 0.95 }}
+              transition={{ duration: 0.3, ease: IMMERSIVE_EASE }}
+              className="flex items-center gap-1.5 px-2.5 py-1 rounded-full"
               style={{
-                backgroundColor: 'color-mix(in srgb, var(--accent-primary) 10%, transparent)',
-                border: '1px solid color-mix(in srgb, var(--accent-primary) 20%, transparent)',
+                backgroundColor: 'color-mix(in srgb, var(--accent-primary) 15%, transparent)',
+                border: '1px solid color-mix(in srgb, var(--accent-primary) 30%, transparent)',
+                boxShadow: '0 0 12px color-mix(in srgb, var(--accent-primary) 20%, transparent), inset 0 1px 0 rgba(255,255,255,0.05)',
               }}
             >
               <motion.div
-                animate={{ scale: [1, 1.2, 1] }}
-                transition={{ duration: 1, repeat: Infinity }}
+                animate={{ scale: [1, 1.2, 1], opacity: [0.8, 1, 0.8] }}
+                transition={{ duration: 1.4, repeat: Infinity, ease: 'easeInOut' }}
               >
-                <Sparkles className="w-3.5 h-3.5" style={{ color: 'var(--accent-primary)' }} />
+                <Sparkles className="w-3 h-3" style={{ color: 'var(--accent-primary)' }} />
               </motion.div>
-              <span className="text-[10px] font-medium" style={{ color: 'var(--accent-primary)' }}>AI生成中</span>
+              <motion.span
+                animate={{ opacity: [0.7, 1, 0.7] }}
+                transition={{ duration: 1.4, repeat: Infinity, ease: 'easeInOut' }}
+                className="text-[10px] font-semibold"
+                style={{ color: 'var(--accent-primary)' }}
+              >
+                AI生成中
+              </motion.span>
             </motion.div>
           )}
         </AnimatePresence>
 
         {/* 今日进度 - gradient fill */}
-        <div className="flex items-center gap-1.5 mr-2"
+        <div
+          className="hidden sm:flex items-center gap-1.5 mr-1 px-2 py-1 rounded-lg"
+          style={{ background: 'var(--color-surface-raised)' }}
           title="今日写作进度"
         >
-          <BarChart3 className="w-4 h-4" style={{ color: 'var(--accent-primary)' }} />
-          <div className="w-20 h-1.5 bg-[rgba(255,255,255,0.06)] rounded-full overflow-hidden">
+          <BarChart3 className="w-3.5 h-3.5" style={{ color: 'var(--accent-primary)' }} />
+          <div className="w-16 h-1 bg-[var(--border-subtle)] rounded-full overflow-hidden">
             <motion.div
               className="h-full rounded-full"
               style={{
                 background: 'linear-gradient(90deg, var(--accent-primary) 0%, var(--color-ifline) 100%)',
-                boxShadow: '0 0 6px rgba(94, 106, 210, 0.3)',
+                boxShadow: '0 0 8px color-mix(in srgb, var(--accent-100) 35%, transparent)',
               }}
               initial={{ width: 0 }}
               animate={{ width: `${Math.min(100, (todayWordCount / Math.max(1, targetWordCount)) * 100)}%` }}
               transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
             />
           </div>
-          <span className="text-xs" style={{ color: 'var(--text-secondary)', opacity: 0.7 }}>
+          <span className="text-[10px] tabular-nums" style={{ color: 'var(--text-tertiary)' }}>
             {todayWordCount}/{targetWordCount}
           </span>
         </div>
 
-        <div className="w-px h-5 bg-[var(--border-default)]" />
+        <Divider />
 
         {/* 字数统计 */}
-        <span className="text-xs text-[var(--text-tertiary)]">
+        <span
+          className="text-xs font-medium tabular-nums px-1"
+          style={{ color: 'var(--text-secondary)' }}
+        >
           {wordCount} 字
         </span>
 
         {/* OOC/战力警告 */}
         {hasWarnings && (
-          <Button
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
             onClick={handleWarningClick}
-            variant="destructive"
-            size="sm"
+            className="flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-medium transition-colors"
+            style={{
+              background: 'color-mix(in srgb, var(--color-danger) 15%, transparent)',
+              color: 'var(--color-danger)',
+              border: '1px solid color-mix(in srgb, var(--color-danger) 25%, transparent)',
+            }}
             title={`OOC: ${oocWarnings.length}, 战力: ${powerImbalanceWarnings.length}`}
           >
-            <AlertTriangle className="w-4 h-4" />
-            <span>警告 {oocWarnings.length + powerImbalanceWarnings.length}</span>
-          </Button>
+            <AlertTriangle className="w-3.5 h-3.5" />
+            <span className="hidden sm:inline">{oocWarnings.length + powerImbalanceWarnings.length}</span>
+          </motion.button>
         )}
 
-        {/* 主题切换 - Linear icon button with rounded-full */}
-        <Button
+        {/* 主题切换 */}
+        <IconButton
           onClick={toggleTheme}
-          variant="ghost"
-          size="icon"
-          title={theme === 'dark' ? '切换浅色模式' : '切换深色模式'}
-          className="!rounded-full"
-        >
-          {theme === 'dark' ? (
-            <Sun className="w-4 h-4" />
-          ) : (
-            <Moon className="w-4 h-4" />
-          )}
-        </Button>
+          icon={themeIconMap[theme] || themeIconMap.dark}
+          title={`当前主题: ${theme}`}
+        />
 
         {/* 沉浸模式切换 */}
-        <Button
+        <IconButton
           onClick={toggleImmersiveMode}
-          variant={immersiveMode ? 'primary' : 'ghost'}
-          size="icon"
+          icon={immersiveMode ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
           title={immersiveMode ? '退出沉浸模式' : '进入沉浸模式'}
-          className="!rounded-full"
-        >
-          {immersiveMode ? (
-            <Minimize2 className="w-4 h-4" />
-          ) : (
-            <Maximize2 className="w-4 h-4" />
-          )}
-        </Button>
+          isActive={immersiveMode}
+          glowColor="var(--color-character)"
+        />
 
         {/* 专注模式切换 */}
-        <Button
+        <IconButton
           onClick={toggleFocusMode}
-          variant={focusModeEnabled ? 'primary' : 'ghost'}
-          size="icon"
+          icon={focusModeEnabled ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
           title={focusModeEnabled ? '退出专注模式' : '进入专注模式'}
-          className="!rounded-full"
-        >
-          {focusModeEnabled ? (
-            <EyeOff className="w-4 h-4" />
-          ) : (
-            <Eye className="w-4 h-4" />
-          )}
-        </Button>
+          isActive={focusModeEnabled}
+        />
       </div>
     </div>
   )
 }
+
+/* ─── Sub-components ─── */
+
+const Divider = memo(function Divider() {
+  return (
+    <div
+      className="w-px h-5 flex-shrink-0 mx-0.5"
+      style={{
+        background: 'linear-gradient(to bottom, transparent, var(--border-default) 20%, var(--border-default) 80%, transparent)',
+      }}
+    />
+  )
+})
+
+const NavButton = memo(function NavButton({
+  onClick,
+  icon,
+  label,
+}: {
+  onClick: () => void
+  icon: React.ReactNode
+  label: string
+}) {
+  return (
+    <motion.button
+      whileHover={{ scale: 1.03 }}
+      whileTap={{ scale: 0.97 }}
+      onClick={onClick}
+      className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-colors duration-150 flex-shrink-0"
+      style={{
+        color: 'var(--text-secondary)',
+        background: 'transparent',
+        border: '1px solid transparent',
+      }}
+      onMouseEnter={(e) => {
+        e.currentTarget.style.background = 'var(--color-surface-raised)'
+        e.currentTarget.style.borderColor = 'var(--border-default)'
+        e.currentTarget.style.color = 'var(--text-primary)'
+      }}
+      onMouseLeave={(e) => {
+        e.currentTarget.style.background = 'transparent'
+        e.currentTarget.style.borderColor = 'transparent'
+        e.currentTarget.style.color = 'var(--text-secondary)'
+      }}
+    >
+      {icon}
+      <span className="hidden sm:inline">{label}</span>
+    </motion.button>
+  )
+})
 
 const ToolbarButton = memo(function ToolbarButton({
   icon,
@@ -428,24 +461,253 @@ const ToolbarButton = memo(function ToolbarButton({
   badge?: string
 }) {
   return (
-    <Button
+    <motion.button
+      whileHover={{ scale: 1.04 }}
+      whileTap={{ scale: 0.96 }}
       onClick={onClick}
-      variant={isActive ? 'primary' : 'ghost'}
-      size="sm"
-      className={`relative overflow-hidden transition-all duration-200 rounded-md ${
-        isActive
-          ? 'shadow-sm'
-          : 'hover:scale-[1.02] hover:bg-[rgba(255,255,255,0.04)]'
-      }`}
+      className="relative flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all duration-200 overflow-hidden flex-shrink-0"
+      style={{
+        color: isActive ? 'var(--text-primary)' : 'var(--text-secondary)',
+        background: isActive ? 'var(--accent-primary)' : 'transparent',
+        border: isActive ? '1px solid color-mix(in srgb, var(--accent-primary) 60%, transparent)' : '1px solid transparent',
+        boxShadow: isActive ? '0 0 12px color-mix(in srgb, var(--accent-primary) 25%, transparent)' : 'none',
+      }}
+      onMouseEnter={(e) => {
+        if (!isActive) {
+          e.currentTarget.style.background = 'var(--color-surface-raised)'
+          e.currentTarget.style.borderColor = 'var(--border-default)'
+          e.currentTarget.style.color = 'var(--text-primary)'
+        }
+      }}
+      onMouseLeave={(e) => {
+        if (!isActive) {
+          e.currentTarget.style.background = 'transparent'
+          e.currentTarget.style.borderColor = 'transparent'
+          e.currentTarget.style.color = 'var(--text-secondary)'
+        }
+      }}
     >
       <span className="inline-flex items-center justify-center shrink-0 w-4 h-4">{icon}</span>
-      <span className="inline-flex items-center ml-1">{label}</span>
+      <span className="inline-flex items-center">{label}</span>
       {isActive && (
-        <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-2/3 h-[2px] rounded-full bg-gradient-to-r from-[var(--accent-primary)] to-[var(--color-ifline)] opacity-70" />
+        <motion.span
+          layoutId="toolbar-active-indicator"
+          className="absolute bottom-0.5 left-1/2 -translate-x-1/2 w-1/2 h-[2px] rounded-full"
+          style={{
+            background: 'linear-gradient(90deg, transparent, var(--text-primary), transparent)',
+            opacity: 0.5,
+          }}
+        />
       )}
       {badge && (
-        <span className="absolute -top-0.5 -right-0.5 w-1.5 h-1.5 rounded-full bg-[var(--color-vermillion)]" />
+        <span
+          className="absolute top-1 right-1 w-1.5 h-1.5 rounded-full animate-pulse"
+          style={{ backgroundColor: 'var(--color-vermillion)' }}
+        />
       )}
-    </Button>
+    </motion.button>
   )
 })
+
+const IconButton = memo(function IconButton({
+  onClick,
+  icon,
+  title,
+  isActive,
+  glowColor = 'var(--accent-primary)',
+}: {
+  onClick: () => void
+  icon: React.ReactNode
+  title: string
+  isActive?: boolean
+  glowColor?: string
+}) {
+  return (
+    <motion.button
+      whileHover={{ scale: 1.1 }}
+      whileTap={{ scale: 0.92 }}
+      onClick={onClick}
+      title={title}
+      className="relative flex items-center justify-center w-8 h-8 rounded-full transition-all duration-200 flex-shrink-0"
+      style={{
+        color: isActive ? 'var(--text-primary)' : 'var(--text-secondary)',
+        background: isActive
+          ? `color-mix(in srgb, ${glowColor} 20%, transparent)`
+          : 'transparent',
+        border: isActive
+          ? `1px solid color-mix(in srgb, ${glowColor} 40%, transparent)`
+          : '1px solid transparent',
+        boxShadow: isActive
+          ? `0 0 12px color-mix(in srgb, ${glowColor} 20%, transparent)`
+          : 'none',
+      }}
+      onMouseEnter={(e) => {
+        if (!isActive) {
+          e.currentTarget.style.background = 'var(--color-surface-raised)'
+          e.currentTarget.style.borderColor = 'var(--border-default)'
+          e.currentTarget.style.color = 'var(--text-primary)'
+        }
+      }}
+      onMouseLeave={(e) => {
+        if (!isActive) {
+          e.currentTarget.style.background = 'transparent'
+          e.currentTarget.style.borderColor = 'transparent'
+          e.currentTarget.style.color = 'var(--text-secondary)'
+        }
+      }}
+    >
+      {icon}
+    </motion.button>
+  )
+})
+
+const QuickAIButton = memo(function QuickAIButton({
+  onClick,
+  isActive,
+  isLoading,
+}: {
+  onClick: () => void
+  isActive: boolean
+  isLoading: boolean
+}) {
+  return (
+    <motion.button
+      whileHover={{ scale: 1.04 }}
+      whileTap={{ scale: 0.96 }}
+      onClick={onClick}
+      disabled={isLoading}
+      className="relative flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all duration-200 flex-shrink-0 disabled:opacity-60"
+      style={{
+        color: isActive ? 'var(--text-primary)' : 'var(--accent-primary)',
+        background: isActive
+          ? 'var(--accent-primary)'
+          : 'color-mix(in srgb, var(--accent-primary) 10%, transparent)',
+        border: isActive
+          ? '1px solid color-mix(in srgb, var(--accent-primary) 50%, transparent)'
+          : '1px solid color-mix(in srgb, var(--accent-primary) 25%, transparent)',
+        boxShadow: isActive
+          ? '0 0 16px color-mix(in srgb, var(--accent-primary) 30%, transparent)'
+          : '0 0 8px color-mix(in srgb, var(--accent-primary) 10%, transparent)',
+      }}
+      onMouseEnter={(e) => {
+        if (!isActive && !isLoading) {
+          e.currentTarget.style.background = 'color-mix(in srgb, var(--accent-primary) 18%, transparent)'
+          e.currentTarget.style.boxShadow = '0 0 12px color-mix(in srgb, var(--accent-primary) 20%, transparent)'
+        }
+      }}
+      onMouseLeave={(e) => {
+        if (!isActive && !isLoading) {
+          e.currentTarget.style.background = 'color-mix(in srgb, var(--accent-primary) 10%, transparent)'
+          e.currentTarget.style.boxShadow = '0 0 8px color-mix(in srgb, var(--accent-primary) 10%, transparent)'
+        }
+      }}
+    >
+      {isLoading ? (
+        <motion.div
+          animate={{ rotate: 360 }}
+          transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
+        >
+          <Sparkles className="w-3.5 h-3.5" />
+        </motion.div>
+      ) : (
+        <Zap className="w-3.5 h-3.5" />
+      )}
+      <span>快捷AI</span>
+      {isLoading && (
+        <span
+          className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full animate-pulse motion-reduce:animate-none"
+          style={{ backgroundColor: 'var(--accent-primary)' }}
+        />
+      )}
+    </motion.button>
+  )
+})
+
+interface QuickOpDef {
+  key: string
+  label: string
+  icon: React.ReactNode
+  shortcut: string
+  color: string
+}
+
+const QuickOpButton = memo(function QuickOpButton({
+  op,
+  isLoading,
+  isDisabled,
+  onClick,
+}: {
+  op: QuickOpDef
+  isLoading: boolean
+  isDisabled: boolean
+  onClick: () => void
+}) {
+  return (
+    <motion.button
+      whileHover={{ scale: 1.02 }}
+      whileTap={{ scale: 0.98 }}
+      onClick={onClick}
+      disabled={isDisabled}
+      className="flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-xs transition-all duration-150 disabled:opacity-40 disabled:cursor-not-allowed"
+      style={{
+        color: 'var(--text-secondary)',
+        background: isLoading
+          ? 'color-mix(in srgb, var(--accent-primary) 12%, transparent)'
+          : 'transparent',
+      }}
+      onMouseEnter={(e) => {
+        if (!isDisabled) {
+          e.currentTarget.style.background = 'var(--color-surface-base)'
+        }
+      }}
+      onMouseLeave={(e) => {
+        if (!isLoading) {
+          e.currentTarget.style.background = 'transparent'
+        }
+      }}
+    >
+      <span className="inline-flex items-center justify-center shrink-0" style={{ color: op.color }}>
+        {op.icon}
+      </span>
+      <span className="flex-1 text-left font-medium">{op.label}</span>
+      <span className="text-[10px] tabular-nums" style={{ color: 'var(--text-tertiary)' }}>
+        ⇧{op.shortcut}
+      </span>
+    </motion.button>
+  )
+})
+
+const RatioSlider = React.forwardRef<
+  React.ElementRef<typeof SliderPrimitive.Root>,
+  React.ComponentPropsWithoutRef<typeof SliderPrimitive.Root>
+>(({ className, ...props }, ref) => (
+  <SliderPrimitive.Root
+    ref={ref}
+    className={cn(
+      'relative flex w-full touch-none select-none items-center',
+      className
+    )}
+    {...props}
+  >
+    <SliderPrimitive.Track
+      className="relative h-1 w-full grow overflow-hidden rounded-full"
+      style={{ background: 'var(--border-default)' }}
+    >
+      <SliderPrimitive.Range
+        className="absolute h-full rounded-full"
+        style={{
+          background: 'linear-gradient(90deg, var(--accent-primary) 0%, var(--color-ifline) 100%)',
+        }}
+      />
+    </SliderPrimitive.Track>
+    <SliderPrimitive.Thumb
+      className="block h-4 w-4 rounded-full border-2 transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-primary)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--color-surface-base)] disabled:pointer-events-none disabled:opacity-50"
+      style={{
+        borderColor: 'var(--accent-primary)',
+        background: 'var(--color-surface-raised)',
+        boxShadow: '0 0 8px rgba(94, 106, 210, 0.3), 0 2px 4px rgba(0,0,0,0.2)',
+      }}
+    />
+  </SliderPrimitive.Root>
+))
+RatioSlider.displayName = SliderPrimitive.Root.displayName

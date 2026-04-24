@@ -29,17 +29,6 @@ const categoryColorVars: Record<string, string> = {
   ifline: 'var(--color-ifline)',
 }
 
-const categoryGlowColors: Record<string, string> = {
-  world: 'rgba(94,106,210,0.12)',
-  character: 'rgba(232,184,125,0.12)',
-  item: 'rgba(155,126,217,0.12)',
-  location: 'rgba(94,181,166,0.12)',
-  faction: 'rgba(212,93,93,0.12)',
-  rule: 'rgba(126,184,74,0.12)',
-  outline: 'rgba(91,142,232,0.12)',
-  ifline: 'rgba(126,184,74,0.12)',
-}
-
 function CountBadge({ count, color }: { count: number; color: string }) {
   return (
     <motion.span
@@ -88,7 +77,7 @@ export function CategoryNav() {
     <div className="h-full flex flex-col bg-[var(--color-bg-surface)]">
       {/* Header */}
       <div className="px-4 py-5 relative overflow-hidden border-b border-[var(--color-border)]">
-        <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-[rgba(94,106,210,0.4)] to-transparent" />
+        <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-[color-mix(in_srgb,var(--accent-100)_40%,transparent)] to-transparent" />
         <h2 className="font-semibold text-base text-[var(--text-primary)]">
           设定编辑
         </h2>
@@ -98,96 +87,130 @@ export function CategoryNav() {
       </div>
 
       {/* Navigation list */}
-      <nav className="flex-1 overflow-y-auto py-3">
-        {categories.map(({ key, label, iconType }) => {
-          const isActive = settingsCategory === key
-          const color = categoryColorVars[key]
-          const glowColor = categoryGlowColors[key]
-          const count = counts[key]
+      <nav className="flex-1 overflow-y-auto py-3 category-nav-scroll">
+        <AnimatePresence>
+          {categories.map(({ key, label, iconType }, index) => {
+            const isActive = settingsCategory === key
+            const color = categoryColorVars[key]
+            const count = counts[key]
 
-          return (
-            <motion.div
-              key={key}
-              onClick={() => handleCategoryChange(key)}
-              className="w-full flex items-center gap-3 px-4 py-2.5 mb-0.5 text-left relative overflow-hidden group touch-target-min"
-              initial={false}
-              animate={isActive ? { backgroundColor: glowColor } : { backgroundColor: 'transparent' }}
-              transition={{ duration: 0.2 }}
-              whileHover={!isActive ? { backgroundColor: 'rgba(255,255,255,0.04)' } : {}}
-            >
-              {/* Active left border indicator */}
-              <AnimatePresence>
-                {isActive && (
-                  <motion.div
-                    className="absolute left-0 top-1/2 -translate-y-1/2"
-                    layoutId="category-active-indicator"
-                    initial={{ opacity: 0, scaleY: 0 }}
-                    animate={{ opacity: 1, scaleY: 1 }}
-                    exit={{ opacity: 0, scaleY: 0 }}
-                    style={{
-                      width: '3px',
-                      height: '24px',
-                      backgroundColor: color,
-                      borderRadius: '0 3px 3px 0',
-                      boxShadow: `0 0 6px ${color}, 0 0 12px ${color}35`,
-                    }}
-                    transition={{ type: 'spring', stiffness: 400, damping: 30 }}
-                  />
-                )}
-              </AnimatePresence>
-
-              {/* Hover indicator */}
-              {!isActive && (
+            return (
+              <motion.div
+                key={key}
+                onClick={() => handleCategoryChange(key)}
+                className={`
+                  w-full flex items-center gap-3 text-left relative overflow-hidden group cursor-pointer
+                  px-4 py-2.5 mb-0.5 touch-target-min
+                  transition-all duration-200 ease-out
+                  ${isActive
+                    ? ''
+                    : 'hover:bg-[var(--color-surface-hover)] hover:pl-5'
+                  }
+                `}
+                initial={{ opacity: 0, x: -12 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{
+                  duration: 0.3,
+                  delay: index * 0.04,
+                  ease: [0.25, 0.46, 0.45, 0.94],
+                }}
+                whileHover={isActive ? {} : { x: 2 }}
+                whileTap={{ scale: 0.98 }}
+                style={isActive ? {
+                  backgroundColor: `${color}12`,
+                } : undefined}
+              >
+                {/* Active accent indicator bar with spring animation */}
                 <motion.div
-                  className="absolute left-0 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-60"
-                  initial={{ x: -4 }}
-                  whileHover={{ x: 0 }}
-                  transition={{ duration: 0.15 }}
+                  className="absolute left-0 top-1/2 -translate-y-1/2 rounded-r-full"
+                  initial={false}
+                  animate={{
+                    width: isActive ? 3 : 0,
+                    height: isActive ? 20 : 12,
+                    opacity: isActive ? 1 : 0,
+                  }}
+                  transition={{
+                    type: 'spring',
+                    stiffness: 500,
+                    damping: 28,
+                    mass: 0.8,
+                  }}
                   style={{
-                    width: '3px',
-                    height: '16px',
-                    backgroundColor: 'var(--text-tertiary)',
-                    borderRadius: '0 3px 3px 0',
+                    backgroundColor: isActive ? color : 'var(--text-tertiary)',
+                    boxShadow: isActive ? `0 0 8px ${color}60, 0 0 16px ${color}30` : 'none',
                   }}
                 />
-              )}
 
-              {/* Icon wrapper - fixed size to ensure alignment */}
-              <div className="w-5 h-5 flex items-center justify-center flex-shrink-0">
-                <EntityIcon
-                  type={iconType}
-                  size="sm"
-                  className="transition-colors duration-200"
-                  style={{ color: isActive ? color : 'var(--text-tertiary)' }}
+                {/* Hover subtle indicator */}
+                <motion.div
+                  className="absolute left-0 top-1/2 -translate-y-1/2 rounded-r-full pointer-events-none"
+                  initial={false}
+                  animate={{
+                    width: !isActive ? 2 : 0,
+                    opacity: !isActive ? 0.5 : 0,
+                  }}
+                  transition={{ duration: 0.15 }}
+                  style={{
+                    height: 12,
+                    backgroundColor: color,
+                  }}
                 />
-              </div>
 
-              {/* Label - single line, no animation that affects layout */}
-              <span
-                className="text-sm font-medium truncate"
-                style={{ color: isActive ? 'var(--text-primary)' : 'var(--text-secondary)' }}
-              >
-                {label}
-              </span>
+                {/* Icon wrapper with animated background glow */}
+                <motion.div
+                  className="w-6 h-6 flex items-center justify-center flex-shrink-0 rounded-md"
+                  animate={isActive ? {
+                    backgroundColor: `${color}18`,
+                    boxShadow: `0 0 10px ${color}25`,
+                  } : {
+                    backgroundColor: 'transparent',
+                    boxShadow: 'none',
+                  }}
+                  transition={{ duration: 0.2 }}
+                >
+                  <EntityIcon
+                    type={iconType}
+                    size="sm"
+                    className="transition-all duration-200"
+                    style={{
+                      color: isActive ? color : 'var(--text-tertiary)',
+                      filter: isActive ? `drop-shadow(0 0 4px ${color}50)` : 'none',
+                      transform: isActive ? 'scale(1.1)' : 'scale(1)',
+                    }}
+                  />
+                </motion.div>
 
-              {/* Count badge */}
-              {count > 0 && (
-                <CountBadge count={count} color={isActive ? color : 'var(--text-tertiary)'} />
-              )}
-            </motion.div>
-          )
-        })}
+                {/* Label with animated weight */}
+                <motion.span
+                  className="text-sm font-medium truncate"
+                  animate={{
+                    color: isActive ? 'var(--text-primary)' : 'var(--text-secondary)',
+                    fontWeight: isActive ? 500 : 400,
+                  }}
+                  transition={{ duration: 0.2 }}
+                >
+                  {label}
+                </motion.span>
+
+                {/* Count badge */}
+                {count > 0 && (
+                  <CountBadge count={count} color={isActive ? color : 'var(--text-tertiary)'} />
+                )}
+              </motion.div>
+            )
+          })}
+        </AnimatePresence>
       </nav>
 
-      {/* Footer: AI tools */}
+      {/* Footer: AI tools with improved animation */}
       <div className="p-4 flex flex-col gap-2 border-t border-[var(--color-border)]">
         <AnimatePresence mode="wait">
           {reviewableCategories.includes(settingsCategory) && (
             <motion.div
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: 'auto' }}
-              exit={{ opacity: 0, height: 0 }}
-              transition={{ duration: 0.2 }}
+              initial={{ opacity: 0, height: 0, marginBottom: 0 }}
+              animate={{ opacity: 1, height: 'auto', marginBottom: 0 }}
+              exit={{ opacity: 0, height: 0, marginBottom: 0 }}
+              transition={{ duration: 0.25, ease: [0.25, 0.46, 0.45, 0.94] }}
             >
               <Button
                 onClick={() => reviewWithAI(settingsCategory as 'world' | 'character' | 'item' | 'location' | 'faction' | 'rule')}
@@ -201,33 +224,49 @@ export function CategoryNav() {
                   whileHover={{ x: 2 }}
                   transition={{ type: 'spring', stiffness: 400, damping: 25 }}
                 >
-                  <Feather className="w-4 h-4 transition-transform group-hover:rotate-12" />
+                  <motion.span
+                    whileHover={{ rotate: -12 }}
+                    transition={{ type: 'spring', stiffness: 400 }}
+                  >
+                    <Feather className="w-4 h-4" />
+                  </motion.span>
                   <span>AI审查</span>
                 </motion.div>
               </Button>
             </motion.div>
           )}
         </AnimatePresence>
-        <Button
-          onClick={() => {
-            if (settingsCategory !== 'outline' && settingsCategory !== 'ifline') {
-              generate(settingsCategory as 'character' | 'item' | 'location' | 'faction' | 'world' | 'rule')
-            }
-          }}
-          variant="ghost"
-          size="md"
-          className="w-full group"
-          disabled={isLoading}
+        <motion.div
+          whileHover={{ scale: 1.02 }}
+          whileTap={{ scale: 0.98 }}
+          transition={{ type: 'spring', stiffness: 400, damping: 25 }}
         >
-          <motion.div
-            className="flex items-center gap-2"
-            whileHover={{ x: 2 }}
-            transition={{ type: 'spring', stiffness: 400, damping: 25 }}
+          <Button
+            onClick={() => {
+              if (settingsCategory !== 'outline' && settingsCategory !== 'ifline') {
+                generate(settingsCategory as 'character' | 'item' | 'location' | 'faction' | 'world' | 'rule')
+              }
+            }}
+            variant="ghost"
+            size="md"
+            className="w-full group"
+            disabled={isLoading}
           >
-            <Sparkles className="w-4 h-4 transition-transform group-hover:scale-110" />
-            <span>智能生成</span>
-          </motion.div>
-        </Button>
+            <motion.div
+              className="flex items-center gap-2"
+              whileHover={{ x: 2 }}
+              transition={{ type: 'spring', stiffness: 400, damping: 25 }}
+            >
+              <motion.span
+                whileHover={{ scale: 1.15, rotate: 5 }}
+                transition={{ type: 'spring', stiffness: 400 }}
+              >
+                <Sparkles className="w-4 h-4" />
+              </motion.span>
+              <span>智能生成</span>
+            </motion.div>
+          </Button>
+        </motion.div>
       </div>
     </div>
   )

@@ -61,15 +61,15 @@ export function TypingIndicator() {
                 key={i}
                 className="inline-block w-1.5 h-1.5 rounded-full bg-accent-primary"
                 animate={prefersReducedMotion ? {} : {
-                  opacity: [0.2, 1, 0.2],
-                  y: [0, -5, 0],
-                  scale: [0.8, 1.1, 0.8],
+                  opacity: [0.3, 1, 0.3],
+                  y: [0, -6, 0],
+                  scale: [0.85, 1.15, 0.85],
                 }}
                 transition={prefersReducedMotion ? { duration: 0 } : {
-                  duration: 1.2,
+                  duration: 1.4,
                   repeat: Infinity,
-                  delay: i * 0.18,
-                  ease: 'easeInOut',
+                  delay: i * 0.16,
+                  ease: [0.45, 0, 0.55, 1],
                 }}
               />
             ))}
@@ -113,13 +113,13 @@ export function TypingIndicatorBrain() {
                 className="w-0.5 rounded-full bg-accent-primary"
                 animate={prefersReducedMotion ? {} : {
                   height: [4, 16, 4],
-                  opacity: [0.3, 0.8, 0.3],
+                  opacity: [0.3, 0.85, 0.3],
                 }}
                 transition={prefersReducedMotion ? { duration: 0 } : {
-                  duration: 0.8,
+                  duration: 0.9,
                   repeat: Infinity,
-                  delay: i * 0.12,
-                  ease: 'easeInOut',
+                  delay: i * 0.1,
+                  ease: [0.45, 0, 0.55, 1],
                 }}
               />
             ))}
@@ -158,12 +158,13 @@ export function TypingIndicatorOrbital() {
                   x: [0, Math.cos((i * 120 * Math.PI) / 180) * 8, 0],
                   y: [0, Math.sin((i * 120 * Math.PI) / 180) * 8, 0],
                   opacity: [0.4, 1, 0.4],
+                  scale: [0.9, 1.2, 0.9],
                 }}
                 transition={prefersReducedMotion ? { duration: 0 } : {
-                  duration: 1.5,
+                  duration: 1.6,
                   repeat: Infinity,
-                  delay: i * 0.2,
-                  ease: 'easeInOut',
+                  delay: i * 0.18,
+                  ease: [0.45, 0, 0.55, 1],
                 }}
               />
             ))}
@@ -219,13 +220,13 @@ export function TypingIndicatorWave() {
                 className="w-0.5 rounded-full bg-accent-primary"
                 animate={prefersReducedMotion ? {} : {
                   height: [3, 12, 3],
-                  opacity: [0.3, 0.7, 0.3],
+                  opacity: [0.3, 0.75, 0.3],
                 }}
                 transition={prefersReducedMotion ? { duration: 0 } : {
-                  duration: 0.6,
+                  duration: 0.7,
                   repeat: Infinity,
-                  delay: i * 0.08,
-                  ease: 'easeInOut',
+                  delay: i * 0.07,
+                  ease: [0.45, 0, 0.55, 1],
                 }}
               />
             ))}

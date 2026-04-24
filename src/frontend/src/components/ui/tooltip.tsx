@@ -14,25 +14,27 @@ const TooltipTrigger = TooltipPrimitive.Trigger
 const TooltipContent = React.forwardRef<
   React.ElementRef<typeof TooltipPrimitive.Content>,
   React.ComponentPropsWithoutRef<typeof TooltipPrimitive.Content>
->(({ className, sideOffset = 6, ...props }, ref) => (
+>(({ className, sideOffset = 8, ...props }, ref) => (
   <TooltipPrimitive.Portal>
     <TooltipPrimitive.Content
       ref={ref}
       sideOffset={sideOffset}
       className={cn(
-        "z-50 overflow-hidden rounded-lg bg-[#191a1b] px-3 py-1.5 text-xs text-[#f7f8f8] border border-white/10 shadow-lg",
-        "animate-in fade-in duration-150 data-[state=closed]:animate-out data-[state=closed]:fade-out duration-100",
-        "data-[side=bottom]:slide-in-from-top-1 data-[side=left]:slide-in-from-right-1 data-[side=right]:slide-in-from-left-1 data-[side=top]:slide-in-from-bottom-1",
+        "z-50 overflow-hidden rounded-xl border border-white/10 bg-gradient-to-b from-[#1e1e24] to-[#16161a] px-3.5 py-2.5 text-xs text-[#e8e8ec] shadow-xl shadow-black/30",
+        "animate-in fade-in-0 zoom-in-95 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95",
+        "data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2",
+        "data-[state=closed]:slide-out-to-bottom-2 data-[state=closed]:slide-out-to-left-2 data-[state=closed]:slide-out-to-right-2 data-[state=closed]:slide-out-to-top-2",
         "origin-[--radix-tooltip-content-transform-origin]",
+        "transition-all duration-200 ease-out",
         className
       )}
       {...props}
     >
       {props.children}
       <TooltipPrimitive.Arrow
-        className="fill-[#191a1b] stroke-white/10"
-        width={10}
-        height={5}
+        className="fill-[#1e1e24]"
+        width={12}
+        height={6}
       />
     </TooltipPrimitive.Content>
   </TooltipPrimitive.Portal>

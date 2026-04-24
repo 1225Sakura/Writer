@@ -3,7 +3,7 @@
  * Based on shadcn/ui Skeleton with CSS shimmer sweep effect
  *
  * Features:
- *   - Shimmer sweep animation
+ *   - Shimmer sweep animation (improved smooth gradient flow)
  *   - Content cross-fade transition
  *   - Multiple preset variants
  *   - Pulse fallback for reduced motion
@@ -28,7 +28,7 @@ interface SmartSkeletonProps {
   height?: string | number
 }
 
-/** Base shimmer skeleton block */
+/** Base shimmer skeleton block with improved smooth gradient */
 function ShimmerBlock({
   className,
   width,
@@ -43,7 +43,7 @@ function ShimmerBlock({
   return (
     <div
       className={cn(
-        'animate-shimmer motion-reduce:animate-none',
+        'animate-shimmer-skeleton',
         rounded && 'rounded-[var(--radius-md)]',
         className
       )}

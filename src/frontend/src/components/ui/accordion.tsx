@@ -2,7 +2,8 @@
 
 import * as React from "react"
 import * as AccordionPrimitive from "@radix-ui/react-accordion"
-import { ChevronDown } from "lucide-react"
+import { ChevronDown, ChevronRight } from "lucide-react"
+import { motion } from "framer-motion"
 
 import { cn } from "@/lib/utils"
 
@@ -14,7 +15,7 @@ const AccordionItem = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <AccordionPrimitive.Item
     ref={ref}
-    className={cn("border-b", className)}
+    className={cn("border-b border-[var(--border-subtle)] last:border-b-0", className)}
     {...props}
   />
 ))
@@ -28,13 +29,27 @@ const AccordionTrigger = React.forwardRef<
     <AccordionPrimitive.Trigger
       ref={ref}
       className={cn(
-        "flex flex-1 items-center justify-between py-4 text-sm font-medium transition-all hover:underline text-left [&[data-state=open]>svg]:rotate-180",
+        "group flex flex-1 items-center justify-between py-3 px-2 text-sm font-medium transition-all",
+        "hover:bg-[var(--color-surface-hover)] rounded-md -mx-2 px-2",
+        "text-[var(--text-secondary)] hover:text-[var(--text-primary)]",
+        "data-[state=open]:text-[var(--text-primary)]",
         className
       )}
       {...props}
     >
-      {children}
-      <ChevronDown className="h-4 w-4 shrink-0 text-muted-foreground transition-transform duration-200" />
+      <motion.span
+        className="flex items-center gap-2"
+        layout
+        transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
+      >
+        {children}
+      </motion.span>
+      <motion.div
+        className="flex items-center justify-center w-5 h-5 rounded-sm"
+        transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
+      >
+        <ChevronDown className="h-4 w-4 text-[var(--text-tertiary)] group-hover:text-[var(--text-secondary)] group-data-[state=open]:text-[var(--accent-primary)] transition-colors duration-200" />
+      </motion.div>
     </AccordionPrimitive.Trigger>
   </AccordionPrimitive.Header>
 ))
@@ -46,10 +61,17 @@ const AccordionContent = React.forwardRef<
 >(({ className, children, ...props }, ref) => (
   <AccordionPrimitive.Content
     ref={ref}
-    className="overflow-hidden text-sm data-[state=closed]:animate-accordion-up data-[state=open]:animate-accordion-down"
+    className="overflow-hidden data-[state=closed]:animate-accordion-up data-[state=open]:animate-accordion-down"
     {...props}
   >
-    <div className={cn("pb-4 pt-0", className)}>{children}</div>
+    <motion.div
+      className={cn("pb-3 pt-1 px-2 text-sm text-[var(--text-secondary)]", className)}
+      initial={{ opacity: 0, y: -4 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
+    >
+      {children}
+    </motion.div>
   </AccordionPrimitive.Content>
 ))
 AccordionContent.displayName = AccordionPrimitive.Content.displayName

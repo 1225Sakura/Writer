@@ -74,34 +74,34 @@
     --ifline: 94 40% 45%;
   }
 
-  /* Eye-care theme HSL overrides */
+  /* Eye-care theme HSL overrides - optimized green palette for reduced eye strain */
   [data-theme="eye-care"] {
-    --background: 120 10% 10%;
-    --foreground: 100 20% 90%;
-    --card: 120 10% 14%;
-    --card-foreground: 100 20% 90%;
-    --popover: 120 10% 14%;
-    --popover-foreground: 100 20% 90%;
-    --primary: 115 35% 55%;
+    --background: 120 12% 8%;
+    --foreground: 100 15% 88%;
+    --card: 120 10% 12%;
+    --card-foreground: 100 15% 88%;
+    --popover: 120 10% 12%;
+    --popover-foreground: 100 15% 88%;
+    --primary: 115 25% 48%;
     --primary-foreground: 0 0% 100%;
-    --secondary: 120 8% 18%;
-    --secondary-foreground: 100 20% 90%;
-    --muted: 120 8% 18%;
-    --muted-foreground: 100 10% 55%;
-    --accent: 120 8% 18%;
-    --accent-foreground: 100 20% 90%;
+    --secondary: 120 8% 16%;
+    --secondary-foreground: 100 15% 88%;
+    --muted: 120 8% 16%;
+    --muted-foreground: 100 10% 50%;
+    --accent: 115 20% 42%;
+    --accent-foreground: 0 0% 100%;
     --destructive: 0 50% 50%;
     --destructive-foreground: 0 0% 100%;
-    --border: 120 8% 18%;
-    --input: 120 8% 20%;
-    --ring: 115 35% 55%;
+    --border: 120 8% 16%;
+    --input: 120 8% 18%;
+    --ring: 115 25% 48%;
 
-    --character: 33 60% 55%;
-    --item: 264 35% 60%;
-    --location: 166 35% 45%;
-    --faction: 0 40% 50%;
-    --outline: 217 60% 50%;
-    --ifline: 94 35% 45%;
+    --character: 33 55% 50%;
+    --item: 264 30% 55%;
+    --location: 166 30% 40%;
+    --faction: 0 35% 45%;
+    --outline: 217 50% 45%;
+    --ifline: 94 30% 40%;
   }
 }
 

@@ -59,8 +59,8 @@ export interface UIState {
   immersiveMode: boolean
   focusModeEnabled: boolean
 
-  // Theme
-  theme: 'light' | 'dark'
+  // Theme (expanded to match useTheme hook)
+  theme: 'light' | 'dark' | 'eye-care' | 'midnight-blue' | 'warm-paper' | 'forest-green'
 
   // Settings category
   settingsCategory: SettingsCategory
@@ -113,7 +113,7 @@ interface UIActions {
   setFocusMode: (focusMode: boolean) => void
 
   // Theme
-  setTheme: (theme: 'light' | 'dark') => void
+  setTheme: (theme: 'light' | 'dark' | 'eye-care' | 'midnight-blue' | 'warm-paper' | 'forest-green') => void
   toggleTheme: () => void
 
   // Settings category

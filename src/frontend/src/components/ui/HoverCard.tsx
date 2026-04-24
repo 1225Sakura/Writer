@@ -75,9 +75,12 @@ export function HoverCard({
           onMouseEnter={handleMouseEnter}
           onMouseLeave={handleMouseLeave}
           className={cn(
-            "z-50 rounded-lg border border-white/10 bg-[#191a1b] px-4 py-3 text-sm text-[#f7f8f8] shadow-xl",
-            "animate-in fade-in duration-150 data-[state=closed]:animate-out data-[state=closed]:fade-out duration-100",
+            "z-50 rounded-xl border border-white/10 bg-gradient-to-b from-[#1e1e24] to-[#16161a] px-4 py-3.5 text-sm text-[#e8e8ec] shadow-xl shadow-black/40",
+            "animate-in fade-in-0 zoom-in-95 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95",
+            "data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2",
+            "data-[state=closed]:slide-out-to-bottom-2 data-[state=closed]:slide-out-to-left-2 data-[state=closed]:slide-out-to-right-2 data-[state=closed]:slide-out-to-top-2",
             "origin-[--radix-popover-content-transform-origin]",
+            "transition-all duration-200 ease-out",
             contentClassName
           )}
         >

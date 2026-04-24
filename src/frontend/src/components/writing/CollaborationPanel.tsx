@@ -22,26 +22,69 @@ import {
   Sparkles,
   Pause,
   Play,
+  BookOpen,
+  Feather,
+  Layers,
 } from 'lucide-react'
 
-export function CollaborationPanel() {
+// Panel header with enhanced visual hierarchy
+function PanelHeader() {
   return (
-    <div className="flex-1 overflow-y-auto p-4 space-y-4">
-      <CollaborationStatus />
-      <RatioSliderSection />
-      <BattleStation />
-      <PlotTracker />
-      <IFLinesSection />
-      <CharacterStorylines />
-      <ChapterProgress />
+    <div className="px-4 pt-3 pb-2">
+      <div className="flex items-center gap-2.5">
+        <div
+          className="w-8 h-8 rounded-lg flex items-center justify-center"
+          style={{
+            background: 'linear-gradient(135deg, rgba(126, 184, 74, 0.15) 0%, rgba(126, 184, 74, 0.08) 100%)',
+            border: '1px solid rgba(126, 184, 74, 0.2)',
+          }}
+        >
+          <Users className="w-4 h-4 text-[var(--color-ifline)]" />
+        </div>
+        <div>
+          <span className="font-semibold text-sm text-[var(--text-primary)] tracking-tight">协作面板</span>
+          <div className="text-[10px] text-[var(--text-tertiary)] leading-tight">
+            人机协作 · 进度追踪
+          </div>
+        </div>
+      </div>
     </div>
   )
 }
 
-// Shared card style for panel sections
+export function CollaborationPanel() {
+  return (
+    <div className="flex-1 overflow-y-auto relative">
+      {/* Subtle background gradient */}
+      <div
+        className="absolute inset-0 pointer-events-none"
+        style={{
+          background:
+            'radial-gradient(ellipse at 100% 0%, rgba(94, 106, 210, 0.04) 0%, transparent 40%), radial-gradient(ellipse at 0% 100%, rgba(126, 184, 74, 0.03) 0%, transparent 40%)',
+        }}
+      />
+      <div className="relative z-10 space-y-3">
+        <PanelHeader />
+        <CollaborationStatus />
+        <RatioSliderSection />
+        <BattleStation />
+        <PlotTracker />
+        <IFLinesSection />
+        <CharacterStorylines />
+        <ChapterProgress />
+      </div>
+    </div>
+  )
+}
+
+// Shared card style for panel sections with hover effect
 function PanelCard({ children, className = '' }: { children: React.ReactNode; className?: string }) {
   return (
-    <div className={`rounded-xl overflow-hidden bg-[var(--color-surface-base)] border border-[var(--border-default)] ${className}`}>
+    <div
+      className={`rounded-xl overflow-hidden bg-[var(--color-surface-base)] border border-[var(--border-default)]
+                  transition-all duration-200 hover:border-[var(--border-strong)] hover:shadow-[0_2px_12px_rgba(0,0,0,0.12)]
+                  ${className}`}
+    >
       {children}
     </div>
   )
@@ -66,21 +109,27 @@ function CollaborationStatus() {
       <div className="p-3">
         <div className="flex items-center justify-between mb-2">
           <div className="flex items-center gap-2">
-            <Activity className="w-4 h-4 text-[var(--icon-primary)]" />
+            <div className="w-7 h-7 rounded-lg bg-[var(--accent-muted)] flex items-center justify-center">
+              <Activity className="w-3.5 h-3.5 text-[var(--accent-primary)]" />
+            </div>
             <span className="text-sm font-medium text-[var(--text-primary)]">协作状态</span>
           </div>
           <motion.div
-            className="flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-medium"
+            className="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium"
             style={{
-              backgroundColor: `${mode.color}20`,
+              backgroundColor: `${mode.color}18`,
               color: mode.color,
+              boxShadow: isAIGenerating ? `0 0 8px ${mode.color}30` : 'none',
             }}
             animate={isAIGenerating && !prefersReducedMotion ? { scale: [1, 1.05, 1] } : {}}
             transition={prefersReducedMotion ? {} : { duration: 1.5, repeat: Infinity }}
           >
             {isAIGenerating ? (
               <>
-                <Zap className="w-3 h-3 animate-pulse motion-reduce:animate-none" />
+                <span className="relative flex h-2 w-2">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#5e6ad2] opacity-75" />
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-[#5e6ad2]" />
+                </span>
                 AI生成中...
               </>
             ) : (
@@ -91,34 +140,34 @@ function CollaborationStatus() {
             )}
           </motion.div>
         </div>
-      {/* Real-time activity feed */}
-      <div className="space-y-1.5">
-        <ActivityItem
-          icon={<Clock className="w-3 h-3" />}
-          text="本章已写作 23 分钟"
-          time="刚刚"
-        />
-        <ActivityItem
-          icon={<TrendingUp className="w-3 h-3" />}
-          text="今日已写 1,240 字"
-          time="2分钟前"
-        />
-        {isAIGenerating && (
-          <motion.div
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: 'auto' }}
-            exit={{ opacity: 0, height: 0 }}
-          >
-            <ActivityItem
-              icon={<Sparkles className="w-3 h-3 text-[#5e6ad2] animate-pulse motion-reduce:animate-none" />}
-              text="AI正在处理选中内容..."
-              time="进行中"
-              highlight
-            />
-          </motion.div>
-        )}
+        {/* Real-time activity feed */}
+        <div className="space-y-1.5">
+          <ActivityItem
+            icon={<Clock className="w-3 h-3" />}
+            text="本章已写作 23 分钟"
+            time="刚刚"
+          />
+          <ActivityItem
+            icon={<TrendingUp className="w-3 h-3" />}
+            text="今日已写 1,240 字"
+            time="2分钟前"
+          />
+          {isAIGenerating && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              exit={{ opacity: 0, height: 0 }}
+            >
+              <ActivityItem
+                icon={<Sparkles className="w-3 h-3 text-[#5e6ad2] animate-pulse motion-reduce:animate-none" />}
+                text="AI正在处理选中内容..."
+                time="进行中"
+                highlight
+              />
+            </motion.div>
+          )}
+        </div>
       </div>
-    </div>
     </PanelCard>
   )
 }
@@ -135,11 +184,13 @@ function ActivityItem({
   highlight?: boolean
 }) {
   return (
-    <div className={`flex items-center gap-2 text-xs ${highlight ? 'text-[var(--accent-primary)]' : 'text-[var(--text-secondary)]'}`}
+    <div
+      className={`flex items-center gap-2 text-xs px-1.5 py-1 rounded-md transition-all duration-150
+        ${highlight ? 'text-[var(--accent-primary)] bg-[var(--accent-muted)]' : 'text-[var(--text-secondary)] hover:bg-[var(--hover-bg)]'}`}
     >
       <span className={highlight ? 'text-[var(--accent-primary)]' : 'text-[var(--text-tertiary)]'}>{icon}</span>
       <span className="flex-1">{text}</span>
-      <span className="text-[10px] text-[var(--text-tertiary)]">{time}</span>
+      <span className="text-[10px] text-[var(--text-tertiary)] tabular-nums">{time}</span>
     </div>
   )
 }
@@ -147,6 +198,13 @@ function ActivityItem({
 // 人机比例滑块（使用统一组件）
 function RatioSliderSection() {
   const { humanAIRatio, setHumanAIRatio } = useWritingStore()
+
+  const modeInfo =
+    humanAIRatio < 30
+      ? { label: 'AI主导', icon: <Bot className="w-3 h-3" />, color: '#5e6ad2', desc: 'AI自动推进剧情，用户偶尔介入调整' }
+      : humanAIRatio < 70
+        ? { label: '协作模式', icon: <Sparkles className="w-3 h-3" />, color: '#7eb84a', desc: '人机共同创作，AI辅助用户写作' }
+        : { label: '用户主导', icon: <User className="w-3 h-3" />, color: '#e8b87d', desc: '用户主导创作，AI仅按指令辅助' }
 
   return (
     <CollapsibleSection
@@ -162,14 +220,27 @@ function RatioSliderSection() {
         />
 
         {/* Mode description */}
-        <div className="p-2 rounded-lg bg-[var(--color-surface-base)] border border-[var(--border-default)]"
+        <motion.div
+          className="p-2.5 rounded-lg border transition-all duration-200"
+          style={{
+            backgroundColor: `${modeInfo.color}10`,
+            borderColor: `${modeInfo.color}25`,
+          }}
+          key={modeInfo.label}
+          initial={{ opacity: 0, y: 4 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.2 }}
         >
-          <div className="text-xs text-[var(--text-secondary)]">
-            {humanAIRatio < 30 && 'AI主导模式：AI自动推进剧情，用户偶尔介入调整'}
-            {humanAIRatio >= 30 && humanAIRatio < 70 && '协作模式：人机共同创作，AI辅助用户写作'}
-            {humanAIRatio >= 70 && '用户主导模式：用户主导创作，AI仅按指令辅助'}
+          <div className="flex items-center gap-1.5 mb-1">
+            <span style={{ color: modeInfo.color }}>{modeInfo.icon}</span>
+            <span className="text-xs font-medium" style={{ color: modeInfo.color }}>
+              {modeInfo.label}
+            </span>
           </div>
-        </div>
+          <div className="text-xs text-[var(--text-secondary)] leading-relaxed">
+            {modeInfo.desc}
+          </div>
+        </motion.div>
       </div>
     </CollapsibleSection>
   )
@@ -194,9 +265,7 @@ function IFLinesSection() {
     >
       <div className="space-y-2">
         {ifLines.length === 0 ? (
-          <p className="text-sm text-[var(--text-secondary)] text-center py-2">
-            暂无IF线
-          </p>
+          <EmptyState icon={<GitBranch className="w-5 h-5" />} text="暂无IF线" />
         ) : (
           ifLines.map((line, index) => (
             <motion.div
@@ -204,15 +273,27 @@ function IFLinesSection() {
               initial={{ opacity: 0, x: -8 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: index * 0.05 }}
-              className="p-2.5 rounded-lg bg-[var(--color-surface-base)] border border-[var(--border-default)] hover:border-[var(--border-strong)] transition-colors"
+              className="group p-2.5 rounded-lg bg-[var(--color-surface-base)] border border-[var(--border-default)]
+                         hover:border-[var(--color-ifline)]/30 hover:shadow-[0_0_12px_rgba(126,184,74,0.08)]
+                         transition-all duration-200 cursor-default"
             >
               <div className="flex items-center gap-2 mb-1.5">
-                <span
-                  className="w-2 h-2 rounded-full flex-shrink-0 bg-[var(--color-ifline)]"
-                  style={{ boxShadow: '0 0 6px var(--color-ifline)40' }}
-                />
+                {/* Enhanced IF line indicator with glow */}
+                <span className="w-3 h-3 rounded-full flex-shrink-0 bg-[var(--color-ifline)] relative">
+                  <span
+                    className="absolute inset-0 rounded-full bg-[var(--color-ifline)] animate-ping opacity-50 motion-reduce:animate-none"
+                    style={{
+                      animationDuration: '2s',
+                      boxShadow: '0 0 8px var(--color-ifline), 0 0 16px rgba(126, 184, 74, 0.3)',
+                    }}
+                  />
+                  {/* Inner glow dot */}
+                  <span
+                    className="absolute inset-[3px] rounded-full bg-[var(--writing-bg)] opacity-60"
+                  />
+                </span>
                 <div className="flex-1 min-w-0">
-                  <div className="text-sm font-medium text-[var(--text-primary)] truncate">{line.title}</div>
+                  <div className="text-sm font-medium text-[var(--text-primary)] truncate group-hover:text-[var(--color-ifline)] transition-colors">{line.title}</div>
                 </div>
                 <span
                   className="text-[10px] px-1.5 py-0.5 rounded-full font-medium"
@@ -229,15 +310,19 @@ function IFLinesSection() {
                   {line.description}
                 </div>
               )}
-              {/* Progress indicator */}
+              {/* Progress indicator with gradient */}
               <div className="pl-4 space-y-1">
                 <div className="flex justify-between text-[10px] text-[var(--text-tertiary)]">
                   <span>进度</span>
-                  <span>{line.progress || 0}%</span>
+                  <span className="tabular-nums font-medium text-[var(--color-ifline)]">{line.progress || 0}%</span>
                 </div>
-                <div className="h-1 bg-[var(--border-subtle)] rounded-full overflow-hidden">
+                <div className="h-1.5 bg-[var(--border-subtle)] rounded-full overflow-hidden">
                   <motion.div
-                    className="h-full rounded-full bg-[var(--color-ifline)]"
+                    className="h-full rounded-full"
+                    style={{
+                      background: 'linear-gradient(90deg, #5eb5a6 0%, #7eb84a 50%, #9ed95a 100%)',
+                      boxShadow: '0 0 6px rgba(126, 184, 74, 0.4)',
+                    }}
                     initial={{ width: 0 }}
                     animate={{ width: `${line.progress || 0}%` }}
                     transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
@@ -286,9 +371,7 @@ function CharacterStorylines() {
     >
       <div className="space-y-2">
         {charactersWithProgress.length === 0 ? (
-          <p className="text-sm text-[var(--text-secondary)] text-center py-2">
-            暂无配角故事线
-          </p>
+          <EmptyState icon={<Users className="w-5 h-5" />} text="暂无配角故事线" />
         ) : (
           charactersWithProgress.map((char, index) => {
             const statusConfig = getStatusConfig(char.status)
@@ -298,20 +381,31 @@ function CharacterStorylines() {
                 initial={{ opacity: 0, x: -8 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: index * 0.05 }}
-                className="p-2.5 rounded-lg bg-[var(--color-surface-base)] border border-[var(--border-default)]"
+                className="group p-2.5 rounded-lg bg-[var(--color-surface-base)] border border-[var(--border-default)]
+                           hover:border-[var(--color-character)]/30 hover:shadow-[0_0_12px_rgba(232,184,125,0.08)]
+                           transition-all duration-200 cursor-default"
               >
                 <div className="flex items-center gap-2 mb-1.5">
-                  <span
-                    className="w-2 h-2 rounded-full flex-shrink-0 bg-[var(--color-character)]"
-                    style={{ boxShadow: '0 0 6px var(--color-character)40' }}
-                  />
-                  <span className="flex-1 text-sm font-medium text-[var(--text-primary)] truncate">
+                  {/* Avatar with status ring */}
+                  <div className="relative flex-shrink-0">
+                    <div
+                      className="w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold text-[var(--ink-100)]"
+                      style={{ backgroundColor: statusConfig.color }}
+                    >
+                      {char.name.charAt(0)}
+                    </div>
+                    <span
+                      className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full border-2 border-[var(--color-surface-base)]"
+                      style={{ backgroundColor: statusConfig.color }}
+                    />
+                  </div>
+                  <span className="flex-1 text-sm font-medium text-[var(--text-primary)] truncate group-hover:text-[var(--color-character)] transition-colors">
                     {char.name}
                   </span>
                   <div
                     className="flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] font-medium"
                     style={{
-                      backgroundColor: `${statusConfig.color}20`,
+                      backgroundColor: `${statusConfig.color}18`,
                       color: statusConfig.color,
                     }}
                   >
@@ -320,14 +414,18 @@ function CharacterStorylines() {
                   </div>
                 </div>
                 {/* Storyline progress */}
-                <div className="space-y-1">
+                <div className="space-y-1 pl-8">
                   <div className="flex justify-between text-[10px] text-[var(--text-tertiary)]">
                     <span>故事线进度</span>
-                    <span>{char.progress}%</span>
+                    <span className="tabular-nums font-medium" style={{ color: statusConfig.color }}>{char.progress}%</span>
                   </div>
                   <div className="h-1.5 bg-[var(--border-subtle)] rounded-full overflow-hidden">
                     <motion.div
-                      className="h-full rounded-full bg-[var(--color-character)]"
+                      className="h-full rounded-full"
+                      style={{
+                        background: `linear-gradient(90deg, ${statusConfig.color}88 0%, ${statusConfig.color} 100%)`,
+                        boxShadow: `0 0 6px ${statusConfig.color}40`,
+                      }}
                       initial={{ width: 0 }}
                       animate={{ width: `${char.progress}%` }}
                       transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
@@ -463,18 +561,22 @@ function PlotTracker() {
     >
       <div className="space-y-2">
         {openThreads.length === 0 && !isCreating ? (
-          <p className="text-sm text-[var(--text-secondary)] text-center py-2">
-            暂无进行中的伏笔
-          </p>
+          <EmptyState icon={<Layers className="w-5 h-5" />} text="暂无进行中的伏笔" />
         ) : (
           openThreads.map((thread) => (
-            <div
+            <motion.div
               key={thread.id}
-              className="flex items-start gap-2 p-2.5 rounded-lg bg-[var(--color-surface-base)] border border-[var(--border-default)]"
+              initial={{ opacity: 0, y: 4 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="group flex items-start gap-2 p-2.5 rounded-lg bg-[var(--color-surface-base)] border border-[var(--border-default)]
+                         hover:border-[var(--color-ifline)]/25 hover:shadow-[0_0_10px_rgba(126,184,74,0.06)]
+                         transition-all duration-200 cursor-default"
             >
-              <span className="text-[var(--color-ifline)] font-bold text-sm mt-0.5">❶</span>
+              <span className="text-[var(--color-ifline)] font-bold text-sm mt-0.5 opacity-80 group-hover:opacity-100 transition-opacity"
+              >❶</span>
               <div className="flex-1 min-w-0">
-                <div className="font-medium text-sm text-[var(--text-primary)] truncate">{thread.title}</div>
+                <div className="font-medium text-sm text-[var(--text-primary)] truncate group-hover:text-[var(--color-ifline)] transition-colors"
+                >{thread.title}</div>
                 {thread.description && (
                   <div className="text-xs text-[var(--text-tertiary)] truncate">
                     {thread.description}
@@ -486,11 +588,11 @@ function PlotTracker() {
                 variant="ghost"
                 size="icon"
                 title="标记为已揭示"
-                className="!h-7 !w-7"
+                className="!h-7 !w-7 opacity-60 group-hover:opacity-100 transition-opacity"
               >
-                <Check className="w-4 h-4 text-[var(--icon-secondary)]" />
+                <Check className="w-4 h-4 text-[var(--icon-secondary)] group-hover:text-[var(--color-ifline)] transition-colors" />
               </Button>
-            </div>
+            </motion.div>
           ))
         )}
         {isCreating ? (
@@ -551,28 +653,41 @@ function ChapterProgress() {
       onToggle={() => setIsExpanded(!isExpanded)}
     >
       <div className="space-y-3">
-        <div className="space-y-1">
+        <div className="space-y-1.5">
           <div className="flex justify-between text-sm text-[var(--text-primary)]">
-            <span>本章: {wordCount} / {targetWordCount} 字</span>
-            <span className="font-medium">{Math.round(progress)}%</span>
+            <span className="flex items-center gap-1.5">
+              <BookOpen className="w-3.5 h-3.5 text-[var(--accent-primary)]" />
+              本章: {wordCount} / {targetWordCount} 字
+            </span>
+            <span className="font-medium tabular-nums">{Math.round(progress)}%</span>
           </div>
-          <div className="h-2 rounded-full overflow-hidden bg-[var(--border-subtle)]">
+          <div className="h-2 rounded-full overflow-hidden bg-[var(--border-subtle)] relative">
             <motion.div
-              className="h-full rounded-full"
-              style={{ background: 'linear-gradient(90deg, #5e6ad2 0%, #7eb84a 100%)' }}
+              className="h-full rounded-full relative"
+              style={{
+                background: 'linear-gradient(90deg, #5e6ad2 0%, #7eb84a 60%, #9ed95a 100%)',
+                boxShadow: '0 0 8px rgba(94, 106, 210, 0.3)',
+              }}
               initial={{ width: 0 }}
               animate={{ width: `${progress}%` }}
               transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
             />
           </div>
         </div>
-        <div className="pt-2 border-t border-[var(--border-subtle)]">
+        <div className="pt-2 border-t border-[var(--border-subtle)] space-y-1.5">
           <div className="flex justify-between text-xs text-[var(--text-secondary)]">
-            <span>总章节: {chapters.length}</span>
-            <span>总字数: {totalWords.toLocaleString()}</span>
+            <span className="flex items-center gap-1">
+              <Layers className="w-3 h-3 text-[var(--text-tertiary)]" />
+              总章节: {chapters.length}
+            </span>
+            <span className="flex items-center gap-1">
+              <Feather className="w-3 h-3 text-[var(--text-tertiary)]" />
+              总字数: {totalWords.toLocaleString()}
+            </span>
           </div>
           {currentChapter && (
-            <div className="mt-1 text-xs truncate text-[var(--accent-primary)]">
+            <div className="flex items-center gap-1 text-xs truncate text-[var(--accent-primary)]">
+              <Zap className="w-3 h-3" />
               当前: {currentChapter.title || `第${currentChapter.chapter_order}章`}
             </div>
           )}
@@ -582,7 +697,19 @@ function ChapterProgress() {
   )
 }
 
-// 可折叠章节组件
+// 空状态组件
+function EmptyState({ icon, text }: { icon: React.ReactNode; text: string }) {
+  return (
+    <div className="flex flex-col items-center justify-center py-5 px-4 text-center">
+      <div className="w-10 h-10 rounded-xl bg-[var(--color-surface-raised)] border border-[var(--border-default)] flex items-center justify-center mb-2.5 text-[var(--text-tertiary)]">
+        {icon}
+      </div>
+      <p className="text-xs text-[var(--text-tertiary)]">{text}</p>
+    </div>
+  )
+}
+
+// Enhanced collapsible section with better hover effects
 function CollapsibleSection({
   title,
   icon,
@@ -599,13 +726,18 @@ function CollapsibleSection({
   children: React.ReactNode
 }) {
   return (
-    <div className="rounded-xl overflow-hidden bg-[var(--color-surface-base)] border border-[var(--border-default)]"
+    <div className="rounded-xl overflow-hidden bg-[var(--color-surface-base)] border border-[var(--border-default)]
+                    transition-all duration-200 hover:border-[var(--border-strong)] hover:shadow-[0_2px_12px_rgba(0,0,0,0.12)]"
     >
       <button
         onClick={onToggle}
-        className="w-full px-3 py-2.5 flex items-center gap-2 active:scale-[0.99] transition-all text-[var(--text-secondary)] hover:bg-[var(--hover-bg)]"
+        className="w-full px-3 py-2.5 flex items-center gap-2.5 active:scale-[0.99] transition-all group"
       >
-        {icon && <span className="text-[var(--accent-primary)]">{icon}</span>}
+        {icon && (
+          <span className="text-[var(--accent-primary)] transition-transform duration-200 group-hover:scale-110">
+            {icon}
+          </span>
+        )}
         <span className="flex-1 text-left text-sm font-medium text-[var(--text-primary)]">{title}</span>
         {badge !== undefined && badge > 0 && (
           <span
@@ -613,13 +745,14 @@ function CollapsibleSection({
             style={{
               background: 'color-mix(in srgb, var(--color-vermillion) 20%, transparent)',
               color: 'var(--color-vermillion)',
+              boxShadow: '0 0 6px rgba(196, 92, 92, 0.2)',
             }}
           >
             {badge}
           </span>
         )}
         <ChevronDown
-          className={`w-4 h-4 transition-transform duration-200 text-[var(--text-secondary)] ${isExpanded ? 'rotate-180' : ''}`}
+          className={`w-4 h-4 transition-transform duration-200 text-[var(--text-tertiary)] group-hover:text-[var(--text-secondary)] ${isExpanded ? 'rotate-180' : ''}`}
         />
       </button>
       <AnimatePresence initial={false}>
