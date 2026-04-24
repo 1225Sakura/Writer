@@ -9,12 +9,14 @@ import {
   Sparkles,
   BookOpen,
   Feather,
+  X,
 } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 
-interface CollectedInfoPanelProps {
+export interface CollectedInfoPanelProps {
   entities: ExtractedEntity[]
   onConfirmEntity?: (id: string) => void
+  onClose?: () => void
 }
 
 const categoryLabels: Record<string, string> = {
@@ -47,8 +49,8 @@ const typeBgColors: Record<string, string> = {
   item: 'rgba(155, 126, 217, 0.08)',
   location: 'rgba(94, 181, 166, 0.08)',
   faction: 'rgba(212, 93, 93, 0.08)',
-  world: 'rgba(94, 106, 210, 0.08)',
-  rule: 'rgba(126, 184, 74, 0.08)',
+  world: 'rgba(201, 169, 110, 0.08)',
+  rule: 'rgba(139, 157, 195, 0.08)',
   outline: 'rgba(91, 142, 232, 0.08)',
   ifline: 'rgba(126, 184, 74, 0.08)',
 }
@@ -58,8 +60,8 @@ const typeGlowColors: Record<string, string> = {
   item: 'rgba(155, 126, 217, 0.25)',
   location: 'rgba(94, 181, 166, 0.25)',
   faction: 'rgba(212, 93, 93, 0.25)',
-  world: 'rgba(94, 106, 210, 0.25)',
-  rule: 'rgba(126, 184, 74, 0.25)',
+  world: 'rgba(201, 169, 110, 0.25)',
+  rule: 'rgba(139, 157, 195, 0.25)',
   outline: 'rgba(91, 142, 232, 0.25)',
   ifline: 'rgba(126, 184, 74, 0.25)',
 }
@@ -393,7 +395,7 @@ function EmptyState() {
    MAIN COMPONENT
    ============================================================ */
 
-export function CollectedInfoPanel({ entities, onConfirmEntity }: CollectedInfoPanelProps) {
+export function CollectedInfoPanel({ entities, onConfirmEntity, onClose }: CollectedInfoPanelProps) {
   const groupedEntities = entities.reduce(
     (acc, entity) => {
       const key = entity.type
@@ -417,6 +419,15 @@ export function CollectedInfoPanel({ entities, onConfirmEntity }: CollectedInfoP
         <div className="flex items-center gap-2 mb-1">
           <Sparkles className="w-4 h-4 text-accent-primary" />
           <h2 className="font-medium text-sm text-primary">已收集信息</h2>
+          {onClose && (
+            <motion.button
+              className="ml-auto p-1 rounded-lg text-secondary hover:text-primary hover:bg-surface-base"
+              onClick={onClose}
+              whileTap={{ scale: 0.9 }}
+            >
+              <X className="w-4 h-4" />
+            </motion.button>
+          )}
         </div>
         <div className="text-xs text-secondary">
           {confirmedCount}/{entities.length} 项已确认
