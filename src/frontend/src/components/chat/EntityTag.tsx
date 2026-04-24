@@ -12,12 +12,13 @@ interface EntityTagProps {
 
 type EntityTypeExtended = EntityType | 'chapter' | 'plot_thread'
 
-const typeConfig: Record<EntityTypeExtended, { label: string; bgColor: string; textColor: string; borderColor: string; icon: React.ReactNode }> = {
+const typeConfig: Record<EntityTypeExtended, { label: string; bgColor: string; textColor: string; borderColor: string; glowColor: string; icon: React.ReactNode }> = {
   character: {
     label: '角色',
     bgColor: 'rgba(232, 184, 125, 0.15)',
     textColor: '#e8b87d',
     borderColor: 'rgba(232, 184, 125, 0.3)',
+    glowColor: 'rgba(232, 184, 125, 0.35)',
     icon: <User className="w-3 h-3" />,
   },
   item: {
@@ -25,6 +26,7 @@ const typeConfig: Record<EntityTypeExtended, { label: string; bgColor: string; t
     bgColor: 'rgba(155, 126, 217, 0.15)',
     textColor: '#b095ed',
     borderColor: 'rgba(155, 126, 217, 0.3)',
+    glowColor: 'rgba(155, 126, 217, 0.35)',
     icon: <Package className="w-3 h-3" />,
   },
   location: {
@@ -32,6 +34,7 @@ const typeConfig: Record<EntityTypeExtended, { label: string; bgColor: string; t
     bgColor: 'rgba(94, 181, 166, 0.15)',
     textColor: '#5eb5a6',
     borderColor: 'rgba(94, 181, 166, 0.3)',
+    glowColor: 'rgba(94, 181, 166, 0.35)',
     icon: <MapPin className="w-3 h-3" />,
   },
   faction: {
@@ -39,20 +42,23 @@ const typeConfig: Record<EntityTypeExtended, { label: string; bgColor: string; t
     bgColor: 'rgba(212, 93, 93, 0.15)',
     textColor: '#e07070',
     borderColor: 'rgba(212, 93, 93, 0.3)',
+    glowColor: 'rgba(212, 93, 93, 0.35)',
     icon: <Shield className="w-3 h-3" />,
   },
   world: {
     label: '世界观',
-    bgColor: 'rgba(94, 106, 210, 0.15)',
-    textColor: '#7b84d9',
-    borderColor: 'rgba(94, 106, 210, 0.3)',
+    bgColor: 'rgba(201, 169, 110, 0.15)',
+    textColor: '#c9a96e',
+    borderColor: 'rgba(201, 169, 110, 0.3)',
+    glowColor: 'rgba(201, 169, 110, 0.35)',
     icon: <Globe className="w-3 h-3" />,
   },
   rule: {
     label: '规则',
-    bgColor: 'rgba(126, 184, 74, 0.15)',
-    textColor: '#8bc44a',
-    borderColor: 'rgba(126, 184, 74, 0.3)',
+    bgColor: 'rgba(139, 157, 195, 0.15)',
+    textColor: '#8b9dc3',
+    borderColor: 'rgba(139, 157, 195, 0.3)',
+    glowColor: 'rgba(139, 157, 195, 0.35)',
     icon: <Scale className="w-3 h-3" />,
   },
   outline: {
@@ -60,6 +66,7 @@ const typeConfig: Record<EntityTypeExtended, { label: string; bgColor: string; t
     bgColor: 'rgba(91, 142, 232, 0.15)',
     textColor: '#6b9ef0',
     borderColor: 'rgba(91, 142, 232, 0.3)',
+    glowColor: 'rgba(91, 142, 232, 0.35)',
     icon: <FileText className="w-3 h-3" />,
   },
   ifline: {
@@ -67,6 +74,7 @@ const typeConfig: Record<EntityTypeExtended, { label: string; bgColor: string; t
     bgColor: 'rgba(126, 184, 74, 0.15)',
     textColor: '#8bc44a',
     borderColor: 'rgba(126, 184, 74, 0.3)',
+    glowColor: 'rgba(126, 184, 74, 0.35)',
     icon: <GitBranch className="w-3 h-3" />,
   },
   chapter: {
@@ -74,6 +82,7 @@ const typeConfig: Record<EntityTypeExtended, { label: string; bgColor: string; t
     bgColor: 'rgba(91, 142, 232, 0.12)',
     textColor: '#6b9ef0',
     borderColor: 'rgba(91, 142, 232, 0.25)',
+    glowColor: 'rgba(91, 142, 232, 0.30)',
     icon: <FileText className="w-3 h-3" />,
   },
   plot_thread: {
@@ -81,6 +90,7 @@ const typeConfig: Record<EntityTypeExtended, { label: string; bgColor: string; t
     bgColor: 'rgba(94, 106, 210, 0.18)',
     textColor: '#8590e8',
     borderColor: 'rgba(94, 106, 210, 0.35)',
+    glowColor: 'rgba(94, 106, 210, 0.40)',
     icon: <GitBranch className="w-3 h-3" />,
   },
 }
@@ -112,13 +122,13 @@ export function EntityTag({ type, size = 'medium', showIcon = true, selected = f
       }}
       animate={selected ? {
         scale: [1, 1.03, 1],
-        boxShadow: [`0 0 0 0 ${config.textColor}00`, `0 0 12px 3px ${config.textColor}35`, `0 0 0 0 ${config.textColor}00`],
+        boxShadow: [`0 0 0 0 ${config.glowColor}00`, `0 0 12px 3px ${config.glowColor}`, `0 0 0 0 ${config.glowColor}00`],
       } : {}}
       transition={{ duration: 0.8, repeat: selected ? Infinity : 0, repeatDelay: 2.5 }}
       whileHover={isInteractive ? {
         scale: 1.06,
         y: -1,
-        boxShadow: `0 6px 16px ${config.textColor}35`,
+        boxShadow: `0 6px 16px ${config.glowColor}`,
         borderColor: config.textColor + '90',
       } : {}}
       whileTap={isInteractive ? { scale: 0.95 } : {}}
