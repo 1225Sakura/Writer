@@ -1061,8 +1061,8 @@ export function RelationGraph() {
 
 			// Multi-layer glow effect with stronger outer glow
 			if (isHovered || isSelected) {
-				for (let i = 4; i > 0; i--) {
-					const glowRadius = finalRadius + i * 7;
+				for (let i = 5; i > 0; i--) {
+					const glowRadius = finalRadius + i * 8;
 					const glowGradient = ctx.createRadialGradient(
 						x,
 						y,
@@ -1073,8 +1073,9 @@ export function RelationGraph() {
 					);
 					glowGradient.addColorStop(
 						0,
-						config?.glowStrong || "rgba(94, 106, 210, 0.3)",
+						config?.glowStrong || "rgba(94, 106, 210, 0.4)",
 					);
+					glowGradient.addColorStop(0.5, config?.glowColor || "rgba(94, 106, 210, 0.15)");
 					glowGradient.addColorStop(1, "transparent");
 					ctx.fillStyle = glowGradient;
 					ctx.beginPath();
@@ -1086,7 +1087,7 @@ export function RelationGraph() {
 			// Orbit ring animation for hovered nodes
 			if (isHovered && renderMode === "full") {
 				const time = Date.now() / 1500;
-				const ringRadius = finalRadius + 12;
+				const ringRadius = finalRadius + 14;
 				ctx.beginPath();
 				ctx.arc(x, y, ringRadius, time, time + Math.PI * 1.5);
 				ctx.strokeStyle = config?.ringColor || "rgba(94, 106, 210, 0.3)";
@@ -1094,6 +1095,21 @@ export function RelationGraph() {
 				ctx.setLineDash([4, 4]);
 				ctx.stroke();
 				ctx.setLineDash([]);
+			}
+
+			// Inner glow ring for all nodes (subtle type-based glow)
+			if (renderMode === "full") {
+				const innerGlowRadius = finalRadius + 4;
+				const innerGlow = ctx.createRadialGradient(
+					x, y, finalRadius,
+					x, y, innerGlowRadius,
+				);
+				innerGlow.addColorStop(0, `${config?.color || "#5e6ad2"}30`);
+				innerGlow.addColorStop(1, "transparent");
+				ctx.fillStyle = innerGlow;
+				ctx.beginPath();
+				ctx.arc(x, y, innerGlowRadius, 0, 2 * Math.PI);
+				ctx.fill();
 			}
 
 			// Outer ring shadow
@@ -1292,6 +1308,24 @@ export function RelationGraph() {
 			ctx.stroke();
 
 			ctx.shadowBlur = 0;
+
+			// Flowing dashed line animation for all links in full mode
+			if (renderMode === "full") {
+				const flowTime = Date.now() / 800;
+				const dashLength = 6;
+				const gapLength = isHighlighted ? 4 : 8;
+				const flowOffset = (flowTime * 10) % (dashLength + gapLength);
+
+				ctx.beginPath();
+				ctx.moveTo(sx, sy);
+				ctx.quadraticCurveTo(cx, cy, ex, ey);
+				ctx.strokeStyle = parseColor(color, isHighlighted ? opacity * 0.6 : opacity * 0.25);
+				ctx.lineWidth = (isHighlighted ? 2 : 1) / globalScale;
+				ctx.setLineDash([dashLength, gapLength]);
+				ctx.lineDashOffset = -flowOffset;
+				ctx.stroke();
+				ctx.setLineDash([]);
+			}
 
 			// Animated flowing particles for highlighted links
 			if (isHighlighted && renderMode === "full") {

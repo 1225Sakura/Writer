@@ -241,14 +241,22 @@ export function ChatInitPage() {
               initial={{ y: '100%' }}
               animate={{ y: 0 }}
               exit={{ y: '100%' }}
-              transition={{ type: 'spring', damping: 25, stiffness: 300 }}
+              transition={{ type: 'spring', damping: 28, stiffness: 320 }}
               className="mobile-bottom-sheet mobile-bottom-sheet--open md:hidden"
+              style={{
+                borderRadius: 'var(--radius-2xl) var(--radius-2xl) 0 0',
+                maxHeight: '85vh',
+                boxShadow: '0 -8px 40px rgba(0,0,0,0.35), 0 -2px 8px rgba(0,0,0,0.15)',
+              }}
             >
               <div className="flex items-center justify-between px-4 py-3 border-b border-[var(--border-default)]">
-                <span className="font-medium text-sm text-[var(--text-primary)]">已收集信息</span>
+                <div className="flex items-center gap-2">
+                  <div className="mobile-sheet-handle" aria-hidden="true" />
+                  <span className="font-medium text-sm text-[var(--text-primary)]">已收集信息</span>
+                </div>
                 <button
                   onClick={() => setMobileInfoOpen(false)}
-                  className="mobile-menu-btn"
+                  className="mobile-menu-btn btn-active-scale"
                   aria-label="关闭"
                 >
                   <X className="w-4 h-4" />

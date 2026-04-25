@@ -6,6 +6,9 @@
  * - grid: 动态网格线
  * - wave: 波浪线条
  * - starfield: 星空效果
+ * - ink-wash: 水墨扩散效果
+ * - paper-texture: 宣纸纹理效果
+ * - constellation: 星空粒子连线效果
  *
  * 特性：
  * - Canvas 渲染，性能优化
@@ -14,12 +17,14 @@
  * - 平滑主题色同步过渡
  * - prefers-reduced-motion 支持
  * - 界面类型个性化（chat/settings/writing）
+ * - Tab 不可见时自动暂停动画
+ * - 背景模式切换 crossfade 效果
  */
 
 import { useEffect, useRef, useState, useCallback, useMemo } from 'react'
 import { cn } from '@/lib/utils'
 
-export type BackgroundMode = 'particle' | 'grid' | 'wave' | 'starfield'
+export type BackgroundMode = 'particle' | 'grid' | 'wave' | 'starfield' | 'ink-wash' | 'paper-texture' | 'constellation'
 
 interface DynamicBackgroundProps {
   className?: string
@@ -33,20 +38,22 @@ interface DynamicBackgroundProps {
   useThemeColors?: boolean
   /** 界面类型，影响背景个性 */
   interfaceType?: 'chat' | 'settings' | 'writing'
+  /** 沉浸模式 - 最小化背景 */
+  immersive?: boolean
 }
 
 // 密度配置
 const densityConfig = {
-  low: { particle: 6, grid: 4, wave: 1, starfield: 25 },
-  medium: { particle: 10, grid: 6, wave: 2, starfield: 40 },
-  high: { particle: 15, grid: 8, wave: 3, starfield: 60 },
+  low: { particle: 6, grid: 4, wave: 1, starfield: 25, 'ink-wash': 3, 'paper-texture': 1, constellation: 20 },
+  medium: { particle: 10, grid: 6, wave: 2, starfield: 40, 'ink-wash': 5, 'paper-texture': 1, constellation: 35 },
+  high: { particle: 15, grid: 8, wave: 3, starfield: 60, 'ink-wash': 7, 'paper-texture': 1, constellation: 50 },
 }
 
 // 低性能设备密度配置（自动降级）
 const lowPerformanceDensityConfig = {
-  low: { particle: 4, grid: 3, wave: 1, starfield: 15 },
-  medium: { particle: 6, grid: 4, wave: 1, starfield: 25 },
-  high: { particle: 10, grid: 6, wave: 2, starfield: 40 },
+  low: { particle: 4, grid: 3, wave: 1, starfield: 15, 'ink-wash': 2, 'paper-texture': 1, constellation: 12 },
+  medium: { particle: 6, grid: 4, wave: 1, starfield: 25, 'ink-wash': 3, 'paper-texture': 1, constellation: 20 },
+  high: { particle: 10, grid: 6, wave: 2, starfield: 40, 'ink-wash': 4, 'paper-texture': 1, constellation: 30 },
 }
 
 // 速度配置
@@ -421,6 +428,342 @@ function drawStarfield(
   })
 }
 
+// ============ Ink Wash Mode ============
+interface InkBlob {
+  x: number
+  y: number
+  radius: number
+  maxRadius: number
+  growthSpeed: number
+  opacity: number
+  color: string
+  phase: number
+  spreadDelay: number
+}
+
+function initInkWash(count: number, width: number, height: number, _colors: string[]): InkBlob[] {
+  const rand = seededRandom(555)
+  const blobs: InkBlob[] = []
+  const inkColors = ['#1a1a2e', '#2d2d44', '#3a3a5c', '#4a4a6a', '#5e6ad2']
+
+  for (let i = 0; i < count; i++) {
+    const baseColor = inkColors[Math.floor(rand() * inkColors.length)]
+    blobs.push({
+      x: rand() * width,
+      y: rand() * height,
+      radius: 20 + rand() * 40,
+      maxRadius: 60 + rand() * 120,
+      growthSpeed: 0.02 + rand() * 0.03,
+      opacity: 0.03 + rand() * 0.05,
+      color: baseColor,
+      phase: rand() * Math.PI * 2,
+      spreadDelay: rand() * 5000,
+    })
+  }
+  return blobs
+}
+
+function drawInkWash(
+  ctx: CanvasRenderingContext2D,
+  blobs: InkBlob[],
+  width: number,
+  height: number,
+  time: number
+) {
+  ctx.clearRect(0, 0, width, height)
+
+  // 宣纸底色
+  ctx.fillStyle = 'rgba(245, 240, 230, 0.02)'
+  ctx.fillRect(0, 0, width, height)
+
+  blobs.forEach((blob) => {
+    const elapsed = Math.max(0, time - blob.spreadDelay)
+    const growthCycle = (Math.sin(elapsed * 0.0003 * blob.growthSpeed + blob.phase) + 1) * 0.5
+    const currentRadius = blob.radius + (blob.maxRadius - blob.radius) * growthCycle
+    const currentOpacity = blob.opacity * (0.5 + growthCycle * 0.5)
+
+    // 主墨团 - 使用径向渐变模拟墨水扩散
+    const gradient = ctx.createRadialGradient(
+      blob.x, blob.y, 0,
+      blob.x, blob.y, currentRadius
+    )
+    gradient.addColorStop(0, hexToRgba(blob.color, currentOpacity * 0.8))
+    gradient.addColorStop(0.4, hexToRgba(blob.color, currentOpacity * 0.4))
+    gradient.addColorStop(0.7, hexToRgba(blob.color, currentOpacity * 0.15))
+    gradient.addColorStop(1, 'transparent')
+
+    ctx.beginPath()
+    ctx.arc(blob.x, blob.y, currentRadius, 0, Math.PI * 2)
+    ctx.fillStyle = gradient
+    ctx.fill()
+
+    // 墨水边缘不规则效果 - 使用多个小圆点模拟
+    const edgeCount = Math.floor(currentRadius * 0.3)
+    for (let i = 0; i < edgeCount; i++) {
+      const angle = (i / edgeCount) * Math.PI * 2 + blob.phase
+      const edgeDist = currentRadius * (0.7 + Math.sin(angle * 3 + time * 0.0005) * 0.3)
+      const ex = blob.x + Math.cos(angle) * edgeDist
+      const ey = blob.y + Math.sin(angle) * edgeDist
+      const esize = 2 + Math.sin(angle * 5 + time * 0.0003) * 3
+
+      ctx.beginPath()
+      ctx.arc(ex, ey, Math.max(1, esize), 0, Math.PI * 2)
+      ctx.fillStyle = hexToRgba(blob.color, currentOpacity * 0.2)
+      ctx.fill()
+    }
+  })
+
+  // 添加细微的纹理噪点
+  const noiseCount = 30
+  const rand = seededRandom(Math.floor(time * 0.001) % 100)
+  for (let i = 0; i < noiseCount; i++) {
+    const nx = rand() * width
+    const ny = rand() * height
+    const nsize = 0.5 + rand() * 1.5
+    ctx.beginPath()
+    ctx.arc(nx, ny, nsize, 0, Math.PI * 2)
+    ctx.fillStyle = `rgba(26, 26, 46, ${0.01 + rand() * 0.02})`
+    ctx.fill()
+  }
+}
+
+// ============ Paper Texture Mode ============
+interface PaperGrain {
+  x: number
+  y: number
+  size: number
+  opacity: number
+  color: string
+}
+
+function initPaperTexture(_count: number, width: number, height: number): PaperGrain[] {
+  const rand = seededRandom(777)
+  const grains: PaperGrain[] = []
+  const grainCount = Math.floor((width * height) / 8000)
+
+  for (let i = 0; i < grainCount; i++) {
+    const warmth = rand()
+    grains.push({
+      x: rand() * width,
+      y: rand() * height,
+      size: 0.3 + rand() * 1.2,
+      opacity: 0.008 + rand() * 0.02,
+      color: warmth > 0.5 ? '#d4c4a8' : '#8a8a9a',
+    })
+  }
+  return grains
+}
+
+function drawPaperTexture(
+  ctx: CanvasRenderingContext2D,
+  grains: PaperGrain[],
+  width: number,
+  height: number,
+  time: number
+) {
+  ctx.clearRect(0, 0, width, height)
+
+  // 基础宣纸色
+  const baseGradient = ctx.createLinearGradient(0, 0, 0, height)
+  baseGradient.addColorStop(0, 'rgba(245, 240, 230, 0.03)')
+  baseGradient.addColorStop(0.5, 'rgba(242, 237, 228, 0.05)')
+  baseGradient.addColorStop(1, 'rgba(245, 240, 230, 0.03)')
+  ctx.fillStyle = baseGradient
+  ctx.fillRect(0, 0, width, height)
+
+  // 微妙的色彩变化层
+  const colorShift = Math.sin(time * 0.0002) * 0.5 + 0.5
+  const warmGradient = ctx.createRadialGradient(
+    width * 0.3, height * 0.3, 0,
+    width * 0.3, height * 0.3, width * 0.6
+  )
+  warmGradient.addColorStop(0, `rgba(232, 184, 125, ${0.015 + colorShift * 0.01})`)
+  warmGradient.addColorStop(1, 'transparent')
+  ctx.fillStyle = warmGradient
+  ctx.fillRect(0, 0, width, height)
+
+  const coolGradient = ctx.createRadialGradient(
+    width * 0.7, height * 0.7, 0,
+    width * 0.7, height * 0.7, width * 0.5
+  )
+  coolGradient.addColorStop(0, `rgba(94, 106, 210, ${0.01 + (1 - colorShift) * 0.008})`)
+  coolGradient.addColorStop(1, 'transparent')
+  ctx.fillStyle = coolGradient
+  ctx.fillRect(0, 0, width, height)
+
+  // 纤维纹理
+  grains.forEach((grain) => {
+    const pulse = Math.sin(time * 0.0005 + grain.x * 0.01 + grain.y * 0.01) * 0.3 + 0.7
+    ctx.beginPath()
+    ctx.arc(grain.x, grain.y, grain.size, 0, Math.PI * 2)
+    ctx.fillStyle = hexToRgba(grain.color, grain.opacity * pulse)
+    ctx.fill()
+  })
+
+  // 水平纤维线
+  const lineCount = Math.floor(height / 40)
+  for (let i = 0; i < lineCount; i++) {
+    const y = i * 40 + Math.sin(i * 1.5) * 5
+    const lineOpacity = 0.004 + Math.sin(time * 0.0003 + i) * 0.002
+    ctx.beginPath()
+    ctx.moveTo(0, y)
+    for (let x = 0; x <= width; x += 10) {
+      ctx.lineTo(x, y + Math.sin(x * 0.02 + i + time * 0.0001) * 1.5)
+    }
+    ctx.strokeStyle = `rgba(180, 170, 150, ${Math.max(0, lineOpacity)})`
+    ctx.lineWidth = 0.3
+    ctx.stroke()
+  }
+}
+
+// ============ Constellation Mode ============
+interface ConstellationStar {
+  x: number
+  y: number
+  size: number
+  opacity: number
+  twinkleSpeed: number
+  twinklePhase: number
+  vx: number
+  vy: number
+}
+
+interface ConstellationLine {
+  from: number
+  to: number
+  opacity: number
+}
+
+interface ConstellationState {
+  stars: ConstellationStar[]
+  lines: ConstellationLine[]
+  mouseX: number
+  mouseY: number
+}
+
+function initConstellation(count: number, width: number, height: number, speed: number, _colors: string[]): ConstellationState {
+  const rand = seededRandom(111)
+  const stars: ConstellationStar[] = []
+
+  for (let i = 0; i < count; i++) {
+    stars.push({
+      x: rand() * width,
+      y: rand() * height,
+      size: 0.8 + rand() * 2.2,
+      opacity: 0.15 + rand() * 0.4,
+      twinkleSpeed: 0.5 + rand() * 1.5,
+      twinklePhase: rand() * Math.PI * 2,
+      vx: (rand() - 0.5) * 0.15 * speed,
+      vy: (rand() - 0.5) * 0.15 * speed,
+    })
+  }
+
+  return { stars, lines: [], mouseX: -1000, mouseY: -1000 }
+}
+
+function drawConstellation(
+  ctx: CanvasRenderingContext2D,
+  state: ConstellationState,
+  width: number,
+  height: number,
+  time: number,
+  colors: string[]
+) {
+  ctx.clearRect(0, 0, width, height)
+
+  const { stars, mouseX, mouseY } = state
+  const primaryColor = colors[0] || '#5e6ad2'
+  const connectionDist = 120
+  const maxConnections = 40
+
+  // 更新星星位置
+  stars.forEach((star) => {
+    star.x += star.vx
+    star.y += star.vy
+
+    if (star.x < -10) star.x = width + 10
+    if (star.x > width + 10) star.x = -10
+    if (star.y < -10) star.y = height + 10
+    if (star.y > height + 10) star.y = -10
+
+    // 鼠标吸引效果
+    if (mouseX >= 0 && mouseY >= 0) {
+      const dx = mouseX - star.x
+      const dy = mouseY - star.y
+      const dist = Math.sqrt(dx * dx + dy * dy)
+      if (dist < 200 && dist > 5) {
+        const force = (200 - dist) / 200 * 0.02
+        star.vx += (dx / dist) * force
+        star.vy += (dy / dist) * force
+        // 阻尼
+        star.vx *= 0.99
+        star.vy *= 0.99
+      }
+    }
+  })
+
+  // 计算连线
+  let connectionCount = 0
+  for (let i = 0; i < stars.length && connectionCount < maxConnections; i++) {
+    for (let j = i + 1; j < stars.length && connectionCount < maxConnections; j++) {
+      const dx = stars[i].x - stars[j].x
+      const dy = stars[i].y - stars[j].y
+      const dist = Math.sqrt(dx * dx + dy * dy)
+
+      if (dist < connectionDist) {
+        const lineOpacity = (1 - dist / connectionDist) * 0.08
+        ctx.beginPath()
+        ctx.moveTo(stars[i].x, stars[i].y)
+        ctx.lineTo(stars[j].x, stars[j].y)
+        ctx.strokeStyle = hexToRgba(primaryColor, lineOpacity)
+        ctx.lineWidth = 0.4
+        ctx.stroke()
+        connectionCount++
+      }
+    }
+
+    // 鼠标连线
+    if (mouseX >= 0 && mouseY >= 0) {
+      const mdx = mouseX - stars[i].x
+      const mdy = mouseY - stars[i].y
+      const mDist = Math.sqrt(mdx * mdx + mdy * mdy)
+      if (mDist < connectionDist * 0.8) {
+        const lineOpacity = (1 - mDist / (connectionDist * 0.8)) * 0.06
+        ctx.beginPath()
+        ctx.moveTo(stars[i].x, stars[i].y)
+        ctx.lineTo(mouseX, mouseY)
+        ctx.strokeStyle = hexToRgba(primaryColor, lineOpacity)
+        ctx.lineWidth = 0.3
+        ctx.stroke()
+      }
+    }
+  }
+
+  // 绘制星星
+  stars.forEach((star) => {
+    const twinkle = Math.sin(time * 0.001 * star.twinkleSpeed + star.twinklePhase) * 0.4 + 0.6
+    const currentOpacity = star.opacity * twinkle
+
+    // 光晕
+    const glowGradient = ctx.createRadialGradient(
+      star.x, star.y, 0,
+      star.x, star.y, star.size * 4
+    )
+    glowGradient.addColorStop(0, hexToRgba(primaryColor, currentOpacity * 0.15))
+    glowGradient.addColorStop(1, 'transparent')
+    ctx.beginPath()
+    ctx.arc(star.x, star.y, star.size * 4, 0, Math.PI * 2)
+    ctx.fillStyle = glowGradient
+    ctx.fill()
+
+    // 星体
+    ctx.beginPath()
+    ctx.arc(star.x, star.y, star.size, 0, Math.PI * 2)
+    ctx.fillStyle = hexToRgba(primaryColor, currentOpacity)
+    ctx.fill()
+  })
+}
+
 // ============ Main Component ============
 export function DynamicBackground({
   className,
@@ -428,10 +771,12 @@ export function DynamicBackground({
   enabled = true,
   density = 'medium',
   speed = 'normal',
+  immersive = false,
 }: DynamicBackgroundProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const containerRef = useRef<HTMLDivElement>(null)
   const [isVisible, setIsVisible] = useState(true)
+  const [isTabVisible, setIsTabVisible] = useState(true)
   const animationRef = useRef<number>()
   const reducedMotionRef = useRef(false)
   const stateRef = useRef<any>(null)
@@ -439,6 +784,14 @@ export function DynamicBackground({
   const lastFrameTimeRef = useRef(0)
   const themeColorsRef = useRef<string[]>([])
   const modeRef = useRef(mode)
+  const mouseRef = useRef({ x: -1000, y: -1000 })
+  const crossfadeRef = useRef<{
+    fromMode: BackgroundMode | null
+    toMode: BackgroundMode
+    progress: number
+    fromState: any
+    duration: number
+  } | null>(null)
 
   const speedFactor = speedConfig[speed]
 
@@ -451,7 +804,6 @@ export function DynamicBackground({
   const targetFrameInterval = isLowPerf ? 33.33 : 16.67
 
   // effectiveMode mirrors mode prop for internal consistency
-  // interfaceType is passed from App.tsx for semantic clarity but mode is already determined
   const effectiveMode = mode
 
   // 同步主题色
@@ -468,11 +820,56 @@ export function DynamicBackground({
     return () => observer.disconnect()
   }, [])
 
+  // Tab visibility 检测
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      setIsTabVisible(!document.hidden)
+    }
+    document.addEventListener('visibilitychange', handleVisibilityChange)
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange)
+  }, [])
+
+  // 鼠标追踪（用于 constellation 模式）
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      const container = containerRef.current
+      if (!container) return
+      const rect = container.getBoundingClientRect()
+      mouseRef.current = {
+        x: e.clientX - rect.left,
+        y: e.clientY - rect.top,
+      }
+      // 更新 constellation 状态
+      if (stateRef.current && stateRef.current.stars) {
+        stateRef.current.mouseX = mouseRef.current.x
+        stateRef.current.mouseY = mouseRef.current.y
+      }
+    }
+    const handleMouseLeave = () => {
+      mouseRef.current = { x: -1000, y: -1000 }
+      if (stateRef.current && stateRef.current.stars) {
+        stateRef.current.mouseX = -1000
+        stateRef.current.mouseY = -1000
+      }
+    }
+    window.addEventListener('mousemove', handleMouseMove)
+    const container = containerRef.current
+    if (container) {
+      container.addEventListener('mouseleave', handleMouseLeave)
+    }
+    return () => {
+      window.removeEventListener('mousemove', handleMouseMove)
+      if (container) {
+        container.removeEventListener('mouseleave', handleMouseLeave)
+      }
+    }
+  }, [])
+
   // 初始化各模式状态
   const initMode = useCallback(
-    (width: number, height: number) => {
+    (width: number, height: number, targetMode: BackgroundMode = effectiveMode) => {
       const colors = themeColorsRef.current.length > 0 ? themeColorsRef.current : getThemeColors()
-      switch (effectiveMode) {
+      switch (targetMode) {
         case 'particle':
           return initParticles(count, width, height, speedFactor, colors)
         case 'grid':
@@ -481,6 +878,12 @@ export function DynamicBackground({
           return initWaves(count, width, height, speedFactor, colors)
         case 'starfield':
           return initStarfield(count, width, height)
+        case 'ink-wash':
+          return initInkWash(count, width, height, colors)
+        case 'paper-texture':
+          return initPaperTexture(count, width, height)
+        case 'constellation':
+          return initConstellation(count, width, height, speedFactor, colors)
         default:
           return null
       }
@@ -495,10 +898,11 @@ export function DynamicBackground({
       state: any,
       width: number,
       height: number,
-      time: number
+      time: number,
+      targetMode: BackgroundMode = effectiveMode
     ) => {
       const colors = themeColorsRef.current.length > 0 ? themeColorsRef.current : getThemeColors()
-      switch (effectiveMode) {
+      switch (targetMode) {
         case 'particle':
           drawParticles(ctx, state, width, height, time)
           break
@@ -511,6 +915,15 @@ export function DynamicBackground({
         case 'starfield':
           drawStarfield(ctx, state, width, height, time)
           break
+        case 'ink-wash':
+          drawInkWash(ctx, state, width, height, time)
+          break
+        case 'paper-texture':
+          drawPaperTexture(ctx, state, width, height, time)
+          break
+        case 'constellation':
+          drawConstellation(ctx, state, width, height, time, colors)
+          break
       }
     },
     [effectiveMode]
@@ -518,7 +931,7 @@ export function DynamicBackground({
 
   // 主动画循环 - 带FPS节流
   useEffect(() => {
-    if (!enabled || !isVisible) return
+    if (!enabled || !isVisible || !isTabVisible) return
 
     const mql = window.matchMedia('(prefers-reduced-motion: reduce)')
     reducedMotionRef.current = mql.matches
@@ -566,7 +979,35 @@ export function DynamicBackground({
       lastFrameTimeRef.current = timestamp - (elapsed % targetFrameInterval)
 
       const time = timestamp - startTime
-      drawMode(ctx, stateRef.current, width, height, time)
+
+      // Crossfade 处理
+      if (crossfadeRef.current) {
+        const cf = crossfadeRef.current
+        cf.progress += elapsed / cf.duration
+
+        if (cf.progress >= 1) {
+          // Crossfade 完成
+          crossfadeRef.current = null
+          drawMode(ctx, stateRef.current, width, height, time)
+        } else {
+          // 绘制 from 模式（淡出）
+          ctx.save()
+          ctx.globalAlpha = 1 - cf.progress
+          if (cf.fromState) {
+            drawMode(ctx, cf.fromState, width, height, time, cf.fromMode!)
+          }
+          ctx.restore()
+
+          // 绘制 to 模式（淡入）
+          ctx.save()
+          ctx.globalAlpha = cf.progress
+          drawMode(ctx, stateRef.current, width, height, time, cf.toMode)
+          ctx.restore()
+        }
+      } else {
+        drawMode(ctx, stateRef.current, width, height, time)
+      }
+
       animationRef.current = requestAnimationFrame(animate)
     }
 
@@ -581,7 +1022,7 @@ export function DynamicBackground({
         cancelAnimationFrame(resizeTimeoutRef.current)
       }
     }
-  }, [enabled, isVisible, effectiveMode, initMode, drawMode, targetFrameInterval])
+  }, [enabled, isVisible, isTabVisible, effectiveMode, initMode, drawMode, targetFrameInterval])
 
   // IntersectionObserver
   useEffect(() => {
@@ -597,15 +1038,41 @@ export function DynamicBackground({
     return () => observer.disconnect()
   }, [])
 
-  // 模式变化时重新初始化
+  // 模式变化时触发 crossfade 并重新初始化
   useEffect(() => {
+    const prevMode = modeRef.current
     modeRef.current = mode
+
     const canvas = canvasRef.current
     const container = containerRef.current
     if (!canvas || !container) return
     const rect = container.getBoundingClientRect()
+
+    // 保存旧状态用于 crossfade
+    const oldState = stateRef.current
     stateRef.current = initMode(rect.width, rect.height)
+
+    // 启动 crossfade
+    if (oldState && prevMode !== mode) {
+      crossfadeRef.current = {
+        fromMode: prevMode,
+        toMode: mode,
+        progress: 0,
+        fromState: oldState,
+        duration: 800, // 800ms crossfade
+      }
+    }
   }, [mode, initMode])
+
+  // 沉浸模式 opacity
+  const canvasOpacity = useMemo(() => {
+    if (immersive) return 0.15
+    if (mode === 'starfield') return 0.6
+    if (mode === 'ink-wash') return 0.5
+    if (mode === 'paper-texture') return 0.4
+    if (mode === 'constellation') return 0.55
+    return 0.45
+  }, [mode, immersive])
 
   if (!enabled) {
     return <div ref={containerRef} className={className} aria-hidden="true" />
@@ -619,9 +1086,9 @@ export function DynamicBackground({
     >
       <canvas
         ref={canvasRef}
-        className="absolute inset-0 w-full h-full"
+        className="absolute inset-0 w-full h-full transition-opacity duration-700"
         style={{
-          opacity: mode === 'starfield' ? 0.6 : 0.45,
+          opacity: canvasOpacity,
           willChange: 'transform',
         }}
       />
@@ -644,6 +1111,9 @@ export function BackgroundModeSelector({
     { value: 'grid', label: '网格', description: '结构化' },
     { value: 'wave', label: '波浪', description: '流动感' },
     { value: 'starfield', label: '星空', description: '静谧' },
+    { value: 'ink-wash', label: '水墨', description: '东方意境' },
+    { value: 'paper-texture', label: '宣纸', description: '古典质感' },
+    { value: 'constellation', label: '星图', description: '交互连线' },
   ]
 
   return (

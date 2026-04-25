@@ -19,7 +19,9 @@ const SheetOverlay = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <SheetPrimitive.Overlay
     className={cn(
-      "fixed inset-0 z-50 bg-black/50 backdrop-blur-md data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0",
+      "fixed inset-0 z-50 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0",
+      "bg-black/60 backdrop-blur-xl",
+      "max-md:bg-black/70 max-md:backdrop-blur-2xl",
       className
     )}
     {...props}
@@ -29,16 +31,16 @@ const SheetOverlay = React.forwardRef<
 SheetOverlay.displayName = SheetPrimitive.Overlay.displayName
 
 const sheetVariants = cva(
-  "fixed z-50 gap-4 bg-[var(--color-surface-raised)] border-[var(--border-default)] p-6 shadow-[var(--shadow-drawer)] rounded-l-[var(--radius-2xl)] transition-all duration-[var(--transition-normal)] ease-out data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:duration-300 data-[state=open]:duration-300",
+  "fixed z-50 gap-4 bg-[var(--color-surface-raised)] border-[var(--border-default)] shadow-[var(--shadow-drawer)] transition-all duration-[var(--transition-normal)] ease-out data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:duration-300 data-[state=open]:duration-300",
   {
     variants: {
       side: {
-        top: "inset-x-0 top-0 border-b rounded-b-[var(--radius-2xl)] data-[state=closed]:slide-out-to-top data-[state=open]:slide-in-from-top",
+        top: "inset-x-0 top-0 border-b rounded-b-[var(--radius-2xl)] p-6 data-[state=closed]:slide-out-to-top data-[state=open]:slide-in-from-top",
         bottom:
-          "inset-x-0 bottom-0 border-t rounded-t-[var(--radius-2xl)] data-[state=closed]:slide-out-to-bottom data-[state=open]:slide-in-from-bottom sm:max-w-sm",
-        left: "inset-y-0 left-0 h-full w-full border-r rounded-r-[var(--radius-2xl)] data-[state=closed]:slide-out-to-left data-[state=open]:slide-in-from-left sm:max-w-sm sm:w-80 sm:w-3/4",
+          "inset-x-0 bottom-0 border-t rounded-t-[var(--radius-2xl)] p-6 data-[state=closed]:slide-out-to-bottom data-[state=open]:slide-in-from-bottom max-sm:rounded-t-2xl max-sm:min-h-[40vh] max-sm:max-h-[90vh] max-sm:overflow-y-auto sm:max-w-sm",
+        left: "inset-y-0 left-0 h-full w-full border-r rounded-r-[var(--radius-2xl)] p-6 data-[state=closed]:slide-out-to-left data-[state=open]:slide-in-from-left sm:max-w-sm sm:w-80 sm:w-3/4",
         right:
-          "inset-y-0 right-0 h-full w-full border-l rounded-l-[var(--radius-2xl)] data-[state=closed]:slide-out-to-right data-[state=open]:slide-in-from-right sm:max-w-sm sm:w-80 sm:w-3/4",
+          "inset-y-0 right-0 h-full w-full border-l rounded-l-[var(--radius-2xl)] p-6 data-[state=closed]:slide-out-to-right data-[state=open]:slide-in-from-right max-sm:fixed max-sm:inset-0 max-sm:w-full max-sm:max-w-full max-sm:rounded-none max-sm:border-none sm:max-w-sm sm:w-80 sm:w-3/4",
       },
     },
     defaultVariants: {
@@ -62,7 +64,11 @@ const SheetContent = React.forwardRef<
       className={cn(sheetVariants({ side }), className)}
       {...props}
     >
-      <SheetPrimitive.Close className="absolute right-4 top-4 rounded-[var(--radius-sm)] opacity-60 ring-offset-[var(--color-surface-base)] transition-all duration-[var(--transition-fast)] hover:opacity-100 hover:bg-[var(--color-surface-hover)] focus:outline-none focus:ring-2 focus:ring-[var(--accent-primary)] focus:ring-offset-2 disabled:pointer-events-none p-1 touch-target-icon">
+      {/* Mobile bottom sheet handle indicator */}
+      {side === 'bottom' && (
+        <div className="mobile-sheet-handle sm:hidden" aria-hidden="true" />
+      )}
+      <SheetPrimitive.Close className="absolute right-4 top-4 rounded-[var(--radius-sm)] opacity-60 ring-offset-[var(--color-surface-base)] transition-all duration-[var(--transition-fast)] hover:opacity-100 hover:bg-[var(--color-surface-hover)] focus:outline-none focus:ring-2 focus:ring-[var(--accent-primary)] focus:ring-offset-2 disabled:pointer-events-none p-1 touch-target-min btn-active-scale">
         <X className="h-5 w-5 text-[var(--text-secondary)]" />
         <span className="sr-only">Close</span>
       </SheetPrimitive.Close>

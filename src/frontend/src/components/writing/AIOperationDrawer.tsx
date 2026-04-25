@@ -425,6 +425,7 @@ export function AIOperationDrawer() {
   } | null>(null)
   const [isMinimized, _setIsMinimized] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
+  const [isHeaderHovered, setIsHeaderHovered] = useState(false)
 
   // Trigger haptic on mount
   useEffect(() => {
@@ -539,8 +540,21 @@ export function AIOperationDrawer() {
 
   return (
     <div className="flex-1 overflow-y-auto p-4 space-y-3 ai-drawer-scroll">
-      {/* Refined AI Drawer Header */}
-      <DrawerHeader />
+      {/* Refined AI Drawer Header with gradient bg */}
+      <div
+        className="ai-drawer-header rounded-xl p-3 mb-1"
+        onMouseEnter={() => setIsHeaderHovered(true)}
+        onMouseLeave={() => setIsHeaderHovered(false)}
+        style={{
+          background: isHeaderHovered
+            ? 'linear-gradient(135deg, color-mix(in srgb, var(--accent-primary) 12%, transparent) 0%, color-mix(in srgb, var(--accent-primary) 5%, transparent) 100%)'
+            : 'linear-gradient(135deg, color-mix(in srgb, var(--accent-primary) 8%, transparent) 0%, transparent 100%)',
+          border: '1px solid color-mix(in srgb, var(--accent-primary) 15%, transparent)',
+          transition: 'background 0.3s cubic-bezier(0.22, 1, 0.36, 1)',
+        }}
+      >
+        <DrawerHeader />
+      </div>
 
       {/* Minimize/Maximize control */}
       <AnimatePresence mode="wait">
@@ -647,7 +661,14 @@ export function AIOperationDrawer() {
               ) : (
                 <div className="space-y-3">
                   {/* Operation buttons with grouping */}
-                  <div className="grid grid-cols-2 gap-2">
+                  <motion.div className="grid grid-cols-2 gap-2"
+                    initial="hidden"
+                    animate="visible"
+                    variants={{
+                      hidden: {},
+                      visible: { transition: { staggerChildren: 0.06 } }
+                    }}
+                  >
                     {aiOperations.slice(0, 3).map((op) => (
                       <AIOperationButton
                         key={op.key}
@@ -658,14 +679,21 @@ export function AIOperationDrawer() {
                         onClick={() => handleOperation(op.key)}
                       />
                     ))}
-                  </div>
+                  </motion.div>
                   {/* Subtle divider between groups */}
                   <div className="relative py-1">
                     <div className="absolute inset-0 flex items-center">
                       <div className="w-full h-px" style={{ background: 'linear-gradient(90deg, transparent 0%, var(--border-subtle) 30%, var(--border-subtle) 70%, transparent 100%)' }} />
                     </div>
                   </div>
-                  <div className="grid grid-cols-2 gap-2">
+                  <motion.div className="grid grid-cols-2 gap-2"
+                    initial="hidden"
+                    animate="visible"
+                    variants={{
+                      hidden: {},
+                      visible: { transition: { staggerChildren: 0.06, delayChildren: 0.18 } }
+                    }}
+                  >
                     {aiOperations.slice(3).map((op) => (
                       <AIOperationButton
                         key={op.key}
@@ -676,7 +704,7 @@ export function AIOperationDrawer() {
                         onClick={() => handleOperation(op.key)}
                       />
                     ))}
-                  </div>
+                  </motion.div>
 
                   {/* Progress bar for active operation */}
                   <AnimatePresence>
@@ -909,10 +937,14 @@ function AIOperationButton({
     <motion.button
       onClick={onClick}
       disabled={isDisabled}
+      variants={{
+        hidden: { opacity: 0, y: 12, scale: 0.95 },
+        visible: { opacity: 1, y: 0, scale: 1, transition: { type: 'spring', stiffness: 400, damping: 28 } }
+      }}
       whileHover={isDisabled ? {} : { y: -3, boxShadow: `0 8px 24px color-mix(in srgb, ${operation.color} 25%, transparent), 0 0 16px color-mix(in srgb, ${operation.color} 15%, transparent)` }}
       whileTap={{ scale: isDisabled ? 1 : 0.95 }}
       transition={{ type: 'spring', stiffness: 400, damping: 25 }}
-      className={`relative flex flex-col items-center gap-1.5 p-3 rounded-xl border transition-all duration-200 overflow-hidden touch-target-button
+      className={`ai-op-card relative flex flex-col items-center gap-1.5 p-3 rounded-xl border transition-all duration-200 overflow-hidden touch-target-button
         ${isLoading
           ? 'border-[var(--accent-primary)]/50 bg-[var(--accent-primary)]/8 animate-glow-border'
           : 'border-[var(--border-default)] bg-[var(--color-surface-base)] hover:border-[var(--border-strong)]'

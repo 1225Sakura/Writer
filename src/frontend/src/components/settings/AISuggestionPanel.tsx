@@ -139,7 +139,7 @@ const containerVariants = {
 	hidden: { opacity: 0 },
 	visible: {
 		opacity: 1,
-		transition: { staggerChildren: 0.06, delayChildren: 0.04 },
+		transition: { staggerChildren: 0.08, delayChildren: 0.06 },
 	},
 	exit: {
 		opacity: 0,
@@ -148,12 +148,13 @@ const containerVariants = {
 };
 
 const cardVariants = {
-	hidden: { opacity: 0, y: 12, scale: 0.97 },
+	hidden: { opacity: 0, y: 16, scale: 0.96, filter: 'blur(2px)' },
 	visible: {
 		opacity: 1,
 		y: 0,
 		scale: 1,
-		transition: { duration: 0.25, ease: [0.16, 1, 0.3, 1] as const },
+		filter: 'blur(0px)',
+		transition: { duration: 0.35, ease: [0.22, 1, 0.36, 1] as const },
 	},
 	exit: {
 		opacity: 0,
@@ -731,12 +732,16 @@ function SuggestionCard({
 					: config.gradient,
 				border: `1px solid ${isApplied ? "rgba(94,181,166,0.2)" : "var(--border-subtle)"}`,
 			}}
+			whileHover={!isApplied ? {
+				scale: 1.01,
+				transition: { duration: 0.2, ease: [0.22, 1, 0.36, 1] },
+			} : {}}
 			onMouseEnter={(e) => {
 				if (!isApplied) {
 					e.currentTarget.style.background =
 						"linear-gradient(135deg, rgba(94,106,210,0.06) 0%, var(--color-surface-overlay) 100%)";
-					e.currentTarget.style.borderColor = "var(--border-default)";
-					e.currentTarget.style.boxShadow = `0 4px 16px rgba(0,0,0,0.2), 0 0 0 1px ${config.colors.glow}40`;
+					e.currentTarget.style.borderColor = `${config.colors.border}`;
+					e.currentTarget.style.boxShadow = `0 4px 20px rgba(0,0,0,0.25), 0 0 0 1px ${config.colors.glow}50, 0 0 24px ${config.colors.glow}30`;
 				}
 			}}
 			onMouseLeave={(e) => {
@@ -1099,20 +1104,50 @@ export function AISuggestionPanel() {
 				}}
 			/>
 
-			{/* Header */}
+			{/* Header with gradient background */}
 			<motion.button
 				onClick={() => setIsExpanded(!isExpanded)}
-				className="w-full px-4 py-3 flex items-center justify-between transition-all hover:bg-[var(--color-surface-raised)] relative"
+				className="w-full px-4 py-3 flex items-center justify-between transition-all hover:bg-[var(--color-surface-raised)] relative overflow-hidden"
 				style={{
 					borderBottom: isExpanded ? "1px solid var(--border-subtle)" : "none",
+					background: isReviewing
+						? "linear-gradient(135deg, rgba(94,106,210,0.08) 0%, var(--color-surface-base) 60%)"
+						: "transparent",
 				}}
 				animate={isReviewing ? "active" : "idle"}
 				variants={pulseGlowVariants}
 			>
-				<div className="flex items-center gap-2.5">
-					{/* AI Icon with animated ring when reviewing */}
+				{/* Animated gradient background when reviewing */}
+				{isReviewing && (
+					<motion.div
+						className="absolute inset-0 pointer-events-none"
+						style={{
+							background: "linear-gradient(90deg, transparent, rgba(94,106,210,0.06), transparent)",
+							backgroundSize: "200% 100%",
+						}}
+						animate={{
+							backgroundPosition: ["200% 0", "-200% 0"],
+						}}
+						transition={{
+							duration: 2,
+							repeat: Infinity,
+							ease: "linear",
+						}}
+					/>
+				)}
+				<div className="flex items-center gap-2.5 relative z-10">
+					{/* AI Icon with rotating animation when reviewing */}
 					<div className="relative">
-						<Sparkles className="w-4 h-4 text-[var(--accent-primary)]" />
+						<motion.div
+							animate={isReviewing ? { rotate: [0, 15, -15, 0] } : { rotate: 0 }}
+							transition={isReviewing ? {
+								duration: 1.5,
+								repeat: Infinity,
+								ease: "easeInOut",
+							} : {}}
+						>
+							<Sparkles className="w-4 h-4 text-[var(--accent-primary)]" />
+						</motion.div>
 						{isReviewing && (
 							<motion.div
 								className="absolute inset-0 rounded-full"

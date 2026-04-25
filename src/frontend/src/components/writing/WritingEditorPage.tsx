@@ -235,6 +235,8 @@ export function WritingEditorPage() {
 
   return (
     <div className={`h-full flex flex-col bg-[var(--ink-black)] ${immersiveMode ? 'immersive-mode' : ''}`}>
+      {/* Mobile-safe top inset spacer */}
+      <div className="h-[env(safe-area-inset-top)] bg-[var(--color-surface-base)] flex-shrink-0" />
       {/* Layered vignette overlay - 5-layer radial gradients for depth perception */}
       <AnimatePresence>
         {immersiveMode && (
@@ -497,7 +499,7 @@ export function WritingEditorPage() {
                 x: { type: 'spring', stiffness: 240, damping: 24, restSpeed: 0.5 }
               }}
               className="drawer-responsive drawer-right border-l border-[var(--border-default)] bg-[var(--color-surface-raised)] flex flex-col overflow-hidden relative z-20
-                         max-md:fixed max-md:inset-0 max-md:w-full max-md:h-full max-md:z-50 max-md:border-none
+                         max-md:fixed max-md:inset-0 max-md:w-full max-md:h-full max-md:z-50 max-md:border-none max-md:rounded-none
                          md:w-[320px] lg:w-[360px]"
               style={{
                 boxShadow: `
@@ -594,7 +596,7 @@ export function WritingEditorPage() {
                 x: { type: 'spring', stiffness: 240, damping: 24, restSpeed: 0.5 }
               }}
               className="drawer-responsive drawer-right border-l border-[var(--border-default)] bg-[var(--color-surface-raised)] flex flex-col overflow-hidden relative z-20
-                         max-md:fixed max-md:inset-0 max-md:w-full max-md:h-full max-md:z-50 max-md:border-none"
+                         max-md:fixed max-md:inset-0 max-md:w-full max-md:h-full max-md:z-50 max-md:border-none max-md:rounded-none"
               style={{
                 boxShadow: `
                   -4px 0 48px color-mix(in srgb, var(--color-ifline) 10%, transparent),
@@ -687,21 +689,21 @@ export function WritingEditorPage() {
             transition={{ duration: 0.4 }}
             className="fixed inset-0 z-50 flex items-center justify-center md:hidden"
             style={{
-              background: 'rgba(0,0,0,0.4)',
-              backdropFilter: 'blur(2px)',
+              background: 'rgba(0,0,0,0.5)',
+              backdropFilter: 'blur(8px)',
             }}
             onClick={dismissSwipeHint}
           >
             <motion.div
-              initial={{ scale: 0.9, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.9, opacity: 0 }}
+              initial={{ scale: 0.9, opacity: 0, y: 20 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.9, opacity: 0, y: 20 }}
               transition={{ type: 'spring', stiffness: 400, damping: 30 }}
               className="mx-6 p-5 rounded-2xl max-w-xs w-full"
               style={{
                 background: 'var(--color-surface-raised)',
                 border: '1px solid var(--border-default)',
-                boxShadow: '0 20px 60px rgba(0,0,0,0.3)',
+                boxShadow: '0 20px 60px rgba(0,0,0,0.4)',
               }}
               onClick={(e) => e.stopPropagation()}
             >
@@ -709,7 +711,7 @@ export function WritingEditorPage() {
                 <span className="text-sm font-medium text-primary">手势操作提示</span>
                 <button
                   onClick={dismissSwipeHint}
-                  className="p-1 rounded-lg hover:bg-surface-base transition-colors"
+                  className="p-2 rounded-lg hover:bg-surface-base transition-colors touch-target-min"
                 >
                   <X className="w-4 h-4 text-secondary" />
                 </button>
@@ -746,7 +748,7 @@ export function WritingEditorPage() {
               </div>
               <button
                 onClick={dismissSwipeHint}
-                className="w-full mt-4 py-2 text-xs rounded-lg bg-accent-primary text-white hover:bg-accent-hover transition-colors"
+                className="w-full mt-4 py-2.5 text-xs rounded-lg bg-accent-primary text-white hover:bg-accent-hover transition-colors touch-target-min btn-active-scale"
               >
                 知道了
               </button>
@@ -754,6 +756,9 @@ export function WritingEditorPage() {
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* Mobile-safe bottom inset spacer */}
+      <div className="h-[env(safe-area-inset-bottom)] bg-[var(--color-surface-base)] flex-shrink-0 md:hidden" />
     </div>
   )
 }

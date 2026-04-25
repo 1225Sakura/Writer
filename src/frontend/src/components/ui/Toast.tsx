@@ -123,17 +123,33 @@ export function Toast({ message, type = 'info', duration = 3000, onClose }: Toas
         }}
       />
 
-      {/* Icon */}
-      <div className="relative flex-shrink-0 mt-0.5">
-        <Icon
-          className="w-5 h-5"
-          style={{ color: config.iconColor }}
-        />
-      </div>
+      {/* Icon with scale + rotate entrance animation */}
+      <motion.div
+        className="relative flex-shrink-0 mt-0.5"
+        initial={reducedMotion ? { opacity: 0 } : { scale: 0, rotate: -45, opacity: 0 }}
+        animate={{ scale: 1, rotate: 0, opacity: 1 }}
+        transition={
+          reducedMotion
+            ? { duration: 0.15 }
+            : { type: 'spring', stiffness: 500, damping: 20, delay: 0.1 }
+        }
+      >
+        <div
+          className="flex items-center justify-center w-8 h-8 rounded-lg"
+          style={{
+            backgroundColor: config.glowColor,
+          }}
+        >
+          <Icon
+            className="w-4 h-4"
+            style={{ color: config.iconColor }}
+          />
+        </div>
+      </motion.div>
 
       {/* Message */}
       <span
-        className="text-sm font-medium flex-1 pr-2 leading-relaxed"
+        className="text-sm font-medium flex-1 pr-2 leading-relaxed mt-1"
         style={{ color: 'var(--text-primary)' }}
       >
         {message}
@@ -148,9 +164,9 @@ export function Toast({ message, type = 'info', duration = 3000, onClose }: Toas
         <X className="w-4 h-4" />
       </button>
 
-      {/* Progress bar */}
+      {/* Progress bar - countdown indicator */}
       <div
-        className="absolute bottom-0 left-0 right-0 h-[2px] overflow-hidden rounded-b-xl"
+        className="absolute bottom-0 left-0 right-0 h-[3px] overflow-hidden rounded-b-xl"
         style={{ backgroundColor: 'rgba(255, 255, 255, 0.04)' }}
       >
         <motion.div
@@ -158,10 +174,20 @@ export function Toast({ message, type = 'info', duration = 3000, onClose }: Toas
           style={{
             width: `${progress}%`,
             backgroundColor: config.progressColor,
+            boxShadow: `0 0 6px ${config.progressColor}`,
           }}
           transition={{ duration: 0 }}
         />
       </div>
+
+      {/* Left colored accent bar (additional visual indicator) */}
+      <div
+        className="absolute left-0 top-3 bottom-3 w-[3px] rounded-full"
+        style={{
+          backgroundColor: config.leftBorder,
+          opacity: 0.8,
+        }}
+      />
     </motion.div>
   )
 }

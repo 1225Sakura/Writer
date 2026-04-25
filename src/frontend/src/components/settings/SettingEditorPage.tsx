@@ -244,7 +244,7 @@ export function SettingEditorPage() {
             {/* Mobile: Hamburger menu button */}
             <button
               onClick={() => setMobileNavOpen(true)}
-              className="md:hidden mobile-menu-btn mr-1"
+              className="md:hidden mobile-menu-btn mr-1 btn-active-scale"
               aria-label="打开分类菜单"
             >
               <Menu className="w-4 h-4" />
@@ -410,17 +410,17 @@ export function SettingEditorPage() {
               initial={{ x: '-100%' }}
               animate={{ x: 0 }}
               exit={{ x: '-100%' }}
-              transition={{ type: 'spring', damping: 25, stiffness: 300 }}
+              transition={{ type: 'spring', damping: 28, stiffness: 320 }}
               className="fixed top-0 left-0 bottom-0 w-[280px] max-w-[80vw] z-50 bg-[var(--color-surface-base)] border-r border-[var(--border-default)] flex flex-col md:hidden"
               style={{
-                boxShadow: '4px 0 24px rgba(0,0,0,0.3)',
+                boxShadow: '4px 0 32px rgba(0,0,0,0.35), 2px 0 8px rgba(0,0,0,0.1)',
               }}
             >
               <div className="flex items-center justify-between px-4 py-3 border-b border-[var(--border-default)]">
                 <span className="font-medium text-sm text-[var(--text-primary)]">分类导航</span>
                 <button
                   onClick={() => setMobileNavOpen(false)}
-                  className="mobile-menu-btn"
+                  className="mobile-menu-btn btn-active-scale"
                   aria-label="关闭"
                 >
                   <X className="w-4 h-4" />

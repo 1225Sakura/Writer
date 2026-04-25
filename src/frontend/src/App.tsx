@@ -1,4 +1,4 @@
-import { lazy, Suspense, ComponentType, useMemo } from 'react'
+import { lazy, Suspense, ComponentType, useMemo, useState, useEffect } from 'react'
 import { useUIStore } from '@/store'
 import { ThemeProvider } from '@/components/shared/ThemeProvider'
 import { ShortcutManager } from '@/components/shared/ShortcutManager'
@@ -96,14 +96,35 @@ function getInterfaceBgClass(interfaceType: string): string {
  * - All layers use consistent theme color palette
  * - Interface switching triggers smooth background transitions
  * - Writing interface minimizes both layers for focus
+ * - Crossfade effect on background mode changes
+ * - Immersive mode further reduces background opacity
  */
 function AppContent() {
-  const { currentInterface } = useUIStore()
+  const { currentInterface, immersiveMode, focusModeEnabled } = useUIStore()
+  const [transitioning, setTransitioning] = useState(false)
+  const [displayInterface, setDisplayInterface] = useState(currentInterface)
 
   const backgroundMode = useMemo(() => getBackgroundMode(currentInterface), [currentInterface])
   const backgroundDensity = useMemo(() => getBackgroundDensity(currentInterface), [currentInterface])
   const backgroundSpeed = useMemo(() => getBackgroundSpeed(currentInterface), [currentInterface])
   const bgClass = useMemo(() => getInterfaceBgClass(currentInterface), [currentInterface])
+
+  // Interface transition with background crossfade
+  useEffect(() => {
+    if (currentInterface !== displayInterface) {
+      setTransitioning(true)
+      const timer = setTimeout(() => {
+        setDisplayInterface(currentInterface)
+        setTransitioning(false)
+      }, 300) // Match CSS transition duration
+      return () => clearTimeout(timer)
+    }
+  }, [currentInterface, displayInterface])
+
+  // Determine if we should minimize backgrounds
+  const isImmersive = immersiveMode || focusModeEnabled
+  const isWriting = currentInterface === 'writing'
+  const minimizeBackground = isWriting && isImmersive
 
   // Render current interface with per-component Suspense boundaries
   const renderInterface = () => {
@@ -113,7 +134,7 @@ function AppContent() {
       </div>
     )
 
-    switch (currentInterface) {
+    switch (displayInterface) {
       case 'chat':
         return (
           <Suspense fallback={loadingFallback}>
@@ -142,25 +163,40 @@ function AppContent() {
   }
 
   return (
-    <div className={`h-screen w-screen overflow-hidden relative bg-layered ${bgClass}`}>
+    <div
+      className={`h-screen w-screen overflow-hidden relative bg-layered ${bgClass} ${transitioning ? 'bg-transitioning' : ''}`}
+    >
       {/* Layer 1: CSS Particle Background (pure CSS, zero JS overhead) */}
       {/* Subtle floating particles above Canvas for depth */}
-      <div className="bg-layered__particles">
+      <div
+        className="bg-layered__particles transition-opacity duration-500"
+        style={{
+          opacity: minimizeBackground ? 0.3 : 1,
+        }}
+      >
         <ParticleBackground
           particleCount={currentInterface === 'writing' ? 4 : 8}
           interfaceType={currentInterface as 'chat' | 'settings' | 'writing'}
+          showConnections={!minimizeBackground}
+          mouseInteraction={!minimizeBackground}
         />
       </div>
 
       {/* Layer 2: Canvas Dynamic Background (mode switches with interface) */}
       {/* Primary visual interest - adapts to interface personality */}
-      <div className="bg-layered__gradient">
+      <div
+        className="bg-layered__gradient transition-opacity duration-500"
+        style={{
+          opacity: minimizeBackground ? 0.5 : 1,
+        }}
+      >
         <DynamicBackground
           mode={backgroundMode}
           density={backgroundDensity}
           speed={backgroundSpeed}
           className="opacity-50"
           interfaceType={currentInterface as 'chat' | 'settings' | 'writing'}
+          immersive={minimizeBackground}
         />
       </div>
 

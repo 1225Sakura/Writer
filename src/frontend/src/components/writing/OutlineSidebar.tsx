@@ -76,18 +76,12 @@ function TreeNode({
     <div className="select-none relative">
       {/* Drag drop indicator - before */}
       {isDragOver && dragOverPosition === 'before' && (
-        <div className="absolute -top-[1px] left-0 right-0 z-10">
-          <div className="h-[2px] rounded-full bg-[var(--accent-primary)] shadow-[0_0_8px_rgba(94,106,210,0.7)]" />
-          <div className="absolute -top-[3px] left-0 w-2.5 h-2.5 rounded-full bg-[var(--accent-primary)] shadow-[0_0_6px_rgba(94,106,210,0.9)]" />
-        </div>
+        <div className="drag-over-indicator" style={{ top: '-1px' }} />
       )}
 
       {/* Drag drop indicator - after */}
       {isDragOver && dragOverPosition === 'after' && (
-        <div className="absolute -bottom-[1px] left-0 right-0 z-10">
-          <div className="h-[2px] rounded-full bg-[var(--accent-primary)] shadow-[0_0_8px_rgba(94,106,210,0.7)]" />
-          <div className="absolute -top-[3px] left-0 w-2.5 h-2.5 rounded-full bg-[var(--accent-primary)] shadow-[0_0_6px_rgba(94,106,210,0.9)]" />
-        </div>
+        <div className="drag-over-indicator" style={{ bottom: '-1px' }} />
       )}
 
       <div
@@ -97,7 +91,7 @@ function TreeNode({
             ? 'text-[var(--accent-primary)]'
             : 'hover:bg-[var(--color-surface-hover)] text-[var(--text-secondary)]'
           }
-          ${isDragging ? 'opacity-30 scale-[0.97] rotate-1' : 'opacity-100'}
+          ${isDragging ? 'dragging-item' : 'opacity-100'}
         `}
         style={{
           paddingLeft: `${depth * 18 + 10}px`,
@@ -114,11 +108,10 @@ function TreeNode({
         {isSelected && (
           <motion.div
             layoutId="outline-selected-indicator"
-            className="absolute left-0 top-1.5 bottom-1.5 w-[3px] rounded-r-full"
+            className="outline-active-glow"
             style={{
-              background: `linear-gradient(180deg, ${indentColor} 0%, color-mix(in srgb, ${indentColor} 60%, transparent) 100%)`,
-              boxShadow: `0 0 10px color-mix(in srgb, ${indentColor} 40%, transparent), 0 0 20px color-mix(in srgb, ${indentColor} 20%, transparent)`,
-            }}
+              '--active-color': indentColor,
+            } as React.CSSProperties}
             transition={{ type: 'spring', stiffness: 500, damping: 35 }}
           />
         )}
@@ -126,15 +119,13 @@ function TreeNode({
         {/* Indent guide line */}
         {depth > 0 && (
           <div
-            className="absolute pointer-events-none"
+            className="outline-indent-guide"
             style={{
               left: `${(depth - 1) * 18 + 18}px`,
               top: '0',
               bottom: '0',
-              width: '1.5px',
-              background: `linear-gradient(180deg, color-mix(in srgb, ${indentColor} 25%, transparent) 0%, color-mix(in srgb, ${indentColor} 15%, transparent) 50%, color-mix(in srgb, ${indentColor} 25%, transparent) 100%)`,
-              opacity: 0.6,
-            }}
+              '--indent-color': indentColor,
+            } as React.CSSProperties}
           />
         )}
 
@@ -181,17 +172,43 @@ function TreeNode({
           {item.title}
         </span>
 
-        {/* Status badge */}
+        {/* Status badge with progress ring for completed chapters */}
         {depth === 0 && (
-          <span
-            className="text-[9px] px-1.5 py-0.5 rounded-full font-medium flex-shrink-0"
-            style={{
-              background: statusInfo.bg,
-              color: statusInfo.color,
-            }}
-          >
-            {statusInfo.label}
-          </span>
+          <div className="flex items-center gap-1.5 flex-shrink-0">
+            {status === 'completed' && (
+              <svg className="progress-ring w-3.5 h-3.5" viewBox="0 0 16 16">
+                <circle className="progress-ring__track" cx="8" cy="8" r="6" />
+                <circle
+                  className="progress-ring__fill"
+                  cx="8" cy="8" r="6"
+                  strokeDasharray={`${2 * Math.PI * 6}`}
+                  strokeDashoffset={0}
+                  style={{ '--progress-color': 'var(--color-success)' } as React.CSSProperties}
+                />
+              </svg>
+            )}
+            {status === 'writing' && (
+              <svg className="progress-ring w-3.5 h-3.5" viewBox="0 0 16 16">
+                <circle className="progress-ring__track" cx="8" cy="8" r="6" />
+                <circle
+                  className="progress-ring__fill"
+                  cx="8" cy="8" r="6"
+                  strokeDasharray={`${2 * Math.PI * 6}`}
+                  strokeDashoffset={`${2 * Math.PI * 6 * 0.3}`}
+                  style={{ '--progress-color': 'var(--accent-primary)' } as React.CSSProperties}
+                />
+              </svg>
+            )}
+            <span
+              className="text-[9px] px-1.5 py-0.5 rounded-full font-medium"
+              style={{
+                background: statusInfo.bg,
+                color: statusInfo.color,
+              }}
+            >
+              {statusInfo.label}
+            </span>
+          </div>
         )}
 
         {/* Word count */}
@@ -223,15 +240,13 @@ function TreeNode({
             className="overflow-hidden relative"
           >
             <div
-              className="absolute pointer-events-none"
+              className="outline-indent-guide"
               style={{
                 left: `${depth * 18 + 18}px`,
                 top: '0',
                 bottom: '4px',
-                width: '1.5px',
-                background: `linear-gradient(180deg, color-mix(in srgb, ${indentColor} 20%, transparent) 0%, transparent 100%)`,
-                opacity: 0.5,
-              }}
+                '--indent-color': indentColor,
+              } as React.CSSProperties}
             />
             {item.children.map((child) => (
               <TreeNode

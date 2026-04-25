@@ -381,7 +381,7 @@ export function WritingCanvas() {
     editorProps: {
       attributes: {
         class: 'writing-area max-w-none focus:outline-none min-h-full px-8 py-6 immersive-canvas',
-        style: 'caret-color: var(--color-character);',
+        style: 'caret-color: var(--color-character); --glow-primary: var(--color-character);',
       },
     },
   })
@@ -522,9 +522,9 @@ export function WritingCanvas() {
       className={`h-full flex flex-col ${typewriterMode ? 'typewriter-mode' : ''}`}
       style={{ backgroundColor: 'var(--writing-bg)' }}
     >
-      {/* 写作区域 - enhanced paper texture with layered gradients */}
+      {/* 写作区域 - enhanced paper texture with layered gradients + vignette */}
       <div
-        className="flex-1 overflow-y-auto relative writing-surface"
+        className={`flex-1 overflow-y-auto relative writing-surface writing-surface--textured ${focusModeEnabled ? 'vignette-overlay active' : 'vignette-overlay'}`}
         style={{
           backgroundImage: `
             radial-gradient(ellipse 80% 50% at 50% -10%, color-mix(in srgb, var(--accent-primary) 2%, transparent) 0%, transparent 60%),

@@ -149,3 +149,16 @@ export type { BentoGridProps, BentoItemProps, BentoItemSize, BentoItemColor } fr
 
 export { PremiumCard, PremiumCardHeader, PremiumCardContent, PremiumCardFooter } from './PremiumCard'
 export type { PremiumCardProps, PremiumCardHeaderProps, PremiumCardContentProps, PremiumCardFooterProps } from './PremiumCard'
+
+// Decorative UI components
+export { DecorativeDivider } from './DecorativeDivider'
+export type { DecorativeDividerProps } from './DecorativeDivider'
+
+export { AnimatedBackground } from './AnimatedBackground'
+export type { AnimatedBackgroundProps, BackgroundMode } from './AnimatedBackground'
+
+export { StatusBadge } from './StatusBadge'
+export type { StatusBadgeProps, StatusType } from './StatusBadge'
+
+export { AvatarWithGlow } from './AvatarWithGlow'
+export type { AvatarWithGlowProps, AvatarGlowColor, AvatarSize } from './AvatarWithGlow'

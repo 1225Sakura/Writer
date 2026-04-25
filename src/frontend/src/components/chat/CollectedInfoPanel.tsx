@@ -10,6 +10,17 @@ import {
   BookOpen,
   Feather,
   X,
+  User,
+  Package,
+  MapPin,
+  Shield,
+  Globe,
+  Scale,
+  GitBranch,
+  FileText,
+  Lightbulb,
+  Wand2,
+  PenTool,
 } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 
@@ -27,6 +38,17 @@ const categoryLabels: Record<string, string> = {
   faction: '势力',
   rule: '规则',
   ifline: 'IF线',
+}
+
+const categoryIcons: Record<string, React.ReactNode> = {
+  world: <Globe className="w-3.5 h-3.5" />,
+  character: <User className="w-3.5 h-3.5" />,
+  item: <Package className="w-3.5 h-3.5" />,
+  location: <MapPin className="w-3.5 h-3.5" />,
+  faction: <Shield className="w-3.5 h-3.5" />,
+  rule: <Scale className="w-3.5 h-3.5" />,
+  ifline: <GitBranch className="w-3.5 h-3.5" />,
+  outline: <FileText className="w-3.5 h-3.5" />,
 }
 
 /* ============================================================
@@ -95,7 +117,7 @@ const itemVariants = {
 }
 
 /* ============================================================
-   ENTITY ITEM with confirm animation
+   ENTITY ITEM with enhanced hover light indicator
    ============================================================ */
 
 function EntityItem({ entity, onConfirm }: {
@@ -103,6 +125,7 @@ function EntityItem({ entity, onConfirm }: {
   onConfirm?: (id: string) => void
 }) {
   const [justConfirmed, setJustConfirmed] = useState(false)
+  const [isHovered, setIsHovered] = useState(false)
   const color = typeColors[entity.type] || 'var(--color-character)'
   const bgColor = typeBgColors[entity.type] || 'rgba(255,255,255,0.02)'
   const glowColor = typeGlowColors[entity.type] || 'rgba(255,255,255,0.1)'
@@ -121,6 +144,8 @@ function EntityItem({ entity, onConfirm }: {
     <motion.div
       className="entity-card group relative"
       variants={itemVariants}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
       whileHover={{
         y: -3,
         boxShadow: `0 8px 24px ${glowColor}, 0 2px 6px rgba(0,0,0,0.12)`,
@@ -141,12 +166,29 @@ function EntityItem({ entity, onConfirm }: {
         transition={{ duration: 0.2 }}
       />
 
-      {/* Left color bar with glow */}
+      {/* Left color bar - always visible */}
       <div className="entity-card__color-bar" style={{ backgroundColor: color }} />
+
+      {/* Hover light strip indicator */}
       <motion.div
-        className="entity-card__color-glow absolute left-0 top-0 bottom-0 w-1"
-        style={{ backgroundColor: color, opacity: 0 }}
-        whileHover={{ opacity: 0.3 }}
+        className="absolute left-0 top-2 bottom-2 w-[3px] rounded-full"
+        style={{
+          background: `linear-gradient(180deg, ${color} 0%, color-mix(in srgb, ${color} 50%, transparent) 100%)`,
+          filter: 'blur(1px)',
+        }}
+        initial={{ opacity: 0, scaleY: 0.6 }}
+        animate={isHovered ? { opacity: 0.8, scaleY: 1 } : { opacity: 0, scaleY: 0.6 }}
+        transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
+      />
+
+      {/* Glow effect on hover */}
+      <motion.div
+        className="absolute left-0 top-0 bottom-0 w-8 rounded-l-[var(--radius-lg)] pointer-events-none"
+        style={{
+          background: `linear-gradient(90deg, ${glowColor} 0%, transparent 100%)`,
+        }}
+        initial={{ opacity: 0 }}
+        animate={isHovered ? { opacity: 1 } : { opacity: 0 }}
         transition={{ duration: 0.2 }}
       />
 
@@ -253,17 +295,18 @@ function CategorySection({
           <ChevronRight className="w-3.5 h-3.5 text-secondary group-hover:text-primary transition-colors duration-150" />
         </motion.span>
 
-        {/* Color indicator with glow */}
-        <div className="relative">
-          <span
-            className="w-2.5 h-2.5 rounded-full flex-shrink-0 block"
-            style={{ backgroundColor: color }}
-          />
+        {/* Color indicator with icon */}
+        <div className="relative flex items-center justify-center w-6 h-6 rounded-md"
+          style={{ backgroundColor: `${color}18` }}
+        >
+          <span style={{ color }}>
+            {categoryIcons[type] || <Sparkles className="w-3.5 h-3.5" />}
+          </span>
           <motion.span
-            className="absolute inset-0 rounded-full"
+            className="absolute inset-0 rounded-md"
             style={{ backgroundColor: color }}
             initial={{ opacity: 0, scale: 0.5 }}
-            whileHover={{ opacity: 0.3, scale: 1.5 }}
+            whileHover={{ opacity: 0.12, scale: 1.1 }}
             transition={{ duration: 0.2 }}
           />
         </div>
@@ -334,29 +377,44 @@ function CategorySection({
 }
 
 /* ============================================================
-   EMPTY STATE
+   EMPTY STATE with richer guidance
    ============================================================ */
 
 function EmptyState() {
   return (
     <motion.div
-      className="text-center py-12 px-4"
+      className="text-center py-10 px-4"
       initial={{ opacity: 0, scale: 0.95 }}
       animate={{ opacity: 1, scale: 1 }}
       exit={{ opacity: 0, scale: 0.95 }}
       transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
     >
-      {/* Floating book illustration */}
+      {/* Floating book illustration with glow */}
       <motion.div
         className="relative w-20 h-20 mx-auto mb-5"
         animate={{ y: [0, -6, 0] }}
         transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
       >
-        <div className="absolute inset-0 rounded-2xl bg-surface-base border border-default flex items-center justify-center">
+        {/* Glow behind book */}
+        <motion.div
+          className="absolute inset-[-8px] rounded-2xl"
+          style={{
+            background: 'radial-gradient(circle, var(--accent-primary) 0%, transparent 70%)',
+            opacity: 0.08,
+            filter: 'blur(8px)',
+          }}
+          animate={{ opacity: [0.05, 0.12, 0.05], scale: [1, 1.1, 1] }}
+          transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
+        />
+        <div className="absolute inset-0 rounded-2xl bg-surface-base border border-default flex items-center justify-center relative z-10"
+          style={{
+            boxShadow: '0 4px 16px rgba(0,0,0,0.1), inset 0 1px 0 rgba(255,255,255,0.05)',
+          }}
+        >
           <BookOpen className="w-8 h-8 text-secondary" />
         </div>
         <motion.div
-          className="absolute -top-1 -right-1 w-6 h-6 rounded-full bg-surface-raised border border-default flex items-center justify-center"
+          className="absolute -top-1 -right-1 w-6 h-6 rounded-full bg-surface-raised border border-default flex items-center justify-center z-20"
           animate={{ rotate: [0, 10, -10, 0] }}
           transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut', delay: 0.5 }}
         >
@@ -364,15 +422,50 @@ function EmptyState() {
         </motion.div>
       </motion.div>
 
-      <p className="text-sm text-secondary font-medium">
+      <motion.p
+        className="text-sm text-secondary font-medium"
+        initial={{ opacity: 0, y: 8 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.15, duration: 0.3 }}
+      >
         开始对话后，这里将显示收集到的设定信息
-      </p>
-      <p className="text-xs mt-2 text-secondary opacity-50">
+      </motion.p>
+      <motion.p
+        className="text-xs mt-2 text-secondary opacity-50"
+        initial={{ opacity: 0, y: 6 }}
+        animate={{ opacity: 0.5, y: 0 }}
+        transition={{ delay: 0.25, duration: 0.3 }}
+      >
         AI 会自动识别并提取关键设定
-      </p>
+      </motion.p>
+
+      {/* Richer guidance tips */}
+      <motion.div
+        className="mt-6 space-y-2"
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.35, duration: 0.35 }}
+      >
+        {[
+          { icon: Lightbulb, text: '描述你的世界设定，AI 会自动提取' },
+          { icon: Wand2, text: '提及角色、物品、地点等关键词' },
+          { icon: PenTool, text: '点击确认将设定保存到右侧面板' },
+        ].map((tip, i) => (
+          <motion.div
+            key={tip.text}
+            className="flex items-center gap-2.5 px-3 py-2 rounded-lg bg-surface-base/50 border border-default/40"
+            initial={{ opacity: 0, x: -12 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.45 + i * 0.1, duration: 0.25 }}
+          >
+            <tip.icon className="w-3.5 h-3.5 text-accent-primary/60 flex-shrink-0" />
+            <span className="text-[11px] text-secondary leading-relaxed text-left">{tip.text}</span>
+          </motion.div>
+        ))}
+      </motion.div>
 
       {/* Decorative dots */}
-      <div className="flex items-center justify-center gap-1.5 mt-5">
+      <div className="flex items-center justify-center gap-1.5 mt-6">
         {[0, 1, 2].map((i) => (
           <motion.div
             key={i}
@@ -432,8 +525,8 @@ export function CollectedInfoPanel({ entities, onConfirmEntity, onClose }: Colle
         <div className="text-xs text-secondary">
           {confirmedCount}/{entities.length} 项已确认
         </div>
-        {/* Progress bar */}
-        <div className="mt-2.5 h-1.5 rounded-full overflow-hidden bg-surface-base">
+        {/* Progress bar with shimmer */}
+        <div className="mt-2.5 h-2 rounded-full overflow-hidden bg-surface-base relative">
           <motion.div
             className="h-full rounded-full relative"
             style={{
@@ -445,14 +538,23 @@ export function CollectedInfoPanel({ entities, onConfirmEntity, onClose }: Colle
             animate={{ width: `${progressPercent}%` }}
             transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
           >
-            {/* Shimmer effect */}
+            {/* Primary shimmer effect */}
             <motion.div
               className="absolute inset-0 rounded-full"
               style={{
-                background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent)',
+                background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.25), transparent)',
               }}
               animate={{ x: ['-100%', '200%'] }}
-              transition={{ duration: 2, repeat: Infinity, repeatDelay: 3, ease: 'easeInOut' }}
+              transition={{ duration: 1.8, repeat: Infinity, repeatDelay: 2.5, ease: 'easeInOut' }}
+            />
+            {/* Secondary subtle shimmer */}
+            <motion.div
+              className="absolute inset-0 rounded-full"
+              style={{
+                background: 'linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.1) 50%, transparent 100%)',
+              }}
+              animate={{ x: ['-200%', '100%'] }}
+              transition={{ duration: 2.5, repeat: Infinity, repeatDelay: 1, ease: 'easeInOut', delay: 0.5 }}
             />
           </motion.div>
         </div>

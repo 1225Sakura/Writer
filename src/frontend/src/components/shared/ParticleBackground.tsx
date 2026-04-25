@@ -1,31 +1,34 @@
 /**
- * ParticleBackground - Pure CSS floating particle background (ultra-lightweight)
+ * ParticleBackground - Enhanced CSS + JS hybrid floating particle background
  *
  * Uses absolutely positioned small elements (divs), each with different float animation
  * Supports multiple particle shapes: circles, diamonds, thin lines
- * Colors use semi-transparent theme colors, very lightweight, no JS thread usage
+ * Colors use semi-transparent theme colors, very lightweight, minimal JS thread usage
  * Supports theme color sync and performance optimization (CSS transform + will-change)
  *
- * Note: This component uses pure CSS keyframes, no JS animation calculations
- * Zero impact on writing performance
+ * Enhancements:
+ * - Particle connection lines (lightweight JS, Canvas overlay)
+ * - Mouse interaction (particles attracted/repelled by cursor)
+ * - Dynamic color changes based on interface type
+ * - Particle size random variation animation
+ * - IntersectionObserver + tab visibility pause
  *
- * Simplification strategy:
- * - Reduced particle count (default 8)
- * - Removed cross shape (box-shadow overhead)
- * - Removed connection SVG layer
- * - Removed trail effect layer
- * - Better coordination with Canvas background (lower opacity, simpler animations)
- * - CSS containment for performance isolation
+ * Performance optimizations:
+ * - CSS animation for basic float (GPU accelerated)
+ * - Canvas overlay only for connections (not per-frame DOM updates)
+ * - requestAnimationFrame with visibility-aware pausing
+ * - Reduced particle count on low-performance devices
  */
 
-import { useMemo, useRef, useEffect, useState } from 'react'
+import { useMemo, useRef, useEffect, useState, useCallback } from 'react'
 
 type ParticleShape = 'circle' | 'diamond' | 'line'
 
 interface ParticleConfig {
+  id: number
   size: number
-  left: string
-  top: string
+  left: number
+  top: number
   delay: string
   duration: string
   colorVar: string
@@ -33,10 +36,12 @@ interface ParticleConfig {
   shape: ParticleShape
   rotation: number
   scale: number
+  baseSize: number
 }
 
 /**
  * Theme color mapping - synced with CSS variables
+ * Interface-specific color palettes
  */
 const themeColors: Record<string, string> = {
   accent: 'var(--accent-primary)',
@@ -45,9 +50,14 @@ const themeColors: Record<string, string> = {
   location: 'var(--color-location)',
 }
 
+const interfaceColorMap: Record<string, string[]> = {
+  chat: ['accent', 'character', 'item'],
+  settings: ['accent', 'location', 'item'],
+  writing: ['accent', 'character', 'location'],
+}
+
 /**
- * Particle shape distribution weights - simplified: only lightweight shapes
- * Increased circle ratio for cleaner, more subtle appearance
+ * Particle shape distribution weights
  */
 const shapeWeights: ParticleShape[] = [
   'circle', 'circle', 'circle', 'circle', 'circle', 'circle',
@@ -80,13 +90,12 @@ function isLowPerformanceDevice(): boolean {
 }
 
 /**
- * Predefined particle configs using CSS variables for theme sync
- * Colors reference CSS variables, auto-follow theme changes
+ * Generate particle configs using CSS variables for theme sync
  */
-function useParticles(count: number = 8): ParticleConfig[] {
+function useParticles(count: number, interfaceType: string = 'chat'): ParticleConfig[] {
   return useMemo(() => {
-    const colorKeys = Object.keys(themeColors)
-    const rand = seededRandom(42) // Fixed seed for consistency
+    const colorKeys = interfaceColorMap[interfaceType] || interfaceColorMap.chat
+    const rand = seededRandom(42)
     const configs: ParticleConfig[] = []
 
     for (let i = 0; i < count; i++) {
@@ -94,27 +103,29 @@ function useParticles(count: number = 8): ParticleConfig[] {
       const shape = shapeWeights[Math.floor(rand() * shapeWeights.length)]
       const leftPct = 5 + (i * 90) / count + rand() * 6
       const topPct = 5 + rand() * 90
+      const baseSize = 1.5 + Math.floor(rand() * 2.5)
       configs.push({
-        size: 1.5 + Math.floor(rand() * 2.5),
-        left: `${leftPct}%`,
-        top: `${topPct}%`,
+        id: i,
+        size: baseSize,
+        left: leftPct,
+        top: topPct,
         delay: `${(i * 1.2) % 12}s`,
         duration: `${22 + rand() * 16}s`,
-        colorVar: themeColors[colorKey],
+        colorVar: themeColors[colorKey] || themeColors.accent,
         opacity: 0.008 + rand() * 0.015,
         shape,
         rotation: Math.floor(rand() * 360),
         scale: 0.6 + rand() * 0.4,
+        baseSize,
       })
     }
 
     return configs
-  }, [count])
+  }, [count, interfaceType])
 }
 
 /**
  * Get CSS styles for particle shape
- * Simplified: removed cross shape
  */
 function getParticleShapeStyle(shape: ParticleShape, size: number): React.CSSProperties {
   switch (shape) {
@@ -150,15 +161,16 @@ function getParticleShapeStyle(shape: ParticleShape, size: number): React.CSSPro
 interface ParticleBackgroundProps {
   particleCount?: number
   enabled?: boolean
-  /** Deprecated, always false for performance */
-  showConnections?: boolean
-  /** Interface type affects particle personality */
+  /** Interface type affects particle personality and colors */
   interfaceType?: 'chat' | 'settings' | 'writing'
+  /** Enable connection lines between nearby particles */
+  showConnections?: boolean
+  /** Enable mouse interaction (attract/repel) */
+  mouseInteraction?: boolean
 }
 
 /**
  * CSS animation keyframes - defined outside component to avoid recreation
- * Simplified animation: smaller movement range, longer cycle
  */
 const particleStyles = `
   @keyframes particle-float {
@@ -176,10 +188,25 @@ const particleStyles = `
     }
   }
 
+  @keyframes particle-pulse {
+    0%, 100% {
+      transform: scale(var(--particle-scale, 1));
+    }
+    50% {
+      transform: scale(calc(var(--particle-scale, 1) * 1.3));
+    }
+  }
+
   .particle-background .particle {
     animation: particle-float linear infinite;
     animation-duration: var(--particle-duration, 20s);
     animation-delay: var(--particle-delay, 0s);
+  }
+
+  .particle-background .particle--circle {
+    animation: particle-float linear infinite, particle-pulse ease-in-out infinite;
+    animation-duration: var(--particle-duration, 20s), calc(var(--particle-duration, 20s) * 0.6);
+    animation-delay: var(--particle-delay, 0s), calc(var(--particle-delay, 0s) + 2s);
   }
 `
 
@@ -203,32 +230,35 @@ function useParticleStyles() {
 }
 
 /**
- * ParticleBackground - Theme-aware particle background (ultra-lightweight)
+ * ParticleBackground - Enhanced theme-aware particle background
  *
  * Performance optimizations:
- * - Reduced particle count (default 8)
- * - Removed cross shape and box-shadow
- * - Removed connection SVG layer
- * - Removed trail effect layer
+ * - CSS animation for float + pulse (GPU accelerated)
+ * - Optional Canvas overlay for connection lines
  * - IntersectionObserver: pause rendering when not in viewport
- * - Pure CSS animation: zero JS overhead
+ * - Tab visibility: pause when tab hidden
+ * - Pure CSS animation: minimal JS overhead
  * - CSS variable colors: auto-follow theme changes
- * - Lower opacity: doesn't interfere with text reading
  * - prefers-reduced-motion: respects user preference
- * - CSS transform instead of top/left: GPU accelerated
- * - will-change hints browser optimization
  * - Low-performance devices auto-reduce particle count
  * - CSS containment for paint/layout isolation
  */
 export function ParticleBackground({
   particleCount: propParticleCount,
   enabled = true,
-  showConnections: _showConnections,
   interfaceType = 'chat',
+  showConnections = true,
+  mouseInteraction = true,
 }: ParticleBackgroundProps) {
   const containerRef = useRef<HTMLDivElement>(null)
+  const canvasRef = useRef<HTMLCanvasElement>(null)
   const [isVisible, setIsVisible] = useState(true)
+  const [isTabVisible, setIsTabVisible] = useState(true)
   const [prefersReducedMotion, setPrefersReducedMotion] = useState(false)
+  const mouseRef = useRef({ x: -1000, y: -1000 })
+  const animationRef = useRef<number>()
+  const particlesRef = useRef<ParticleConfig[]>([])
+  const particlePositionsRef = useRef<{ x: number; y: number; vx: number; vy: number }[]>([])
 
   // Adjust particle count based on device performance and interface type
   const particleCount = useMemo(() => {
@@ -239,7 +269,8 @@ export function ParticleBackground({
     return baseCount
   }, [propParticleCount, interfaceType])
 
-  const particles = useParticles(particleCount)
+  const particles = useParticles(particleCount, interfaceType)
+  particlesRef.current = particles
 
   // Inject CSS animation styles
   useParticleStyles()
@@ -251,6 +282,15 @@ export function ParticleBackground({
     const handler = (e: MediaQueryListEvent) => setPrefersReducedMotion(e.matches)
     mql.addEventListener('change', handler)
     return () => mql.removeEventListener('change', handler)
+  }, [])
+
+  // Tab visibility detection
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      setIsTabVisible(!document.hidden)
+    }
+    document.addEventListener('visibilitychange', handleVisibilityChange)
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange)
   }, [])
 
   // IntersectionObserver for visibility
@@ -268,6 +308,166 @@ export function ParticleBackground({
     observer.observe(container)
     return () => observer.disconnect()
   }, [])
+
+  // Initialize particle positions for JS interaction
+  const initPositions = useCallback(() => {
+    const container = containerRef.current
+    if (!container) return
+    const rect = container.getBoundingClientRect()
+    particlePositionsRef.current = particles.map((p) => ({
+      x: (p.left / 100) * rect.width,
+      y: (p.top / 100) * rect.height,
+      vx: 0,
+      vy: 0,
+    }))
+  }, [particles])
+
+  // Mouse tracking
+  useEffect(() => {
+    if (!mouseInteraction) return
+
+    const handleMouseMove = (e: MouseEvent) => {
+      const container = containerRef.current
+      if (!container) return
+      const rect = container.getBoundingClientRect()
+      mouseRef.current = {
+        x: e.clientX - rect.left,
+        y: e.clientY - rect.top,
+      }
+    }
+    const handleMouseLeave = () => {
+      mouseRef.current = { x: -1000, y: -1000 }
+    }
+
+    window.addEventListener('mousemove', handleMouseMove)
+    const container = containerRef.current
+    if (container) {
+      container.addEventListener('mouseleave', handleMouseLeave)
+    }
+    return () => {
+      window.removeEventListener('mousemove', handleMouseMove)
+      if (container) {
+        container.removeEventListener('mouseleave', handleMouseLeave)
+      }
+    }
+  }, [mouseInteraction])
+
+  // Canvas connection lines + mouse interaction loop
+  useEffect(() => {
+    if (!showConnections || !enabled || !isVisible || !isTabVisible || prefersReducedMotion) return
+
+    const canvas = canvasRef.current
+    const container = containerRef.current
+    if (!canvas || !container) return
+
+    const ctx = canvas.getContext('2d')
+    if (!ctx) return
+
+    initPositions()
+
+    let width = 0
+    let height = 0
+
+    const handleResize = () => {
+      const rect = container.getBoundingClientRect()
+      const dpr = Math.min(window.devicePixelRatio, 2)
+      width = rect.width
+      height = rect.height
+      canvas.width = width * dpr
+      canvas.height = height * dpr
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
+      initPositions()
+    }
+
+    handleResize()
+    window.addEventListener('resize', handleResize)
+
+    const connectionDist = 100
+    const maxConnections = 15
+    const mouseInfluenceDist = 150
+
+    const animate = () => {
+      ctx.clearRect(0, 0, width, height)
+
+      const positions = particlePositionsRef.current
+      const mouse = mouseRef.current
+
+      // Update positions with mouse interaction
+      if (mouseInteraction && mouse.x >= 0) {
+        positions.forEach((pos) => {
+          const dx = mouse.x - pos.x
+          const dy = mouse.y - pos.y
+          const dist = Math.sqrt(dx * dx + dy * dy)
+
+          if (dist < mouseInfluenceDist && dist > 5) {
+            const force = (mouseInfluenceDist - dist) / mouseInfluenceDist * 0.3
+            pos.vx += (dx / dist) * force
+            pos.vy += (dy / dist) * force
+          }
+
+          // Damping
+          pos.vx *= 0.95
+          pos.vy *= 0.95
+          pos.x += pos.vx
+          pos.y += pos.vy
+
+          // Keep within bounds (soft)
+          if (pos.x < 0) { pos.x = 0; pos.vx *= -0.5 }
+          if (pos.x > width) { pos.x = width; pos.vx *= -0.5 }
+          if (pos.y < 0) { pos.y = 0; pos.vy *= -0.5 }
+          if (pos.y > height) { pos.y = height; pos.vy *= -0.5 }
+        })
+      }
+
+      // Draw connections
+      let connectionCount = 0
+      for (let i = 0; i < positions.length && connectionCount < maxConnections; i++) {
+        for (let j = i + 1; j < positions.length && connectionCount < maxConnections; j++) {
+          const dx = positions[i].x - positions[j].x
+          const dy = positions[i].y - positions[j].y
+          const dist = Math.sqrt(dx * dx + dy * dy)
+
+          if (dist < connectionDist) {
+            const opacity = (1 - dist / connectionDist) * 0.015
+            ctx.beginPath()
+            ctx.moveTo(positions[i].x, positions[i].y)
+            ctx.lineTo(positions[j].x, positions[j].y)
+            ctx.strokeStyle = `rgba(94, 106, 210, ${opacity})`
+            ctx.lineWidth = 0.3
+            ctx.stroke()
+            connectionCount++
+          }
+        }
+
+        // Mouse connections
+        if (mouse.x >= 0) {
+          const mdx = mouse.x - positions[i].x
+          const mdy = mouse.y - positions[i].y
+          const mDist = Math.sqrt(mdx * mdx + mdy * mdy)
+          if (mDist < connectionDist * 0.8) {
+            const opacity = (1 - mDist / (connectionDist * 0.8)) * 0.02
+            ctx.beginPath()
+            ctx.moveTo(positions[i].x, positions[i].y)
+            ctx.lineTo(mouse.x, mouse.y)
+            ctx.strokeStyle = `rgba(232, 184, 125, ${opacity})`
+            ctx.lineWidth = 0.3
+            ctx.stroke()
+          }
+        }
+      }
+
+      animationRef.current = requestAnimationFrame(animate)
+    }
+
+    animationRef.current = requestAnimationFrame(animate)
+
+    return () => {
+      window.removeEventListener('resize', handleResize)
+      if (animationRef.current) {
+        cancelAnimationFrame(animationRef.current)
+      }
+    }
+  }, [showConnections, enabled, isVisible, isTabVisible, prefersReducedMotion, mouseInteraction, initPositions])
 
   if (!enabled || !isVisible || prefersReducedMotion) {
     return <div ref={containerRef} aria-hidden="true" />
@@ -290,18 +490,18 @@ export function ParticleBackground({
       }}
       aria-hidden="true"
     >
-      {/* Particle layer - simplified: only particles, no connections, no trails */}
-      {particles.map((p, i) => {
+      {/* Particle layer */}
+      {particles.map((p) => {
         const shapeStyle = getParticleShapeStyle(p.shape, p.size)
 
         return (
           <div
-            key={i}
+            key={p.id}
             className={`particle particle--${p.shape}`}
             style={{
               position: 'absolute',
-              left: p.left,
-              top: p.top,
+              left: `${p.left}%`,
+              top: `${p.top}%`,
               backgroundColor: p.colorVar,
               opacity: p.opacity,
               willChange: 'transform',
@@ -315,6 +515,21 @@ export function ParticleBackground({
           />
         )
       })}
+
+      {/* Connection lines canvas overlay */}
+      {showConnections && !isLowPerformanceDevice() && (
+        <canvas
+          ref={canvasRef}
+          style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            width: '100%',
+            height: '100%',
+            pointerEvents: 'none',
+          }}
+        />
+      )}
     </div>
   )
 }

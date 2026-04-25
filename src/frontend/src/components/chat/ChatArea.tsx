@@ -145,7 +145,7 @@ function EntityChips({ entities, onConfirm }: { entities?: ExtractedEntity[]; on
 }
 
 /* ============================================================
-   AI AVATAR with breathing animation
+   AI AVATAR with breathing glow animation
    ============================================================ */
 
 function AIAvatar({ isThinking = false }: { isThinking?: boolean }) {
@@ -167,6 +167,45 @@ function AIAvatar({ isThinking = false }: { isThinking?: boolean }) {
         ease: 'easeInOut',
       }}
     >
+      {/* Breathing glow ring - accent color */}
+      <motion.div
+        className="absolute inset-[-3px] rounded-full"
+        style={{
+          background: 'radial-gradient(circle, var(--accent-primary) 0%, transparent 70%)',
+          opacity: 0.25,
+          filter: 'blur(4px)',
+        }}
+        animate={prefersReducedMotion ? {} : {
+          scale: [1, 1.3, 1],
+          opacity: [0.15, 0.35, 0.15],
+        }}
+        transition={prefersReducedMotion ? { duration: 0 } : {
+          duration: isThinking ? 1.5 : 3,
+          repeat: Infinity,
+          ease: 'easeInOut',
+        }}
+      />
+
+      {/* Secondary subtle glow */}
+      <motion.div
+        className="absolute inset-[-6px] rounded-full"
+        style={{
+          background: 'radial-gradient(circle, var(--accent-primary) 0%, transparent 70%)',
+          opacity: 0.1,
+          filter: 'blur(8px)',
+        }}
+        animate={prefersReducedMotion ? {} : {
+          scale: [1.1, 1.4, 1.1],
+          opacity: [0.05, 0.15, 0.05],
+        }}
+        transition={prefersReducedMotion ? { duration: 0 } : {
+          duration: isThinking ? 2 : 4,
+          repeat: Infinity,
+          ease: 'easeInOut',
+          delay: 0.5,
+        }}
+      />
+
       <AnimatePresence>
         {isThinking && (
           <motion.div
@@ -178,18 +217,14 @@ function AIAvatar({ isThinking = false }: { isThinking?: boolean }) {
           />
         )}
       </AnimatePresence>
-      {!isThinking && (
-        <motion.div
-          className="absolute inset-0 rounded-full bg-accent-muted/20"
-          animate={prefersReducedMotion ? {} : { scale: [1, 1.2, 1], opacity: [0.15, 0.25, 0.15] }}
-          transition={prefersReducedMotion ? { duration: 0 } : { duration: 4, repeat: Infinity, ease: 'easeInOut' }}
-        />
-      )}
+
       <div
         className="w-8 h-8 rounded-full flex items-center justify-center relative z-10
                    bg-accent-muted border border-border-focus"
         style={{
-          boxShadow: isThinking ? 'var(--shadow-glow)' : 'var(--shadow-glow-sm)',
+          boxShadow: isThinking
+            ? '0 0 16px color-mix(in srgb, var(--accent-primary) 40%, transparent), 0 0 32px color-mix(in srgb, var(--accent-primary) 15%, transparent)'
+            : '0 0 8px color-mix(in srgb, var(--accent-primary) 25%, transparent), 0 0 16px color-mix(in srgb, var(--accent-primary) 10%, transparent)',
         }}
       >
         <Bot className="w-5 h-5 text-accent-primary" />
@@ -254,7 +289,7 @@ function MessageStatus({ status, timestamp }: { status?: 'sending' | 'sent' | 'e
 }
 
 /* ============================================================
-   CHAT BUBBLE with staggered slide-up entrance
+   CHAT BUBBLE with enhanced visual hierarchy
    ============================================================ */
 
 interface ChatBubbleProps {
@@ -296,12 +331,12 @@ function ChatBubble({ message, onEdit, onDelete, onConfirmEntity, index, isGroup
 
   // Different glow colors for AI vs user messages
   const bubbleGlowColor = isAssistant
-    ? 'rgba(94, 106, 210, 0.15)'
-    : 'rgba(94, 106, 210, 0.25)'
+    ? 'rgba(94, 106, 210, 0.12)'
+    : 'rgba(94, 106, 210, 0.20)'
 
   return (
     <motion.div
-      initial={prefersReducedMotion ? { opacity: 0 } : { opacity: 0, y: 24, scale: 0.96 }}
+      initial={prefersReducedMotion ? { opacity: 0 } : { opacity: 0, y: 28, scale: 0.95 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
       exit={prefersReducedMotion ? { opacity: 0 } : { opacity: 0, y: -8, scale: 0.96 }}
       transition={
@@ -309,22 +344,22 @@ function ChatBubble({ message, onEdit, onDelete, onConfirmEntity, index, isGroup
           ? { duration: 0.15 }
           : {
               type: 'spring',
-              stiffness: 400,
-              damping: 30,
-              delay: Math.min(index * 0.06, 0.2),
+              stiffness: 380,
+              damping: 28,
+              delay: Math.min(index * 0.08, 0.3),
             }
       }
-      className={`flex ${isAssistant ? 'justify-start' : 'justify-end'} ${isGrouped && !isFirstInGroup ? 'mb-1' : 'mb-5'}`}
+      className={`flex ${isAssistant ? 'justify-start' : 'justify-end'} ${isGrouped && !isFirstInGroup ? 'mb-1.5' : 'mb-6'}`}
       onMouseEnter={() => setShowActions(true)}
       onMouseLeave={() => setShowActions(false)}
     >
-      <div className={`flex gap-3 max-w-[80%] ${isAssistant ? 'flex-row' : 'flex-row-reverse'}`}>
+      <div className={`flex gap-3.5 max-w-[82%] ${isAssistant ? 'flex-row' : 'flex-row-reverse'}`}>
         {/* Avatar - only show for first message in group */}
         <motion.div
           className="flex-shrink-0 mt-1"
-          initial={prefersReducedMotion ? {} : { opacity: 0, scale: 0.8 }}
+          initial={prefersReducedMotion ? {} : { opacity: 0, scale: 0.7 }}
           animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.25, delay: 0.1 }}
+          transition={{ duration: 0.3, delay: Math.min(index * 0.08, 0.3) + 0.1 }}
           style={{ visibility: isFirstInGroup ? 'visible' : 'hidden', width: isFirstInGroup ? 'auto' : '32px' }}
         >
           {isAssistant ? (
@@ -343,25 +378,41 @@ function ChatBubble({ message, onEdit, onDelete, onConfirmEntity, index, isGroup
         {/* Bubble */}
         <div className="relative">
           <motion.div
-            className={`relative px-4 py-3.5 transition-all duration-200 ${
+            className={`relative px-[18px] py-4 transition-all duration-200 ${
               isAssistant
                 ? `bg-surface-raised text-primary ${isFirstInGroup ? 'rounded-2xl rounded-tl-2xl rounded-tr-lg rounded-bl-md rounded-br-lg' : 'rounded-lg rounded-tl-md rounded-tr-lg rounded-bl-md rounded-br-lg'}`
                 : `bg-accent-primary text-white ${isFirstInGroup ? 'rounded-2xl rounded-tl-lg rounded-tr-2xl rounded-bl-lg rounded-br-md' : 'rounded-lg rounded-tl-lg rounded-tr-md rounded-bl-lg rounded-br-md'}`
             }`}
             style={{
               boxShadow: isAssistant
-                ? `0 2px 8px rgba(0,0,0,0.15), 0 1px 3px rgba(0,0,0,0.1), inset 0 1px 0 rgba(255,255,255,0.05), 0 0 20px ${bubbleGlowColor}`
-                : `0 2px 8px rgba(94,106,210,0.25), 0 1px 3px rgba(0,0,0,0.1), inset 0 1px 0 rgba(255,255,255,0.15), 0 0 24px ${bubbleGlowColor}`,
+                ? `0 2px 10px rgba(0,0,0,0.12), 0 1px 4px rgba(0,0,0,0.08), inset 0 1px 0 rgba(255,255,255,0.04), 0 0 24px ${bubbleGlowColor}`
+                : `0 2px 10px rgba(94,106,210,0.20), 0 1px 4px rgba(0,0,0,0.08), inset 0 1px 0 rgba(255,255,255,0.12), 0 0 28px ${bubbleGlowColor}`,
             }}
-            whileHover={prefersReducedMotion ? {} : { scale: 1.01, y: -1 }}
+            whileHover={prefersReducedMotion ? {} : { scale: 1.008, y: -1 }}
           >
-            {/* Accent border for AI messages */}
+            {/* Left gradient border decoration for AI messages */}
             {isAssistant && (
               <motion.div
-                className="absolute left-0 top-0 bottom-0 w-0.5 rounded-full bg-gradient-to-b from-accent-primary/60 via-accent-primary to-accent-primary/30"
-                initial={prefersReducedMotion ? {} : { scaleY: 0, originY: 0 }}
-                animate={{ scaleY: 1 }}
-                transition={{ duration: 0.3, delay: 0.15 }}
+                className="absolute left-0 top-3 bottom-3 w-[3px] rounded-full"
+                style={{
+                  background: 'linear-gradient(180deg, var(--accent-primary) 0%, color-mix(in srgb, var(--accent-primary) 60%, transparent) 50%, transparent 100%)',
+                }}
+                initial={prefersReducedMotion ? {} : { scaleY: 0, opacity: 0 }}
+                animate={{ scaleY: 1, opacity: 1 }}
+                transition={{ duration: 0.4, delay: Math.min(index * 0.08, 0.3) + 0.15, ease: [0.22, 1, 0.36, 1] }}
+              />
+            )}
+
+            {/* Right gradient border decoration for user messages */}
+            {!isAssistant && (
+              <motion.div
+                className="absolute right-0 top-3 bottom-3 w-[3px] rounded-full"
+                style={{
+                  background: 'linear-gradient(180deg, rgba(255,255,255,0.5) 0%, rgba(255,255,255,0.2) 50%, transparent 100%)',
+                }}
+                initial={prefersReducedMotion ? {} : { scaleY: 0, opacity: 0 }}
+                animate={{ scaleY: 1, opacity: 1 }}
+                transition={{ duration: 0.4, delay: Math.min(index * 0.08, 0.3) + 0.15, ease: [0.22, 1, 0.36, 1] }}
               />
             )}
 
@@ -454,10 +505,10 @@ function ChatBubble({ message, onEdit, onDelete, onConfirmEntity, index, isGroup
 
           {/* Timestamp */}
           <motion.div
-            className={`mt-1.5 ${isAssistant ? 'ml-1' : 'mr-1 text-right'}`}
+            className={`mt-2 ${isAssistant ? 'ml-1' : 'mr-1 text-right'}`}
             initial={prefersReducedMotion ? {} : { opacity: 0, y: 4 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.2, delay: 0.2 }}
+            transition={{ duration: 0.25, delay: Math.min(index * 0.08, 0.3) + 0.2 }}
           >
             <MessageStatus timestamp={new Date(message.createdAt)} />
             {message.editedAt && (
@@ -477,7 +528,7 @@ function ChatBubble({ message, onEdit, onDelete, onConfirmEntity, index, isGroup
 }
 
 /* ============================================================
-   STREAMING BUBBLE
+   STREAMING BUBBLE with enhanced visual effects
    ============================================================ */
 
 function StreamingBubble({ content }: { content: string }) {
@@ -485,13 +536,13 @@ function StreamingBubble({ content }: { content: string }) {
 
   return (
     <motion.div
-      initial={prefersReducedMotion ? { opacity: 0 } : { opacity: 0, y: 12, scale: 0.97 }}
+      initial={prefersReducedMotion ? { opacity: 0 } : { opacity: 0, y: 20, scale: 0.96 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
       exit={prefersReducedMotion ? { opacity: 0 } : { opacity: 0, y: -6, scale: 0.97 }}
-      transition={prefersReducedMotion ? { duration: 0.15 } : { duration: 0.3, ease: [0.4, 0, 0.2, 1] }}
-      className="flex justify-start mb-5"
+      transition={prefersReducedMotion ? { duration: 0.15 } : { duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
+      className="flex justify-start mb-6"
     >
-      <div className="flex gap-3 max-w-[80%]">
+      <div className="flex gap-3.5 max-w-[82%]">
         <motion.div
           className="flex-shrink-0 mt-1"
           animate={prefersReducedMotion ? {} : { scale: [1, 1.05, 1] }}
@@ -501,14 +552,18 @@ function StreamingBubble({ content }: { content: string }) {
         </motion.div>
         <div className="relative">
           <motion.div
-            className="relative px-4 py-3.5 bg-surface-raised rounded-2xl rounded-tl-2xl rounded-tr-lg rounded-bl-md rounded-br-lg overflow-hidden"
+            className="relative px-[18px] py-4 bg-surface-raised rounded-2xl rounded-tl-2xl rounded-tr-lg rounded-bl-md rounded-br-lg overflow-hidden"
             style={{
-              boxShadow: '0 2px 8px rgba(0,0,0,0.15), 0 1px 3px rgba(0,0,0,0.1), 0 0 20px rgba(94, 106, 210, 0.12)',
+              boxShadow: '0 2px 10px rgba(0,0,0,0.12), 0 1px 4px rgba(0,0,0,0.08), 0 0 24px rgba(94, 106, 210, 0.10)',
             }}
           >
+            {/* Animated left gradient border */}
             <motion.div
-              className="absolute left-0 top-0 bottom-0 w-0.5 bg-gradient-to-b from-accent-primary via-accent-primary to-transparent"
-              animate={prefersReducedMotion ? {} : { opacity: [0.6, 1, 0.6] }}
+              className="absolute left-0 top-3 bottom-3 w-[3px] rounded-full"
+              style={{
+                background: 'linear-gradient(180deg, var(--accent-primary) 0%, color-mix(in srgb, var(--accent-primary) 60%, transparent) 50%, transparent 100%)',
+              }}
+              animate={prefersReducedMotion ? {} : { opacity: [0.5, 1, 0.5] }}
               transition={{ duration: 1.2, repeat: Infinity, ease: 'easeInOut' }}
             />
             <div className="text-sm whitespace-pre-wrap leading-relaxed text-primary">
@@ -521,10 +576,10 @@ function StreamingBubble({ content }: { content: string }) {
             </div>
           </motion.div>
           <motion.div
-            className="mt-1.5 ml-1 flex items-center gap-2"
+            className="mt-2 ml-1 flex items-center gap-2"
             initial={prefersReducedMotion ? {} : { opacity: 0, y: 4 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.2, delay: 0.1 }}
+            transition={{ duration: 0.25, delay: 0.1 }}
           >
             <span className="relative flex h-2 w-2">
               <motion.span

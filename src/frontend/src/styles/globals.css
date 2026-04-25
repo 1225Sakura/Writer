@@ -470,6 +470,21 @@
   --icon-success:   var(--color-success);
   --icon-warning:   var(--color-warning);
 
+  /* Missing surface tokens */
+  --color-surface-pressed:  #151a15;
+  --color-surface-elevated: #3a453a;
+  --color-surface-floating: #424f42;
+  --color-overlay: rgba(0, 0, 0, 0.55);
+  --color-overlay-light: rgba(0, 0, 0, 0.25);
+  --color-backdrop: rgba(26, 33, 26, 0.65);
+
+  /* Missing shadow tokens */
+  --shadow-card:        0 1px 4px rgba(0, 0, 0, 0.18), 0 1px 2px rgba(0, 0, 0, 0.12);
+  --shadow-drawer:      0 3px 16px rgba(0, 0, 0, 0.22), 0 2px 4px rgba(0, 0, 0, 0.12);
+  --shadow-float:       0 6px 24px rgba(0, 0, 0, 0.26), 0 3px 8px rgba(0, 0, 0, 0.14);
+  --shadow-elevated:    0 3px 10px rgba(0, 0, 0, 0.22), 0 2px 4px rgba(0, 0, 0, 0.12);
+  --shadow-elevated-lg: 0 6px 20px rgba(0, 0, 0, 0.28), 0 4px 6px rgba(0, 0, 0, 0.14);
+
   /* Legacy aliases for writing area */
   --ink-black:   #1e241e;
   --paper-white:  #e8efe0;
@@ -554,6 +569,21 @@
   --paper-frost:  #6b5a45;
   --smoke:        #9a8672;
 
+  /* Missing surface tokens */
+  --color-surface-pressed:  #e0d8c8;
+  --color-surface-elevated: #f0ebe0;
+  --color-surface-floating: #f5f0e6;
+  --color-overlay: rgba(61, 48, 32, 0.45);
+  --color-overlay-light: rgba(61, 48, 32, 0.20);
+  --color-backdrop: rgba(247, 242, 232, 0.72);
+
+  /* Missing shadow tokens */
+  --shadow-card:        0 1px 4px rgba(61, 48, 32, 0.08), 0 1px 2px rgba(61, 48, 32, 0.04);
+  --shadow-drawer:      0 3px 16px rgba(61, 48, 32, 0.12), 0 2px 4px rgba(61, 48, 32, 0.06);
+  --shadow-float:       0 6px 24px rgba(61, 48, 32, 0.14), 0 3px 8px rgba(61, 48, 32, 0.08);
+  --shadow-elevated:    0 3px 10px rgba(61, 48, 32, 0.10), 0 2px 4px rgba(61, 48, 32, 0.05);
+  --shadow-elevated-lg: 0 6px 20px rgba(61, 48, 32, 0.14), 0 4px 6px rgba(61, 48, 32, 0.07);
+
   /* Paper texture - enhanced for warm-paper */
   --paper-texture-opacity: 0.045;
 }
@@ -635,6 +665,21 @@
   --paper-white:  #e4ecf7;
   --paper-frost:  #9db5cf;
   --smoke:        #6a8299;
+
+  /* Missing surface tokens */
+  --color-surface-pressed:  #0a1018;
+  --color-surface-elevated: #283248;
+  --color-surface-floating: #303c54;
+  --color-overlay: rgba(0, 0, 0, 0.60);
+  --color-overlay-light: rgba(0, 0, 0, 0.30);
+  --color-backdrop: rgba(8, 12, 20, 0.72);
+
+  /* Missing shadow tokens */
+  --shadow-card:        0 1px 4px rgba(0, 0, 0, 0.22), 0 1px 2px rgba(0, 0, 0, 0.14);
+  --shadow-drawer:      0 3px 16px rgba(0, 0, 0, 0.28), 0 2px 4px rgba(0, 0, 0, 0.16);
+  --shadow-float:       0 6px 24px rgba(0, 0, 0, 0.32), 0 3px 8px rgba(0, 0, 0, 0.18);
+  --shadow-elevated:    0 3px 10px rgba(0, 0, 0, 0.26), 0 2px 4px rgba(0, 0, 0, 0.14);
+  --shadow-elevated-lg: 0 6px 20px rgba(0, 0, 0, 0.32), 0 4px 6px rgba(0, 0, 0, 0.16);
 
   /* Blue-tinted shadows for depth cohesion */
   --shadow-elevation-1: 0 1px 3px rgba(0, 0, 0, 0.25), 0 1px 2px rgba(0, 0, 0, 0.15);
@@ -727,6 +772,21 @@
   --paper-white:  #c8dcc8;
   --paper-frost:  #94b894;
   --smoke:        #5e7e5e;
+
+  /* Missing surface tokens */
+  --color-surface-pressed:  #070e0a;
+  --color-surface-elevated: #2a382a;
+  --color-surface-floating: #324232;
+  --color-overlay: rgba(0, 0, 0, 0.55);
+  --color-overlay-light: rgba(0, 0, 0, 0.25);
+  --color-backdrop: rgba(10, 18, 14, 0.70);
+
+  /* Missing shadow tokens */
+  --shadow-card:        0 1px 4px rgba(0, 0, 0, 0.20), 0 1px 2px rgba(0, 0, 0, 0.12);
+  --shadow-drawer:      0 3px 16px rgba(0, 0, 0, 0.26), 0 2px 4px rgba(0, 0, 0, 0.14);
+  --shadow-float:       0 6px 24px rgba(0, 0, 0, 0.30), 0 3px 8px rgba(0, 0, 0, 0.16);
+  --shadow-elevated:    0 3px 10px rgba(0, 0, 0, 0.24), 0 2px 4px rgba(0, 0, 0, 0.12);
+  --shadow-elevated-lg: 0 6px 20px rgba(0, 0, 0, 0.30), 0 4px 6px rgba(0, 0, 0, 0.15);
 
   /* Green-tinted shadows for depth cohesion */
   --shadow-elevation-1: 0 1px 3px rgba(0, 0, 0, 0.20), 0 1px 2px rgba(0, 0, 0, 0.12);
@@ -1707,6 +1767,369 @@ code, pre {
 }
 
 /* ============================================================
+   SECTION 10B: WRITING CANVAS ENHANCED VISUAL EFFECTS
+   ============================================================ */
+
+/* CSS Noise texture for rice paper effect */
+.writing-surface--textured {
+  position: relative;
+}
+
+.writing-surface--textured::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1;
+  opacity: var(--paper-texture-opacity, 0.035);
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+  background-repeat: repeat;
+  background-size: 200px 200px;
+  mix-blend-mode: overlay;
+}
+
+/* Vignette overlay for focus mode */
+.vignette-overlay {
+  position: relative;
+}
+
+.vignette-overlay::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 2;
+  background: radial-gradient(
+    ellipse 80% 60% at 50% 50%,
+    transparent 50%,
+    color-mix(in srgb, var(--ink-100) 8%, transparent) 85%,
+    color-mix(in srgb, var(--ink-100) 20%, transparent) 100%
+  );
+  opacity: 0;
+  transition: opacity 0.8s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.vignette-overlay.active::after {
+  opacity: 1;
+}
+
+/* Cursor glow effect - subtle bloom around caret */
+@keyframes caret-glow-pulse {
+  0%, 100% {
+    box-shadow: 0 0 2px color-mix(in srgb, var(--color-character) 30%, transparent),
+                0 0 4px color-mix(in srgb, var(--color-character) 15%, transparent);
+  }
+  50% {
+    box-shadow: 0 0 3px color-mix(in srgb, var(--color-character) 50%, transparent),
+                0 0 6px color-mix(in srgb, var(--color-character) 25%, transparent);
+  }
+}
+
+/* Current paragraph highlight - enhanced left indicator */
+.writing-area .tiptap p.is-current-paragraph {
+  position: relative;
+}
+
+.writing-area .tiptap p.is-current-paragraph::before {
+  content: '';
+  position: absolute;
+  left: -18px;
+  top: -2px;
+  bottom: -2px;
+  width: 3px;
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--accent-primary) 70%, transparent) 0%,
+    color-mix(in srgb, var(--color-character) 60%, transparent) 50%,
+    color-mix(in srgb, var(--accent-primary) 70%, transparent) 100%
+  );
+  border-radius: 2px;
+  opacity: 0.8;
+  box-shadow:
+    0 0 6px color-mix(in srgb, var(--accent-primary) 30%, transparent),
+    0 0 12px color-mix(in srgb, var(--accent-primary) 15%, transparent);
+  animation: current-paragraph-indicator-in 0.3s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+@keyframes current-paragraph-indicator-in {
+  from { opacity: 0; transform: translateX(-4px); }
+  to { opacity: 0.8; transform: translateX(0); }
+}
+
+/* Paragraph hover indicator - subtle left line */
+.writing-area .tiptap p:hover::before {
+  content: '';
+  position: absolute;
+  left: -14px;
+  top: 2px;
+  bottom: 2px;
+  width: 2px;
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--glow-primary) 60%, transparent) 0%,
+    transparent 100%
+  );
+  border-radius: 1px;
+  opacity: 0;
+  animation: paragraph-indicator-fade-in 0.2s ease forwards;
+}
+
+@keyframes paragraph-indicator-fade-in {
+  from { opacity: 0; transform: translateX(-2px); }
+  to { opacity: 0.5; transform: translateX(0); }
+}
+
+/* Enhanced paragraph spacing for Chinese reading */
+.writing-area .tiptap p {
+  margin-bottom: 1.75em;
+  line-height: 1.85;
+  text-indent: 2em;
+  transition: opacity 0.35s cubic-bezier(0.22, 1, 0.36, 1),
+              filter 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* Writing toolbar glassmorphism */
+.writing-toolbar--glass {
+  background: color-mix(in srgb, var(--color-surface-base) 85%, transparent) !important;
+  backdrop-filter: blur(16px) saturate(1.2);
+  -webkit-backdrop-filter: blur(16px) saturate(1.2);
+  border-bottom: 1px solid color-mix(in srgb, var(--border-subtle) 60%, transparent);
+}
+
+/* Toolbar button hover glow */
+.toolbar-btn-glow {
+  position: relative;
+  overflow: hidden;
+}
+
+.toolbar-btn-glow::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: radial-gradient(
+    circle at center,
+    color-mix(in srgb, var(--accent-primary) 20%, transparent) 0%,
+    transparent 70%
+  );
+  opacity: 0;
+  transition: opacity 0.25s cubic-bezier(0.22, 1, 0.36, 1);
+  pointer-events: none;
+}
+
+.toolbar-btn-glow:hover::before {
+  opacity: 1;
+}
+
+/* Active toolbar indicator - bottom glow bar */
+.toolbar-active-indicator {
+  position: absolute;
+  bottom: 0;
+  left: 20%;
+  right: 20%;
+  height: 2px;
+  border-radius: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    var(--accent-primary) 30%,
+    var(--accent-primary) 70%,
+    transparent 100%
+  );
+  box-shadow: 0 0 8px color-mix(in srgb, var(--accent-primary) 50%, transparent);
+  opacity: 0.8;
+}
+
+/* AI Drawer header gradient */
+.ai-drawer-header {
+  position: relative;
+  overflow: hidden;
+}
+
+.ai-drawer-header::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--accent-primary) 8%, transparent) 0%,
+    color-mix(in srgb, var(--accent-primary) 3%, transparent) 50%,
+    transparent 100%
+  );
+  pointer-events: none;
+}
+
+/* AI Operation card stagger animation */
+.ai-op-card {
+  transition: transform 0.25s cubic-bezier(0.22, 1, 0.36, 1),
+              box-shadow 0.25s cubic-bezier(0.22, 1, 0.36, 1),
+              border-color 0.2s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.ai-op-card:hover {
+  transform: translateY(-3px);
+  box-shadow:
+    0 8px 24px color-mix(in srgb, var(--ink-100) 12%, transparent),
+    0 0 16px color-mix(in srgb, var(--accent-primary) 12%, transparent);
+  border-color: color-mix(in srgb, var(--accent-primary) 30%, transparent);
+}
+
+/* AI icon rotation animation */
+@keyframes ai-icon-spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.ai-icon-spinning {
+  animation: ai-icon-spin 2s linear infinite;
+}
+
+/* Collaborator avatar online status */
+.collaborator-avatar {
+  position: relative;
+}
+
+.collaborator-avatar__status {
+  position: absolute;
+  bottom: -1px;
+  right: -1px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  border: 2px solid var(--color-surface-raised);
+  background: var(--color-ifline);
+  box-shadow: 0 0 4px color-mix(in srgb, var(--color-ifline) 50%, transparent);
+}
+
+.collaborator-avatar__status--online {
+  background: var(--color-ifline);
+}
+
+.collaborator-avatar__status--away {
+  background: var(--color-character);
+}
+
+.collaborator-avatar__status--offline {
+  background: var(--text-tertiary);
+}
+
+/* Cursor indicator with user color */
+.collaborator-cursor {
+  position: absolute;
+  width: 2px;
+  height: 1.2em;
+  border-radius: 1px;
+  transition: top 0.15s ease, left 0.15s ease;
+}
+
+.collaborator-cursor__label {
+  position: absolute;
+  top: -18px;
+  left: 0;
+  padding: 1px 6px;
+  border-radius: 3px;
+  font-size: 10px;
+  font-weight: 500;
+  white-space: nowrap;
+  color: var(--ink-100);
+}
+
+/* Timeline connector line */
+.timeline-connector {
+  position: absolute;
+  left: 11px;
+  top: 24px;
+  bottom: -8px;
+  width: 1.5px;
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--border-default) 80%, transparent) 0%,
+    color-mix(in srgb, var(--border-subtle) 60%, transparent) 100%
+  );
+}
+
+/* Outline sidebar enhancements */
+.outline-indent-guide {
+  position: absolute;
+  pointer-events: none;
+  width: 1.5px;
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--indent-color) 25%, transparent) 0%,
+    color-mix(in srgb, var(--indent-color) 15%, transparent) 50%,
+    color-mix(in srgb, var(--indent-color) 25%, transparent) 100%
+  );
+  opacity: 0.5;
+}
+
+.outline-active-glow {
+  position: absolute;
+  left: 0;
+  top: 4px;
+  bottom: 4px;
+  width: 3px;
+  border-radius: 0 2px 2px 0;
+  background: linear-gradient(
+    180deg,
+    var(--active-color) 0%,
+    color-mix(in srgb, var(--active-color) 60%, transparent) 100%
+  );
+  box-shadow:
+    0 0 8px color-mix(in srgb, var(--active-color) 35%, transparent),
+    0 0 16px color-mix(in srgb, var(--active-color) 18%, transparent);
+}
+
+/* Progress ring for chapter completion */
+.progress-ring {
+  transform: rotate(-90deg);
+}
+
+.progress-ring__track {
+  fill: none;
+  stroke: var(--border-subtle);
+  stroke-width: 2;
+}
+
+.progress-ring__fill {
+  fill: none;
+  stroke: var(--progress-color);
+  stroke-width: 2;
+  stroke-linecap: round;
+  transition: stroke-dashoffset 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+  filter: drop-shadow(0 0 2px color-mix(in srgb, var(--progress-color) 40%, transparent));
+}
+
+/* Drag visual enhancements */
+.dragging-item {
+  opacity: 0.35;
+  transform: scale(0.97) rotate(1deg);
+  filter: grayscale(0.3);
+}
+
+.drag-over-indicator {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 2px;
+  border-radius: 1px;
+  background: var(--accent-primary);
+  box-shadow: 0 0 8px color-mix(in srgb, var(--accent-primary) 50%, transparent);
+  z-index: 10;
+}
+
+.drag-over-indicator::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: -3px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--accent-primary);
+  box-shadow: 0 0 6px color-mix(in srgb, var(--accent-primary) 70%, transparent);
+}
+
+/* ============================================================
    SECTION 11: ENTITY HIGHLIGHTS
    ============================================================ */
 
@@ -1987,18 +2410,202 @@ code, pre {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 40px;
-  height: 40px;
+  width: 44px;
+  height: 44px;
   border-radius: var(--radius-md);
   background: var(--color-surface-raised);
   border: 1px solid var(--border-default);
   color: var(--text-secondary);
   transition: all 0.15s ease;
+  position: relative;
+  overflow: hidden;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .mobile-menu-btn:active {
   background: var(--color-surface-hover);
   transform: scale(0.95);
+}
+
+/* Mobile bottom sheet refinements */
+.mobile-bottom-sheet {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 50;
+  background: var(--color-surface-raised);
+  border-radius: var(--radius-2xl) var(--radius-2xl) 0 0;
+  border-top: 1px solid var(--border-default);
+  box-shadow: 0 -8px 40px rgba(0, 0, 0, 0.35), 0 -2px 8px rgba(0, 0, 0, 0.15);
+  max-height: 85vh;
+  transform: translateY(100%);
+  transition: transform 0.3s var(--ease-out);
+  display: flex;
+  flex-direction: column;
+}
+
+.mobile-bottom-sheet--open {
+  transform: translateY(0);
+}
+
+/* Mobile drawer overlay with enhanced blur */
+.mobile-drawer-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  background: var(--color-overlay);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+.mobile-drawer-overlay--open {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* ============================================================
+   SECTION 14C: MOBILE TOUCH FEEDBACK UTILITIES
+   ============================================================ */
+
+/* Tap highlight - ripple effect on touch devices */
+.tap-highlight {
+  position: relative;
+  overflow: hidden;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.tap-highlight::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at var(--tap-x, 50%) var(--tap-y, 50%),
+    color-mix(in srgb, var(--accent-primary) 25%, transparent) 0%,
+    transparent 60%);
+  opacity: 0;
+  transform: scale(0.5);
+  transition: opacity 0.3s ease, transform 0.3s ease;
+  pointer-events: none;
+}
+
+.tap-highlight:active::after {
+  opacity: 1;
+  transform: scale(1.5);
+  transition: opacity 0.1s ease, transform 0.1s ease;
+}
+
+/* Active state scale animation for buttons */
+.btn-active-scale {
+  transition: transform 0.15s cubic-bezier(0.16, 1, 0.3, 1),
+              background-color 0.15s ease,
+              box-shadow 0.15s ease;
+}
+
+.btn-active-scale:active {
+  transform: scale(0.96);
+}
+
+/* Touch-optimized button with ripple */
+.btn-touch {
+  position: relative;
+  overflow: hidden;
+  -webkit-tap-highlight-color: transparent;
+  min-height: 44px;
+  min-width: 44px;
+  transition: transform 0.15s cubic-bezier(0.16, 1, 0.3, 1),
+              background-color 0.15s ease;
+}
+
+.btn-touch::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at var(--tap-x, 50%) var(--tap-y, 50%),
+    currentColor 0%,
+    transparent 60%);
+  opacity: 0;
+  transform: scale(0);
+  transition: opacity 0.4s ease, transform 0.4s ease;
+  pointer-events: none;
+}
+
+.btn-touch:active::before {
+  opacity: 0.12;
+  transform: scale(2);
+  transition: opacity 0.1s ease, transform 0.1s ease;
+}
+
+.btn-touch:active {
+  transform: scale(0.96);
+}
+
+/* Enhanced touch target with visual feedback */
+.touch-feedback {
+  position: relative;
+  -webkit-tap-highlight-color: transparent;
+  transition: transform 0.15s ease, background-color 0.15s ease;
+}
+
+.touch-feedback::after {
+  content: '';
+  position: absolute;
+  inset: -4px;
+  border-radius: inherit;
+  background: color-mix(in srgb, var(--accent-primary) 10%, transparent);
+  opacity: 0;
+  transform: scale(0.9);
+  transition: opacity 0.2s ease, transform 0.2s ease;
+  pointer-events: none;
+  z-index: -1;
+}
+
+.touch-feedback:active::after {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.touch-feedback:active {
+  transform: scale(0.97);
+}
+
+/* Mobile scrollbar hide utility */
+.mobile-scrollbar-hide {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.mobile-scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+/* Touch-optimized card with press effect */
+.card-touch {
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1),
+              box-shadow 0.2s ease,
+              border-color 0.2s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.card-touch:active {
+  transform: scale(0.98) translateY(1px);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Bottom sheet handle indicator */
+.mobile-sheet-handle {
+  width: 36px;
+  height: 4px;
+  border-radius: 2px;
+  background: var(--border-default);
+  margin: 8px auto;
+  transition: background-color 0.2s ease;
+}
+
+.mobile-sheet-handle:active {
+  background: var(--border-strong);
 }
 
 /* Mobile compact toolbar */
@@ -2598,6 +3205,82 @@ code, pre {
   30%           { transform: translateY(-4px); }
 }
 
+/* ============================================================
+   SECTION 17A: NEW KEYFRAME ANIMATIONS (2026-04-25)
+   ============================================================ */
+
+/* Page load sequence - staggered entrance for page elements */
+@keyframes page-load-sequence {
+  0%   { opacity: 0; transform: translateY(12px) scale(0.98); }
+  60%  { opacity: 1; transform: translateY(-2px) scale(1.01); }
+  100% { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+/* Button ripple - click ripple expansion effect */
+@keyframes button-ripple {
+  0%   { transform: translate(-50%, -50%) scale(0); opacity: 0.45; }
+  50%  { opacity: 0.2; }
+  100% { transform: translate(-50%, -50%) scale(2.5); opacity: 0; }
+}
+
+/* Card flip - 3D flip animation */
+@keyframes card-flip-front {
+  0%   { transform: rotateY(0deg); }
+  100% { transform: rotateY(180deg); }
+}
+
+@keyframes card-flip-back {
+  0%   { transform: rotateY(-180deg); }
+  100% { transform: rotateY(0deg); }
+}
+
+/* Text shimmer - gradient sweep across text */
+@keyframes text-shimmer {
+  0%   { background-position: -200% center; }
+  100% { background-position: 200% center; }
+}
+
+/* Float particle - decorative background particle float */
+@keyframes float-particle {
+  0%, 100% {
+    transform: translateY(0) translateX(0) rotate(0deg);
+    opacity: var(--particle-opacity, 0.04);
+  }
+  25% {
+    transform: translateY(-30px) translateX(15px) rotate(90deg);
+    opacity: calc(var(--particle-opacity, 0.04) * 1.5);
+  }
+  50% {
+    transform: translateY(-15px) translateX(-10px) rotate(180deg);
+    opacity: var(--particle-opacity, 0.04);
+  }
+  75% {
+    transform: translateY(-40px) translateX(5px) rotate(270deg);
+    opacity: calc(var(--particle-opacity, 0.04) * 0.7);
+  }
+}
+
+/* Scale bounce - elastic scale for notification badges */
+@keyframes scale-bounce {
+  0%   { transform: scale(0); opacity: 0; }
+  40%  { transform: scale(1.15); opacity: 1; }
+  60%  { transform: scale(0.92); }
+  80%  { transform: scale(1.04); }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+/* Slide in bottom - entrance from below */
+@keyframes slide-in-bottom {
+  0%   { transform: translateY(24px); opacity: 0; }
+  100% { transform: translateY(0); opacity: 1; }
+}
+
+/* Fade scale in - combined fade and scale entrance */
+@keyframes fade-scale-in {
+  0%   { transform: scale(0.92); opacity: 0; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
 @keyframes cursor-blink {
   0%, 100% { opacity: 0; }
   50%      { opacity: 1; }
@@ -2663,6 +3346,19 @@ code, pre {
   0%   { background-position: 0% 50%; }
   50%  { background-position: 100% 50%; }
   100% { background-position: 0% 50%; }
+}
+
+/* Vertical shimmer for decorative dividers */
+@keyframes shimmer-vertical {
+  0%   { background-position: 0 -200%; }
+  100% { background-position: 0 200%; }
+}
+
+/* Aurora background shift for AnimatedBackground */
+@keyframes aurora-shift {
+  0%, 100% { transform: translateX(-5%) translateY(-2%) scale(1.05); opacity: 0.8; }
+  33%      { transform: translateX(3%) translateY(3%) scale(1.02); opacity: 1; }
+  66%      { transform: translateX(-2%) translateY(-3%) scale(1.08); opacity: 0.9; }
 }
 
 @keyframes glow-border-pulse {
@@ -2739,6 +3435,108 @@ code, pre {
 .animate-delay-200 { animation-delay: 200ms; }
 .animate-delay-300 { animation-delay: 300ms; }
 .animate-delay-500 { animation-delay: 500ms; }
+
+/* Stagger delay helpers for page-load-sequence */
+.animate-stagger-1  { animation-delay: 0.05s; }
+.animate-stagger-2  { animation-delay: 0.10s; }
+.animate-stagger-3  { animation-delay: 0.15s; }
+.animate-stagger-4  { animation-delay: 0.20s; }
+.animate-stagger-5  { animation-delay: 0.25s; }
+.animate-stagger-6  { animation-delay: 0.30s; }
+.animate-stagger-7  { animation-delay: 0.35s; }
+.animate-stagger-8  { animation-delay: 0.40s; }
+.animate-stagger-9  { animation-delay: 0.45s; }
+.animate-stagger-10 { animation-delay: 0.50s; }
+
+/* New animation utility classes */
+.animate-page-load {
+  animation: page-load-sequence 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  opacity: 0;
+}
+
+.animate-button-ripple {
+  position: relative;
+  overflow: hidden;
+}
+
+.animate-button-ripple::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background: currentColor;
+  animation: button-ripple 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  pointer-events: none;
+}
+
+.animate-card-flip-front {
+  animation: card-flip-front 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  backface-visibility: hidden;
+  transform-style: preserve-3d;
+}
+
+.animate-card-flip-back {
+  animation: card-flip-back 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  backface-visibility: hidden;
+  transform-style: preserve-3d;
+}
+
+.animate-text-shimmer {
+  background: linear-gradient(
+    90deg,
+    var(--text-primary) 0%,
+    var(--accent-100) 25%,
+    var(--text-primary) 50%,
+    var(--accent-100) 75%,
+    var(--text-primary) 100%
+  );
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: text-shimmer 3s linear infinite;
+}
+
+.animate-float-particle {
+  animation: float-particle var(--particle-duration, 12s) ease-in-out infinite;
+  animation-delay: var(--particle-delay, 0s);
+  will-change: transform, opacity;
+}
+
+.animate-scale-bounce {
+  animation: scale-bounce 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+.animate-slide-in-bottom {
+  animation: slide-in-bottom 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.animate-fade-scale-in {
+  animation: fade-scale-in 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* GPU acceleration utility */
+.gpu-accelerate {
+  transform: translateZ(0);
+  will-change: transform;
+  backface-visibility: hidden;
+}
+
+/* Will-change helpers (use sparingly) */
+.will-change-transform {
+  will-change: transform;
+}
+
+.will-change-opacity {
+  will-change: opacity;
+}
+
+.will-change-transform-opacity {
+  will-change: transform, opacity;
+}
 
 /* ============================================================
    SECTION 18: UTILITY CLASSES
@@ -3365,6 +4163,50 @@ code, pre {
   .animate-typing-dot-bounce, .animate-ping, .animate-ripple {
     animation: none !important;
     transition: none !important;
+  }
+
+  /* New animation fallbacks - instant state, no motion */
+  .animate-page-load,
+  .animate-button-ripple::after,
+  .animate-card-flip-front,
+  .animate-card-flip-back,
+  .animate-text-shimmer,
+  .animate-float-particle,
+  .animate-scale-bounce,
+  .animate-slide-in-bottom,
+  .animate-fade-scale-in {
+    animation: none !important;
+    transition: none !important;
+  }
+
+  .animate-page-load {
+    opacity: 1;
+    transform: none;
+  }
+
+  .animate-scale-bounce {
+    opacity: 1;
+    transform: none;
+  }
+
+  .animate-slide-in-bottom {
+    opacity: 1;
+    transform: none;
+  }
+
+  .animate-fade-scale-in {
+    opacity: 1;
+    transform: none;
+  }
+
+  .animate-text-shimmer {
+    background: none;
+    -webkit-text-fill-color: var(--text-primary);
+  }
+
+  .animate-card-flip-front,
+  .animate-card-flip-back {
+    transform: none;
   }
 }
 
@@ -4644,4 +5486,78 @@ code, pre {
   .status-indicator .pulse-ring {
     animation: none !important;
   }
+}
+
+/* ============================================================
+   Background transition effects
+   Smooth crossfade between interface backgrounds
+   ============================================================ */
+
+/* Interface background base transition */
+.bg-layered {
+  transition: background 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.bg-layered.bg-transitioning .bg-layered__gradient,
+.bg-layered.bg-transitioning .bg-layered__particles {
+  opacity: 0.3 !important;
+}
+
+/* Background layer smooth opacity transitions */
+.bg-layered__gradient {
+  transition: opacity 0.5s ease-in-out;
+}
+
+.bg-layered__particles {
+  transition: opacity 0.5s ease-in-out;
+}
+
+/* Canvas crossfade transition */
+.bg-layered__gradient canvas {
+  transition: opacity 0.7s ease-in-out;
+}
+
+/* Immersive mode background minimization */
+.immersive-mode .bg-layered__gradient {
+  opacity: 0.4 !important;
+}
+
+.immersive-mode .bg-layered__particles {
+  opacity: 0.2 !important;
+}
+
+/* Focus mode further reduction */
+.focus-mode .bg-layered__gradient {
+  opacity: 0.25 !important;
+}
+
+.focus-mode .bg-layered__particles {
+  opacity: 0.1 !important;
+}
+
+/* Writing interface specific - always more subdued */
+.bg-writing .bg-layered__gradient {
+  opacity: 0.7;
+}
+
+.bg-writing .bg-layered__particles {
+  opacity: 0.6;
+}
+
+/* Chat interface - full vibrancy */
+.bg-chat .bg-layered__gradient {
+  opacity: 1;
+}
+
+.bg-chat .bg-layered__particles {
+  opacity: 1;
+}
+
+/* Settings interface - balanced */
+.bg-settings .bg-layered__gradient {
+  opacity: 0.9;
+}
+
+.bg-settings .bg-layered__particles {
+  opacity: 0.85;
 }

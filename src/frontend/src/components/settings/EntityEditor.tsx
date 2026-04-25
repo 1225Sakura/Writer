@@ -20,7 +20,7 @@ const inputStyle = {
   transition: 'border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease',
 }
 
-// Focus glow style for inputs
+// Enhanced focus glow with bottom light bar
 const inputFocusGlow = (isFocused: boolean, color?: string) =>
   isFocused
     ? {
@@ -28,6 +28,35 @@ const inputFocusGlow = (isFocused: boolean, color?: string) =>
         borderColor: color || 'var(--border-focus)',
       }
     : {}
+
+// Decorative gradient divider between sections
+function SectionDivider() {
+  return (
+    <div className="relative h-px my-4 overflow-hidden">
+      <div
+        className="absolute inset-0"
+        style={{
+          background: 'linear-gradient(90deg, transparent 0%, var(--border-subtle) 20%, var(--accent-primary)40 50%, var(--border-subtle) 80%, transparent 100%)',
+        }}
+      />
+    </div>
+  )
+}
+
+// Paper texture background for textareas
+const paperTextureStyle = {
+  backgroundImage: `
+    linear-gradient(180deg, var(--color-surface-input) 0%, var(--color-surface-input) 100%),
+    repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 31px,
+      rgba(255,255,255,0.015) 31px,
+      rgba(255,255,255,0.015) 32px
+    )
+  `,
+  backgroundBlendMode: 'normal',
+}
 
 const labelStyle = {
   fontSize: '12px',
@@ -270,6 +299,7 @@ function FloatingLabelTextarea({
         className="w-full rounded-md text-sm focus:outline-none resize-none"
         style={{
           ...inputStyle,
+          ...paperTextureStyle,
           paddingLeft: '12px',
           paddingRight: '12px',
           paddingTop: '18px',
@@ -278,6 +308,19 @@ function FloatingLabelTextarea({
         }}
         animate={inputFocusGlow(isFocused, getGlowColor() || (getBorderColor() !== 'var(--border-default)' ? getBorderColor() : undefined))}
         transition={{ duration: 0.2 }}
+      />
+      {/* Bottom glow bar on focus */}
+      <motion.div
+        className="absolute bottom-0 left-2 right-2 h-[2px] rounded-full pointer-events-none"
+        initial={{ opacity: 0, scaleX: 0 }}
+        animate={{
+          opacity: isFocused ? 1 : 0,
+          scaleX: isFocused ? 1 : 0,
+        }}
+        transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
+        style={{
+          background: `linear-gradient(90deg, transparent, ${getGlowColor() || 'var(--accent-primary)'}, transparent)`,
+        }}
       />
       {maxLength && value.length > 0 && (
         <span
@@ -546,9 +589,9 @@ function EntityForm<T extends { name: string; description?: string }>({
           {extraFields}
         </motion.div>
       )}
+      <SectionDivider />
       <motion.div
-        className="flex items-center justify-between pt-4 mt-4"
-        style={{ borderTop: '1px solid var(--border-subtle)' }}
+        className="flex items-center justify-between pt-2"
         custom={fields.length + (extraFields ? 1 : 0)}
         variants={formFieldVariants}
       >
@@ -578,7 +621,7 @@ function EntityForm<T extends { name: string; description?: string }>({
           <motion.button
             type="submit"
             disabled={!isValid || saveState === 'saving'}
-            className="px-5 py-2 rounded-md text-sm font-medium transition-all disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-2"
+            className="px-5 py-2 rounded-md text-sm font-medium transition-all disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-2 relative overflow-hidden"
             style={{
               backgroundColor: isValid && saveState !== 'saving' ? 'var(--accent-primary)' : 'var(--color-surface-overlay)',
               color: isValid && saveState !== 'saving' ? '#fff' : 'var(--text-tertiary)',
@@ -596,6 +639,24 @@ function EntityForm<T extends { name: string; description?: string }>({
             }}
             whileTap={{ scale: 0.97 }}
           >
+            {/* Pulse hint animation when form is valid and idle */}
+            {isValid && saveState === 'idle' && (
+              <motion.div
+                className="absolute inset-0 rounded-md pointer-events-none"
+                animate={{
+                  boxShadow: [
+                    '0 0 0 0 rgba(94, 106, 210, 0)',
+                    '0 0 0 4px rgba(94, 106, 210, 0.15)',
+                    '0 0 0 0 rgba(94, 106, 210, 0)',
+                  ],
+                }}
+                transition={{
+                  duration: 2,
+                  repeat: Infinity,
+                  ease: 'easeInOut',
+                }}
+              />
+            )}
             {saveState === 'saving' ? (
               <>
                 <Loader2 className="w-4 h-4 animate-spin motion-reduce:animate-none" />

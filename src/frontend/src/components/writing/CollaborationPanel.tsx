@@ -172,8 +172,10 @@ function CollaborationStatus() {
             )}
           </motion.div>
         </div>
-        {/* Real-time activity feed */}
-        <div className="space-y-1.5">
+        {/* Real-time activity feed with timeline */}
+        <div className="space-y-1.5 relative pl-3">
+          {/* Timeline connector line */}
+          <div className="timeline-connector" />
           <ActivityItem
             icon={<Clock className="w-3 h-3" />}
             text="本章已写作 23 分钟"
@@ -216,14 +218,19 @@ function ActivityItem({
   highlight?: boolean
 }) {
   return (
-    <div
-      className={`flex items-center gap-2 text-xs px-1.5 py-1 rounded-md transition-all duration-150
+    <motion.div
+      initial={{ opacity: 0, x: -4 }}
+      animate={{ opacity: 1, x: 0 }}
+      transition={{ duration: 0.2, ease: [0.22, 1, 0.36, 1] }}
+      className={`flex items-center gap-2 text-xs px-1.5 py-1 rounded-md transition-all duration-150 relative
         ${highlight ? 'text-[var(--accent-primary)] bg-[var(--accent-muted)]' : 'text-[var(--text-secondary)] hover:bg-[var(--hover-bg)]'}`}
     >
+      {/* Timeline dot */}
+      <span className={`absolute -left-[7px] top-1/2 -translate-y-1/2 w-[5px] h-[5px] rounded-full ${highlight ? 'bg-[var(--accent-primary)]' : 'bg-[var(--border-default)]'}`} />
       <span className={highlight ? 'text-[var(--accent-primary)]' : 'text-[var(--text-tertiary)]'}>{icon}</span>
       <span className="flex-1">{text}</span>
       <span className="text-[10px] text-[var(--text-tertiary)] tabular-nums">{time}</span>
-    </div>
+    </motion.div>
   )
 }
 
@@ -285,6 +292,9 @@ function CollaboratorAvatars() {
 
   if (visibleChars.length === 0) return null
 
+  const statusColors = ['var(--color-ifline)', 'var(--color-character)', 'var(--color-location)', 'var(--color-item)']
+  const statusTypes = ['online', 'online', 'away', 'online'] as const
+
   return (
     <div className="flex items-center">
       <div className="flex -space-x-2">
@@ -294,9 +304,9 @@ function CollaboratorAvatars() {
             initial={{ opacity: 0, scale: 0.8, x: -10 }}
             animate={{ opacity: 1, scale: 1, x: 0 }}
             transition={{ delay: i * 0.08 }}
-            className="relative w-7 h-7 rounded-full flex items-center justify-center text-[10px] font-bold border-2"
+            className="collaborator-avatar relative w-7 h-7 rounded-full flex items-center justify-center text-[10px] font-bold border-2"
             style={{
-              backgroundColor: i % 2 === 0 ? 'var(--color-ifline)' : 'var(--color-character)',
+              backgroundColor: statusColors[i % statusColors.length],
               borderColor: 'var(--color-surface-raised)',
               color: 'var(--ink-100)',
               zIndex: visibleChars.length - i,
@@ -304,13 +314,14 @@ function CollaboratorAvatars() {
             title={char.name}
           >
             {char.name.charAt(0)}
-            {/* Online indicator ring for active characters */}
-            {i === 0 && (
-              <span
-                className="absolute -bottom-0.5 -right-0.5 w-2 h-2 rounded-full border border-[var(--color-surface-raised)]"
-                style={{ background: 'var(--color-ifline)' }}
-              />
-            )}
+            {/* Enhanced online status indicator with glow */}
+            <span
+              className={`collaborator-avatar__status collaborator-avatar__status--${statusTypes[i % statusTypes.length]}`}
+              style={{
+                background: statusColors[i % statusColors.length],
+                boxShadow: `0 0 4px color-mix(in srgb, ${statusColors[i % statusColors.length]} 60%, transparent)`,
+              }}
+            />
           </motion.div>
         ))}
       </div>

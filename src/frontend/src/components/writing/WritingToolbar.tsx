@@ -28,6 +28,7 @@ import {
   Bot,
   User,
   Sparkles,
+  ChevronDown,
 } from 'lucide-react'
 import React, { memo, useCallback, useState } from 'react'
 import { showToast } from '@/components/ui/Toast'
@@ -150,12 +151,15 @@ export function WritingToolbar() {
     { key: 'polish', label: '润色', icon: <Paintbrush className="w-3.5 h-3.5" />, shortcut: 'P', color: 'var(--color-vermillion)' },
   ] as const
 
+  const [toolbarCollapsed, setToolbarCollapsed] = useState(false)
+
   return (
-    <div
-      className="h-[var(--layout-topbar-height)] flex items-center px-3 sm:px-4 gap-1.5 sm:gap-2 layout-topbar overflow-x-auto writing-toolbar"
+    <motion.div
+      layout
+      transition={{ type: 'spring', stiffness: 400, damping: 30 }}
+      className={`flex items-center px-3 sm:px-4 gap-1.5 sm:gap-2 layout-topbar overflow-x-auto writing-toolbar writing-toolbar--glass ${toolbarCollapsed ? 'h-0 opacity-0 overflow-hidden' : 'h-[var(--layout-topbar-height)]'}`}
       style={{
         boxShadow: '0 1px 0 0 var(--border-subtle), 0 4px 20px color-mix(in srgb, var(--ink-100) 10%, transparent)',
-        background: 'var(--color-surface-base)',
       }}
     >
       {/* 左侧：返回聊天 + 返回设定 */}
@@ -304,6 +308,17 @@ export function WritingToolbar() {
         </div>
       </div>
 
+      {/* Toolbar collapse toggle */}
+      <motion.button
+        whileHover={{ scale: 1.1 }}
+        whileTap={{ scale: 0.9 }}
+        onClick={() => setToolbarCollapsed(!toolbarCollapsed)}
+        className="hidden md:flex items-center justify-center w-6 h-6 rounded-md text-[var(--text-tertiary)] hover:text-[var(--text-secondary)] transition-colors flex-shrink-0"
+        title={toolbarCollapsed ? '展开工具栏' : '收起工具栏'}
+      >
+        <ChevronDown className={`w-4 h-4 transition-transform duration-300 ${toolbarCollapsed ? 'rotate-180' : ''}`} />
+      </motion.button>
+
       {/* 右侧：字数统计、警告和主题切换 */}
       <div className="ml-auto flex items-center gap-1 sm:gap-1.5 flex-shrink-0">
         {/* AI生成状态指示 - enhanced with glow animation */}
@@ -416,7 +431,7 @@ export function WritingToolbar() {
           isActive={focusModeEnabled}
         />
       </div>
-    </div>
+    </motion.div>
   )
 }
 
@@ -493,7 +508,7 @@ const ToolbarButton = memo(function ToolbarButton({
       whileHover={{ scale: 1.04 }}
       whileTap={{ scale: 0.96 }}
       onClick={onClick}
-      className="relative flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all duration-200 overflow-hidden flex-shrink-0 group touch-target-min"
+      className="relative flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all duration-200 overflow-hidden flex-shrink-0 group touch-target-min toolbar-btn-glow"
       style={{
         color: isActive ? 'var(--text-primary)' : 'var(--text-secondary)',
         background: isActive ? 'var(--accent-primary)' : 'transparent',
@@ -541,14 +556,7 @@ const ToolbarButton = memo(function ToolbarButton({
         </span>
       )}
       {isActive && (
-        <motion.span
-          layoutId="toolbar-active-indicator"
-          className="absolute bottom-0.5 left-1/2 -translate-x-1/2 w-1/2 h-[2px] rounded-full"
-          style={{
-            background: 'linear-gradient(90deg, transparent, var(--text-primary), transparent)',
-            opacity: 0.5,
-          }}
-        />
+        <span className="toolbar-active-indicator" />
       )}
       {badge && (
         <span

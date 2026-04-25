@@ -28,7 +28,7 @@ import { cn } from '@/lib/utils'
 export type ShimmerTone = 'neutral' | 'warm' | 'cool' | 'accent'
 
 interface SmartSkeletonProps {
-  variant?: 'text' | 'card' | 'avatar' | 'chart' | 'button' | 'image' | 'list' | 'avatar-group' | 'table' | 'form'
+  variant?: 'text' | 'card' | 'avatar' | 'chart' | 'button' | 'image' | 'list' | 'avatar-group' | 'table' | 'form' | 'card-detail' | 'list-icon' | 'chart-bar' | 'chart-line'
   className?: string
   lines?: number
   width?: string | number
@@ -271,6 +271,175 @@ function FormSkeleton({ fields = 4, className, tone }: { fields?: number; classN
   )
 }
 
+/** Card detail skeleton — card with avatar, title, description rows */
+function CardDetailSkeleton({ className, tone }: { className?: string; tone?: ShimmerTone }) {
+  return (
+    <div
+      className={cn(
+        'rounded-[var(--radius-lg)] p-4 space-y-4 border',
+        className
+      )}
+      style={{
+        backgroundColor: 'var(--color-surface-raised)',
+        borderColor: 'var(--border-default)',
+      }}
+    >
+      {/* Header with avatar + title */}
+      <div className="flex items-center gap-3">
+        <AvatarSkeleton size={44} tone={tone} />
+        <div className="flex-1 space-y-2 min-w-0">
+          <ShimmerBlock height={16} width="55%" tone={tone} />
+          <ShimmerBlock height={12} width="35%" tone={tone} />
+        </div>
+      </div>
+      {/* Divider */}
+      <div className="h-px" style={{ backgroundColor: 'var(--border-subtle)' }} />
+      {/* Description rows */}
+      <div className="space-y-2.5">
+        <ShimmerBlock height={14} width="100%" tone={tone} />
+        <ShimmerBlock height={14} width="90%" tone={tone} />
+        <ShimmerBlock height={14} width="75%" tone={tone} />
+      </div>
+      {/* Footer action row */}
+      <div className="flex items-center justify-between pt-1">
+        <ShimmerBlock height={28} width={80} tone={tone} className="rounded-[var(--radius-md)]" />
+        <ShimmerBlock height={28} width={60} tone={tone} className="rounded-[var(--radius-md)]" />
+      </div>
+    </div>
+  )
+}
+
+/** List icon skeleton — multiple list items with icon placeholders */
+function ListIconSkeleton({ items = 5, className, tone }: { items?: number; className?: string; tone?: ShimmerTone }) {
+  return (
+    <div className={cn('space-y-1', className)}>
+      {Array.from({ length: items }).map((_, i) => (
+        <div
+          key={i}
+          className="flex items-center gap-3 p-3 rounded-[var(--radius-md)]"
+          style={{ backgroundColor: i % 2 === 0 ? 'transparent' : 'rgba(255,255,255,0.02)' }}
+        >
+          {/* Icon placeholder */}
+          <ShimmerBlock
+            width={32}
+            height={32}
+            tone={tone}
+            className="rounded-lg flex-shrink-0"
+          />
+          <div className="flex-1 space-y-1.5 min-w-0">
+            <ShimmerBlock height={14} width={`${40 + (i * 8) % 30}%`} tone={tone} />
+            <ShimmerBlock height={12} width={`${60 + (i * 5) % 25}%`} tone={tone} />
+          </div>
+          {/* Trailing icon placeholder */}
+          <ShimmerBlock
+            width={20}
+            height={20}
+            tone={tone}
+            className="rounded-md flex-shrink-0"
+          />
+        </div>
+      ))}
+    </div>
+  )
+}
+
+/** Chart bar skeleton — bar chart shape with shimmer */
+function ChartBarSkeleton({ className, tone }: { className?: string; tone?: ShimmerTone }) {
+  const bars = [65, 40, 85, 55, 70, 45, 90, 60, 75, 50]
+  return (
+    <div
+      className={cn(
+        'rounded-[var(--radius-lg)] p-4 border space-y-4',
+        className
+      )}
+      style={{
+        backgroundColor: 'var(--color-surface-raised)',
+        borderColor: 'var(--border-default)',
+      }}
+    >
+      <ShimmerBlock height={16} width="35%" tone={tone} />
+      <div className="flex items-end gap-2 h-36 px-2">
+        {bars.map((h, i) => (
+          <div key={i} className="flex-1 flex flex-col items-center gap-1.5">
+            <div
+              className="w-full relative overflow-hidden rounded-t-md"
+              style={{ height: `${h}%` }}
+            >
+              <ShimmerBlock
+                height="100%"
+                width="100%"
+                tone={tone}
+                className="rounded-t-md"
+              />
+            </div>
+          </div>
+        ))}
+      </div>
+      <div className="flex justify-between px-1">
+        {Array.from({ length: 5 }).map((_, i) => (
+          <ShimmerBlock key={i} height={10} width={24} tone={tone} className="rounded-sm" />
+        ))}
+      </div>
+    </div>
+  )
+}
+
+/** Chart line skeleton — line chart shape with shimmer */
+function ChartLineSkeleton({ className, tone }: { className?: string; tone?: ShimmerTone }) {
+  return (
+    <div
+      className={cn(
+        'rounded-[var(--radius-lg)] p-4 border space-y-4',
+        className
+      )}
+      style={{
+        backgroundColor: 'var(--color-surface-raised)',
+        borderColor: 'var(--border-default)',
+      }}
+    >
+      <ShimmerBlock height={16} width="40%" tone={tone} />
+      <div className="relative h-36 px-2">
+        {/* Grid lines */}
+        <div className="absolute inset-0 flex flex-col justify-between pointer-events-none">
+          {Array.from({ length: 5 }).map((_, i) => (
+            <div key={i} className="h-px w-full" style={{ backgroundColor: 'var(--border-subtle)', opacity: 0.3 }} />
+          ))}
+        </div>
+        {/* Line path placeholder */}
+        <svg className="absolute inset-0 w-full h-full" preserveAspectRatio="none">
+          <defs>
+            <linearGradient id={`lineGrad-${tone}`} x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor="var(--accent-primary)" stopOpacity="0.15" />
+              <stop offset="100%" stopColor="var(--accent-primary)" stopOpacity="0" />
+            </linearGradient>
+          </defs>
+          <path
+            d="M0,100 Q50,60 100,80 T200,40 T300,70 T400,30 T500,60 T600,20 T700,50 T800,35 T900,45 T1000,25"
+            fill={`url(#lineGrad-${tone})`}
+            stroke="var(--accent-primary)"
+            strokeWidth="2"
+            strokeOpacity="0.2"
+            vectorEffect="non-scaling-stroke"
+          />
+        </svg>
+        {/* Data point placeholders */}
+        <div className="absolute inset-0 flex items-end justify-between px-1">
+          {[80, 45, 65, 30, 55, 20, 50, 35, 60, 25].map((h, i) => (
+            <div key={i} className="flex flex-col items-center" style={{ height: `${h}%` }}>
+              <ShimmerBlock width={8} height={8} tone={tone} className="rounded-full" />
+            </div>
+          ))}
+        </div>
+      </div>
+      <div className="flex justify-between px-1">
+        {Array.from({ length: 5 }).map((_, i) => (
+          <ShimmerBlock key={i} height={10} width={28} tone={tone} className="rounded-sm" />
+        ))}
+      </div>
+    </div>
+  )
+}
+
 /** Chat message skeleton — avatar + text lines */
 function ChatMessageSkeleton({ className, tone }: { className?: string; tone?: ShimmerTone }) {
   return (
@@ -348,6 +517,14 @@ export function SmartSkeleton({
       return <TableSkeleton rows={lines} columns={typeof width === 'number' ? width : 4} className={className} tone={tone} />
     case 'form':
       return <FormSkeleton fields={typeof width === 'number' ? width : 4} className={className} tone={tone} />
+    case 'card-detail':
+      return <CardDetailSkeleton className={className} tone={tone} />
+    case 'list-icon':
+      return <ListIconSkeleton items={typeof width === 'number' ? width : 5} className={className} tone={tone} />
+    case 'chart-bar':
+      return <ChartBarSkeleton className={className} tone={tone} />
+    case 'chart-line':
+      return <ChartLineSkeleton className={className} tone={tone} />
     default:
       return <TextSkeleton lines={lines} className={className} tone={tone} />
   }

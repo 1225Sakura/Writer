@@ -8,9 +8,14 @@ import {
   Inbox,
   MessageSquareOff,
   Sparkles,
+  BookOpen,
+  Feather,
+  PenLine,
+  Compass,
   type LucideIcon,
 } from 'lucide-react'
 import { EntityIcon } from './Icon'
+import { TypewriterText } from './TypewriterText'
 
 export interface EmptyStateProps extends React.HTMLAttributes<HTMLDivElement> {
   icon?: EmptyStateIcon
@@ -19,6 +24,11 @@ export interface EmptyStateProps extends React.HTMLAttributes<HTMLDivElement> {
   action?: React.ReactNode
   size?: 'sm' | 'md' | 'lg'
   animated?: boolean
+  /** 是否启用打字机效果的引导文字 */
+  typewriter?: boolean
+  typewriterDelay?: number
+  /** 是否使用装饰性插图替代简单图标 */
+  illustration?: boolean
 }
 
 type EmptyStateIcon =
@@ -72,6 +82,165 @@ const sizeConfig = {
   },
 }
 
+/**
+ * DecorativeIllustration - 使用lucide图标组合成的装饰性插图效果
+ */
+function DecorativeIllustration({
+  icon,
+  size,
+  animated,
+}: {
+  icon: EmptyStateIcon
+  size: 'sm' | 'md' | 'lg'
+  animated: boolean
+}) {
+  const config = sizeConfig[size]
+  const containerSize = config.icon * 2.5
+
+  // 根据图标类型选择不同的插图组合
+  const getIllustration = () => {
+    const iconColor = 'var(--text-tertiary)'
+    const accentColor = 'var(--accent-primary)'
+    const s = config.icon * 0.5
+
+    switch (icon) {
+      case 'search':
+        return (
+          <>
+            <motion.div
+              className="absolute"
+              style={{ top: '15%', left: '20%' }}
+              animate={animated ? { y: [0, -4, 0], rotate: [0, 5, 0] } : {}}
+              transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
+            >
+              <Search size={s * 1.2} style={{ color: accentColor, opacity: 0.7 }} strokeWidth={1.5} />
+            </motion.div>
+            <motion.div
+              className="absolute"
+              style={{ bottom: '20%', right: '18%' }}
+              animate={animated ? { y: [0, 3, 0] } : {}}
+              transition={{ duration: 2.5, repeat: Infinity, ease: 'easeInOut', delay: 0.5 }}
+            >
+              <Compass size={s * 0.7} style={{ color: iconColor, opacity: 0.5 }} strokeWidth={1.5} />
+            </motion.div>
+            <motion.div
+              className="absolute"
+              style={{ top: '25%', right: '22%' }}
+              animate={animated ? { scale: [1, 1.1, 1], opacity: [0.3, 0.6, 0.3] } : {}}
+              transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut', delay: 1 }}
+            >
+              <Sparkles size={s * 0.6} style={{ color: accentColor, opacity: 0.4 }} strokeWidth={1.5} />
+            </motion.div>
+          </>
+        )
+      case 'book':
+      case 'ai':
+        return (
+          <>
+            <motion.div
+              className="absolute"
+              style={{ top: '18%', left: '22%' }}
+              animate={animated ? { y: [0, -3, 0], rotate: [-5, 5, -5] } : {}}
+              transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
+            >
+              <BookOpen size={s * 1.1} style={{ color: accentColor, opacity: 0.7 }} strokeWidth={1.5} />
+            </motion.div>
+            <motion.div
+              className="absolute"
+              style={{ bottom: '22%', right: '20%' }}
+              animate={animated ? { y: [0, 4, 0] } : {}}
+              transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut', delay: 0.3 }}
+            >
+              <Feather size={s * 0.8} style={{ color: iconColor, opacity: 0.5 }} strokeWidth={1.5} />
+            </motion.div>
+            <motion.div
+              className="absolute"
+              style={{ top: '30%', right: '18%' }}
+              animate={animated ? { scale: [1, 1.15, 1], opacity: [0.3, 0.5, 0.3] } : {}}
+              transition={{ duration: 2.5, repeat: Infinity, ease: 'easeInOut', delay: 0.8 }}
+            >
+              <PenLine size={s * 0.6} style={{ color: accentColor, opacity: 0.4 }} strokeWidth={1.5} />
+            </motion.div>
+          </>
+        )
+      default:
+        return (
+          <>
+            <motion.div
+              className="absolute"
+              style={{ top: '20%', left: '25%' }}
+              animate={animated ? { y: [0, -5, 0], rotate: [0, 8, 0] } : {}}
+              transition={{ duration: 3.5, repeat: Infinity, ease: 'easeInOut' }}
+            >
+              <FileQuestion size={s * 1.2} style={{ color: accentColor, opacity: 0.6 }} strokeWidth={1.5} />
+            </motion.div>
+            <motion.div
+              className="absolute"
+              style={{ bottom: '25%', right: '22%' }}
+              animate={animated ? { y: [0, 3, 0] } : {}}
+              transition={{ duration: 2.8, repeat: Infinity, ease: 'easeInOut', delay: 0.4 }}
+            >
+              <Sparkles size={s * 0.7} style={{ color: iconColor, opacity: 0.4 }} strokeWidth={1.5} />
+            </motion.div>
+            <motion.div
+              className="absolute"
+              style={{ top: '30%', right: '20%' }}
+              animate={animated ? { scale: [1, 1.2, 1], opacity: [0.2, 0.5, 0.2] } : {}}
+              transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut', delay: 1.2 }}
+            >
+              <Compass size={s * 0.5} style={{ color: accentColor, opacity: 0.3 }} strokeWidth={1.5} />
+            </motion.div>
+          </>
+        )
+    }
+  }
+
+  return (
+    <motion.div
+      className="relative flex items-center justify-center rounded-[var(--radius-xl)] mb-4"
+      style={{
+        width: containerSize,
+        height: containerSize,
+        background: 'var(--color-surface-raised)',
+        border: '1px solid var(--border-default)',
+      }}
+      {...(animated
+        ? {
+            initial: { scale: 0.8, opacity: 0 },
+            animate: { scale: 1, opacity: 1 },
+            transition: { duration: 0.6, delay: 0.1, ease: [0.22, 1, 0.36, 1] },
+          }
+        : {})}
+    >
+      {/* Background glow */}
+      <div
+        className="absolute inset-0 rounded-[var(--radius-xl)] pointer-events-none"
+        style={{
+          background: 'radial-gradient(circle at 50% 50%, var(--accent-muted) 0%, transparent 70%)',
+        }}
+      />
+      {/* Floating particles */}
+      {animated && (
+        <>
+          <motion.div
+            className="absolute w-1 h-1 rounded-full"
+            style={{ backgroundColor: 'var(--accent-primary)', top: '10%', left: '60%', opacity: 0.4 }}
+            animate={{ y: [0, -10, 0], opacity: [0.4, 0.8, 0.4] }}
+            transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut', delay: 0.2 }}
+          />
+          <motion.div
+            className="absolute w-1.5 h-1.5 rounded-full"
+            style={{ backgroundColor: 'var(--accent-primary)', bottom: '15%', left: '30%', opacity: 0.3 }}
+            animate={{ y: [0, 8, 0], opacity: [0.3, 0.6, 0.3] }}
+            transition={{ duration: 2.5, repeat: Infinity, ease: 'easeInOut', delay: 0.8 }}
+          />
+        </>
+      )}
+      {getIllustration()}
+    </motion.div>
+  )
+}
+
 export const EmptyState = React.forwardRef<HTMLDivElement, EmptyStateProps>(
   (
     {
@@ -82,6 +251,9 @@ export const EmptyState = React.forwardRef<HTMLDivElement, EmptyStateProps>(
       action,
       size = 'md',
       animated = true,
+      typewriter = false,
+      typewriterDelay = 600,
+      illustration = false,
       ...props
     },
     ref
@@ -112,49 +284,53 @@ export const EmptyState = React.forwardRef<HTMLDivElement, EmptyStateProps>(
         {...(wrapperProps as any)}
         {...props}
       >
-        {/* Icon container with subtle glow */}
-        <motion.div
-          className={clsx(
-            'relative flex items-center justify-center rounded-[var(--radius-xl)] mb-4',
-            'bg-[var(--color-surface-raised)] border border-[var(--border-default)]'
-          )}
-          style={{ width: config.icon * 2, height: config.icon * 2 }}
-          {...(animated
-            ? {
-                initial: { scale: 0.8, opacity: 0 },
-                animate: { scale: 1, opacity: 1 },
-                transition: { duration: 0.5, delay: 0.1, ease: [0.16, 1, 0.3, 1] },
-              }
-            : {})}
-        >
-          {isEntityIcon ? (
-            <EntityIcon
-              type={entityIconTypes[icon]}
-              size={size === 'sm' ? 'sm' : size === 'md' ? 'md' : 'lg'}
-              className="text-[var(--text-tertiary)]"
-              style={{ strokeWidth: 1.5 }}
+        {illustration ? (
+          <DecorativeIllustration icon={icon} size={size} animated={animated} />
+        ) : (
+          /* Standard icon container with subtle glow */
+          <motion.div
+            className={clsx(
+              'relative flex items-center justify-center rounded-[var(--radius-xl)] mb-4',
+              'bg-[var(--color-surface-raised)] border border-[var(--border-default)]'
+            )}
+            style={{ width: config.icon * 2, height: config.icon * 2 }}
+            {...(animated
+              ? {
+                  initial: { scale: 0.8, opacity: 0 },
+                  animate: { scale: 1, opacity: 1 },
+                  transition: { duration: 0.5, delay: 0.1, ease: [0.16, 1, 0.3, 1] },
+                }
+              : {})}
+          >
+            {isEntityIcon ? (
+              <EntityIcon
+                type={entityIconTypes[icon]}
+                size={size === 'sm' ? 'sm' : size === 'md' ? 'md' : 'lg'}
+                className="text-[var(--text-tertiary)]"
+                style={{ strokeWidth: 1.5 }}
+              />
+            ) : (
+              (() => {
+                const LucideIconComponent = iconMap[icon as keyof typeof iconMap]
+                return (
+                  <LucideIconComponent
+                    size={config.icon}
+                    className="text-[var(--text-tertiary)]"
+                    strokeWidth={1.5}
+                  />
+                )
+              })()
+            )}
+            {/* Subtle inner glow */}
+            <div
+              className="absolute inset-0 rounded-[var(--radius-xl)] pointer-events-none"
+              style={{
+                background:
+                  'radial-gradient(circle at 50% 50%, var(--accent-muted) 0%, transparent 70%)',
+              }}
             />
-          ) : (
-            (() => {
-              const LucideIconComponent = iconMap[icon as keyof typeof iconMap]
-              return (
-                <LucideIconComponent
-                  size={config.icon}
-                  className="text-[var(--text-tertiary)]"
-                  strokeWidth={1.5}
-                />
-              )
-            })()
-          )}
-          {/* Subtle inner glow */}
-          <div
-            className="absolute inset-0 rounded-[var(--radius-xl)] pointer-events-none"
-            style={{
-              background:
-                'radial-gradient(circle at 50% 50%, var(--accent-muted) 0%, transparent 70%)',
-            }}
-          />
-        </motion.div>
+          </motion.div>
+        )}
 
         {title && (
           <motion.h3
@@ -175,7 +351,7 @@ export const EmptyState = React.forwardRef<HTMLDivElement, EmptyStateProps>(
         )}
 
         {description && (
-          <motion.p
+          <motion.div
             className={clsx(
               config.desc,
               'text-[var(--text-tertiary)] max-w-[280px] leading-relaxed'
@@ -188,8 +364,17 @@ export const EmptyState = React.forwardRef<HTMLDivElement, EmptyStateProps>(
                 }
               : {})}
           >
-            {description}
-          </motion.p>
+            {typewriter ? (
+              <TypewriterText
+                text={description}
+                speed={35}
+                delay={typewriterDelay}
+                showCursor={false}
+              />
+            ) : (
+              description
+            )}
+          </motion.div>
         )}
 
         {action && (
@@ -203,7 +388,10 @@ export const EmptyState = React.forwardRef<HTMLDivElement, EmptyStateProps>(
                 }
               : {})}
           >
-            {action}
+            {/* Wrap action with glow hover effect */}
+            <div className="empty-state-action-glow">
+              {action}
+            </div>
           </motion.div>
         )}
       </Wrapper>
