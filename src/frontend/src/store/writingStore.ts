@@ -10,8 +10,18 @@ import {
   plotThreadApi,
   inspectionApi,
   aiApi,
+  stylesApi,
+  checkerApi,
 } from '../api/writing'
 import { writingSettingsApi } from '../api/settings'
+import type {
+  ConsistencyCheckResponse,
+  ContinuityCheckResponse,
+  PacingCheckResponse,
+  OOCCheckResponse,
+  HighPointCheckResponse,
+  ReaderPullCheckResponse,
+} from '../api/types'
 import { consumeStream } from '../api/chat'
 import type {
   Chapter,
@@ -103,6 +113,8 @@ interface LoadingState {
   plotThreads: boolean
   drafts: boolean
   ai: boolean
+  checkers: boolean
+  styles: boolean
 }
 
 interface WritingState {
@@ -154,6 +166,19 @@ interface WritingState {
 
   // Error
   error: string | null
+
+  // Checker results
+  checkerResults: {
+    consistency: ConsistencyCheckResponse | null
+    continuity: ContinuityCheckResponse | null
+    pacing: PacingCheckResponse | null
+    ooc: OOCCheckResponse | null
+    highPoint: HighPointCheckResponse | null
+    readerPull: ReaderPullCheckResponse | null
+  }
+
+  // Styles
+  availableStyles: Array<{ id: string; name: string; description: string }>
 }
 
 interface WritingActions {
@@ -224,6 +249,19 @@ interface WritingActions {
     chapterId: number,
     data: { inspection_type: string; issues_json?: string; suggestions_json?: string }
   ) => Promise<AIInspectionResult>
+
+  // AI Checker operations
+  runConsistencyCheck: (chapterId: number) => Promise<ConsistencyCheckResponse | null>
+  runContinuityCheck: (chapterId: number) => Promise<ContinuityCheckResponse | null>
+  runPacingCheck: (chapterId: number) => Promise<PacingCheckResponse | null>
+  runOOCCheck: (chapterId: number, characterId: number) => Promise<OOCCheckResponse | null>
+  runHighPointCheck: (chapterId: number) => Promise<HighPointCheckResponse | null>
+  runReaderPullCheck: (chapterId: number) => Promise<ReaderPullCheckResponse | null>
+  runAllChecks: (chapterId: number) => Promise<void>
+  clearCheckerResults: () => void
+
+  // Styles
+  fetchStyles: () => Promise<void>
 
   // AI operations with queue
   optimize: (content: string) => Promise<string>
@@ -316,6 +354,8 @@ export const useWritingStore = create<WritingState & WritingActions>()(
             plotThreads: false,
             drafts: false,
             ai: false,
+            checkers: false,
+            styles: false,
           },
           chapterNotes: [],
           sessionStartTime: null,
@@ -328,6 +368,15 @@ export const useWritingStore = create<WritingState & WritingActions>()(
           aiJobQueue: [],
           currentJobId: null,
           error: null,
+          checkerResults: {
+            consistency: null,
+            continuity: null,
+            pacing: null,
+            ooc: null,
+            highPoint: null,
+            readerPull: null,
+          },
+          availableStyles: [],
 
           // ----------------------------------------
           // Init
@@ -1040,6 +1089,204 @@ export const useWritingStore = create<WritingState & WritingActions>()(
           },
 
           // ----------------------------------------
+          // AI Checkers
+          // ----------------------------------------
+
+          runConsistencyCheck: async (chapterId) => {
+            set((state) => {
+              state.loading.checkers = true
+              state.error = null
+            })
+            try {
+              const result = await checkerApi.consistency(chapterId)
+              set((state) => {
+                state.checkerResults.consistency = result
+                // Map consistency issues to warnings
+                if (result.issues.length > 0) {
+                  state.powerImbalanceWarnings = result.issues
+                }
+              })
+              return result
+            } catch (error) {
+              const msg = error instanceof Error ? error.message : '一致性检查失败'
+              set((state) => { state.error = msg })
+              console.error('Consistency check failed:', error)
+              return null
+            } finally {
+              set((state) => { state.loading.checkers = false })
+            }
+          },
+
+          runContinuityCheck: async (chapterId) => {
+            set((state) => {
+              state.loading.checkers = true
+              state.error = null
+            })
+            try {
+              const result = await checkerApi.continuity(chapterId)
+              set((state) => { state.checkerResults.continuity = result })
+              return result
+            } catch (error) {
+              const msg = error instanceof Error ? error.message : '连续性检查失败'
+              set((state) => { state.error = msg })
+              console.error('Continuity check failed:', error)
+              return null
+            } finally {
+              set((state) => { state.loading.checkers = false })
+            }
+          },
+
+          runPacingCheck: async (chapterId) => {
+            set((state) => {
+              state.loading.checkers = true
+              state.error = null
+            })
+            try {
+              const result = await checkerApi.pacing(chapterId)
+              set((state) => { state.checkerResults.pacing = result })
+              return result
+            } catch (error) {
+              const msg = error instanceof Error ? error.message : '节奏检查失败'
+              set((state) => { state.error = msg })
+              console.error('Pacing check failed:', error)
+              return null
+            } finally {
+              set((state) => { state.loading.checkers = false })
+            }
+          },
+
+          runOOCCheck: async (chapterId, characterId) => {
+            set((state) => {
+              state.loading.checkers = true
+              state.error = null
+            })
+            try {
+              const result = await checkerApi.ooc(chapterId, characterId)
+              set((state) => {
+                state.checkerResults.ooc = result
+                // Map OOC violations to warnings
+                if (result.violations.length > 0) {
+                  state.oocWarnings = result.violations.map(
+                    (v) => `${v.location}: ${v.reason} (期望: ${v.expected_behavior}, 实际: ${v.actual_behavior})`
+                  )
+                }
+              })
+              return result
+            } catch (error) {
+              const msg = error instanceof Error ? error.message : 'OOC检查失败'
+              set((state) => { state.error = msg })
+              console.error('OOC check failed:', error)
+              return null
+            } finally {
+              set((state) => { state.loading.checkers = false })
+            }
+          },
+
+          runHighPointCheck: async (chapterId) => {
+            set((state) => {
+              state.loading.checkers = true
+              state.error = null
+            })
+            try {
+              const result = await checkerApi.highPoint(chapterId)
+              set((state) => { state.checkerResults.highPoint = result })
+              return result
+            } catch (error) {
+              const msg = error instanceof Error ? error.message : '高潮检查失败'
+              set((state) => { state.error = msg })
+              console.error('High point check failed:', error)
+              return null
+            } finally {
+              set((state) => { state.loading.checkers = false })
+            }
+          },
+
+          runReaderPullCheck: async (chapterId) => {
+            set((state) => {
+              state.loading.checkers = true
+              state.error = null
+            })
+            try {
+              const result = await checkerApi.readerPull(chapterId)
+              set((state) => { state.checkerResults.readerPull = result })
+              return result
+            } catch (error) {
+              const msg = error instanceof Error ? error.message : '读者吸引力检查失败'
+              set((state) => { state.error = msg })
+              console.error('Reader pull check failed:', error)
+              return null
+            } finally {
+              set((state) => { state.loading.checkers = false })
+            }
+          },
+
+          runAllChecks: async (chapterId) => {
+            set((state) => {
+              state.loading.checkers = true
+              state.error = null
+            })
+            try {
+              const [consistency, continuity, pacing, highPoint, readerPull] = await Promise.allSettled([
+                checkerApi.consistency(chapterId),
+                checkerApi.continuity(chapterId),
+                checkerApi.pacing(chapterId),
+                checkerApi.highPoint(chapterId),
+                checkerApi.readerPull(chapterId),
+              ])
+
+              set((state) => {
+                if (consistency.status === 'fulfilled') {
+                  state.checkerResults.consistency = consistency.value
+                  if (consistency.value.issues.length > 0) {
+                    state.powerImbalanceWarnings = consistency.value.issues
+                  }
+                }
+                if (continuity.status === 'fulfilled') state.checkerResults.continuity = continuity.value
+                if (pacing.status === 'fulfilled') state.checkerResults.pacing = pacing.value
+                if (highPoint.status === 'fulfilled') state.checkerResults.highPoint = highPoint.value
+                if (readerPull.status === 'fulfilled') state.checkerResults.readerPull = readerPull.value
+              })
+            } catch (error) {
+              const msg = error instanceof Error ? error.message : '批量检查失败'
+              set((state) => { state.error = msg })
+              console.error('All checks failed:', error)
+            } finally {
+              set((state) => { state.loading.checkers = false })
+            }
+          },
+
+          clearCheckerResults: () => {
+            set((state) => {
+              state.checkerResults = {
+                consistency: null,
+                continuity: null,
+                pacing: null,
+                ooc: null,
+                highPoint: null,
+                readerPull: null,
+              }
+              state.oocWarnings = []
+              state.powerImbalanceWarnings = []
+            })
+          },
+
+          // ----------------------------------------
+          // Styles
+          // ----------------------------------------
+
+          fetchStyles: async () => {
+            set((state) => { state.loading.styles = true })
+            try {
+              const styles = await stylesApi.list()
+              set((state) => { state.availableStyles = styles })
+            } catch (error) {
+              console.error('Failed to fetch styles:', error)
+            } finally {
+              set((state) => { state.loading.styles = false })
+            }
+          },
+
+          // ----------------------------------------
           // Config
           // ----------------------------------------
 
@@ -1281,6 +1528,8 @@ export function cleanupWritingStore() {
     state.loading.plotThreads = false
     state.loading.drafts = false
     state.loading.ai = false
+    state.loading.checkers = false
+    state.loading.styles = false
     state.error = null
     state.saveStatus = 'idle'
   })

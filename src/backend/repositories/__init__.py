@@ -9,6 +9,12 @@ from repositories.character_repository import CharacterRepository
 from repositories.chapter_repository import ChapterRepository
 from repositories.outline_repository import OutlineRepository
 from repositories.workflow_repository import WorkflowExecutionRepository, AgentExecutionLogRepository
+from repositories.item_repository import ItemRepository
+from repositories.location_repository import LocationRepository
+from repositories.faction_repository import FactionRepository
+from repositories.world_setting_repository import WorldSettingRepository
+from repositories.rule_repository import RuleRepository
+from repositories.writing_settings_repository import WritingSettingsRepository
 
 from core.domain.entities import (
     Character,
@@ -40,6 +46,12 @@ __all__ = [
     "OutlineRepository",
     "WorkflowExecutionRepository",
     "AgentExecutionLogRepository",
+    "ItemRepository",
+    "LocationRepository",
+    "FactionRepository",
+    "WorldSettingRepository",
+    "RuleRepository",
+    "WritingSettingsRepository",
     "get_repository",
 ]
 
@@ -51,6 +63,12 @@ _REPOSITORY_REGISTRY: Dict[str, Type[BaseRepository]] = {
     "outline": OutlineRepository,
     "workflow_execution": WorkflowExecutionRepository,
     "agent_execution_log": AgentExecutionLogRepository,
+    "item": ItemRepository,
+    "location": LocationRepository,
+    "faction": FactionRepository,
+    "world_setting": WorldSettingRepository,
+    "rule": RuleRepository,
+    "writing_settings": WritingSettingsRepository,
 }
 
 # Mapping from model class to its repository class.
@@ -60,6 +78,12 @@ _MODEL_REGISTRY: Dict[Type, Type[BaseRepository]] = {
     Outline: OutlineRepository,
     WorkflowExecution: WorkflowExecutionRepository,
     AgentExecutionLog: AgentExecutionLogRepository,
+    Item: ItemRepository,
+    Location: LocationRepository,
+    Faction: FactionRepository,
+    WorldSetting: WorldSettingRepository,
+    Rule: RuleRepository,
+    WritingSettings: WritingSettingsRepository,
 }
 
 
@@ -70,6 +94,12 @@ def get_repository(db: AsyncSession, model_name: str) -> BaseRepository:
         'character' -> CharacterRepository
         'chapter'   -> ChapterRepository
         'outline'   -> OutlineRepository
+        'item'      -> ItemRepository
+        'location'  -> LocationRepository
+        'faction'   -> FactionRepository
+        'world_setting' -> WorldSettingRepository
+        'rule'      -> RuleRepository
+        'writing_settings' -> WritingSettingsRepository
 
     Any other name falls back to BaseRepository using the matching entity class.
     """

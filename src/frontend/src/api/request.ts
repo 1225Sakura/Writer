@@ -443,6 +443,30 @@ export interface RequestOptions {
   skipRetry?: boolean
   cacheTTL?: number // Cache TTL in ms, 0 to disable, default 1 min
   signal?: AbortSignal
+  skipDedup?: boolean // Skip request deduplication
+}
+
+// ============================================
+// Request Deduplication
+// ============================================
+
+/** Pending request tracker for deduplication */
+const pendingRequests = new Map<string, Promise<unknown>>()
+
+/**
+ * Generate a deduplication key from request parameters.
+ * Only GET requests are deduplicated by default (safe + idempotent).
+ */
+function getDedupKey(method: string, url: string, data?: unknown): string {
+  const dataHash = data ? JSON.stringify(data) : ''
+  return `${method}:${url}:${dataHash}`
+}
+
+/**
+ * Clear a pending request from the deduplication tracker.
+ */
+function clearPendingRequest(key: string): void {
+  pendingRequests.delete(key)
 }
 
 const request = async <T>(
@@ -466,6 +490,18 @@ const request = async <T>(
     }
   }
 
+  // Request deduplication for GET requests
+  const dedupKey = getDedupKey(method, url, data)
+  if (!options.skipDedup && method === 'get') {
+    const existing = pendingRequests.get(dedupKey)
+    if (existing) {
+      if (isDev()) {
+        console.log(`[API Dedup] Reusing pending request: ${method.toUpperCase()} ${url}`)
+      }
+      return existing as Promise<T>
+    }
+  }
+
   const client = await getApiClient()
 
   const config: Record<string, unknown> = {}
@@ -476,19 +512,29 @@ const request = async <T>(
     config['signal'] = options.signal
   }
 
-  const response = await client.request<T>({
+  const requestPromise = client.request<T>({
     method,
     url,
     data,
     ...config,
+  }).then((response) => {
+    // Cache GET responses
+    if (method === 'get') {
+      apiCache.set(url, response.data, options.cacheTTL)
+    }
+    clearPendingRequest(dedupKey)
+    return response.data
+  }).catch((error) => {
+    clearPendingRequest(dedupKey)
+    throw error
   })
 
-  // Cache GET responses
-  if (method === 'get') {
-    apiCache.set(url, response.data, options.cacheTTL)
+  // Track pending GET requests for deduplication
+  if (!options.skipDedup && method === 'get') {
+    pendingRequests.set(dedupKey, requestPromise)
   }
 
-  return response.data
+  return requestPromise
 }
 
 // Convenience method for GET requests

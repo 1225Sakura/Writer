@@ -7,7 +7,6 @@ from datetime import datetime
 import json
 
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
 
 from backend.database import get_db
 from backend.core.domain import (
@@ -50,6 +49,14 @@ from backend.core.domain.schemas.response_schemas import (
     ExportDataResponse,
 )
 from backend.core.domain.schemas.common_schemas import MessageResponse
+from backend.repositories import (
+    ItemRepository,
+    LocationRepository,
+    FactionRepository,
+    WorldSettingRepository,
+    RuleRepository,
+    WritingSettingsRepository,
+)
 
 # Global event bus instance
 event_bus = AsyncEventBus()
@@ -77,10 +84,35 @@ def _json_to_tags(tags_json: Optional[str]) -> Optional[List[str]]:
         return None
 
 
+def _prepare_create_data(request) -> dict:
+    """Prepare creation data with tags JSON serialization."""
+    data = request.model_dump()
+    if 'tags' in data:
+        data['tags'] = _tags_to_json(data.get('tags'))
+    return data
+
+
+def _prepare_update_data(request) -> dict:
+    """Prepare update data with tags JSON serialization."""
+    data = request.model_dump(exclude_unset=True)
+    if 'tags' in data:
+        data['tags'] = _tags_to_json(data['tags'])
+    return data
+
+
+def _attach_tags_to_response(entity) -> None:
+    """Attach deserialized tags to an entity for response serialization."""
+    if hasattr(entity, 'tags'):
+        entity.tags = _json_to_tags(entity.tags)
+
+
 router = APIRouter(prefix="/settings", tags=["settings"], dependencies=[require_auth])
 
 
-# Character endpoints
+# ---------------------------------------------------------------------------
+# Character endpoints (use CharacterService)
+# ---------------------------------------------------------------------------
+
 @router.get(
     "/characters",
     response_model=List[CharacterResponse],
@@ -207,6 +239,7 @@ async def delete_character_relationship(
     db: AsyncSession = Depends(get_db)
 ):
     """Delete a character relationship."""
+    from sqlalchemy import select
     result = await db.execute(
         select(CharacterRelationship).where(
             CharacterRelationship.id == relationship_id,
@@ -264,6 +297,7 @@ async def update_character_storyline(
     db: AsyncSession = Depends(get_db)
 ):
     """Update a character storyline."""
+    from sqlalchemy import select
     result = await db.execute(
         select(CharacterStoryline).where(
             CharacterStoryline.id == storyline_id,
@@ -295,6 +329,7 @@ async def delete_character_storyline(
     db: AsyncSession = Depends(get_db)
 ):
     """Delete a character storyline."""
+    from sqlalchemy import select
     result = await db.execute(
         select(CharacterStoryline).where(
             CharacterStoryline.id == storyline_id,
@@ -309,7 +344,15 @@ async def delete_character_storyline(
     return {"message": "Storyline deleted"}
 
 
-# Items
+# ---------------------------------------------------------------------------
+# Item endpoints (use ItemRepository)
+# ---------------------------------------------------------------------------
+
+def get_item_repo(db: AsyncSession = Depends(get_db)) -> ItemRepository:
+    """Dependency to inject ItemRepository."""
+    return ItemRepository(db)
+
+
 @router.get(
     "/items",
     response_model=List[ItemResponse],
@@ -320,14 +363,13 @@ async def list_items(
     skip: int = 0,
     limit: int = 100,
     owner: Optional[str] = None,
-    db: AsyncSession = Depends(get_db)
+    repo: ItemRepository = Depends(get_item_repo)
 ):
     """List all items."""
-    query = select(Item)
-    if owner:
-        query = query.where(Item.owner == owner)
-    result = await db.execute(query.offset(skip).limit(limit))
-    return result.scalars().all()
+    items = await repo.list(skip=skip, limit=limit, owner=owner)
+    for item in items:
+        _attach_tags_to_response(item)
+    return items
 
 
 @router.post(
@@ -336,15 +378,14 @@ async def list_items(
     summary="创建物品",
     description="创建新的物品设定。",
 )
-async def create_item(item: ItemCreateRequest, db: AsyncSession = Depends(get_db)):
+async def create_item(
+    item: ItemCreateRequest,
+    repo: ItemRepository = Depends(get_item_repo)
+):
     """Create a new item."""
-    data = item.model_dump()
-    data['tags'] = _tags_to_json(data.get('tags'))
-    db_item = Item(**data)
-    db.add(db_item)
-    await db.flush()
-    await db.refresh(db_item)
-    db_item.tags = _json_to_tags(db_item.tags)
+    data = _prepare_create_data(item)
+    db_item = await repo.create(data)
+    _attach_tags_to_response(db_item)
     get_cache_service().clear_entity_cache("item")
     return db_item
 
@@ -355,13 +396,12 @@ async def create_item(item: ItemCreateRequest, db: AsyncSession = Depends(get_db
     summary="获取物品详情",
     description="获取指定ID的物品详细信息。",
 )
-async def get_item(item_id: int, db: AsyncSession = Depends(get_db)):
+async def get_item(item_id: int, repo: ItemRepository = Depends(get_item_repo)):
     """Get a specific item by ID."""
-    result = await db.execute(select(Item).where(Item.id == item_id))
-    item = result.scalar_one_or_none()
+    item = await repo.get_by_id(item_id)
     if not item:
         raise HTTPException(status_code=404, detail="Item not found")
-    item.tags = _json_to_tags(item.tags)
+    _attach_tags_to_response(item)
     return item
 
 
@@ -374,23 +414,13 @@ async def get_item(item_id: int, db: AsyncSession = Depends(get_db)):
 async def update_item(
     item_id: int,
     item: ItemUpdateRequest,
-    db: AsyncSession = Depends(get_db)
+    repo: ItemRepository = Depends(get_item_repo)
 ):
     """Update an item."""
-    result = await db.execute(select(Item).where(Item.id == item_id))
-    db_item = result.scalar_one_or_none()
+    db_item = await repo.update(item_id, _prepare_update_data(item))
     if not db_item:
         raise HTTPException(status_code=404, detail="Item not found")
-
-    update_data = item.model_dump(exclude_unset=True)
-    if 'tags' in update_data:
-        update_data['tags'] = _tags_to_json(update_data['tags'])
-    for key, value in update_data.items():
-        setattr(db_item, key, value)
-
-    await db.flush()
-    await db.refresh(db_item)
-    db_item.tags = _json_to_tags(db_item.tags)
+    _attach_tags_to_response(db_item)
     get_cache_service().clear_entity_cache("item")
     return db_item
 
@@ -401,18 +431,24 @@ async def update_item(
     summary="删除物品",
     description="删除指定ID的物品。",
 )
-async def delete_item(item_id: int, db: AsyncSession = Depends(get_db)):
+async def delete_item(item_id: int, repo: ItemRepository = Depends(get_item_repo)):
     """Delete an item."""
-    result = await db.execute(select(Item).where(Item.id == item_id))
-    item = result.scalar_one_or_none()
-    if not item:
+    deleted = await repo.delete(item_id)
+    if not deleted:
         raise HTTPException(status_code=404, detail="Item not found")
-    await db.delete(item)
     get_cache_service().clear_entity_cache("item")
     return {"message": "Item deleted"}
 
 
-# Locations
+# ---------------------------------------------------------------------------
+# Location endpoints (use LocationRepository)
+# ---------------------------------------------------------------------------
+
+def get_location_repo(db: AsyncSession = Depends(get_db)) -> LocationRepository:
+    """Dependency to inject LocationRepository."""
+    return LocationRepository(db)
+
+
 @router.get(
     "/locations",
     response_model=List[LocationResponse],
@@ -423,14 +459,16 @@ async def list_locations(
     skip: int = 0,
     limit: int = 100,
     importance: Optional[str] = None,
-    db: AsyncSession = Depends(get_db)
+    repo: LocationRepository = Depends(get_location_repo)
 ):
     """List all locations."""
-    query = select(Location)
     if importance:
-        query = query.where(Location.importance == importance)
-    result = await db.execute(query.offset(skip).limit(limit))
-    return result.scalars().all()
+        locations = await repo.get_by_importance(importance, skip=skip, limit=limit)
+    else:
+        locations = await repo.list(skip=skip, limit=limit)
+    for location in locations:
+        _attach_tags_to_response(location)
+    return locations
 
 
 @router.post(
@@ -439,15 +477,14 @@ async def list_locations(
     summary="创建地点",
     description="创建新的地点设定。",
 )
-async def create_location(location: LocationCreateRequest, db: AsyncSession = Depends(get_db)):
+async def create_location(
+    location: LocationCreateRequest,
+    repo: LocationRepository = Depends(get_location_repo)
+):
     """Create a new location."""
-    data = location.model_dump()
-    data['tags'] = _tags_to_json(data.get('tags'))
-    db_location = Location(**data)
-    db.add(db_location)
-    await db.flush()
-    await db.refresh(db_location)
-    db_location.tags = _json_to_tags(db_location.tags)
+    data = _prepare_create_data(location)
+    db_location = await repo.create(data)
+    _attach_tags_to_response(db_location)
     get_cache_service().clear_entity_cache("location")
     return db_location
 
@@ -458,13 +495,15 @@ async def create_location(location: LocationCreateRequest, db: AsyncSession = De
     summary="获取地点详情",
     description="获取指定ID的地点详细信息。",
 )
-async def get_location(location_id: int, db: AsyncSession = Depends(get_db)):
+async def get_location(
+    location_id: int,
+    repo: LocationRepository = Depends(get_location_repo)
+):
     """Get a specific location by ID."""
-    result = await db.execute(select(Location).where(Location.id == location_id))
-    location = result.scalar_one_or_none()
+    location = await repo.get_by_id(location_id)
     if not location:
         raise HTTPException(status_code=404, detail="Location not found")
-    location.tags = _json_to_tags(location.tags)
+    _attach_tags_to_response(location)
     return location
 
 
@@ -477,23 +516,13 @@ async def get_location(location_id: int, db: AsyncSession = Depends(get_db)):
 async def update_location(
     location_id: int,
     location: LocationUpdateRequest,
-    db: AsyncSession = Depends(get_db)
+    repo: LocationRepository = Depends(get_location_repo)
 ):
     """Update a location."""
-    result = await db.execute(select(Location).where(Location.id == location_id))
-    db_location = result.scalar_one_or_none()
+    db_location = await repo.update(location_id, _prepare_update_data(location))
     if not db_location:
         raise HTTPException(status_code=404, detail="Location not found")
-
-    update_data = location.model_dump(exclude_unset=True)
-    if 'tags' in update_data:
-        update_data['tags'] = _tags_to_json(update_data['tags'])
-    for key, value in update_data.items():
-        setattr(db_location, key, value)
-
-    await db.flush()
-    await db.refresh(db_location)
-    db_location.tags = _json_to_tags(db_location.tags)
+    _attach_tags_to_response(db_location)
     get_cache_service().clear_entity_cache("location")
     return db_location
 
@@ -504,18 +533,27 @@ async def update_location(
     summary="删除地点",
     description="删除指定ID的地点。",
 )
-async def delete_location(location_id: int, db: AsyncSession = Depends(get_db)):
+async def delete_location(
+    location_id: int,
+    repo: LocationRepository = Depends(get_location_repo)
+):
     """Delete a location."""
-    result = await db.execute(select(Location).where(Location.id == location_id))
-    location = result.scalar_one_or_none()
-    if not location:
+    deleted = await repo.delete(location_id)
+    if not deleted:
         raise HTTPException(status_code=404, detail="Location not found")
-    await db.delete(location)
     get_cache_service().clear_entity_cache("location")
     return {"message": "Location deleted"}
 
 
-# Factions
+# ---------------------------------------------------------------------------
+# Faction endpoints (use FactionRepository)
+# ---------------------------------------------------------------------------
+
+def get_faction_repo(db: AsyncSession = Depends(get_db)) -> FactionRepository:
+    """Dependency to inject FactionRepository."""
+    return FactionRepository(db)
+
+
 @router.get(
     "/factions",
     response_model=List[FactionResponse],
@@ -526,14 +564,16 @@ async def list_factions(
     skip: int = 0,
     limit: int = 100,
     type: Optional[str] = None,
-    db: AsyncSession = Depends(get_db)
+    repo: FactionRepository = Depends(get_faction_repo)
 ):
     """List all factions."""
-    query = select(Faction)
     if type:
-        query = query.where(Faction.type == type)
-    result = await db.execute(query.offset(skip).limit(limit))
-    return result.scalars().all()
+        factions = await repo.get_by_type(type, skip=skip, limit=limit)
+    else:
+        factions = await repo.list(skip=skip, limit=limit)
+    for faction in factions:
+        _attach_tags_to_response(faction)
+    return factions
 
 
 @router.post(
@@ -542,17 +582,34 @@ async def list_factions(
     summary="创建势力",
     description="创建新的势力设定。",
 )
-async def create_faction(faction: FactionCreateRequest, db: AsyncSession = Depends(get_db)):
+async def create_faction(
+    faction: FactionCreateRequest,
+    repo: FactionRepository = Depends(get_faction_repo)
+):
     """Create a new faction."""
-    data = faction.model_dump()
-    data['tags'] = _tags_to_json(data.get('tags'))
-    db_faction = Faction(**data)
-    db.add(db_faction)
-    await db.flush()
-    await db.refresh(db_faction)
-    db_faction.tags = _json_to_tags(db_faction.tags)
+    data = _prepare_create_data(faction)
+    db_faction = await repo.create(data)
+    _attach_tags_to_response(db_faction)
     get_cache_service().clear_entity_cache("faction")
     return db_faction
+
+
+@router.get(
+    "/factions/{faction_id}",
+    response_model=FactionResponse,
+    summary="获取势力详情",
+    description="获取指定ID的势力详细信息。",
+)
+async def get_faction(
+    faction_id: int,
+    repo: FactionRepository = Depends(get_faction_repo)
+):
+    """Get a specific faction by ID."""
+    faction = await repo.get_by_id(faction_id)
+    if not faction:
+        raise HTTPException(status_code=404, detail="Faction not found")
+    _attach_tags_to_response(faction)
+    return faction
 
 
 @router.patch(
@@ -564,41 +621,15 @@ async def create_faction(faction: FactionCreateRequest, db: AsyncSession = Depen
 async def update_faction(
     faction_id: int,
     faction: FactionUpdateRequest,
-    db: AsyncSession = Depends(get_db)
+    repo: FactionRepository = Depends(get_faction_repo)
 ):
     """Update a faction."""
-    result = await db.execute(select(Faction).where(Faction.id == faction_id))
-    db_faction = result.scalar_one_or_none()
+    db_faction = await repo.update(faction_id, _prepare_update_data(faction))
     if not db_faction:
         raise HTTPException(status_code=404, detail="Faction not found")
-
-    update_data = faction.model_dump(exclude_unset=True)
-    if 'tags' in update_data:
-        update_data['tags'] = _tags_to_json(update_data['tags'])
-    for key, value in update_data.items():
-        setattr(db_faction, key, value)
-
-    await db.flush()
-    await db.refresh(db_faction)
-    db_faction.tags = _json_to_tags(db_faction.tags)
+    _attach_tags_to_response(db_faction)
     get_cache_service().clear_entity_cache("faction")
     return db_faction
-
-
-@router.get(
-    "/factions/{faction_id}",
-    response_model=FactionResponse,
-    summary="获取势力详情",
-    description="获取指定ID的势力详细信息。",
-)
-async def get_faction(faction_id: int, db: AsyncSession = Depends(get_db)):
-    """Get a specific faction by ID."""
-    result = await db.execute(select(Faction).where(Faction.id == faction_id))
-    faction = result.scalar_one_or_none()
-    if not faction:
-        raise HTTPException(status_code=404, detail="Faction not found")
-    faction.tags = _json_to_tags(faction.tags)
-    return faction
 
 
 @router.delete(
@@ -607,18 +638,27 @@ async def get_faction(faction_id: int, db: AsyncSession = Depends(get_db)):
     summary="删除势力",
     description="删除指定ID的势力。",
 )
-async def delete_faction(faction_id: int, db: AsyncSession = Depends(get_db)):
+async def delete_faction(
+    faction_id: int,
+    repo: FactionRepository = Depends(get_faction_repo)
+):
     """Delete a faction."""
-    result = await db.execute(select(Faction).where(Faction.id == faction_id))
-    faction = result.scalar_one_or_none()
-    if not faction:
+    deleted = await repo.delete(faction_id)
+    if not deleted:
         raise HTTPException(status_code=404, detail="Faction not found")
-    await db.delete(faction)
     get_cache_service().clear_entity_cache("faction")
     return {"message": "Faction deleted"}
 
 
-# World Settings
+# ---------------------------------------------------------------------------
+# World Setting endpoints (use WorldSettingRepository)
+# ---------------------------------------------------------------------------
+
+def get_world_setting_repo(db: AsyncSession = Depends(get_db)) -> WorldSettingRepository:
+    """Dependency to inject WorldSettingRepository."""
+    return WorldSettingRepository(db)
+
+
 @router.get(
     "/world",
     response_model=List[WorldSettingResponse],
@@ -628,11 +668,13 @@ async def delete_faction(faction_id: int, db: AsyncSession = Depends(get_db)):
 async def list_world_settings(
     skip: int = 0,
     limit: int = 100,
-    db: AsyncSession = Depends(get_db)
+    repo: WorldSettingRepository = Depends(get_world_setting_repo)
 ):
     """List all world settings."""
-    result = await db.execute(select(WorldSetting).offset(skip).limit(limit))
-    return result.scalars().all()
+    settings = await repo.list(skip=skip, limit=limit)
+    for setting in settings:
+        _attach_tags_to_response(setting)
+    return settings
 
 
 @router.post(
@@ -643,16 +685,12 @@ async def list_world_settings(
 )
 async def create_world_setting(
     setting: WorldSettingCreateRequest,
-    db: AsyncSession = Depends(get_db)
+    repo: WorldSettingRepository = Depends(get_world_setting_repo)
 ):
     """Create a new world setting."""
-    data = setting.model_dump()
-    data['tags'] = _tags_to_json(data.get('tags'))
-    db_setting = WorldSetting(**data)
-    db.add(db_setting)
-    await db.flush()
-    await db.refresh(db_setting)
-    db_setting.tags = _json_to_tags(db_setting.tags)
+    data = _prepare_create_data(setting)
+    db_setting = await repo.create(data)
+    _attach_tags_to_response(db_setting)
     get_cache_service().clear_entity_cache("world_setting")
     return db_setting
 
@@ -663,13 +701,15 @@ async def create_world_setting(
     summary="获取世界观设定详情",
     description="获取指定ID的世界观设定详细信息。",
 )
-async def get_world_setting(setting_id: int, db: AsyncSession = Depends(get_db)):
+async def get_world_setting(
+    setting_id: int,
+    repo: WorldSettingRepository = Depends(get_world_setting_repo)
+):
     """Get a specific world setting by ID."""
-    result = await db.execute(select(WorldSetting).where(WorldSetting.id == setting_id))
-    setting = result.scalar_one_or_none()
+    setting = await repo.get_by_id(setting_id)
     if not setting:
         raise HTTPException(status_code=404, detail="World setting not found")
-    setting.tags = _json_to_tags(setting.tags)
+    _attach_tags_to_response(setting)
     return setting
 
 
@@ -682,23 +722,13 @@ async def get_world_setting(setting_id: int, db: AsyncSession = Depends(get_db))
 async def update_world_setting(
     setting_id: int,
     setting: WorldSettingUpdateRequest,
-    db: AsyncSession = Depends(get_db)
+    repo: WorldSettingRepository = Depends(get_world_setting_repo)
 ):
     """Update a world setting."""
-    result = await db.execute(select(WorldSetting).where(WorldSetting.id == setting_id))
-    db_setting = result.scalar_one_or_none()
+    db_setting = await repo.update(setting_id, _prepare_update_data(setting))
     if not db_setting:
         raise HTTPException(status_code=404, detail="World setting not found")
-
-    update_data = setting.model_dump(exclude_unset=True)
-    if 'tags' in update_data:
-        update_data['tags'] = _tags_to_json(update_data['tags'])
-    for key, value in update_data.items():
-        setattr(db_setting, key, value)
-
-    await db.flush()
-    await db.refresh(db_setting)
-    db_setting.tags = _json_to_tags(db_setting.tags)
+    _attach_tags_to_response(db_setting)
     get_cache_service().clear_entity_cache("world_setting")
     return db_setting
 
@@ -708,18 +738,27 @@ async def update_world_setting(
     summary="删除世界观设定",
     description="删除指定ID的世界观设定。",
 )
-async def delete_world_setting(setting_id: int, db: AsyncSession = Depends(get_db)):
+async def delete_world_setting(
+    setting_id: int,
+    repo: WorldSettingRepository = Depends(get_world_setting_repo)
+):
     """Delete a world setting."""
-    result = await db.execute(select(WorldSetting).where(WorldSetting.id == setting_id))
-    setting = result.scalar_one_or_none()
-    if not setting:
+    deleted = await repo.delete(setting_id)
+    if not deleted:
         raise HTTPException(status_code=404, detail="World setting not found")
-    await db.delete(setting)
     get_cache_service().clear_entity_cache("world_setting")
     return {"message": "World setting deleted"}
 
 
-# Rules
+# ---------------------------------------------------------------------------
+# Rule endpoints (use RuleRepository)
+# ---------------------------------------------------------------------------
+
+def get_rule_repo(db: AsyncSession = Depends(get_db)) -> RuleRepository:
+    """Dependency to inject RuleRepository."""
+    return RuleRepository(db)
+
+
 @router.get(
     "/rules",
     response_model=List[RuleResponse],
@@ -730,14 +769,16 @@ async def list_rules(
     skip: int = 0,
     limit: int = 100,
     type: Optional[str] = None,
-    db: AsyncSession = Depends(get_db)
+    repo: RuleRepository = Depends(get_rule_repo)
 ):
     """List all rules."""
-    query = select(Rule)
     if type:
-        query = query.where(Rule.type == type)
-    result = await db.execute(query.offset(skip).limit(limit))
-    return result.scalars().all()
+        rules = await repo.get_by_type(type, skip=skip, limit=limit)
+    else:
+        rules = await repo.list(skip=skip, limit=limit)
+    for rule in rules:
+        _attach_tags_to_response(rule)
+    return rules
 
 
 @router.post(
@@ -746,15 +787,14 @@ async def list_rules(
     summary="创建规则",
     description="创建新的规则设定。",
 )
-async def create_rule(rule: RuleCreateRequest, db: AsyncSession = Depends(get_db)):
+async def create_rule(
+    rule: RuleCreateRequest,
+    repo: RuleRepository = Depends(get_rule_repo)
+):
     """Create a new rule."""
-    data = rule.model_dump()
-    data['tags'] = _tags_to_json(data.get('tags'))
-    db_rule = Rule(**data)
-    db.add(db_rule)
-    await db.flush()
-    await db.refresh(db_rule)
-    db_rule.tags = _json_to_tags(db_rule.tags)
+    data = _prepare_create_data(rule)
+    db_rule = await repo.create(data)
+    _attach_tags_to_response(db_rule)
     get_cache_service().clear_entity_cache("rule")
     return db_rule
 
@@ -765,13 +805,15 @@ async def create_rule(rule: RuleCreateRequest, db: AsyncSession = Depends(get_db
     summary="获取规则详情",
     description="获取指定ID的规则详细信息。",
 )
-async def get_rule(rule_id: int, db: AsyncSession = Depends(get_db)):
+async def get_rule(
+    rule_id: int,
+    repo: RuleRepository = Depends(get_rule_repo)
+):
     """Get a specific rule by ID."""
-    result = await db.execute(select(Rule).where(Rule.id == rule_id))
-    rule = result.scalar_one_or_none()
+    rule = await repo.get_by_id(rule_id)
     if not rule:
         raise HTTPException(status_code=404, detail="Rule not found")
-    rule.tags = _json_to_tags(rule.tags)
+    _attach_tags_to_response(rule)
     return rule
 
 
@@ -784,23 +826,13 @@ async def get_rule(rule_id: int, db: AsyncSession = Depends(get_db)):
 async def update_rule(
     rule_id: int,
     rule: RuleUpdateRequest,
-    db: AsyncSession = Depends(get_db)
+    repo: RuleRepository = Depends(get_rule_repo)
 ):
     """Update a rule."""
-    result = await db.execute(select(Rule).where(Rule.id == rule_id))
-    db_rule = result.scalar_one_or_none()
+    db_rule = await repo.update(rule_id, _prepare_update_data(rule))
     if not db_rule:
         raise HTTPException(status_code=404, detail="Rule not found")
-
-    update_data = rule.model_dump(exclude_unset=True)
-    if 'tags' in update_data:
-        update_data['tags'] = _tags_to_json(update_data['tags'])
-    for key, value in update_data.items():
-        setattr(db_rule, key, value)
-
-    await db.flush()
-    await db.refresh(db_rule)
-    db_rule.tags = _json_to_tags(db_rule.tags)
+    _attach_tags_to_response(db_rule)
     get_cache_service().clear_entity_cache("rule")
     return db_rule
 
@@ -811,35 +843,38 @@ async def update_rule(
     summary="删除规则",
     description="删除指定ID的规则。",
 )
-async def delete_rule(rule_id: int, db: AsyncSession = Depends(get_db)):
+async def delete_rule(
+    rule_id: int,
+    repo: RuleRepository = Depends(get_rule_repo)
+):
     """Delete a rule."""
-    result = await db.execute(select(Rule).where(Rule.id == rule_id))
-    rule = result.scalar_one_or_none()
-    if not rule:
+    deleted = await repo.delete(rule_id)
+    if not deleted:
         raise HTTPException(status_code=404, detail="Rule not found")
-    await db.delete(rule)
     get_cache_service().clear_entity_cache("rule")
     return {"message": "Rule deleted"}
 
 
-# Writing Settings
+# ---------------------------------------------------------------------------
+# Writing Settings endpoints (use WritingSettingsRepository)
+# ---------------------------------------------------------------------------
+
+def get_writing_settings_repo(db: AsyncSession = Depends(get_db)) -> WritingSettingsRepository:
+    """Dependency to inject WritingSettingsRepository."""
+    return WritingSettingsRepository(db)
+
+
 @router.get(
     "/writing",
     response_model=WritingSettingsResponse,
     summary="获取写作设定",
     description="获取当前的写作设定配置。如不存在则创建默认值。",
 )
-async def get_writing_settings(db: AsyncSession = Depends(get_db)):
+async def get_writing_settings(
+    repo: WritingSettingsRepository = Depends(get_writing_settings_repo)
+):
     """Get current writing settings."""
-    result = await db.execute(select(WritingSettings))
-    settings_obj = result.scalar_one_or_none()
-    if not settings_obj:
-        # Create default if not exists
-        settings_obj = WritingSettings()
-        db.add(settings_obj)
-        await db.flush()
-        await db.refresh(settings_obj)
-    return settings_obj
+    return await repo.get_or_create()
 
 
 @router.patch(
@@ -850,44 +885,47 @@ async def get_writing_settings(db: AsyncSession = Depends(get_db)):
 )
 async def update_writing_settings(
     updates: WritingSettingsUpdateRequest,
-    db: AsyncSession = Depends(get_db)
+    repo: WritingSettingsRepository = Depends(get_writing_settings_repo)
 ):
     """Update writing settings."""
-    result = await db.execute(select(WritingSettings))
-    settings_obj = result.scalar_one_or_none()
-    if not settings_obj:
-        settings_obj = WritingSettings()
-        db.add(settings_obj)
-
-    update_data = updates.model_dump(exclude_unset=True)
-    for key, value in update_data.items():
-        setattr(settings_obj, key, value)
-
-    await db.flush()
-    await db.refresh(settings_obj)
-    get_cache_service().clear_entity_cache("writing_settings")
-    return settings_obj
+    settings = await repo.get_or_create()
+    db_settings = await repo.update(settings.id, updates.model_dump(exclude_unset=True))
+    if db_settings:
+        get_cache_service().clear_entity_cache("writing_settings")
+    return db_settings or settings
 
 
+# ---------------------------------------------------------------------------
 # Export/Import for backup and migration
+# ---------------------------------------------------------------------------
+
 @router.get(
     "/export",
     response_model=ExportDataResponse,
     summary="导出项目数据",
     description="将所有项目数据导出为JSON格式，用于备份和迁移。",
 )
-async def export_data(db: AsyncSession = Depends(get_db)):
+async def export_data(
+    db: AsyncSession = Depends(get_db),
+    item_repo: ItemRepository = Depends(get_item_repo),
+    location_repo: LocationRepository = Depends(get_location_repo),
+    faction_repo: FactionRepository = Depends(get_faction_repo),
+    world_repo: WorldSettingRepository = Depends(get_world_setting_repo),
+    rule_repo: RuleRepository = Depends(get_rule_repo),
+    writing_repo: WritingSettingsRepository = Depends(get_writing_settings_repo),
+):
     """Export all project data as JSON."""
-    # Get all entities
+    from sqlalchemy import select
+
     characters = (await db.execute(select(Character))).scalars().all()
     relationships = (await db.execute(select(CharacterRelationship))).scalars().all()
     storylines = (await db.execute(select(CharacterStoryline))).scalars().all()
-    items = (await db.execute(select(Item))).scalars().all()
-    locations = (await db.execute(select(Location))).scalars().all()
-    factions = (await db.execute(select(Faction))).scalars().all()
-    world_settings = (await db.execute(select(WorldSetting))).scalars().all()
-    rules = (await db.execute(select(Rule))).scalars().all()
-    writing_settings = (await db.execute(select(WritingSettings))).scalars().one_or_none()
+    items = await item_repo.list(limit=10000)
+    locations = await location_repo.list(limit=10000)
+    factions = await faction_repo.list(limit=10000)
+    world_settings = await world_repo.list(limit=10000)
+    rules = await rule_repo.list(limit=10000)
+    writing_settings = await writing_repo.get_or_create()
 
     return ExportDataResponse(
         version="1.0",
@@ -909,7 +947,15 @@ async def export_data(db: AsyncSession = Depends(get_db)):
     summary="导入项目数据",
     description="从JSON格式导入项目数据，支持关系映射和循环引用处理。",
 )
-async def import_data(data: ExportDataRequest, db: AsyncSession = Depends(get_db)):
+async def import_data(
+    data: ExportDataRequest,
+    db: AsyncSession = Depends(get_db),
+    item_repo: ItemRepository = Depends(get_item_repo),
+    location_repo: LocationRepository = Depends(get_location_repo),
+    faction_repo: FactionRepository = Depends(get_faction_repo),
+    world_repo: WorldSettingRepository = Depends(get_world_setting_repo),
+    rule_repo: RuleRepository = Depends(get_rule_repo),
+):
     """Import project data from JSON with relationship support."""
     imported_count = {
         'characters': 0,
@@ -922,11 +968,9 @@ async def import_data(data: ExportDataRequest, db: AsyncSession = Depends(get_db
         'rules': 0,
     }
 
-    # Validate import data
     if data.version != "1.0":
         raise HTTPException(status_code=400, detail=f"Unsupported export version: {data.version}")
 
-    # Build ID mapping: old_id -> new_id for characters
     id_mapping: dict[int, int] = {}
 
     # Import characters first and build ID mapping
@@ -936,46 +980,31 @@ async def import_data(data: ExportDataRequest, db: AsyncSession = Depends(get_db
         char = Character(**char_data_clean)
         db.add(char)
         await db.flush()
-        # Map old ID to new ID (old ID stored temporarily)
         old_id = char_data.get('id')
         if old_id is not None:
             id_mapping[old_id] = char.id
         imported_count['characters'] += 1
 
     # Import character relationships (with circular reference handling)
-    processed_relationships = set()  # Track already-processed relationships
     remaining_relationships = list(data.character_relationships)
-
-    # Process relationships in passes, resolving references as characters are mapped
-    max_passes = len(data.characters) + 1  # Prevent infinite loops
+    max_passes = len(data.characters) + 1
     for _ in range(max_passes):
         if not remaining_relationships:
             break
-
         unresolved = []
         for rel_data in remaining_relationships:
             old_char_id = rel_data.get('character_id')
             old_target_id = rel_data.get('target_id')
-
-            # Check if both character IDs are resolved
             if old_char_id in id_mapping and old_target_id in id_mapping:
                 rel_clean = {k: v for k, v in rel_data.items()
                             if k not in ('_type', 'id', 'created_at', 'updated_at')}
                 rel_clean['character_id'] = id_mapping[old_char_id]
                 rel_clean['target_id'] = id_mapping[old_target_id]
                 db.add(CharacterRelationship(**rel_clean))
-                processed_relationships.add((old_char_id, old_target_id))
                 imported_count['character_relationships'] += 1
             else:
                 unresolved.append(rel_data)
-
         remaining_relationships = unresolved
-
-    # Handle any remaining unresolved relationships (circular refs)
-    # These reference characters that weren't in the export - skip them
-    if remaining_relationships:
-        # Log warning but don't fail the import
-        pass
 
     # Import character storylines
     for story_data in data.character_storylines:
@@ -991,35 +1020,35 @@ async def import_data(data: ExportDataRequest, db: AsyncSession = Depends(get_db
     for item_data in data.items:
         item_clean = {k: v for k, v in item_data.items()
                      if k not in ('_type', 'id', 'created_at', 'updated_at')}
-        db.add(Item(**item_clean))
+        await item_repo.create(item_clean)
         imported_count['items'] += 1
 
     # Import locations
     for loc_data in data.locations:
         loc_clean = {k: v for k, v in loc_data.items()
                     if k not in ('_type', 'id', 'created_at', 'updated_at')}
-        db.add(Location(**loc_clean))
+        await location_repo.create(loc_clean)
         imported_count['locations'] += 1
 
     # Import factions
     for fac_data in data.factions:
         fac_clean = {k: v for k, v in fac_data.items()
                     if k not in ('_type', 'id', 'created_at', 'updated_at')}
-        db.add(Faction(**fac_clean))
+        await faction_repo.create(fac_clean)
         imported_count['factions'] += 1
 
     # Import world settings
     for ws_data in data.world_settings:
         ws_clean = {k: v for k, v in ws_data.items()
                    if k not in ('_type', 'id', 'created_at', 'updated_at')}
-        db.add(WorldSetting(**ws_clean))
+        await world_repo.create(ws_clean)
         imported_count['world_settings'] += 1
 
     # Import rules
     for rule_data in data.rules:
         rule_clean = {k: v for k, v in rule_data.items()
                      if k not in ('_type', 'id', 'created_at', 'updated_at')}
-        db.add(Rule(**rule_clean))
+        await rule_repo.create(rule_clean)
         imported_count['rules'] += 1
 
     await db.flush()

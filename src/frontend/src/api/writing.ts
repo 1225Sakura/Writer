@@ -13,6 +13,14 @@ import type {
   ChapterFilters,
   IFLineFilters,
   PlotThreadFilters,
+  ConsistencyCheckResponse,
+  ContinuityCheckResponse,
+  PacingCheckResponse,
+  OOCCheckResponse,
+  HighPointCheckResponse,
+  ReaderPullCheckResponse,
+  CheckerBaseRequest,
+  OOCCheckerRequest,
 } from "./types"
 import { api, resolveBaseURL, getApiKey } from "./request"
 
@@ -268,6 +276,94 @@ export const inspectionApi = {
 }
 
 // ============================================
+// Styles
+// ============================================
+
+export interface WritingStyleDef {
+  id: string
+  name: string
+  description: string
+}
+
+export const stylesApi = {
+  /** List all available writing styles. */
+  list: async (): Promise<WritingStyleDef[]> => {
+    return api.get<WritingStyleDef[]>("/styles")
+  },
+
+  /** Get a specific writing style by ID. */
+  get: async (styleId: string): Promise<WritingStyleDef> => {
+    return api.get<WritingStyleDef>(`/styles/${styleId}`)
+  },
+}
+
+// ============================================
+// AI Checkers
+// ============================================
+
+export const checkerApi = {
+  /** Check world consistency for a chapter. */
+  consistency: async (chapterId: number): Promise<ConsistencyCheckResponse> => {
+    return api.post<ConsistencyCheckResponse>("/ai/check/consistency", { chapter_id: chapterId })
+  },
+
+  /** Check narrative continuity for a chapter. */
+  continuity: async (chapterId: number): Promise<ContinuityCheckResponse> => {
+    return api.post<ContinuityCheckResponse>("/ai/check/continuity", { chapter_id: chapterId })
+  },
+
+  /** Check narrative pacing for a chapter. */
+  pacing: async (chapterId: number): Promise<PacingCheckResponse> => {
+    return api.post<PacingCheckResponse>("/ai/check/pacing", { chapter_id: chapterId })
+  },
+
+  /** Check for Out-Of-Character behavior. */
+  ooc: async (chapterId: number, characterId: number): Promise<OOCCheckResponse> => {
+    return api.post<OOCCheckResponse>("/ai/check/ooc", { chapter_id: chapterId, character_id: characterId })
+  },
+
+  /** Check excitement density and high points. */
+  highPoint: async (chapterId: number): Promise<HighPointCheckResponse> => {
+    return api.post<HighPointCheckResponse>("/ai/check/high-point", { chapter_id: chapterId })
+  },
+
+  /** Check reader engagement and hooks. */
+  readerPull: async (chapterId: number): Promise<ReaderPullCheckResponse> => {
+    return api.post<ReaderPullCheckResponse>("/ai/check/reader-pull", { chapter_id: chapterId })
+  },
+}
+
+// ============================================
+// AI Health & Failover
+// ============================================
+
+export const aiHealthApi = {
+  /** Get AI provider health status. */
+  health: async (): Promise<{
+    providers: Record<string, {
+      healthy: boolean
+      degraded: boolean
+      error_rate: number
+      call_count: number
+      success_rate: number
+      avg_latency_ms: number
+    }>
+    recommended: string
+  }> => {
+    return api.get("/ai/health")
+  },
+
+  /** Manually trigger provider failover. */
+  failover: async (targetProvider?: string): Promise<{
+    success: boolean
+    new_primary: string
+    message: string
+  }> => {
+    return api.post("/ai/failover", { target_provider: targetProvider })
+  },
+}
+
+// ============================================
 // AI Operations
 // ============================================
 
@@ -435,4 +531,7 @@ export default {
   plotThread: plotThreadApi,
   inspection: inspectionApi,
   ai: aiApi,
+  styles: stylesApi,
+  checker: checkerApi,
+  aiHealth: aiHealthApi,
 }

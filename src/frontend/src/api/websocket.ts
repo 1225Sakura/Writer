@@ -1,4 +1,4 @@
-import { getOnlineStatus, setupOnlineDetection } from './request'
+import { getOnlineStatus, setupOnlineDetection, getApiKey } from './request'
 
 // ============================================
 // Types
@@ -91,12 +91,24 @@ export class ChatWebSocketClient {
     }
 
     this.sessionId = sessionId
-    this.apiKey = options.apiKey || null
     this.baseUrl = options.baseUrl || this.resolveWSUrl()
     this._intentionalClose = false
 
-    this.setStatus('connecting')
-    this.tryConnect()
+    // Resolve API key asynchronously if not provided
+    if (options.apiKey) {
+      this.apiKey = options.apiKey
+      this.setStatus('connecting')
+      this.tryConnect()
+    } else {
+      getApiKey().then((key) => {
+        this.apiKey = key
+        this.setStatus('connecting')
+        this.tryConnect()
+      }).catch(() => {
+        this.setStatus('connecting')
+        this.tryConnect()
+      })
+    }
 
     // Watch online/offline
     if (!this.onlineCleanup) {
@@ -208,7 +220,7 @@ export class ChatWebSocketClient {
     if (apiBase.startsWith('/')) {
       return `${wsProtocol}://127.0.0.1:8000`
     }
-    const host = apiBase.replace(/^https?:\/\//, '').replace(/\/api\/v1$/, '')
+    const host = apiBase.replace(/^https?:\/\//, '').replace(/\/api\/v1$/, '').replace(/\/$/, '')
     return `${wsProtocol}://${host}`
   }
 

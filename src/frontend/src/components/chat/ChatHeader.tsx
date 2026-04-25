@@ -347,6 +347,13 @@ export function ChatHeader({ onMobileMenuClick }: { onMobileMenuClick?: () => vo
       onStatusChange: (status) => setWsStatus(status),
       onReconnect: (attempt) => setWsReconnectAttempt(attempt),
       onConnect: () => setWsReconnectAttempt(0),
+      onMessage: (msg) => {
+        // Handle real-time messages from other connections in the same session
+        if (msg.type === 'message' && msg.content && msg.role) {
+          // Messages are handled by chatStore via HTTP API; WebSocket is for sync only
+          // This prevents duplicate message processing
+        }
+      },
     })
 
     ws.connect(sessionId)

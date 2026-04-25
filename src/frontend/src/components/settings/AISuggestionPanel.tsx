@@ -17,7 +17,7 @@ import {
 	Wand2,
 	ThumbsUp,
 } from "lucide-react";
-import { useSettingsStore } from "@/store";
+import { useSettingsStore, useUIStore } from "@/store";
 import { motion, AnimatePresence } from "framer-motion";
 import type { EntityType } from "@/shared/types";
 
@@ -915,6 +915,7 @@ export function AISuggestionPanel() {
 
 	const aiReviewResult = useSettingsStore((state) => state.aiReviewResult);
 	const reviewWithAI = useSettingsStore((state) => state.reviewWithAI);
+	const settingsCategory = useUIStore((state) => state.settingsCategory);
 
 	const currentSuggestions: SuggestionItem[] = useMemo(() => {
 		if (!aiReviewResult) return [];
@@ -1057,13 +1058,18 @@ export function AISuggestionPanel() {
 	const handleReReview = useCallback(async () => {
 		setIsReviewing(true);
 		try {
-			await reviewWithAI("character");
+			// Use the current settings category, fallback to 'character' if not reviewable
+			const reviewableCategories: EntityType[] = ['world', 'character', 'item', 'location', 'faction', 'rule'];
+			const categoryToReview = reviewableCategories.includes(settingsCategory as EntityType)
+				? (settingsCategory as EntityType)
+				: 'character';
+			await reviewWithAI(categoryToReview);
 		} catch {
 			// Error handled by store
 		} finally {
 			setIsReviewing(false);
 		}
-	}, [reviewWithAI]);
+	}, [reviewWithAI, settingsCategory]);
 
 	const handleLocate = useCallback((entityIds?: number[]) => {
 		if (entityIds && entityIds.length > 0) {

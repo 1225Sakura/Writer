@@ -10,7 +10,7 @@ import { setEditorInstance } from '@/store/editorRegistry'
 import { useEffect, useRef, useCallback, useState } from 'react'
 import { usePrefersReducedMotion } from '@/hooks'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Save, CheckCircle, AlertCircle, Feather, Keyboard } from 'lucide-react'
+import { Save, CheckCircle, AlertCircle, Feather, Keyboard, Loader2 } from 'lucide-react'
 import { FocusModeExtension } from './extensions'
 import { EditorToolbar } from './EditorToolbar'
 import { WritingStatsOverlay } from './WritingStatsOverlay'
@@ -270,6 +270,9 @@ export function WritingCanvas() {
     getSessionWPM,
     getTodayWordCount,
     targetWordCount,
+    runAllChecks,
+    clearCheckerResults,
+    error: storeError,
   } = useWritingStore()
 
   const { focusModeEnabled, typewriterMode, paragraphFocusMode, paperEdgeDecoration } = useUIStore()
@@ -303,6 +306,24 @@ export function WritingCanvas() {
   useEffect(() => {
     setIsEmpty(!currentContent?.trim())
   }, [currentContent])
+
+  // Run AI checks when chapter changes
+  useEffect(() => {
+    if (currentChapterId) {
+      clearCheckerResults()
+      // Run checks in background (fire and forget)
+      runAllChecks(currentChapterId).catch((err) => {
+        console.warn('Background checks failed:', err)
+      })
+    }
+  }, [currentChapterId, runAllChecks, clearCheckerResults])
+
+  // Show error toast when store error changes
+  useEffect(() => {
+    if (storeError) {
+      showToast(storeError, 'error')
+    }
+  }, [storeError])
 
   const editor = useEditor({
     extensions: [
@@ -734,6 +755,13 @@ export function WritingCanvas() {
             <span className="flex items-center gap-1" style={{ color: 'var(--accent-primary)' }}>
               <span className="w-1.5 h-1.5 rounded-full animate-pulse motion-reduce:animate-none" style={{ backgroundColor: 'var(--accent-primary)' }} />
               AI处理中...
+            </span>
+          )}
+
+          {loading.checkers && (
+            <span className="flex items-center gap-1" style={{ color: 'var(--color-outline)' }}>
+              <Loader2 className="w-3 h-3 animate-spin motion-reduce:animate-none" />
+              检查中...
             </span>
           )}
         </div>

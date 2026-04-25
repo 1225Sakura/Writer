@@ -1,5 +1,6 @@
-import { lazy, Suspense, ComponentType, useMemo, useState, useEffect } from 'react'
-import { useUIStore } from '@/store'
+import { lazy, Suspense, ComponentType, useMemo, useState, useEffect, memo } from 'react'
+import { useUIStore, selectNavigationState, selectDisplayModes } from '@/store'
+import { shallow } from 'zustand/shallow'
 import { ThemeProvider } from '@/components/shared/ThemeProvider'
 import { ShortcutManager } from '@/components/shared/ShortcutManager'
 import { ErrorBoundary } from '@/components/shared/ErrorBoundary'
@@ -100,7 +101,9 @@ function getInterfaceBgClass(interfaceType: string): string {
  * - Immersive mode further reduces background opacity
  */
 function AppContent() {
-  const { currentInterface, immersiveMode, focusModeEnabled } = useUIStore()
+  // Use selectors to only subscribe to needed state slices
+  const currentInterface = useUIStore((state) => state.currentInterface)
+  const { immersiveMode, focusModeEnabled } = useUIStore(selectDisplayModes, shallow)
   const [transitioning, setTransitioning] = useState(false)
   const [displayInterface, setDisplayInterface] = useState(currentInterface)
 
@@ -138,25 +141,33 @@ function AppContent() {
       case 'chat':
         return (
           <Suspense fallback={loadingFallback}>
-            <ChatInitPage />
+            <ErrorBoundary pageName="聊天">
+              <ChatInitPage />
+            </ErrorBoundary>
           </Suspense>
         )
       case 'settings':
         return (
           <Suspense fallback={loadingFallback}>
-            <SettingEditorPage />
+            <ErrorBoundary pageName="设定编辑">
+              <SettingEditorPage />
+            </ErrorBoundary>
           </Suspense>
         )
       case 'writing':
         return (
           <Suspense fallback={loadingFallback}>
-            <WritingEditorPage />
+            <ErrorBoundary pageName="写作">
+              <WritingEditorPage />
+            </ErrorBoundary>
           </Suspense>
         )
       default:
         return (
           <Suspense fallback={loadingFallback}>
-            <ChatInitPage />
+            <ErrorBoundary pageName="聊天">
+              <ChatInitPage />
+            </ErrorBoundary>
           </Suspense>
         )
     }
@@ -174,7 +185,7 @@ function AppContent() {
           opacity: minimizeBackground ? 0.3 : 1,
         }}
       >
-        <ParticleBackground
+        <MemoizedParticleBackground
           particleCount={currentInterface === 'writing' ? 4 : 8}
           interfaceType={currentInterface as 'chat' | 'settings' | 'writing'}
           showConnections={!minimizeBackground}
@@ -190,7 +201,7 @@ function AppContent() {
           opacity: minimizeBackground ? 0.5 : 1,
         }}
       >
-        <DynamicBackground
+        <MemoizedDynamicBackground
           mode={backgroundMode}
           density={backgroundDensity}
           speed={backgroundSpeed}
@@ -209,6 +220,10 @@ function AppContent() {
     </div>
   )
 }
+
+// Memoize background components to prevent unnecessary re-renders
+const MemoizedParticleBackground = memo(ParticleBackground)
+const MemoizedDynamicBackground = memo(DynamicBackground)
 
 export default function App() {
   return (

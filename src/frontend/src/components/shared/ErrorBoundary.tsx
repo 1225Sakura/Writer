@@ -6,6 +6,8 @@ import { AlertTriangle, RefreshCw, Home, Bug, Feather } from 'lucide-react'
 interface Props {
   children: ReactNode
   fallback?: ReactNode
+  pageName?: string
+  onReset?: () => void
 }
 
 interface State {
@@ -36,6 +38,7 @@ export class ErrorBoundary extends Component<Props, State> {
 
   handleReset = () => {
     this.setState({ hasError: false, error: null, errorInfo: null })
+    this.props.onReset?.()
   }
 
   handleGoHome = () => {
@@ -49,10 +52,13 @@ export class ErrorBoundary extends Component<Props, State> {
         return this.props.fallback
       }
 
+      const pageName = this.props.pageName
+      const isPageLevel = !!pageName
+
       return (
         <div
-          className="min-h-screen flex items-center justify-center px-6"
-          style={{ backgroundColor: 'var(--ink-90)' }}
+          className={isPageLevel ? 'flex-1 flex items-center justify-center px-6 min-h-0' : 'min-h-screen flex items-center justify-center px-6'}
+          style={{ backgroundColor: isPageLevel ? 'transparent' : 'var(--ink-90)' }}
         >
           <motion.div
             initial={{ opacity: 0, y: 20, scale: 0.96 }}
@@ -84,7 +90,7 @@ export class ErrorBoundary extends Component<Props, State> {
               className="text-xl font-semibold text-center mb-2"
               style={{ color: 'var(--paper-100)' }}
             >
-              出了点小问题
+              {pageName ? `${pageName}页面出了点小问题` : '出了点小问题'}
             </h1>
 
             {/* Friendly message */}
@@ -92,9 +98,11 @@ export class ErrorBoundary extends Component<Props, State> {
               className="text-sm text-center leading-relaxed mb-6"
               style={{ color: 'var(--paper-75)' }}
             >
-              应用遇到了一些意外状况，但别担心，您的数据是安全的。
+              {isPageLevel
+                ? '该页面遇到了意外状况，但其他页面仍可正常使用。您的数据是安全的。'
+                : '应用遇到了一些意外状况，但别担心，您的数据是安全的。'}
               <br />
-              您可以尝试恢复或重新开始。
+              您可以尝试恢复或{isPageLevel ? '切换到其他页面' : '重新开始'}。
             </p>
 
             {/* Error details (collapsible) */}
@@ -144,19 +152,21 @@ export class ErrorBoundary extends Component<Props, State> {
               </Button>
 
               <div className="flex gap-2.5">
-                <Button
-                  onClick={this.handleGoHome}
-                  variant="outline"
-                  className="flex-1 justify-center"
-                >
-                  <Home className="w-4 h-4 mr-2" />
-                  返回首页
-                </Button>
+                {isPageLevel && (
+                  <Button
+                    onClick={this.handleGoHome}
+                    variant="outline"
+                    className="flex-1 justify-center"
+                  >
+                    <Home className="w-4 h-4 mr-2" />
+                    返回首页
+                  </Button>
+                )}
 
                 <Button
                   onClick={this.handleReload}
                   variant="outline"
-                  className="flex-1 justify-center"
+                  className={isPageLevel ? 'flex-1 justify-center' : 'flex-1 justify-center'}
                 >
                   <Feather className="w-4 h-4 mr-2" />
                   刷新页面

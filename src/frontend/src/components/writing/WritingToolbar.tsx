@@ -76,6 +76,8 @@ export function WritingToolbar() {
     continue: continueWriting,
     polish,
     loading,
+    runAllChecks,
+    currentChapterId,
   } = useWritingStore()
   const todayWordCount = getTodayWordCount()
 
@@ -87,6 +89,19 @@ export function WritingToolbar() {
     const powerMsg = powerImbalanceWarnings.length > 0 ? `战力失衡警告:\n${powerImbalanceWarnings.join('\n')}` : ''
     showToast(`${oocMsg}${oocMsg && powerMsg ? '\n\n' : ''}${powerMsg}`, 'warning')
   }, [oocWarnings, powerImbalanceWarnings])
+
+  const handleRunChecks = useCallback(async () => {
+    if (!currentChapterId) {
+      showToast('请先选择章节', 'warning')
+      return
+    }
+    try {
+      await runAllChecks(currentChapterId)
+      showToast('检查完成', 'success')
+    } catch (error) {
+      showToast('检查失败', 'error')
+    }
+  }, [currentChapterId, runAllChecks])
 
   const hasWarnings = oocWarnings.length > 0 || powerImbalanceWarnings.length > 0
   const isAIGenerating = loading.ai

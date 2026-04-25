@@ -1,5 +1,6 @@
 import { useEffect, useCallback } from 'react'
 import { useUIStore, useWritingStore } from '@/store'
+import { shallow } from 'zustand/shallow'
 import { getEditorInstance } from '@/store/editorRegistry'
 import {
   AI_SHORTCUT_OPERATIONS,
@@ -70,29 +71,37 @@ async function executeAIOperation(operation: AIOperationType, selectedText: stri
  * 处理所有界面的全局快捷键
  */
 export function useGlobalShortcuts() {
-  const {
-    toggleAIDrawer,
-    toggleCollaborationDrawer,
-    toggleOutlineDrawer,
-    toggleFullscreenWriting,
-    toggleImmersiveMode,
-    toggleFocusMode,
-    toggleTheme,
-    setCurrentInterface,
-    currentInterface,
-    aiDrawerOpen,
-    collaborationDrawerOpen,
-    immersiveMode,
-    focusModeEnabled,
-    theme,
-  } = useUIStore()
+  // Use selectors to only subscribe to needed state slices
+  const currentInterface = useUIStore((state) => state.currentInterface)
+  const aiDrawerOpen = useUIStore((state) => state.aiDrawerOpen)
+  const collaborationDrawerOpen = useUIStore((state) => state.collaborationDrawerOpen)
+  const immersiveMode = useUIStore((state) => state.immersiveMode)
+  const focusModeEnabled = useUIStore((state) => state.focusModeEnabled)
+  const theme = useUIStore((state) => state.theme)
+
+  const toggleAIDrawer = useUIStore((state) => state.toggleAIDrawer)
+  const toggleCollaborationDrawer = useUIStore((state) => state.toggleCollaborationDrawer)
+  const toggleOutlineDrawer = useUIStore((state) => state.toggleOutlineDrawer)
+  const toggleFullscreenWriting = useUIStore((state) => state.toggleFullscreenWriting)
+  const toggleImmersiveMode = useUIStore((state) => state.toggleImmersiveMode)
+  const toggleFocusMode = useUIStore((state) => state.toggleFocusMode)
+  const toggleTheme = useUIStore((state) => state.toggleTheme)
+  const setCurrentInterface = useUIStore((state) => state.setCurrentInterface)
 
   const {
     currentChapterId,
     saveCurrentChapter,
     createChapter,
     markSaved,
-  } = useWritingStore()
+  } = useWritingStore(
+    (state) => ({
+      currentChapterId: state.currentChapterId,
+      saveCurrentChapter: state.saveCurrentChapter,
+      createChapter: state.createChapter,
+      markSaved: state.markSaved,
+    }),
+    shallow
+  )
 
   // ===== 保存功能 =====
   const handleSave = useCallback(async () => {

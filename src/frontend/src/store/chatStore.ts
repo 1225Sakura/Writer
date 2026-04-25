@@ -4,6 +4,8 @@ import { immer } from 'zustand/middleware/immer'
 import { sessionApi, messageApi, entityApi } from '../api/chat'
 import type { ChatSession, ExtractedEntity } from '../api/types'
 import { createHybridStorage } from './utils/indexedDBStorage'
+import { showApiError, showSuccess, isRetryableError } from '@/utils/toastHelper'
+import type { ApiError } from '@/api/request'
 
 // ============================================
 // Types
@@ -52,6 +54,8 @@ interface ChatState {
   streamAbortController: AbortController | null
   isLoading: boolean
   error: string | null
+  errorCode: string | null
+  lastError: ApiError | null
   extractionState: EntityExtractionState
   extractionProgress: number
   messageCache: MessageCache
@@ -169,6 +173,8 @@ export const useChatStore = create<ChatState & ChatActions>()(
             set((state) => {
               state.isLoading = true
               state.error = null
+              state.errorCode = null
+              state.lastError = null
             })
             try {
               const session = await sessionApi.create()
@@ -180,11 +186,16 @@ export const useChatStore = create<ChatState & ChatActions>()(
                 state.sessions.unshift(session)
                 state.isLoading = false
               })
+              showSuccess('会话创建成功')
             } catch (error) {
+              const apiErr = error as ApiError
               set((state) => {
-                state.error = (error as Error).message
+                state.error = apiErr.message || '创建会话失败'
+                state.errorCode = apiErr.code || 'UNKNOWN_ERROR'
+                state.lastError = apiErr
                 state.isLoading = false
               })
+              showApiError(error, '创建会话失败')
             }
           },
 

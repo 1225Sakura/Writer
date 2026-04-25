@@ -4,6 +4,7 @@ import { useState, useCallback } from 'react'
 import { TagInput } from './TagInput'
 import { EntityCard, entityColors, cardStyle } from './EntityCard'
 import { motion, AnimatePresence } from 'framer-motion'
+import type { Item, Location, Faction, WorldSetting, Rule } from '@/shared/types'
 
 interface EntityEditorProps {
   category: UIState['settingsCategory']
@@ -1531,6 +1532,62 @@ function EmptyState({
   )
 }
 
+// Editable entity card wrapper that adds edit functionality for all entity types
+function EditableEntityCard<T extends { id: number; name: string; description?: string }>({
+  entity,
+  entityType,
+  badge,
+  badgeColor,
+  tags,
+  extraFields,
+  onDelete,
+  onUpdate,
+  editFields,
+}: {
+  entity: T
+  entityType: 'item' | 'location' | 'faction' | 'world' | 'rule' | 'ifline'
+  badge?: string
+  badgeColor?: { bg: string; text: string; border?: string; glow?: string }
+  tags?: string[]
+  extraFields?: React.ReactNode
+  onDelete: () => void
+  onUpdate: (id: number, data: Partial<T>) => void
+  editFields: Array<{ key: keyof T; label: string; type?: 'text' | 'textarea'; required?: boolean; maxLength?: number }>
+}) {
+  const [isEditing, setIsEditing] = useState(false)
+
+  const handleSave = (data: T) => {
+    onUpdate(entity.id, data)
+    setIsEditing(false)
+  }
+
+  if (isEditing) {
+    return (
+      <EntityForm
+        entity={entity}
+        onSave={handleSave}
+        onCancel={() => setIsEditing(false)}
+        fields={editFields}
+        extraFields={extraFields}
+      />
+    )
+  }
+
+  return (
+    <EntityCard
+      name={entity.name}
+      description={entity.description}
+      badge={badge}
+      badgeColor={badgeColor}
+      tags={tags}
+      entityType={entityType}
+      entityId={entity.id}
+      onEdit={() => setIsEditing(true)}
+      onDelete={onDelete}
+    />
+  )
+}
+
 export function EntityEditor({ category }: EntityEditorProps) {
   const {
     characters,
@@ -1616,15 +1673,19 @@ export function EntityEditor({ category }: EntityEditorProps) {
                   layout
                   variants={entityItemVariants}
                 >
-                  <EntityCard
-                    name={item.name}
-                    description={item.description}
+                  <EditableEntityCard
+                    entity={item}
+                    entityType="item"
                     badge={item.owner ? `持有者: ${item.owner}` : undefined}
                     badgeColor={entityColors.item}
                     tags={item.tags}
-                    entityType="item"
-                    entityId={item.id}
                     onDelete={() => useSettingsStore.getState().deleteItem(item.id)}
+                    onUpdate={(id, data) => useSettingsStore.getState().updateItem(id, data)}
+                    editFields={[
+                      { key: 'name', label: '名称', required: true, maxLength: 50 },
+                      { key: 'description', label: '描述', type: 'textarea', maxLength: 500 },
+                      { key: 'owner', label: '持有者', maxLength: 50 },
+                    ]}
                   />
                 </motion.div>
               ))}
@@ -1676,15 +1737,18 @@ export function EntityEditor({ category }: EntityEditorProps) {
                   layout
                   variants={entityItemVariants}
                 >
-                  <EntityCard
-                    name={loc.name}
-                    description={loc.description}
+                  <EditableEntityCard
+                    entity={loc}
+                    entityType="location"
                     badge={loc.importance === 'major' ? '重要地点' : '次要地点'}
                     badgeColor={entityColors.location}
                     tags={loc.tags}
-                    entityType="location"
-                    entityId={loc.id}
                     onDelete={() => useSettingsStore.getState().deleteLocation(loc.id)}
+                    onUpdate={(id, data) => useSettingsStore.getState().updateLocation(id, data)}
+                    editFields={[
+                      { key: 'name', label: '名称', required: true, maxLength: 50 },
+                      { key: 'description', label: '描述', type: 'textarea', maxLength: 500 },
+                    ]}
                   />
                 </motion.div>
               ))}
@@ -1736,15 +1800,19 @@ export function EntityEditor({ category }: EntityEditorProps) {
                   layout
                   variants={entityItemVariants}
                 >
-                  <EntityCard
-                    name={fac.name}
-                    description={fac.description}
+                  <EditableEntityCard
+                    entity={fac}
+                    entityType="faction"
                     badge={fac.type}
                     badgeColor={entityColors.faction}
                     tags={fac.tags}
-                    entityType="faction"
-                    entityId={fac.id}
                     onDelete={() => useSettingsStore.getState().deleteFaction(fac.id)}
+                    onUpdate={(id, data) => useSettingsStore.getState().updateFaction(id, data)}
+                    editFields={[
+                      { key: 'name', label: '名称', required: true, maxLength: 50 },
+                      { key: 'description', label: '描述', type: 'textarea', maxLength: 500 },
+                      { key: 'type', label: '类型', maxLength: 30 },
+                    ]}
                   />
                 </motion.div>
               ))}
@@ -1796,14 +1864,17 @@ export function EntityEditor({ category }: EntityEditorProps) {
                   layout
                   variants={entityItemVariants}
                 >
-                  <EntityCard
-                    name={world.name}
-                    description={world.description}
+                  <EditableEntityCard
+                    entity={world}
+                    entityType="world"
                     badgeColor={entityColors.world}
                     tags={world.tags}
-                    entityType="world"
-                    entityId={world.id}
                     onDelete={() => useSettingsStore.getState().deleteWorldSetting(world.id)}
+                    onUpdate={(id, data) => useSettingsStore.getState().updateWorldSetting(id, data)}
+                    editFields={[
+                      { key: 'name', label: '名称', required: true, maxLength: 50 },
+                      { key: 'description', label: '描述', type: 'textarea', maxLength: 500 },
+                    ]}
                   />
                 </motion.div>
               ))}
@@ -1855,15 +1926,19 @@ export function EntityEditor({ category }: EntityEditorProps) {
                   layout
                   variants={entityItemVariants}
                 >
-                  <EntityCard
-                    name={rule.name}
-                    description={rule.description}
+                  <EditableEntityCard
+                    entity={rule}
+                    entityType="rule"
                     badge={rule.type}
                     badgeColor={entityColors.rule}
                     tags={rule.tags}
-                    entityType="rule"
-                    entityId={rule.id}
                     onDelete={() => useSettingsStore.getState().deleteRule(rule.id)}
+                    onUpdate={(id, data) => useSettingsStore.getState().updateRule(id, data)}
+                    editFields={[
+                      { key: 'name', label: '名称', required: true, maxLength: 50 },
+                      { key: 'description', label: '描述', type: 'textarea', maxLength: 500 },
+                      { key: 'type', label: '类型', maxLength: 30 },
+                    ]}
                   />
                 </motion.div>
               ))}
@@ -1918,15 +1993,18 @@ export function EntityEditor({ category }: EntityEditorProps) {
                   layout
                   variants={entityItemVariants}
                 >
-                  <EntityCard
-                    name={ifline.title}
-                    description={ifline.description}
+                  <EditableEntityCard
+                    entity={ifline}
+                    entityType="ifline"
                     badge={ifline.sync_mode === 'auto' ? '自动同步' : '手动同步'}
                     badgeColor={entityColors.ifline}
                     tags={ifline.tags}
-                    entityType="ifline"
-                    entityId={ifline.id}
                     onDelete={() => useSettingsStore.getState().deleteIFLine(ifline.id)}
+                    onUpdate={(id, data) => useSettingsStore.getState().updateIFLine(id, data)}
+                    editFields={[
+                      { key: 'title', label: '标题', required: true, maxLength: 50 },
+                      { key: 'description', label: '描述', type: 'textarea', maxLength: 500 },
+                    ]}
                   />
                 </motion.div>
               ))}

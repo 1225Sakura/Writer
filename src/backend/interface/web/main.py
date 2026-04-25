@@ -704,6 +704,15 @@ async def websocket_chat(
     api_key: Optional[str] = None
 ):
     """WebSocket endpoint for real-time chat streaming with heartbeat and rate limiting."""
+    # Validate Origin header before accepting
+    origin = websocket.headers.get("origin")
+    if not _is_allowed_websocket_origin(origin):
+        logger.warning(
+            f"WebSocket rejected: invalid origin '{origin}' for session={session_id}"
+        )
+        await websocket.close(code=4002, reason="Invalid Origin")
+        return
+
     # Verify auth first
     if not await verify_websocket_auth(api_key):
         await websocket.close(code=4001, reason="Unauthorized")
@@ -720,15 +729,6 @@ async def websocket_chat(
             "retry_after": rate_info.get("retry_after", 60)
         })
         await websocket.close(code=1008, reason="Rate limit exceeded")
-        return
-
-    # Validate Origin header after accept
-    origin = websocket.headers.get("origin")
-    if not _is_allowed_websocket_origin(origin):
-        logger.warning(
-            f"WebSocket rejected: invalid origin '{origin}' for session={session_id}"
-        )
-        await websocket.close(code=4002, reason="Invalid Origin")
         return
 
     await manager.connect(websocket, session_id)
@@ -872,14 +872,7 @@ async def websocket_general(
     api_key: Optional[str] = None
 ):
     """General WebSocket endpoint for real-time updates with heartbeat."""
-    # Verify auth first
-    if not await verify_websocket_auth(api_key):
-        await websocket.close(code=4001, reason="Unauthorized")
-        return
-
-    await websocket.accept()
-
-    # Validate Origin header after accept
+    # Validate Origin header before accepting
     origin = websocket.headers.get("origin")
     if not _is_allowed_websocket_origin(origin):
         logger.warning(
@@ -887,6 +880,13 @@ async def websocket_general(
         )
         await websocket.close(code=4002, reason="Invalid Origin")
         return
+
+    # Verify auth first
+    if not await verify_websocket_auth(api_key):
+        await websocket.close(code=4001, reason="Unauthorized")
+        return
+
+    await websocket.accept()
 
     async def send_ping():
         """Send ping at configured interval to keep connection alive."""

@@ -48,11 +48,13 @@ export interface UIState {
   aiDrawerOpen: boolean
   collaborationDrawerOpen: boolean
   outlineDrawerOpen: boolean
+  checkerDrawerOpen: boolean
 
   // Panel states with sizing
   aiPanel: PanelState
   collaborationPanel: PanelState
   outlinePanel: PanelState
+  checkerPanel: PanelState
 
   // Fullscreen & modes
   fullscreenWriting: boolean
@@ -94,16 +96,19 @@ interface UIActions {
   toggleAIDrawer: () => void
   toggleCollaborationDrawer: () => void
   toggleOutlineDrawer: () => void
+  toggleCheckerDrawer: () => void
   setAIDrawerOpen: (open: boolean) => void
   setCollaborationDrawerOpen: (open: boolean) => void
   setOutlineDrawerOpen: (open: boolean) => void
+  setCheckerDrawerOpen: (open: boolean) => void
 
   // Panel sizing
   setAIPanelWidth: (width: number) => void
   setCollaborationPanelWidth: (width: number) => void
   setOutlinePanelWidth: (width: number) => void
-  collapsePanel: (panel: 'ai' | 'collaboration' | 'outline') => void
-  expandPanel: (panel: 'ai' | 'collaboration' | 'outline') => void
+  setCheckerPanelWidth: (width: number) => void
+  collapsePanel: (panel: 'ai' | 'collaboration' | 'outline' | 'checker') => void
+  expandPanel: (panel: 'ai' | 'collaboration' | 'outline' | 'checker') => void
 
   // Fullscreen & modes
   toggleFullscreenWriting: () => void
