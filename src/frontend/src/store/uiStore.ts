@@ -169,9 +169,11 @@ export const useUIStore = create<UIState & UIActions>()(
           aiDrawerOpen: false,
           collaborationDrawerOpen: false,
           outlineDrawerOpen: false,
+          checkerDrawerOpen: false,
           aiPanel: { width: 360, position: 'right', collapsed: false },
           collaborationPanel: { width: 320, position: 'right', collapsed: false },
           outlinePanel: { width: 280, position: 'left', collapsed: false },
+          checkerPanel: { width: 340, position: 'right', collapsed: false },
           fullscreenWriting: false,
           immersiveMode: false,
           focusModeEnabled: false,
@@ -271,6 +273,15 @@ export const useUIStore = create<UIState & UIActions>()(
             set((state) => { state.outlineDrawerOpen = !state.outlineDrawerOpen })
           },
 
+          toggleCheckerDrawer: () => {
+            set((state) => {
+              state.checkerDrawerOpen = !state.checkerDrawerOpen
+              if (state.checkerDrawerOpen && state.aiDrawerOpen) {
+                state.aiDrawerOpen = false
+              }
+            })
+          },
+
           setAIDrawerOpen: (open) => {
             set((state) => {
               state.aiDrawerOpen = open
@@ -293,6 +304,15 @@ export const useUIStore = create<UIState & UIActions>()(
             set((state) => { state.outlineDrawerOpen = open })
           },
 
+          setCheckerDrawerOpen: (open) => {
+            set((state) => {
+              state.checkerDrawerOpen = open
+              if (open && state.aiDrawerOpen) {
+                state.aiDrawerOpen = false
+              }
+            })
+          },
+
           // ----------------------------------------
           // Panel Sizing
           // ----------------------------------------
@@ -313,6 +333,12 @@ export const useUIStore = create<UIState & UIActions>()(
             })
           },
 
+          setCheckerPanelWidth: (width) => {
+            set((state) => {
+              state.checkerPanel.width = Math.max(240, Math.min(500, width))
+            })
+          },
+
           collapsePanel: (panel) => {
             set((state) => {
               switch (panel) {
@@ -324,6 +350,9 @@ export const useUIStore = create<UIState & UIActions>()(
                   break
                 case 'outline':
                   state.outlinePanel.collapsed = true
+                  break
+                case 'checker':
+                  state.checkerPanel.collapsed = true
                   break
               }
             })
@@ -340,6 +369,9 @@ export const useUIStore = create<UIState & UIActions>()(
                   break
                 case 'outline':
                   state.outlinePanel.collapsed = false
+                  break
+                case 'checker':
+                  state.checkerPanel.collapsed = false
                   break
               }
             })
