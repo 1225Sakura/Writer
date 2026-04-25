@@ -1,14 +1,29 @@
 import * as React from 'react'
 import { cn } from '@/lib/utils'
+import { motion } from 'framer-motion'
 
 const Card = React.forwardRef<
   HTMLDivElement,
-  React.HTMLAttributes<HTMLDivElement>
->(({ className, ...props }, ref) => (
-  <div
+  React.HTMLAttributes<HTMLDivElement> & {
+    hoverable?: boolean
+    glowIntensity?: 'none' | 'subtle' | 'medium' | 'strong'
+  }
+>(({ className, hoverable = false, glowIntensity = 'none', ...props }, ref) => (
+  <motion.div
     ref={ref}
+    initial={hoverable ? { scale: 1 } : undefined}
+    whileHover={hoverable ? { scale: 1.01, y: -2 } : undefined}
+    transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
     className={cn(
-      'rounded-lg border bg-card text-card-foreground shadow-sm',
+      'rounded-xl border bg-card text-card-foreground',
+      'shadow-[0_1px_2px_rgba(0,0,0,0.05),0_2px_4px_rgba(0,0,0,0.08),0_4px_8px_rgba(0,0,0,0.04)]',
+      'dark:shadow-[0_1px_2px_rgba(0,0,0,0.3),0_2px_4px_rgba(0,0,0,0.2),0_4px_8px_rgba(0,0,0,0.15)]',
+      'hover:shadow-[0_4px_8px_rgba(0,0,0,0.08),0_8px_16px_rgba(0,0,0,0.06),0_16px_32px_rgba(0,0,0,0.04)]',
+      'dark:hover:shadow-[0_4px_8px_rgba(0,0,0,0.4),0_8px_16px_rgba(0,0,0,0.3),0_16px_32px_rgba(0,0,0,0.2)]',
+      'transition-shadow duration-[var(--transition-base)] ease-out',
+      glowIntensity === 'subtle' && 'shadow-[0_0_12px_rgba(94,181,166,0.08)] dark:shadow-[0_0_12px_rgba(94,181,166,0.15)]',
+      glowIntensity === 'medium' && 'shadow-[0_0_16px_rgba(94,181,166,0.12)] dark:shadow-[0_0_16px_rgba(94,181,166,0.2)]',
+      glowIntensity === 'strong' && 'shadow-[0_0_20px_rgba(94,181,166,0.15),0_0_40px_rgba(94,181,166,0.08)] dark:shadow-[0_0_20px_rgba(94,181,166,0.25),0_0_40px_rgba(94,181,166,0.12)]',
       className
     )}
     {...props}

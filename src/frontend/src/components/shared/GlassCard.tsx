@@ -13,6 +13,7 @@
 import { motion } from 'framer-motion'
 import type { ReactNode, CSSProperties } from 'react'
 import { cn } from '@/lib/utils'
+import { useTheme } from '@/hooks/useTheme'
 
 export type GlassIntensity = 'light' | 'medium' | 'strong' | 'heavy' | 'subtle' | 'ultra' | 'writing'
 export type GlassBorder = 'none' | 'subtle' | 'glow' | 'gradient' | 'accent' | 'soft' | 'entity'
@@ -279,6 +280,63 @@ const entityGlowMap: Record<string, string> = {
   accent: 'rgba(94, 106, 210, 0.15)',
 }
 
+/* GlassBadge static maps */
+const glassBadgeColorMap: Record<string, string> = {
+  accent: 'rgba(94, 106, 210, 0.15)',
+  character: 'rgba(232, 184, 125, 0.15)',
+  item: 'rgba(155, 126, 217, 0.15)',
+  location: 'rgba(94, 181, 166, 0.15)',
+  faction: 'rgba(212, 93, 93, 0.15)',
+  outline: 'rgba(91, 142, 232, 0.15)',
+  ifline: 'rgba(126, 183, 74, 0.15)',
+}
+
+const glassBadgeBorderColorMap: Record<string, string> = {
+  accent: 'rgba(94, 106, 210, 0.3)',
+  character: 'rgba(232, 184, 125, 0.3)',
+  item: 'rgba(155, 126, 217, 0.3)',
+  location: 'rgba(94, 181, 166, 0.3)',
+  faction: 'rgba(212, 93, 93, 0.3)',
+  outline: 'rgba(91, 142, 232, 0.3)',
+  ifline: 'rgba(126, 183, 74, 0.3)',
+}
+
+const glassBadgeSizeMap = {
+  sm: { padding: '2px 6px', fontSize: '10px' },
+  md: { padding: '4px 10px', fontSize: '12px' },
+  lg: { padding: '6px 14px', fontSize: '13px' },
+}
+
+/* GlassButton static maps */
+const glassButtonVariantStyles: Record<string, CSSProperties> = {
+  ghost: {
+    background: 'transparent',
+    border: '1px solid transparent',
+    color: 'var(--text-secondary)',
+  },
+  subtle: {
+    background: 'rgba(255, 255, 255, 0.05)',
+    border: '1px solid var(--border-default)',
+    color: 'var(--text-primary)',
+  },
+  accent: {
+    background: 'var(--accent-muted)',
+    border: '1px solid rgba(94, 106, 210, 0.3)',
+    color: 'var(--accent-primary)',
+  },
+  danger: {
+    background: 'rgba(217, 58, 58, 0.1)',
+    border: '1px solid rgba(217, 58, 58, 0.3)',
+    color: 'var(--color-danger)',
+  },
+}
+
+const glassButtonSizeMap = {
+  sm: { padding: '4px 10px', fontSize: '12px', gap: '4px' },
+  md: { padding: '8px 16px', fontSize: '13px', gap: '8px' },
+  lg: { padding: '12px 24px', fontSize: '14px', gap: '10px' },
+}
+
 /**
  * GlassCard - 毛玻璃效果卡片
  *
@@ -311,9 +369,8 @@ export function GlassCard({
   opacity,
   entityColor = 'accent',
 }: GlassCardProps) {
-  const isLight = typeof document !== 'undefined'
-    ? document.documentElement.getAttribute('data-theme') === 'light'
-    : false
+  const { theme } = useTheme()
+  const isLight = theme === 'light'
 
   const currentIntensity = isLight ? lightIntensityStyles : intensityStyles
   const currentBorder = isLight ? lightBorderStyles : borderStyles
@@ -441,9 +498,8 @@ export function GlassPanel({
   border?: GlassBorder
   variant?: GlassVariant
 }) {
-  const isLight = typeof document !== 'undefined'
-    ? document.documentElement.getAttribute('data-theme') === 'light'
-    : false
+  const { theme } = useTheme()
+  const isLight = theme === 'light'
 
   const currentIntensity = isLight ? lightIntensityStyles : intensityStyles
   const currentBorder = isLight ? lightBorderStyles : borderStyles
@@ -478,41 +534,15 @@ export function GlassBadge({
   color?: 'accent' | 'character' | 'item' | 'location' | 'faction' | 'outline' | 'ifline'
   size?: 'sm' | 'md' | 'lg'
 }) {
-  const colorMap: Record<string, string> = {
-    accent: 'rgba(94, 106, 210, 0.15)',
-    character: 'rgba(232, 184, 125, 0.15)',
-    item: 'rgba(155, 126, 217, 0.15)',
-    location: 'rgba(94, 181, 166, 0.15)',
-    faction: 'rgba(212, 93, 93, 0.15)',
-    outline: 'rgba(91, 142, 232, 0.15)',
-    ifline: 'rgba(126, 183, 74, 0.15)',
-  }
-
-  const borderColorMap: Record<string, string> = {
-    accent: 'rgba(94, 106, 210, 0.3)',
-    character: 'rgba(232, 184, 125, 0.3)',
-    item: 'rgba(155, 126, 217, 0.3)',
-    location: 'rgba(94, 181, 166, 0.3)',
-    faction: 'rgba(212, 93, 93, 0.3)',
-    outline: 'rgba(91, 142, 232, 0.3)',
-    ifline: 'rgba(126, 183, 74, 0.3)',
-  }
-
-  const sizeMap = {
-    sm: { padding: '2px 6px', fontSize: '10px' },
-    md: { padding: '4px 10px', fontSize: '12px' },
-    lg: { padding: '6px 14px', fontSize: '13px' },
-  }
-
   return (
     <span
       className={cn('inline-flex items-center font-medium rounded-md', className)}
       style={{
-        background: colorMap[color],
-        border: `1px solid ${borderColorMap[color]}`,
+        background: glassBadgeColorMap[color],
+        border: `1px solid ${glassBadgeBorderColorMap[color]}`,
         backdropFilter: 'blur(8px)',
         WebkitBackdropFilter: 'blur(8px)',
-        ...sizeMap[size],
+        ...glassBadgeSizeMap[size],
       }}
     >
       {children}
@@ -542,35 +572,6 @@ export function GlassButton({
   shimmer?: boolean
   onClick?: () => void
 }) {
-  const variantStyles: Record<string, CSSProperties> = {
-    ghost: {
-      background: 'transparent',
-      border: '1px solid transparent',
-      color: 'var(--text-secondary)',
-    },
-    subtle: {
-      background: 'rgba(255, 255, 255, 0.05)',
-      border: '1px solid var(--border-default)',
-      color: 'var(--text-primary)',
-    },
-    accent: {
-      background: 'var(--accent-muted)',
-      border: '1px solid rgba(94, 106, 210, 0.3)',
-      color: 'var(--accent-primary)',
-    },
-    danger: {
-      background: 'rgba(217, 58, 58, 0.1)',
-      border: '1px solid rgba(217, 58, 58, 0.3)',
-      color: 'var(--color-danger)',
-    },
-  }
-
-  const sizeMap = {
-    sm: { padding: '4px 10px', fontSize: '12px', gap: '4px' },
-    md: { padding: '8px 16px', fontSize: '13px', gap: '8px' },
-    lg: { padding: '12px 24px', fontSize: '14px', gap: '10px' },
-  }
-
   const activeStyle: CSSProperties = isActive
     ? {
         background: 'var(--accent-muted)',
@@ -583,9 +584,9 @@ export function GlassButton({
     <motion.button
       className={cn('relative inline-flex items-center justify-center rounded-lg font-medium', className)}
       style={{
-        ...variantStyles[variant],
+        ...glassButtonVariantStyles[variant],
         ...activeStyle,
-        ...sizeMap[size],
+        ...glassButtonSizeMap[size],
       }}
       onClick={onClick}
       whileHover={{ scale: 1.02, opacity: 0.9 }}

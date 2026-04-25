@@ -36,9 +36,19 @@ interface ShootingStar {
   vx: number
   vy: number
   length: number
+  width: number
   opacity: number
   life: number
   maxLife: number
+  hue: number
+}
+
+interface MeteorTrail {
+  x: number
+  y: number
+  size: number
+  opacity: number
+  decay: number
 }
 
 const densityConfig = {
@@ -109,6 +119,7 @@ export function StarfieldBackground({
   const isLowPerf = useMemo(() => isLowPerformanceDevice(), [])
   const starCount = isLowPerf ? Math.floor(densityConfig[density] * 0.4) : densityConfig[density]
   const shootingRate = shootingStarRateConfig[shootingStarRate]
+  const trailsRef = useRef<MeteorTrail[]>([])
 
   // 20fps for starfield
   const targetFrameInterval = isLowPerf ? 50 : 33.33
@@ -196,7 +207,7 @@ export function StarfieldBackground({
         ctx.fill()
       })
 
-      // Handle shooting stars
+      // Handle shooting stars with improved effects
       if (shootingStars && !isLowPerf) {
         // Spawn new shooting star
         if (Math.random() < shootingRate) {
@@ -204,46 +215,90 @@ export function StarfieldBackground({
           shootingStarsRef.current.push({
             x: rand * width,
             y: rand * height * 0.3,
-            vx: -3 - Math.random() * 4,
-            vy: 2 + Math.random() * 3,
-            length: 40 + Math.random() * 60,
-            opacity: 0.3 + Math.random() * 0.3,
+            vx: -(3 + Math.random() * 5),
+            vy: 2 + Math.random() * 3.5,
+            length: 50 + Math.random() * 80,
+            width: 1 + Math.random() * 1.5,
+            opacity: 0.4 + Math.random() * 0.4,
             life: 0,
-            maxLife: 30 + Math.random() * 30,
+            maxLife: 35 + Math.random() * 40,
+            hue: 40 + Math.random() * 20, // warm golden hue
           })
         }
 
-        // Update and draw shooting stars
+        // Update and draw shooting stars with trails
         shootingStarsRef.current = shootingStarsRef.current.filter((ss) => {
           ss.x += ss.vx
           ss.y += ss.vy
           ss.life++
 
           const lifeRatio = ss.life / ss.maxLife
-          const fadeIn = Math.min(lifeRatio * 5, 1)
-          const fadeOut = lifeRatio > 0.7 ? 1 - (lifeRatio - 0.7) / 0.3 : 1
+          const fadeIn = Math.min(lifeRatio * 6, 1)
+          const fadeOut = lifeRatio > 0.6 ? 1 - (lifeRatio - 0.6) / 0.4 : 1
           const currentOpacity = ss.opacity * fadeIn * fadeOut
 
           if (currentOpacity <= 0) return false
 
-          // Draw trail
+          // Add trail particles
+          if (ss.life % 2 === 0 && ss.length > 40) {
+            const trailCount = Math.floor(ss.length / 15)
+            for (let t = 0; t < trailCount; t++) {
+              const trailProgress = t / trailCount
+              trailsRef.current.push({
+                x: ss.x - ss.vx * trailProgress * 3 + (Math.random() - 0.5) * 10,
+                y: ss.y - ss.vy * trailProgress * 3 + (Math.random() - 0.5) * 10,
+                size: 0.5 + Math.random() * 1.5 * (1 - trailProgress),
+                opacity: (0.1 + Math.random() * 0.15) * (1 - trailProgress * 0.7),
+                decay: 0.92 + Math.random() * 0.06,
+              })
+            }
+          }
+
+          // Draw main trail with gradient
           const gradient = ctx.createLinearGradient(
             ss.x, ss.y,
-            ss.x - ss.vx * ss.length * 0.1, ss.y - ss.vy * ss.length * 0.1
+            ss.x - ss.vx * ss.length * 0.12, ss.y - ss.vy * ss.length * 0.12
           )
-          gradient.addColorStop(0, `rgba(245, 240, 230, ${currentOpacity})`)
+          gradient.addColorStop(0, `hsla(${ss.hue}, 80%, 85%, ${currentOpacity})`)
+          gradient.addColorStop(0.3, `hsla(${ss.hue}, 70%, 75%, ${currentOpacity * 0.7})`)
           gradient.addColorStop(1, 'transparent')
 
           ctx.beginPath()
           ctx.moveTo(ss.x, ss.y)
           ctx.lineTo(
-            ss.x - ss.vx * ss.length * 0.1,
-            ss.y - ss.vy * ss.length * 0.1
+            ss.x - ss.vx * ss.length * 0.12,
+            ss.y - ss.vy * ss.length * 0.12
           )
           ctx.strokeStyle = gradient
-          ctx.lineWidth = 1.5
+          ctx.lineWidth = ss.width
+          ctx.lineCap = 'round'
           ctx.stroke()
 
+          // Bright head glow
+          const headGlow = ctx.createRadialGradient(
+            ss.x, ss.y, 0,
+            ss.x, ss.y, 8
+          )
+          headGlow.addColorStop(0, `hsla(${ss.hue}, 90%, 95%, ${currentOpacity * 0.8})`)
+          headGlow.addColorStop(0.3, `hsla(${ss.hue}, 80%, 85%, ${currentOpacity * 0.4})`)
+          headGlow.addColorStop(1, 'transparent')
+          ctx.beginPath()
+          ctx.arc(ss.x, ss.y, 8, 0, Math.PI * 2)
+          ctx.fillStyle = headGlow
+          ctx.fill()
+
+          return true
+        })
+
+        // Draw and update trailing particles
+        trailsRef.current = trailsRef.current.filter((trail) => {
+          trail.opacity *= trail.decay
+          trail.size *= 0.98
+          if (trail.opacity < 0.005 || trail.size < 0.1) return false
+          ctx.beginPath()
+          ctx.arc(trail.x, trail.y, trail.size, 0, Math.PI * 2)
+          ctx.fillStyle = `hsla(40, 60%, 80%, ${trail.opacity})`
+          ctx.fill()
           return true
         })
       }

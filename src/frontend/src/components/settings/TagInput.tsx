@@ -79,15 +79,16 @@ export function TagChips({
               transition={{ type: 'spring', stiffness: 500, damping: 30 }}
               className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-medium transition-all cursor-default group/tag"
               style={{
-                backgroundColor: `${color}15`,
+                backgroundColor: `${color}12`,
                 color: color,
-                border: `1px solid ${color}30`,
+                border: `1px solid ${color}25`,
+                boxShadow: `0 1px 3px rgba(0,0,0,0.1), inset 0 1px 0 rgba(255,255,255,0.03)`,
               }}
               whileHover={{
-                backgroundColor: `${color}22`,
-                borderColor: `${color}50`,
-                boxShadow: `0 4px 12px ${color}25`,
-                y: -1,
+                backgroundColor: `${color}18`,
+                borderColor: `${color}45`,
+                boxShadow: `0 4px 14px ${color}30, 0 1px 4px rgba(0,0,0,0.15)`,
+                y: -2,
               }}
             >
               <Tag className="w-3 h-3 opacity-70" />

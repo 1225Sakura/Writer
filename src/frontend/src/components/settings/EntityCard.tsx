@@ -25,13 +25,14 @@ export const entityColors: Record<string, { bg: string; text: string; border: st
 export const cardStyle = {
   backgroundColor: 'var(--color-surface-raised)',
   border: '1px solid var(--border-default)',
+  boxShadow: '0 1px 3px rgba(0,0,0,0.04), 0 1px 2px rgba(0,0,0,0.02)',
 }
 
 export const cardGlowStyle = (color: string, isHovered: boolean, borderColor?: string) => ({
   boxShadow: isHovered
-    ? `0 0 20px ${color}20, 0 4px 16px rgba(0,0,0,0.20), 0 1px 4px rgba(0,0,0,0.12), inset 0 0 0 1px ${borderColor || color}18`
-    : `0 1px 3px rgba(0,0,0,0.06), 0 0 0 0 transparent`,
-  transition: 'box-shadow 0.3s cubic-bezier(0.16, 1, 0.3, 1), transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.25s ease, background-color 0.25s ease',
+    ? `0 0 24px ${color}25, 0 8px 24px rgba(0,0,0,0.25), 0 2px 8px rgba(0,0,0,0.15), inset 0 0 0 1px ${borderColor || color}20, 0 0 0 1px rgba(255,255,255,0.03) inset`
+    : `0 2px 4px rgba(0,0,0,0.04), 0 4px 8px rgba(0,0,0,0.03)`,
+  transition: 'box-shadow 0.35s cubic-bezier(0.16, 1, 0.3, 1), transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.25s ease, background-color 0.25s ease',
 })
 
 interface EntityCardProps {
@@ -87,7 +88,7 @@ export function EntityCard({
         style={{
           ...cardGlowStyle(badgeColor?.text || 'var(--accent-primary)', isHovered, badgeColor?.border),
           backgroundColor: isHovered ? 'var(--color-surface-overlay)' : 'var(--color-surface-raised)',
-          borderColor: isHovered ? (badgeColor?.border || 'var(--border-strong)') : 'var(--border-default)',
+          borderColor: isHovered ? (badgeColor?.border || 'var(--border-strong)') : 'rgba(255,255,255,0.06)',
           cursor: onClick ? 'pointer' : 'default',
           transformStyle: 'preserve-3d',
           perspective: '800px',

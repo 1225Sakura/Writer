@@ -24,11 +24,17 @@ interface InkBlob {
   x: number
   y: number
   radius: number
+  maxRadius: number
   vx: number
   vy: number
   opacity: number
+  baseOpacity: number
   phase: number
   color: string
+  growthSpeed: number
+  maxGrowth: number
+  pulsePhase: number
+  edgeVariation: number[]
 }
 
 const densityConfig = {
@@ -77,15 +83,28 @@ function initBlobs(count: number, width: number, height: number, speed: number, 
   const blobs: InkBlob[] = []
 
   for (let i = 0; i < count; i++) {
+    const baseRadius = 80 + rand() * 200
+    const maxRadius = baseRadius * (1.2 + rand() * 0.8)
+    const edgeCount = 6 + Math.floor(rand() * 8)
+    const edgeVariation: number[] = []
+    for (let e = 0; e < edgeCount; e++) {
+      edgeVariation.push(0.7 + rand() * 0.5)
+    }
     blobs.push({
       x: rand() * width,
       y: rand() * height,
-      radius: 80 + rand() * 200,
+      radius: baseRadius,
+      maxRadius,
       vx: (rand() - 0.5) * 0.15 * speed,
       vy: (rand() - 0.5) * 0.1 * speed,
       opacity: 0.3 + rand() * 0.5,
+      baseOpacity: 0.3 + rand() * 0.5,
       phase: rand() * Math.PI * 2,
       color: colors[Math.floor(rand() * colors.length)],
+      growthSpeed: 0.0001 + rand() * 0.0002,
+      maxGrowth: 0.15 + rand() * 0.2,
+      pulsePhase: rand() * Math.PI * 2,
+      edgeVariation,
     })
   }
 
@@ -180,29 +199,76 @@ export function InkFlowBackground({
         blob.y += blob.vy
 
         // Wrap around edges
-        if (blob.x < -blob.radius) blob.x = width + blob.radius
-        if (blob.x > width + blob.radius) blob.x = -blob.radius
-        if (blob.y < -blob.radius) blob.y = height + blob.radius
-        if (blob.y > height + blob.radius) blob.y = -blob.radius
+        if (blob.x < -blob.maxRadius) blob.x = width + blob.maxRadius
+        if (blob.x > width + blob.maxRadius) blob.x = -blob.maxRadius
+        if (blob.y < -blob.maxRadius) blob.y = height + blob.maxRadius
+        if (blob.y > height + blob.maxRadius) blob.y = -blob.maxRadius
 
-        // Breathing effect
+        // Breathing effect with pulsing
         const breath = Math.sin(time * 0.0002 + blob.phase) * 0.15 + 1
-        const currentRadius = blob.radius * breath
+        const pulse = Math.sin(time * 0.0005 + blob.pulsePhase) * 0.05 + 1
+        const currentRadius = blob.radius * breath * pulse
 
-        // Draw soft ink blob
+        // Growth cycle for organic feel
+        const growthCycle = (Math.sin(time * blob.growthSpeed + blob.phase * 2) + 1) * 0.5
+        const expandedRadius = currentRadius * (1 + blob.maxGrowth * growthCycle)
+
+        // Draw soft ink blob with layered gradients for depth
         const gradient = ctx.createRadialGradient(
           blob.x, blob.y, 0,
-          blob.x, blob.y, currentRadius
+          blob.x, blob.y, expandedRadius
         )
 
-        const baseOpacity = blob.opacity * 0.5
+        const baseOpacity = blob.baseOpacity * 0.6
         gradient.addColorStop(0, blob.color.replace(/[\d.]+\)$/, `${baseOpacity})`))
-        gradient.addColorStop(0.4, blob.color.replace(/[\d.]+\)$/, `${baseOpacity * 0.5})`))
+        gradient.addColorStop(0.25, blob.color.replace(/[\d.]+\)$/, `${baseOpacity * 0.7})`))
+        gradient.addColorStop(0.5, blob.color.replace(/[\d.]+\)$/, `${baseOpacity * 0.4})`))
+        gradient.addColorStop(0.75, blob.color.replace(/[\d.]+\)$/, `${baseOpacity * 0.15})`))
         gradient.addColorStop(1, 'transparent')
 
         ctx.beginPath()
-        ctx.arc(blob.x, blob.y, currentRadius, 0, Math.PI * 2)
+        ctx.arc(blob.x, blob.y, expandedRadius, 0, Math.PI * 2)
         ctx.fillStyle = gradient
+        ctx.fill()
+
+        // Draw irregular ink edges for organic water-ink feel
+        const edgeCount = blob.edgeVariation.length
+        ctx.beginPath()
+        for (let i = 0; i <= edgeCount; i++) {
+          const idx = i % edgeCount
+          const angle = (i / edgeCount) * Math.PI * 2
+          const edgeVar = blob.edgeVariation[idx]
+          const waveOffset = Math.sin(angle * 3 + time * 0.0003 + blob.phase) * 0.15 + 1
+          const edgeRadius = expandedRadius * edgeVar * waveOffset
+          const ex = blob.x + Math.cos(angle) * edgeRadius
+          const ey = blob.y + Math.sin(angle) * edgeRadius
+          if (i === 0) {
+            ctx.moveTo(ex, ey)
+          } else {
+            ctx.lineTo(ex, ey)
+          }
+        }
+        ctx.closePath()
+        const edgeGradient = ctx.createRadialGradient(
+          blob.x, blob.y, expandedRadius * 0.5,
+          blob.x, blob.y, expandedRadius * 1.2
+        )
+        edgeGradient.addColorStop(0, 'transparent')
+        edgeGradient.addColorStop(0.6, blob.color.replace(/[\d.]+\)$/, `${baseOpacity * 0.1})`))
+        edgeGradient.addColorStop(1, 'transparent')
+        ctx.fillStyle = edgeGradient
+        ctx.fill()
+
+        // Add subtle inner highlight for depth
+        const highlightGradient = ctx.createRadialGradient(
+          blob.x - expandedRadius * 0.2, blob.y - expandedRadius * 0.2, 0,
+          blob.x, blob.y, expandedRadius * 0.5
+        )
+        highlightGradient.addColorStop(0, blob.color.replace(/[\d.]+\)$/, `${baseOpacity * 0.15})`))
+        highlightGradient.addColorStop(1, 'transparent')
+        ctx.beginPath()
+        ctx.arc(blob.x, blob.y, expandedRadius * 0.5, 0, Math.PI * 2)
+        ctx.fillStyle = highlightGradient
         ctx.fill()
       })
 

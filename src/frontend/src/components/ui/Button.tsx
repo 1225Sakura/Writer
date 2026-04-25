@@ -65,9 +65,6 @@ const sizeStyles = {
   md: 'h-10 px-4 py-2 text-sm rounded-[var(--radius-md)] gap-2',
   lg: 'h-12 px-6 py-3 text-base rounded-[var(--radius-lg)] gap-2.5',
   icon: 'h-10 w-10 rounded-full',
-  'mobile-sm': 'h-9 px-3 py-1.5 text-sm rounded-[var(--radius-button)] gap-1 touch-target',
-  'mobile-md': 'h-11 px-4 py-2 text-sm rounded-[var(--radius-md)] gap-2 touch-target',
-  'mobile-lg': 'h-12 px-5 py-2.5 text-base rounded-[var(--radius-lg)] gap-2 touch-target',
 }
 
 const variantHoverStyles: Record<string, string> = {

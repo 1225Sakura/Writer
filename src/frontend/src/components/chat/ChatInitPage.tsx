@@ -23,12 +23,12 @@ function AmbientBackground() {
         className="absolute -top-40 -left-40 w-[28rem] h-[28rem] rounded-full"
         style={{
           background: 'radial-gradient(circle, var(--accent-primary) 0%, transparent 70%)',
-          opacity: 0.12,
+          opacity: 'var(--ambient-glow-primary, 0.12)',
           filter: 'blur(40px)',
         }}
         animate={prefersReducedMotion ? {} : {
           scale: [1, 1.15, 1],
-          opacity: [0.08, 0.14, 0.08],
+          opacity: ['var(--ambient-glow-primary, 0.08)', 'var(--ambient-glow-primary, 0.14)', 'var(--ambient-glow-primary, 0.08)'],
           x: [0, 15, 0],
           y: [0, -10, 0],
         }}
@@ -39,12 +39,12 @@ function AmbientBackground() {
         className="absolute -bottom-24 right-20 w-[24rem] h-[24rem] rounded-full"
         style={{
           background: 'radial-gradient(circle, var(--color-character) 0%, transparent 70%)',
-          opacity: 0.1,
+          opacity: 'var(--ambient-glow-secondary, 0.1)',
           filter: 'blur(35px)',
         }}
         animate={prefersReducedMotion ? {} : {
           scale: [1, 1.2, 1],
-          opacity: [0.06, 0.12, 0.06],
+          opacity: ['var(--ambient-glow-secondary, 0.06)', 'var(--ambient-glow-secondary, 0.12)', 'var(--ambient-glow-secondary, 0.06)'],
           x: [0, -12, 0],
           y: [0, 8, 0],
         }}
@@ -55,12 +55,12 @@ function AmbientBackground() {
         className="absolute top-1/3 left-1/2 -translate-x-1/2 w-64 h-64 rounded-full"
         style={{
           background: 'radial-gradient(circle, var(--accent-primary) 0%, transparent 70%)',
-          opacity: 0.05,
+          opacity: 'var(--ambient-glow-tertiary, 0.05)',
           filter: 'blur(50px)',
         }}
         animate={prefersReducedMotion ? {} : {
           scale: [1, 1.3, 1],
-          opacity: [0.03, 0.07, 0.03],
+          opacity: ['var(--ambient-glow-tertiary, 0.03)', 'var(--ambient-glow-tertiary, 0.07)', 'var(--ambient-glow-tertiary, 0.03)'],
         }}
         transition={prefersReducedMotion ? { duration: 0 } : { duration: 8, repeat: Infinity, ease: 'easeInOut', delay: 1.5 }}
       />
@@ -167,16 +167,7 @@ function ChatSidebarMobile({ entities, onConfirmEntity }: {
   )
 }
 
-const typeColors: Record<string, string> = {
-  character: 'var(--color-character)',
-  item: 'var(--color-item)',
-  location: 'var(--color-location)',
-  faction: 'var(--color-faction)',
-  world: 'var(--color-world)',
-  rule: 'var(--color-rule)',
-  outline: 'var(--color-outline)',
-  ifline: 'var(--color-ifline)',
-}
+import { typeColors } from '@/lib/entityColors'
 
 /* ============================================================
    CHAT INIT PAGE - Composed from sub-components

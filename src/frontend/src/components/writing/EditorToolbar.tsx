@@ -248,12 +248,12 @@ export function EditorToolbar({ editor }: EditorToolbarProps) {
       }}
       onMouseDown={(e) => e.preventDefault()}
       title={`${btn.title}${btn.shortcut ? ` (${btn.shortcut})` : ''}`}
-      className={`group relative flex items-center justify-center w-8 h-8 rounded-lg transition-all duration-200
-                 hover:scale-105 active:scale-95 ${
-                   btn.isActive()
-                     ? 'text-[var(--accent-primary)]'
-                     : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
-                 }`}
+      aria-label={btn.title}
+      className={`group relative flex items-center justify-center w-8 h-8 rounded-lg transition-all duration-200 hover:scale-105 active:scale-95 ${
+        btn.isActive()
+          ? 'text-[var(--accent-primary)]'
+          : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
+      }`}
       style={btn.isActive() ? {
         background: 'color-mix(in srgb, var(--accent-primary) 12%, transparent)',
         boxShadow: 'inset 0 0 0 1px color-mix(in srgb, var(--accent-primary) 25%, transparent), 0 0 8px color-mix(in srgb, var(--accent-primary) 15%, transparent)',

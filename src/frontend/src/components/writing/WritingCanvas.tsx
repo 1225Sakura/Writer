@@ -11,7 +11,8 @@ import { useEffect, useRef, useCallback, useState } from 'react'
 import { usePrefersReducedMotion } from '@/hooks'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Save, CheckCircle, AlertCircle, Feather, Keyboard, Loader2 } from 'lucide-react'
-import { FocusModeExtension } from './extensions'
+import { FocusModeExtension, ParagraphHighlightExtension, ParagraphHighlightPluginKey } from './extensions'
+import { showToast } from '@/components/ui/Toast'
 import { EditorToolbar } from './EditorToolbar'
 import { WritingStatsOverlay } from './WritingStatsOverlay'
 import { Type } from 'lucide-react'
@@ -284,7 +285,6 @@ export function WritingCanvas() {
   const lastWordCountRef = useRef(wordCount)
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null)
   const isTypingRef = useRef(false)
-  const currentParagraphRef = useRef<HTMLElement | null>(null)
   const editorContainerRef = useRef<HTMLDivElement>(null)
 
   const [sessionDuration, setSessionDuration] = useState(0)
@@ -351,6 +351,9 @@ export function WritingCanvas() {
         keepHeadingsVisible: true,
         keepEmptyLinesVisible: false,
       }),
+      ParagraphHighlightExtension.configure({
+        enabled: paragraphFocusMode,
+      }),
     ],
     content: currentContent,
     onUpdate: ({ editor }) => {
@@ -381,28 +384,21 @@ export function WritingCanvas() {
       }, 1000)
     },
     onSelectionUpdate: ({ editor }) => {
-      // Track current paragraph for paragraph focus mode
-      if (paragraphFocusMode && editorContainerRef.current) {
+      // Track current paragraph for paragraph focus mode via plugin dispatch
+      if (paragraphFocusMode) {
         const { from } = editor.state.selection
-        const domAtPos = editor.view.domAtPos(from)
-        const node = domAtPos.node as HTMLElement
-        const paragraph = node.closest?.('p') as HTMLElement | null
-
-        if (paragraph && paragraph !== currentParagraphRef.current) {
-          // Remove previous current paragraph marker
-          if (currentParagraphRef.current) {
-            currentParagraphRef.current.classList.remove('is-current-paragraph')
-          }
-          // Add to new current paragraph
-          paragraph.classList.add('is-current-paragraph')
-          currentParagraphRef.current = paragraph
-        }
+        editor.view.dispatch(
+          editor.view.state.tr.setMeta(ParagraphHighlightPluginKey, from)
+        )
       }
     },
     editorProps: {
       attributes: {
         class: 'writing-area max-w-none focus:outline-none min-h-full px-8 py-6 immersive-canvas',
         style: 'caret-color: var(--color-character); --glow-primary: var(--color-character);',
+        role: 'textbox',
+        'aria-multiline': 'true',
+        'aria-label': '写作区',
       },
     },
   })
@@ -429,13 +425,12 @@ export function WritingCanvas() {
       container.classList.add('paragraph-focus-mode')
     } else {
       container.classList.remove('paragraph-focus-mode')
-      // Clean up current paragraph markers
-      container.querySelectorAll('.is-current-paragraph').forEach((el) => {
-        el.classList.remove('is-current-paragraph')
-      })
-      currentParagraphRef.current = null
+      // Clean up: dispatch null to clear plugin state
+      if (editor) {
+        editor.view.dispatch(editor.view.state.tr.setMeta(ParagraphHighlightPluginKey, null))
+      }
     }
-  }, [paragraphFocusMode])
+  }, [paragraphFocusMode, editor])
 
   // 同步外部内容变化
   useEffect(() => {
@@ -452,8 +447,8 @@ export function WritingCanvas() {
       )
       if (focusModeExt && focusModeExt.options) {
         focusModeExt.options.enabled = focusModeEnabled
-        // Trigger re-decoration
-        editor.view.updateState(editor.view.state)
+        // Trigger re-decoration via empty transaction instead of updateState
+        editor.view.dispatch(editor.view.state.tr)
       }
     }
   }, [focusModeEnabled, editor])
@@ -548,11 +543,18 @@ export function WritingCanvas() {
         className={`flex-1 overflow-y-auto relative writing-surface writing-surface--textured ${focusModeEnabled ? 'vignette-overlay active' : 'vignette-overlay'}`}
         style={{
           backgroundImage: `
-            radial-gradient(ellipse 80% 50% at 50% -10%, color-mix(in srgb, var(--accent-primary) 2%, transparent) 0%, transparent 60%),
-            radial-gradient(ellipse 60% 40% at 90% 100%, color-mix(in srgb, var(--color-character) 1.5%, transparent) 0%, transparent 55%),
-            radial-gradient(ellipse 50% 35% at 10% 60%, color-mix(in srgb, var(--color-outline) 1%, transparent) 0%, transparent 45%),
-            radial-gradient(ellipse 100% 60% at 50% 100%, color-mix(in srgb, var(--ink-100) 2%, transparent) 0%, transparent 80%),
-            linear-gradient(180deg, color-mix(in srgb, var(--paper-100) 0.5%, transparent) 0%, transparent 20%, color-mix(in srgb, var(--ink-100) 1.5%, transparent) 100%)
+            /* Subtle warm center glow - reduces eye strain */
+            radial-gradient(ellipse 70% 45% at 50% 40%, color-mix(in srgb, var(--paper-100) 1.2%, transparent) 0%, transparent 55%),
+            /* Top highlight for paper depth */
+            radial-gradient(ellipse 90% 50% at 50% -15%, color-mix(in srgb, var(--accent-primary) 1.5%, transparent) 0%, transparent 60%),
+            /* Character warmth on right */
+            radial-gradient(ellipse 55% 40% at 88% 85%, color-mix(in srgb, var(--color-character) 1%, transparent) 0%, transparent 50%),
+            /* Outline cool tone on left */
+            radial-gradient(ellipse 45% 30% at 12% 55%, color-mix(in srgb, var(--color-outline) 0.8%, transparent) 0%, transparent 45%),
+            /* Deep ink shadow at bottom */
+            radial-gradient(ellipse 100% 50% at 50% 105%, color-mix(in srgb, var(--ink-100) 2.5%, transparent) 0%, transparent 75%),
+            /* Vertical paper gradient - soft sepia tint */
+            linear-gradient(180deg, color-mix(in srgb, var(--paper-100) 0.8%, transparent) 0%, transparent 18%, color-mix(in srgb, var(--ink-100) 1.2%, transparent) 100%)
           `,
         }}
       >
@@ -566,18 +568,25 @@ export function WritingCanvas() {
           style={{
             backgroundColor: 'var(--writing-bg)',
             boxShadow: `
-              0 1px 2px color-mix(in srgb, var(--ink-100) 8%, transparent),
-              0 4px 12px color-mix(in srgb, var(--ink-100) 6%, transparent),
-              0 12px 32px color-mix(in srgb, var(--ink-100) 4%, transparent),
-              inset 0 1px 0 color-mix(in srgb, var(--paper-100) 8%, transparent)
+              /* Inner paper lift - subtle depth */
+              0 2px 4px color-mix(in srgb, var(--ink-100) 6%, transparent),
+              /* Mid layer shadow */
+              0 6px 16px color-mix(in srgb, var(--ink-100) 5%, transparent),
+              /* Outer soft shadow for floating effect */
+              0 16px 40px color-mix(in srgb, var(--ink-100) 3%, transparent),
+              /* Top highlight - paper edge gleam */
+              inset 0 1px 0 color-mix(in srgb, var(--paper-100) 12%, transparent),
+              /* Subtle warm undertone */
+              inset 0 -2px 8px color-mix(in srgb, var(--color-character) 1%, transparent)
             `,
           }}
         >
-          {/* Subtle inner glow at top */}
+          {/* Subtle inner glow at top - paper edge highlight */}
           <div
             className="absolute top-0 left-4 right-4 h-px pointer-events-none"
             style={{
-              background: 'linear-gradient(90deg, transparent 0%, color-mix(in srgb, var(--accent-primary) 15%, transparent) 50%, transparent 100%)',
+              background: 'linear-gradient(90deg, transparent 0%, color-mix(in srgb, var(--paper-100) 20%, transparent) 30%, color-mix(in srgb, var(--color-character) 25%, transparent) 50%, color-mix(in srgb, var(--paper-100) 20%, transparent) 70%, transparent 100%)',
+              boxShadow: '0 0 12px color-mix(in srgb, var(--color-character) 15%, transparent)',
             }}
           />
 

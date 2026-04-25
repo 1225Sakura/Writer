@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { ExtractedEntity, useUIStore } from '@/store'
 import { EntityTag } from './EntityTag'
 import {
@@ -22,7 +22,7 @@ import {
   Wand2,
   PenTool,
 } from 'lucide-react'
-import { motion, AnimatePresence } from 'framer-motion'
+import { motion, AnimatePresence, useInView } from 'framer-motion'
 
 export interface CollectedInfoPanelProps {
   entities: ExtractedEntity[]
@@ -52,41 +52,9 @@ const categoryIcons: Record<string, React.ReactNode> = {
 }
 
 /* ============================================================
-   ENTITY TYPE COLORS (from design system - CSS variables)
+   ENTITY TYPE COLORS (from centralized lib/entityColors.ts)
    ============================================================ */
-
-const typeColors: Record<string, string> = {
-  character: 'var(--color-character)',
-  item: 'var(--color-item)',
-  location: 'var(--color-location)',
-  faction: 'var(--color-faction)',
-  world: 'var(--color-world)',
-  rule: 'var(--color-rule)',
-  outline: 'var(--color-outline)',
-  ifline: 'var(--color-ifline)',
-}
-
-const typeBgColors: Record<string, string> = {
-  character: 'rgba(232, 184, 125, 0.08)',
-  item: 'rgba(155, 126, 217, 0.08)',
-  location: 'rgba(94, 181, 166, 0.08)',
-  faction: 'rgba(212, 93, 93, 0.08)',
-  world: 'rgba(201, 169, 110, 0.08)',
-  rule: 'rgba(139, 157, 195, 0.08)',
-  outline: 'rgba(91, 142, 232, 0.08)',
-  ifline: 'rgba(126, 184, 74, 0.08)',
-}
-
-const typeGlowColors: Record<string, string> = {
-  character: 'rgba(232, 184, 125, 0.25)',
-  item: 'rgba(155, 126, 217, 0.25)',
-  location: 'rgba(94, 181, 166, 0.25)',
-  faction: 'rgba(212, 93, 93, 0.25)',
-  world: 'rgba(201, 169, 110, 0.25)',
-  rule: 'rgba(139, 157, 195, 0.25)',
-  outline: 'rgba(91, 142, 232, 0.25)',
-  ifline: 'rgba(126, 184, 74, 0.25)',
-}
+import { typeColors, typeBgColors, typeGlowColors } from '@/lib/entityColors'
 
 /* ============================================================
    STAGGER ANIMATION VARIANTS
@@ -103,21 +71,8 @@ const containerVariants = {
   },
 }
 
-const itemVariants = {
-  hidden: { opacity: 0, y: 8, scale: 0.97 },
-  show: {
-    opacity: 1,
-    y: 0,
-    scale: 1,
-    transition: {
-      duration: 0.35,
-      ease: [0.16, 1, 0.3, 1] as const,
-    },
-  },
-}
-
 /* ============================================================
-   ENTITY ITEM with enhanced hover light indicator
+   ENTITY ITEM - uses CSS hover + intersection observer
    ============================================================ */
 
 function EntityItem({ entity, onConfirm }: {
@@ -125,7 +80,8 @@ function EntityItem({ entity, onConfirm }: {
   onConfirm?: (id: string) => void
 }) {
   const [justConfirmed, setJustConfirmed] = useState(false)
-  const [isHovered, setIsHovered] = useState(false)
+  const ref = useRef<HTMLDivElement>(null)
+  const isInView = useInView(ref, { once: true, margin: '50px' })
   const color = typeColors[entity.type] || 'var(--color-character)'
   const bgColor = typeBgColors[entity.type] || 'rgba(255,255,255,0.02)'
   const glowColor = typeGlowColors[entity.type] || 'rgba(255,255,255,0.1)'
@@ -142,54 +98,35 @@ function EntityItem({ entity, onConfirm }: {
 
   return (
     <motion.div
+      ref={ref}
       className="entity-card group relative"
-      variants={itemVariants}
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
-      whileHover={{
-        y: -3,
-        boxShadow: `0 8px 24px ${glowColor}, 0 2px 6px rgba(0,0,0,0.12)`,
-        transition: { duration: 0.25, ease: [0.16, 1, 0.3, 1] },
-      }}
-      whileTap={{ scale: 0.98 }}
+      initial={{ opacity: 0, y: 8, scale: 0.97 }}
+      animate={isInView ? { opacity: 1, y: 0, scale: 1 } : { opacity: 0, y: 8, scale: 0.97 }}
+      transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
       style={{
         '--entity-color': color,
         '--entity-bg': bgColor,
         '--entity-glow': glowColor,
       } as React.CSSProperties}
     >
-      {/* Shimmer overlay on hover */}
-      <motion.div
-        className="entity-card__shimmer"
-        initial={{ opacity: 0 }}
-        whileHover={{ opacity: 1 }}
-        transition={{ duration: 0.2 }}
-      />
+      {/* Left color bar with glow */}
+      <div className="entity-card__color-bar" style={{ backgroundColor: color, boxShadow: `0 0 8px ${glowColor}` }} />
 
-      {/* Left color bar - always visible */}
-      <div className="entity-card__color-bar" style={{ backgroundColor: color }} />
-
-      {/* Hover light strip indicator */}
-      <motion.div
-        className="absolute left-0 top-2 bottom-2 w-[3px] rounded-full"
+      {/* Hover light strip - CSS driven */}
+      <div
+        className="entity-card__light-strip absolute left-0 top-2 bottom-2 w-[3px] rounded-full opacity-0 scale-y-60 transition-all duration-250 ease-[cubic-bezier(0.22,1,0.36,1)]"
         style={{
           background: `linear-gradient(180deg, ${color} 0%, color-mix(in srgb, ${color} 50%, transparent) 100%)`,
           filter: 'blur(1px)',
         }}
-        initial={{ opacity: 0, scaleY: 0.6 }}
-        animate={isHovered ? { opacity: 0.8, scaleY: 1 } : { opacity: 0, scaleY: 0.6 }}
-        transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
       />
 
-      {/* Glow effect on hover */}
-      <motion.div
-        className="absolute left-0 top-0 bottom-0 w-8 rounded-l-[var(--radius-lg)] pointer-events-none"
+      {/* Glow effect on hover - CSS driven */}
+      <div
+        className="entity-card__glow absolute left-0 top-0 bottom-0 w-8 rounded-l-[var(--radius-lg)] pointer-events-none opacity-0 transition-opacity duration-200"
         style={{
           background: `linear-gradient(90deg, ${glowColor} 0%, transparent 100%)`,
         }}
-        initial={{ opacity: 0 }}
-        animate={isHovered ? { opacity: 1 } : { opacity: 0 }}
-        transition={{ duration: 0.2 }}
       />
 
       <div className="entity-card__content">
@@ -206,7 +143,7 @@ function EntityItem({ entity, onConfirm }: {
         )}
       </div>
 
-      {/* Confirm button with enhanced animation */}
+      {/* Confirm button - kept framer motion for spring animation */}
       <motion.button
         onClick={(e) => {
           e.stopPropagation()
@@ -218,7 +155,6 @@ function EntityItem({ entity, onConfirm }: {
         animate={justConfirmed ? {
           scale: [1, 1.5, 1],
           rotate: [0, 20, 0],
-          backgroundColor: glowColor,
         } : {}}
         transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
       >

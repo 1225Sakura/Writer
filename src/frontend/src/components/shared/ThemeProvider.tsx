@@ -421,6 +421,26 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     return () => mediaQuery.removeEventListener('change', handleTransition)
   }, [])
 
+  // Sync with system theme preference when user hasn't manually selected
+  useEffect(() => {
+    if (followSystem) return // useTheme hook handles this case
+
+    const media = window.matchMedia('(prefers-color-scheme: dark)')
+
+    const handleSystemChange = () => {
+      // Only auto-sync if user hasn't explicitly set a theme preference
+      const savedTheme = localStorage.getItem('theme')
+      const systemPrefers = localStorage.getItem('theme-system-prefers')
+      if (systemPrefers === 'true' || (!savedTheme)) {
+        // Sync to system - useTheme will pick this up
+        setFollowSystem(true)
+      }
+    }
+
+    media.addEventListener('change', handleSystemChange)
+    return () => media.removeEventListener('change', handleSystemChange)
+  }, [followSystem, setFollowSystem])
+
   const handleSetTheme = useCallback(
     (newTheme: Theme) => {
       setTheme(newTheme)

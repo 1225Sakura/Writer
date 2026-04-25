@@ -250,15 +250,15 @@ export function WritingEditorPage() {
             style={{
               background: `
                 /* Layer 1: Outer deep vignette - softest falloff */
-                radial-gradient(ellipse 100% 95% at 50% 50%, transparent 30%, color-mix(in srgb, var(--ink-100) 25%, transparent) 65%, color-mix(in srgb, var(--ink-100) 70%, transparent) 100%),
+                radial-gradient(ellipse 100% 95% at 50% 50%, transparent 35%, color-mix(in srgb, var(--ink-100) 20%, transparent) 65%, color-mix(in srgb, var(--ink-100) 65%, transparent) 100%),
                 /* Layer 2: Mid vignette - medium depth */
-                radial-gradient(ellipse 85% 75% at 50% 50%, transparent 40%, color-mix(in srgb, var(--ink-95) 20%, transparent) 75%, color-mix(in srgb, var(--ink-95) 45%, transparent) 100%),
+                radial-gradient(ellipse 80% 70% at 50% 50%, transparent 45%, color-mix(in srgb, var(--ink-95) 15%, transparent) 75%, color-mix(in srgb, var(--ink-95) 40%, transparent) 100%),
                 /* Layer 3: Inner vignette - tight focus */
-                radial-gradient(ellipse 60% 55% at 50% 50%, transparent 50%, color-mix(in srgb, var(--ink-90) 15%, transparent) 85%, color-mix(in srgb, var(--ink-90) 30%, transparent) 100%),
-                /* Layer 4: Subtle warm center glow for focus */
-                radial-gradient(ellipse 35% 30% at 50% 50%, color-mix(in srgb, var(--color-character) 4%, transparent) 0%, transparent 55%),
-                /* Layer 5: Micro warm highlight at dead center */
-                radial-gradient(ellipse 15% 12% at 50% 50%, color-mix(in srgb, var(--paper-100) 2%, transparent) 0%, transparent 70%)
+                radial-gradient(ellipse 55% 50% at 50% 50%, transparent 55%, color-mix(in srgb, var(--ink-90) 10%, transparent) 85%, color-mix(in srgb, var(--ink-90) 25%, transparent) 100%),
+                /* Layer 4: Warm paper center glow - reduces eye strain */
+                radial-gradient(ellipse 30% 25% at 50% 50%, color-mix(in srgb, var(--paper-100) 5%, transparent) 0%, transparent 60%),
+                /* Layer 5: Subtle character warmth at focus area */
+                radial-gradient(ellipse 20% 18% at 50% 50%, color-mix(in srgb, var(--color-character) 2%, transparent) 0%, transparent 75%)
               `,
             }}
           />
@@ -280,12 +280,12 @@ export function WritingEditorPage() {
             <div
               className="absolute rounded-full"
               style={{
-                width: '32rem',
-                height: '32rem',
-                top: '-14%',
-                right: '-10%',
-                background: 'radial-gradient(circle, color-mix(in srgb, var(--color-character) 6%, transparent) 0%, color-mix(in srgb, var(--color-character) 2%, transparent) 35%, transparent 70%)',
-                filter: 'blur(80px)',
+                width: '28rem',
+                height: '28rem',
+                top: '-12%',
+                right: '-8%',
+                background: 'radial-gradient(circle, color-mix(in srgb, var(--color-character) 5%, transparent) 0%, color-mix(in srgb, var(--color-character) 1.5%, transparent) 35%, transparent 70%)',
+                filter: 'blur(70px)',
                 animation: 'ambient-orb-float 18s cubic-bezier(0.45, 0.05, 0.55, 0.95) infinite',
               }}
             />
@@ -293,12 +293,12 @@ export function WritingEditorPage() {
             <div
               className="absolute rounded-full"
               style={{
-                width: '26rem',
-                height: '26rem',
-                bottom: '-12%',
-                left: '-6%',
-                background: 'radial-gradient(circle, color-mix(in srgb, var(--color-outline) 5%, transparent) 0%, color-mix(in srgb, var(--color-outline) 1.5%, transparent) 40%, transparent 75%)',
-                filter: 'blur(90px)',
+                width: '22rem',
+                height: '22rem',
+                bottom: '-10%',
+                left: '-5%',
+                background: 'radial-gradient(circle, color-mix(in srgb, var(--color-outline) 4%, transparent) 0%, color-mix(in srgb, var(--color-outline) 1%, transparent) 40%, transparent 75%)',
+                filter: 'blur(80px)',
                 animation: 'ambient-orb-float 22s cubic-bezier(0.45, 0.05, 0.55, 0.95) infinite reverse',
               }}
             />
@@ -306,13 +306,13 @@ export function WritingEditorPage() {
             <div
               className="absolute rounded-full"
               style={{
-                width: '24rem',
-                height: '24rem',
+                width: '20rem',
+                height: '20rem',
                 top: '45%',
                 left: '50%',
                 transform: 'translate(-50%, -50%)',
-                background: 'radial-gradient(circle, color-mix(in srgb, var(--accent-primary) 3%, transparent) 0%, color-mix(in srgb, var(--accent-primary) 1%, transparent) 45%, transparent 80%)',
-                filter: 'blur(100px)',
+                background: 'radial-gradient(circle, color-mix(in srgb, var(--accent-primary) 2.5%, transparent) 0%, color-mix(in srgb, var(--accent-primary) 0.8%, transparent) 45%, transparent 80%)',
+                filter: 'blur(90px)',
                 animation: 'ambient-orb-float 20s cubic-bezier(0.45, 0.05, 0.55, 0.95) infinite',
                 animationDelay: '-6s',
               }}
@@ -321,12 +321,12 @@ export function WritingEditorPage() {
             <div
               className="absolute rounded-full"
               style={{
-                width: '18rem',
-                height: '18rem',
-                top: '8%',
-                left: '-4%',
-                background: 'radial-gradient(circle, color-mix(in srgb, var(--color-ifline) 3%, transparent) 0%, transparent 65%)',
-                filter: 'blur(70px)',
+                width: '14rem',
+                height: '14rem',
+                top: '10%',
+                left: '-3%',
+                background: 'radial-gradient(circle, color-mix(in srgb, var(--color-ifline) 2.5%, transparent) 0%, transparent 65%)',
+                filter: 'blur(60px)',
                 animation: 'ambient-orb-float 15s cubic-bezier(0.45, 0.05, 0.55, 0.95) infinite',
                 animationDelay: '-3s',
               }}
@@ -335,12 +335,12 @@ export function WritingEditorPage() {
             <div
               className="absolute rounded-full"
               style={{
-                width: '16rem',
-                height: '16rem',
-                bottom: '5%',
-                right: '-3%',
-                background: 'radial-gradient(circle, color-mix(in srgb, var(--color-item) 3%, transparent) 0%, transparent 65%)',
-                filter: 'blur(70px)',
+                width: '12rem',
+                height: '12rem',
+                bottom: '8%',
+                right: '-2%',
+                background: 'radial-gradient(circle, color-mix(in srgb, var(--color-item) 2.5%, transparent) 0%, transparent 65%)',
+                filter: 'blur(60px)',
                 animation: 'ambient-orb-float 17s cubic-bezier(0.45, 0.05, 0.55, 0.95) infinite reverse',
                 animationDelay: '-8s',
               }}
@@ -423,7 +423,7 @@ export function WritingEditorPage() {
           <div
             className="absolute inset-0 pointer-events-none z-0"
             style={{
-              opacity: 0.015,
+              opacity: 0.012,
               backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E")`,
               backgroundRepeat: 'repeat',
               backgroundSize: '200px 200px',
@@ -462,9 +462,9 @@ export function WritingEditorPage() {
               className="border-r border-[var(--border-default)] bg-[var(--color-surface-raised)] flex flex-col overflow-hidden relative z-20"
               style={{
                 boxShadow: `
-                  4px 0 40px color-mix(in srgb, var(--color-outline) 8%, transparent),
-                  2px 0 12px color-mix(in srgb, var(--color-outline) 4%, transparent),
-                  inset -1px 0 0 color-mix(in srgb, var(--color-outline) 12%, transparent)
+                  4px 0 48px color-mix(in srgb, var(--color-outline) 10%, transparent),
+                  2px 0 16px color-mix(in srgb, var(--color-outline) 5%, transparent),
+                  inset -1px 0 0 color-mix(in srgb, var(--color-outline) 15%, transparent)
                 `,
               }}
             >
@@ -503,9 +503,9 @@ export function WritingEditorPage() {
                          md:w-[320px] lg:w-[360px]"
               style={{
                 boxShadow: `
-                  -4px 0 48px color-mix(in srgb, var(--accent-primary) 12%, transparent),
-                  -2px 0 20px color-mix(in srgb, var(--accent-primary) 6%, transparent),
-                  inset 1px 0 0 color-mix(in srgb, var(--accent-primary) 10%, transparent)
+                  -4px 0 56px color-mix(in srgb, var(--accent-primary) 14%, transparent),
+                  -2px 0 24px color-mix(in srgb, var(--accent-primary) 7%, transparent),
+                  inset 1px 0 0 color-mix(in srgb, var(--accent-primary) 12%, transparent)
                 `,
               }}
             >
@@ -599,9 +599,9 @@ export function WritingEditorPage() {
                          max-md:fixed max-md:inset-0 max-md:w-full max-md:h-full max-md:z-50 max-md:border-none max-md:rounded-none"
               style={{
                 boxShadow: `
-                  -4px 0 48px color-mix(in srgb, var(--color-ifline) 10%, transparent),
-                  -2px 0 20px color-mix(in srgb, var(--color-ifline) 5%, transparent),
-                  inset 1px 0 0 color-mix(in srgb, var(--color-ifline) 8%, transparent)
+                  -4px 0 56px color-mix(in srgb, var(--color-ifline) 12%, transparent),
+                  -2px 0 24px color-mix(in srgb, var(--color-ifline) 6%, transparent),
+                  inset 1px 0 0 color-mix(in srgb, var(--color-ifline) 10%, transparent)
                 `,
               }}
             >

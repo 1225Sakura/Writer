@@ -154,10 +154,10 @@ export function WritingStatsOverlay({
                        rounded-xl overflow-hidden
                        ${expanded ? 'min-w-[200px]' : 'min-w-[160px]'}`}
             style={{
-              background: 'linear-gradient(180deg, rgba(25, 26, 27, 0.92) 0%, rgba(20, 21, 22, 0.95) 100%)',
-              border: '1px solid rgba(255, 255, 255, 0.06)',
-              boxShadow: '0 4px 16px rgba(0,0,0,0.2), 0 8px 32px rgba(0,0,0,0.15), inset 0 1px 0 rgba(255,255,255,0.04)',
-              backdropFilter: 'blur(12px)',
+              background: 'linear-gradient(180deg, rgba(22, 23, 24, 0.95) 0%, rgba(16, 17, 18, 0.98) 100%)',
+              border: '1px solid rgba(255, 255, 255, 0.05)',
+              boxShadow: '0 4px 20px rgba(0,0,0,0.25), 0 8px 40px rgba(0,0,0,0.15), inset 0 1px 0 rgba(255,255,255,0.04)',
+              backdropFilter: 'blur(16px)',
             }}
           >
             {/* Header */}
@@ -297,17 +297,20 @@ export function WritingStatsOverlay({
                       </div>
                       <div
                         className="h-1.5 rounded-full overflow-hidden"
-                        style={{ background: 'rgba(255,255,255,0.04)' }}
+                        style={{
+                          background: 'rgba(255,255,255,0.03)',
+                          boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.15)',
+                        }}
                       >
                         <motion.div
                           className="h-full rounded-full"
                           style={{
-                            background: `linear-gradient(90deg, ${progressColor}dd, ${progressColor})`,
-                            boxShadow: `0 0 6px ${progressColor}40`,
+                            background: `linear-gradient(90deg, ${progressColor}cc, ${progressColor})`,
+                            boxShadow: `0 0 8px ${progressColor}50`,
                           }}
                           initial={{ width: 0 }}
                           animate={{ width: `${progressPercentage}%` }}
-                          transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+                          transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
                         />
                       </div>
                       <div className="flex justify-end mt-1">

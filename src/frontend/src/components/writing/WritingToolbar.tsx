@@ -174,7 +174,7 @@ export function WritingToolbar() {
       transition={{ type: 'spring', stiffness: 400, damping: 30 }}
       className={`flex items-center px-3 sm:px-4 gap-1.5 sm:gap-2 layout-topbar overflow-x-auto writing-toolbar writing-toolbar--glass ${toolbarCollapsed ? 'h-0 opacity-0 overflow-hidden' : 'h-[var(--layout-topbar-height)]'}`}
       style={{
-        boxShadow: '0 1px 0 0 var(--border-subtle), 0 4px 20px color-mix(in srgb, var(--ink-100) 10%, transparent)',
+        boxShadow: '0 1px 0 0 var(--border-subtle), 0 4px 24px color-mix(in srgb, var(--ink-100) 8%, transparent), inset 0 -1px 0 color-mix(in srgb, var(--paper-100) 2%, transparent)',
       }}
     >
       {/* 左侧：返回聊天 + 返回设定 */}
@@ -227,7 +227,7 @@ export function WritingToolbar() {
         />
       </div>
 
-      {/* 中间偏右：人机比例快捷滑块 + 快捷AI操作 */}
+      {/* 中间偏右：人机比例快捷滑块 */}
       <div className="hidden lg:flex items-center gap-2 ml-2 flex-shrink-0">
         <Divider />
 
@@ -235,9 +235,9 @@ export function WritingToolbar() {
         <div
           className="flex items-center gap-2.5 px-3.5 py-2 rounded-xl"
           style={{
-            background: 'var(--color-surface-raised)',
-            border: '1px solid var(--border-default)',
-            boxShadow: 'inset 0 1px 3px rgba(0,0,0,0.2), 0 1px 0 color-mix(in srgb, var(--paper-100) 3%, transparent)',
+            background: 'color-mix(in srgb, var(--color-surface-raised) 95%, transparent)',
+            border: '1px solid color-mix(in srgb, var(--border-default) 60%, transparent)',
+            boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.15), 0 1px 0 color-mix(in srgb, var(--paper-100) 4%, transparent)',
           }}
         >
           <motion.div
@@ -274,53 +274,53 @@ export function WritingToolbar() {
             {humanAIRatio < 30 ? 'AI' : humanAIRatio < 70 ? '协作' : '用户'}
           </span>
         </div>
+      </div>
 
-        {/* Quick AI operations dropdown */}
-        <div className="relative">
-          <QuickAIButton
-            onClick={() => setShowQuickAIOps(!showQuickAIOps)}
-            isActive={showQuickAIOps}
-            isLoading={isAIGenerating}
-          />
+      {/* 快捷AI操作 - 响应式: 移动端折叠到工具栏滚动中 */}
+      <div className="flex items-center gap-2 flex-shrink-0">
+        <QuickAIButton
+          onClick={() => setShowQuickAIOps(!showQuickAIOps)}
+          isActive={showQuickAIOps}
+          isLoading={isAIGenerating}
+        />
 
-          <AnimatePresence>
-            {showQuickAIOps && (
-              <motion.div
-                initial={{ opacity: 0, y: -4, scale: 0.95 }}
-                animate={{ opacity: 1, y: 0, scale: 1 }}
-                exit={{ opacity: 0, y: -4, scale: 0.95 }}
-                transition={{ duration: 0.15 }}
-                className="absolute top-full left-0 mt-1.5 z-50 p-1.5 rounded-xl shadow-2xl min-w-[200px]"
-                style={{
-                  background: 'var(--color-surface-raised)',
-                  border: '1px solid var(--border-default)',
-                  boxShadow: '0 8px 32px rgba(0,0,0,0.35), 0 0 0 1px var(--border-subtle)',
-                }}
+        <AnimatePresence>
+          {showQuickAIOps && (
+            <motion.div
+              initial={{ opacity: 0, y: -4, scale: 0.95 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: -4, scale: 0.95 }}
+              transition={{ duration: 0.15 }}
+              className="absolute top-full left-0 mt-1.5 z-50 p-1.5 rounded-xl shadow-2xl min-w-[200px]"
+              style={{
+                background: 'var(--color-surface-raised)',
+                border: '1px solid var(--border-default)',
+                boxShadow: '0 8px 32px rgba(0,0,0,0.35), 0 0 0 1px var(--border-subtle)',
+              }}
+            >
+              <div
+                className="text-[10px] px-2 py-1 uppercase tracking-wider font-medium"
+                style={{ color: 'var(--text-tertiary)' }}
               >
-                <div
-                  className="text-[10px] px-2 py-1 uppercase tracking-wider font-medium"
-                  style={{ color: 'var(--text-tertiary)' }}
-                >
-                  选中文字后执行
-                </div>
-                <div className="grid grid-cols-2 gap-0.5">
-                  {quickAIOperations.map((op) => (
-                    <QuickOpButton
-                      key={op.key}
-                      op={op}
-                      isLoading={quickOpLoading === op.key}
-                      isDisabled={quickOpLoading !== null}
-                      onClick={() => {
-                        handleQuickAIOp(op.key)
-                        setShowQuickAIOps(false)
-                      }}
-                    />
-                  ))}
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </div>
+                选中文字后执行
+              </div>
+              <div className="grid grid-cols-2 gap-0.5">
+                {quickAIOperations.map((op) => (
+                  <QuickOpButton
+                    key={op.key}
+                    op={op}
+                    isLoading={quickOpLoading === op.key}
+                    isDisabled={quickOpLoading !== null}
+                    onClick={() => {
+                      handleQuickAIOp(op.key)
+                      setShowQuickAIOps(false)
+                    }}
+                  />
+                ))}
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
 
       {/* Toolbar collapse toggle */}
@@ -372,7 +372,10 @@ export function WritingToolbar() {
         {/* 今日进度 - gradient fill */}
         <div
           className="hidden sm:flex items-center gap-1.5 mr-1 px-2 py-1 rounded-lg"
-          style={{ background: 'var(--color-surface-raised)' }}
+          style={{
+            background: 'color-mix(in srgb, var(--color-surface-raised) 90%, transparent)',
+            border: '1px solid color-mix(in srgb, var(--border-subtle) 50%, transparent)',
+          }}
           title="今日写作进度"
         >
           <BarChart3 className="w-3.5 h-3.5" style={{ color: 'var(--accent-primary)' }} />

@@ -200,11 +200,11 @@ export function UserInputPanel() {
             className="relative"
             animate={{
               boxShadow: isFocused
-                ? '0 0 0 1px var(--accent-primary), 0 0 0 3px rgba(94, 106, 210, 0.15), 0 0 24px rgba(94, 106, 210, 0.18)'
-                : '0 0 0 1px var(--border-default)',
+                ? '0 0 0 2px var(--accent-primary), 0 0 0 4px rgba(94, 106, 210, 0.12), 0 0 32px rgba(94, 106, 210, 0.15)'
+                : '0 0 0 1px var(--border-default), 0 2px 8px rgba(0,0,0,0.04)',
             }}
-            transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
-            style={{ borderRadius: 'var(--radius-md)' }}
+            transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
+            style={{ borderRadius: 'var(--radius-xl)' }}
           >
             <textarea
               ref={textareaRef}
@@ -219,12 +219,11 @@ export function UserInputPanel() {
               onBlur={() => setIsFocused(false)}
               placeholder="输入你的回答... (Enter 发送，Shift+Enter 换行)"
               className="w-full resize-none min-h-[48px] max-h-32 py-3 px-4 pr-16 text-sm
-                         bg-surface-input text-primary font-sans
-                         border outline-none transition-all duration-200
+                         bg-surface-input text-primary font-sans rounded-xl
+                         border-2 outline-none transition-all duration-200
                          placeholder:text-tertiary"
               style={{
                 borderColor: isFocused ? 'var(--accent-primary)' : 'var(--border-default)',
-                borderWidth: '1px',
               }}
               rows={1}
             />
@@ -298,18 +297,18 @@ export function UserInputPanel() {
           onClick={handleSend}
           disabled={!canSend}
           className="px-5 py-2.5 flex items-center gap-2 text-sm font-medium flex-shrink-0
-                     rounded-md text-primary disabled:opacity-40 disabled:cursor-not-allowed
-                     transition-colors duration-150 relative overflow-hidden"
+                     rounded-xl text-primary disabled:opacity-40 disabled:cursor-not-allowed
+                     transition-all duration-200 relative overflow-hidden shadow-md"
           style={{
             backgroundColor: canSend ? 'var(--accent-primary)' : 'var(--color-surface-input)',
             border: canSend ? '1px solid transparent' : '1px solid var(--border-default)',
           }}
           whileHover={canSend ? {
-            scale: 1.05,
-            boxShadow: '0 0 24px rgba(94, 106, 210, 0.45), 0 0 48px rgba(94, 106, 210, 0.2)',
+            scale: 1.04,
+            boxShadow: '0 0 28px rgba(94, 106, 210, 0.50), 0 4px 16px rgba(94, 106, 210, 0.25)',
           } : {}}
-          whileTap={canSend ? { scale: 0.92 } : {}}
-          transition={{ duration: 0.15 }}
+          whileTap={canSend ? { scale: 0.95 } : {}}
+          transition={{ duration: 0.2 }}
         >
           {/* Ripple effect on hover */}
           {canSend && (

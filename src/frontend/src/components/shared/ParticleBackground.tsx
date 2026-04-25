@@ -203,10 +203,19 @@ const particleStyles = `
     animation-delay: var(--particle-delay, 0s);
   }
 
-  .particle-background .particle--circle {
-    animation: particle-float linear infinite, particle-pulse ease-in-out infinite;
-    animation-duration: var(--particle-duration, 20s), calc(var(--particle-duration, 20s) * 0.6);
-    animation-delay: var(--particle-delay, 0s), calc(var(--particle-delay, 0s) + 2s);
+  @keyframes particle-shimmer {
+    0%, 100% {
+      filter: brightness(1);
+    }
+    50% {
+      filter: brightness(1.4);
+    }
+  }
+
+  .particle-background .particle--diamond {
+    animation: particle-float linear infinite, particle-shimmer ease-in-out infinite;
+    animation-duration: var(--particle-duration, 20s), calc(var(--particle-duration, 20s) * 0.8);
+    animation-delay: var(--particle-delay, 0s), calc(var(--particle-delay, 0s) + 1s);
   }
 `
 

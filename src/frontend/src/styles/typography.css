@@ -382,7 +382,177 @@
 }
 
 /* ============================================================
-   RESPONSIVE TYPOGRAPHY
+   TEXT ALIGNMENT UTILITIES
+   ============================================================ */
+
+.text-left { text-align: left; }
+.text-center { text-align: center; }
+.text-right { text-align: right; }
+.text-justify { text-align: justify; }
+
+/* Vertical alignment */
+.align-baseline { vertical-align: baseline; }
+.align-middle { vertical-align: middle; }
+.align-top { vertical-align: top; }
+.align-bottom { vertical-align: bottom; }
+
+/* ============================================================
+   TEXT TRANSFORM UTILITIES
+   ============================================================ */
+
+.uppercase { text-transform: uppercase; }
+.lowercase { text-transform: lowercase; }
+.capitalize { text-transform: capitalize; }
+.normal-case { text-transform: none; }
+
+/* ============================================================
+   TEXT DECORATION UTILITIES
+   ============================================================ */
+
+.underline { text-decoration: underline; }
+.overline { text-decoration: overline; }
+.line-through { text-decoration: line-through; }
+.no-underline { text-decoration: none; }
+
+/* ============================================================
+   FONT WEIGHT UTILITIES
+   ============================================================ */
+
+.font-regular { font-weight: var(--weight-regular); }
+.font-medium { font-weight: var(--weight-medium); }
+.font-semibold { font-weight: var(--weight-semibold); }
+.font-bold { font-weight: var(--weight-bold); }
+
+/* ============================================================
+   WHITE SPACE UTILITIES
+   ============================================================ */
+
+.whitespace-normal { white-space: normal; }
+.whitespace-nowrap { white-space: nowrap; }
+.whitespace-pre { white-space: pre; }
+.whitespace-pre-wrap { white-space: pre-wrap; }
+.whitespace-pre-line { white-space: pre-line; }
+
+/* ============================================================
+   WORD BREAK UTILITIES
+   ============================================================ */
+
+.break-normal { word-break: normal; overflow-wrap: normal; }
+.break-words { word-break: break-word; overflow-wrap: break-word; }
+.break-all { word-break: break-all; }
+
+/* ============================================================
+   MIXED CHINESE/ENGLISH TYPOGRAPHY
+   ============================================================ */
+
+/**
+ * Chinese quotation marks handling
+ * Ensures proper display of Chinese「」and English"" quotes
+ */
+.text-mixed {
+  quotes: "「" "」" '"' '"';
+}
+
+.text-mixed::before,
+.text-mixed::after {
+  content: none;
+}
+
+/* Chinese emphasis (uses underline instead of italics for CJK) */
+.text-em-cjk {
+  font-style: normal;
+  text-emphasis: style filled;
+  text-emphasis-position: under right;
+}
+
+/* English/CJK content separator */
+.text-content-separator::after {
+  content: " · ";
+  color: var(--text-muted);
+}
+
+/* ============================================================
+   PARAGRAPH STYLING
+   ============================================================ */
+
+/* Paragraph with proper Chinese indent */
+.paragraph-cn p {
+  margin-bottom: var(--writing-paragraph-spacing);
+  text-indent: var(--writing-text-indent);
+  hanging-punctuation: first last;
+}
+
+/* First paragraph special handling */
+.paragraph-cn p:first-of-type,
+.paragraph-cn p:first-child {
+  text-indent: 0;
+}
+
+/* Paragraph spacing variants */
+.paragraph-spacing-tight { margin-bottom: 0.75em; }
+.paragraph-spacing-normal { margin-bottom: 1.5em; }
+.paragraph-spacing-relaxed { margin-bottom: 2em; }
+.paragraph-spacing-loose { margin-bottom: 3em; }
+
+/* ============================================================
+   LIST TYPOGRAPHY
+   ============================================================ */
+
+.list-cjk {
+  list-style-type: disclosure-closed;
+}
+
+.list-cjk li {
+  margin-bottom: 0.5em;
+  padding-left: 1em;
+}
+
+/* ============================================================
+   RUBY ANNOTATION (furigana) SUPPORT
+   ============================================================ */
+
+.ruby-text {
+  ruby-position: over;
+  font-size: 0.5em;
+  line-height: 1.2;
+}
+
+.ruby-text rt {
+  font-weight: var(--weight-regular);
+  text-align: center;
+}
+
+/* ============================================================
+   ADDITIONAL WRITING UTILITIES
+   ============================================================ */
+
+/* Writing area container */
+.writing-container {
+  max-width: var(--writing-width-normal, 720px);
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: var(--space-8);
+  padding-right: var(--space-8);
+}
+
+/* Writing text selection color */
+.writing-text-selection::selection,
+.writing-text-selection *::selection {
+  background: rgba(200, 180, 140, 0.3);
+  color: inherit;
+}
+
+/* Chinese/English font fallback handling */
+.text-fallback-cjk {
+  font-family: var(--font-serif-cn), var(--font-serif-en);
+}
+
+.text-fallback-latin {
+  font-family: var(--font-serif-en), var(--font-serif-cn);
+}
+
+/* ============================================================
+   RESPONSIVE TYPOGRAPHY OVERRIDES
    ============================================================ */
 
 /* Mobile typography */
@@ -392,6 +562,22 @@
     --writing-line-height: 1.8;
     --writing-letter-spacing: 0.02em;
     --interface-font-size: 13px;
+    --writing-paragraph-spacing: 1.2em;
+    --writing-text-indent: 1.8em;
+  }
+
+  .writing-container {
+    padding-left: var(--space-4);
+    padding-right: var(--space-4);
+    max-width: 100%;
+  }
+
+  .chapter-title {
+    font-size: var(--text-xl);
+  }
+
+  .section-heading {
+    font-size: var(--text-lg);
   }
 }
 
@@ -402,6 +588,17 @@
     --writing-line-height: 1.85;
     --writing-letter-spacing: 0.01em;
     --interface-font-size: 14px;
+    --writing-paragraph-spacing: 1.4em;
+    --writing-text-indent: 2em;
+  }
+
+  .writing-container {
+    padding-left: var(--space-6);
+    padding-right: var(--space-6);
+  }
+
+  .chapter-title {
+    font-size: var(--text-2xl);
   }
 }
 
@@ -412,6 +609,20 @@
     --writing-line-height: 1.85;
     --writing-letter-spacing: 0.01em;
     --interface-font-size: 14px;
+    --writing-paragraph-spacing: 1.5em;
+    --writing-text-indent: 2em;
+  }
+
+  .writing-container {
+    max-width: var(--writing-width-normal, 720px);
+  }
+}
+
+/* Desktop XL - wider writing area */
+@media (min-width: 1200px) {
+  :root {
+    --writing-font-size: 18px;
+    --writing-line-height: 1.9;
   }
 }
 

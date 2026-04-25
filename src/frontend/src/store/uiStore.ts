@@ -40,6 +40,10 @@ export interface UIState {
   // Current interface
   currentInterface: InterfaceType
 
+  // Performance mode
+  reducedMotion: boolean
+  lowPerformanceMode: boolean
+
   // Navigation history
   navigationHistory: NavigationHistoryEntry[]
   canGoBack: boolean
@@ -139,6 +143,12 @@ interface UIActions {
   // Sidebar
   setSettingsSidebarWidth: (width: number) => void
 
+  // Performance mode
+  setReducedMotion: (enabled: boolean) => void
+  toggleReducedMotion: () => void
+  setLowPerformanceMode: (enabled: boolean) => void
+  toggleLowPerformanceMode: () => void
+
   // Toasts
   addToast: (toast: Omit<Toast, 'id'>) => string
   removeToast: (id: string) => void
@@ -184,6 +194,8 @@ export const useUIStore = create<UIState & UIActions>()(
           settingsCategory: 'world',
           settingsSidebarWidth: 240,
           toasts: [],
+          reducedMotion: false,
+          lowPerformanceMode: false,
 
           // ----------------------------------------
           // Navigation
@@ -462,6 +474,26 @@ export const useUIStore = create<UIState & UIActions>()(
           },
 
           // ----------------------------------------
+          // Performance mode
+          // ----------------------------------------
+
+          setReducedMotion: (enabled) => {
+            set((state) => { state.reducedMotion = enabled })
+          },
+
+          toggleReducedMotion: () => {
+            set((state) => { state.reducedMotion = !state.reducedMotion })
+          },
+
+          setLowPerformanceMode: (enabled) => {
+            set((state) => { state.lowPerformanceMode = enabled })
+          },
+
+          toggleLowPerformanceMode: () => {
+            set((state) => { state.lowPerformanceMode = !state.lowPerformanceMode })
+          },
+
+          // ----------------------------------------
           // Toasts
           // ----------------------------------------
 
@@ -508,6 +540,8 @@ export const useUIStore = create<UIState & UIActions>()(
             typewriterMode: state.typewriterMode,
             paragraphFocusMode: state.paragraphFocusMode,
             paperEdgeDecoration: state.paperEdgeDecoration,
+            reducedMotion: state.reducedMotion,
+            lowPerformanceMode: state.lowPerformanceMode,
           }),
           version: 2,
         }

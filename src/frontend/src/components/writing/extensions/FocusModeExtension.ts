@@ -15,6 +15,12 @@ export interface FocusModeOptions {
 export const FocusModePluginKey = new PluginKey<DecorationSet>('focusMode')
 
 /**
+ * Paragraph highlight plugin key
+ * Uses Decoration mechanism to apply is-current-paragraph class
+ */
+export const ParagraphHighlightPluginKey = new PluginKey<{ currentParagraphPos: number | null }>('paragraphHighlight')
+
+/**
  * Get the sentence boundaries around a position in a text node
  */
 function getSentenceBoundaries(text: string, pos: number): { from: number; to: number } {
@@ -22,7 +28,6 @@ function getSentenceBoundaries(text: string, pos: number): { from: number; to: n
   let from = 0
   let to = text.length
 
-  // Find the start of the current sentence
   let match
   while ((match = sentenceEnders.exec(text)) !== null) {
     if (match.index < pos) {
@@ -88,28 +93,23 @@ export const FocusModeExtension = Extension.create<FocusModeOptions>({
               if (node.isBlock) {
                 const nodeEnd = pos + node.nodeSize
 
-                // Keep headings visible if configured
                 if (options.keepHeadingsVisible && node.type.name.match(/^heading/)) {
                   return true
                 }
 
-                // Check if this node is within the focus range
                 let isFocused = false
 
                 if (node.isTextblock) {
                   switch (options.focusRange) {
                     case 'paragraph':
-                      // Focus the entire paragraph if cursor is inside
                       isFocused = nodeEnd > selFrom && pos < selTo
                       break
 
                     case 'sentence': {
-                      // Focus only the current sentence
                       if (nodeEnd > selFrom && pos < selTo) {
                         const textContent = node.textContent || ''
                         const localCursorPos = Math.max(0, selFrom - pos - 1)
                         const { from, to } = getSentenceBoundaries(textContent, localCursorPos)
-                        // Dim the parts of the paragraph outside the sentence
                         if (from > 0) {
                           decorations.push(
                             Decoration.inline(pos + 1, pos + 1 + from, {
@@ -124,13 +124,12 @@ export const FocusModeExtension = Extension.create<FocusModeOptions>({
                             })
                           )
                         }
-                        isFocused = true // Mark as focused to skip the node-level dimming
+                        isFocused = true
                       }
                       break
                     }
 
                     case 'line': {
-                      // Focus only the current line
                       if (nodeEnd > selFrom && pos < selTo) {
                         const textContent = node.textContent || ''
                         const localCursorPos = Math.max(0, selFrom - pos - 1)
@@ -156,7 +155,6 @@ export const FocusModeExtension = Extension.create<FocusModeOptions>({
                   }
                 }
 
-                // If not focused, dim the entire node with subtle blur
                 if (!isFocused) {
                   const blurStyle = options.blurAmount > 0
                     ? `opacity: ${options.dimOpacity}; filter: blur(${options.blurAmount}px); transition: opacity ${options.fadeInDuration}ms cubic-bezier(0.16, 1, 0.3, 1), filter ${options.fadeInDuration}ms cubic-bezier(0.16, 1, 0.3, 1);`
@@ -168,6 +166,79 @@ export const FocusModeExtension = Extension.create<FocusModeOptions>({
                       'data-focus-mode-dim': 'true',
                     })
                   )
+                }
+              }
+              return true
+            })
+
+            return DecorationSet.create(doc, decorations)
+          },
+        },
+      }),
+    ]
+  },
+})
+
+/**
+ * Paragraph Highlight Extension
+ * Uses TipTap Decoration mechanism instead of direct DOM manipulation
+ */
+export const ParagraphHighlightExtension = Extension.create<{ enabled: boolean }>({
+  name: 'paragraphHighlight',
+
+  addOptions() {
+    return {
+      enabled: false,
+    }
+  },
+
+  addProseMirrorPlugins() {
+    const options = this.options
+
+    return [
+      new Plugin({
+        key: ParagraphHighlightPluginKey,
+        state: {
+          init() {
+            return { currentParagraphPos: null }
+          },
+          apply(tr, value) {
+            const meta = tr.getMeta(ParagraphHighlightPluginKey)
+            if (meta !== undefined) {
+              return { currentParagraphPos: meta }
+            }
+            if (tr.docChanged) {
+              return { currentParagraphPos: null }
+            }
+            return value
+          },
+        },
+        props: {
+          decorations(state) {
+            if (!options.enabled) {
+              return DecorationSet.empty
+            }
+
+            const pluginState = ParagraphHighlightPluginKey.getState(state)
+            const currentPos = pluginState?.currentParagraphPos
+
+            if (currentPos === null || currentPos === undefined) {
+              return DecorationSet.empty
+            }
+
+            const decorations: Decoration[] = []
+            const doc = state.doc
+
+            doc.descendants((node, pos) => {
+              if (node.isBlock && node.isTextblock) {
+                const nodeEnd = pos + node.nodeSize
+                if (pos <= currentPos && currentPos < nodeEnd) {
+                  decorations.push(
+                    Decoration.node(pos, nodeEnd, {
+                      class: 'is-current-paragraph',
+                    })
+                  )
+                  return false
                 }
               }
               return true

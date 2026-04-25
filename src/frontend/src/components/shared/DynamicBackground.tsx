@@ -24,7 +24,7 @@
 import { useEffect, useRef, useState, useCallback, useMemo } from 'react'
 import { cn } from '@/lib/utils'
 
-export type BackgroundMode = 'particle' | 'grid' | 'wave' | 'starfield' | 'ink-wash' | 'paper-texture' | 'constellation'
+export type BackgroundMode = 'particle' | 'grid' | 'wave' | 'starfield' | 'ink-wash' | 'paper-texture' | 'constellation' | 'ink-smoke'
 
 interface DynamicBackgroundProps {
   className?: string
@@ -44,16 +44,16 @@ interface DynamicBackgroundProps {
 
 // 密度配置
 const densityConfig = {
-  low: { particle: 6, grid: 4, wave: 1, starfield: 25, 'ink-wash': 3, 'paper-texture': 1, constellation: 20 },
-  medium: { particle: 10, grid: 6, wave: 2, starfield: 40, 'ink-wash': 5, 'paper-texture': 1, constellation: 35 },
-  high: { particle: 15, grid: 8, wave: 3, starfield: 60, 'ink-wash': 7, 'paper-texture': 1, constellation: 50 },
+  low: { particle: 6, grid: 4, wave: 1, starfield: 25, 'ink-wash': 3, 'paper-texture': 1, constellation: 20, 'ink-smoke': 4 },
+  medium: { particle: 10, grid: 6, wave: 2, starfield: 40, 'ink-wash': 5, 'paper-texture': 1, constellation: 35, 'ink-smoke': 6 },
+  high: { particle: 15, grid: 8, wave: 3, starfield: 60, 'ink-wash': 7, 'paper-texture': 1, constellation: 50, 'ink-smoke': 8 },
 }
 
 // 低性能设备密度配置（自动降级）
 const lowPerformanceDensityConfig = {
-  low: { particle: 4, grid: 3, wave: 1, starfield: 15, 'ink-wash': 2, 'paper-texture': 1, constellation: 12 },
-  medium: { particle: 6, grid: 4, wave: 1, starfield: 25, 'ink-wash': 3, 'paper-texture': 1, constellation: 20 },
-  high: { particle: 10, grid: 6, wave: 2, starfield: 40, 'ink-wash': 4, 'paper-texture': 1, constellation: 30 },
+  low: { particle: 4, grid: 3, wave: 1, starfield: 15, 'ink-wash': 2, 'paper-texture': 1, constellation: 12, 'ink-smoke': 3 },
+  medium: { particle: 6, grid: 4, wave: 1, starfield: 25, 'ink-wash': 3, 'paper-texture': 1, constellation: 20, 'ink-smoke': 4 },
+  high: { particle: 10, grid: 6, wave: 2, starfield: 40, 'ink-wash': 4, 'paper-texture': 1, constellation: 30, 'ink-smoke': 5 },
 }
 
 // 速度配置
@@ -616,6 +616,90 @@ function drawPaperTexture(
   }
 }
 
+// ============ Ink Smoke Mode ============
+interface SmokeParticle {
+  x: number
+  y: number
+  radius: number
+  vx: number
+  vy: number
+  opacity: number
+  color: string
+  phase: number
+  lifetime: number
+  age: number
+}
+
+function initInkSmoke(count: number, width: number, height: number, _colors: string[]): SmokeParticle[] {
+  const rand = seededRandom(666)
+  const particles: SmokeParticle[] = []
+  const smokeColors = ['#1a1a2e', '#2d2d44', '#3a3a5c', '#4a4a6a']
+
+  for (let i = 0; i < count; i++) {
+    particles.push({
+      x: rand() * width,
+      y: height + rand() * height * 0.3, // start from bottom
+      radius: 30 + rand() * 60,
+      vx: (rand() - 0.5) * 0.3,
+      vy: -(0.3 + rand() * 0.5),
+      opacity: 0.02 + rand() * 0.04,
+      color: smokeColors[Math.floor(rand() * smokeColors.length)],
+      phase: rand() * Math.PI * 2,
+      lifetime: 300 + rand() * 400,
+      age: rand() * 400, // stagger initial ages
+    })
+  }
+  return particles
+}
+
+function drawInkSmoke(
+  ctx: CanvasRenderingContext2D,
+  particles: SmokeParticle[],
+  width: number,
+  height: number,
+  time: number
+) {
+  ctx.clearRect(0, 0, width, height)
+
+  particles.forEach((p) => {
+    p.age++
+
+    // Reset particle when it ages out or goes off screen
+    if (p.age > p.lifetime || p.y < -p.radius) {
+      p.x = Math.random() * width
+      p.y = height + p.radius
+      p.age = 0
+      p.lifetime = 300 + Math.random() * 400
+    }
+
+    // Move upward with drift
+    p.x += p.vx + Math.sin(time * 0.0003 + p.phase) * 0.2
+    p.y += p.vy
+
+    // Pulsing expansion
+    const expansion = 1 + Math.sin(time * 0.0004 + p.phase * 2) * 0.15
+
+    // Soft smoky gradient
+    const gradient = ctx.createRadialGradient(
+      p.x, p.y, 0,
+      p.x, p.y, p.radius * expansion
+    )
+    const fadeIn = Math.min(p.age / 50, 1)
+    const fadeOut = p.age > p.lifetime - 80 ? Math.max(0, (p.lifetime - p.age) / 80) : 1
+    const currentOpacity = p.opacity * fadeIn * fadeOut
+
+    gradient.addColorStop(0, hexToRgba(p.color, currentOpacity * 0.7))
+    gradient.addColorStop(0.3, hexToRgba(p.color, currentOpacity * 0.4))
+    gradient.addColorStop(0.6, hexToRgba(p.color, currentOpacity * 0.15))
+    gradient.addColorStop(1, 'transparent')
+
+    ctx.beginPath()
+    ctx.arc(p.x, p.y, p.radius * expansion, 0, Math.PI * 2)
+    ctx.fillStyle = gradient
+    ctx.fill()
+  })
+}
+
 // ============ Constellation Mode ============
 interface ConstellationStar {
   x: number
@@ -884,6 +968,8 @@ export function DynamicBackground({
           return initPaperTexture(count, width, height)
         case 'constellation':
           return initConstellation(count, width, height, speedFactor, colors)
+        case 'ink-smoke':
+          return initInkSmoke(count, width, height, colors)
         default:
           return null
       }
@@ -923,6 +1009,9 @@ export function DynamicBackground({
           break
         case 'constellation':
           drawConstellation(ctx, state, width, height, time, colors)
+          break
+        case 'ink-smoke':
+          drawInkSmoke(ctx, state, width, height, time)
           break
       }
     },
@@ -1112,6 +1201,7 @@ export function BackgroundModeSelector({
     { value: 'wave', label: '波浪', description: '流动感' },
     { value: 'starfield', label: '星空', description: '静谧' },
     { value: 'ink-wash', label: '水墨', description: '东方意境' },
+    { value: 'ink-smoke', label: '墨烟', description: '烟渺缥缈' },
     { value: 'paper-texture', label: '宣纸', description: '古典质感' },
     { value: 'constellation', label: '星图', description: '交互连线' },
   ]

@@ -5,17 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { TypingIndicator } from './TypingIndicator'
 import { EntityTag } from './EntityTag'
 import { usePrefersReducedMotion } from '@/hooks/usePrefersReducedMotion'
-
-const typeColors: Record<string, string> = {
-  character: 'var(--color-character)',
-  item: 'var(--color-item)',
-  location: 'var(--color-location)',
-  faction: 'var(--color-faction)',
-  world: 'var(--color-world)',
-  rule: 'var(--color-rule)',
-  outline: 'var(--color-outline)',
-  ifline: 'var(--color-ifline)',
-}
+import { typeColors } from '@/lib/entityColors'
 
 /* ============================================================
    TYPING EFFECT HOOK

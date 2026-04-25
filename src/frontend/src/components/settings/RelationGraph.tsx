@@ -397,8 +397,8 @@ function NodeHoverTooltip({
 				background:
 					"linear-gradient(145deg, rgba(22, 24, 28, 0.98), rgba(15, 16, 20, 0.98))",
 				border: `1px solid ${config.color}30`,
-				boxShadow: `0 12px 40px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.02), 0 0 30px ${config.glowColor}25`,
-				backdropFilter: "blur(20px)",
+				boxShadow: `0 16px 48px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.03), 0 0 40px ${config.glowColor}30, 0 4px 12px rgba(0,0,0,0.3)`,
+				backdropFilter: "blur(24px)",
 			}}
 		>
 			<div
@@ -895,6 +895,9 @@ export function RelationGraph() {
 	const fgRef = useRef<any>(null);
 	const { characters } = useSettingsStore();
 	const [isGenerating, setIsGenerating] = useState(false);
+	// RAF-managed animation state to avoid React re-renders
+	const animationTimeRef = useRef({ pulse: 0, orbit: 0, flow: 0, particle: 0 });
+	const animationRafRef = useRef<number>();
 
 	const [dimensions, setDimensions] = useState({ width: 300, height: 400 });
 	const [viewport, setViewport] = useState({
@@ -1042,6 +1045,28 @@ export function RelationGraph() {
 		});
 	}, []);
 
+	// Separate RAF loop for animations - updates ref only, no React state changes
+	useEffect(() => {
+		const animate = () => {
+			const now = Date.now();
+			animationTimeRef.current = {
+				pulse: now,
+				orbit: now / 1500,
+				flow: now / 800,
+				particle: now / 1000,
+			};
+			// Refresh canvas without triggering React re-render
+			if (fgRef.current && typeof fgRef.current.refresh === "function") {
+				fgRef.current.refresh();
+			}
+			animationRafRef.current = requestAnimationFrame(animate);
+		};
+		animationRafRef.current = requestAnimationFrame(animate);
+		return () => {
+			if (animationRafRef.current) cancelAnimationFrame(animationRafRef.current);
+		};
+	}, []);
+
 	// Custom node canvas renderer with enhanced visuals
 	const nodeCanvasObject = useCallback(
 		(node: any, ctx: CanvasRenderingContext2D, globalScale: number) => {
@@ -1055,14 +1080,14 @@ export function RelationGraph() {
 			const x = node.x as number;
 			const y = node.y as number;
 
-			// Pulsing animation for hovered nodes
-			const pulseScale = isHovered ? 1 + Math.sin(Date.now() / 200) * 0.08 : 1;
+			// Pulsing animation for hovered nodes - use ref time, not Date.now()
+			const pulseScale = isHovered ? 1 + Math.sin(animationTimeRef.current.pulse / 200) * 0.08 : 1;
 			const finalRadius = radius * pulseScale;
 
 			// Multi-layer glow effect with stronger outer glow
 			if (isHovered || isSelected) {
 				for (let i = 5; i > 0; i--) {
-					const glowRadius = finalRadius + i * 8;
+					const glowRadius = finalRadius + i * 10;
 					const glowGradient = ctx.createRadialGradient(
 						x,
 						y,
@@ -1073,9 +1098,9 @@ export function RelationGraph() {
 					);
 					glowGradient.addColorStop(
 						0,
-						config?.glowStrong || "rgba(94, 106, 210, 0.4)",
+						config?.glowStrong || "rgba(94, 106, 210, 0.5)",
 					);
-					glowGradient.addColorStop(0.5, config?.glowColor || "rgba(94, 106, 210, 0.15)");
+					glowGradient.addColorStop(0.4, config?.glowColor || "rgba(94, 106, 210, 0.2)");
 					glowGradient.addColorStop(1, "transparent");
 					ctx.fillStyle = glowGradient;
 					ctx.beginPath();
@@ -1086,7 +1111,7 @@ export function RelationGraph() {
 
 			// Orbit ring animation for hovered nodes
 			if (isHovered && renderMode === "full") {
-				const time = Date.now() / 1500;
+				const time = animationTimeRef.current.orbit;
 				const ringRadius = finalRadius + 14;
 				ctx.beginPath();
 				ctx.arc(x, y, ringRadius, time, time + Math.PI * 1.5);
@@ -1115,10 +1140,10 @@ export function RelationGraph() {
 			// Outer ring shadow
 			ctx.shadowColor = isHovered
 				? config?.color || "#5e6ad2"
-				: "rgba(0,0,0,0.4)";
-			ctx.shadowBlur = isHovered ? 20 : 6;
+				: "rgba(0,0,0,0.5)";
+			ctx.shadowBlur = isHovered ? 25 : 8;
 			ctx.shadowOffsetX = 0;
-			ctx.shadowOffsetY = isHovered ? 0 : 3;
+			ctx.shadowOffsetY = isHovered ? 0 : 4;
 
 			// Main node circle with gradient
 			const nodeGradient = ctx.createRadialGradient(
@@ -1311,7 +1336,7 @@ export function RelationGraph() {
 
 			// Flowing dashed line animation for all links in full mode
 			if (renderMode === "full") {
-				const flowTime = Date.now() / 800;
+				const flowTime = animationTimeRef.current.flow;
 				const dashLength = 6;
 				const gapLength = isHighlighted ? 4 : 8;
 				const flowOffset = (flowTime * 10) % (dashLength + gapLength);
@@ -1329,7 +1354,7 @@ export function RelationGraph() {
 
 			// Animated flowing particles for highlighted links
 			if (isHighlighted && renderMode === "full") {
-				const time = Date.now() / 1000;
+				const time = animationTimeRef.current.particle;
 				const particleCount = 3;
 
 				for (let i = 0; i < particleCount; i++) {

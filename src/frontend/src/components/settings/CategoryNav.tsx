@@ -39,10 +39,10 @@ function CountBadge({ count, color }: { count: number; color: string }) {
       transition={{ type: 'spring', stiffness: 500, damping: 25 }}
       className="ml-auto text-[10px] px-1.5 py-0.5 rounded-full font-medium min-w-[20px] text-center"
       style={{
-        backgroundColor: `${color}18`,
+        backgroundColor: `${color}15`,
         color: color,
-        boxShadow: `0 0 6px ${color}25`,
-        border: `1px solid ${color}20`,
+        boxShadow: `0 0 8px ${color}20, 0 1px 3px rgba(0,0,0,0.2)`,
+        border: `1px solid ${color}25`,
       }}
     >
       {count}
@@ -167,13 +167,13 @@ export function CategoryNav() {
                 <motion.div
                   className="w-7 h-7 flex items-center justify-center flex-shrink-0 rounded-lg"
                   animate={isActive ? {
-                    backgroundColor: `${color}15`,
-                    boxShadow: `0 0 12px ${color}20, inset 0 0 8px ${color}10`,
+                    backgroundColor: `${color}12`,
+                    boxShadow: `0 0 16px ${color}25, inset 0 0 12px ${color}08, 0 1px 3px rgba(0,0,0,0.15)`,
                   } : {
                     backgroundColor: 'transparent',
                     boxShadow: 'none',
                   }}
-                  transition={{ duration: 0.2 }}
+                  transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
                 >
                   <EntityIcon
                     type={iconType}

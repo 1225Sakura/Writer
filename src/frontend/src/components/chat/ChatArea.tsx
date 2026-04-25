@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useMemo } from 'react'
 import { useChatStore, ChatMessage, ExtractedEntity } from '@/store'
 import { Bot, User, Pencil, Trash2, Check, X, Sparkles, MessageSquareText, Wand2 } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -6,28 +6,19 @@ import { TypingIndicator } from './TypingIndicator'
 import { EntityTag } from './EntityTag'
 import { usePrefersReducedMotion } from '@/hooks/usePrefersReducedMotion'
 import { ChatSkeleton } from '@/components/shared/SmartSkeleton'
-
-const typeColors: Record<string, string> = {
-  character: 'var(--color-character)',
-  item: 'var(--color-item)',
-  location: 'var(--color-location)',
-  faction: 'var(--color-faction)',
-  world: 'var(--color-world)',
-  rule: 'var(--color-rule)',
-  outline: 'var(--color-outline)',
-  ifline: 'var(--color-ifline)',
-}
+import { typeColors } from '@/lib/entityColors'
 
 /* ============================================================
    TYPING EFFECT HOOK — Optimized to prevent re-init on parent re-render
    ============================================================ */
 
-function useTypingEffect(text: string, speed: number = 18, enabled: boolean = true) {
+function useTypingEffect(text: string, speed: number = 18, enabled: boolean = true, messageId?: string) {
   const [displayed, setDisplayed] = useState('')
   const [isComplete, setIsComplete] = useState(false)
   const indexRef = useRef(0)
   const rafRef = useRef<number>()
   const textRef = useRef(text)
+  const messageIdRef = useRef(messageId)
 
   useEffect(() => {
     if (!enabled) {
@@ -37,13 +28,16 @@ function useTypingEffect(text: string, speed: number = 18, enabled: boolean = tr
       return
     }
 
-    // Only reset if text content actually changed
+    // Reset if messageId changed (new message) or text content changed
+    const isNewMessage = messageIdRef.current !== messageId
     const textChanged = textRef.current !== text
-    if (textChanged) {
+
+    if (isNewMessage || textChanged) {
       setDisplayed('')
       setIsComplete(false)
       indexRef.current = 0
       textRef.current = text
+      messageIdRef.current = messageId
     }
 
     let lastTime = 0
@@ -61,7 +55,7 @@ function useTypingEffect(text: string, speed: number = 18, enabled: boolean = tr
     }
 
     // Only start RAF if not complete
-    if (indexRef.current < text.length || textChanged) {
+    if (indexRef.current < textRef.current.length) {
       rafRef.current = requestAnimationFrame(tick)
     }
 
@@ -69,7 +63,7 @@ function useTypingEffect(text: string, speed: number = 18, enabled: boolean = tr
       if (rafRef.current) cancelAnimationFrame(rafRef.current)
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [text, speed, enabled])
+  }, [text, speed, enabled, messageId])
 
   return { displayed, isComplete }
 }
@@ -84,8 +78,15 @@ function HighlightedContent({ content, entities }: { content: string; entities?:
   }
 
   const sortedEntities = [...entities].sort((a, b) => b.name.length - a.name.length)
-  const pattern = sortedEntities.map((e) => e.name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|')
-  const regex = new RegExp(`(${pattern})`, 'g')
+  // Stable dependency key from entity names (avoids reference comparison issues with Zustand store)
+  const entityNamesKey = sortedEntities.map((e) => e.name).join(',')
+
+  const regex = useMemo(() => {
+    const pattern = sortedEntities.map((e) => e.name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|')
+    return new RegExp(`(${pattern})`, 'g')
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [entityNamesKey])
+
   const parts = content.split(regex)
 
   return (
@@ -314,7 +315,8 @@ function ChatBubble({ message, onEdit, onDelete, onConfirmEntity, index, isGroup
   const { displayed, isComplete } = useTypingEffect(
     message.content,
     16,
-    isAssistant && isLatest && !message.editedAt
+    isAssistant && isLatest && !message.editedAt,
+    message.id
   )
 
   const handleSave = () => {
@@ -380,13 +382,13 @@ function ChatBubble({ message, onEdit, onDelete, onConfirmEntity, index, isGroup
           <motion.div
             className={`relative px-[18px] py-4 transition-all duration-200 ${
               isAssistant
-                ? `bg-surface-raised text-primary ${isFirstInGroup ? 'rounded-2xl rounded-tl-2xl rounded-tr-lg rounded-bl-md rounded-br-lg' : 'rounded-lg rounded-tl-md rounded-tr-lg rounded-bl-md rounded-br-lg'}`
-                : `bg-accent-primary text-white ${isFirstInGroup ? 'rounded-2xl rounded-tl-lg rounded-tr-2xl rounded-bl-lg rounded-br-md' : 'rounded-lg rounded-tl-lg rounded-tr-md rounded-bl-lg rounded-br-md'}`
+                ? `bg-surface-raised text-primary ${isFirstInGroup ? 'rounded-2xl rounded-tl-2xl rounded-tr-lg rounded-bl-md rounded-br-lg' : 'rounded-2xl rounded-tl-md rounded-tr-lg rounded-bl-md rounded-br-lg'}`
+                : `bg-accent-primary text-white ${isFirstInGroup ? 'rounded-2xl rounded-tl-lg rounded-tr-2xl rounded-bl-lg rounded-br-md' : 'rounded-2xl rounded-tl-lg rounded-tr-md rounded-bl-lg rounded-br-md'}`
             }`}
             style={{
               boxShadow: isAssistant
-                ? `0 2px 10px rgba(0,0,0,0.12), 0 1px 4px rgba(0,0,0,0.08), inset 0 1px 0 rgba(255,255,255,0.04), 0 0 24px ${bubbleGlowColor}`
-                : `0 2px 10px rgba(94,106,210,0.20), 0 1px 4px rgba(0,0,0,0.08), inset 0 1px 0 rgba(255,255,255,0.12), 0 0 28px ${bubbleGlowColor}`,
+                ? `0 4px 20px rgba(0,0,0,0.10), 0 2px 8px rgba(0,0,0,0.06), inset 0 1px 0 rgba(255,255,255,0.06), 0 0 32px ${bubbleGlowColor}, 0 0 0 1px rgba(94,106,210,0.08)`
+                : `0 4px 20px rgba(94,106,210,0.25), 0 2px 8px rgba(0,0,0,0.08), inset 0 1px 0 rgba(255,255,255,0.15), 0 0 36px ${bubbleGlowColor}`,
             }}
             whileHover={prefersReducedMotion ? {} : { scale: 1.008, y: -1 }}
           >
@@ -554,7 +556,7 @@ function StreamingBubble({ content }: { content: string }) {
           <motion.div
             className="relative px-[18px] py-4 bg-surface-raised rounded-2xl rounded-tl-2xl rounded-tr-lg rounded-bl-md rounded-br-lg overflow-hidden"
             style={{
-              boxShadow: '0 2px 10px rgba(0,0,0,0.12), 0 1px 4px rgba(0,0,0,0.08), 0 0 24px rgba(94, 106, 210, 0.10)',
+              boxShadow: '0 4px 20px rgba(0,0,0,0.10), 0 2px 8px rgba(0,0,0,0.06), 0 0 32px rgba(94, 106, 210, 0.12), 0 0 0 1px rgba(94,106,210,0.08)',
             }}
           >
             {/* Animated left gradient border */}
@@ -734,7 +736,7 @@ export function ChatArea() {
             <ChatSkeleton count={3} />
           </div>
         ) : (
-          <div ref={scrollRef} className="h-full overflow-y-auto p-4 bg-ink-gradient">
+          <div ref={scrollRef} className="h-full overflow-y-auto p-4 bg-ink-gradient" role="log" aria-live="polite" aria-label="聊天消息列表">
             {messages.length === 0 && !isStreaming && (
               <EmptyState />
             )}

@@ -413,7 +413,7 @@ export function SettingEditorPage() {
               transition={{ type: 'spring', damping: 28, stiffness: 320 }}
               className="fixed top-0 left-0 bottom-0 w-[280px] max-w-[80vw] z-50 bg-[var(--color-surface-base)] border-r border-[var(--border-default)] flex flex-col md:hidden"
               style={{
-                boxShadow: '4px 0 32px rgba(0,0,0,0.35), 2px 0 8px rgba(0,0,0,0.1)',
+                boxShadow: 'var(--shadow-drawer)',
               }}
             >
               <div className="flex items-center justify-between px-4 py-3 border-b border-[var(--border-default)]">

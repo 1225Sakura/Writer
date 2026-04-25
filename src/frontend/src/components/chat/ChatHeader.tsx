@@ -56,6 +56,9 @@ function ThemeSelector() {
           `,
         }}
         title="切换主题"
+        aria-label="切换主题"
+        aria-haspopup="listbox"
+        aria-expanded={open}
         onClick={() => setOpen(!open)}
         whileHover={{
           scale: 1.03,
@@ -304,6 +307,7 @@ function IconButton({
         `,
       }}
       title={title}
+      aria-label={title}
       onClick={onClick}
       whileHover={{
         scale: 1.06,
