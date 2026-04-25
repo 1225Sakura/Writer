@@ -12,7 +12,6 @@ import {
   ruleApi,
   writingSettingsApi,
 } from '../api/settings'
-import { createHybridStorage } from './utils/indexedDBStorage'
 import {
   outlineApi,
   chapterApi,
@@ -23,6 +22,7 @@ import { aiReviewApi } from '../api/aiReview'
 import type { AIReviewResult } from '../api/types'
 import type {
   Character,
+  CharacterTier,
   Item,
   Location,
   Faction,
@@ -33,10 +33,13 @@ import type {
   IFLine,
   EntityType,
   WritingSettings,
+  CharacterRelationship,
+  CharacterStoryline,
 } from '../shared/types'
+import { createHybridStorage } from './utils/indexedDBStorage'
 
 // Re-export EntityType for external usage
-export type { EntityType } from '../shared/types'
+export type { EntityType }
 
 // ============================================
 // Local Types
@@ -57,7 +60,7 @@ export interface CharacterLocal {
   desires?: string
   flaws?: string
   description?: string
-  tier: 'core' | 'supporting' | 'minor'
+  tier: CharacterTier
   cultivationRealm?: string
   relationships: Relationship[]
   storylines: CharacterStorylineLocal[]
@@ -81,7 +84,7 @@ export interface Tag {
 export interface FilterCriteria {
   query?: string
   tags?: string[]
-  tier?: ('core' | 'supporting' | 'minor')[]
+  tier?: CharacterTier[]
   sortBy: 'name' | 'createdAt' | 'updatedAt'
   sortOrder: 'asc' | 'desc'
 }
@@ -102,11 +105,13 @@ export interface HistoryEntry {
 export type BatchOperation =
   | { type: 'delete'; entityType: EntityType; ids: number[] }
   | { type: 'updateTags'; entityType: EntityType; ids: number[]; tags: string[] }
-  | { type: 'updateTier'; ids: number[]; tier: CharacterLocal['tier'] }
+  | { type: 'updateTier'; ids: number[]; tier: CharacterTier }
 
 // ============================================
 // Helpers
 // ============================================
+
+const DEFAULT_TIER: CharacterTier = 'supporting'
 
 const toLocalCharacter = (apiChar: Character): CharacterLocal => ({
   id: apiChar.id,
@@ -116,14 +121,35 @@ const toLocalCharacter = (apiChar: Character): CharacterLocal => ({
   desires: apiChar.desires,
   flaws: apiChar.flaws,
   description: apiChar.description,
-  tier: (apiChar.tier as 'core' | 'supporting' | 'minor') || 'supporting',
+  tier: apiChar.tier ?? DEFAULT_TIER,
   cultivationRealm: apiChar.cultivation_realm,
   relationships: [],
   storylines: [],
   tags: [],
 })
 
-const genHistoryId = () => `hist-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`
+const mapApiRelationships = (relationships: CharacterRelationship[]): Relationship[] =>
+  relationships.map((r) => ({
+    id: r.id,
+    targetId: r.target_id,
+    type: isValidRelationshipType(r.type) ? r.type : 'other',
+    description: r.description,
+  }))
+
+const mapApiStorylines = (storylines: CharacterStoryline[]): CharacterStorylineLocal[] =>
+  storylines.map((s) => ({
+    id: s.id,
+    title: s.title,
+    arc: s.arc ?? '',
+    progress: s.progress,
+  }))
+
+function isValidRelationshipType(type: string): type is Relationship['type'] {
+  const validTypes: Relationship['type'][] = ['family', 'friend', 'enemy', 'master', 'disciple', 'rival', 'romantic', 'other']
+  return validTypes.includes(type as Relationship['type'])
+}
+
+const genHistoryId = (): string => `hist-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`
 
 const MAX_HISTORY = 50
 
@@ -311,18 +337,8 @@ export const useSettingsStore = create<SettingsState & SettingsActions>()(
                       relationshipApi.getByCharacter(apiChar.id),
                       storylineApi.getByCharacter(apiChar.id),
                     ])
-                    localChar.relationships = relationships.map((r) => ({
-                      id: r.id,
-                      targetId: r.target_id,
-                      type: r.type as Relationship['type'],
-                      description: r.description,
-                    }))
-                    localChar.storylines = storylines.map((s) => ({
-                      id: s.id,
-                      title: s.title,
-                      arc: s.arc || '',
-                      progress: s.progress,
-                    }))
+                    localChar.relationships = mapApiRelationships(relationships)
+                    localChar.storylines = mapApiStorylines(storylines)
                   } catch {
                     // Ignore relation fetch errors
                   }
@@ -352,7 +368,7 @@ export const useSettingsStore = create<SettingsState & SettingsActions>()(
               })
             } catch (error) {
               set((state) => {
-                state.error = (error as Error).message
+                state.error = error instanceof Error ? error.message : String(error)
                 state.isLoading = false
               })
             }
@@ -372,18 +388,8 @@ export const useSettingsStore = create<SettingsState & SettingsActions>()(
                           relationshipApi.getByCharacter(apiChar.id),
                           storylineApi.getByCharacter(apiChar.id),
                         ])
-                        localChar.relationships = relationships.map((r) => ({
-                          id: r.id,
-                          targetId: r.target_id,
-                          type: r.type as Relationship['type'],
-                          description: r.description,
-                        }))
-                        localChar.storylines = storylines.map((s) => ({
-                          id: s.id,
-                          title: s.title,
-                          arc: s.arc || '',
-                          progress: s.progress,
-                        }))
+                        localChar.relationships = mapApiRelationships(relationships)
+                        localChar.storylines = mapApiStorylines(storylines)
                       } catch { /* ignore */ }
                       return localChar
                     })
@@ -439,7 +445,7 @@ export const useSettingsStore = create<SettingsState & SettingsActions>()(
               set((state) => { state.isLoading = false })
             } catch (error) {
               set((state) => {
-                state.error = (error as Error).message
+                state.error = error instanceof Error ? error.message : String(error)
                 state.isLoading = false
               })
             }
@@ -454,7 +460,7 @@ export const useSettingsStore = create<SettingsState & SettingsActions>()(
               const result = await aiReviewApi.reviewSettings({ settings_data: { category } })
               set((state) => { state.aiReviewResult = result })
             } catch (error) {
-              set((state) => { state.error = (error as Error).message })
+              set((state) => { state.error = error instanceof Error ? error.message : String(error) })
             }
           },
 
@@ -465,7 +471,7 @@ export const useSettingsStore = create<SettingsState & SettingsActions>()(
                 operation: 'continue',
               })
             } catch (error) {
-              set((state) => { state.error = (error as Error).message })
+              set((state) => { state.error = error instanceof Error ? error.message : String(error) })
             }
           },
 
@@ -481,18 +487,13 @@ export const useSettingsStore = create<SettingsState & SettingsActions>()(
                   const relationships = await relationshipApi.getByCharacter(localChar.id)
                   return {
                     ...localChar,
-                    relationships: relationships.map((r) => ({
-                      id: r.id,
-                      targetId: r.target_id,
-                      type: r.type as Relationship['type'],
-                      description: r.description,
-                    })),
+                    relationships: mapApiRelationships(relationships),
                   }
                 })
               )
               set((state) => { state.characters = withRelations })
             } catch (error) {
-              set((state) => { state.error = (error as Error).message })
+              set((state) => { state.error = error instanceof Error ? error.message : String(error) })
             }
           },
 
@@ -514,7 +515,6 @@ export const useSettingsStore = create<SettingsState & SettingsActions>()(
             const newCharacter = { ...toLocalCharacter(apiChar), relationships: [], storylines: [] }
             set((state) => {
               state.characters.push(newCharacter)
-              // Add to history
               state.history.push({
                 id: genHistoryId(),
                 timestamp: Date.now(),
@@ -579,7 +579,7 @@ export const useSettingsStore = create<SettingsState & SettingsActions>()(
                 entityType: 'character',
                 entityId: id,
                 action: 'delete',
-                description: `删除角色: ${oldChar?.name || id}`,
+                description: `删除角色: ${oldChar?.name || String(id)}`,
                 snapshot: oldChar,
               })
               state.historyIndex = state.history.length - 1
@@ -601,7 +601,7 @@ export const useSettingsStore = create<SettingsState & SettingsActions>()(
             const newRel: Relationship = {
               id: apiRel.id,
               targetId: apiRel.target_id,
-              type: apiRel.type as Relationship['type'],
+              type: isValidRelationshipType(apiRel.type) ? apiRel.type : 'other',
               description: apiRel.description,
             }
             set((state) => {
@@ -914,7 +914,7 @@ export const useSettingsStore = create<SettingsState & SettingsActions>()(
                 state.canRedo = false
               })
             } catch (error) {
-              set((state) => { state.error = (error as Error).message })
+              set((state) => { state.error = error instanceof Error ? error.message : String(error) })
             } finally {
               set((state) => { state.isLoading = false })
             }
@@ -1262,7 +1262,7 @@ export const useSettingsStore = create<SettingsState & SettingsActions>()(
 
                 if (score > 0) {
                   results.push({
-                    type: 'ifline' as EntityType,
+                    type: 'ifline',
                     id: entity.id,
                     name: entity.title,
                     description: entity.description,
@@ -1369,7 +1369,6 @@ export const selectEntityCounts = (state: SettingsState) => ({
   rules: state.rules.length,
   ifLines: state.ifLines.length,
 })
-
 export const selectWritingSettings = (state: SettingsState) => state.writingSettings
 
 /** 仅选择 loading/error 状态（最小重渲染） */
@@ -1384,8 +1383,12 @@ export const selectCharactersShallow = (state: SettingsState) => state.character
 /** 选择 AI 审查结果 */
 export const selectAIReviewResult = (state: SettingsState) => state.aiReviewResult
 
+/** 按 tier 筛选角色 */
+export const selectCharactersByTier = (tier: CharacterTier) => (state: SettingsState) =>
+  state.characters.filter((c) => c.tier === tier)
+
 /** 清理 settings store 临时状态 */
-export function cleanupSettingsStore() {
+export function cleanupSettingsStore(): void {
   useSettingsStore.setState({
     isLoading: false,
     error: null,

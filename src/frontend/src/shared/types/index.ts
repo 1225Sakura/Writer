@@ -39,6 +39,8 @@ export interface BackgroundTask {
 // Characters & Relationships
 // ============================================
 
+export type CharacterTier = "core" | "supporting" | "minor"
+
 export interface Character {
   id: number
   project_id?: number
@@ -48,7 +50,7 @@ export interface Character {
   desires?: string
   flaws?: string
   description?: string
-  tier?: string
+  tier?: CharacterTier
   cultivation_realm?: string
   created_at: string
   updated_at: string
