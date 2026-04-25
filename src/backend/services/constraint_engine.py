@@ -15,6 +15,7 @@ This module provides:
 from __future__ import annotations
 
 import json
+import logging
 import re
 from dataclasses import dataclass, field
 from datetime import datetime
@@ -44,6 +45,9 @@ from backend.agents.checkers import (
 )
 from backend.core.services.ai.ai_service import AIService
 
+
+
+logger = logging.getLogger(__name__)
 
 class Severity(str, Enum):
     """Violation severity levels."""
@@ -887,6 +891,242 @@ class ConstraintEngine:
                 continue
 
         return violations
+
+    # ------------------------------------------------------------------
+    # Public API: DSL parsing and validation
+    # ------------------------------------------------------------------
+
+    async def parse_dsl(self, dsl_content: str) -> list[ConstraintRule]:
+        """Parse DSL content (YAML/JSON) into ConstraintRule objects.
+
+        Args:
+            dsl_content: YAML or JSON string containing rule definitions.
+
+        Returns:
+            List of parsed ConstraintRule objects.
+
+        Raises:
+            DSLValidationError: If the DSL content is invalid.
+        """
+        from backend.services.constraint_dsl import ConstraintDSLCParser
+        parser = ConstraintDSLCParser()
+        rules = parser.parse(dsl_content)
+        logger.info("Parsed %d rules from DSL", len(rules))
+        return rules
+
+    async def validate_dsl(self, dsl_content: str) -> tuple[bool, list[str]]:
+        """Validate DSL content without parsing.
+
+        Args:
+            dsl_content: YAML or JSON string containing rule definitions.
+
+        Returns:
+            Tuple of (is_valid, error_messages).
+        """
+        from backend.services.constraint_dsl import ConstraintDSLCParser
+        parser = ConstraintDSLCParser()
+        return parser.validate(dsl_content)
+
+    async def validate_rule(self, rule: ConstraintRule) -> bool:
+        """Validate a constraint rule for correctness.
+
+        Args:
+            rule: The ConstraintRule to validate.
+
+        Returns:
+            True if the rule is valid, False otherwise.
+        """
+        from backend.services.constraint_dsl import ConditionParser
+
+        if not rule.id:
+            logger.warning("Rule validation failed: missing rule ID")
+            return False
+
+        if not rule.name:
+            logger.warning("Rule %s validation failed: missing name", rule.id)
+            return False
+
+        # Validate conditions in metadata
+        conditions_data = rule.metadata.get("conditions", [])
+        if conditions_data:
+            conditions = ConditionParser.parse_all(conditions_data)
+            for cond in conditions:
+                errors = cond.validate()
+                if errors:
+                    logger.warning(
+                        "Rule %s condition validation failed: %s",
+                        rule.id,
+                        errors
+                    )
+                    return False
+
+        return True
+
+    async def generate_violation_report(
+        self,
+        violations: list[ConstraintViolation],
+        format: str = "text",
+    ) -> str:
+        """Generate a human-readable violation report.
+
+        Args:
+            violations: List of ConstraintViolation objects.
+            format: Output format - "text" or "json".
+
+        Returns:
+            Formatted violation report string.
+        """
+        if format == "json":
+            return json.dumps(
+                [v.to_dict() for v in violations],
+                ensure_ascii=False,
+                indent=2
+            )
+
+        if not violations:
+            return "约束检查通过，未发现违规。"
+
+        # Group violations by law type and severity
+        by_law: dict[str, list[ConstraintViolation]] = {}
+        by_severity: dict[Severity, int] = {}
+
+        for v in violations:
+            law_key = v.law_type.value
+            if law_key not in by_law:
+                by_law[law_key] = []
+            by_law[law_key].append(v)
+
+            by_severity[v.severity] = by_severity.get(v.severity, 0) + 1
+
+        # Build report
+        lines = [
+            "=" * 60,
+            "约束违规报告",
+            "=" * 60,
+            f"总计违规: {len(violations)} 处",
+            "",
+        ]
+
+        # Summary by severity
+        lines.append("【严重程度分布】")
+        severity_order = [Severity.CRITICAL, Severity.HIGH, Severity.MEDIUM, Severity.LOW, Severity.INFO]
+        for sev in severity_order:
+            count = by_severity.get(sev, 0)
+            if count > 0:
+                lines.append(f"  {sev.value}: {count} 处")
+
+        lines.append("")
+
+        # Summary by law type
+        lines.append("【违规类型分布】")
+        law_names = {
+            "outline_law": "大纲即法律",
+            "setting_physics": "设定即物理",
+            "invention_registration": "发明需识别",
+        }
+        for law_key, law_violations in by_law.items():
+            law_name = law_names.get(law_key, law_key)
+            lines.append(f"  {law_name}: {len(law_violations)} 处")
+
+        lines.append("")
+
+        # Detailed violations
+        lines.append("【违规详情】")
+        for idx, v in enumerate(violations, 1):
+            lines.append(f"\n--- 违规 {idx} ---")
+            lines.append(f"规则ID: {v.rule_id}")
+            lines.append(f"严重程度: {v.severity.value}")
+            lines.append(f"法律类型: {law_names.get(v.law_type.value, v.law_type.value)}")
+            lines.append(f"违规信息: {v.message}")
+            if v.evidence:
+                lines.append(f"证据: {v.evidence}")
+            if v.location:
+                lines.append(f"位置: {v.location}")
+            if v.suggestion:
+                lines.append(f"建议: {v.suggestion}")
+
+        lines.append("")
+        lines.append("=" * 60)
+
+        return "\n".join(lines)
+
+    async def real_time_validate(
+        self,
+        content: str,
+        rules: Optional[list[ConstraintRule]] = None,
+        chapter_id: Optional[int] = None,
+        project_id: Optional[int] = None,
+    ) -> ConstraintCheckResult:
+        """Real-time validation of content as it is being written.
+
+        This is optimized for quick feedback during the writing process.
+
+        Args:
+            content: The text content to validate.
+            rules: Optional list of rules to check. If None, uses stored rules.
+            chapter_id: Optional chapter ID for context.
+            project_id: Optional project ID for context.
+
+        Returns:
+            ConstraintCheckResult with any violations found.
+        """
+        from backend.services.constraint_dsl import ConditionParser
+
+        violations: list[ConstraintViolation] = []
+        rules_checked: list[str] = []
+
+        # Use provided rules or fetch from database
+        if rules is None:
+            rules = await self.get_rules(status=RuleStatus.ACTIVE)
+
+        # Build context
+        context = await self._build_context(chapter_id, project_id, None)
+        context["current_chapter"] = chapter_id or 0
+
+        # Check each rule
+        for rule in rules:
+            if rule.status != RuleStatus.ACTIVE:
+                continue
+
+            rules_checked.append(rule.id)
+
+            # Check pattern-based rules first (quick)
+            if rule.pattern:
+                matches = list(re.finditer(rule.pattern, content))
+                for match in matches[:3]:
+                    violations.append(ConstraintViolation(
+                        rule_id=rule.id,
+                        law_type=rule.law_type,
+                        severity=rule.severity,
+                        message=rule.description,
+                        evidence=match.group(0),
+                        location=f"position {match.start()}",
+                        suggestion=f"违反规则: {rule.name}",
+                    ))
+
+            # Check condition-based rules
+            conditions_data = rule.metadata.get("conditions", [])
+            if conditions_data:
+                conditions = ConditionParser.parse_all(conditions_data)
+                for cond in conditions:
+                    cond_violations = cond.check(content, context)
+                    violations.extend(cond_violations)
+
+        # Compute score
+        overall_score = self._compute_score(violations)
+        passed = overall_score >= self.PASS_THRESHOLD
+
+        # Build summary
+        summary = self._build_summary(violations, overall_score)
+
+        return ConstraintCheckResult(
+            passed=passed,
+            overall_score=overall_score,
+            violations=violations,
+            rules_checked=rules_checked,
+            summary=summary,
+        )
+
 
     # ------------------------------------------------------------------
     # Internal helpers
