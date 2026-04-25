@@ -1,19 +1,24 @@
 """StyleAgent — 风格指纹分析与文笔风格调节 Agent.
 
-提供三项核心能力：
+提供四项核心能力：
 1. 风格指纹分析：分析文本的句式长度、词汇偏好、修辞密度、情感倾向等
-2. 文笔风格调节：支持预设风格（江南/卡夫卡/加缪/默认/自定义）
-3. 风格迁移建议：给出如何将文本转换为目标风格的具体建议
+2. AI 深度分析：利用 AI 进行超越规则的深层风格特征提取
+3. 文笔风格调节：支持预设风格（江南/卡夫卡/加缪/默认/自定义）
+4. 风格迁移建议：给出如何将文本转换为目标风格的具体建议
+5. 风格一致性检查：检测章节间的风格漂移
 """
 
 from __future__ import annotations
 
 import json
+import logging
 import re
 from dataclasses import dataclass, field
 from typing import Any
 
 from .base import AgentContext, AgentResult, BaseAgent
+
+logger = logging.getLogger(__name__)
 
 
 # ---------------------------------------------------------------------------
@@ -104,6 +109,8 @@ class StyleFingerprint:
     rhetoric: RhetoricMetrics = field(default_factory=RhetoricMetrics)
     emotion: EmotionMetrics = field(default_factory=EmotionMetrics)
     raw_summary: str = ""
+    ai_deep_analysis: dict[str, Any] = field(default_factory=dict)  # AI 深层分析结果
+    style_consistency_score: float = 1.0  # 风格一致性评分 0.0-1.0
 
 
 @dataclass
@@ -290,9 +297,16 @@ class StyleAgent(BaseAgent):
             emotion=emotion_metrics,
         )
 
-        # AI 深度分析补充
+        # AI 摘要
         ai_summary = await self._ai_style_summary(text)
         fingerprint.raw_summary = ai_summary.get("summary", "")
+
+        # AI 深层分析
+        try:
+            ai_deep = await self._ai_deep_analysis(text)
+            fingerprint.ai_deep_analysis = ai_deep
+        except Exception as e:
+            logger.warning("AI deep analysis failed: %s", e)
 
         # 风格匹配
         detected, confidence, comparison = self._match_preset_style(fingerprint)
@@ -408,6 +422,52 @@ class StyleAgent(BaseAgent):
             pass
         return {"summary": "", "keywords": []}
 
+    async def _ai_deep_analysis(self, text: str) -> dict[str, Any]:
+        """使用 AI 进行超越规则的深层风格分析。
+
+        分析内容：
+        - 句式模式：平均长度、方差、掉句比例、是否倾向并叙句
+        - 词汇特征：文言比例、视觉意象密度、感官描写偏好
+        - 修辞偏好：偏好使用的修辞手法列表
+        - 情感基调：情感类型（压抑/昂扬/中性/复杂）
+        - 叙事视角：人称和视角类型
+        """
+        prompt = f"""分析以下文本的深层写作风格特征，返回 JSON：
+
+{{
+    "sentence_patterns": {{
+        "avg_length": 平均句子长度(数字),
+        "variance": "high/medium/low 句子长度波动",
+        "parataxis_ratio": 0.0-1.0 并叙句(短句并列)比例,
+        "complex_sentence_ratio": 0.0-1.0 复合句(从句/修饰)比例,
+        "fragment_ratio": 0.0-1.0 句子片段比例
+    }},
+    "vocabulary_features": {{
+        "classical_ratio": 0.0-1.0 文言词汇比例,
+        "visual_imagery": "high/medium/low 视觉意象密度",
+        "sensory_detail": "high/medium/low 感官描写密度",
+        "abstract_concrete_ratio": 0.0-1.0 抽象/具体词汇比例
+    }},
+    "rhetoric_preferences": ["metaphor", "simile", "personification", "synaesthesia", "alliteration", "oxymoron"],
+    "emotion_tone": "restrained_melancholy/expansive_joy/cold_detachment/intense_conflict/neutral",
+    "narrative_voice": "omniscient_third_person/first_person_limited/first_person_observer/second_person",
+    "notable_traits": ["trait1", "trait2"]
+}}
+
+文本：{text[:2000]}
+
+只返回 JSON，不要包含其他文字。"""
+        try:
+            raw = await self._provider.generate(prompt, style="default", operation="review")
+            match = re.search(r"\{[\s\S]*\}", raw)
+            if match:
+                return json.loads(match.group())
+        except json.JSONDecodeError as e:
+            logger.warning("Failed to parse AI deep analysis: %s", e)
+        except Exception as e:
+            logger.warning("AI deep analysis failed: %s", e)
+        return {}
+
     def _match_preset_style(self, fingerprint: StyleFingerprint) -> tuple[str, float, dict[str, float]]:
         """将指纹与预设风格匹配，返回 (最匹配风格, 置信度, 所有匹配度)."""
         scores: dict[str, float] = {}
@@ -434,6 +494,25 @@ class StyleAgent(BaseAgent):
 
             # 词汇多样性微调
             score += fingerprint.vocabulary.diversity_index * 0.1
+
+            # AI 深层分析增强匹配
+            if fingerprint.ai_deep_analysis:
+                ai = fingerprint.ai_deep_analysis
+                if key == "江南":
+                    if ai.get("emotion_tone") == "restrained_melancholy":
+                        score += 0.15
+                    if ai.get("vocabulary_features", {}).get("visual_imagery") == "high":
+                        score += 0.1
+                elif key == "卡夫卡":
+                    if ai.get("narrative_voice") in ("first_person_limited", "first_person_observer"):
+                        score += 0.1
+                    if ai.get("emotion_tone") == "cold_detachment":
+                        score += 0.15
+                elif key == "加缪":
+                    if ai.get("sentence_patterns", {}).get("fragment_ratio", 0) > 0.2:
+                        score += 0.15
+                    if ai.get("rhetoric_preferences") and len(ai.get("rhetoric_preferences", [])) < 3:
+                        score += 0.1
 
             scores[key] = round(min(score, 1.0), 3)
 
