@@ -146,7 +146,7 @@ function EntityChips({ entities, onConfirm }: { entities?: ExtractedEntity[]; on
 }
 
 /* ============================================================
-   AI AVATAR with breathing glow animation
+   AI AVATAR with breathing glow animation - Enhanced
    ============================================================ */
 
 function AIAvatar({ isThinking = false }: { isThinking?: boolean }) {
@@ -168,17 +168,17 @@ function AIAvatar({ isThinking = false }: { isThinking?: boolean }) {
         ease: 'easeInOut',
       }}
     >
-      {/* Breathing glow ring - accent color */}
+      {/* Outer glow ring - accent color with pulsing effect */}
       <motion.div
-        className="absolute inset-[-3px] rounded-full"
+        className="absolute inset-[-6px] rounded-full"
         style={{
           background: 'radial-gradient(circle, var(--accent-primary) 0%, transparent 70%)',
-          opacity: 0.25,
-          filter: 'blur(4px)',
+          opacity: 0.3,
+          filter: 'blur(6px)',
         }}
         animate={prefersReducedMotion ? {} : {
-          scale: [1, 1.3, 1],
-          opacity: [0.15, 0.35, 0.15],
+          scale: [1, 1.4, 1],
+          opacity: [0.2, 0.4, 0.2],
         }}
         transition={prefersReducedMotion ? { duration: 0 } : {
           duration: isThinking ? 1.5 : 3,
@@ -187,45 +187,67 @@ function AIAvatar({ isThinking = false }: { isThinking?: boolean }) {
         }}
       />
 
-      {/* Secondary subtle glow */}
+      {/* Inner breathing glow ring */}
       <motion.div
-        className="absolute inset-[-6px] rounded-full"
+        className="absolute inset-[-3px] rounded-full"
         style={{
           background: 'radial-gradient(circle, var(--accent-primary) 0%, transparent 70%)',
-          opacity: 0.1,
-          filter: 'blur(8px)',
+          opacity: 0.4,
+          filter: 'blur(4px)',
         }}
         animate={prefersReducedMotion ? {} : {
-          scale: [1.1, 1.4, 1.1],
-          opacity: [0.05, 0.15, 0.05],
+          scale: [1, 1.3, 1],
+          opacity: [0.25, 0.45, 0.25],
+        }}
+        transition={prefersReducedMotion ? { duration: 0 } : {
+          duration: isThinking ? 1.2 : 2.5,
+          repeat: Infinity,
+          ease: 'easeInOut',
+        }}
+      />
+
+      {/* Secondary subtle glow */}
+      <motion.div
+        className="absolute inset-[-10px] rounded-full"
+        style={{
+          background: 'radial-gradient(circle, var(--accent-primary) 0%, transparent 70%)',
+          opacity: 0.12,
+          filter: 'blur(12px)',
+        }}
+        animate={prefersReducedMotion ? {} : {
+          scale: [1.1, 1.5, 1.1],
+          opacity: [0.06, 0.18, 0.06],
         }}
         transition={prefersReducedMotion ? { duration: 0 } : {
           duration: isThinking ? 2 : 4,
           repeat: Infinity,
           ease: 'easeInOut',
-          delay: 0.5,
+          delay: 0.3,
         }}
       />
 
       <AnimatePresence>
         {isThinking && (
           <motion.div
-            className="absolute inset-0 rounded-full bg-accent-muted/30"
+            className="absolute inset-0 rounded-full"
+            style={{
+              background: 'radial-gradient(circle, var(--accent-primary) 0%, transparent 70%)',
+            }}
             initial={{ scale: 0.8, opacity: 0 }}
-            animate={prefersReducedMotion ? {} : { scale: [1, 1.5, 1], opacity: [0.2, 0.4, 0.2] }}
+            animate={prefersReducedMotion ? {} : { scale: [1, 1.8, 1], opacity: [0.3, 0.5, 0.3] }}
             exit={{ scale: 0.8, opacity: 0 }}
-            transition={prefersReducedMotion ? { duration: 0 } : { duration: 2, repeat: Infinity, ease: 'easeInOut' }}
+            transition={prefersReducedMotion ? { duration: 0 } : { duration: 1.8, repeat: Infinity, ease: 'easeInOut' }}
           />
         )}
       </AnimatePresence>
 
       <div
-        className="w-8 h-8 rounded-full flex items-center justify-center relative z-10
-                   bg-accent-muted border border-border-focus"
+        className="w-9 h-9 rounded-full flex items-center justify-center relative z-10
+                   bg-gradient-to-br from-accent-primary/30 to-accent-primary/10 border-2 border-accent-primary/40"
         style={{
           boxShadow: isThinking
-            ? '0 0 16px color-mix(in srgb, var(--accent-primary) 40%, transparent), 0 0 32px color-mix(in srgb, var(--accent-primary) 15%, transparent)'
-            : '0 0 8px color-mix(in srgb, var(--accent-primary) 25%, transparent), 0 0 16px color-mix(in srgb, var(--accent-primary) 10%, transparent)',
+            ? '0 0 20px color-mix(in srgb, var(--accent-primary) 50%, transparent), 0 0 40px color-mix(in srgb, var(--accent-primary) 25%, transparent), inset 0 1px 2px rgba(255,255,255,0.1)'
+            : '0 0 12px color-mix(in srgb, var(--accent-primary) 30%, transparent), 0 0 24px color-mix(in srgb, var(--accent-primary) 15%, transparent), inset 0 1px 2px rgba(255,255,255,0.05)',
         }}
       >
         <Bot className="w-5 h-5 text-accent-primary" />
@@ -290,7 +312,7 @@ function MessageStatus({ status, timestamp }: { status?: 'sending' | 'sent' | 'e
 }
 
 /* ============================================================
-   CHAT BUBBLE with enhanced visual hierarchy
+   CHAT BUBBLE with enhanced visual hierarchy and refined styling
    ============================================================ */
 
 interface ChatBubbleProps {
@@ -331,90 +353,93 @@ function ChatBubble({ message, onEdit, onDelete, onConfirmEntity, index, isGroup
     setIsEditing(false)
   }
 
-  // Different glow colors for AI vs user messages
+  // Enhanced glow colors with entity-based tinting
   const bubbleGlowColor = isAssistant
-    ? 'rgba(94, 106, 210, 0.12)'
-    : 'rgba(94, 106, 210, 0.20)'
+    ? 'rgba(94, 106, 210, 0.15)'
+    : 'rgba(94, 106, 210, 0.25)'
 
   return (
     <motion.div
-      initial={prefersReducedMotion ? { opacity: 0 } : { opacity: 0, y: 28, scale: 0.95 }}
+      initial={prefersReducedMotion ? { opacity: 0 } : { opacity: 0, y: 24, scale: 0.97 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
-      exit={prefersReducedMotion ? { opacity: 0 } : { opacity: 0, y: -8, scale: 0.96 }}
+      exit={prefersReducedMotion ? { opacity: 0 } : { opacity: 0, y: -6, scale: 0.97 }}
       transition={
         prefersReducedMotion
           ? { duration: 0.15 }
           : {
               type: 'spring',
-              stiffness: 380,
-              damping: 28,
-              delay: Math.min(index * 0.08, 0.3),
+              stiffness: 350,
+              damping: 30,
+              delay: Math.min(index * 0.06, 0.25),
             }
       }
-      className={`flex ${isAssistant ? 'justify-start' : 'justify-end'} ${isGrouped && !isFirstInGroup ? 'mb-1.5' : 'mb-6'}`}
+      className={`flex ${isAssistant ? 'justify-start' : 'justify-end'} ${isGrouped && !isFirstInGroup ? 'mb-2' : 'mb-5'}`}
       onMouseEnter={() => setShowActions(true)}
       onMouseLeave={() => setShowActions(false)}
     >
-      <div className={`flex gap-3.5 max-w-[82%] ${isAssistant ? 'flex-row' : 'flex-row-reverse'}`}>
+      <div className={`flex gap-4 max-w-[85%] ${isAssistant ? 'flex-row' : 'flex-row-reverse'}`}>
         {/* Avatar - only show for first message in group */}
         <motion.div
-          className="flex-shrink-0 mt-1"
-          initial={prefersReducedMotion ? {} : { opacity: 0, scale: 0.7 }}
+          className="flex-shrink-0 mt-0.5"
+          initial={prefersReducedMotion ? {} : { opacity: 0, scale: 0.6 }}
           animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.3, delay: Math.min(index * 0.08, 0.3) + 0.1 }}
-          style={{ visibility: isFirstInGroup ? 'visible' : 'hidden', width: isFirstInGroup ? 'auto' : '32px' }}
+          transition={{ duration: 0.35, delay: Math.min(index * 0.06, 0.25) + 0.12 }}
+          style={{ visibility: isFirstInGroup ? 'visible' : 'hidden', width: isFirstInGroup ? 'auto' : '36px' }}
         >
           {isAssistant ? (
             <AIAvatar />
           ) : (
             <motion.div
-              className="w-8 h-8 rounded-full flex items-center justify-center bg-accent-primary shadow-glow-sm"
-              whileHover={prefersReducedMotion ? {} : { scale: 1.05 }}
-              whileTap={prefersReducedMotion ? {} : { scale: 0.95 }}
+              className="w-9 h-9 rounded-full flex items-center justify-center bg-gradient-to-br from-accent-primary to-accent-primary/70 shadow-lg"
+              style={{
+                boxShadow: '0 4px 14px color-mix(in srgb, var(--accent-primary) 40%, transparent)',
+              }}
+              whileHover={prefersReducedMotion ? {} : { scale: 1.08 }}
+              whileTap={prefersReducedMotion ? {} : { scale: 0.94 }}
             >
               <User className="w-4 h-4 text-white" />
             </motion.div>
           )}
         </motion.div>
 
-        {/* Bubble */}
+        {/* Bubble with refined styling */}
         <div className="relative">
           <motion.div
-            className={`relative px-[18px] py-4 transition-all duration-200 ${
+            className={`relative px-5 py-3.5 transition-all duration-200 ${
               isAssistant
-                ? `bg-surface-raised text-primary ${isFirstInGroup ? 'rounded-2xl rounded-tl-2xl rounded-tr-lg rounded-bl-md rounded-br-lg' : 'rounded-2xl rounded-tl-md rounded-tr-lg rounded-bl-md rounded-br-lg'}`
-                : `bg-accent-primary text-white ${isFirstInGroup ? 'rounded-2xl rounded-tl-lg rounded-tr-2xl rounded-bl-lg rounded-br-md' : 'rounded-2xl rounded-tl-lg rounded-tr-md rounded-bl-lg rounded-br-md'}`
+                ? `bg-gradient-to-b from-surface-raised to-surface-base text-primary ${isFirstInGroup ? 'rounded-2xl rounded-tl-sm rounded-tr-xl rounded-bl-lg rounded-br-md' : 'rounded-2xl rounded-tl-md rounded-tr-xl rounded-bl-md rounded-br-md'}`
+                : `bg-gradient-to-b from-accent-primary to-accent-primary/90 text-white shadow-lg ${isFirstInGroup ? 'rounded-2xl rounded-tl-xl rounded-tr-sm rounded-bl-md rounded-br-lg' : 'rounded-2xl rounded-tl-xl rounded-tr-md rounded-bl-lg rounded-br-md'}`
             }`}
             style={{
               boxShadow: isAssistant
-                ? `0 4px 20px rgba(0,0,0,0.10), 0 2px 8px rgba(0,0,0,0.06), inset 0 1px 0 rgba(255,255,255,0.06), 0 0 32px ${bubbleGlowColor}, 0 0 0 1px rgba(94,106,210,0.08)`
-                : `0 4px 20px rgba(94,106,210,0.25), 0 2px 8px rgba(0,0,0,0.08), inset 0 1px 0 rgba(255,255,255,0.15), 0 0 36px ${bubbleGlowColor}`,
+                ? `0 8px 32px rgba(0,0,0,0.12), 0 2px 8px rgba(0,0,0,0.08), inset 0 1px 0 rgba(255,255,255,0.04), 0 0 48px ${bubbleGlowColor}, 0 0 0 1px rgba(94,106,210,0.06)`
+                : `0 8px 32px color-mix(in srgb, var(--accent-primary) 35%, transparent), 0 4px 12px rgba(0,0,0,0.15), inset 0 1px 0 rgba(255,255,255,0.2), 0 0 48px ${bubbleGlowColor}`,
             }}
-            whileHover={prefersReducedMotion ? {} : { scale: 1.008, y: -1 }}
+            whileHover={prefersReducedMotion ? {} : { y: -2 }}
           >
             {/* Left gradient border decoration for AI messages */}
             {isAssistant && (
               <motion.div
-                className="absolute left-0 top-3 bottom-3 w-[3px] rounded-full"
+                className="absolute left-0 top-2.5 bottom-2.5 w-[2.5px] rounded-full"
                 style={{
-                  background: 'linear-gradient(180deg, var(--accent-primary) 0%, color-mix(in srgb, var(--accent-primary) 60%, transparent) 50%, transparent 100%)',
+                  background: 'linear-gradient(180deg, transparent 0%, var(--accent-primary) 30%, color-mix(in srgb, var(--accent-primary) 70%, transparent) 70%, transparent 100%)',
                 }}
                 initial={prefersReducedMotion ? {} : { scaleY: 0, opacity: 0 }}
                 animate={{ scaleY: 1, opacity: 1 }}
-                transition={{ duration: 0.4, delay: Math.min(index * 0.08, 0.3) + 0.15, ease: [0.22, 1, 0.36, 1] }}
+                transition={{ duration: 0.5, delay: Math.min(index * 0.06, 0.25) + 0.18, ease: [0.22, 1, 0.36, 1] }}
               />
             )}
 
             {/* Right gradient border decoration for user messages */}
             {!isAssistant && (
               <motion.div
-                className="absolute right-0 top-3 bottom-3 w-[3px] rounded-full"
+                className="absolute right-0 top-2.5 bottom-2.5 w-[2.5px] rounded-full"
                 style={{
-                  background: 'linear-gradient(180deg, rgba(255,255,255,0.5) 0%, rgba(255,255,255,0.2) 50%, transparent 100%)',
+                  background: 'linear-gradient(180deg, transparent 0%, rgba(255,255,255,0.6) 30%, rgba(255,255,255,0.25) 70%, transparent 100%)',
                 }}
                 initial={prefersReducedMotion ? {} : { scaleY: 0, opacity: 0 }}
                 animate={{ scaleY: 1, opacity: 1 }}
-                transition={{ duration: 0.4, delay: Math.min(index * 0.08, 0.3) + 0.15, ease: [0.22, 1, 0.36, 1] }}
+                transition={{ duration: 0.5, delay: Math.min(index * 0.06, 0.25) + 0.18, ease: [0.22, 1, 0.36, 1] }}
               />
             )}
 
@@ -492,10 +517,14 @@ function ChatBubble({ message, onEdit, onDelete, onConfirmEntity, index, isGroup
                   />
                   {isAssistant && !isComplete && (
                     <motion.span
-                      className="inline-block w-2 h-4 ml-1 rounded-sm align-middle bg-accent-primary"
-                      animate={{ opacity: [1, 0, 1] }}
-                      transition={{ duration: 0.6, repeat: Infinity, ease: 'easeInOut' }}
-                    />
+                      className="inline-flex items-center ml-1.5"
+                      animate={{ opacity: [0.4, 1, 0.4] }}
+                      transition={{ duration: 0.8, repeat: Infinity, ease: 'easeInOut' }}
+                    >
+                      <span className="w-1.5 h-1.5 rounded-full bg-accent-primary mr-0.5 typing-indicator-dots__dot" />
+                      <span className="w-1 h-1 rounded-full bg-accent-primary mr-0.5 typing-indicator-dots__dot" style={{ animationDelay: '0.15s' }} />
+                      <span className="w-1 h-1 rounded-full bg-accent-primary typing-indicator-dots__dot" style={{ animationDelay: '0.3s' }} />
+                    </motion.span>
                   )}
                   {message.entities && message.entities.length > 0 && (
                     <EntityChips entities={message.entities} onConfirm={onConfirmEntity} />

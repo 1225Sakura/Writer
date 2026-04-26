@@ -226,6 +226,9 @@ export function ChatInitPage() {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               className="mobile-drawer-overlay mobile-drawer-overlay--open md:hidden"
+              role="dialog"
+              aria-modal="true"
+              aria-label="已收集信息"
               onClick={() => setMobileInfoOpen(false)}
             />
             <motion.div

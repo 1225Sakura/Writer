@@ -21,10 +21,10 @@ const SheetOverlay = React.forwardRef<
     className={cn(
       "fixed inset-0 z-50",
       "data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0",
-      "data-[state=closed]:duration-300 data-[state=open]:duration-300",
-      "bg-gradient-to-br from-black/70 via-black/50 to-black/70",
+      "data-[state=closed]:duration-200 data-[state=open]:duration-200",
+      "bg-gradient-to-br from-black/80 via-black/60 to-black/80",
       "backdrop-blur-xl",
-      "max-md:bg-black/70 max-md:backdrop-blur-2xl",
+      "max-md:bg-black/80 max-md:backdrop-blur-2xl",
       className
     )}
     {...props}
@@ -34,7 +34,7 @@ const SheetOverlay = React.forwardRef<
 SheetOverlay.displayName = SheetPrimitive.Overlay.displayName
 
 const sheetVariants = cva(
-  "fixed z-50 gap-4 bg-[var(--color-surface-raised)] border-[var(--border-default)] shadow-[var(--shadow-drawer)] transition-all duration-[var(--transition-normal)] ease-out data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:duration-300 data-[state=open]:duration-300",
+  "fixed z-50 gap-4 bg-[var(--color-surface-raised)] border-[var(--border-default)] shadow-[0_8px_32px_rgba(0,0,0,0.3),0_4px_16px_rgba(0,0,0,0.2),0_2px_8px_rgba(0,0,0,0.15),inset_0_1px_0_rgba(255,255,255,0.05)] transition-all duration-[var(--transition-normal)] ease-out data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:duration-200 data-[state=open]:duration-200",
   {
     variants: {
       side: {
@@ -71,9 +71,8 @@ const SheetContent = React.forwardRef<
       {side === 'bottom' && (
         <div className="mobile-sheet-handle sm:hidden" aria-hidden="true" />
       )}
-      <SheetPrimitive.Close className="absolute right-4 top-4 rounded-[var(--radius-sm)] opacity-60 ring-offset-[var(--color-surface-base)] transition-all duration-[var(--transition-fast)] hover:opacity-100 hover:bg-[var(--color-surface-hover)] focus:outline-none focus:ring-2 focus:ring-[var(--accent-primary)] focus:ring-offset-2 disabled:pointer-events-none p-1 touch-target-min btn-active-scale">
+      <SheetPrimitive.Close aria-label="关闭" className="absolute right-4 top-4 rounded-[var(--radius-md)] opacity-60 ring-offset-[var(--color-surface-base)] transition-all duration-[var(--transition-fast)] hover:opacity-100 hover:bg-[var(--color-surface-hover)] focus:outline-none focus:ring-2 focus:ring-[var(--accent-primary)] focus:ring-offset-2 disabled:pointer-events-none p-3 min-h-[44px] min-w-[44px] flex items-center justify-center">
         <X className="h-5 w-5 text-[var(--text-secondary)]" />
-        <span className="sr-only">Close</span>
       </SheetPrimitive.Close>
       {children}
     </SheetPrimitive.Content>

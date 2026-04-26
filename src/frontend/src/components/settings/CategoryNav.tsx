@@ -98,13 +98,21 @@ export function CategoryNav() {
             const count = counts[key]
 
             return (
-              <motion.div
+              <motion.button
                 key={key}
                 onClick={() => handleCategoryChange(key)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault()
+                    handleCategoryChange(key)
+                  }
+                }}
                 className={`
                   w-full flex items-center gap-3 text-left relative overflow-hidden group cursor-pointer
                   px-4 py-2.5 mb-0.5 touch-target-min
                   transition-all duration-200 ease-out
+                  border-0 bg-transparent
+                  focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-100)] focus-visible:ring-offset-2 focus-visible:ring-inset
                   ${isActive
                     ? ''
                     : 'hover:bg-[var(--color-surface-hover)]'
@@ -122,6 +130,10 @@ export function CategoryNav() {
                 style={isActive ? {
                   backgroundColor: `${color}10`,
                 } : undefined}
+                role="tab"
+                aria-pressed={isActive}
+                aria-label={`${label}分类，当前${isActive ? '选中' : '未选中'}`}
+                tabIndex={0}
               >
                 {/* Flowing light indicator - gradient left border glow */}
                 <motion.div
@@ -203,7 +215,7 @@ export function CategoryNav() {
                 {count > 0 && (
                   <CountBadge count={count} color={isActive ? color : 'var(--text-tertiary)'} />
                 )}
-              </motion.div>
+              </motion.button>
             )
           })}
         </AnimatePresence>

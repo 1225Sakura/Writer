@@ -1,19 +1,36 @@
 import * as React from 'react'
 import { cva, type VariantProps } from 'class-variance-authority'
+import { motion, useReducedMotion } from 'framer-motion'
 import { cn } from '@/lib/utils'
 
+// Hook to detect user's motion preference
+function usePrefersReducedMotion() {
+  const shouldReduceMotion = useReducedMotion()
+  return shouldReduceMotion
+}
+
 const badgeVariants = cva(
-  'inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2',
+  'inline-flex items-center justify-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-all duration-[var(--transition-fast)] ease-out focus:outline-none focus:ring-2 focus:ring-[var(--accent-primary)] focus:ring-offset-2 focus:ring-offset-[var(--color-surface-base)]',
   {
     variants: {
       variant: {
         default:
-          'border-transparent bg-primary text-primary-foreground hover:bg-primary/80',
+          'border-transparent bg-[var(--accent-primary)] text-[var(--ink-100)] hover:brightness-110 hover:scale-105 active:scale-95',
         secondary:
-          'border-transparent bg-secondary text-secondary-foreground hover:bg-secondary/80',
+          'border-transparent bg-[var(--ink-80)] text-[var(--ink-100)] hover:bg-[var(--ink-75)] hover:scale-105 active:scale-95',
         destructive:
-          'border-transparent bg-destructive text-destructive-foreground hover:bg-destructive/80',
-        outline: 'text-foreground',
+          'border-transparent bg-[var(--color-danger)] text-white hover:brightness-110 hover:scale-105 active:scale-95',
+        outline:
+          'border-[var(--border-default)] text-[var(--text-secondary)] hover:border-[var(--accent-primary)] hover:text-[var(--accent-primary)] hover:bg-[var(--accent-primary)]/10',
+        ghost:
+          'border-transparent text-[var(--text-tertiary)] hover:text-[var(--text-secondary)] hover:bg-[var(--color-surface-hover)]',
+        ink: 'border-[var(--ink-70)] bg-[var(--ink-90)] text-[var(--paper-100)] hover:bg-[var(--ink-85)] hover:border-[var(--ink-60)]',
+        paper: 'border-[var(--paper-80)] bg-[var(--paper-100)] text-[var(--ink-90)] hover:bg-[var(--paper-95)] hover:border-[var(--paper-75)]',
+        success:
+          'border-transparent bg-[var(--color-success)] text-white hover:brightness-110 hover:scale-105 active:scale-95',
+        warning:
+          'border-transparent bg-[var(--color-warning)] text-[var(--ink-100)] hover:brightness-110 hover:scale-105 active:scale-95',
+        glow: 'border-transparent bg-[var(--accent-primary)]/20 text-[var(--accent-primary)] border-[var(--accent-primary)]/30 hover:bg-[var(--accent-primary)]/30 hover:scale-105 active:scale-95',
       },
     },
     defaultVariants: {
@@ -24,11 +41,27 @@ const badgeVariants = cva(
 
 export interface BadgeProps
   extends React.HTMLAttributes<HTMLDivElement>,
-    VariantProps<typeof badgeVariants> {}
+    VariantProps<typeof badgeVariants> {
+  pulse?: boolean
+}
 
-function Badge({ className, variant, ...props }: BadgeProps) {
+function Badge({ className, variant, pulse = false, ...props }: BadgeProps) {
+  const shouldReduceMotion = usePrefersReducedMotion()
+
   return (
-    <div className={cn(badgeVariants({ variant }), className)} {...props} />
+    <div className={cn(badgeVariants({ variant }), className)} {...props}>
+      {pulse && !shouldReduceMotion && (
+        <motion.span
+          className="absolute inset-0 rounded-full"
+          animate={{ opacity: [0.4, 0.8, 0.4] }}
+          transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
+          style={{ background: 'currentColor' }}
+        />
+      )}
+      <span className="relative z-10 flex items-center gap-1">
+        {props.children}
+      </span>
+    </div>
   )
 }
 

@@ -1,8 +1,132 @@
-/* ============================================================
-   Design Tokens — Entry Point
-   This file imports the unified global style system.
-   All tokens are defined in globals.css to ensure a single
-   source of truth across dark / light / eye-care themes.
-   ============================================================ */
+/**
+ * Design Tokens — Ink/Parchment/Vermillion System
+ * ============================================================
+ * Central source of truth for all design tokens.
+ * Colors follow CLAUDE.md color system specification.
+ *
+ * Color Palette (from CLAUDE.md):
+ * - 深墨色 #1a1a2e (写作区背景/dark backgrounds)
+ * - 宣纸白 #f5f0e6 (正文文字/卡片背景/paper white)
+ * - 朱砂红 #c45c5c (强调/警告/error/danger)
+ * - 角色橙 #e8b87d (character type)
+ * - 物品紫 #9b7ed9 (item type)
+ * - 地点青 #5eb5a6 (location type)
+ * - 势力红 #d45d5d (faction type)
+ * - 大纲蓝 #5b8ee8 (outline type)
+ * - IF线绿 #7eb84a (IF line type)
+ * ============================================================
+ */
 
 @import './globals.css';
+
+/* ============================================================
+   DESIGN TOKEN EXPORTS (CSS Custom Properties)
+   These re-export key tokens for external consumption
+   ============================================================ */
+
+:root {
+  /* === Core Color Tokens === */
+  /* Dark theme writing background */
+  --color-writing-bg-dark: #1a1a2e;
+  /* Paper white for text/cards */
+  --color-paper-white: #f5f0e6;
+  /* Vermillion red for emphasis/warning */
+  --color-vermillion-red: #c45c5c;
+
+  /* === Entity Type Colors === */
+  --color-character: #e8b87d;
+  --color-item: #9b7ed9;
+  --color-location: #5eb5a6;
+  --color-faction: #d45d5d;
+  --color-outline: #5b8ee8;
+  --color-ifline: #7eb84a;
+  --color-world: #c9a96e;
+  --color-rule: #8b9dc3;
+
+  /* === Typography Tokens === */
+  --font-writing: 'Noto Serif SC', 'Source Han Serif CN', serif;
+  --font-interface: 'Inter', -apple-system, sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+
+  --writing-font-size-base: 16px;
+  --writing-line-height-base: 1.75;
+
+  /* === Spacing Base Unit (4px) === */
+  --space-unit: 4px;
+}
+
+/* ============================================================
+   THEME-SPECIFIC DESIGN TOKENS
+   ============================================================ */
+
+/* Dark theme (default) */
+[data-theme="dark"],
+.dark {
+  --writing-bg: #1a1a2e;
+  --writing-text: #f5f0e6;
+}
+
+/* Light theme */
+[data-theme="light"],
+.light {
+  --writing-bg: #f5f0e6;
+  --writing-text: #1a1a2e;
+}
+
+/* Eye-care theme */
+[data-theme="eye-care"] {
+  --writing-bg: #1a211a;
+  --writing-text: #d4e4cc;
+}
+
+/* Sepia theme */
+[data-theme="sepia"] {
+  --writing-bg: #faf4e4;
+  --writing-text: #3d3020;
+}
+
+/* Deep blue theme */
+[data-theme="deep-blue"] {
+  --writing-bg: #0a1020;
+  --writing-text: #e4ecf7;
+}
+
+/* Forest theme */
+[data-theme="forest"] {
+  --writing-bg: #0d1610;
+  --writing-text: #c8dcc8;
+}
+
+/* ============================================================
+   BACKGROUND TEXTURE UTILITIES
+   ============================================================ */
+
+/* Paper texture for writing areas */
+.bg-paper-texture {
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+  background-repeat: repeat;
+  opacity: var(--paper-texture-opacity, 0.035);
+  pointer-events: none;
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+}
+
+/* Subtle gradient overlay for depth */
+.bg-gradient-depth {
+  background: linear-gradient(
+    180deg,
+    transparent 0%,
+    rgba(26, 26, 46, 0.03) 50%,
+    transparent 100%
+  );
+}
+
+/* Ambient glow for dark mode */
+.bg-ambient {
+  background: radial-gradient(
+    ellipse at 50% 0%,
+    rgba(94, 106, 210, 0.08) 0%,
+    transparent 60%
+  );
+}

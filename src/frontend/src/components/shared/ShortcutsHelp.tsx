@@ -142,7 +142,7 @@ export function ShortcutsHelp({ initialInterface = 'global' }: ShortcutsHelpProp
                 onClick={() => setIsOpen(false)}
                 onMouseEnter={() => document.getElementById('shortcuts-close-btn')?.classList.add('rotate-90')}
                 onMouseLeave={() => document.getElementById('shortcuts-close-btn')?.classList.remove('rotate-90')}
-                className="w-8 h-8 rounded-lg hover:bg-white/10 flex items-center justify-center transition-all duration-200 group"
+                className="min-w-11 min-h-11 rounded-lg hover:bg-white/10 flex items-center justify-center transition-all duration-200 group"
               >
                 <X id="shortcuts-close-btn" className="w-4 h-4 text-white/50 group-hover:text-white/90 transition-all duration-200" />
               </button>
@@ -176,13 +176,15 @@ export function ShortcutsHelp({ initialInterface = 'global' }: ShortcutsHelpProp
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder="搜索快捷键..."
+                  aria-label="搜索快捷键"
+                  aria-controls="shortcuts-list"
                   className="w-36 pl-8 pr-3 py-1.5 rounded-lg bg-white/5 border border-white/10 text-xs text-white/80 placeholder:text-white/30 focus:outline-none focus:border-white/20 focus:bg-white/8 transition-all"
                 />
               </div>
             </div>
 
             {/* Content */}
-            <div className="flex-1 overflow-y-auto px-5 py-4">
+            <div id="shortcuts-list" className="flex-1 overflow-y-auto px-5 py-4">
               {filteredCategories.length === 0 ? (
                 <div className="text-center py-12">
                   <Keyboard className="w-12 h-12 text-white/20 mx-auto mb-3" />

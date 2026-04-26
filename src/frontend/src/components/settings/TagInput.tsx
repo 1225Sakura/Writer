@@ -37,8 +37,9 @@ function getTagColor(tagName: string, entityType?: string): string {
   }
 
   const TAG_COLORS = [
-    '#e8b87d', '#9b7ed9', '#5eb5a6', '#d45d5d', '#5e6ad2',
-    '#7eb84a', '#c45c5c', '#5b8ee8', '#e87d9b', '#8ee85b',
+    'var(--color-character)', 'var(--color-item)', 'var(--color-location)',
+    'var(--color-faction)', 'var(--color-outline)', 'var(--color-ifline)',
+    'var(--color-vermillion-red)', 'var(--color-outline)', '#e87d9b', '#8ee85b',
   ]
   let hash = 0
   for (let i = 0; i < tagName.length; i++) {

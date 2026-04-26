@@ -12,8 +12,11 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { WritingSkeleton } from '@/components/shared/SmartSkeleton'
 import { SectionLoadingOverlay } from '@/components/shared/LoadingOverlay'
 import { Sparkles } from 'lucide-react'
+import { usePrefersReducedMotion } from '@/hooks/usePrefersReducedMotion'
 
 const IMMERSIVE_HIDE_DELAY = 4000 // 4 seconds - more relaxed timing
+const TYPING_THRESHOLD_MS = 1000 // Hide chrome if no typing for 1 second
+const SWIPE_THRESHOLD_PX = 50 // Minimum swipe distance in pixels
 
 // Spring animation config for immersive transitions
 // Softer spring for more natural, less jarring motion
@@ -51,6 +54,7 @@ export function WritingEditorPage() {
     setImmersiveMode
   } = useUIStore()
   const { init, loading } = useWritingStore()
+  const prefersReducedMotion = usePrefersReducedMotion()
 
   const [chromeVisible, setChromeVisible] = useState(true)
   const hideTimeoutRef = useRef<NodeJS.Timeout | null>(null)
@@ -58,7 +62,7 @@ export function WritingEditorPage() {
   const isTypingRef = useRef(false)
   const touchStartX = useRef<number>(0)
   const touchEndX = useRef<number>(0)
-  const swipeThreshold = 50
+  const swipeThreshold = SWIPE_THRESHOLD_PX
   const [showSwipeHint, setShowSwipeHint] = useState(false)
   const [swipeHintDismissed, setSwipeHintDismissed] = useState(() => {
     if (typeof window !== 'undefined') {
@@ -104,9 +108,9 @@ export function WritingEditorPage() {
 
     // Only hide if not typing recently (more than 1 second since last keystroke)
     const timeSinceLastTyping = Date.now() - lastTypingRef.current
-    if (timeSinceLastTyping > 1000) {
+    if (timeSinceLastTyping > TYPING_THRESHOLD_MS) {
       hideTimeoutRef.current = setTimeout(() => {
-        if (isTypingRef.current || timeSinceLastTyping < 1000) return
+        if (isTypingRef.current || timeSinceLastTyping < TYPING_THRESHOLD_MS) return
         setChromeVisible(false)
       }, IMMERSIVE_HIDE_DELAY)
     }
@@ -286,7 +290,7 @@ export function WritingEditorPage() {
                 right: '-8%',
                 background: 'radial-gradient(circle, color-mix(in srgb, var(--color-character) 5%, transparent) 0%, color-mix(in srgb, var(--color-character) 1.5%, transparent) 35%, transparent 70%)',
                 filter: 'blur(70px)',
-                animation: 'ambient-orb-float 18s cubic-bezier(0.45, 0.05, 0.55, 0.95) infinite',
+                animation: prefersReducedMotion ? 'none' : 'ambient-orb-float 18s cubic-bezier(0.45, 0.05, 0.55, 0.95) infinite',
               }}
             />
             {/* Orb 2: Bottom-left cool glow - outline blue, medium drift */}
@@ -299,7 +303,7 @@ export function WritingEditorPage() {
                 left: '-5%',
                 background: 'radial-gradient(circle, color-mix(in srgb, var(--color-outline) 4%, transparent) 0%, color-mix(in srgb, var(--color-outline) 1%, transparent) 40%, transparent 75%)',
                 filter: 'blur(80px)',
-                animation: 'ambient-orb-float 22s cubic-bezier(0.45, 0.05, 0.55, 0.95) infinite reverse',
+                animation: prefersReducedMotion ? 'none' : 'ambient-orb-float 22s cubic-bezier(0.45, 0.05, 0.55, 0.95) infinite reverse',
               }}
             />
             {/* Orb 3: Subtle center glow - primary accent, very soft */}
@@ -313,8 +317,8 @@ export function WritingEditorPage() {
                 transform: 'translate(-50%, -50%)',
                 background: 'radial-gradient(circle, color-mix(in srgb, var(--accent-primary) 2.5%, transparent) 0%, color-mix(in srgb, var(--accent-primary) 0.8%, transparent) 45%, transparent 80%)',
                 filter: 'blur(90px)',
-                animation: 'ambient-orb-float 20s cubic-bezier(0.45, 0.05, 0.55, 0.95) infinite',
-                animationDelay: '-6s',
+                animation: prefersReducedMotion ? 'none' : 'ambient-orb-float 20s cubic-bezier(0.45, 0.05, 0.55, 0.95) infinite',
+                animationDelay: prefersReducedMotion ? '0s' : '-6s',
               }}
             />
             {/* Orb 4: Small accent - IF line green, upper left */}
@@ -327,8 +331,8 @@ export function WritingEditorPage() {
                 left: '-3%',
                 background: 'radial-gradient(circle, color-mix(in srgb, var(--color-ifline) 2.5%, transparent) 0%, transparent 65%)',
                 filter: 'blur(60px)',
-                animation: 'ambient-orb-float 15s cubic-bezier(0.45, 0.05, 0.55, 0.95) infinite',
-                animationDelay: '-3s',
+                animation: prefersReducedMotion ? 'none' : 'ambient-orb-float 15s cubic-bezier(0.45, 0.05, 0.55, 0.95) infinite',
+                animationDelay: prefersReducedMotion ? '0s' : '-3s',
               }}
             />
             {/* Orb 5: Small accent - item purple, lower right */}
@@ -341,8 +345,8 @@ export function WritingEditorPage() {
                 right: '-2%',
                 background: 'radial-gradient(circle, color-mix(in srgb, var(--color-item) 2.5%, transparent) 0%, transparent 65%)',
                 filter: 'blur(60px)',
-                animation: 'ambient-orb-float 17s cubic-bezier(0.45, 0.05, 0.55, 0.95) infinite reverse',
-                animationDelay: '-8s',
+                animation: prefersReducedMotion ? 'none' : 'ambient-orb-float 17s cubic-bezier(0.45, 0.05, 0.55, 0.95) infinite reverse',
+                animationDelay: prefersReducedMotion ? '0s' : '-8s',
               }}
             />
           </motion.div>
@@ -371,8 +375,8 @@ export function WritingEditorPage() {
             }}
           >
             <motion.div
-              animate={{ rotate: 360 }}
-              transition={{ duration: 16, repeat: Infinity, ease: 'linear' }}
+              animate={prefersReducedMotion ? {} : { rotate: 360 }}
+              transition={prefersReducedMotion ? { duration: 0 } : { duration: 16, repeat: Infinity, ease: 'linear' }}
               className="flex items-center justify-center"
             >
               <Sparkles className="w-3 h-3" style={{ color: 'color-mix(in srgb, var(--color-character) 55%, transparent)' }} />
@@ -384,11 +388,11 @@ export function WritingEditorPage() {
                 background: 'color-mix(in srgb, var(--color-character) 50%, transparent)',
                 boxShadow: '0 0 8px color-mix(in srgb, var(--color-character) 30%, transparent)',
               }}
-              animate={{
+              animate={prefersReducedMotion ? {} : {
                 opacity: [0.4, 1, 0.4],
                 scale: [0.9, 1.1, 0.9],
               }}
-              transition={{ duration: 2.5, repeat: Infinity, ease: 'easeInOut' }}
+              transition={prefersReducedMotion ? { duration: 0 } : { duration: 2.5, repeat: Infinity, ease: 'easeInOut' }}
             />
           </motion.div>
         )}
@@ -549,17 +553,17 @@ export function WritingEditorPage() {
                   animate={{ opacity: 1, rotate: 0 }}
                   transition={{ delay: 0.18, duration: 0.3, ease: IMMERSIVE_EASE }}
                   onClick={toggleAIDrawer}
-                  className="relative z-10 flex items-center justify-center w-8 h-8 rounded-lg transition-colors"
-                  whileHover={{
+                  className="relative z-10 flex items-center justify-center min-w-11 min-h-11 rounded-lg transition-colors"
+                  whileHover={prefersReducedMotion ? {} : {
                     scale: 1.1,
                     backgroundColor: 'color-mix(in srgb, var(--color-vermillion) 12%, transparent)',
                     boxShadow: '0 0 12px color-mix(in srgb, var(--color-vermillion) 25%, transparent)',
                   }}
-                  whileTap={{ scale: 0.92 }}
+                  whileTap={prefersReducedMotion ? {} : { scale: 0.92 }}
                   style={{ background: 'transparent' }}
                 >
                   <motion.div
-                    whileHover={{ rotate: 90 }}
+                    whileHover={prefersReducedMotion ? {} : { rotate: 90 }}
                     transition={{ type: 'spring', stiffness: 400, damping: 15 }}
                   >
                     <X className="w-4 h-4 text-[var(--text-secondary)]" />
@@ -645,17 +649,17 @@ export function WritingEditorPage() {
                   animate={{ opacity: 1, rotate: 0 }}
                   transition={{ delay: 0.18, duration: 0.3, ease: IMMERSIVE_EASE }}
                   onClick={toggleCollaborationDrawer}
-                  className="relative z-10 flex items-center justify-center w-8 h-8 rounded-lg transition-colors"
-                  whileHover={{
+                  className="relative z-10 flex items-center justify-center min-w-11 min-h-11 rounded-lg transition-colors"
+                  whileHover={prefersReducedMotion ? {} : {
                     scale: 1.1,
                     backgroundColor: 'color-mix(in srgb, var(--color-ifline) 12%, transparent)',
                     boxShadow: '0 0 12px color-mix(in srgb, var(--color-ifline) 20%, transparent)',
                   }}
-                  whileTap={{ scale: 0.92 }}
+                  whileTap={prefersReducedMotion ? {} : { scale: 0.92 }}
                   style={{ background: 'transparent' }}
                 >
                   <motion.div
-                    whileHover={{ rotate: 90 }}
+                    whileHover={prefersReducedMotion ? {} : { rotate: 90 }}
                     transition={{ type: 'spring', stiffness: 400, damping: 15 }}
                   >
                     <X className="w-4 h-4 text-[var(--text-secondary)]" />
@@ -693,6 +697,15 @@ export function WritingEditorPage() {
               backdropFilter: 'blur(8px)',
             }}
             onClick={dismissSwipeHint}
+            onKeyDown={(e) => {
+              if (e.key === 'Escape') {
+                dismissSwipeHint()
+              }
+            }}
+            role="dialog"
+            aria-modal="true"
+            aria-label="手势操作提示"
+            tabIndex={0}
           >
             <motion.div
               initial={{ scale: 0.9, opacity: 0, y: 20 }}
@@ -706,12 +719,24 @@ export function WritingEditorPage() {
                 boxShadow: '0 20px 60px rgba(0,0,0,0.4)',
               }}
               onClick={(e) => e.stopPropagation()}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.stopPropagation()
+                }
+              }}
             >
               <div className="flex items-center justify-between mb-3">
                 <span className="text-sm font-medium text-primary">手势操作提示</span>
                 <button
                   onClick={dismissSwipeHint}
-                  className="p-2 rounded-lg hover:bg-surface-base transition-colors touch-target-min"
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault()
+                      dismissSwipeHint()
+                    }
+                  }}
+                  className="p-2 rounded-lg hover:bg-surface-base transition-colors touch-target-min focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
+                  aria-label="关闭手势提示"
                 >
                   <X className="w-4 h-4 text-secondary" />
                 </button>
@@ -720,7 +745,7 @@ export function WritingEditorPage() {
                 <div className="flex items-center gap-3">
                   <div className="flex-shrink-0 w-10 h-10 rounded-xl bg-surface-base flex items-center justify-center">
                     <motion.div
-                      animate={{ x: [0, 8, 0] }}
+                      animate={prefersReducedMotion ? {} : { x: [0, 8, 0] }}
                       transition={{ duration: 1.5, repeat: Infinity, ease: 'easeInOut' }}
                     >
                       <ArrowLeft className="w-5 h-5 text-accent-primary" />
@@ -734,7 +759,7 @@ export function WritingEditorPage() {
                 <div className="flex items-center gap-3">
                   <div className="flex-shrink-0 w-10 h-10 rounded-xl bg-surface-base flex items-center justify-center">
                     <motion.div
-                      animate={{ x: [0, -8, 0] }}
+                      animate={prefersReducedMotion ? {} : { x: [0, -8, 0] }}
                       transition={{ duration: 1.5, repeat: Infinity, ease: 'easeInOut', delay: 0.3 }}
                     >
                       <ArrowRight className="w-5 h-5 text-accent-primary" />
@@ -748,7 +773,13 @@ export function WritingEditorPage() {
               </div>
               <button
                 onClick={dismissSwipeHint}
-                className="w-full mt-4 py-2.5 text-xs rounded-lg bg-accent-primary text-white hover:bg-accent-hover transition-colors touch-target-min btn-active-scale"
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault()
+                    dismissSwipeHint()
+                  }
+                }}
+                className="w-full mt-4 py-2.5 text-xs rounded-lg bg-accent-primary text-white hover:bg-accent-hover transition-colors touch-target-min btn-active-scale focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
               >
                 知道了
               </button>

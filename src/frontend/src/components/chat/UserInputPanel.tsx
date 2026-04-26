@@ -1,9 +1,10 @@
-import { useState, useRef, useCallback } from 'react'
+import { useState, useRef, useCallback, useEffect } from 'react'
 import { useChatStore } from '@/store'
 import { Send, RefreshCw, Loader2, FileText, Zap, Wand2, Lightbulb } from 'lucide-react'
 import { ChatTemplates } from './ChatTemplates'
 import { motion, AnimatePresence } from 'framer-motion'
 import { getWebSocketClient } from '@/api/websocket'
+import { usePrefersReducedMotion } from '@/hooks/usePrefersReducedMotion'
 
 const MAX_INPUT_LENGTH = 500
 
@@ -19,6 +20,7 @@ export function UserInputPanel() {
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const { sendMessage, createSession, clearSession, sessionId, isLoading, isStreaming, error, messages, exportToOutline } = useChatStore()
   const [showExportConfirm, setShowExportConfirm] = useState(false)
+  const prefersReducedMotion = usePrefersReducedMotion()
 
   // Character count for input
   const charCount = input.length
@@ -95,9 +97,16 @@ export function UserInputPanel() {
     const result = exportToOutline()
     if (result.entries.length > 0) {
       setShowExportConfirm(true)
-      setTimeout(() => setShowExportConfirm(false), 3000)
     }
   }
+
+  // Cleanup timeout for export confirmation toast
+  useEffect(() => {
+    if (showExportConfirm) {
+      const timer = setTimeout(() => setShowExportConfirm(false), 3000)
+      return () => clearTimeout(timer)
+    }
+  }, [showExportConfirm])
 
   const hasMessages = messages.length > 0
   const canSend = input.trim() && !isLoading && !isStreaming
@@ -114,9 +123,9 @@ export function UserInputPanel() {
             disabled={isLoading || isStreaming}
             className="flex items-center gap-1.5 px-3 py-1.5 text-xs rounded-md border border-default
                        text-secondary hover:bg-surface-raised hover:text-primary
-                       active:scale-95 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
-            whileHover={{ y: -1, boxShadow: 'var(--shadow-card)' }}
-            whileTap={{ scale: 0.97 }}
+                       active:scale-95 transition-all disabled:opacity-40 disabled:cursor-not-allowed touch-target-min"
+            whileHover={prefersReducedMotion ? {} : { y: -1, boxShadow: 'var(--shadow-card)' }}
+            whileTap={prefersReducedMotion ? {} : { scale: 0.97 }}
           >
             <FileText className="w-4 h-4" />
             <span>生成大纲</span>
@@ -165,13 +174,14 @@ export function UserInputPanel() {
                 onClick={() => handleQuickReply(reply.message)}
                 className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs rounded-full border border-default
                            text-secondary hover:bg-surface-raised hover:text-primary hover:border-strong
-                           transition-colors"
+                           transition-colors touch-target-min"
                 style={{ whiteSpace: 'nowrap' }}
                 initial={{ opacity: 0, x: -8 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: i * 0.05, duration: 0.2 }}
-                whileHover={{ y: -1, scale: 1.02 }}
-                whileTap={{ scale: 0.95 }}
+                whileHover={prefersReducedMotion ? {} : { y: -1, scale: 1.02 }}
+                whileTap={prefersReducedMotion ? {} : { scale: 0.95 }}
+                aria-label={reply.label}
               >
                 <span className="flex-shrink-0 opacity-60">{reply.icon}</span>
                 <span>{reply.label}</span>
@@ -184,11 +194,11 @@ export function UserInputPanel() {
       <div className="flex gap-2 items-end">
         {/* New chat button */}
         <motion.button
-          className="p-2.5 flex-shrink-0 rounded-md bg-surface-raised border border-default touch-target-min"
+          className="min-w-11 min-h-11 flex-shrink-0 rounded-md bg-surface-raised border border-default touch-target-min"
           title="开始新对话"
           onClick={handleNewChat}
-          whileHover={{ scale: 1.08, backgroundColor: 'var(--color-surface-hover)' }}
-          whileTap={{ scale: 0.92 }}
+          whileHover={prefersReducedMotion ? {} : { scale: 1.08, backgroundColor: 'var(--color-surface-hover)' }}
+          whileTap={prefersReducedMotion ? {} : { scale: 0.92 }}
           transition={{ duration: 0.15 }}
         >
           <RefreshCw className="w-5 h-5 text-[var(--icon-secondary)]" />
@@ -298,16 +308,16 @@ export function UserInputPanel() {
           disabled={!canSend}
           className="px-5 py-2.5 flex items-center gap-2 text-sm font-medium flex-shrink-0
                      rounded-xl text-primary disabled:opacity-40 disabled:cursor-not-allowed
-                     transition-all duration-200 relative overflow-hidden shadow-md"
+                     transition-all duration-200 relative overflow-hidden shadow-md touch-target-min"
           style={{
             backgroundColor: canSend ? 'var(--accent-primary)' : 'var(--color-surface-input)',
             border: canSend ? '1px solid transparent' : '1px solid var(--border-default)',
           }}
-          whileHover={canSend ? {
+          whileHover={canSend && !prefersReducedMotion ? {
             scale: 1.04,
             boxShadow: '0 0 28px rgba(94, 106, 210, 0.50), 0 4px 16px rgba(94, 106, 210, 0.25)',
           } : {}}
-          whileTap={canSend ? { scale: 0.95 } : {}}
+          whileTap={canSend && !prefersReducedMotion ? { scale: 0.95 } : {}}
           transition={{ duration: 0.2 }}
         >
           {/* Ripple effect on hover */}
@@ -315,7 +325,7 @@ export function UserInputPanel() {
             <motion.div
               className="absolute inset-0 rounded-md"
               initial={{ opacity: 0 }}
-              whileHover={{
+              whileHover={prefersReducedMotion ? {} : {
                 opacity: [0, 0.3, 0],
                 scale: [1, 1.5],
               }}

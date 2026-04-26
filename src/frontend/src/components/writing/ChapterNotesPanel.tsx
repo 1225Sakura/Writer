@@ -411,7 +411,7 @@ export function ChapterNotesPanel() {
               className="w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-semibold"
               style={{
                 background: 'var(--color-ifline)',
-                color: 'white',
+                color: 'var(--text-inverse)',
               }}
             >
               {notes.length}
@@ -648,7 +648,7 @@ export function ChapterNotesPanel() {
                           onClick={handleSave}
                           disabled={!noteContent.trim()}
                           className="px-3 py-1.5 rounded-lg text-[11px] font-medium
-                                     bg-[var(--accent-primary)] text-white
+                                     bg-[var(--accent-primary)] text-[var(--text-inverse)]
                                      hover:bg-[var(--accent-95)]
                                      disabled:opacity-40 disabled:cursor-not-allowed
                                      transition-all duration-150"

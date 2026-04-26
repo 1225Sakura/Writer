@@ -4,6 +4,7 @@ import { twMerge } from 'tailwind-merge'
 import { Slot } from '@radix-ui/react-slot'
 import { Loader2 } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
+import { usePrefersReducedMotion } from '@/hooks/usePrefersReducedMotion'
 
 export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   variant?:
@@ -231,6 +232,7 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
     const buttonRef = React.useRef<HTMLButtonElement>(null)
     const [isPressed, setIsPressed] = React.useState(false)
     const [isHovered, setIsHovered] = React.useState(false)
+    const prefersReducedMotion = usePrefersReducedMotion()
 
     const handleClick = React.useCallback(
       (e: React.MouseEvent<HTMLButtonElement>) => {
@@ -322,11 +324,11 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
             style={{
               background: `radial-gradient(circle at 50% 50%, ${glowColor}20 0%, transparent 60%)`,
             }}
-            animate={{
+            animate={prefersReducedMotion ? {} : {
               opacity: [0.3, 0.5, 0.3],
               scale: [1, 1.05, 1],
             }}
-            transition={{
+            transition={prefersReducedMotion ? { duration: 0 } : {
               duration: 2.5,
               repeat: Infinity,
               ease: 'easeInOut',

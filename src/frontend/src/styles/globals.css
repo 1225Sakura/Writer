@@ -137,7 +137,7 @@
   --border-focus-ring: rgba(94, 106, 210, 0.50);
 
   /* --- Writing Surface (Dark Default) --- */
-  --writing-bg:         #1e1e32;
+  --writing-bg:         #1a1a2e;
   --writing-text:      var(--paper-100);
   --writing-muted:     rgba(245, 240, 230, 0.60);
   --writing-line-highlight: rgba(94, 106, 210, 0.08);
