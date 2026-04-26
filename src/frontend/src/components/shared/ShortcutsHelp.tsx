@@ -120,7 +120,7 @@ export function ShortcutsHelp({ initialInterface = 'global' }: ShortcutsHelpProp
             animate={{ scale: 1, opacity: 1, y: 0 }}
             exit={{ scale: 0.95, opacity: 0, y: 20 }}
             transition={{ type: 'spring', stiffness: 400, damping: 30 }}
-            className="relative w-full max-w-2xl max-h-[85vh] rounded-2xl border border-[rgba(255,255,255,0.08)] bg-[#1a1a1e] shadow-2xl overflow-hidden flex flex-col"
+            className="relative w-full max-w-2xl max-h-[85vh] rounded-2xl border border-[rgba(255,255,255,0.08)] bg-[var(--ink-90)] shadow-2xl overflow-hidden flex flex-col"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Header */}

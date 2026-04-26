@@ -263,10 +263,11 @@ function TextSkeletonSpinner({ size = 'md', color = 'var(--accent-primary)' }: {
         {lineHeights.map((h, i) => (
           <div key={i} className="relative overflow-hidden rounded-md" style={{ width: lineWidths[i], height: h }}>
             <div
-              className="absolute inset-0 animate-shimmer motion-reduce:animate-none"
+              className="absolute inset-0"
               style={{
                 background: `linear-gradient(90deg, ${color}10, ${color}25, ${color}10)`,
                 backgroundSize: '200% 100%',
+                animation: 'shimmer-skeleton 1.5s ease-in-out infinite',
               }}
             />
           </div>
@@ -566,36 +567,36 @@ export function SkeletonOverlay({
   const content = {
     text: (
       <div className="w-full space-y-3 max-w-xs">
-        <div className="h-4 rounded-md animate-shimmer motion-reduce:animate-none w-3/4" />
-        <div className="h-3 rounded-md animate-shimmer motion-reduce:animate-none w-full" />
-        <div className="h-3 rounded-md animate-shimmer motion-reduce:animate-none w-5/6" />
-        <div className="h-3 rounded-md animate-shimmer motion-reduce:animate-none w-4/5" />
+        <div className="h-4 rounded-md w-3/4" style={{ background: 'linear-gradient(90deg, var(--color-surface-overlay) 25%, var(--color-surface-hover) 50%, var(--color-surface-overlay) 75%)', backgroundSize: '200% 100%', animation: 'shimmer-skeleton 1.5s ease-in-out infinite' }} />
+        <div className="h-3 rounded-md w-full" style={{ background: 'linear-gradient(90deg, var(--color-surface-overlay) 25%, var(--color-surface-hover) 50%, var(--color-surface-overlay) 75%)', backgroundSize: '200% 100%', animation: 'shimmer-skeleton 1.5s ease-in-out infinite' }} />
+        <div className="h-3 rounded-md w-5/6" style={{ background: 'linear-gradient(90deg, var(--color-surface-overlay) 25%, var(--color-surface-hover) 50%, var(--color-surface-overlay) 75%)', backgroundSize: '200% 100%', animation: 'shimmer-skeleton 1.5s ease-in-out infinite' }} />
+        <div className="h-3 rounded-md w-4/5" style={{ background: 'linear-gradient(90deg, var(--color-surface-overlay) 25%, var(--color-surface-hover) 50%, var(--color-surface-overlay) 75%)', backgroundSize: '200% 100%', animation: 'shimmer-skeleton 1.5s ease-in-out infinite' }} />
       </div>
     ),
     card: (
       <div className="grid gap-4 w-full max-w-sm">
-        <div className="h-32 rounded-xl animate-shimmer motion-reduce:animate-none" style={{ backgroundColor: 'var(--elevation-3)' }} />
+        <div className="h-32 rounded-xl" style={{ background: 'linear-gradient(90deg, var(--color-surface-overlay) 25%, var(--color-surface-hover) 50%, var(--color-surface-overlay) 75%)', backgroundSize: '200% 100%', animation: 'shimmer-skeleton 1.5s ease-in-out infinite' }} />
         <div className="grid grid-cols-3 gap-3">
-          <div className="h-20 rounded-lg animate-shimmer motion-reduce:animate-none" style={{ backgroundColor: 'var(--elevation-3)' }} />
-          <div className="h-20 rounded-lg animate-shimmer motion-reduce:animate-none" style={{ backgroundColor: 'var(--elevation-3)' }} />
-          <div className="h-20 rounded-lg animate-shimmer motion-reduce:animate-none" style={{ backgroundColor: 'var(--elevation-3)' }} />
+          <div className="h-20 rounded-lg" style={{ background: 'linear-gradient(90deg, var(--color-surface-overlay) 25%, var(--color-surface-hover) 50%, var(--color-surface-overlay) 75%)', backgroundSize: '200% 100%', animation: 'shimmer-skeleton 1.5s ease-in-out infinite' }} />
+          <div className="h-20 rounded-lg" style={{ background: 'linear-gradient(90deg, var(--color-surface-overlay) 25%, var(--color-surface-hover) 50%, var(--color-surface-overlay) 75%)', backgroundSize: '200% 100%', animation: 'shimmer-skeleton 1.5s ease-in-out infinite' }} />
+          <div className="h-20 rounded-lg" style={{ background: 'linear-gradient(90deg, var(--color-surface-overlay) 25%, var(--color-surface-hover) 50%, var(--color-surface-overlay) 75%)', backgroundSize: '200% 100%', animation: 'shimmer-skeleton 1.5s ease-in-out infinite' }} />
         </div>
       </div>
     ),
     detail: (
       <div className="w-full max-w-md space-y-4">
         <div className="flex items-center gap-4">
-          <div className="w-12 h-12 rounded-full animate-shimmer motion-reduce:animate-none" style={{ backgroundColor: 'var(--elevation-3)' }} />
+          <div className="w-12 h-12 rounded-full" style={{ background: 'linear-gradient(90deg, var(--color-surface-overlay) 25%, var(--color-surface-hover) 50%, var(--color-surface-overlay) 75%)', backgroundSize: '200% 100%', animation: 'shimmer-skeleton 1.5s ease-in-out infinite' }} />
           <div className="flex-1 space-y-2">
-            <div className="h-4 rounded-md animate-shimmer motion-reduce:animate-none w-1/3" />
-            <div className="h-3 rounded-md animate-shimmer motion-reduce:animate-none w-1/2" />
+            <div className="h-4 rounded-md w-1/3" style={{ background: 'linear-gradient(90deg, var(--color-surface-overlay) 25%, var(--color-surface-hover) 50%, var(--color-surface-overlay) 75%)', backgroundSize: '200% 100%', animation: 'shimmer-skeleton 1.5s ease-in-out infinite' }} />
+            <div className="h-3 rounded-md w-1/2" style={{ background: 'linear-gradient(90deg, var(--color-surface-overlay) 25%, var(--color-surface-hover) 50%, var(--color-surface-overlay) 75%)', backgroundSize: '200% 100%', animation: 'shimmer-skeleton 1.5s ease-in-out infinite' }} />
           </div>
         </div>
-        <div className="h-40 rounded-lg animate-shimmer motion-reduce:animate-none" style={{ backgroundColor: 'var(--elevation-3)' }} />
+        <div className="h-40 rounded-lg" style={{ background: 'linear-gradient(90deg, var(--color-surface-overlay) 25%, var(--color-surface-hover) 50%, var(--color-surface-overlay) 75%)', backgroundSize: '200% 100%', animation: 'shimmer-skeleton 1.5s ease-in-out infinite' }} />
         <div className="space-y-2">
-          <div className="h-3 rounded-md animate-shimmer motion-reduce:animate-none w-full" />
-          <div className="h-3 rounded-md animate-shimmer motion-reduce:animate-none w-5/6" />
-          <div className="h-3 rounded-md animate-shimmer motion-reduce:animate-none w-4/5" />
+          <div className="h-3 rounded-md w-full" style={{ background: 'linear-gradient(90deg, var(--color-surface-overlay) 25%, var(--color-surface-hover) 50%, var(--color-surface-overlay) 75%)', backgroundSize: '200% 100%', animation: 'shimmer-skeleton 1.5s ease-in-out infinite' }} />
+          <div className="h-3 rounded-md w-5/6" style={{ background: 'linear-gradient(90deg, var(--color-surface-overlay) 25%, var(--color-surface-hover) 50%, var(--color-surface-overlay) 75%)', backgroundSize: '200% 100%', animation: 'shimmer-skeleton 1.5s ease-in-out infinite' }} />
+          <div className="h-3 rounded-md w-4/5" style={{ background: 'linear-gradient(90deg, var(--color-surface-overlay) 25%, var(--color-surface-hover) 50%, var(--color-surface-overlay) 75%)', backgroundSize: '200% 100%', animation: 'shimmer-skeleton 1.5s ease-in-out infinite' }} />
         </div>
       </div>
     ),

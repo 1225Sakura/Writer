@@ -33,6 +33,108 @@
   /* Vermillion red for emphasis/warning */
   --color-vermillion-red: #c45c5c;
 
+  /* === Ink Scale (Backgrounds) — dark theme === */
+  --ink-100: #0d0d12;
+  --ink-95:  #12121c;
+  --ink-90:  #1a1a2e;
+  --ink-85:  #222238;
+  --ink-80:  #252540;
+  --ink-75:  #303048;
+  --ink-70:  #3a3a4a;
+  --ink-65:  #44445a;
+  --ink-60:  #4a4a5a;
+
+  /* === Paper Scale (Foregrounds) — light theme === */
+  --paper-100: #f5f0e6;
+  --paper-95:  #eee9df;
+  --paper-90:  #e8e4dc;
+  --paper-85:  #dcd6c8;
+  --paper-80:  #d8d2c4;
+  --paper-75:  #b8b8b8;
+  --paper-70:  #999999;
+  --paper-65:  #888888;
+  --paper-60:  #666666;
+
+  /* === Accent Scale (Brand / Interactive) === */
+  --accent-100: #5e6ad2;
+  --accent-95:  #6475e0;
+  --accent-90:  #6b77e0;
+  --accent-85:  #5864c4;
+  --accent-80:  #4a5499;
+  --accent-muted: rgba(94, 106, 210, 0.18);
+
+  /* === Vermillion Scale (Warning / Error) === */
+  --vermillion-100: #c45c5c;
+  --vermillion-95:  #cc6262;
+  --vermillion-90:  #d45d5d;
+  --vermillion-muted: rgba(196, 92, 92, 0.18);
+
+  /* === Surface Colors === */
+  --color-surface-base:     var(--ink-100);
+  --color-surface-raised:    var(--ink-95);
+  --color-surface-overlay:  var(--ink-90);
+  --color-surface-input:    var(--ink-80);
+  --color-surface-hover:    var(--ink-75);
+  --color-surface-pressed:  var(--ink-70);
+  --color-surface-elevated: var(--ink-95);
+  --color-surface-floating: var(--ink-90);
+
+  /* === Text Hierarchy === */
+  --text-primary:   var(--paper-100);
+  --text-secondary: var(--paper-85);
+  --text-tertiary:  var(--paper-70);
+  --text-disabled:  var(--paper-65);
+  --text-inverse:   var(--ink-100);
+
+  /* === Border === */
+  --border-default: rgba(255, 255, 255, 0.10);
+  --border-subtle:  rgba(255, 255, 255, 0.06);
+  --border-strong:  rgba(255, 255, 255, 0.18);
+  --border-focus:   var(--accent-100);
+
+  /* === Semantic Mappings === */
+  --color-danger:  var(--vermillion-100);
+  --color-warning: #e8b87d;
+  --color-success: var(--color-location);
+  --color-info:    var(--accent-100);
+
+  /* ============================================================
+     shadcn/ui HSL VARIABLE ALIAS BRIDGE (DEPRECATED)
+     These aliases map the old HSL variable names to ink/paper tokens.
+     Components using hsl(var(--background)) will resolve to hex via this layer.
+     Use ink/paper tokens directly in new code.
+     ============================================================ */
+
+  /* Semantic surfaces */
+  --background:    var(--color-surface-base);
+  --foreground:    var(--text-primary);
+  --card:          var(--color-surface-raised);
+  --card-foreground: var(--text-primary);
+  --popover:       var(--color-surface-raised);
+  --popover-foreground: var(--text-primary);
+
+  /* Brand / Interactive */
+  --primary:       var(--accent-100);
+  --primary-foreground: var(--paper-100);
+  --secondary:     var(--ink-75);
+  --secondary-foreground: var(--text-primary);
+  --muted:         var(--ink-80);
+  --muted-foreground: var(--text-tertiary);
+  --accent:        var(--ink-75);
+  --accent-foreground: var(--text-primary);
+
+  /* Status */
+  --destructive:   var(--vermillion-100);
+  --destructive-foreground: var(--paper-100);
+
+  /* Form */
+  --border:        var(--border-default);
+  --input:         var(--color-surface-input);
+  --ring:          var(--border-focus);
+
+  /* Radius */
+  --radius:        0.5rem;
+
   /* === Entity Type Colors === */
   --color-character: #e8b87d;
   --color-item: #9b7ed9;

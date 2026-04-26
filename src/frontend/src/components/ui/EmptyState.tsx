@@ -12,6 +12,7 @@ import {
   Feather,
   PenLine,
   Compass,
+  Plus,
   type LucideIcon,
 } from 'lucide-react'
 import { EntityIcon } from './Icon'
@@ -29,6 +30,8 @@ export interface EmptyStateProps extends React.HTMLAttributes<HTMLDivElement> {
   typewriterDelay?: number
   /** 是否使用装饰性插图替代简单图标 */
   illustration?: boolean
+  /** 空状态样式变体 - default: 标准样式, notion: Notion风格虚线框 */
+  variant?: 'default' | 'notion'
 }
 
 type EmptyStateIcon =
@@ -43,14 +46,16 @@ type EmptyStateIcon =
   | 'ifline'
   | 'ai'
   | 'custom'
+  | 'plus'
 
-const iconMap: Record<Extract<EmptyStateIcon, 'default' | 'search' | 'inbox' | 'message' | 'ai' | 'custom'>, LucideIcon> = {
+const iconMap: Record<Extract<EmptyStateIcon, 'default' | 'search' | 'inbox' | 'message' | 'ai' | 'custom' | 'plus'>, LucideIcon> = {
   default: FileQuestion,
   search: Search,
   inbox: Inbox,
   message: MessageSquareOff,
   ai: Sparkles,
   custom: FileQuestion,
+  plus: Plus,
 }
 
 const entityIconTypes: Record<string, 'world' | 'character' | 'location' | 'faction' | 'rule' | 'outline' | 'ifline'> = {
@@ -254,12 +259,14 @@ export const EmptyState = React.forwardRef<HTMLDivElement, EmptyStateProps>(
       typewriter = false,
       typewriterDelay = 600,
       illustration = false,
+      variant = 'default',
       ...props
     },
     ref
   ) => {
     const config = sizeConfig[size]
     const isEntityIcon = icon in entityIconTypes
+    const isNotionStyle = variant === 'notion'
 
     const Wrapper = animated ? motion.div : 'div'
     const wrapperProps = animated
@@ -270,6 +277,113 @@ export const EmptyState = React.forwardRef<HTMLDivElement, EmptyStateProps>(
         }
       : {}
 
+    // Notion-style empty state: dashed border with vermillion plus icon
+    if (isNotionStyle) {
+      const notionIconSize = size === 'sm' ? 32 : size === 'md' ? 48 : 64
+      return (
+        <Wrapper
+          ref={ref as any}
+          className={twMerge(
+            clsx(
+              'flex flex-col items-center justify-center text-center',
+              config.spacing,
+              'px-4'
+            ),
+            className
+          )}
+          {...(wrapperProps as any)}
+          {...props}
+        >
+          {/* Notion-style dashed border container */}
+          <motion.div
+            className="relative flex items-center justify-center rounded-xl mb-4"
+            style={{
+              width: notionIconSize * 2,
+              height: notionIconSize * 2,
+              border: '2px dashed #d4c5a9',
+              backgroundColor: 'transparent',
+            }}
+            {...(animated
+              ? {
+                  initial: { opacity: 0, scale: 0.9 },
+                  animate: { opacity: 1, scale: 1 },
+                  transition: { duration: 0.5, ease: [0.16, 1, 0.3, 1] },
+                }
+              : {})}
+          >
+            <Plus
+              size={notionIconSize}
+              style={{ color: 'var(--vermillion-100)' }}
+              strokeWidth={1.5}
+            />
+          </motion.div>
+
+          {title && (
+            <motion.h3
+              className={clsx(
+                config.title,
+                'font-semibold text-[var(--text-primary)] mb-1.5'
+              )}
+              {...(animated
+                ? {
+                    initial: { opacity: 0, y: 8 },
+                    animate: { opacity: 1, y: 0 },
+                    transition: { duration: 0.4, delay: 0.2 },
+                  }
+                : {})}
+            >
+              {title}
+            </motion.h3>
+          )}
+
+          {description && (
+            <motion.div
+              className={clsx(
+                config.desc,
+                'text-[var(--text-tertiary)] max-w-[280px] leading-relaxed'
+              )}
+              {...(animated
+                ? {
+                    initial: { opacity: 0, y: 8 },
+                    animate: { opacity: 1, y: 0 },
+                    transition: { duration: 0.4, delay: 0.3 },
+                  }
+                : {})}
+            >
+              {typewriter ? (
+                <TypewriterText
+                  text={description}
+                  speed={35}
+                  delay={typewriterDelay}
+                  showCursor={false}
+                />
+              ) : (
+                description
+              )}
+            </motion.div>
+          )}
+
+          {action && (
+            <motion.div
+              className="mt-4"
+              {...(animated
+                ? {
+                    initial: { opacity: 0, y: 8 },
+                    animate: { opacity: 1, y: 0 },
+                    transition: { duration: 0.4, delay: 0.4 },
+                  }
+                : {})}
+            >
+              <div className="empty-state-action-glow">
+                {action}
+              </div>
+            </motion.div>
+          )}
+        </Wrapper>
+      )
+    }
+
+    // Standard empty state
     return (
       <Wrapper
         ref={ref as any}

@@ -35,7 +35,7 @@ export const ProgressRing = React.forwardRef<HTMLDivElement, ProgressRingProps>(
       max = 100,
       size: sizeProp,
       strokeWidth: strokeWidthProp,
-      color = '#5e6ad2',
+      color = 'var(--accent-100)',
       secondaryColor,
       trackColor = 'rgba(255,255,255,0.06)',
       showPercentage = true,
@@ -152,15 +152,15 @@ export const ProgressRing = React.forwardRef<HTMLDivElement, ProgressRingProps>(
             <motion.span
               className={clsx(
                 preset.fontSize,
-                'font-bold text-[#f7f8f8] tabular-nums'
+                'font-bold text-[var(--paper-100)] tabular-nums'
               )}
               style={{
-                textShadow: '0 0 14px rgba(94, 106, 210, 0.5)',
+                textShadow: '0 0 14px color-mix(in srgb, var(--accent-100) 50%, transparent)',
               }}
             >
               {showValue ? value : `${Math.round(percentage)}`}
               {!showValue && (
-                <span className="text-[10px] font-medium text-[#8a8f98]">%</span>
+                <span className="text-[10px] font-medium text-[var(--text-tertiary)]">%</span>
               )}
             </motion.span>
           )}
@@ -168,7 +168,7 @@ export const ProgressRing = React.forwardRef<HTMLDivElement, ProgressRingProps>(
           {label && (
             <span
               className={clsx(
-                'text-[10px] text-[#8a8f98] mt-0.5 font-medium',
+                'text-[10px] text-[var(--text-tertiary)] mt-0.5 font-medium',
                 size < 56 && 'hidden'
               )}
             >
@@ -179,7 +179,7 @@ export const ProgressRing = React.forwardRef<HTMLDivElement, ProgressRingProps>(
           {sublabel && (
             <span
               className={clsx(
-                'text-[9px] text-[#8a8f98]/70',
+                'text-[9px] text-[var(--text-tertiary)]/70',
                 size < 72 && 'hidden'
               )}
             >

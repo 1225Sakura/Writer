@@ -69,11 +69,11 @@ const speedConfig = {
  */
 function getThemeColors(): string[] {
   const root = getComputedStyle(document.documentElement)
-  const accent = root.getPropertyValue('--accent-100').trim() || '#5e6ad2'
-  const character = root.getPropertyValue('--color-character').trim() || '#e8b87d'
-  const location = root.getPropertyValue('--color-location').trim() || '#5eb5a6'
-  const item = root.getPropertyValue('--color-item').trim() || '#9b7ed9'
-  const vermillion = root.getPropertyValue('--vermillion-100').trim() || '#c45c5c'
+  const accent = root.getPropertyValue('--accent-100').trim() || 'var(--accent-100)'
+  const character = root.getPropertyValue('--color-character').trim() || 'var(--color-character)'
+  const location = root.getPropertyValue('--color-location').trim() || 'var(--color-location)'
+  const item = root.getPropertyValue('--color-item').trim() || 'var(--color-item)'
+  const vermillion = root.getPropertyValue('--vermillion-100').trim() || 'var(--vermillion-100)'
 
   return [
     accent,
@@ -99,18 +99,42 @@ function hexToRgba(hex: string, alpha: number): string {
 }
 
 /**
- * 检测低性能设备
+ * 检测低性能设备（统一设计系统）
+ * 根据 DESIGN_SYSTEM_TOKENS.md 第4.6节：无障碍动画偏好
  */
 function isLowPerformanceDevice(): boolean {
+  // 移动设备
   const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
     navigator.userAgent
   )
+  // 小屏幕
   const isSmallScreen = window.innerWidth < 768
+  // 用户偏好减少动画
   const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+  // 低内存设备 (Chrome 64+)
   // @ts-ignore
   const isLowMemory = navigator.deviceMemory !== undefined && navigator.deviceMemory < 4
+  // 低GPU性能 (通过 `WEBGL_debug_renderer_info` 检测)
+  let isLowGPU = false
+  try {
+    const canvas = document.createElement('canvas')
+    const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl')
+    if (gl && gl instanceof WebGLRenderingContext) {
+      const debugInfo = gl.getExtension('WEBGL_debug_renderer_info')
+      if (debugInfo) {
+        const renderer = gl.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL) || ''
+        // 检测已知的高性能 GPU 标识
+        const highPerformanceGPUs = ['NVIDIA', 'AMD', 'Apple M', 'Radeon', 'GeForce', 'RTX', 'GTX']
+        const isHighPerformance = highPerformanceGPUs.some(gpu => renderer.includes(gpu))
+        isLowGPU = !isHighPerformance && renderer.length > 0
+      }
+    }
+  } catch {
+    // WebGL 检测失败，保守假设为低性能
+    isLowGPU = true
+  }
 
-  return isMobile || isSmallScreen || prefersReducedMotion || isLowMemory
+  return isMobile || isSmallScreen || prefersReducedMotion || isLowMemory || isLowGPU
 }
 
 /**

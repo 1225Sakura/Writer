@@ -119,8 +119,8 @@
   /* --- Text Hierarchy (Dark Default - Improved readability) --- */
   --text-primary:   var(--paper-100);
   --text-secondary: var(--paper-85);
-  --text-tertiary:  #8a8f98;
-  --text-disabled:  #5c5f63;
+  --text-tertiary:  #999999;
+  --text-disabled:  #888888;
   --text-inverse:   var(--ink-100);
 
   /* --- Borders (Enhanced visibility) --- */

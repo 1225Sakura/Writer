@@ -274,14 +274,14 @@ export function BentoStat({
   color?: BentoItemColor
 }) {
   const colorHexMap: Record<string, string> = {
-    accent: '#5e6ad2',
-    character: '#e8b87d',
-    item: '#9b7ed9',
-    location: '#5eb5a6',
-    faction: '#d45d5d',
-    outline: '#5b8ee8',
-    ifline: '#7eb84a',
-    vermillion: '#c45c5c',
+    accent: 'var(--accent-100)',
+    character: 'var(--color-character)',
+    item: 'var(--color-item)',
+    location: 'var(--color-location)',
+    faction: 'var(--color-faction)',
+    outline: 'var(--color-outline)',
+    ifline: 'var(--color-ifline)',
+    vermillion: 'var(--vermillion-100)',
     default: 'var(--text-primary)',
   }
 

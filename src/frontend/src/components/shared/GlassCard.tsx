@@ -1,13 +1,23 @@
 /**
- * GlassCard - 毛玻璃效果卡片
+ * GlassCard - 统一装饰卡片组件
  *
- * 支持多种玻璃效果强度、渐变边框、悬停动画
- * 自动适配当前主题（深色/浅色）
+ * 支持两种主要效果模式：
+ * - glass: 毛玻璃效果 (backdrop-filter blur)
+ * - glow: 发光效果 (box-shadow glow)
  *
- * 设计规范（DESIGN_VISUAL.md）：
- * - 深色模式：background rgba(26, 26, 46, 0.8), blur(12px)
- * - 浅色模式：background rgba(255, 255, 255, 0.85)
- * - 边框：rgba(255, 255, 255, 0.1) 深色 / rgba(255, 255, 255, 0.5) 浅色
+ * 设计规范（DESIGN_SYSTEM_TOKENS.md 第5节）：
+ * - 统一 glass blur: 16px
+ * - 统一 border: 1px solid rgba(255,255,255,0.08)
+ * - 变体：default, elevated, floating, outlined, filled, writing
+ *
+ * 特性：
+ * - 多种玻璃强度可选（light, subtle, medium, strong, heavy, ultra, writing）
+ * - 多种边框样式（none, subtle, soft, glow, gradient, accent, entity）
+ * - 多种变体（default, elevated, floating, outlined, filled, writing）
+ * - 悬停/点击微动效
+ * - 自动适配主题（深色/浅色）
+ * - 支持 Framer Motion layout
+ * - 可选光泽动画
  */
 
 import { motion } from 'framer-motion'
@@ -18,6 +28,9 @@ import { useTheme } from '@/hooks/useTheme'
 export type GlassIntensity = 'light' | 'medium' | 'strong' | 'heavy' | 'subtle' | 'ultra' | 'writing'
 export type GlassBorder = 'none' | 'subtle' | 'glow' | 'gradient' | 'accent' | 'soft' | 'entity'
 export type GlassVariant = 'default' | 'elevated' | 'floating' | 'outlined' | 'filled' | 'writing'
+export type GlassEffect = 'glass' | 'glow'  // 效果模式：毛玻璃 或 发光
+export type GlowIntensity = 'subtle' | 'soft' | 'medium' | 'strong'
+export type GlowColor = 'accent' | 'character' | 'item' | 'location' | 'faction' | 'outline' | 'ifline' | 'custom'
 
 interface GlassCardProps {
   children: ReactNode
@@ -28,6 +41,12 @@ interface GlassCardProps {
   border?: GlassBorder
   /** 卡片变体 */
   variant?: GlassVariant
+  /** 效果模式：glass(毛玻璃) 或 glow(发光) - 统一设计系统 */
+  effect?: GlassEffect
+  /** 发光强度（仅 effect="glow" 时有效） */
+  glowIntensity?: GlowIntensity
+  /** 发光颜色（仅 effect="glow" 时有效） */
+  glowColor?: GlowColor
   /** 是否启用悬停效果 */
   hover?: boolean
   /** 是否启用点击效果 */
@@ -53,6 +72,8 @@ interface GlassCardProps {
   opacity?: number
   /** 实体颜色编码（用于 entity 边框） */
   entityColor?: 'character' | 'item' | 'location' | 'faction' | 'outline' | 'ifline' | 'accent'
+  /** 是否启用脉冲动画 - 仅 glow 模式 */
+  animated?: boolean
 }
 
 const intensityStyles: Record<GlassIntensity, CSSProperties> = {
@@ -307,6 +328,37 @@ const glassBadgeSizeMap = {
   lg: { padding: '6px 14px', fontSize: '13px' },
 }
 
+// ============ Glow Effect Constants (统一设计系统) ============
+const glowColorMap: Record<GlowColor, string> = {
+  accent: 'rgba(94, 106, 210, 0.3)',
+  character: 'rgba(232, 184, 125, 0.3)',
+  item: 'rgba(155, 126, 217, 0.3)',
+  location: 'rgba(94, 181, 166, 0.3)',
+  faction: 'rgba(212, 93, 93, 0.3)',
+  outline: 'rgba(91, 142, 232, 0.3)',
+  ifline: 'rgba(126, 183, 74, 0.3)',
+  custom: 'rgba(94, 106, 210, 0.3)',
+}
+
+const glowIntensityStyles: Record<GlowIntensity, { boxShadow: string; borderColor: string }> = {
+  subtle: {
+    boxShadow: '0 0 8px var(--glow-color, rgba(94, 106, 210, 0.18)), 0 2px 8px rgba(0, 0, 0, 0.08)',
+    borderColor: 'rgba(94, 106, 210, 0.15)',
+  },
+  soft: {
+    boxShadow: '0 0 14px var(--glow-color, rgba(94, 106, 210, 0.22)), 0 4px 12px rgba(0, 0, 0, 0.1)',
+    borderColor: 'rgba(94, 106, 210, 0.2)',
+  },
+  medium: {
+    boxShadow: '0 0 24px var(--glow-color, rgba(94, 106, 210, 0.3)), 0 6px 20px rgba(0, 0, 0, 0.12)',
+    borderColor: 'rgba(94, 106, 210, 0.25)',
+  },
+  strong: {
+    boxShadow: '0 0 36px var(--glow-color, rgba(94, 106, 210, 0.42)), 0 8px 28px rgba(0, 0, 0, 0.15)',
+    borderColor: 'rgba(94, 106, 210, 0.32)',
+  },
+}
+
 /* GlassButton static maps */
 const glassButtonVariantStyles: Record<string, CSSProperties> = {
   ghost: {
@@ -338,7 +390,7 @@ const glassButtonSizeMap = {
 }
 
 /**
- * GlassCard - 毛玻璃效果卡片
+ * GlassCard - 统一装饰卡片组件
  *
  * 特性：
  * - 多种玻璃强度可选（light, subtle, medium, strong, heavy, ultra, writing）
@@ -348,6 +400,7 @@ const glassButtonSizeMap = {
  * - 自动适配主题（深色/浅色）
  * - 支持 Framer Motion layout
  * - 可选光泽动画
+ * - 统一效果模式：glass(毛玻璃) / glow(发光)
  */
 export function GlassCard({
   children,
@@ -355,6 +408,9 @@ export function GlassCard({
   intensity = 'medium',
   border = 'subtle',
   variant = 'default',
+  effect = 'glass',
+  glowIntensity = 'subtle',
+  glowColor = 'accent',
   hover = true,
   press = false,
   rounded = 'lg',
@@ -368,6 +424,7 @@ export function GlassCard({
   shimmer = false,
   opacity,
   entityColor = 'accent',
+  animated = false,
 }: GlassCardProps) {
   const { theme } = useTheme()
   const isLight = theme === 'light'
@@ -375,6 +432,10 @@ export function GlassCard({
   const currentIntensity = isLight ? lightIntensityStyles : intensityStyles
   const currentBorder = isLight ? lightBorderStyles : borderStyles
   const currentVariant = isLight ? lightVariantStyles : variantStyles
+
+  // Glow effect styles
+  const glowColorValue = glowColorMap[glowColor]
+  const glowStyle = glowIntensityStyles[glowIntensity]
 
   const baseStyle: CSSProperties = {
     ...currentIntensity[intensity],
@@ -389,6 +450,15 @@ export function GlassCard({
       boxShadow: isLight
         ? '0 4px 24px rgba(0, 0, 0, 0.08), 0 1px 2px rgba(0, 0, 0, 0.06)'
         : '0 4px 24px rgba(0, 0, 0, 0.15), 0 1px 2px rgba(0, 0, 0, 0.1)',
+    }),
+    // Glow effect mode
+    ...(effect === 'glow' && {
+      '--glow-color': glowColorValue,
+      background: 'var(--elevation-2)',
+      border: `1px solid ${glowStyle.borderColor}`,
+      boxShadow: glowStyle.boxShadow,
+      position: 'relative' as const,
+      overflow: 'hidden',
     }),
   }
 
@@ -474,6 +544,36 @@ export function GlassCard({
           }}
           animate={{ backgroundPosition: ['200% 0', '-200% 0'] }}
           transition={{ duration: 3, repeat: Infinity, ease: 'linear' }}
+        />
+      )}
+
+      {/* Glow effect inner glow overlay - 仅在非 subtle 时显示 */}
+      {effect === 'glow' && glowIntensity !== 'subtle' && (
+        <div
+          className="absolute inset-0 pointer-events-none"
+          style={{
+            background: `radial-gradient(circle at center, ${glowColorValue} 0%, transparent 70%)`,
+            opacity: 0.06,
+          }}
+        />
+      )}
+
+      {/* Glow effect animated pulse - 仅在显式启用时显示 */}
+      {effect === 'glow' && animated && (
+        <motion.div
+          className="absolute inset-0 pointer-events-none"
+          style={{
+            background: `radial-gradient(circle at center, ${glowColorValue} 0%, transparent 70%)`,
+          }}
+          animate={{
+            opacity: [0.03, 0.08, 0.03],
+            scale: [1, 1.05, 1],
+          }}
+          transition={{
+            duration: 3,
+            repeat: Infinity,
+            ease: 'easeInOut',
+          }}
         />
       )}
 

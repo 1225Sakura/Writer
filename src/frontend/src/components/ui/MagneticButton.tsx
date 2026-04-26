@@ -68,7 +68,7 @@ export const MagneticButton = React.forwardRef<HTMLButtonElement, MagneticButton
           className={twMerge(
             clsx(
               'inline-flex items-center justify-center font-medium transition-colors duration-150 cursor-pointer',
-              'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5e6ad2] focus-visible:ring-offset-2',
+              'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-100)] focus-visible:ring-offset-2',
               'disabled:pointer-events-none disabled:opacity-50'
             ),
             className

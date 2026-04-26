@@ -29,7 +29,7 @@ const Progress = React.forwardRef<
     springValue.set(clampedValue)
   }, [clampedValue, springValue])
 
-  const defaultGradientColors: [string, string] = ['#5e6ad2', '#7c7fff']
+  const defaultGradientColors: [string, string] = ['var(--accent-100)', 'var(--accent-95)']
   const [from, to] = gradientColors || defaultGradientColors
 
   return (

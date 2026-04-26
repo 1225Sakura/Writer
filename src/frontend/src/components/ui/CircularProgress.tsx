@@ -20,7 +20,7 @@ export function CircularProgress({
   value,
   size = 64,
   strokeWidth = 4,
-  color = '#5e6ad2',
+  color = 'var(--accent-100)',
   secondaryColor,
   trackColor = 'rgba(255,255,255,0.06)',
   showPercentage = true,
@@ -113,16 +113,16 @@ export function CircularProgress({
       {showPercentage && (
         <div className="absolute inset-0 flex flex-col items-center justify-center">
           <motion.span
-            className="text-sm font-bold text-[#f7f8f8] tabular-nums"
+            className="text-sm font-bold text-[var(--paper-100)] tabular-nums"
             style={{
-              textShadow: '0 0 12px rgba(94, 106, 210, 0.5)',
+              textShadow: '0 0 12px color-mix(in srgb, var(--accent-100) 50%, transparent)',
             }}
           >
             {Math.round(clampedValue)}
-            <span className="text-[10px] font-medium text-[#8a8f98] ml-[1px]">%</span>
+            <span className="text-[10px] font-medium text-[var(--text-tertiary)] ml-[1px]">%</span>
           </motion.span>
           {label && (
-            <span className="text-[10px] text-[#8a8f98] mt-0.5 font-medium">{label}</span>
+            <span className="text-[10px] text-[var(--text-tertiary)] mt-0.5 font-medium">{label}</span>
           )}
         </div>
       )}

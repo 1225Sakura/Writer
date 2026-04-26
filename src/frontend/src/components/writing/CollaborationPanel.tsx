@@ -39,8 +39,8 @@ function PanelHeader() {
           <div
             className="w-9 h-9 rounded-xl flex items-center justify-center"
             style={{
-              background: 'linear-gradient(135deg, rgba(126, 184, 74, 0.18) 0%, rgba(126, 184, 74, 0.08) 100%)',
-              border: '1px solid rgba(126, 184, 74, 0.25)',
+              background: 'linear-gradient(135deg, color-mix(in srgb, var(--color-ifline) 18%, transparent) 0%, color-mix(in srgb, var(--color-ifline) 8%, transparent) 100%)',
+              border: '1px solid color-mix(in srgb, var(--color-ifline) 25%, transparent)',
             }}
           >
             <Users className="w-5 h-5 text-[var(--color-ifline)]" />
@@ -89,10 +89,10 @@ export function CollaborationPanel() {
         className="absolute inset-0 pointer-events-none"
         style={{
           background:
-            'radial-gradient(ellipse at 100% 0%, rgba(94, 106, 210, 0.04) 0%, transparent 40%), radial-gradient(ellipse at 0% 100%, rgba(126, 184, 74, 0.03) 0%, transparent 40%)',
+            'radial-gradient(ellipse at 100% 0%, color-mix(in srgb, var(--accent-100) 4%, transparent) 0%, transparent 40%), radial-gradient(ellipse at 0% 100%, color-mix(in srgb, var(--color-ifline) 3%, transparent) 0%, transparent 40%)',
         }}
       />
-      <div className="relative z-10 space-y-3">
+      <div className="relative z-10 space-y-3 px-3 py-2 md:px-4 md:py-3">
         <PanelHeader />
         <CollaborationStatus />
         <RatioSliderSection />
@@ -111,7 +111,7 @@ function PanelCard({ children, className = '', glowColor }: { children: React.Re
   return (
     <div
       className={`rounded-xl overflow-hidden bg-[var(--color-surface-base)] border border-[var(--border-default)]
-                  transition-all duration-200 hover:border-[var(--border-strong)] hover:shadow-[0_2px_12px_rgba(0,0,0,0.12)]
+                  transition-all duration-200 hover:border-[var(--border-strong)] hover:shadow-[0_2px_12px_color-mix(in_srgb,_var(--ink-100),_12%,_transparent)]
                   ${className}`}
       style={{
         boxShadow: glowColor ? `0 0 0 1px ${glowColor}10, inset 0 1px 0 ${glowColor}08` : undefined,
@@ -129,9 +129,9 @@ function CollaborationStatus() {
   const prefersReducedMotion = usePrefersReducedMotion()
 
   const getModeLabel = (ratio: number) => {
-    if (ratio < 30) return { label: 'AI主导', color: '#5e6ad2', icon: <Bot className="w-3.5 h-3.5" /> }
-    if (ratio < 70) return { label: '协作模式', color: '#7eb84a', icon: <Sparkles className="w-3.5 h-3.5" /> }
-    return { label: '用户主导', color: '#e8b87d', icon: <User className="w-3.5 h-3.5" /> }
+    if (ratio < 30) return { label: 'AI主导', color: 'var(--accent-100)', icon: <Bot className="w-3.5 h-3.5" /> }
+    if (ratio < 70) return { label: '协作模式', color: 'var(--color-ifline)', icon: <Sparkles className="w-3.5 h-3.5" /> }
+    return { label: '用户主导', color: 'var(--color-character)', icon: <User className="w-3.5 h-3.5" /> }
   }
 
   const mode = getModeLabel(humanAIRatio)
@@ -159,8 +159,8 @@ function CollaborationStatus() {
             {isAIGenerating ? (
               <>
                 <span className="relative flex h-2 w-2">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#5e6ad2] opacity-75" />
-                  <span className="relative inline-flex rounded-full h-2 w-2 bg-[#5e6ad2]" />
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[var(--accent-100)] opacity-75" />
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-[var(--accent-100)]" />
                 </span>
                 AI生成中...
               </>
@@ -193,7 +193,7 @@ function CollaborationStatus() {
               exit={{ opacity: 0, height: 0 }}
             >
               <ActivityItem
-                icon={<Sparkles className="w-3 h-3 text-[#5e6ad2] animate-pulse motion-reduce:animate-none" />}
+                icon={<Sparkles className="w-3 h-3 text-[var(--accent-100)] animate-pulse motion-reduce:animate-none" />}
                 text="AI正在处理选中内容..."
                 time="进行中"
                 highlight
@@ -240,10 +240,10 @@ function RatioSliderSection() {
 
   const modeInfo =
     humanAIRatio < 30
-      ? { label: 'AI主导', icon: <Bot className="w-3 h-3" />, color: '#5e6ad2', desc: 'AI自动推进剧情，用户偶尔介入调整' }
+      ? { label: 'AI主导', icon: <Bot className="w-3 h-3" />, color: 'var(--accent-100)', desc: 'AI自动推进剧情，用户偶尔介入调整' }
       : humanAIRatio < 70
-        ? { label: '协作模式', icon: <Sparkles className="w-3 h-3" />, color: '#7eb84a', desc: '人机共同创作，AI辅助用户写作' }
-        : { label: '用户主导', icon: <User className="w-3 h-3" />, color: '#e8b87d', desc: '用户主导创作，AI仅按指令辅助' }
+        ? { label: '协作模式', icon: <Sparkles className="w-3 h-3" />, color: 'var(--color-ifline)', desc: '人机共同创作，AI辅助用户写作' }
+        : { label: '用户主导', icon: <User className="w-3 h-3" />, color: 'var(--color-character)', desc: '用户主导创作，AI仅按指令辅助' }
 
   return (
     <CollapsibleSection
@@ -350,7 +350,7 @@ function IFLinesSection() {
       isExpanded={isExpanded}
       onToggle={() => setIsExpanded(!isExpanded)}
       badge={ifLines.length}
-      accentColor="#7eb84a"
+      accentColor="var(--color-ifline)"
     >
       <div className="space-y-2">
         {/* Collaborator avatar stack */}
@@ -374,8 +374,8 @@ function IFLinesSection() {
                 borderColor: 'var(--border-default)',
               }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.borderColor = 'rgba(126, 184, 74, 0.35)'
-                e.currentTarget.style.boxShadow = '0 0 16px rgba(126, 184, 74, 0.08), inset 0 1px 0 rgba(126, 184, 74, 0.06)'
+                e.currentTarget.style.borderColor = 'color-mix(in srgb, var(--color-ifline) 35%, transparent)'
+                e.currentTarget.style.boxShadow = '0 0 16px color-mix(in srgb, var(--color-ifline) 8%, transparent), inset 0 1px 0 color-mix(in srgb, var(--color-ifline) 6%, transparent)'
               }}
               onMouseLeave={(e) => {
                 e.currentTarget.style.borderColor = 'var(--border-default)'
@@ -390,7 +390,7 @@ function IFLinesSection() {
                     style={{
                       background: 'var(--color-ifline)',
                       animationDuration: '2s',
-                      boxShadow: '0 0 8px var(--color-ifline), 0 0 16px rgba(126, 184, 74, 0.3)',
+                      boxShadow: '0 0 8px var(--color-ifline), 0 0 16px color-mix(in srgb, var(--color-ifline) 30%, transparent)',
                     }}
                   />
                   {/* Inner glow dot */}
@@ -404,8 +404,8 @@ function IFLinesSection() {
                 <span
                   className="text-[10px] px-1.5 py-0.5 rounded-full font-medium"
                   style={{
-                    backgroundColor: line.sync_mode === 'auto' ? '#7eb84a20' : '#e8b87d20',
-                    color: line.sync_mode === 'auto' ? '#7eb84a' : '#e8b87d',
+                    backgroundColor: line.sync_mode === 'auto' ? 'color-mix(in srgb, var(--color-ifline) 20%, transparent)' : 'color-mix(in srgb, var(--color-character) 20%, transparent)',
+                    color: line.sync_mode === 'auto' ? 'var(--color-ifline)' : 'var(--color-character)',
                   }}
                 >
                   {line.sync_mode === 'auto' ? '自动' : '手动'}
@@ -426,8 +426,8 @@ function IFLinesSection() {
                   <motion.div
                     className="h-full rounded-full"
                     style={{
-                      background: 'linear-gradient(90deg, #5eb5a6 0%, #7eb84a 50%, #9ed95a 100%)',
-                      boxShadow: '0 0 6px rgba(126, 184, 74, 0.4)',
+                      background: 'linear-gradient(90deg, var(--color-location) 0%, var(--color-ifline) 50%, #9ed95a 100%)',
+                      boxShadow: '0 0 6px color-mix(in srgb, var(--color-ifline) 40%, transparent)',
                     }}
                     initial={{ width: 0 }}
                     animate={{ width: `${line.progress || 0}%` }}
@@ -459,11 +459,11 @@ function CharacterStorylines() {
   const getStatusConfig = (status: string) => {
     switch (status) {
       case 'active':
-        return { color: '#7eb84a', label: '活跃', icon: <Play className="w-3 h-3" /> }
+        return { color: 'var(--color-ifline)', label: '活跃', icon: <Play className="w-3 h-3" /> }
       case 'idle':
-        return { color: '#e8b87d', label: '待机', icon: <Pause className="w-3 h-3" /> }
+        return { color: 'var(--color-character)', label: '待机', icon: <Pause className="w-3 h-3" /> }
       default:
-        return { color: '#8a8f98', label: '待出场', icon: <Clock className="w-3 h-3" /> }
+        return { color: 'var(--text-tertiary)', label: '待出场', icon: <Clock className="w-3 h-3" /> }
     }
   }
 
@@ -488,7 +488,7 @@ function CharacterStorylines() {
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: index * 0.05 }}
                 className="group p-2.5 rounded-lg bg-[var(--color-surface-base)] border border-[var(--border-default)]
-                           hover:border-[var(--color-character)]/30 hover:shadow-[0_0_12px_rgba(232,184,125,0.08)]
+                           hover:border-[var(--color-character)]/30 hover:shadow-[0_0_12px_color-mix(in_srgb,_var(--color-character),_8%,_transparent)]
                            transition-all duration-200 cursor-default"
               >
                 <div className="flex items-center gap-2 mb-1.5">
@@ -514,7 +514,7 @@ function CharacterStorylines() {
                   <div
                     className="flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] font-medium"
                     style={{
-                      backgroundColor: `${statusConfig.color}18`,
+                      backgroundColor: 'color-mix(in srgb, ' + statusConfig.color + ' 18%, transparent)',
                       color: statusConfig.color,
                     }}
                   >
@@ -532,8 +532,8 @@ function CharacterStorylines() {
                     <motion.div
                       className="h-full rounded-full"
                       style={{
-                        background: `linear-gradient(90deg, ${statusConfig.color}88 0%, ${statusConfig.color} 100%)`,
-                        boxShadow: `0 0 6px ${statusConfig.color}40`,
+                        background: 'linear-gradient(90deg, ' + statusConfig.color + '88 0%, ' + statusConfig.color + ' 100%)',
+                        boxShadow: '0 0 6px color-mix(in srgb, ' + statusConfig.color + ' 40%, transparent)',
                       }}
                       initial={{ width: 0 }}
                       animate={{ width: `${char.progress}%` }}
@@ -678,7 +678,7 @@ function PlotTracker() {
               initial={{ opacity: 0, y: 4 }}
               animate={{ opacity: 1, y: 0 }}
               className="group flex items-start gap-2 p-2.5 rounded-lg bg-[var(--color-surface-base)] border border-[var(--border-default)]
-                         hover:border-[var(--color-ifline)]/25 hover:shadow-[0_0_10px_rgba(126,184,74,0.06)]
+                         hover:border-[var(--color-ifline)]/25 hover:shadow-[0_0_10px_color-mix(in_srgb,_var(--color-ifline),_6%,_transparent)]
                          transition-all duration-200 cursor-default"
             >
               <span className="text-[var(--color-ifline)] font-bold text-sm mt-0.5 opacity-80 group-hover:opacity-100 transition-opacity"
@@ -774,8 +774,8 @@ function ChapterProgress() {
             <motion.div
               className="h-full rounded-full relative"
               style={{
-                background: 'linear-gradient(90deg, #5e6ad2 0%, #7eb84a 60%, #9ed95a 100%)',
-                boxShadow: '0 0 8px rgba(94, 106, 210, 0.3)',
+                background: 'linear-gradient(90deg, var(--accent-100) 0%, var(--color-ifline) 60%, #9ed95a 100%)',
+                boxShadow: '0 0 8px color-mix(in srgb, var(--accent-100) 30%, transparent)',
               }}
               initial={{ width: 0 }}
               animate={{ width: `${progress}%` }}
@@ -860,7 +860,7 @@ function CollapsibleSection({
             style={{
               background: 'color-mix(in srgb, var(--color-vermillion) 20%, transparent)',
               color: 'var(--color-vermillion)',
-              boxShadow: '0 0 6px rgba(196, 92, 92, 0.2)',
+              boxShadow: '0 0 6px color-mix(in srgb, var(--color-vermillion) 20%, transparent)',
             }}
           >
             {badge}

@@ -33,14 +33,14 @@ export interface DecorativeDividerProps extends React.HTMLAttributes<HTMLDivElem
 }
 
 const colorMap: Record<string, string> = {
-  accent: '#5e6ad2',
-  character: '#e8b87d',
-  item: '#9b7ed9',
-  location: '#5eb5a6',
-  faction: '#d45d5d',
-  outline: '#5b8ee8',
-  ifline: '#7eb84a',
-  custom: '#5e6ad2',
+  accent: 'var(--accent-100)',
+  character: 'var(--color-character)',
+  item: 'var(--color-item)',
+  location: 'var(--color-location)',
+  faction: 'var(--color-faction)',
+  outline: 'var(--color-outline)',
+  ifline: 'var(--color-ifline)',
+  custom: 'var(--accent-100)',
 }
 
 const spacingMap = {

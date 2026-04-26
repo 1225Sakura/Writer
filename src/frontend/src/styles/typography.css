@@ -84,7 +84,7 @@
   /* Font sizes */
   --text-xs: 12px;   /* 辅助文字 */
   --text-sm: 13px;   /* 标签 */
-  --text-base: 14px; /* 界面默认 */
+  --text-base: 16px; /* 界面默认 */
   --text-md: 15px;   /* 稍大 */
   --text-lg: 16px;   /* 稍大 */
   --text-xl: 18px;   /* 小标题 */
@@ -103,7 +103,7 @@
   /* Font weights */
   --weight-regular: 400;
   --weight-medium: 500;
-  --weight-semibold: 510;
+  --weight-semibold: 600;
   --weight-bold: 600;
 
   /* Letter spacing */

@@ -75,15 +75,15 @@ export function Toast({ message, type = 'info', duration = 3000, onClose }: Toas
   // Enhanced entrance/exit animations with slide + fade + scale
   const enterAnimation = reducedMotion
     ? { opacity: 0 }
-    : { x: 100, opacity: 0, scale: 0.9 }
+    : { y: 24, opacity: 0 }
 
   const activeAnimation = reducedMotion
     ? { opacity: 1 }
-    : { x: 0, opacity: 1, scale: 1 }
+    : { y: 0, opacity: 1 }
 
   const exitAnimation = reducedMotion
     ? { opacity: 0 }
-    : { x: 60, opacity: 0, scale: 0.85 }
+    : { y: 16, opacity: 0 }
 
   return (
     <motion.div
@@ -99,6 +99,7 @@ export function Toast({ message, type = 'info', duration = 3000, onClose }: Toas
               stiffness: 400,
               damping: 28,
               mass: 0.8,
+              duration: 0.25,
             }
       }
       className="relative flex items-start gap-3 px-4 py-3.5 rounded-xl border backdrop-blur-md overflow-hidden min-w-[320px] max-w-[440px]"

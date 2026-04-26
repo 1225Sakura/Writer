@@ -54,7 +54,7 @@ export const Divider = React.forwardRef<HTMLDivElement, DividerProps>(
           />
           <motion.span
             className={clsx(
-              'text-xs font-medium text-[#8a8f98] uppercase tracking-wider whitespace-nowrap',
+              'text-xs font-medium text-[var(--text-tertiary)] uppercase tracking-wider whitespace-nowrap',
               !isHorizontal && 'writing-mode-vertical'
             )}
             initial={animated ? { opacity: 0, scale: 0.9 } : false}
@@ -116,8 +116,8 @@ function DividerLine({ variant, animated, orientation, direction, full }: Divide
         : 'bg-gradient-to-b from-transparent via-[rgba(255,255,255,0.15)] to-transparent'),
     variant === 'glow' &&
       (isHorizontal
-        ? 'bg-gradient-to-r from-transparent via-[#5e6ad2]/40 to-transparent'
-        : 'bg-gradient-to-b from-transparent via-[#5e6ad2]/40 to-transparent')
+        ? 'bg-gradient-to-r from-transparent via-[var(--accent-100)]/40 to-transparent'
+        : 'bg-gradient-to-b from-transparent via-[var(--accent-100)]/40 to-transparent')
   )
 
   if (!animated) {

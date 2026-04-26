@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useMemo } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useChatStore, ChatMessage, ExtractedEntity } from '@/store'
 import { Bot, User, Pencil, Trash2, Check, X, Sparkles, MessageSquareText, Wand2 } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -78,14 +78,18 @@ function HighlightedContent({ content, entities }: { content: string; entities?:
   }
 
   const sortedEntities = [...entities].sort((a, b) => b.name.length - a.name.length)
-  // Stable dependency key from entity names (avoids reference comparison issues with Zustand store)
+  // Use refs to cache the regex pattern and its dependency key - avoids recomputation on every render
+  const regexRef = useRef<RegExp | null>(null)
+  const keyRef = useRef<string>('')
   const entityNamesKey = sortedEntities.map((e) => e.name).join(',')
 
-  const regex = useMemo(() => {
+  // Only recompute regex when entity names actually change
+  if (regexRef.current === null || keyRef.current !== entityNamesKey) {
     const pattern = sortedEntities.map((e) => e.name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|')
-    return new RegExp(`(${pattern})`, 'g')
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [entityNamesKey])
+    regexRef.current = new RegExp(`(${pattern})`, 'g')
+    keyRef.current = entityNamesKey
+  }
+  const regex = regexRef.current
 
   const parts = content.split(regex)
 

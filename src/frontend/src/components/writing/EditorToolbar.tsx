@@ -326,6 +326,9 @@ export function EditorToolbar({ editor }: EditorToolbarProps) {
             backdropFilter: 'blur(16px)',
             WebkitBackdropFilter: 'blur(16px)',
           }}
+          role="toolbar"
+          aria-label="文本编辑工具栏"
+          aria-controls="editor-content"
         >
           {/* Paragraph style selector */}
           <div className="relative" ref={styleMenuRef}>
@@ -350,6 +353,9 @@ export function EditorToolbar({ editor }: EditorToolbarProps) {
               } : {
                 background: 'transparent',
               }}
+              aria-label="段落样式选择器"
+              aria-expanded={styleMenuOpen}
+              aria-haspopup="listbox"
             >
               <Type className="w-3.5 h-3.5" />
               <span className="text-[11px] font-medium">{getActiveStyleLabel()}</span>
@@ -372,6 +378,8 @@ export function EditorToolbar({ editor }: EditorToolbarProps) {
                     backdropFilter: 'blur(16px)',
                     WebkitBackdropFilter: 'blur(16px)',
                   }}
+                  role="listbox"
+                  aria-label="段落样式"
                 >
                   {paragraphStyles.map((style, idx) => (
                     <motion.button
@@ -394,6 +402,8 @@ export function EditorToolbar({ editor }: EditorToolbarProps) {
                       style={style.isActive() ? {
                         background: 'color-mix(in srgb, var(--accent-primary) 6%, transparent)',
                       } : {}}
+                      role="option"
+                      aria-selected={style.isActive()}
                     >
                       <span className={style.isActive() ? 'drop-shadow-[0_0_4px_var(--accent-primary)]' : ''}>
                         {style.icon}

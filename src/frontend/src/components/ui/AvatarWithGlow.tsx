@@ -40,14 +40,14 @@ export interface AvatarWithGlowProps extends React.HTMLAttributes<HTMLDivElement
 }
 
 const colorMap: Record<string, string> = {
-  accent: '#5e6ad2',
-  character: '#e8b87d',
-  item: '#9b7ed9',
-  location: '#5eb5a6',
-  faction: '#d45d5d',
-  outline: '#5b8ee8',
-  ifline: '#7eb84a',
-  custom: '#5e6ad2',
+  accent: 'var(--accent-100)',
+  character: 'var(--color-character)',
+  item: 'var(--color-item)',
+  location: 'var(--color-location)',
+  faction: 'var(--color-faction)',
+  outline: 'var(--color-outline)',
+  ifline: 'var(--color-ifline)',
+  custom: 'var(--accent-100)',
 }
 
 const sizeMap: Record<AvatarSize, { container: number; fontSize: string; statusDot: number; statusOffset: number }> = {
@@ -66,10 +66,10 @@ const intensityMap = {
 }
 
 const statusColorMap = {
-  online: '#5eb5a6',
-  offline: '#8a8f98',
-  busy: '#e8b87d',
-  idle: '#9b7ed9',
+  online: 'var(--color-success)',
+  offline: 'var(--text-tertiary)',
+  busy: 'var(--color-warning)',
+  idle: 'var(--color-item)',
   none: 'transparent',
 }
 

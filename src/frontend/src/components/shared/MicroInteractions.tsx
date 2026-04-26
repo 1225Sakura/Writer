@@ -418,7 +418,7 @@ export function IconButton({
     accent: {
       background: 'var(--accent-primary)',
       border: '1px solid transparent',
-      color: '#fff',
+      color: 'var(--paper-100)',
     },
   }
 
@@ -581,10 +581,10 @@ export function PulseIndicator({
   className,
 }: PulseIndicatorProps) {
   const statusColors = {
-    online: '#2ea043',
-    offline: '#5c5f63',
-    busy: '#d93a3a',
-    away: '#e5a000',
+    online: 'var(--color-success)',
+    offline: 'var(--text-tertiary)',
+    busy: 'var(--color-danger)',
+    away: 'var(--color-warning)',
   }
 
   const sizeMap = {

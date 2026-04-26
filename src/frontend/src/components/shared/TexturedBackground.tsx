@@ -165,7 +165,7 @@ export function TexturedBackground({
   style,
 }: TexturedBackgroundProps) {
   const opacity = intensityMap[intensity]
-  const defaultColor = themeAware ? 'var(--text-primary)' : '#f5f0e6'
+  const defaultColor = themeAware ? 'var(--text-primary)' : 'var(--paper-100)'
   const textureColor = color ?? defaultColor
 
   const textureUrl = customTexture ?? textureGenerators[texture](opacity, textureColor)

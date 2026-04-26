@@ -74,7 +74,7 @@ const checkers: CheckerConfig[] = [
     label: '世界一致性',
     description: '地点、时间线、实力等级、物品归属',
     icon: <ShieldCheck className="w-4 h-4" />,
-    color: '#5eb5a6',
+    color: 'var(--color-location)',
     requiresCharacter: false,
   },
   {
@@ -82,7 +82,7 @@ const checkers: CheckerConfig[] = [
     label: '叙事连续性',
     description: '场景转换、事件连贯、伏笔呼应',
     icon: <GitBranch className="w-4 h-4" />,
-    color: '#5b8ee8',
+    color: 'var(--color-outline)',
     requiresCharacter: false,
   },
   {
@@ -90,7 +90,7 @@ const checkers: CheckerConfig[] = [
     label: '叙事节奏',
     description: '任务线/燃情线/星座线比例分析',
     icon: <Gauge className="w-4 h-4" />,
-    color: '#e8b87d',
+    color: 'var(--color-character)',
     requiresCharacter: false,
   },
   {
@@ -98,7 +98,7 @@ const checkers: CheckerConfig[] = [
     label: '角色OOC',
     description: '行为是否符合已建立的性格设定',
     icon: <UserCheck className="w-4 h-4" />,
-    color: '#9b7ed9',
+    color: 'var(--color-item)',
     requiresCharacter: true,
   },
   {
@@ -106,7 +106,7 @@ const checkers: CheckerConfig[] = [
     label: '高潮分布',
     description: '情感节奏、铺垫充分性、结尾钩子',
     icon: <Flame className="w-4 h-4" />,
-    color: '#d45d5d',
+    color: 'var(--color-faction)',
     requiresCharacter: false,
   },
   {
@@ -114,7 +114,7 @@ const checkers: CheckerConfig[] = [
     label: '读者吸引力',
     description: '开头钩子、结尾悬念、好奇心缺口',
     icon: <Magnet className="w-4 h-4" />,
-    color: '#7eb84a',
+    color: 'var(--color-ifline)',
     requiresCharacter: false,
   },
 ]
@@ -124,10 +124,10 @@ const checkers: CheckerConfig[] = [
 // ============================================
 
 function getScoreColor(score: number): string {
-  if (score >= 90) return '#7eb84a'
-  if (score >= 75) return '#5eb5a6'
-  if (score >= 60) return '#e8b87d'
-  return '#d45d5d'
+  if (score >= 90) return 'var(--color-ifline)'
+  if (score >= 75) return 'var(--color-location)'
+  if (score >= 60) return 'var(--color-character)'
+  return 'var(--color-faction)'
 }
 
 function getScoreLabel(score: number): string {
@@ -148,17 +148,17 @@ function PanelHeader({ onRunAll, isRunning }: { onRunAll: () => void; isRunning:
         <div
           className="w-9 h-9 rounded-xl flex items-center justify-center relative z-10"
           style={{
-            background: 'linear-gradient(135deg, rgba(91, 142, 232, 0.22) 0%, rgba(91, 142, 232, 0.08) 100%)',
-            border: '1px solid rgba(91, 142, 232, 0.3)',
-            boxShadow: '0 0 16px rgba(91, 142, 232, 0.15), inset 0 1px 0 rgba(91, 142, 232, 0.1)',
+            background: 'linear-gradient(135deg, color-mix(in srgb, var(--color-outline) 22%, transparent) 0%, color-mix(in srgb, var(--color-outline) 8%, transparent) 100%)',
+            border: '1px solid color-mix(in srgb, var(--color-outline) 30%, transparent)',
+            boxShadow: '0 0 16px color-mix(in srgb, var(--color-outline) 15%, transparent), inset 0 1px 0 color-mix(in srgb, var(--color-outline) 10%, transparent)',
           }}
         >
-          <Sparkles className="w-5 h-5" style={{ color: '#5b8ee8' }} />
+          <Sparkles className="w-5 h-5" style={{ color: 'var(--color-outline)' }} />
         </div>
         <span
           className="absolute inset-[-2px] rounded-xl animate-ping opacity-25 motion-reduce:animate-none"
           style={{
-            background: 'rgba(91, 142, 232, 0.15)',
+            background: 'color-mix(in srgb, var(--color-outline) 15%, transparent)',
             animationDuration: '2.5s',
           }}
         />
@@ -167,7 +167,7 @@ function PanelHeader({ onRunAll, isRunning }: { onRunAll: () => void; isRunning:
         <h3
           className="text-sm font-bold tracking-tight"
           style={{
-            background: 'linear-gradient(90deg, #5b8ee8 0%, #7eb84a 100%)',
+            background: 'linear-gradient(90deg, var(--color-outline) 0%, var(--color-ifline) 100%)',
             WebkitBackgroundClip: 'text',
             WebkitTextFillColor: 'transparent',
             backgroundClip: 'text',
@@ -178,7 +178,7 @@ function PanelHeader({ onRunAll, isRunning }: { onRunAll: () => void; isRunning:
         <p className="text-[10px] leading-tight flex items-center gap-1.5" style={{ color: 'var(--text-tertiary)' }}>
           <span
             className="inline-block w-1 h-1 rounded-full animate-pulse motion-reduce:animate-none"
-            style={{ background: '#5b8ee8', boxShadow: '0 0 4px #5b8ee8' }}
+            style={{ background: 'var(--color-outline)', boxShadow: '0 0 4px var(--color-outline)' }}
           />
           六维质量分析 · 智能诊断
         </p>
@@ -190,9 +190,9 @@ function PanelHeader({ onRunAll, isRunning }: { onRunAll: () => void; isRunning:
         disabled={isRunning}
         className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all disabled:opacity-50"
         style={{
-          background: 'linear-gradient(135deg, rgba(91, 142, 232, 0.2) 0%, rgba(126, 184, 74, 0.15) 100%)',
-          border: '1px solid rgba(91, 142, 232, 0.3)',
-          color: '#5b8ee8',
+          background: 'linear-gradient(135deg, color-mix(in srgb, var(--color-outline) 20%, transparent) 0%, color-mix(in srgb, var(--color-ifline) 15%, transparent) 100%)',
+          border: '1px solid color-mix(in srgb, var(--color-outline) 30%, transparent)',
+          color: 'var(--color-outline)',
         }}
       >
         {isRunning ? (
@@ -443,7 +443,7 @@ function CheckerCard({
               {/* Suggestions */}
               {suggestions.length > 0 && (
                 <div className="space-y-1">
-                  <div className="flex items-center gap-1.5 text-[10px] font-medium" style={{ color: '#7eb84a' }}>
+                  <div className="flex items-center gap-1.5 text-[10px] font-medium" style={{ color: 'var(--color-ifline)' }}>
                     <Lightbulb className="w-3 h-3" />
                     改进建议 ({suggestions.length})
                   </div>
@@ -455,11 +455,11 @@ function CheckerCard({
                       transition={{ delay: i * 0.05 }}
                       className="flex items-start gap-1.5 p-1.5 rounded-lg text-xs"
                       style={{
-                        background: 'color-mix(in srgb, #7eb84a 6%, transparent)',
+                        background: 'color-mix(in srgb, var(--color-ifline) 6%, transparent)',
                         color: 'var(--text-secondary)',
                       }}
                     >
-                      <CheckCircle2 className="w-3 h-3 mt-0.5 flex-shrink-0" style={{ color: '#7eb84a' }} />
+                      <CheckCircle2 className="w-3 h-3 mt-0.5 flex-shrink-0" style={{ color: 'var(--color-ifline)' }} />
                       <span>{suggestion}</span>
                     </motion.div>
                   ))}
@@ -471,8 +471,8 @@ function CheckerCard({
                 <div
                   className="flex items-center gap-2 p-2 rounded-lg text-xs"
                   style={{
-                    background: 'color-mix(in srgb, #7eb84a 8%, transparent)',
-                    color: '#7eb84a',
+                    background: 'color-mix(in srgb, var(--color-ifline) 8%, transparent)',
+                    color: 'var(--color-ifline)',
                   }}
                 >
                   <CheckCircle2 className="w-4 h-4" />
@@ -531,8 +531,8 @@ function SpecializedDisplay({
               <span
                 className="text-[10px] px-1.5 py-0.5 rounded-full font-medium"
                 style={{
-                  background: status === 'fulfilled' ? '#7eb84a18' : '#e8b87d18',
-                  color: status === 'fulfilled' ? '#7eb84a' : '#e8b87d',
+                  background: status === 'fulfilled' ? 'color-mix(in srgb, var(--color-ifline) 18%, transparent)' : 'color-mix(in srgb, var(--color-character) 18%, transparent)',
+                  color: status === 'fulfilled' ? 'var(--color-ifline)' : 'var(--color-character)',
                 }}
               >
                 {status === 'fulfilled' ? '已呼应' : '待呼应'}
@@ -594,11 +594,11 @@ function SpecializedDisplay({
               <div className="text-xs space-y-0.5">
                 <div className="flex gap-1.5">
                   <span style={{ color: 'var(--text-tertiary)' }}>期望:</span>
-                  <span style={{ color: '#7eb84a' }}>{v.expected_behavior}</span>
+                  <span style={{ color: 'var(--color-ifline)' }}>{v.expected_behavior}</span>
                 </div>
                 <div className="flex gap-1.5">
                   <span style={{ color: 'var(--text-tertiary)' }}>实际:</span>
-                  <span style={{ color: 'var(--color-vermillion)' }}>{v.actual_behavior}</span>
+                  <span style={{ color: 'var(--vermillion-100)' }}>{v.actual_behavior}</span>
                 </div>
                 <div className="text-[10px]" style={{ color: 'var(--text-tertiary)' }}>{v.reason}</div>
               </div>

@@ -32,40 +32,40 @@ export interface StatusBadgeProps extends React.HTMLAttributes<HTMLDivElement> {
 
 const statusConfig: Record<StatusType, { color: string; label: string; bgColor: string; textColor: string }> = {
   online: {
-    color: '#5eb5a6',
+    color: 'var(--color-success)',
     label: '在线',
-    bgColor: 'rgba(94, 181, 166, 0.12)',
-    textColor: '#5eb5a6',
+    bgColor: 'color-mix(in srgb, var(--color-success) 12%, transparent)',
+    textColor: 'var(--color-success)',
   },
   offline: {
-    color: '#8a8f98',
+    color: 'var(--text-tertiary)',
     label: '离线',
-    bgColor: 'rgba(138, 143, 152, 0.12)',
-    textColor: '#8a8f98',
+    bgColor: 'color-mix(in srgb, var(--text-tertiary) 12%, transparent)',
+    textColor: 'var(--text-tertiary)',
   },
   busy: {
-    color: '#e8b87d',
+    color: 'var(--color-warning)',
     label: '忙碌',
-    bgColor: 'rgba(232, 184, 125, 0.12)',
-    textColor: '#e8b87d',
+    bgColor: 'color-mix(in srgb, var(--color-warning) 12%, transparent)',
+    textColor: 'var(--color-warning)',
   },
   warning: {
-    color: '#e8b87d',
+    color: 'var(--color-warning)',
     label: '警告',
-    bgColor: 'rgba(232, 184, 125, 0.12)',
-    textColor: '#e8b87d',
+    bgColor: 'color-mix(in srgb, var(--color-warning) 12%, transparent)',
+    textColor: 'var(--color-warning)',
   },
   error: {
-    color: '#d45d5d',
+    color: 'var(--color-danger)',
     label: '错误',
-    bgColor: 'rgba(212, 93, 93, 0.12)',
-    textColor: '#d45d5d',
+    bgColor: 'color-mix(in srgb, var(--color-danger) 12%, transparent)',
+    textColor: 'var(--color-danger)',
   },
   idle: {
-    color: '#9b7ed9',
+    color: 'var(--color-item)',
     label: '空闲',
-    bgColor: 'rgba(155, 126, 217, 0.12)',
-    textColor: '#9b7ed9',
+    bgColor: 'color-mix(in srgb, var(--color-item) 12%, transparent)',
+    textColor: 'var(--color-item)',
   },
 }
 

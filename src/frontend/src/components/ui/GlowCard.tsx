@@ -45,7 +45,7 @@ export const GlowCard = React.forwardRef<HTMLDivElement, GlowCardProps>(
   (
     {
       className,
-      glowColor = '#5e6ad2',
+      glowColor = 'var(--accent-100)',
       intensity = 'medium',
       animated = false,
       pulse = false,

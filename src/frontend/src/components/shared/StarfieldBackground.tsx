@@ -77,7 +77,25 @@ function isLowPerformanceDevice(): boolean {
   )
   const isSmallScreen = window.innerWidth < 768
   const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
-  return isMobile || isSmallScreen || prefersReducedMotion
+  // @ts-ignore
+  const isLowMemory = navigator.deviceMemory !== undefined && navigator.deviceMemory < 4
+  let isLowGPU = false
+  try {
+    const canvas = document.createElement('canvas')
+    const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl')
+    if (gl && gl instanceof WebGLRenderingContext) {
+      const debugInfo = gl.getExtension('WEBGL_debug_renderer_info')
+      if (debugInfo) {
+        const renderer = gl.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL) || ''
+        const highPerformanceGPUs = ['NVIDIA', 'AMD', 'Apple M', 'Radeon', 'GeForce', 'RTX', 'GTX']
+        const isHighPerformance = highPerformanceGPUs.some(gpu => renderer.includes(gpu))
+        isLowGPU = !isHighPerformance && renderer.length > 0
+      }
+    }
+  } catch {
+    isLowGPU = true
+  }
+  return isMobile || isSmallScreen || prefersReducedMotion || isLowMemory || isLowGPU
 }
 
 function initStars(count: number, width: number, height: number): Star[] {

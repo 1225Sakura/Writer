@@ -323,9 +323,9 @@ function DrawerHeader() {
         <div
           className="w-9 h-9 rounded-xl flex items-center justify-center relative z-10"
           style={{
-            background: 'linear-gradient(135deg, rgba(94, 106, 210, 0.22) 0%, rgba(94, 106, 210, 0.08) 100%)',
-            border: '1px solid rgba(94, 106, 210, 0.3)',
-            boxShadow: '0 0 16px rgba(94, 106, 210, 0.15), inset 0 1px 0 rgba(94, 106, 210, 0.1)',
+            background: 'linear-gradient(135deg, color-mix(in srgb, var(--accent-primary) 22%, transparent) 0%, color-mix(in srgb, var(--accent-primary) 8%, transparent) 100%)',
+            border: '1px solid color-mix(in srgb, var(--accent-primary) 30%, transparent)',
+            boxShadow: '0 0 16px color-mix(in srgb, var(--accent-primary) 15%, transparent), inset 0 1px 0 color-mix(in srgb, var(--accent-primary) 10%, transparent)',
           }}
         >
           <Bot className="w-5 h-5" style={{ color: 'var(--accent-primary)' }} />
@@ -334,16 +334,16 @@ function DrawerHeader() {
         <span
           className="absolute inset-[-2px] rounded-xl animate-ping opacity-25 motion-reduce:animate-none"
           style={{
-            background: 'rgba(94, 106, 210, 0.15)',
+            background: 'color-mix(in srgb, var(--accent-primary) 15%, transparent)',
             animationDuration: '2.5s',
-            boxShadow: '0 0 12px rgba(94, 106, 210, 0.2)',
+            boxShadow: '0 0 12px color-mix(in srgb, var(--accent-primary) 20%, transparent)',
           }}
         />
         {/* Inner glow */}
         <span
           className="absolute inset-0 rounded-xl opacity-40"
           style={{
-            boxShadow: 'inset 0 0 8px rgba(94, 106, 210, 0.2)',
+            boxShadow: 'inset 0 0 8px color-mix(in srgb, var(--accent-primary) 20%, transparent)',
           }}
         />
       </div>
@@ -820,9 +820,9 @@ export function AIOperationDrawer() {
             <div
               className="w-12 h-12 rounded-2xl flex items-center justify-center"
               style={{
-                background: 'linear-gradient(135deg, rgba(94, 106, 210, 0.2) 0%, rgba(94, 106, 210, 0.08) 100%)',
-                border: '1px solid rgba(94, 106, 210, 0.25)',
-                boxShadow: '0 0 20px rgba(94, 106, 210, 0.15)',
+                background: 'linear-gradient(135deg, color-mix(in srgb, var(--accent-primary) 20%, transparent) 0%, color-mix(in srgb, var(--accent-primary) 8%, transparent) 100%)',
+                border: '1px solid color-mix(in srgb, var(--accent-primary) 25%, transparent)',
+                boxShadow: '0 0 20px color-mix(in srgb, var(--accent-primary) 15%, transparent)',
               }}
             >
               <Bot className="w-6 h-6" style={{ color: 'var(--accent-primary)' }} />
@@ -887,7 +887,7 @@ function Section({
         </span>
         <motion.div
           animate={{ rotate: isExpanded ? 180 : 0 }}
-          transition={{ type: 'spring', stiffness: 400, damping: 25 }}
+          transition={{ type: 'spring', stiffness: 240, damping: 24 }}
         >
           <ChevronDown
             className="w-4 h-4 flex-shrink-0"

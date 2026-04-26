@@ -396,6 +396,7 @@ export function ChapterNotesPanel() {
             WebkitBackdropFilter: 'blur(12px)',
           }}
           title="章节笔记"
+          aria-label="章节笔记"
         >
           <motion.div
             animate={{ rotate: [0, -5, 5, 0] }}

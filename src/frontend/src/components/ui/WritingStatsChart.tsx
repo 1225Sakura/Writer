@@ -17,8 +17,8 @@ export function WritingStatsChart({
   type = 'bar',
   width = 320,
   height = 160,
-  barColor = '#5e6ad2',
-  lineColor = '#7eb84a',
+  barColor = 'var(--accent-100)',
+  lineColor = 'var(--color-ifline)',
   className,
 }: WritingStatsChartProps) {
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null)
@@ -88,7 +88,7 @@ export function WritingStatsChart({
               x={padding.left - 8}
               y={y + 4}
               textAnchor="end"
-              fill="#8a8f98"
+              fill="var(--text-tertiary)"
               fontSize={10}
               fontFamily="Inter, sans-serif"
             >
@@ -130,7 +130,7 @@ export function WritingStatsChart({
                   x={x + barWidth / 2}
                   y={padding.top + chartHeight + 16}
                   textAnchor="middle"
-                  fill="#8a8f98"
+                  fill="var(--text-tertiary)"
                   fontSize={10}
                   fontFamily="Inter, sans-serif"
                 >
@@ -175,7 +175,7 @@ export function WritingStatsChart({
                 cy={p.y}
                 r={4}
                 fill={lineColor}
-                stroke="#0f1011"
+                stroke="var(--ink-100)"
                 strokeWidth={2}
                 initial={{ scale: 0 }}
                 animate={{ scale: 1 }}
@@ -195,7 +195,7 @@ export function WritingStatsChart({
                   x={x}
                   y={padding.top + chartHeight + 16}
                   textAnchor="middle"
-                  fill="#8a8f98"
+                  fill="var(--text-tertiary)"
                   fontSize={10}
                   fontFamily="Inter, sans-serif"
                 >
@@ -216,13 +216,13 @@ export function WritingStatsChart({
             top: tooltipPos.y - 32,
             background: 'rgba(32, 33, 35, 0.95)',
             border: '1px solid rgba(255,255,255,0.1)',
-            color: '#f7f8f8',
+            color: 'var(--paper-100)',
           }}
           initial={{ opacity: 0, y: 4 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.15 }}
         >
-          <span className="text-[#8a8f98]">{data[hoveredIndex].label}: </span>
+          <span className="text-[var(--text-tertiary)]">{data[hoveredIndex].label}: </span>
           <span className="font-medium">{data[hoveredIndex].value}</span>
         </motion.div>
       )}

@@ -49,15 +49,15 @@ export interface GradientTextProps {
 }
 
 const colorMap: Record<GradientTextColor, string[]> = {
-  accent: ['#5e6ad2', '#6b77e0', '#5864c4', '#5e6ad2'],
-  character: ['#e8b87d', '#f0c88a', '#d4a060', '#e8b87d'],
-  item: ['#9b7ed9', '#a88ee8', '#8a6ec8', '#9b7ed9'],
-  location: ['#5eb5a6', '#6ec4b5', '#4ea697', '#5eb5a6'],
-  faction: ['#d45d5d', '#e07070', '#c05050', '#d45d5d'],
-  outline: ['#5b8ee8', '#6b9ef8', '#4b7ed8', '#5b8ee8'],
-  ifline: ['#7eb84a', '#8ec85a', '#6ea83a', '#7eb84a'],
-  vermillion: ['#c45c5c', '#d46c6c', '#b44c4c', '#c45c5c'],
-  custom: ['#5e6ad2', '#6b77e0', '#5864c4', '#5e6ad2'],
+  accent: ['var(--accent-100)', 'var(--accent-95)', 'var(--accent-85)', 'var(--accent-100)'],
+  character: ['var(--color-character)', 'var(--color-character)', 'var(--color-character)', 'var(--color-character)'],
+  item: ['var(--color-item)', 'var(--color-item)', 'var(--color-item)', 'var(--color-item)'],
+  location: ['var(--color-location)', 'var(--color-location)', 'var(--color-location)', 'var(--color-location)'],
+  faction: ['var(--color-faction)', 'var(--color-faction)', 'var(--color-faction)', 'var(--color-faction)'],
+  outline: ['var(--color-outline)', 'var(--color-outline)', 'var(--color-outline)', 'var(--color-outline)'],
+  ifline: ['var(--color-ifline)', 'var(--color-ifline)', 'var(--color-ifline)', 'var(--color-ifline)'],
+  vermillion: ['var(--vermillion-100)', 'var(--vermillion-95)', 'var(--vermillion-90)', 'var(--vermillion-100)'],
+  custom: ['var(--accent-100)', 'var(--accent-95)', 'var(--accent-85)', 'var(--accent-100)'],
 }
 
 const directionMap: Record<GradientTextDirection, string> = {

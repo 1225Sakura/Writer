@@ -2,6 +2,8 @@
    index.css — shadcn/ui Theme Bridge
    Imports the unified design token system and maps shadcn
    HSL variables to our Ink/Parchment/Vermillion palette.
+   HSL aliases are defined in design-tokens.css as CSS
+   variable references to ink/paper tokens (no HSL conversion).
    ============================================================ */
 
 @import './styles/design-tokens.css';
@@ -10,107 +12,160 @@
 @tailwind components;
 @tailwind utilities;
 
-@layer base {
+/* ============================================================
+   @supports fallback for browsers without CSS variable support
+   ============================================================ */
+
+@supports not (color: var(--test)) {
   :root {
-    /* shadcn/ui HSL variables — mapped to our design tokens */
-    --background: 240 10% 5%;
-    --foreground: 40 30% 93%;
-    --card: 240 8% 7%;
-    --card-foreground: 40 30% 93%;
-    --popover: 240 8% 7%;
-    --popover-foreground: 40 30% 93%;
-    --primary: 235 55% 59%;
-    --primary-foreground: 0 0% 100%;
-    --secondary: 240 5% 15%;
-    --secondary-foreground: 40 30% 93%;
-    --muted: 240 5% 15%;
-    --muted-foreground: 220 10% 65%;
-    --accent: 240 5% 15%;
-    --accent-foreground: 40 30% 93%;
-    --destructive: 0 60% 55%;
-    --destructive-foreground: 0 0% 100%;
-    --border: 240 5% 15%;
-    --input: 240 5% 15%;
-    --ring: 235 55% 59%;
-    --radius: 0.5rem;
-
-    /* Entity type HSL values */
-    --character: 33 76% 64%;
-    --item: 264 45% 72%;
-    --location: 166 45% 53%;
-    --faction: 0 52% 60%;
-    --outline: 217 81% 59%;
-    --ifline: 94 45% 54%;
+    --background: #0d0d12;
+    --foreground: #f5f0e6;
+    --card: #12121c;
+    --card-foreground: #f5f0e6;
+    --popover: #12121c;
+    --popover-foreground: #f5f0e6;
+    --primary: #5e6ad2;
+    --primary-foreground: #ffffff;
+    --secondary: #303048;
+    --secondary-foreground: #f5f0e6;
+    --muted: #252540;
+    --muted-foreground: #999999;
+    --accent: #303048;
+    --accent-foreground: #f5f0e6;
+    --destructive: #c45c5c;
+    --destructive-foreground: #ffffff;
+    --border: rgba(255, 255, 255, 0.10);
+    --input: #252540;
+    --ring: #5e6ad2;
   }
+}
 
-  /* Light theme HSL overrides */
-  .light,
-  [data-theme="light"] {
-    --background: 45 30% 96%;
-    --foreground: 240 30% 14%;
-    --card: 0 0% 100%;
-    --card-foreground: 240 30% 14%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 240 30% 14%;
-    --primary: 235 55% 55%;
-    --primary-foreground: 0 0% 100%;
-    --secondary: 40 20% 93%;
-    --secondary-foreground: 240 30% 14%;
-    --muted: 40 15% 90%;
-    --muted-foreground: 240 5% 45%;
-    --accent: 40 20% 93%;
-    --accent-foreground: 240 30% 14%;
-    --destructive: 0 60% 50%;
-    --destructive-foreground: 0 0% 100%;
-    --border: 40 15% 85%;
-    --input: 40 15% 90%;
-    --ring: 235 55% 55%;
+/* ============================================================
+   Theme-specific overrides
+   ============================================================ */
 
-    --character: 33 72% 55%;
-    --item: 264 40% 60%;
-    --location: 166 40% 45%;
-    --faction: 0 48% 50%;
-    --outline: 217 75% 50%;
-    --ifline: 94 40% 45%;
-  }
+/* Light theme */
+.light,
+[data-theme="light"] {
+  --color-surface-base:     var(--paper-100);
+  --color-surface-raised:   var(--paper-95);
+  --color-surface-overlay:  var(--paper-90);
+  --color-surface-input:     var(--paper-85);
+  --color-surface-hover:     var(--paper-80);
 
-  /* Eye-care theme HSL overrides - optimized green palette for reduced eye strain */
-  [data-theme="eye-care"] {
-    --background: 120 12% 8%;
-    --foreground: 100 15% 88%;
-    --card: 120 10% 12%;
-    --card-foreground: 100 15% 88%;
-    --popover: 120 10% 12%;
-    --popover-foreground: 100 15% 88%;
-    --primary: 115 25% 48%;
-    --primary-foreground: 0 0% 100%;
-    --secondary: 120 8% 16%;
-    --secondary-foreground: 100 15% 88%;
-    --muted: 120 8% 16%;
-    --muted-foreground: 100 10% 50%;
-    --accent: 115 20% 42%;
-    --accent-foreground: 0 0% 100%;
-    --destructive: 0 50% 50%;
-    --destructive-foreground: 0 0% 100%;
-    --border: 120 8% 16%;
-    --input: 120 8% 18%;
-    --ring: 115 25% 48%;
+  --text-primary:   var(--ink-100);
+  --text-secondary: var(--ink-75);
+  --text-tertiary:  var(--ink-65);
+  --text-disabled:  var(--ink-60);
+  --text-inverse:   var(--paper-100);
 
-    --character: 33 55% 50%;
-    --item: 264 30% 55%;
-    --location: 166 30% 40%;
-    --faction: 0 35% 45%;
-    --outline: 217 50% 45%;
-    --ifline: 94 30% 40%;
-  }
+  --border-default: rgba(0, 0, 0, 0.10);
+  --border-subtle:  rgba(0, 0, 0, 0.06);
+  --border-strong:  rgba(0, 0, 0, 0.18);
+  --border-focus:   var(--accent-100);
+
+  --writing-bg:   var(--paper-100);
+  --writing-text: var(--ink-100);
+}
+
+/* Eye-care theme */
+[data-theme="eye-care"] {
+  --color-surface-base:     #1a211a;
+  --color-surface-raised:   #1f2b1f;
+  --color-surface-overlay:  #232a23;
+  --color-surface-input:    #2a332a;
+  --color-surface-hover:    #313831;
+
+  --text-primary:   #d4e4cc;
+  --text-secondary: #a8c8a0;
+  --text-tertiary:  #789078;
+  --text-disabled:  #567856;
+  --text-inverse:   #1a211a;
+
+  --border-default: rgba(180, 220, 160, 0.10);
+  --border-subtle:  rgba(180, 220, 160, 0.06);
+  --border-strong:  rgba(180, 220, 160, 0.18);
+  --border-focus:   #5e8a4e;
+
+  --writing-bg:   #1a211a;
+  --writing-text: #d4e4cc;
+}
+
+/* Sepia theme */
+[data-theme="sepia"] {
+  --color-surface-base:     #faf4e4;
+  --color-surface-raised:    #f4e8d4;
+  --color-surface-overlay:  #ede0c8;
+  --color-surface-input:    #e4d8bc;
+  --color-surface-hover:    #d8c8a8;
+
+  --text-primary:   #3d3020;
+  --text-secondary: #5a4a38;
+  --text-tertiary:  #7a6a58;
+  --text-disabled:  #9a8a78;
+  --text-inverse:   #faf4e4;
+
+  --border-default: rgba(61, 48, 32, 0.10);
+  --border-subtle:  rgba(61, 48, 32, 0.06);
+  --border-strong:  rgba(61, 48, 32, 0.18);
+  --border-focus:   #8a6a3a;
+
+  --writing-bg:   #faf4e4;
+  --writing-text: #3d3020;
+}
+
+/* Deep blue theme */
+[data-theme="deep-blue"] {
+  --color-surface-base:     #0a1020;
+  --color-surface-raised:    #0e1828;
+  --color-surface-overlay:   #121c30;
+  --color-surface-input:    #1a2638;
+  --color-surface-hover:    #223040;
+
+  --text-primary:   #e4ecf7;
+  --text-secondary: #b8c8d8;
+  --text-tertiary:  #8898a8;
+  --text-disabled:  #687888;
+  --text-inverse:   #0a1020;
+
+  --border-default: rgba(180, 200, 230, 0.10);
+  --border-subtle:  rgba(180, 200, 230, 0.06);
+  --border-strong:  rgba(180, 200, 230, 0.18);
+  --border-focus:   #4a6a9a;
+
+  --writing-bg:   #0a1020;
+  --writing-text: #e4ecf7;
+}
+
+/* Forest theme */
+[data-theme="forest"] {
+  --color-surface-base:     #0d1610;
+  --color-surface-raised:    #111c14;
+  --color-surface-overlay:   #152018;
+  --color-surface-input:     #1c2a1c;
+  --color-surface-hover:     #243424;
+
+  --text-primary:   #c8dcc8;
+  --text-secondary:  #98b898;
+  --text-tertiary:   #789078;
+  --text-disabled:   #586858;
+  --text-inverse:    #0d1610;
+
+  --border-default: rgba(180, 220, 180, 0.10);
+  --border-subtle:  rgba(180, 220, 180, 0.06);
+  --border-strong:  rgba(180, 220, 180, 0.18);
+  --border-focus:   #4e7a4e;
+
+  --writing-bg:   #0d1610;
+  --writing-text: #c8dcc8;
 }
 
 @layer base {
   * {
-    border-color: hsl(var(--border));
+    border-color: var(--border-default);
   }
   body {
-    background-color: hsl(var(--background));
-    color: hsl(var(--foreground));
+    background-color: var(--color-surface-base);
+    color: var(--text-primary);
   }
 }

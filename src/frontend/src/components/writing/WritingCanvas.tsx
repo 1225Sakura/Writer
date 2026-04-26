@@ -643,7 +643,7 @@ export function WritingCanvas() {
                   animate={{ opacity: 1 }}
                   transition={{ duration: 0.3 }}
                 >
-                  <EditorContent editor={editor} />
+                  <EditorContent editor={editor} id="editor-content" />
                 </motion.div>
               )}
             </AnimatePresence>

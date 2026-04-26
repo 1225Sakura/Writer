@@ -625,7 +625,7 @@ function EntityForm<T extends { name: string; description?: string }>({
             className="px-5 py-2 rounded-md text-sm font-medium transition-all disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-2 relative overflow-hidden"
             style={{
               backgroundColor: isValid && saveState !== 'saving' ? 'var(--accent-primary)' : 'var(--color-surface-overlay)',
-              color: isValid && saveState !== 'saving' ? '#fff' : 'var(--text-tertiary)',
+              color: isValid && saveState !== 'saving' ? 'var(--paper-100)' : 'var(--text-tertiary)',
               border: '1px solid transparent',
             }}
             onMouseEnter={(e) => {
@@ -917,7 +917,7 @@ function AddEntityForm({
             className="px-4 py-2 rounded-md text-sm font-medium disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-2"
             style={{
               backgroundColor: name.trim() && saveState !== 'saving' ? 'var(--accent-primary)' : 'var(--color-surface-overlay)',
-              color: name.trim() && saveState !== 'saving' ? '#fff' : 'var(--text-tertiary)',
+              color: name.trim() && saveState !== 'saving' ? 'var(--paper-100)' : 'var(--text-tertiary)',
             }}
             onMouseEnter={(e) => {
               if (name.trim() && saveState !== 'saving') e.currentTarget.style.backgroundColor = 'var(--accent-hover)'
@@ -1059,7 +1059,7 @@ function OutlineEditor() {
                   onClick={handleCreateOutline}
                   disabled={!newOutlineTitle.trim()}
                   className="px-4 py-2 rounded-md text-sm font-medium transition-all disabled:opacity-40 flex items-center gap-2"
-                  style={{ backgroundColor: 'var(--accent-primary)', color: '#fff' }}
+                  style={{ backgroundColor: 'var(--accent-primary)', color: 'var(--paper-100)' }}
                   whileTap={{ scale: 0.97 }}
                 >
                   <Plus className="w-4 h-4" />
@@ -1331,7 +1331,7 @@ function OutlineEditor() {
                 onClick={handleAddChapter}
                 disabled={!newChapterTitle.trim()}
                 className="px-3 py-1.5 rounded-md text-xs font-medium transition-all disabled:opacity-40 flex items-center gap-1.5"
-                style={{ backgroundColor: 'var(--color-outline)', color: '#fff' }}
+                style={{ backgroundColor: 'var(--color-outline)', color: 'var(--paper-100)' }}
                 whileTap={{ scale: 0.97 }}
               >
                 <Plus className="w-3.5 h-3.5" />
