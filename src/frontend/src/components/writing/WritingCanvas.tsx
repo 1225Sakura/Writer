@@ -380,7 +380,7 @@ export function WritingCanvas() {
       </div>
 
       {/* Floating word count pill */}
-      <FloatingWordCount wordCount={wordCount} isTyping={isTyping} />
+      <FloatingWordCount wordCount={wordCount} />
 
       {/* Writing stats overlay */}
       <WritingStatsOverlay

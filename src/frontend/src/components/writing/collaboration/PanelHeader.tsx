@@ -1,5 +1,4 @@
 import { useWritingStore } from '@/store'
-import { motion } from 'framer-motion'
 import { Users } from 'lucide-react'
 
 export function PanelHeader() {

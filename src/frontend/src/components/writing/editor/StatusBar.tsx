@@ -1,5 +1,3 @@
-import { motion } from 'framer-motion'
-import { DURATION, EASE } from '@/components/shared/AnimationConfig'
 
 interface StatusBarProps {
   chapterTitle: string

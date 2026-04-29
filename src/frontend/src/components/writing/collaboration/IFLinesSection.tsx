@@ -1,7 +1,6 @@
-import { useSettingsStore } from '@/store'
 import { useWritingStore } from '@/store'
-import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
+import { useState, useEffect } from 'react'
 import { GitBranch } from 'lucide-react'
 import { CollapsibleSection } from './CollapsibleSection'
 import { CollaboratorAvatars } from './CollaboratorAvatars'

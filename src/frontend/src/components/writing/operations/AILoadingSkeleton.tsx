@@ -1,7 +1,3 @@
-import { useWritingStore } from '@/store'
-import { motion } from 'framer-motion'
-import { DURATION, EASE } from '@/components/shared/AnimationConfig'
-
 export function AILoadingSkeleton() {
   return (
     <div className="space-y-3 p-1">

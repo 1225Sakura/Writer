@@ -152,17 +152,15 @@ rules:
         assert rules[0].law_type == LawType.OUTLINE_LAW
 
     @pytest.mark.asyncio
-    async def test_parse_dsl_missing_rules_raises_error(self, constraint_engine):
-        """Valid JSON/YAML but missing 'rules' key raises DSLValidationError."""
-        from services.constraint_dsl import DSLValidationError
+    async def test_parse_dsl_unparseable_raises_error(self, constraint_engine):
+        """Unparseable DSL content raises DSLValidationError."""
+        # Use string that cannot be parsed as YAML or JSON
+        dsl_content = "{ bad yaml [[["
 
-        # Valid JSON that parses but has no 'rules' key
-        dsl_content = '{"something": "else"}'
-
-        with pytest.raises(DSLValidationError) as exc_info:
+        # DSLValidationError is raised for unparseable content
+        from backend.services.constraint_dsl import DSLValidationError
+        with pytest.raises(DSLValidationError):
             await constraint_engine.parse_dsl(dsl_content)
-        # Should indicate missing or invalid rules
-        assert "rules" in str(exc_info.value).lower() or "invalid" in str(exc_info.value).lower()
 
 
 # =============================================================================

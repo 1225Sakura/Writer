@@ -1,8 +1,7 @@
-import { useWritingStore } from '@/store'
 import { HumanAIRatioSlider } from '@/components/ui/HumanAIRatioSlider'
 import { motion } from 'framer-motion'
 import { DURATION, EASE } from '@/components/shared/AnimationConfig'
-import { Bot, Sparkles, User, GitBranch } from 'lucide-react'
+import { Bot, Sparkles, User } from 'lucide-react'
 
 interface RatioSliderSectionProps {
   humanAIRatio: number

@@ -1,7 +1,6 @@
 import { WritingStyle } from '@/store'
 import { motion } from 'framer-motion'
-import { DURATION, EASE } from '@/components/shared/AnimationConfig'
-import { Check, Sparkles } from 'lucide-react'
+import { Check } from 'lucide-react'
 
 const writingStyles: Array<{ value: WritingStyle; label: string; description: string; color: string }> = [
   { value: 'default', label: '默认', description: '标准网络小说风格', color: 'var(--accent-primary)' },
@@ -31,7 +30,7 @@ export function StyleSelector({ writingStyle, onStyleChange }: StyleSelectorProp
             borderColor: writingStyle === style.value ? 'color-mix(in srgb, var(--accent-primary) 40%, transparent)' : 'var(--border-default)',
           }}
           onMouseEnter={(e) => {
-            if (!writingStyle === style.value) {
+            if (writingStyle !== style.value) {
               e.currentTarget.style.borderColor = 'var(--border-strong)'
             }
           }}

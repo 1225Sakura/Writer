@@ -1,17 +1,14 @@
 import { useState, useCallback } from 'react'
-import { useWritingStore, WritingStyle } from '@/store'
+import { useWritingStore } from '@/store'
 import { getEditorInstance } from '@/store/editorRegistry'
 import { showToast } from '@/components/ui/Toast'
 import { Button } from '@/components/ui/Button'
 import { motion, AnimatePresence } from 'framer-motion'
 import { DURATION, EASE } from '@/components/shared/AnimationConfig'
 import {
-  ChevronDown,
-  Feather,
   FileText,
   Edit3,
   Sparkles,
-  Wand2,
   Loader2,
   Zap,
   Expand,

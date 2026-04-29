@@ -1,5 +1,4 @@
 import { motion } from 'framer-motion'
-import { DURATION, EASE } from '@/components/shared/AnimationConfig'
 
 export function WritingLoadingState() {
   return (

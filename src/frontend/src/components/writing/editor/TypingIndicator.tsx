@@ -1,5 +1,4 @@
 import { motion } from 'framer-motion'
-import { DURATION, EASE } from '@/components/shared/AnimationConfig'
 import { Type } from 'lucide-react'
 import { usePrefersReducedMotion } from '@/hooks'
 
@@ -7,7 +6,7 @@ interface TypingIndicatorProps {
   isTyping: boolean
 }
 
-export function TypingIndicator({ isTyping }: TypingIndicatorProps) {
+export function TypingIndicator({ }: TypingIndicatorProps) {
   const prefersReducedMotion = usePrefersReducedMotion()
 
   return (

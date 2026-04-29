@@ -1,6 +1,5 @@
 import { useWritingStore } from '@/store'
 import { motion } from 'framer-motion'
-import { DURATION, EASE } from '@/components/shared/AnimationConfig'
 import { History } from 'lucide-react'
 
 function getOperationColor(op: string): string {

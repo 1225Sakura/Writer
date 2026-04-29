@@ -38,14 +38,10 @@ export function ToolbarRightSection() {
   } = useUIStore()
   const {
     wordCount,
-    targetWordCount,
-    getTodayWordCount,
-    loading,
     oocWarnings,
     powerImbalanceWarnings,
   } = useWritingStore()
 
-  const todayWordCount = getTodayWordCount()
   const hasWarnings = oocWarnings.length > 0 || powerImbalanceWarnings.length > 0
 
   const handleWarningClick = () => {

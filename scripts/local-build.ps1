@@ -1,5 +1,5 @@
 # local-build.ps1 - 本地 CI/CD 构建脚本
-# 用法: .\scripts\local-build.ps1 [-Platform win|mac|linux] [-SkipFrontend]
+# 用法: .\scripts\local-build.ps1 [-Platform win|mac|linux] [-SkipFrontend] [-BuildUnpacked]
 
 param(
     [ValidateSet("win", "mac", "linux")]
@@ -7,7 +7,9 @@ param(
 
     [switch]$SkipFrontend,
 
-    [switch]$SkipElectron
+    [switch]$SkipElectron,
+
+    [switch]$BuildUnpacked
 )
 
 $ErrorActionPreference = "Stop"
@@ -103,7 +105,12 @@ if (-not $SkipElectron) {
 
         # Package for platform
         Write-Host "  - 打包应用 ($Platform)..." -ForegroundColor Gray
-        npm run dist:$Platform
+        if ($BuildUnpacked) {
+            Write-Host "  - 构建 unpacked 便携版..." -ForegroundColor Gray
+            npm run dist:$Platform:dir
+        } else {
+            npm run dist:$Platform
+        }
 
         Write-Host "  [OK] Electron 应用构建完成" -ForegroundColor Green
     }

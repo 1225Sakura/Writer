@@ -5,7 +5,7 @@ echo   Auto Novel Writer - Local Build
 echo ========================================
 echo.
 
-powershell -ExecutionPolicy Bypass -File "%~dp0scripts\local-build.ps1"
+powershell -ExecutionPolicy Bypass -File "%~dp0scripts\local-build.ps1" %*
 set BUILD_EXIT_CODE=%ERRORLEVEL%
 
 echo.

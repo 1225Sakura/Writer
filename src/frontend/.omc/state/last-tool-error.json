@@ -1,7 +1,7 @@
 {
-  "tool_name": "Bash",
-  "tool_input_preview": "{\"command\":\"cd \\\"D:\\\\writer\\\\src\\\\frontend\\\" && find node_modules -maxdepth 2 -name \\\"package.json\\\" -exec grep -l '\\\"react\\\"' {} \\\\; 2>/dev/null | xargs -I{} sh -c 'echo \\\"=== {} ===\\\" && grep \\\"\\\\\\\"...",
-  "error": "Exit code 1\nxargs: unknown option -- c\nTry '/usr/bin/xargs --help' for more information.",
-  "timestamp": "2026-04-22T18:46:12.299Z",
-  "retry_count": 1
+  "tool_name": "mcp__plugin_oh-my-claudecode_t__lsp_diagnostics",
+  "tool_input_preview": "{\"file\":\"D:/writer/src/frontend/src/components/writing/WritingCanvas.tsx\"}",
+  "error": "Language server 'typescript-language-server' not found.\nInstall with: npm install -g typescript-language-server typescript",
+  "timestamp": "2026-04-29T09:58:25.954Z",
+  "retry_count": 11
 }

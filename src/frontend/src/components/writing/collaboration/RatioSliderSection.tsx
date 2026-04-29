@@ -1,6 +1,4 @@
 import { useWritingStore } from '@/store'
-import { useSettingsStore } from '@/store'
-import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { DURATION, EASE } from '@/components/shared/AnimationConfig'
 import { GitBranch, Bot, Sparkles, User } from 'lucide-react'

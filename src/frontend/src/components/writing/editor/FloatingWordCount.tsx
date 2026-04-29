@@ -3,10 +3,9 @@ import { DURATION, EASE } from '@/components/shared/AnimationConfig'
 
 interface FloatingWordCountProps {
   wordCount: number
-  isTyping: boolean
 }
 
-export function FloatingWordCount({ wordCount, isTyping }: FloatingWordCountProps) {
+export function FloatingWordCount({ wordCount }: FloatingWordCountProps) {
   return (
     <motion.div
       className="word-count-pill word-count-pill--floating"
