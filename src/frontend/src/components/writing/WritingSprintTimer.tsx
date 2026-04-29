@@ -529,6 +529,7 @@ export function WritingSprintTimer() {
                       }
                     }}
                     className="w-20 accent-[var(--accent-primary)]"
+                    aria-label="冲刺时长"
                   />
                   <span className="text-xs w-10 text-right text-[var(--text-primary)] tabular-nums">{sprintMinutes}分</span>
                 </div>
@@ -554,6 +555,7 @@ export function WritingSprintTimer() {
                       }
                     }}
                     className="w-20 accent-[var(--color-ifline)]"
+                    aria-label="休息时长"
                   />
                   <span className="text-xs w-10 text-right text-[var(--text-primary)] tabular-nums">{breakMinutes}分</span>
                 </div>

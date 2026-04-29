@@ -224,7 +224,7 @@ code, pre {
 .btn--primary {
   background: var(--accent-100);
   border-color: transparent;
-  color: #fff;
+  color: var(--paper-100);
 }
 
 .btn--primary:hover {
@@ -1264,7 +1264,7 @@ code, pre {
   background:
     radial-gradient(ellipse at 20% 0%, rgba(94, 106, 210, 0.08) 0%, transparent 50%),
     radial-gradient(ellipse at 80% 100%, rgba(196, 92, 92, 0.05) 0%, transparent 50%),
-    linear-gradient(180deg, #0d0d12 0%, #1a1a2e 50%, #0d0d12 100%);
+    linear-gradient(180deg, var(--ink-100) 0%, var(--ink-90) 50%, var(--ink-100) 100%);
   transition: background 0.3s ease;
 }
 
@@ -1272,7 +1272,7 @@ code, pre {
   background:
     radial-gradient(ellipse at 20% 0%, rgba(94, 106, 210, 0.05) 0%, transparent 50%),
     radial-gradient(ellipse at 80% 100%, rgba(196, 92, 92, 0.03) 0%, transparent 50%),
-    linear-gradient(180deg, #faf8f3 0%, #f5f0e6 50%, #faf8f3 100%);
+    linear-gradient(180deg, var(--paper-100) 0%, var(--paper-95) 50%, var(--paper-100) 100%);
   transition: background 0.3s ease;
 }
 
@@ -1281,7 +1281,7 @@ code, pre {
     radial-gradient(ellipse at 30% 0%, rgba(94, 106, 210, 0.12) 0%, transparent 50%),
     radial-gradient(ellipse at 70% 30%, rgba(126, 183, 74, 0.08) 0%, transparent 50%),
     radial-gradient(ellipse at 90% 80%, rgba(196, 92, 92, 0.06) 0%, transparent 50%),
-    linear-gradient(180deg, #0d0d12 0%, #1a1a2e 50%, #0d0d12 100%);
+    linear-gradient(180deg, var(--ink-100) 0%, var(--ink-90) 50%, var(--ink-100) 100%);
   transition: background 0.3s ease;
 }
 
@@ -1289,7 +1289,7 @@ code, pre {
   background:
     radial-gradient(ellipse at 30% 70%, rgba(232, 184, 125, 0.1) 0%, transparent 50%),
     radial-gradient(ellipse at 80% 20%, rgba(196, 92, 92, 0.06) 0%, transparent 50%),
-    linear-gradient(180deg, #1a1a2e 0%, #252540 100%);
+    linear-gradient(180deg, var(--ink-90) 0%, var(--ink-80) 100%);
   transition: background 0.3s ease;
 }
 
@@ -1297,7 +1297,7 @@ code, pre {
   background:
     radial-gradient(ellipse at 20% 30%, rgba(94, 181, 166, 0.1) 0%, transparent 50%),
     radial-gradient(ellipse at 70% 70%, rgba(94, 106, 210, 0.08) 0%, transparent 50%),
-    linear-gradient(180deg, #0d0d12 0%, #1a1a2e 100%);
+    linear-gradient(180deg, var(--ink-100) 0%, var(--ink-90) 100%);
   transition: background 0.3s ease;
 }
 
@@ -1436,7 +1436,7 @@ code, pre {
 
 .paper-texture-light {
   position: relative;
-  background-color: #faf6e8;
+  background-color: var(--paper-100);
   background-image:
     radial-gradient(ellipse at 20% 30%, rgba(245, 240, 230, 0.1) 0%, transparent 50%),
     radial-gradient(ellipse at 80% 70%, rgba(245, 240, 230, 0.08) 0%, transparent 50%);
@@ -2053,7 +2053,7 @@ code, pre {
   background:
     radial-gradient(ellipse at 20% 0%, rgba(94, 106, 210, 0.04) 0%, transparent 50%),
     radial-gradient(ellipse at 80% 100%, rgba(232, 184, 125, 0.03) 0%, transparent 50%),
-    linear-gradient(180deg, #faf8f3 0%, #f5f0e6 100%);
+    linear-gradient(180deg, var(--paper-100) 0%, var(--paper-95) 100%);
 }
 
 [data-theme="light"] .bg-settings,
@@ -2061,14 +2061,14 @@ code, pre {
   background:
     radial-gradient(ellipse at 30% 30%, rgba(94, 181, 166, 0.03) 0%, transparent 50%),
     radial-gradient(ellipse at 70% 70%, rgba(94, 106, 210, 0.02) 0%, transparent 50%),
-    linear-gradient(180deg, #faf8f3 0%, #f5f0e6 100%);
+    linear-gradient(180deg, var(--paper-100) 0%, var(--paper-95) 100%);
 }
 
 [data-theme="light"] .bg-writing,
 .light .bg-writing {
   background:
     radial-gradient(ellipse at 50% 50%, rgba(94, 106, 210, 0.015) 0%, transparent 60%),
-    #faf8f3;
+    var(--paper-100);
 }
 
 /* Warm-paper theme */
@@ -2077,7 +2077,7 @@ code, pre {
   background:
     radial-gradient(ellipse at 20% 0%, rgba(180, 140, 90, 0.05) 0%, transparent 50%),
     radial-gradient(ellipse at 80% 100%, rgba(180, 112, 64, 0.03) 0%, transparent 50%),
-    linear-gradient(180deg, #f7f2e8 0%, #f2ede3 100%);
+    linear-gradient(180deg, var(--paper-95) 0%, var(--paper-90) 100%);
 }
 
 [data-theme="sepia"] .bg-settings,
@@ -2085,14 +2085,14 @@ code, pre {
   background:
     radial-gradient(ellipse at 30% 30%, rgba(180, 140, 90, 0.04) 0%, transparent 50%),
     radial-gradient(ellipse at 70% 70%, rgba(180, 112, 64, 0.025) 0%, transparent 50%),
-    linear-gradient(180deg, #f7f2e8 0%, #f2ede3 100%);
+    linear-gradient(180deg, var(--paper-95) 0%, var(--paper-90) 100%);
 }
 
 [data-theme="sepia"] .bg-writing,
 .sepia .bg-writing {
   background:
     radial-gradient(ellipse at 50% 50%, rgba(180, 112, 64, 0.02) 0%, transparent 60%),
-    #faf4e4;
+    var(--paper-100);
 }
 
 /* Eye-care theme */
@@ -2101,7 +2101,7 @@ code, pre {
   background:
     radial-gradient(ellipse at 20% 0%, rgba(111, 168, 108, 0.06) 0%, transparent 50%),
     radial-gradient(ellipse at 80% 100%, rgba(156, 184, 150, 0.04) 0%, transparent 50%),
-    linear-gradient(180deg, var(--color-surface-base) 0%, #1a211a 100%);
+    linear-gradient(180deg, var(--color-surface-base) 0%, var(--color-surface-overlay) 100%);
 }
 
 [data-theme="eye-care"] .bg-settings,
@@ -2109,7 +2109,7 @@ code, pre {
   background:
     radial-gradient(ellipse at 30% 30%, rgba(111, 168, 108, 0.05) 0%, transparent 50%),
     radial-gradient(ellipse at 70% 70%, rgba(90, 140, 90, 0.03) 0%, transparent 50%),
-    linear-gradient(180deg, var(--color-surface-base) 0%, #1a211a 100%);
+    linear-gradient(180deg, var(--color-surface-base) 0%, var(--color-surface-overlay) 100%);
 }
 
 [data-theme="eye-care"] .bg-writing,
@@ -2125,7 +2125,7 @@ code, pre {
   background:
     radial-gradient(ellipse at 20% 0%, rgba(91, 152, 248, 0.07) 0%, transparent 50%),
     radial-gradient(ellipse at 80% 100%, rgba(157, 180, 207, 0.04) 0%, transparent 50%),
-    linear-gradient(180deg, var(--color-surface-base) 0%, #0a1020 100%);
+    linear-gradient(180deg, var(--color-surface-base) 0%, var(--color-surface-overlay) 100%);
 }
 
 [data-theme="deep-blue"] .bg-settings,
@@ -2133,7 +2133,7 @@ code, pre {
   background:
     radial-gradient(ellipse at 30% 30%, rgba(91, 152, 248, 0.05) 0%, transparent 50%),
     radial-gradient(ellipse at 70% 70%, rgba(60, 117, 212, 0.03) 0%, transparent 50%),
-    linear-gradient(180deg, var(--color-surface-base) 0%, #0a1020 100%);
+    linear-gradient(180deg, var(--color-surface-base) 0%, var(--color-surface-overlay) 100%);
 }
 
 [data-theme="deep-blue"] .bg-writing,
@@ -2149,7 +2149,7 @@ code, pre {
   background:
     radial-gradient(ellipse at 20% 0%, rgba(90, 175, 114, 0.07) 0%, transparent 50%),
     radial-gradient(ellipse at 80% 100%, rgba(148, 184, 148, 0.04) 0%, transparent 50%),
-    linear-gradient(180deg, var(--color-surface-base) 0%, #0d1610 100%);
+    linear-gradient(180deg, var(--color-surface-base) 0%, var(--color-surface-overlay) 100%);
 }
 
 [data-theme="forest"] .bg-settings,
@@ -2157,7 +2157,7 @@ code, pre {
   background:
     radial-gradient(ellipse at 30% 30%, rgba(90, 175, 114, 0.05) 0%, transparent 50%),
     radial-gradient(ellipse at 70% 70%, rgba(60, 140, 80, 0.03) 0%, transparent 50%),
-    linear-gradient(180deg, var(--color-surface-base) 0%, #0d1610 100%);
+    linear-gradient(180deg, var(--color-surface-base) 0%, var(--color-surface-overlay) 100%);
 }
 
 [data-theme="forest"] .bg-writing,

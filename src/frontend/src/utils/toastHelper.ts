@@ -5,7 +5,10 @@
  */
 
 import { useUIStore } from '@/store'
-import type { ApiError, isRetryableError as isRetryableErrorFn } from '@/api/request'
+import type { ApiError } from '@/api/request'
+import { isRetryableError } from '@/api/request'
+
+export { isRetryableError }
 
 type ToastType = 'info' | 'success' | 'warning' | 'error'
 

@@ -8,24 +8,20 @@ import { useWritingStore } from '@/store'
 import { useUIStore } from '@/store'
 import { setEditorInstance } from '@/store/editorRegistry'
 import { useEffect, useRef, useCallback, useState } from 'react'
-import { usePrefersReducedMotion } from '@/hooks'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Save, CheckCircle, AlertCircle, Feather, Keyboard, Loader2 } from 'lucide-react'
+import { Loader2 } from 'lucide-react'
 import { FocusModeExtension, ParagraphHighlightExtension, ParagraphHighlightPluginKey } from './extensions'
 import { showToast } from '@/components/ui/Toast'
 import { EditorToolbar } from './EditorToolbar'
 import { WritingStatsOverlay } from './WritingStatsOverlay'
-import { Type } from 'lucide-react'
 import { DURATION, EASE } from '@/components/shared/AnimationConfig'
-
-
-const WRITING_STYLE_NAMES: Record<string, string> = {
-  default: '默认',
-  jiangnan: '江南',
-  kafka: '卡夫卡',
-  camus: '加缪',
-  custom: '自定义',
-}
+import { SaveStatusIndicator } from './editor/EditorArea'
+import { FloatingWordCount } from './editor/FloatingWordCount'
+import { EmptyStatePrompt } from './editor/EmptyStatePrompt'
+import { WritingLoadingState } from './editor/WritingLoadingState'
+import { ChapterTitle } from './editor/ChapterTitle'
+import { StatusBar } from './editor/StatusBar'
+import { TypingIndicator } from './editor/TypingIndicator'
 
 function formatDuration(seconds: number): string {
   if (seconds < 60) return `${seconds}秒`
@@ -35,221 +31,6 @@ function formatDuration(seconds: number): string {
   const hours = Math.floor(mins / 60)
   const remainingMins = mins % 60
   return `${hours}时${remainingMins > 0 ? `${remainingMins}分` : ''}`
-}
-
-function formatTime(timestamp: number | null): string {
-  if (!timestamp) return ''
-  const date = new Date(timestamp)
-  return date.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' })
-}
-
-function SaveStatusIndicator({ status, lastSavedAt }: { status: string; lastSavedAt: number | null }) {
-  if (status === 'saving') {
-    return (
-      <span className="flex items-center gap-1" style={{ color: 'var(--text-secondary)' }}>
-        <Save className="w-3 h-3 animate-pulse motion-reduce:animate-none" />
-        保存中...
-      </span>
-    )
-  }
-  if (status === 'saved') {
-    return (
-      <span className="flex items-center gap-1" style={{ color: 'var(--color-ifline)' }} title={`上次保存: ${formatTime(lastSavedAt)}`}>
-        <CheckCircle className="w-3 h-3" />
-        已保存 {lastSavedAt ? formatTime(lastSavedAt) : ''}
-      </span>
-    )
-  }
-  if (status === 'unsaved') {
-    return (
-      <span className="flex items-center gap-1" style={{ color: 'var(--color-vermillion)' }}>
-        <AlertCircle className="w-3 h-3" />
-        未保存
-      </span>
-    )
-  }
-  return null
-}
-
-/** Refined floating word count pill with subtle glow */
-function FloatingWordCount({ wordCount, isTyping }: { wordCount: number; isTyping: boolean }) {
-  return (
-    <motion.div
-      className="word-count-pill word-count-pill--floating"
-      initial={{ opacity: 0, y: 8, scale: 0.9 }}
-      animate={{ opacity: 1, y: 0, scale: 1 }}
-      transition={{ duration: DURATION.SLOW, ease: EASE.SMOOTH }}
-      whileHover={{ y: -2, transition: { duration: 0.2 } }}
-    >
-      <motion.span
-        className="word-count-pill__number"
-        key={wordCount}
-        initial={{ scale: 1.15, opacity: 0.8 }}
-        animate={{ scale: 1, opacity: 1 }}
-        transition={{ duration: DURATION.NORMAL, ease: EASE.SMOOTH }}
-      >
-        {wordCount}
-      </motion.span>
-      <span className="word-count-pill__label">字</span>
-      <AnimatePresence>
-        {isTyping && (
-          <motion.span
-            initial={{ opacity: 0, scale: 0 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0 }}
-            className="w-1.5 h-1.5 rounded-full"
-            style={{
-              background: 'var(--color-ifline)',
-              boxShadow: '0 0 4px color-mix(in srgb, var(--color-ifline) 50%, transparent)',
-            }}
-            transition={{ duration: DURATION.FAST, ease: EASE.SMOOTH }}
-          />
-        )}
-      </AnimatePresence>
-    </motion.div>
-  )
-}
-
-/** Elegant empty state prompt with refined animations */
-function EmptyStatePrompt({ onStart }: { onStart?: () => void }) {
-  return (
-    <motion.div
-      className="writing-empty-state"
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: DURATION.SLOW, ease: EASE.SMOOTH }}
-    >
-      <motion.div
-        className="writing-empty-state__icon"
-        initial={{ scale: 0.8, opacity: 0 }}
-        animate={{ scale: 1, opacity: 1 }}
-        transition={{ delay: 0.1, duration: DURATION.SLOW, ease: EASE.SMOOTH }}
-      >
-        <Feather className="w-5 h-5" />
-      </motion.div>
-      <motion.h3
-        className="writing-empty-state__title"
-        initial={{ opacity: 0, y: 8 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.15, duration: DURATION.SLOW, ease: EASE.SMOOTH }}
-      >
-        开始你的创作
-      </motion.h3>
-      <motion.p
-        className="writing-empty-state__hint"
-        initial={{ opacity: 0, y: 6 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.2, duration: DURATION.SLOW, ease: EASE.SMOOTH }}
-      >
-        点击此处开始写作，或使用快捷键 Ctrl+Shift+W 续写
-      </motion.p>
-      <motion.button
-        className="mt-5 px-4 py-2 rounded-lg text-xs font-medium transition-all duration-200"
-        style={{
-          background: 'color-mix(in srgb, var(--accent-primary) 12%, transparent)',
-          border: '1px solid color-mix(in srgb, var(--accent-primary) 20%, transparent)',
-          color: 'var(--accent-primary)',
-        }}
-        initial={{ opacity: 0, y: 6 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.25, duration: DURATION.SLOW, ease: EASE.SMOOTH }}
-        whileHover={{
-          scale: 1.03,
-          background: 'color-mix(in srgb, var(--accent-primary) 18%, transparent)',
-        }}
-        whileTap={{ scale: 0.98 }}
-        onClick={onStart}
-      >
-        开始写作
-      </motion.button>
-      <motion.div
-        className="mt-4 flex items-center gap-2 px-3 py-1.5 rounded-lg"
-        style={{
-          background: 'color-mix(in srgb, var(--color-surface-raised) 60%, transparent)',
-          border: '1px solid var(--border-subtle)',
-        }}
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.35 }}
-      >
-        <Keyboard className="w-3 h-3" style={{ color: 'var(--text-tertiary)' }} />
-        <span className="text-[10px]" style={{ color: 'var(--text-tertiary)' }}>
-          Ctrl+Shift+O 优化 / E 扩写 / S 缩写 / R 改写 / W 续写 / P 润色
-        </span>
-      </motion.div>
-    </motion.div>
-  )
-}
-
-/** Refined loading state with multi-layer animation */
-function WritingLoadingState() {
-  return (
-    <motion.div
-      className="writing-loading flex items-center justify-center min-h-[300px]"
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-    >
-      <div className="flex flex-col items-center gap-4">
-        <div className="relative w-10 h-10">
-          {/* Outer ring */}
-          <motion.div
-            className="absolute inset-0 rounded-xl"
-            style={{
-              border: '1.5px solid color-mix(in srgb, var(--accent-primary) 15%, transparent)',
-            }}
-            animate={{ rotate: 360 }}
-            transition={{
-              duration: 3,
-              repeat: Infinity,
-              ease: 'linear',
-            }}
-          />
-          {/* Inner gradient orb */}
-          <motion.div
-            className="absolute inset-1.5 rounded-lg"
-            style={{
-              background: 'linear-gradient(135deg, color-mix(in srgb, var(--accent-primary) 25%, transparent), color-mix(in srgb, var(--color-character) 18%, transparent))',
-              boxShadow: '0 0 12px color-mix(in srgb, var(--accent-primary) 15%, transparent)',
-            }}
-            animate={{
-              scale: [1, 1.08, 1],
-              opacity: [0.6, 0.9, 0.6],
-            }}
-            transition={{
-              duration: 2,
-              repeat: Infinity,
-              ease: 'easeInOut',
-            }}
-          />
-          {/* Center dot */}
-          <motion.div
-            className="absolute inset-[15px] rounded-sm"
-            style={{
-              background: 'color-mix(in srgb, var(--accent-primary) 60%, transparent)',
-            }}
-            animate={{
-              scale: [1, 0.8, 1],
-              opacity: [0.8, 0.4, 0.8],
-            }}
-            transition={{
-              duration: 1.5,
-              repeat: Infinity,
-              ease: 'easeInOut',
-            }}
-          />
-        </div>
-        <motion.span
-          className="text-xs font-medium tracking-wide"
-          style={{ color: 'var(--text-tertiary)' }}
-          animate={{ opacity: [0.5, 0.8, 0.5] }}
-          transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
-        >
-          正在准备创作空间...
-        </motion.span>
-      </div>
-    </motion.div>
-  )
 }
 
 export function WritingCanvas() {
@@ -296,7 +77,6 @@ export function WritingCanvas() {
   const [isLoading, setIsLoading] = useState(true)
   const [isEmpty, setIsEmpty] = useState(!currentContent?.trim())
   const typingIndicatorTimeoutRef = useRef<NodeJS.Timeout | null>(null)
-  const prefersReducedMotion = usePrefersReducedMotion()
 
   // Simulate loading on mount
   useEffect(() => {
@@ -434,7 +214,7 @@ export function WritingCanvas() {
     }
   }, [paragraphFocusMode, editor])
 
-  // 同步外部内容变化
+  // Sync external content changes
   useEffect(() => {
     if (editor && currentContent !== editor.getText()) {
       editor.commands.setContent(currentContent)
@@ -455,7 +235,7 @@ export function WritingCanvas() {
     }
   }, [focusModeEnabled, editor])
 
-  // 注册编辑器实例供快捷键使用
+  // Register editor instance for keyboard shortcuts
   useEffect(() => {
     if (editor) {
       setEditorInstance(editor)
@@ -485,7 +265,7 @@ export function WritingCanvas() {
     return () => clearInterval(interval)
   }, [currentChapterId, getSessionDuration, getSessionWPM, getTodayWordCount])
 
-  // 自动保存 - debounce 3秒
+  // Auto-save - debounce 3 seconds
   const debouncedSave = useCallback(async () => {
     if (!currentChapterId || isSavingRef.current) return
     if (currentContent === lastSavedContentRef.current) return
@@ -495,13 +275,13 @@ export function WritingCanvas() {
     try {
       await saveCurrentChapter()
       lastSavedContentRef.current = currentContent
-      // 保存草稿版本
+      // Save draft version
       if (currentContent.trim()) {
         await saveDraftVersion(currentChapterId, currentContent)
       }
       markSaved()
     } catch (error) {
-      console.error('自动保存失败:', error)
+      console.error('Auto-save failed:', error)
       setSaveStatus('unsaved')
     } finally {
       isSavingRef.current = false
@@ -523,11 +303,11 @@ export function WritingCanvas() {
     }
   }, [currentContent, debouncedSave, markUnsaved])
 
-  // 快捷键处理
+  // Keyboard shortcut handling
   useEffect(() => {
     const handleKeyDown = (_e: KeyboardEvent) => {
       if (!editor) return
-      // Ctrl+Shift+O 等快捷键在 Tiptap 中处理
+      // Ctrl+Shift+O etc. handled in Tiptap
     }
 
     document.addEventListener('keydown', handleKeyDown)
@@ -540,14 +320,14 @@ export function WritingCanvas() {
       className={`h-full flex flex-col ${typewriterMode ? 'typewriter-mode' : ''}`}
       style={{ backgroundColor: 'var(--writing-bg)' }}
     >
-      {/* 写作区域 - immersive paper texture with vignette and ink wash aesthetic */}
+      {/* Writing area - immersive paper texture with vignette and ink wash aesthetic */}
       <div
         className={`flex-1 overflow-y-auto relative writing-surface writing-surface--textured selection-warm ${focusModeEnabled ? 'vignette-overlay-strong' : 'vignette-overlay'} ${typewriterMode ? 'vignette-overlay-horizontal' : ''}`}
       >
-        {/* 浮动工具栏 */}
+        {/* Floating toolbar */}
         <EditorToolbar editor={editor} />
 
-        {/* 写作卡片容器 - ink wash paper card with subtle depth */}
+        {/* Writing card container - ink wash paper card with subtle depth */}
         <div
           className={`my-8 rounded-2xl max-w-[var(--writing-max-width)] mx-auto writing-card relative ink-texture
             ${paperEdgeDecoration ? 'writing-card--paper-edge' : ''}`}
@@ -569,43 +349,12 @@ export function WritingCanvas() {
             }}
           />
 
-          {/* 章节标题 - ink wash typography */}
+          {/* Chapter title - ink wash typography */}
           <div className="px-12 pt-12 pb-5">
-            <motion.h1
-              className="font-serif-cn text-2xl font-semibold tracking-tight cjk-punctuation-hang"
-              style={{
-                color: 'var(--writing-text)',
-                lineHeight: 'var(--leading-tight)',
-                letterSpacing: 'var(--tracking-tight)',
-                transition: 'color var(--transition-normal)',
-                fontFamily: 'var(--font-serif-cn)',
-              }}
-              initial={{ opacity: 0, y: 8 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: DURATION.SLOW, ease: EASE.SMOOTH }}
-            >
-              {chapterTitle}
-            </motion.h1>
-            {/* Ink wash underline decoration */}
-            <motion.div
-              className="mt-5 flex items-center gap-2"
-              initial={{ opacity: 0, scaleX: 0.8 }}
-              animate={{ opacity: 1, scaleX: 1 }}
-              transition={{ duration: DURATION.SLOW, delay: 0.1, ease: EASE.SMOOTH }}
-            >
-              <div className="h-px flex-1 ink-divider" />
-              <div
-                className="w-8 h-[2px] rounded-full"
-                style={{
-                  background: 'linear-gradient(90deg, color-mix(in srgb, var(--color-character) 40%, transparent), color-mix(in srgb, var(--color-vermillion) 40%, transparent))',
-                  boxShadow: '0 0 6px color-mix(in srgb, var(--color-character) 15%, transparent)',
-                }}
-              />
-              <div className="h-px flex-1 ink-divider" />
-            </motion.div>
+            <ChapterTitle title={chapterTitle} />
           </div>
 
-          {/* 正文编辑器 */}
+          {/* Content editor */}
           <div className="min-h-full px-12 pb-16 relative">
             <AnimatePresence mode="wait">
               {isLoading ? (
@@ -633,7 +382,7 @@ export function WritingCanvas() {
       {/* Floating word count pill */}
       <FloatingWordCount wordCount={wordCount} isTyping={isTyping} />
 
-      {/* 写作统计悬浮组件 */}
+      {/* Writing stats overlay */}
       <WritingStatsOverlay
         wordCount={wordCount}
         sessionWPM={sessionWPM}
@@ -642,101 +391,37 @@ export function WritingCanvas() {
         targetWordCount={targetWordCount}
       />
 
-      {/* 底部状态栏 - glass-ink minimal design */}
+      {/* Bottom status bar - glass-ink minimal design */}
+      <StatusBar
+        chapterTitle={chapterTitle}
+        wordCount={wordCount}
+        todayWordCount={todayWordCount}
+        targetWordCount={targetWordCount}
+        sessionDuration={formatDuration(sessionDuration)}
+        sessionWPM={sessionWPM}
+        humanAIRatio={humanAIRatio}
+        writingStyle={writingStyle}
+        focusModeEnabled={focusModeEnabled}
+        onToggleFocusMode={() => useUIStore.getState().toggleFocusMode()}
+      />
+
+      {/* Extended status bar with typing indicator and save status */}
       <div
         className="flex items-center px-5 py-2 text-xs font-medium glass-ink"
         style={{
           borderTop: '1px solid rgba(255,255,255,0.03)',
           color: 'var(--text-tertiary)',
-          fontFamily: 'var(--font-sans)',
-          minHeight: '36px',
-          gap: '2px',
+          minHeight: '32px',
         }}
       >
-        <span
-          className="px-2 py-0.5 rounded-md"
-          style={{
-            color: 'var(--text-secondary)',
-            background: 'rgba(255,255,255,0.03)',
-            border: '1px solid rgba(255,255,255,0.04)',
-          }}
-        >
-          {chapterTitle}
-        </span>
-        <span className="mx-1.5 opacity-15">|</span>
-        <span className="px-1.5">{wordCount} 字</span>
-        <span className="mx-1.5 opacity-15">|</span>
-        <span className="px-1.5">
-          今日: {todayWordCount} / {targetWordCount} 字
-        </span>
-        <span className="mx-1.5 opacity-15">|</span>
-        <span className="px-1.5">时长: {formatDuration(sessionDuration)}</span>
-        <span className="mx-1.5 opacity-15">|</span>
-        <span className="px-1.5">速度: {sessionWPM} 字/分</span>
-        <span className="mx-1.5 opacity-15">|</span>
-        <span className="px-1.5">人机比例: {humanAIRatio}%</span>
-        <span className="mx-1.5 opacity-15">|</span>
-        <span className="px-1.5" style={{ color: 'var(--color-character)' }}>
-          文笔: {WRITING_STYLE_NAMES[writingStyle] || writingStyle}
-        </span>
-        <span className="mx-1.5 opacity-15">|</span>
-        <button
-          onClick={() => useUIStore.getState().toggleFocusMode()}
-          className={`px-2 py-0.5 rounded-md text-xs transition-all duration-200 ${
-            focusModeEnabled
-              ? 'text-[var(--color-outline)]'
-              : 'text-[var(--text-tertiary)]'
-          }`}
-          style={focusModeEnabled ? {
-            background: 'color-mix(in srgb, var(--color-outline) 12%, transparent)',
-            border: '1px solid color-mix(in srgb, var(--color-outline) 20%, transparent)',
-          } : {
-            border: '1px solid transparent',
-          }}
-          onMouseEnter={(e) => {
-            if (!focusModeEnabled) {
-              (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.04)'
-              ;(e.currentTarget as HTMLElement).style.borderColor = 'rgba(255,255,255,0.06)'
-            }
-          }}
-          onMouseLeave={(e) => {
-            if (!focusModeEnabled) {
-              (e.currentTarget as HTMLElement).style.background = 'transparent'
-              ;(e.currentTarget as HTMLElement).style.borderColor = 'transparent'
-            }
-          }}
-          title="聚焦模式 (Ctrl+Shift+F)"
-        >
-          {focusModeEnabled ? '聚焦中' : '聚焦'}
-        </button>
-
-        {/* Typing indicator */}
-        <AnimatePresence>
-          {isTyping && (
-            <motion.div
-              initial={{ opacity: 0, scale: 0.8 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.8 }}
-              className="flex items-center gap-1.5 px-2 py-0.5 rounded-md"
-              style={{
-                background: 'color-mix(in srgb, var(--color-ifline) 6%, transparent)',
-                border: '1px solid color-mix(in srgb, var(--color-ifline) 12%, transparent)',
-              }}
-            >
-              <motion.div
-                animate={prefersReducedMotion ? {} : { opacity: [1, 0.3, 1] }}
-                transition={prefersReducedMotion ? {} : { duration: 1.2, repeat: Infinity, ease: 'easeInOut' }}
-              >
-                <Type className="w-3 h-3" style={{ color: 'var(--color-ifline)' }} />
-              </motion.div>
-              <span className="text-[10px] font-medium" style={{ color: 'var(--color-ifline)' }}>写作中</span>
-            </motion.div>
-          )}
-        </AnimatePresence>
-
         <div className="ml-auto flex items-center gap-3">
           {/* Auto-save indicator */}
           <SaveStatusIndicator status={saveStatus} lastSavedAt={lastSavedAt} />
+
+          {/* Typing indicator */}
+          <AnimatePresence>
+            {isTyping && <TypingIndicator isTyping={isTyping} />}
+          </AnimatePresence>
 
           {loading.ai && (
             <span className="flex items-center gap-1" style={{ color: 'var(--accent-primary)' }}>
