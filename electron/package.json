@@ -11,7 +11,7 @@
     "electron:dev": "npm run build:electron && electron .",
     "dist": "npm run build:electron && electron-builder",
     "dist:win": "npm run build:electron && electron-builder --win",
-    "dist:win:dir": "npm run build:electron && electron-builder --win --dir"
+    "dist:win_dir": "npm run build:electron && electron-builder --win --dir"
   },
   "build": {
     "appId": "com.writer.app",

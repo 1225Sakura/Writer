@@ -107,7 +107,11 @@ if (-not $SkipElectron) {
         Write-Host "  - 打包应用 ($Platform)..." -ForegroundColor Gray
         if ($BuildUnpacked) {
             Write-Host "  - 构建 unpacked 便携版..." -ForegroundColor Gray
-            npm run dist:$Platform:dir
+            if ($Platform -eq "win") {
+                npm run dist:win_dir
+            } else {
+                npm run dist:$Platform -- --dir
+            }
         } else {
             npm run dist:$Platform
         }
