@@ -1,6 +1,8 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { motion, AnimatePresence, useSpring } from 'framer-motion'
 import { Type, Clock, BookOpen, ChevronUp, ChevronDown, Zap } from 'lucide-react'
+import { DURATION, EASE } from '@/components/shared/AnimationConfig'
+
 
 interface WritingStatsOverlayProps {
   wordCount: number
@@ -128,7 +130,7 @@ export function WritingStatsOverlay({
             initial={{ opacity: 0, scale: 0.8 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.8 }}
-            transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
+            transition={{ duration: DURATION.FAST, ease: EASE.SMOOTH }}
             onClick={toggleVisible}
             className="fixed left-4 bottom-16 z-50 flex items-center justify-center w-8 h-8 rounded-full
                        bg-[var(--color-surface-raised)] border border-[var(--border-default)]
@@ -149,7 +151,7 @@ export function WritingStatsOverlay({
             initial={{ opacity: 0, y: 16, scale: 0.95 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 16, scale: 0.95 }}
-            transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
+            transition={{ duration: DURATION.NORMAL, ease: EASE.SMOOTH }}
             className={`fixed left-4 bottom-16 z-50 flex flex-col
                        rounded-xl overflow-hidden
                        ${expanded ? 'min-w-[200px]' : 'min-w-[160px]'}`}
@@ -208,7 +210,7 @@ export function WritingStatsOverlay({
                   key={wordCount}
                   initial={{ scale: 1.1 }}
                   animate={{ scale: 1 }}
-                  transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
+                  transition={{ duration: DURATION.SLOW, ease: EASE.SMOOTH }}
                 >
                   {Math.round(animatedWordCount.get())}
                 </motion.span>
@@ -243,7 +245,7 @@ export function WritingStatsOverlay({
                   initial={{ height: 0, opacity: 0 }}
                   animate={{ height: 'auto', opacity: 1 }}
                   exit={{ height: 0, opacity: 0 }}
-                  transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
+                  transition={{ duration: DURATION.FAST, ease: EASE.SMOOTH }}
                   className="overflow-hidden"
                 >
                   <div className="px-3 pb-3 space-y-2.5">

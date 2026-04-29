@@ -2,6 +2,7 @@ import { useUIStore } from '@/store'
 import { Button } from '@/components/ui/Button'
 import { ArrowRight, Settings, PenTool } from 'lucide-react'
 import { motion } from 'framer-motion'
+import { DURATION, EASE } from '@/components/shared/AnimationConfig'
 import { usePrefersReducedMotion } from '@/hooks/usePrefersReducedMotion'
 
 /* ============================================================
@@ -43,8 +44,7 @@ export function ChatFooter() {
       style={{
         boxShadow: `
           0 -6px 30px color-mix(in srgb, var(--ink-100) 12%, transparent),
-          0 -1px 0 color-mix(in srgb, var(--accent-100) 15%, transparent) inset,
-          0 0 50px color-mix(in srgb, var(--accent-100) 5%, transparent)
+          0 -1px 0 color-mix(in srgb, var(--accent-100) 15%, transparent) inset
         `,
       }}
       initial={{ y: 20, opacity: 0 }}
@@ -59,7 +59,7 @@ export function ChatFooter() {
           className="flex items-center gap-1.5 text-xs text-secondary hidden sm:inline"
           initial={{ opacity: 0, x: -8 }}
           animate={{ opacity: 1, x: 0 }}
-          transition={{ delay: 0.35, duration: 0.3 }}
+          transition={{ delay: 0.35, duration: DURATION.SLOW, ease: EASE.SMOOTH }}
         >
           <motion.div
             className="w-1.5 h-1.5 rounded-full bg-[var(--accent-primary)]"
@@ -72,95 +72,58 @@ export function ChatFooter() {
 
       {/* Right: Action buttons */}
       <div className="flex items-center gap-1 sm:gap-2">
-        {/* Settings button with refined hover */}
+        {/* Settings button */}
         <motion.div
           whileHover={{ scale: 1.04 }}
           whileTap={{ scale: 0.96 }}
-          className="relative"
         >
-          {/* Hover glow ring */}
-          <motion.div
-            className="absolute inset-[-3px] rounded-xl pointer-events-none"
-            style={{
-              background: 'radial-gradient(circle, color-mix(in srgb, var(--accent-100) 20%, transparent) 0%, transparent 70%)',
-              opacity: 0,
-            }}
-            whileHover={{ opacity: 1 }}
-            transition={{ duration: 0.2 }}
-          />
           <Button
             onClick={() => setCurrentInterface('settings')}
             variant="secondary"
             size="sm"
-            className="touch-target-min group/btn relative z-10"
+            className="touch-target-min"
           >
-            <motion.div
-              className="relative"
-              whileHover={{ rotate: 15 }}
-              transition={{ type: 'spring', stiffness: 300, damping: 15 }}
-            >
-              <Settings className="w-4 h-4 text-secondary group-hover/btn:text-primary transition-colors duration-200" />
-            </motion.div>
+            <Settings className="w-4 h-4" />
             <span className="hidden sm:inline">设定编辑</span>
           </Button>
         </motion.div>
 
-        {/* Primary action - Start Writing with enhanced hover glow */}
+        {/* Primary action - Start Writing */}
         <motion.div
           whileHover={{ scale: 1.04 }}
           whileTap={{ scale: 0.96 }}
           className="relative"
         >
           {/* Pulsing ambient glow ring */}
-          <motion.div
-            className="absolute inset-[-6px] rounded-xl"
-            style={{
-              background: 'radial-gradient(circle, color-mix(in srgb, var(--accent-100) 40%, transparent) 0%, transparent 70%)',
-              opacity: 0.2,
-              filter: 'blur(6px)',
-            }}
-            animate={prefersReducedMotion ? {} : {
-              opacity: [0.15, 0.35, 0.15],
-              scale: [1, 1.08, 1],
-            }}
-            transition={prefersReducedMotion ? { duration: 0 } : { duration: 2.5, repeat: Infinity, ease: 'easeInOut' }}
-          />
-          {/* Hover glow ring */}
-          <motion.div
-            className="absolute inset-[-4px] rounded-xl pointer-events-none"
-            style={{
-              background: 'radial-gradient(circle, color-mix(in srgb, var(--accent-100) 50%, transparent) 0%, transparent 70%)',
-              opacity: 0,
-            }}
-            whileHover={{ opacity: 0.4 }}
-            transition={{ duration: 0.2 }}
-          />
+          {!prefersReducedMotion && (
+            <motion.div
+              className="absolute inset-[-6px] rounded-xl pointer-events-none"
+              style={{
+                background: 'radial-gradient(circle, color-mix(in srgb, var(--accent-100) 30%, transparent) 0%, transparent 70%)',
+                filter: 'blur(6px)',
+              }}
+              animate={{
+                opacity: [0.1, 0.25, 0.1],
+                scale: [1, 1.06, 1],
+              }}
+              transition={{ duration: 2.5, repeat: Infinity, ease: 'easeInOut' }}
+            />
+          )}
           <Button
             onClick={() => setCurrentInterface('writing')}
             variant="glow"
             size="sm"
-            className="touch-target-min group/btn relative z-10"
+            className="touch-target-min relative z-10"
             glowColor="var(--accent-primary)"
             style={{
               background: 'linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-90) 50%, var(--accent-primary) 100%)',
               backgroundSize: '200% 200%',
-              boxShadow: '0 0 16px color-mix(in srgb, var(--accent-100) 35%, transparent), 0 4px 12px color-mix(in srgb, var(--accent-100) 20%, transparent)',
+              boxShadow: '0 0 16px color-mix(in srgb, var(--accent-100) 30%, transparent), 0 4px 12px color-mix(in srgb, var(--accent-100) 15%, transparent)',
             }}
           >
-            <motion.div
-              whileHover={{ rotate: -10 }}
-              transition={{ type: 'spring', stiffness: 300, damping: 15 }}
-            >
-              <PenTool className="w-4 h-4" />
-            </motion.div>
+            <PenTool className="w-4 h-4" />
             <span className="hidden sm:inline">开始写作</span>
-            <motion.div
-              className="relative"
-              whileHover={{ x: 3 }}
-              transition={{ type: 'spring', stiffness: 400, damping: 15 }}
-            >
-              <ArrowRight className="w-3 h-3" />
-            </motion.div>
+            <ArrowRight className="w-3 h-3" />
           </Button>
         </motion.div>
       </div>

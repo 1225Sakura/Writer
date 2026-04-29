@@ -6,6 +6,8 @@
 
 import { motion, AnimatePresence } from 'framer-motion'
 import { Feather, BookOpen, Pen, Sparkles } from 'lucide-react'
+import { DURATION, EASE } from '@/components/shared/AnimationConfig'
+
 
 export type LoadingVariant = 'feather' | 'book' | 'pen' | 'sparkle' | 'orbit' | 'bars' | 'pulseRing' | 'gradientSpinner' | 'textSkeleton'
 
@@ -331,7 +333,7 @@ export function LoadingOverlayVariant({
         <motion.p
           initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1, duration: 0.2 }}
+          transition={{ delay: 0.1, duration: DURATION.FAST, ease: EASE.SMOOTH }}
           className="mt-4 text-sm font-medium"
           style={{ color: 'var(--text-secondary)' }}
         >
@@ -350,7 +352,7 @@ export function LoadingOverlayVariant({
               style={{ backgroundColor: color }}
               initial={{ width: 0 }}
               animate={{ width: `${Math.max(0, Math.min(100, progress))}%` }}
-              transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
+              transition={{ duration: DURATION.SLOW, ease: EASE.SMOOTH }}
             />
           </div>
           <div className="flex justify-end mt-1">
@@ -433,7 +435,7 @@ export function BrandLoadingScreen({
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          transition={{ duration: 0.3 }}
+          transition={{ duration: DURATION.SLOW, ease: EASE.SMOOTH }}
           className="fixed inset-0 z-[200] flex flex-col items-center justify-center"
           style={{
             background: 'linear-gradient(135deg, var(--elevation-1) 0%, var(--elevation-2) 100%)',
@@ -453,7 +455,7 @@ export function BrandLoadingScreen({
           <motion.div
             initial={{ scale: 0.8, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
-            transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+            transition={{ duration: DURATION.SLOW, ease: EASE.SMOOTH }}
             className="relative mb-8"
           >
             <div
@@ -477,7 +479,7 @@ export function BrandLoadingScreen({
           <motion.h1
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2, duration: 0.4 }}
+            transition={{ delay: 0.2, duration: DURATION.SLOW, ease: EASE.SMOOTH }}
             className="text-xl font-semibold mb-2"
             style={{ color: 'var(--text-primary)' }}
           >
@@ -512,7 +514,7 @@ export function BrandLoadingScreen({
                   style={{ background: 'linear-gradient(90deg, var(--accent-primary), var(--accent-hover))' }}
                   initial={{ width: 0 }}
                   animate={{ width: `${progress}%` }}
-                  transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+                  transition={{ duration: DURATION.SLOW, ease: EASE.SMOOTH }}
                 />
               </div>
               <div className="flex justify-end mt-1">

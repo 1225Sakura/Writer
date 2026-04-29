@@ -2,7 +2,7 @@
  * ThemeProvider - 主题提供者
  *
  * 集成6种主题与Ink/Parchment设计令牌系统
- * - dark, light, eye-care, midnight-blue, warm-paper, forest-green
+ * - dark, light, eye-care, deep-blue, sepia, forest
  * - 每个主题完整映射所有CSS变量
  * - 提供视觉预览色板
  * - 平滑主题切换过渡
@@ -79,8 +79,8 @@ const themeMetaList: ThemeMeta[] = [
     },
   },
   {
-    id: 'midnight-blue',
-    label: '午夜蓝',
+    id: 'deep-blue',
+    label: '深夜蓝',
     description: '深邃蓝色，沉浸创作',
     isDark: true,
     preview: {
@@ -91,7 +91,7 @@ const themeMetaList: ThemeMeta[] = [
     },
   },
   {
-    id: 'warm-paper',
+    id: 'sepia',
     label: '暖纸',
     description: '复古暖色，温润书写',
     isDark: false,
@@ -103,7 +103,7 @@ const themeMetaList: ThemeMeta[] = [
     },
   },
   {
-    id: 'forest-green',
+    id: 'forest',
     label: '森林',
     description: '自然深绿，静谧灵感',
     isDark: true,
@@ -188,7 +188,7 @@ const themeVariableMap: Record<Theme, Record<string, string>> = {
     '--ring': '120 35% 60%',
     '--radius': '0.5rem',
   },
-  'midnight-blue': {
+  'deep-blue': {
     '--background': '215 35% 5%',
     '--foreground': '212 30% 92%',
     '--card': '215 30% 9%',
@@ -210,7 +210,7 @@ const themeVariableMap: Record<Theme, Record<string, string>> = {
     '--ring': '215 75% 62%',
     '--radius': '0.5rem',
   },
-  'warm-paper': {
+  'sepia': {
     '--background': '38 30% 94%',
     '--foreground': '32 25% 20%',
     '--card': '38 28% 98%',
@@ -232,7 +232,7 @@ const themeVariableMap: Record<Theme, Record<string, string>> = {
     '--ring': '28 55% 48%',
     '--radius': '0.5rem',
   },
-  'forest-green': {
+  'forest': {
     '--background': '140 15% 7%',
     '--foreground': '120 15% 80%',
     '--card': '140 12% 11%',

@@ -444,6 +444,8 @@ export interface RequestOptions {
   cacheTTL?: number // Cache TTL in ms, 0 to disable, default 1 min
   signal?: AbortSignal
   skipDedup?: boolean // Skip request deduplication
+  /** @deprecated Pass query params via the data argument or URL instead */
+  params?: Record<string, unknown>
 }
 
 // ============================================

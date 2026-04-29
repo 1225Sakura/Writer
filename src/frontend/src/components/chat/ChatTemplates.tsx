@@ -13,6 +13,7 @@ import {
   Clock,
   Ghost,
 } from 'lucide-react'
+import { DURATION, EASE } from '@/components/shared/AnimationConfig'
 
 export interface ChatTemplate {
   id: string
@@ -118,7 +119,7 @@ export function ChatTemplates({ onSelect, disabled }: ChatTemplatesProps) {
         <span>快速开始</span>
         <motion.span
           animate={{ rotate: isOpen ? 180 : 0 }}
-          transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
+          transition={{ duration: DURATION.NORMAL, ease: EASE.SMOOTH }}
         >
           <ChevronDown className="w-3 h-3" />
         </motion.span>
@@ -133,7 +134,7 @@ export function ChatTemplates({ onSelect, disabled }: ChatTemplatesProps) {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              transition={{ duration: 0.15 }}
+              transition={{ duration: DURATION.FAST, ease: EASE.SMOOTH }}
               onClick={() => setIsOpen(false)}
             />
 
@@ -142,7 +143,7 @@ export function ChatTemplates({ onSelect, disabled }: ChatTemplatesProps) {
               initial={{ opacity: 0, y: -10, scale: 0.96 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: -10, scale: 0.96 }}
-              transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
+              transition={{ duration: DURATION.FAST, ease: EASE.SMOOTH }}
               className="absolute bottom-full left-0 mb-2 z-50 w-72 rounded-xl border border-default
                          shadow-2xl overflow-hidden bg-surface-raised"
             >
@@ -170,7 +171,7 @@ export function ChatTemplates({ onSelect, disabled }: ChatTemplatesProps) {
                     whileTap={{ scale: 0.97 }}
                     initial={{ opacity: 0, y: 6 }}
                     animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: i * 0.03, duration: 0.2 }}
+                    transition={{ delay: i * 0.03, duration: DURATION.FAST, ease: EASE.SMOOTH }}
                   >
                     <div className="flex items-center gap-2">
                       <motion.div
@@ -180,7 +181,7 @@ export function ChatTemplates({ onSelect, disabled }: ChatTemplatesProps) {
                           border: `1px solid ${template.color}25`,
                         }}
                         whileHover={{ scale: 1.1, rotate: 5 }}
-                        transition={{ duration: 0.15 }}
+                        transition={{ duration: DURATION.FAST, ease: EASE.SMOOTH }}
                       >
                         <span style={{ color: template.color }}>{template.icon}</span>
                       </motion.div>

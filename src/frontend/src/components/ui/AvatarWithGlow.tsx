@@ -10,6 +10,8 @@ import { clsx } from 'clsx'
 import { twMerge } from 'tailwind-merge'
 import { motion } from 'framer-motion'
 import { User } from 'lucide-react'
+import { DURATION, EASE } from '@/components/shared/AnimationConfig'
+
 
 export type AvatarGlowColor = 'accent' | 'character' | 'item' | 'location' | 'faction' | 'outline' | 'ifline' | 'custom'
 export type AvatarSize = 'xs' | 'sm' | 'md' | 'lg' | 'xl'
@@ -165,7 +167,7 @@ export const AvatarWithGlow = React.forwardRef<HTMLDivElement, AvatarWithGlowPro
           onMouseEnter={() => setIsHovered(true)}
           onMouseLeave={() => setIsHovered(false)}
           whileHover={{ scale: 1.05 }}
-          transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
+          transition={{ duration: DURATION.FAST, ease: EASE.SMOOTH }}
         >
           {/* Border ring */}
           {bordered && (

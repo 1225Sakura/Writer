@@ -9,6 +9,7 @@ import * as React from 'react'
 import { clsx } from 'clsx'
 import { twMerge } from 'tailwind-merge'
 import { motion } from 'framer-motion'
+import { DURATION, EASE } from '@/components/shared/AnimationConfig'
 import { type LucideIcon } from 'lucide-react'
 
 export interface DecorativeDividerProps extends React.HTMLAttributes<HTMLDivElement> {
@@ -139,7 +140,7 @@ export const DecorativeDivider = React.forwardRef<HTMLDivElement, DecorativeDivi
               style={shimmerOverlayStyle}
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              transition={{ delay: 0.5, duration: 0.3 }}
+              transition={{ delay: 0.5, duration: DURATION.SLOW, ease: EASE.SMOOTH }}
             />
           )}
         </motion.div>

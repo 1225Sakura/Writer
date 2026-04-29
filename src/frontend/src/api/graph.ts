@@ -224,7 +224,8 @@ export const multiHopQuery = (
   request: MultiHopQueryRequest,
   projectId?: number
 ): Promise<MultiHopQueryResponse> =>
-  api.post<MultiHopQueryResponse>("/graph/multi-hop", request, {
+  api.post<MultiHopQueryResponse>("/graph/multi-hop", {
+    ...request,
     ...(projectId ? { project_id: projectId } : {}),
   })
 
@@ -233,7 +234,8 @@ export const shortestPath = (
   request: ShortestPathRequest,
   projectId?: number
 ): Promise<ShortestPathResponse> =>
-  api.post<ShortestPathResponse>("/graph/shortest-path", request, {
+  api.post<ShortestPathResponse>("/graph/shortest-path", {
+    ...request,
     ...(projectId ? { project_id: projectId } : {}),
   })
 

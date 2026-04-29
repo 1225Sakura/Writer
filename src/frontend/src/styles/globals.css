@@ -1,919 +1,15 @@
-/* ============================================================
-   Auto Novel Writer — Global Styles
-   Unified Design Token System (Ink/Parchment/Vermillion)
-   Version: 2.0
-   Date: 2026-04-23
-   ============================================================ */
+/**
+ * Auto Novel Writer — Global Component Styles
+ * Component-specific styles that depend on design tokens.
+ * Design tokens are defined in design-tokens.css.
+ * Animations are defined in animations.css.
+ * Responsive utilities are defined in responsive.css.
+ * Typography utilities are defined in typography.css.
+ * ============================================================
+ */
 
 /* ============================================================
-   SECTION 1: DESIGN TOKENS — Ink/Parchment/Vermillion System
-   ============================================================ */
-
-:root {
-  /* --- Ink Scale (Backgrounds / Surfaces) --- */
-  --ink-100: #0d0d12;
-  --ink-95:  #12121c;
-  --ink-90:  #1a1a2e;
-  --ink-85:  #222238;
-  --ink-80:  #252540;
-  --ink-75:  #303048;
-  --ink-70:  #3a3a4a;
-  --ink-65:  #44445a;
-  --ink-60:  #4a4a5a;
-
-  /* --- Paper Scale (Text / Foregrounds) - Enhanced contrast --- */
-  --paper-100: #f5f0e6;
-  --paper-95:  #eee9df;
-  --paper-90:  #e8e4dc;
-  --paper-85:  #dcd6c8;
-  --paper-80:  #d8d2c4;
-  --paper-75:  #b8b8b8;
-  --paper-70:  #999999;
-  --paper-65:  #888888;
-  --paper-60:  #666666;
-
-  /* --- Accent Scale (Interactive / Brand) --- */
-  --accent-100: #5e6ad2;
-  --accent-95:  #6475e0;
-  --accent-90:  #6b77e0;
-  --accent-85:  #5864c4;
-  --accent-80:  #4a5499;
-  --accent-muted: rgba(94, 106, 210, 0.18);
-
-  /* --- Vermillion Scale (Warning / Error) --- */
-  --vermillion-100: #c45c5c;
-  --vermillion-95:  #cc6262;
-  --vermillion-90:  #d45d5d;
-  --vermillion-muted: rgba(196, 92, 92, 0.18);
-
-  /* --- Semantic Mappings --- */
-  --color-danger:  var(--vermillion-100);
-  --color-warning: #e8b87d;
-  --color-success: #5eb5a6;
-  --color-info:    var(--accent-100);
-
-  /* --- Entity Colors --- */
-  --color-character: #e8b87d;
-  --color-item:      #9b7ed9;
-  --color-location:  #5eb5a6;
-  --color-faction:   var(--vermillion-90);
-  --color-outline:   #5b8ee8;
-  --color-ifline:    #7eb84a;
-  --color-world:     #c9a96e;
-  --color-rule:      #8b9dc3;
-
-  /* --- Ambient Glow Opacity (Theme-aware) --- */
-  --ambient-glow-primary:   0.12;
-  --ambient-glow-secondary: 0.10;
-  --ambient-glow-tertiary:  0.05;
-
-  /* --- Surface Mappings (Dark Default) --- */
-  --color-surface-base:    var(--ink-100);
-  --color-surface-raised:  #191a1b;
-  --color-surface-overlay: #202123;
-  --color-surface-input:   #262829;
-  --color-surface-hover:   #2a2c2e;
-
-  /* Extended surface gradient layers */
-  --gradient-surface-subtle: linear-gradient(
-    180deg,
-    var(--ink-95) 0%,
-    var(--ink-100) 100%
-  );
-  --gradient-surface-raised: linear-gradient(
-    180deg,
-    var(--ink-90) 0%,
-    #191a1b 50%,
-    var(--ink-95) 100%
-  );
-  --gradient-surface-deep: linear-gradient(
-    180deg,
-    var(--ink-100) 0%,
-    var(--ink-95) 50%,
-    var(--ink-100) 100%
-  );
-
-  /* --- Elevation Shadow System (Consolidated - Enhanced depth) --- */
-  --shadow-elevation-1: 0 1px 3px rgba(0, 0, 0, 0.20), 0 1px 2px rgba(0, 0, 0, 0.14);
-  --shadow-elevation-2: 0 3px 6px rgba(0, 0, 0, 0.25), 0 2px 4px rgba(0, 0, 0, 0.16);
-  --shadow-elevation-3: 0 6px 12px rgba(0, 0, 0, 0.28), 0 4px 6px rgba(0, 0, 0, 0.18);
-  --shadow-elevation-4: 0 10px 20px rgba(0, 0, 0, 0.32), 0 6px 10px rgba(0, 0, 0, 0.20);
-  --shadow-elevation-5: 0 14px 32px rgba(0, 0, 0, 0.38), 0 8px 16px rgba(0, 0, 0, 0.24);
-
-  /* Blue-tinted depth shadows for dark theme cohesion */
-  --shadow-depth-cool: 0 4px 12px rgba(0, 0, 0, 0.28), 0 2px 6px rgba(20, 40, 80, 0.08);
-  --shadow-depth-warm: 0 4px 12px rgba(0, 0, 0, 0.28), 0 2px 6px rgba(80, 40, 20, 0.06);
-
-  /* --- Legacy Elevation Aliases (DEPRECATED) ---
-     These aliases map to surface colors, NOT shadows.
-     They conflict semantically with --shadow-elevation-*.
-     Kept for backward compat with existing components.
-     Prefer --color-surface-* or --shadow-elevation-* directly.
-     --- */
-  --elevation-1: var(--color-surface-base);
-  --elevation-2: var(--color-surface-raised);
-  --elevation-3: var(--color-surface-overlay);
-  --elevation-4: var(--color-surface-input);
-  --elevation-5: var(--color-surface-hover);
-
-  /* --- Text Hierarchy (Dark Default - Improved readability) --- */
-  --text-primary:   var(--paper-100);
-  --text-secondary: var(--paper-85);
-  --text-tertiary:  #999999;
-  --text-disabled:  #888888;
-  --text-inverse:   var(--ink-100);
-
-  /* --- Borders (Enhanced visibility) --- */
-  --border-default: rgba(255, 255, 255, 0.10);
-  --border-subtle:  rgba(255, 255, 255, 0.06);
-  --border-strong:  rgba(255, 255, 255, 0.18);
-  --border-focus:   rgba(94, 106, 210, 0.60);
-
-  /* Extended border hierarchy */
-  --border-hairline: rgba(255, 255, 255, 0.04);
-  --border-soft:     rgba(255, 255, 255, 0.08);
-  --border-medium:   rgba(255, 255, 255, 0.14);
-  --border-stronger: rgba(255, 255, 255, 0.24);
-  --border-focus-ring: rgba(94, 106, 210, 0.50);
-
-  /* --- Writing Surface (Dark Default) --- */
-  --writing-bg:         #1a1a2e;
-  --writing-text:      var(--paper-100);
-  --writing-muted:     rgba(245, 240, 230, 0.60);
-  --writing-line-highlight: rgba(94, 106, 210, 0.08);
-  --writing-selection: rgba(232, 184, 125, 0.28);
-
-  /* Paper texture noise opacity for dark theme */
-  --paper-texture-opacity: 0.035;
-
-  /* --- Interaction States (Enhanced feedback) --- */
-  --hover-bg:     rgba(255, 255, 255, 0.10);
-  --hover-border: rgba(255, 255, 255, 0.28);
-  --active-bg:    rgba(94, 106, 210, 0.22);
-  --active-border: var(--accent-100);
-  --focus-ring:   rgba(94, 106, 210, 0.65);
-  --disabled-opacity: 0.50;
-
-  /* --- UI Surface Aliases (backward compat) --- */
-  --ui-bg:             var(--color-surface-base);
-  --ui-card:           var(--color-surface-raised);
-  --ui-text:           var(--text-primary);
-  --ui-text-secondary: var(--text-secondary);
-  --ui-border:         var(--border-default);
-  --ui-toolbar:        var(--color-surface-base);
-  --ui-drawer:         var(--color-surface-raised);
-
-  /* --- Typography --- */
-  --font-serif-cn: 'Noto Serif SC', 'Source Han Serif CN', 'Source Han Serif SC',
-    'Source Han Serif', 'Songti SC', 'SimSun', 'STSong', 'STKaiti', serif;
-  --font-sans: 'Inter', -apple-system, 'SF Pro Display', BlinkMacSystemFont,
-    'Noto Sans SC', 'Source Han Sans CN', 'PingFang SC', 'Hiragino Sans GB',
-    'Microsoft YaHei', sans-serif;
-  --font-mono: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', 'SF Mono',
-    'Consolas', 'Monaco', monospace;
-  --font-stats: 'JetBrains Mono', monospace;
-  --font-serif-en: 'Noto Serif SC', 'Georgia', 'Times New Roman', 'Cambria', serif;
-
-  --text-xs:   12px;
-  --text-sm:   13px;
-  --text-base: 14px;
-  --text-md:   15px;
-  --text-lg:   16px;
-  --text-xl:   18px;
-  --text-2xl:  20px;
-  --text-3xl:  24px;
-  --text-4xl:  36px;
-
-  --weight-regular:  400;
-  --weight-medium:   500;
-  --weight-semibold: 510;
-  --weight-bold:     600;
-
-  --tracking-tight:  -0.015em;
-  --tracking-normal: 0;
-  --tracking-wide:   0.02em;
-  --tracking-wide-xl: 0.04em;
-
-  --leading-none:   1;
-  --leading-tight:  1.25;
-  --leading-normal: 1.5;
-  --leading-relaxed: 1.75;
-  --leading-loose:  2;
-
-  --writing-font-size:      17px;
-  --writing-line-height:    1.85;
-  --writing-letter-spacing: 0.01em;
-
-  /* --- Spacing --- */
-  --space-0:   0px;
-  --space-px:  1px;
-  --space-0-5: 2px;
-  --space-1:   4px;
-  --space-1-5: 6px;
-  --space-2:   8px;
-  --space-3:   12px;
-  --space-4:   16px;
-  --space-5:   20px;
-  --space-6:   24px;
-  --space-8:   32px;
-  --space-10:  40px;
-  --space-12:  48px;
-  --space-16:  64px;
-  --space-20:  80px;
-  --space-24:  96px;
-
-  /* --- Border Radius --- */
-  --radius-sm:   4px;
-  --radius-md:   6px;
-  --radius-lg:   10px;
-  --radius-xl:   14px;
-  --radius-2xl:  18px;
-  --radius-pill: 9999px;
-  --radius-full: 9999px;
-
-  --radius-card:   10px;
-  --radius-button: 6px;
-  --radius-input:  6px;
-
-  /* Extended radius scale */
-  --radius-xs:   3px;
-  --radius-sm-2:  5px;
-  --radius-lg-2:  12px;
-  --radius-xl-2:  16px;
-
-  /* --- Shadows (Consolidated System - Enhanced layering) --- */
-  --shadow-card:        0 3px 10px rgba(0, 0, 0, 0.18), 0 2px 4px rgba(0, 0, 0, 0.10);
-  --shadow-drawer:      0 6px 28px rgba(0, 0, 0, 0.26), 0 4px 10px rgba(0, 0, 0, 0.14);
-  --shadow-float:       0 10px 38px rgba(0, 0, 0, 0.30), 0 6px 16px rgba(0, 0, 0, 0.18);
-  --shadow-elevated:    0 5px 16px rgba(0, 0, 0, 0.26), 0 3px 6px rgba(0, 0, 0, 0.14);
-  --shadow-elevated-lg: 0 10px 32px rgba(0, 0, 0, 0.32), 0 6px 12px rgba(0, 0, 0, 0.18);
-  --shadow-glow-sm:      0 0 12px rgba(94, 106, 210, 0.35);
-  --shadow-glow:         0 0 24px rgba(94, 106, 210, 0.45), 0 0 48px rgba(94, 106, 210, 0.20);
-  --shadow-glow-lg:      0 0 40px rgba(94, 106, 210, 0.55), 0 0 80px rgba(94, 106, 210, 0.25);
-  --shadow-inner-glow:   inset 0 0 16px rgba(94, 106, 210, 0.20);
-
-  /* Theme-aware glow colors (auto-adjusted per theme) */
-  --glow-primary: rgba(94, 106, 210, 0.45);
-  --glow-primary-sm: rgba(94, 106, 210, 0.30);
-  --glow-accent: 0 0 18px rgba(94, 106, 210, 0.45), 0 0 36px rgba(94, 106, 210, 0.25), 0 0 72px rgba(94, 106, 210, 0.12);
-
-  /* SPEC glow tokens - strategic glow usage */
-  --glow-subtle: 0 0 8px rgba(94, 106, 210, 0.2);
-  --glow-medium: 0 0 16px rgba(94, 106, 210, 0.35);
-  --glow-strong: 0 0 32px rgba(94, 106, 210, 0.45);
-  --glow-vermillion-subtle: 0 0 8px rgba(196, 92, 92, 0.25);
-  --glow-vermillion: 0 0 16px rgba(196, 92, 92, 0.35);
-
-  /* --- Motion (Refined timing) --- */
-  --transition-instant: 50ms ease;
-  --transition-fast:    100ms ease-out;
-  --transition-base:   180ms ease-out;
-  --transition-normal:  250ms ease-out;
-  --transition-slow:    350ms ease-out;
-  --transition-spring:  400ms cubic-bezier(0.34, 1.56, 0.64, 1);
-
-  --ease-out:    cubic-bezier(0.16, 1, 0.3, 1);
-  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
-  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
-  --ease-smooth: cubic-bezier(0.4, 0, 0.2, 1);
-
-  /* --- Layout --- */
-  --layout-sidebar-width:     240px;
-  --layout-sidebar-collapsed:  48px;
-  --layout-rightpanel-width:  320px;
-  --layout-topbar-height:     48px;
-  --layout-content-max-width: 1200px;
-  --writing-max-width:        720px;
-
-  /* --- Glass / Texture --- */
-  --glass-bg:        rgba(15, 16, 17, 0.75);
-  --glass-bg-strong: rgba(15, 16, 17, 0.92);
-  --glass-border:    rgba(255, 255, 255, 0.12);
-  --glass-blur:      20px;
-
-  /* Finer glass effect tokens */
-  --glass-bg-subtle:   rgba(15, 16, 17, 0.45);
-  --glass-bg-medium:   rgba(15, 16, 17, 0.65);
-  --glass-border-subtle: rgba(255, 255, 255, 0.06);
-  --glass-border-strong: rgba(255, 255, 255, 0.18);
-  --glass-saturation:  1.2;
-  --glass-saturation-high: 1.4;
-
-  /* --- Richer Shadow Levels --- */
-  --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.08);
-  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.08);
-  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.14), 0 2px 4px rgba(0, 0, 0, 0.08);
-  --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.16), 0 4px 6px rgba(0, 0, 0, 0.10);
-  --shadow-xl: 0 20px 25px rgba(0, 0, 0, 0.20), 0 8px 10px rgba(0, 0, 0, 0.12);
-  --shadow-2xl: 0 25px 50px rgba(0, 0, 0, 0.30), 0 12px 20px rgba(0, 0, 0, 0.16);
-  --shadow-inner-soft: inset 0 1px 3px rgba(0, 0, 0, 0.08);
-  --shadow-inner-md: inset 0 2px 6px rgba(0, 0, 0, 0.10);
-
-  /* --- color-mix() Predefined Variables (DRY) --- */
-  --mix-accent-12: color-mix(in srgb, var(--accent-primary) 12%, transparent);
-  --mix-accent-15: color-mix(in srgb, var(--accent-primary) 15%, transparent);
-  --mix-accent-25: color-mix(in srgb, var(--accent-primary) 25%, transparent);
-  --mix-accent-50: color-mix(in srgb, var(--accent-primary) 50%, transparent);
-  --mix-accent-60: color-mix(in srgb, var(--accent-primary) 60%, transparent);
-  --mix-accent-40: color-mix(in srgb, var(--accent-primary) 40%, transparent);
-  --mix-accent-20: color-mix(in srgb, var(--accent-primary) 20%, transparent);
-  --mix-accent-90: color-mix(in srgb, var(--accent-primary) 90%, transparent);
-  --mix-accent-8: color-mix(in srgb, var(--accent-primary) 8%, transparent);
-  --mix-accent-3: color-mix(in srgb, var(--accent-primary) 3%, transparent);
-  --mix-border-subtle-30: color-mix(in srgb, var(--border-subtle) 30%, transparent);
-  --mix-border-subtle-20: color-mix(in srgb, var(--border-subtle) 20%, transparent);
-  --mix-border-subtle-50: color-mix(in srgb, var(--border-subtle) 50%, transparent);
-  --mix-border-subtle-60: color-mix(in srgb, var(--border-subtle) 60%, transparent);
-  --mix-border-default-80: color-mix(in srgb, var(--border-default) 80%, transparent);
-  --mix-ink-100-10: color-mix(in srgb, var(--ink-100) 10%, transparent);
-  --mix-ink-100-8: color-mix(in srgb, var(--ink-100) 8%, transparent);
-  --mix-ink-100-5: color-mix(in srgb, var(--ink-100) 5%, transparent);
-  --mix-ink-100-6: color-mix(in srgb, var(--ink-100) 6%, transparent);
-  --mix-ink-100-4: color-mix(in srgb, var(--ink-100) 4%, transparent);
-  --mix-ink-100-3: color-mix(in srgb, var(--ink-100) 3%, transparent);
-  --mix-paper-100-20: color-mix(in srgb, var(--paper-100) 20%, transparent);
-  --mix-paper-100-6: color-mix(in srgb, var(--paper-100) 6%, transparent);
-  --mix-character-20: color-mix(in srgb, var(--color-character) 20%, transparent);
-  --mix-character-40: color-mix(in srgb, var(--color-character) 40%, transparent);
-  --mix-character-8: color-mix(in srgb, var(--color-character) 8%, transparent);
-  --mix-vermillion-12: color-mix(in srgb, var(--color-vermillion) 12%, transparent);
-  --mix-surface-overlay-85: color-mix(in srgb, var(--color-surface-overlay) 85%, transparent);
-  --mix-surface-overlay-95: color-mix(in srgb, var(--color-surface-overlay) 95%, transparent);
-  --mix-ifline-60: color-mix(in srgb, var(--color-ifline) 60%, transparent);
-  --mix-outline-12: color-mix(in srgb, var(--color-outline) 12%, transparent);
-  --mix-outline-18: color-mix(in srgb, var(--color-outline) 18%, transparent);
-  --mix-ifline-18: color-mix(in srgb, var(--color-ifline) 18%, transparent);
-  --mix-character-70: color-mix(in srgb, var(--color-character) 70%, transparent);
-  --mix-glow-primary-80: color-mix(in srgb, var(--glow-primary) 80%, transparent);
-  --mix-writing-line-highlight-80: color-mix(in srgb, var(--writing-line-highlight) 80%, transparent);
-  --mix-writing-line-highlight-30: color-mix(in srgb, var(--writing-line-highlight) 30%, transparent);
-  --mix-ink-100-20: color-mix(in srgb, var(--ink-100) 20%, transparent);
-  --mix-ifline-50: color-mix(in srgb, var(--color-ifline) 50%, transparent);
-  --mix-character-30: color-mix(in srgb, var(--color-character) 30%, transparent);
-  --mix-character-15: color-mix(in srgb, var(--color-character) 15%, transparent);
-  --mix-character-50: color-mix(in srgb, var(--color-character) 50%, transparent);
-  --mix-character-25: color-mix(in srgb, var(--color-character) 25%, transparent);
-  --mix-character-10: color-mix(in srgb, var(--color-character) 10%, transparent);
-  --mix-accent-70: color-mix(in srgb, var(--accent-primary) 70%, transparent);
-  --mix-accent-30: color-mix(in srgb, var(--accent-primary) 30%, transparent);
-  --mix-accent-15: color-mix(in srgb, var(--accent-primary) 15%, transparent);
-  --mix-glow-primary-60: color-mix(in srgb, var(--glow-primary) 60%, transparent);
-  --mix-border-subtle-60: color-mix(in srgb, var(--border-subtle) 60%, transparent);
-  --mix-surface-base-85: color-mix(in srgb, var(--color-surface-base) 85%, transparent);
-  --mix-indent-color-25: color-mix(in srgb, var(--indent-color) 25%, transparent);
-  --mix-indent-color-15: color-mix(in srgb, var(--indent-color) 15%, transparent);
-  --mix-active-color-60: color-mix(in srgb, var(--active-color) 60%, transparent);
-  --mix-active-color-35: color-mix(in srgb, var(--active-color) 35%, transparent);
-  --mix-active-color-18: color-mix(in srgb, var(--active-color) 18%, transparent);
-  --mix-progress-color-40: color-mix(in srgb, var(--progress-color) 40%, transparent);
-  --mix-accent-10: color-mix(in srgb, var(--accent-primary) 10%, transparent);
-  --mix-border-subtle-15: color-mix(in srgb, var(--border-subtle) 15%, transparent);
-  --mix-surface-raised-80: color-mix(in srgb, var(--color-surface-raised) 80%, var(--paper-100));
-  --mix-surface-raised-80-paper: color-mix(in srgb, var(--color-surface-raised) 80%, var(--paper-100));
-
-  /* --- New Color Mappings --- */
-  --color-surface-pressed: #151618;
-  --color-surface-elevated: #2a2c30;
-  --color-surface-floating: #303236;
-  --color-overlay: rgba(0, 0, 0, 0.55);
-  --color-overlay-light: rgba(0, 0, 0, 0.25);
-  --color-backdrop: rgba(13, 13, 18, 0.65);
-
-  /* Semantic surface aliases */
-  --surface-base:    var(--color-surface-base);
-  --surface-raised:  var(--color-surface-raised);
-  --surface-overlay: var(--color-surface-overlay);
-  --surface-input:   var(--color-surface-input);
-  --surface-hover:   var(--color-surface-hover);
-  --surface-pressed: var(--color-surface-pressed);
-  --surface-elevated: var(--color-surface-elevated);
-  --surface-floating: var(--color-surface-floating);
-
-  /* --- Selection --- */
-  --selection-bg:   rgba(94, 106, 210, 0.40);
-  --selection-color: var(--paper-100);
-
-  /* --- Icon Colors --- */
-  --icon-primary:   var(--text-primary);
-  --icon-secondary: var(--text-secondary);
-  --icon-muted:     var(--text-tertiary);
-  --icon-danger:    var(--color-danger);
-  --icon-success:   var(--color-success);
-  --icon-warning:   var(--color-warning);
-
-  /* --- Legacy Aliases (for component compat) --- */
-  --color-bg-surface:     var(--color-surface-base);
-  --color-text-writing:   var(--paper-100);
-  --color-writing-dark:   var(--ink-90);
-  --color-text-secondary: var(--text-secondary);
-  --color-text-muted:     var(--text-tertiary);
-  --color-bg-card:        var(--color-surface-base);
-  --color-toolbar:        var(--color-surface-base);
-  --color-drawer:         var(--color-surface-raised);
-  --color-border:         var(--border-default);
-  --color-border-subtle:  var(--border-subtle);
-  --color-border-strong:  var(--border-strong);
-  --accent-primary:       var(--accent-100);
-  --accent-hover:         var(--accent-90);
-  --accent-purple:        var(--accent-100);
-  --color-vermillion:     var(--vermillion-100);
-  --color-error:          var(--vermillion-100);
-  --color-black:          var(--ink-100);
-  --color-primary:        var(--accent-100);
-  --ink-black:            var(--ink-100);
-  --charcoal:             var(--ink-90);
-  --paper-white:          var(--paper-100);
-  --paper-frost:          var(--paper-90);
-  --smoke:                var(--ink-70);
-}
-
-/* ============================================================
-   SECTION 2: THEME OVERRIDES
-   ============================================================ */
-
-/* --- Light Theme --- */
-[data-theme="light"],
-.light {
-  --color-surface-base:    #f5f0e6;
-  --color-surface-raised:  #ffffff;
-  --color-surface-overlay: #faf8f3;
-  --color-surface-input:   #f0ebe3;
-  --color-surface-hover:   #e8e4dc;
-
-  --elevation-1: var(--color-surface-base);
-  --elevation-2: var(--color-surface-raised);
-  --elevation-3: var(--color-surface-overlay);
-  --elevation-4: var(--color-surface-input);
-  --elevation-5: var(--color-surface-hover);
-
-  --text-primary:   var(--ink-90);
-  --text-secondary: #5a5a6e;
-  --text-tertiary:  #7a7a8e;
-  --text-disabled:  #b0b0b0;
-  --text-inverse:   var(--paper-100);
-
-  --border-default: rgba(0, 0, 0, 0.10);
-  --border-subtle:  rgba(0, 0, 0, 0.05);
-  --border-strong:  rgba(0, 0, 0, 0.16);
-  --border-focus:   rgba(94, 106, 210, 0.5);
-
-  --writing-bg:         #faf6e8;
-  --writing-text:      var(--ink-90);
-  --writing-muted:     rgba(26, 26, 46, 0.42);
-  --writing-line-highlight: rgba(94, 106, 210, 0.05);
-  --writing-selection: rgba(232, 184, 125, 0.22);
-
-  /* Paper texture noise opacity for light theme - subtle warmth */
-  --paper-texture-opacity: 0.03;
-
-  /* Light theme - glow disabled, using borders instead per SPEC 7.1/7.2 */
-  --glow-primary: transparent;
-  --glow-primary-sm: transparent;
-
-  --hover-bg:      rgba(245, 240, 230, 0.85);
-  --hover-border:  rgba(0, 0, 0, 0.14);
-  --active-bg:     rgba(94, 106, 210, 0.08);
-  --active-border: var(--accent-100);
-  --focus-ring:    rgba(94, 106, 210, 0.45);
-
-  --ui-bg:             var(--color-surface-base);
-  --ui-card:           var(--color-surface-raised);
-  --ui-text:           var(--text-primary);
-  --ui-text-secondary: var(--text-secondary);
-  --ui-border:         var(--border-default);
-  --ui-toolbar:        var(--color-surface-base);
-  --ui-drawer:         var(--color-surface-raised);
-
-  --glass-bg:        rgba(255, 255, 255, 0.72);
-  --glass-bg-strong: rgba(255, 255, 255, 0.88);
-  --glass-border:    rgba(0, 0, 0, 0.10);
-
-  --selection-bg:   rgba(94, 106, 210, 0.22);
-  --selection-color: var(--ink-90);
-
-  /* Light theme shadows - warmer, softer for light backgrounds */
-  --shadow-card:        0 1px 4px rgba(61, 52, 40, 0.06), 0 1px 2px rgba(61, 52, 40, 0.04);
-  --shadow-drawer:      0 3px 16px rgba(61, 52, 40, 0.10), 0 2px 4px rgba(61, 52, 40, 0.06);
-  --shadow-float:       0 6px 24px rgba(61, 52, 40, 0.14), 0 3px 8px rgba(61, 52, 40, 0.08);
-  --shadow-elevated:    0 3px 10px rgba(61, 52, 40, 0.12), 0 2px 4px rgba(61, 52, 40, 0.06);
-  --shadow-elevated-lg: 0 6px 20px rgba(61, 52, 40, 0.16), 0 4px 6px rgba(61, 52, 40, 0.08);
-
-  /* Light theme - ambient glow disabled for better readability */
-  --ambient-glow-primary:   0.04;
-  --ambient-glow-secondary: 0.03;
-  --ambient-glow-tertiary:  0.02;
-
-  /* Legacy aliases for writing area */
-  --ink-black:   var(--ink-90);
-  --paper-white:  #ffffff;
-  --paper-frost:  var(--paper-90);
-  --smoke:        var(--ink-70);
-}
-
-/* --- Eye-Care Theme --- */
-[data-theme="eye-care"] {
-  --color-surface-base:    #1a1f1a;
-  --color-surface-raised:  #242924;
-  --color-surface-overlay: #2a302a;
-  --color-surface-input:   #323832;
-  --color-surface-hover:   #3a403a;
-
-  --elevation-1: var(--color-surface-base);
-  --elevation-2: var(--color-surface-raised);
-  --elevation-3: var(--color-surface-overlay);
-  --elevation-4: var(--color-surface-input);
-  --elevation-5: var(--color-surface-hover);
-
-  --text-primary:   #d4e4cc;
-  --text-secondary: #9cb896;
-  --text-tertiary:  #728b64;
-  --text-disabled:  #4a5a3c;
-  --text-inverse:   #1a1f1a;
-
-  --border-default: rgba(255, 255, 255, 0.06);
-  --border-subtle:  rgba(255, 255, 255, 0.04);
-  --border-strong:  rgba(255, 255, 255, 0.10);
-  --border-focus:   rgba(126, 184, 122, 0.55);
-
-  --accent-100:   #6fa86c;
-  --accent-90:    #7eb87a;
-  --accent-80:    #5c9958;
-  --accent-muted: rgba(126, 184, 122, 0.12);
-
-  --writing-bg:         #1a211a;
-  --writing-text:       #c8dcc0;
-  --writing-muted:      rgba(200, 220, 192, 0.5);
-  --writing-line-highlight: rgba(126, 184, 122, 0.12);
-  --writing-selection:  rgba(126, 184, 122, 0.35);
-
-  /* Eye-care theme glow - green tinted, softer for reduced eye strain */
-  --glow-primary: rgba(126, 184, 122, 0.35);
-  --glow-primary-sm: rgba(126, 184, 122, 0.15);
-
-  --hover-bg:      rgba(255, 255, 255, 0.06);
-  --hover-border:  rgba(255, 255, 255, 0.14);
-  --active-bg:     rgba(126, 184, 122, 0.16);
-  --active-border: #6fa86c;
-  --focus-ring:    rgba(126, 184, 122, 0.52);
-
-  --ui-bg:             var(--color-surface-base);
-  --ui-card:           var(--color-surface-raised);
-  --ui-text:           var(--text-primary);
-  --ui-text-secondary: var(--text-secondary);
-  --ui-border:         var(--border-default);
-  --ui-toolbar:        var(--color-surface-base);
-  --ui-drawer:         var(--color-surface-raised);
-
-  --glass-bg:        rgba(26, 33, 26, 0.75);
-  --glass-bg-strong: rgba(26, 33, 26, 0.88);
-  --glass-border:    rgba(255, 255, 255, 0.06);
-
-  --selection-bg:   rgba(126, 184, 122, 0.35);
-  --selection-color: #1a211a;
-
-  --icon-primary:   var(--text-primary);
-  --icon-secondary: var(--text-secondary);
-  --icon-muted:     var(--text-tertiary);
-  --icon-danger:    var(--color-danger);
-  --icon-success:   var(--color-success);
-  --icon-warning:   var(--color-warning);
-
-  /* Missing surface tokens */
-  --color-surface-pressed:  #151a15;
-  --color-surface-elevated: #3a453a;
-  --color-surface-floating: #424f42;
-  --color-overlay: rgba(0, 0, 0, 0.55);
-  --color-overlay-light: rgba(0, 0, 0, 0.25);
-  --color-backdrop: rgba(26, 33, 26, 0.65);
-
-  /* Missing shadow tokens */
-  --shadow-card:        0 1px 4px rgba(0, 0, 0, 0.18), 0 1px 2px rgba(0, 0, 0, 0.12);
-  --shadow-drawer:      0 3px 16px rgba(0, 0, 0, 0.22), 0 2px 4px rgba(0, 0, 0, 0.12);
-  --shadow-float:       0 6px 24px rgba(0, 0, 0, 0.26), 0 3px 8px rgba(0, 0, 0, 0.14);
-  --shadow-elevated:    0 3px 10px rgba(0, 0, 0, 0.22), 0 2px 4px rgba(0, 0, 0, 0.12);
-  --shadow-elevated-lg: 0 6px 20px rgba(0, 0, 0, 0.28), 0 4px 6px rgba(0, 0, 0, 0.14);
-
-  /* Legacy aliases for writing area */
-  --ink-black:   #1e241e;
-  --paper-white:  #e8efe0;
-  --paper-frost:  #b8c4a8;
-  --smoke:        #323832;
-}
-
-/* --- Warm Paper Theme (Sepia tones - Enhanced vintage paper feel) --- */
-[data-theme="warm-paper"],
-.warm-paper {
-  /* Core surfaces - layered parchment tones */
-  --color-surface-base:    #f7f2e8;
-  --color-surface-raised:  #faf6ec;
-  --color-surface-overlay: #f2ede3;
-  --color-surface-input:   #e8e2d6;
-  --color-surface-hover:   #ddd7c8;
-
-  --elevation-1: var(--color-surface-base);
-  --elevation-2: var(--color-surface-raised);
-  --elevation-3: var(--color-surface-overlay);
-  --elevation-4: var(--color-surface-input);
-  --elevation-5: var(--color-surface-hover);
-
-  /* Text hierarchy - warm sepia tones */
-  --text-primary:   #3d3020;
-  --text-secondary: #6b5a45;
-  --text-tertiary:  #9a8672;
-  --text-disabled:  #c4b5a0;
-  --text-inverse:   #f7f2e8;
-
-  /* Borders - subtle warm shadows */
-  --border-default: rgba(61, 48, 32, 0.08);
-  --border-subtle:  rgba(61, 48, 32, 0.04);
-  --border-strong:  rgba(61, 48, 32, 0.15);
-  --border-focus:   rgba(180, 100, 50, 0.45);
-
-  /* Accent - rich amber/honey tones */
-  --accent-100:   #b87040;
-  --accent-90:    #c88050;
-  --accent-80:    #9a6035;
-  --accent-muted: rgba(180, 112, 64, 0.12);
-
-  /* Writing surface - aged paper appearance */
-  --writing-bg:         #faf4e4;
-  --writing-text:       #3d3020;
-  --writing-muted:      rgba(61, 48, 32, 0.35);
-  --writing-line-highlight: rgba(180, 112, 64, 0.05);
-  --writing-selection:  rgba(180, 112, 64, 0.18);
-
-  /* Warm amber glow */
-  --glow-primary: rgba(180, 112, 64, 0.3);
-  --glow-primary-sm: rgba(180, 112, 64, 0.12);
-
-  /* Interaction states */
-  --hover-bg:      rgba(250, 246, 236, 0.8);
-  --hover-border:  rgba(61, 48, 32, 0.12);
-  --active-bg:     rgba(180, 112, 64, 0.08);
-  --active-border: #b87040;
-  --focus-ring:    rgba(180, 112, 64, 0.35);
-
-  /* UI surfaces */
-  --ui-bg:             var(--color-surface-base);
-  --ui-card:           var(--color-surface-raised);
-  --ui-text:           var(--text-primary);
-  --ui-text-secondary: var(--text-secondary);
-  --ui-border:         var(--border-default);
-  --ui-toolbar:        var(--color-surface-base);
-  --ui-drawer:         var(--color-surface-raised);
-
-  /* Glass with warm tint */
-  --glass-bg:        rgba(250, 246, 240, 0.78);
-  --glass-bg-strong: rgba(250, 246, 240, 0.90);
-  --glass-border:    rgba(61, 48, 32, 0.08);
-
-  /* Selection */
-  --selection-bg:   rgba(180, 112, 64, 0.18);
-  --selection-color: #3d3020;
-
-  /* Legacy aliases for writing area */
-  --ink-black:   #faf4e4;
-  --paper-white:  #3d3020;
-  --paper-frost:  #6b5a45;
-  --smoke:        #9a8672;
-
-  /* Missing surface tokens */
-  --color-surface-pressed:  #e0d8c8;
-  --color-surface-elevated: #f0ebe0;
-  --color-surface-floating: #f5f0e6;
-  --color-overlay: rgba(61, 48, 32, 0.45);
-  --color-overlay-light: rgba(61, 48, 32, 0.20);
-  --color-backdrop: rgba(247, 242, 232, 0.72);
-
-  /* Missing shadow tokens */
-  --shadow-card:        0 1px 4px rgba(61, 48, 32, 0.08), 0 1px 2px rgba(61, 48, 32, 0.04);
-  --shadow-drawer:      0 3px 16px rgba(61, 48, 32, 0.12), 0 2px 4px rgba(61, 48, 32, 0.06);
-  --shadow-float:       0 6px 24px rgba(61, 48, 32, 0.14), 0 3px 8px rgba(61, 48, 32, 0.08);
-  --shadow-elevated:    0 3px 10px rgba(61, 48, 32, 0.10), 0 2px 4px rgba(61, 48, 32, 0.05);
-  --shadow-elevated-lg: 0 6px 20px rgba(61, 48, 32, 0.14), 0 4px 6px rgba(61, 48, 32, 0.07);
-
-  /* Paper texture - enhanced for warm-paper */
-  --paper-texture-opacity: 0.045;
-}
-
-/* --- Midnight Blue Theme --- */
-[data-theme="midnight-blue"],
-.midnight-blue {
-  /* Deep blue-black base with true midnight feel */
-  --color-surface-base:    #080c14;
-  --color-surface-raised:  #0d1520;
-  --color-surface-overlay: #141c2a;
-  --color-surface-input:   #1a2434;
-  --color-surface-hover:   #212c3e;
-
-  --elevation-1: var(--color-surface-base);
-  --elevation-2: var(--color-surface-raised);
-  --elevation-3: var(--color-surface-overlay);
-  --elevation-4: var(--color-surface-input);
-  --elevation-5: var(--color-surface-hover);
-
-  /* Refined text hierarchy with blue undertone */
-  --text-primary:   #e4ecf7;
-  --text-secondary:  #9db5cf;
-  --text-tertiary:   #6a8299;
-  --text-disabled:   #3d5066;
-  --text-inverse:    #080c14;
-
-  /* Blue-tinted borders with better visibility */
-  --border-default: rgba(96, 165, 250, 0.12);
-  --border-subtle:   rgba(96, 165, 250, 0.06);
-  --border-strong:   rgba(96, 165, 250, 0.22);
-  --border-focus:    rgba(96, 165, 250, 0.65);
-
-  /* Enhanced blue accent palette with depth */
-  --accent-100:   #5b98f8;
-  --accent-95:    #6ba6fa;
-  --accent-90:    #4a87e6;
-  --accent-85:    #3d75d4;
-  --accent-80:    #2e62c2;
-  --accent-muted: rgba(91, 152, 248, 0.15);
-
-  /* Writing surface with deep blue tint */
-  --writing-bg:         #0a1020;
-  --writing-text:       #e4ecf7;
-  --writing-muted:      rgba(228, 236, 247, 0.45);
-  --writing-line-highlight: rgba(91, 152, 248, 0.08);
-  --writing-selection:  rgba(91, 152, 248, 0.28);
-
-  /* Sophisticated multi-layer blue glow system */
-  --glow-primary: rgba(91, 152, 248, 0.45);
-  --glow-primary-sm: rgba(91, 152, 248, 0.25);
-  --glow-accent: 0 0 20px rgba(91, 152, 248, 0.5), 0 0 40px rgba(91, 152, 248, 0.25), 0 0 80px rgba(91, 152, 248, 0.12);
-
-  /* Blue-tinted interaction states */
-  --hover-bg:      rgba(91, 152, 248, 0.10);
-  --hover-border:  rgba(91, 152, 248, 0.24);
-  --active-bg:     rgba(91, 152, 248, 0.18);
-  --active-border: #5b9bf8;
-  --focus-ring:    rgba(91, 152, 248, 0.65);
-
-  --ui-bg:             var(--color-surface-base);
-  --ui-card:           var(--color-surface-raised);
-  --ui-text:           var(--text-primary);
-  --ui-text-secondary: var(--text-secondary);
-  --ui-border:         var(--border-default);
-  --ui-toolbar:        var(--color-surface-base);
-  --ui-drawer:         var(--color-surface-raised);
-
-  /* Deep blue glass with blue edge highlights */
-  --glass-bg:        rgba(13, 21, 32, 0.78);
-  --glass-bg-strong: rgba(13, 21, 32, 0.90);
-  --glass-border:    rgba(91, 152, 248, 0.12);
-
-  --selection-bg:   rgba(91, 152, 248, 0.28);
-  --selection-color: #e4ecf7;
-
-  /* Legacy aliases for writing area */
-  --ink-black:   #0a1020;
-  --paper-white:  #e4ecf7;
-  --paper-frost:  #9db5cf;
-  --smoke:        #6a8299;
-
-  /* Missing surface tokens */
-  --color-surface-pressed:  #0a1018;
-  --color-surface-elevated: #283248;
-  --color-surface-floating: #303c54;
-  --color-overlay: rgba(0, 0, 0, 0.60);
-  --color-overlay-light: rgba(0, 0, 0, 0.30);
-  --color-backdrop: rgba(8, 12, 20, 0.72);
-
-  /* Missing shadow tokens */
-  --shadow-card:        0 1px 4px rgba(0, 0, 0, 0.22), 0 1px 2px rgba(0, 0, 0, 0.14);
-  --shadow-drawer:      0 3px 16px rgba(0, 0, 0, 0.28), 0 2px 4px rgba(0, 0, 0, 0.16);
-  --shadow-float:       0 6px 24px rgba(0, 0, 0, 0.32), 0 3px 8px rgba(0, 0, 0, 0.18);
-  --shadow-elevated:    0 3px 10px rgba(0, 0, 0, 0.26), 0 2px 4px rgba(0, 0, 0, 0.14);
-  --shadow-elevated-lg: 0 6px 20px rgba(0, 0, 0, 0.32), 0 4px 6px rgba(0, 0, 0, 0.16);
-
-  /* Blue-tinted shadows for depth cohesion */
-  --shadow-elevation-1: 0 1px 3px rgba(0, 0, 0, 0.25), 0 1px 2px rgba(0, 0, 0, 0.15);
-  --shadow-elevation-2: 0 3px 6px rgba(0, 0, 0, 0.30), 0 2px 4px rgba(0, 0, 0, 0.18);
-  --shadow-elevation-3: 0 6px 12px rgba(0, 0, 0, 0.35), 0 4px 6px rgba(0, 0, 0, 0.20);
-  --shadow-elevation-4: 0 8px 18px rgba(0, 0, 0, 0.38), 0 5px 8px rgba(0, 0, 0, 0.22);
-  --shadow-elevation-5: 0 10px 24px rgba(0, 0, 0, 0.42), 0 6px 10px rgba(0, 0, 0, 0.26);
-
-  /* Deep midnight background gradient layers */
-  background:
-    radial-gradient(ellipse 90% 60% at 50% 0%, rgba(30, 60, 114, 0.18) 0%, transparent 60%),
-    radial-gradient(ellipse 70% 50% at 20% 80%, rgba(20, 40, 80, 0.12) 0%, transparent 50%),
-    radial-gradient(ellipse 50% 35% at 80% 20%, rgba(40, 80, 140, 0.08) 0%, transparent 40%),
-    linear-gradient(180deg, #080c14 0%, #0d1520 40%, #0a1020 70%, #080c14 100%);
-}
-
-/* --- Forest Green Theme --- */
-[data-theme="forest-green"],
-.forest-green {
-  /* Deep forest base with layered green undertones */
-  --color-surface-base:    #0a120e;
-  --color-surface-raised:  #111a14;
-  --color-surface-overlay: #192219;
-  --color-surface-input:   #212c22;
-  --color-surface-hover:   #283428;
-
-  --elevation-1: var(--color-surface-base);
-  --elevation-2: var(--color-surface-raised);
-  --elevation-3: var(--color-surface-overlay);
-  --elevation-4: var(--color-surface-input);
-  --elevation-5: var(--color-surface-hover);
-
-  /* Text hierarchy - natural forest greens */
-  --text-primary:   #c8dcc8;
-  --text-secondary: #94b894;
-  --text-tertiary:  #5e7e5e;
-  --text-disabled:  #3a4a3a;
-  --text-inverse:   #0a120e;
-
-  /* Borders - subtle moss-green tints */
-  --border-default: rgba(100, 180, 120, 0.10);
-  --border-subtle:  rgba(100, 180, 120, 0.05);
-  --border-strong:  rgba(100, 180, 120, 0.18);
-  --border-focus:   rgba(100, 190, 130, 0.58);
-
-  /* Rich forest green accent palette with depth */
-  --accent-100:   #5aaf72;
-  --accent-95:    #68be82;
-  --accent-90:    #4a9f62;
-  --accent-85:    #3a8f52;
-  --accent-80:    #2a7f42;
-  --accent-muted: rgba(90, 175, 114, 0.12);
-
-  /* Writing surface - deep forest clearing feel */
-  --writing-bg:         #0d1610;
-  --writing-text:       #c8dcc8;
-  --writing-muted:      rgba(200, 220, 200, 0.45);
-  --writing-line-highlight: rgba(90, 175, 114, 0.06);
-  --writing-selection:  rgba(90, 175, 114, 0.22);
-
-  /* Sophisticated multi-layer forest green glow */
-  --glow-primary: rgba(90, 175, 114, 0.45);
-  --glow-primary-sm: rgba(90, 175, 114, 0.22);
-  --glow-accent: 0 0 20px rgba(90, 175, 114, 0.5), 0 0 40px rgba(90, 175, 114, 0.25), 0 0 80px rgba(90, 175, 114, 0.10);
-
-  /* Interaction states - natural leaf-green feedback */
-  --hover-bg:      rgba(90, 175, 114, 0.10);
-  --hover-border:  rgba(90, 175, 114, 0.22);
-  --active-bg:     rgba(90, 175, 114, 0.16);
-  --active-border: #5aaf72;
-  --focus-ring:    rgba(90, 175, 114, 0.58);
-
-  --ui-bg:             var(--color-surface-base);
-  --ui-card:           var(--color-surface-raised);
-  --ui-text:           var(--text-primary);
-  --ui-text-secondary: var(--text-secondary);
-  --ui-border:         var(--border-default);
-  --ui-toolbar:        var(--color-surface-base);
-  --ui-drawer:         var(--color-surface-raised);
-
-  /* Forest glass with subtle green tint */
-  --glass-bg:        rgba(18, 26, 20, 0.78);
-  --glass-bg-strong: rgba(18, 26, 20, 0.90);
-  --glass-border:    rgba(90, 175, 114, 0.08);
-
-  --selection-bg:   rgba(90, 175, 114, 0.25);
-  --selection-color: #c8dcc8;
-
-  /* Legacy aliases for writing area */
-  --ink-black:   #0d1610;
-  --paper-white:  #c8dcc8;
-  --paper-frost:  #94b894;
-  --smoke:        #5e7e5e;
-
-  /* Missing surface tokens */
-  --color-surface-pressed:  #070e0a;
-  --color-surface-elevated: #2a382a;
-  --color-surface-floating: #324232;
-  --color-overlay: rgba(0, 0, 0, 0.55);
-  --color-overlay-light: rgba(0, 0, 0, 0.25);
-  --color-backdrop: rgba(10, 18, 14, 0.70);
-
-  /* Missing shadow tokens */
-  --shadow-card:        0 1px 4px rgba(0, 0, 0, 0.20), 0 1px 2px rgba(0, 0, 0, 0.12);
-  --shadow-drawer:      0 3px 16px rgba(0, 0, 0, 0.26), 0 2px 4px rgba(0, 0, 0, 0.14);
-  --shadow-float:       0 6px 24px rgba(0, 0, 0, 0.30), 0 3px 8px rgba(0, 0, 0, 0.16);
-  --shadow-elevated:    0 3px 10px rgba(0, 0, 0, 0.24), 0 2px 4px rgba(0, 0, 0, 0.12);
-  --shadow-elevated-lg: 0 6px 20px rgba(0, 0, 0, 0.30), 0 4px 6px rgba(0, 0, 0, 0.15);
-
-  /* Green-tinted shadows for depth cohesion */
-  --shadow-elevation-1: 0 1px 3px rgba(0, 0, 0, 0.20), 0 1px 2px rgba(0, 0, 0, 0.12);
-  --shadow-elevation-2: 0 3px 6px rgba(0, 0, 0, 0.25), 0 2px 4px rgba(0, 0, 0, 0.15);
-  --shadow-elevation-3: 0 6px 12px rgba(0, 0, 0, 0.28), 0 4px 6px rgba(0, 0, 0, 0.16);
-  --shadow-elevation-4: 0 8px 18px rgba(0, 0, 0, 0.32), 0 5px 8px rgba(0, 0, 0, 0.18);
-  --shadow-elevation-5: 0 10px 24px rgba(0, 0, 0, 0.36), 0 6px 10px rgba(0, 0, 0, 0.22);
-
-  /* Forest atmosphere - layered natural gradients */
-  background:
-    radial-gradient(ellipse 90% 60% at 50% 0%, rgba(40, 90, 50, 0.15) 0%, transparent 55%),
-    radial-gradient(ellipse 70% 50% at 20% 80%, rgba(30, 70, 40, 0.10) 0%, transparent 45%),
-    radial-gradient(ellipse 50% 35% at 80% 20%, rgba(50, 100, 60, 0.08) 0%, transparent 40%),
-    linear-gradient(180deg, #0a120e 0%, #111a14 40%, #0d1610 70%, #0a120e 100%);
-}
-
-/* ============================================================
-   SECTION 3: BASE RESET
+   SECTION 1: BASE RESET
    ============================================================ */
 
 *, *::before, *::after {
@@ -927,7 +23,6 @@ html, body, #root {
   width: 100%;
 }
 
-/* Theme transition helper - applied briefly during theme switch */
 html.theme-transitioning,
 html.theme-transitioning body {
   transition: background-color 0.35s var(--ease-smooth), color 0.35s var(--ease-smooth);
@@ -940,7 +35,7 @@ html.theme-transitioning body * {
 }
 
 body {
-  font-family: var(--font-sans);
+  font-family: var(--font-interface);
   font-size: var(--text-base);
   font-weight: var(--weight-regular);
   line-height: var(--leading-normal);
@@ -953,7 +48,7 @@ body {
 }
 
 /* ============================================================
-   SECTION 4: TYPOGRAPHY BASE
+   SECTION 2: TYPOGRAPHY BASE
    ============================================================ */
 
 h1, h2, h3, h4, h5, h6 {
@@ -991,7 +86,7 @@ code, pre {
 }
 
 /* ============================================================
-   SECTION 5: SCROLLBAR & SELECTION
+   SECTION 3: SCROLLBAR & SELECTION
    ============================================================ */
 
 ::-webkit-scrollbar {
@@ -1021,7 +116,7 @@ code, pre {
   scrollbar-color: var(--border-strong) var(--color-surface-base);
 }
 
-/* CategoryNav: narrower, more subtle scrollbar */
+/* CategoryNav: narrower scrollbar */
 .category-nav-scroll::-webkit-scrollbar {
   width: 4px;
 }
@@ -1055,7 +150,7 @@ code, pre {
 }
 
 /* ============================================================
-   SECTION 6: LAYOUT CLASSES
+   SECTION 4: LAYOUT CLASSES
    ============================================================ */
 
 .layout-sidebar {
@@ -1084,7 +179,7 @@ code, pre {
 }
 
 /* ============================================================
-   SECTION 7: BUTTON COMPONENTS
+   SECTION 5: BUTTON COMPONENTS
    ============================================================ */
 
 .btn {
@@ -1095,7 +190,7 @@ code, pre {
   padding: var(--space-2) var(--space-4);
   font-size: var(--text-sm);
   font-weight: var(--weight-medium);
-  font-family: var(--font-sans);
+  font-family: var(--font-interface);
   border-radius: var(--radius-md);
   border: 1px solid transparent;
   cursor: pointer;
@@ -1180,14 +275,14 @@ code, pre {
 }
 
 /* ============================================================
-   SECTION 8: INPUT COMPONENTS
+   SECTION 6: INPUT COMPONENTS
    ============================================================ */
 
 .input {
   width: 100%;
   padding: var(--space-2) var(--space-3);
   font-size: var(--text-sm);
-  font-family: var(--font-sans);
+  font-family: var(--font-interface);
   color: var(--text-primary);
   background: var(--color-surface-input);
   border: 1px solid var(--border-default);
@@ -1210,7 +305,7 @@ code, pre {
 }
 
 /* ============================================================
-   SECTION 9: CARD COMPONENTS
+   SECTION 7: CARD COMPONENTS
    ============================================================ */
 
 .card {
@@ -1226,19 +321,17 @@ code, pre {
 }
 
 /* ============================================================
-   SECTION 10: WRITING AREA
+   SECTION 8: WRITING AREA
    ============================================================ */
 
 .writing-area {
-  font-family: var(--font-serif-cn), var(--font-serif-en);
+  font-family: var(--font-writing);
   font-size: var(--writing-font-size);
   line-height: var(--writing-line-height);
   letter-spacing: var(--writing-letter-spacing);
   color: var(--writing-text);
   background-color: var(--writing-bg);
-  transition:
-    color var(--transition-normal),
-    background-color var(--transition-normal);
+  transition: color var(--transition-normal), background-color var(--transition-normal);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
@@ -1246,18 +339,17 @@ code, pre {
 }
 
 .writing-area p {
-  margin-bottom: 1.5em;
-  transition: color var(--transition-fast);
-  text-indent: 2em;
+  margin-bottom: var(--writing-paragraph-spacing);
+  text-indent: var(--writing-text-indent);
 }
 
 .writing-area p:first-of-type {
   text-indent: 0;
 }
 
-/* Tiptap Editor - refined with elegant spacing and smooth transitions */
+/* Tiptap Editor */
 .writing-area .tiptap {
-  font-family: var(--font-serif-cn), var(--font-serif-en);
+  font-family: var(--font-writing);
   font-size: var(--writing-font-size);
   line-height: var(--writing-line-height);
   letter-spacing: var(--writing-letter-spacing);
@@ -1273,13 +365,11 @@ code, pre {
   min-height: 100%;
 }
 
-/* Elegant paragraph spacing with refined rhythm */
 .writing-area .tiptap p {
-  margin-bottom: 1.5em;
-  text-indent: 2em;
+  margin-bottom: var(--writing-paragraph-spacing);
+  text-indent: var(--writing-text-indent);
   transition: opacity 0.3s ease, filter 0.3s ease;
   position: relative;
-  line-height: var(--writing-line-height);
 }
 
 .writing-area .tiptap p.is-editor-empty:first-child::before {
@@ -1294,7 +384,7 @@ code, pre {
 .writing-area .tiptap h1,
 .writing-area .tiptap h2,
 .writing-area .tiptap h3 {
-  font-family: var(--font-serif-cn), var(--font-serif-en);
+  font-family: var(--font-writing);
   font-weight: var(--weight-medium);
   color: var(--writing-text);
   line-height: var(--leading-tight);
@@ -1323,16 +413,10 @@ code, pre {
   transition: background 0.3s ease;
 }
 
-/* Cursor - refined with elegant glow */
 .writing-area .tiptap .ProseMirror-focused {
   outline: none;
 }
 
-.writing-area .tiptap {
-  caret-color: var(--color-character);
-}
-
-/* Refined selection with subtle glow */
 .writing-area .tiptap ::selection {
   background: var(--writing-selection) !important;
   color: var(--writing-text) !important;
@@ -1345,7 +429,6 @@ code, pre {
   text-shadow: none;
 }
 
-/* Headings */
 .writing-area .tiptap h1,
 .writing-area .tiptap h2,
 .writing-area .tiptap h3 {
@@ -1359,7 +442,6 @@ code, pre {
   margin-top: 0;
 }
 
-/* Blockquote */
 .writing-area .tiptap blockquote {
   border-left: 3px solid rgba(126, 184, 122, 0.3);
   padding-left: 1em;
@@ -1368,7 +450,6 @@ code, pre {
   font-style: italic;
 }
 
-/* HR */
 .writing-area .tiptap hr {
   border: none;
   height: 1px;
@@ -1376,7 +457,6 @@ code, pre {
   margin: 2em 0;
 }
 
-/* Lists */
 .writing-area .tiptap ul,
 .writing-area .tiptap ol {
   padding-left: 1.5em;
@@ -1392,7 +472,6 @@ code, pre {
   color: rgba(126, 184, 122, 0.5);
 }
 
-/* Code inline */
 .writing-area .tiptap code {
   background: rgba(255, 255, 255, 0.05);
   padding: 0.15em 0.4em;
@@ -1401,7 +480,6 @@ code, pre {
   color: rgba(245, 240, 230, 0.85);
 }
 
-/* Highlight */
 .writing-area .tiptap mark {
   background: rgba(126, 184, 122, 0.2);
   color: var(--writing-text);
@@ -1409,26 +487,30 @@ code, pre {
   border-radius: 2px;
 }
 
-/* Focus mode dim */
 .writing-area .tiptap [data-focus-mode-dim] {
   transition: opacity 0.4s ease, filter 0.4s ease;
 }
 
-/* Smooth scroll */
 .writing-area .tiptap {
   scroll-behavior: smooth;
 }
 
+/* First paragraph no indent */
+.writing-area .tiptap > p:first-child,
+.writing-area .tiptap > h1 + p,
+.writing-area .tiptap > h2 + p,
+.writing-area .tiptap > h3 + p {
+  text-indent: 0;
+}
+
 /* ============================================================
-   SECTION 10A: ENHANCED WRITING EDITOR STYLES
+   SECTION 9: ENHANCED WRITING EDITOR
    ============================================================ */
 
-/* Refined editor container with subtle glow border */
 .writing-card {
   position: relative;
-  transition:
-    box-shadow var(--transition-slow) var(--ease-out),
-    border-color var(--transition-normal) var(--ease-out);
+  transition: box-shadow var(--transition-slow) var(--ease-out),
+              border-color var(--transition-normal) var(--ease-out);
 }
 
 .writing-card::before {
@@ -1439,10 +521,10 @@ code, pre {
   padding: 1px;
   background: linear-gradient(
     180deg,
-    var(--mix-accent-12) 0%,
-    var(--mix-border-subtle-30) 30%,
+    color-mix(in srgb, var(--accent-primary) 12%, transparent) 0%,
+    color-mix(in srgb, var(--border-subtle) 30%, transparent) 30%,
     transparent 60%,
-    var(--mix-border-subtle-20) 100%
+    color-mix(in srgb, var(--border-subtle) 20%, transparent) 100%
   );
   -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
   -webkit-mask-composite: xor;
@@ -1456,19 +538,13 @@ code, pre {
   opacity: 0.9;
 }
 
-/* Elegant shadow layers for writing card */
 .writing-card-shadow {
   box-shadow:
-    0 2px 8px var(--mix-ink-100-10),
-    0 8px 24px var(--mix-ink-100-8),
-    0 16px 48px var(--mix-ink-100-5),
+    0 2px 8px color-mix(in srgb, var(--ink-100) 10%, transparent),
+    0 8px 24px color-mix(in srgb, var(--ink-100) 8%, transparent),
+    0 16px 48px color-mix(in srgb, var(--ink-100) 5%, transparent),
     inset 0 1px 0 var(--border-subtle),
-    inset 0 -1px 0 var(--mix-paper-100-20);
-}
-
-/* Paper edge decoration - optional subtle texture */
-.writing-card--paper-edge {
-  position: relative;
+    inset 0 -1px 0 color-mix(in srgb, var(--paper-100) 20%, transparent);
 }
 
 .writing-card--paper-edge::after {
@@ -1480,26 +556,18 @@ code, pre {
   height: 3px;
   background: linear-gradient(
     90deg,
-    var(--mix-character-20) 0%,
-    var(--mix-accent-15) 25%,
-    var(--mix-vermillion-12) 50%,
-    var(--mix-accent-15) 75%,
-    var(--mix-character-20) 100%
+    color-mix(in srgb, var(--color-character) 20%, transparent) 0%,
+    color-mix(in srgb, var(--accent-primary) 15%, transparent) 25%,
+    color-mix(in srgb, var(--color-vermillion) 12%, transparent) 50%,
+    color-mix(in srgb, var(--accent-primary) 15%, transparent) 75%,
+    color-mix(in srgb, var(--color-character) 20%, transparent) 100%
   );
   border-radius: 2px 2px 0 0;
   opacity: 0.4;
   pointer-events: none;
 }
 
-/* First paragraph no indent */
-.writing-area .tiptap > p:first-child,
-.writing-area .tiptap > h1 + p,
-.writing-area .tiptap > h2 + p,
-.writing-area .tiptap > h3 + p {
-  text-indent: 0;
-}
-
-/* Current paragraph highlight (iA Writer-style focus mode) */
+/* Current paragraph highlight */
 .writing-area .tiptap p.is-current-paragraph {
   position: relative;
 }
@@ -1513,8 +581,8 @@ code, pre {
   width: 3px;
   background: linear-gradient(
     180deg,
-    var(--mix-accent-60) 0%,
-    var(--mix-character-40) 100%
+    color-mix(in srgb, var(--accent-primary) 60%, transparent) 0%,
+    color-mix(in srgb, var(--color-character) 40%, transparent) 100%
   );
   border-radius: 2px;
   opacity: 0.7;
@@ -1526,29 +594,49 @@ code, pre {
   to { opacity: 0.7; transform: translateX(0); }
 }
 
-/* Enhanced selection highlight */
-.writing-area .tiptap ::selection {
-  background: var(--writing-selection) !important;
-  color: var(--writing-text) !important;
-  text-shadow: none;
+/* Paragraph hover indicator */
+.writing-area .tiptap p:hover::before {
+  content: '';
+  position: absolute;
+  left: -12px;
+  top: 2px;
+  bottom: 2px;
+  width: 2px;
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--glow-primary) 80%, transparent) 0%,
+    transparent 100%
+  );
+  border-radius: 1px;
+  opacity: 0;
+  animation: paragraph-indicator-fade-in 0.2s ease forwards;
 }
 
-.writing-area .tiptap ::-moz-selection {
-  background: var(--writing-selection) !important;
-  color: var(--writing-text) !important;
-  text-shadow: none;
+@keyframes paragraph-indicator-fade-in {
+  from { opacity: 0; transform: translateX(-2px); }
+  to { opacity: 0.6; transform: translateX(0); }
 }
 
-/* Refined cursor styling */
-.writing-area .tiptap {
-  caret-color: var(--color-character);
+/* Enhanced has-focus highlight */
+.writing-area .tiptap p.has-focus::after {
+  content: '';
+  position: absolute;
+  left: -10px;
+  right: -10px;
+  top: -3px;
+  bottom: -3px;
+  background: linear-gradient(
+    90deg,
+    color-mix(in srgb, var(--writing-line-highlight) 80%, transparent) 0%,
+    color-mix(in srgb, var(--writing-line-highlight) 30%, transparent) 50%,
+    color-mix(in srgb, var(--writing-line-highlight) 80%, transparent) 100%
+  );
+  border-radius: 6px;
+  pointer-events: none;
+  z-index: -1;
 }
 
-.writing-area .tiptap .ProseMirror-focused {
-  outline: none;
-}
-
-/* Custom cursor with theme-aware glow */
+/* Cursor styling */
 .writing-area .tiptap[contenteditable="true"] {
   position: relative;
 }
@@ -1560,16 +648,16 @@ code, pre {
   height: 1.3em;
   background: linear-gradient(
     180deg,
-    var(--mix-accent-90) 0%,
-    var(--mix-character-70) 100%
+    color-mix(in srgb, var(--accent-primary) 90%, transparent) 0%,
+    color-mix(in srgb, var(--color-character) 70%, transparent) 100%
   );
   animation: cursor-blink-refined 1.1s ease-in-out infinite;
   pointer-events: none;
   margin-left: -1px;
   border-radius: 1px;
   box-shadow:
-    0 0 4px var(--mix-accent-40),
-    0 0 8px var(--mix-accent-20);
+    0 0 4px color-mix(in srgb, var(--accent-primary) 40%, transparent),
+    0 0 8px color-mix(in srgb, var(--accent-primary) 20%, transparent);
 }
 
 @keyframes cursor-blink-refined {
@@ -1577,7 +665,7 @@ code, pre {
   45%, 55% { opacity: 1; }
 }
 
-/* Paragraph focus mode - dim non-current paragraphs */
+/* Paragraph focus mode */
 .paragraph-focus-mode .writing-area .tiptap p {
   transition: opacity 0.35s var(--ease-out), filter 0.35s var(--ease-out);
 }
@@ -1592,7 +680,7 @@ code, pre {
   filter: none;
 }
 
-/* Typewriter scroll mode - keep cursor centered */
+/* Typewriter scroll mode */
 .typewriter-mode .writing-area .tiptap {
   scroll-padding-top: 45vh;
   scroll-padding-bottom: 45vh;
@@ -1602,49 +690,7 @@ code, pre {
   scroll-behavior: smooth;
 }
 
-/* Enhanced paragraph hover indicator */
-.writing-area .tiptap p:hover::before {
-  content: '';
-  position: absolute;
-  left: -12px;
-  top: 2px;
-  bottom: 2px;
-  width: 2px;
-  background: linear-gradient(
-    180deg,
-    var(--mix-glow-primary-80) 0%,
-    transparent 100%
-  );
-  border-radius: 1px;
-  opacity: 0;
-  animation: paragraph-indicator-fade-in 0.2s ease forwards;
-}
-
-@keyframes paragraph-indicator-fade-in {
-  from { opacity: 0; transform: translateX(-2px); }
-  to { opacity: 0.6; transform: translateX(0); }
-}
-
-/* Enhanced has-focus highlight with theme-aware colors */
-.writing-area .tiptap p.has-focus::after {
-  content: '';
-  position: absolute;
-  left: -10px;
-  right: -10px;
-  top: -3px;
-  bottom: -3px;
-  background: linear-gradient(
-    90deg,
-    var(--mix-writing-line-highlight-80) 0%,
-    var(--mix-writing-line-highlight-30) 50%,
-    var(--mix-writing-line-highlight-80) 100%
-  );
-  border-radius: 6px;
-  pointer-events: none;
-  z-index: -1;
-}
-
-/* Floating word count pill */
+/* Word count pill */
 .word-count-pill {
   display: inline-flex;
   align-items: center;
@@ -1653,7 +699,7 @@ code, pre {
   border-radius: var(--radius-pill);
   font-size: 11px;
   font-weight: 500;
-  font-family: var(--font-stats);
+  font-family: var(--font-mono);
   letter-spacing: 0.02em;
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
@@ -1667,21 +713,17 @@ code, pre {
   bottom: 48px;
   right: 16px;
   z-index: 40;
-  background: var(--mix-surface-overlay-85);
-  border: 1px solid var(--mix-border-subtle-60);
+  background: color-mix(in srgb, var(--color-surface-overlay) 85%, transparent);
+  border: 1px solid color-mix(in srgb, var(--border-subtle) 60%, transparent);
   color: var(--text-tertiary);
-  box-shadow:
-    0 2px 8px rgba(0, 0, 0, 0.12),
-    0 4px 16px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12), 0 4px 16px rgba(0, 0, 0, 0.08);
 }
 
 .word-count-pill--floating:hover {
-  background: var(--mix-surface-overlay-95);
-  border-color: var(--mix-border-default-80);
+  background: color-mix(in srgb, var(--color-surface-overlay) 95%, transparent);
+  border-color: color-mix(in srgb, var(--border-default) 80%, transparent);
   color: var(--text-secondary);
-  box-shadow:
-    0 4px 12px rgba(0, 0, 0, 0.16),
-    0 8px 24px rgba(0, 0, 0, 0.10);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.16), 0 8px 24px rgba(0, 0, 0, 0.10);
   transform: translateY(-1px);
 }
 
@@ -1696,7 +738,7 @@ code, pre {
   opacity: 0.8;
 }
 
-/* Loading state for writing area */
+/* Loading state */
 .writing-loading {
   position: relative;
   overflow: hidden;
@@ -1709,7 +751,7 @@ code, pre {
   background: linear-gradient(
     90deg,
     transparent 0%,
-    var(--mix-accent-3) 50%,
+    color-mix(in srgb, var(--accent-primary) 3%, transparent) 50%,
     transparent 100%
   );
   animation: writing-loading-shimmer 1.8s ease-in-out infinite;
@@ -1721,7 +763,7 @@ code, pre {
   100% { transform: translateX(100%); }
 }
 
-/* Empty state prompt */
+/* Empty state */
 .writing-empty-state {
   display: flex;
   flex-direction: column;
@@ -1738,15 +780,15 @@ code, pre {
   border-radius: var(--radius-xl);
   background: linear-gradient(
     135deg,
-    var(--mix-accent-12) 0%,
-    var(--mix-character-8) 100%
+    color-mix(in srgb, var(--accent-primary) 12%, transparent) 0%,
+    color-mix(in srgb, var(--color-character) 8%, transparent) 100%
   );
   display: flex;
   align-items: center;
   justify-content: center;
   margin-bottom: 16px;
   color: var(--text-secondary);
-  border: 1px solid var(--mix-border-subtle-50);
+  border: 1px solid color-mix(in srgb, var(--border-subtle) 50%, transparent);
 }
 
 .writing-empty-state__title {
@@ -1754,7 +796,7 @@ code, pre {
   font-weight: var(--weight-medium);
   color: var(--text-secondary);
   margin-bottom: 8px;
-  font-family: var(--font-serif-cn);
+  font-family: var(--font-writing);
 }
 
 .writing-empty-state__hint {
@@ -1764,482 +806,8 @@ code, pre {
   max-width: 320px;
 }
 
-/* Theme-aware adjustments for light themes */
-[data-theme="light"] .writing-card::before,
-[data-theme="warm-paper"] .writing-card::before {
-  background: linear-gradient(
-    180deg,
-    var(--mix-accent-8) 0%,
-    var(--mix-border-subtle-20) 30%,
-    transparent 60%,
-    var(--mix-border-subtle-15) 100%
-  );
-}
-
-[data-theme="light"] .writing-area .tiptap[contenteditable="true"] .ProseMirror-focused::after,
-[data-theme="warm-paper"] .writing-area .tiptap[contenteditable="true"] .ProseMirror-focused::after {
-  box-shadow:
-    0 0 3px var(--mix-accent-25),
-    0 0 6px var(--mix-accent-12);
-}
-
-[data-theme="eye-care"] .writing-area .tiptap[contenteditable="true"] .ProseMirror-focused::after {
-  background: linear-gradient(
-    180deg,
-    var(--mix-accent-80) 0%,
-    var(--mix-ifline-60) 100%
-  );
-}
-
-[data-theme="midnight-blue"] .writing-area .tiptap[contenteditable="true"] .ProseMirror-focused::after {
-  background: linear-gradient(
-    180deg,
-    var(--mix-accent-95) 0%,
-    var(--mix-accent-80) 100%
-  );
-  box-shadow:
-    0 0 5px var(--mix-accent-50),
-    0 0 10px var(--mix-accent-25);
-}
-
-[data-theme="forest-green"] .writing-area .tiptap[contenteditable="true"] .ProseMirror-focused::after {
-  background: linear-gradient(
-    180deg,
-    var(--mix-accent-90) 0%,
-    var(--mix-ifline-60) 100%
-  );
-  box-shadow:
-    0 0 4px var(--mix-accent-40),
-    0 0 8px var(--mix-accent-20);
-}
-
-/* Enhanced writing card shadow for dark themes */
-[data-theme="dark"] .writing-card,
-[data-theme="midnight-blue"] .writing-card {
-  box-shadow:
-    0 1px 2px var(--mix-ink-100-10),
-    0 4px 16px var(--mix-ink-100-8),
-    0 12px 40px var(--mix-ink-100-5),
-    inset 0 1px 0 var(--mix-paper-100-6) !important;
-}
-
-/* Light theme writing card adjustments */
-[data-theme="light"] .writing-card,
-[data-theme="warm-paper"] .writing-card {
-  box-shadow:
-    0 1px 3px var(--mix-ink-100-6),
-    0 4px 12px var(--mix-ink-100-4),
-    0 8px 24px var(--mix-ink-100-2) !important;
-}
-
-/* Eye-care theme adjustments */
-[data-theme="eye-care"] .writing-card {
-  box-shadow:
-    0 1px 2px var(--mix-ink-100-5),
-    0 4px 12px var(--mix-ink-100-3) !important;
-}
-
-/* Forest green theme adjustments */
-[data-theme="forest-green"] .writing-card {
-  box-shadow:
-    0 1px 2px color-mix(in srgb, #0a1f0a 12%, transparent),
-    0 4px 16px color-mix(in srgb, #0a1f0a 8%, transparent),
-    0 12px 40px color-mix(in srgb, #0a1f0a 5%, transparent) !important;
-}
-
-/* Enhanced empty state icon glow per theme */
-[data-theme="midnight-blue"] .writing-empty-state__icon {
-  background: linear-gradient(
-    135deg,
-    var(--mix-accent-18) 0%,
-    var(--mix-outline-12) 100%
-  );
-}
-
-[data-theme="forest-green"] .writing-empty-state__icon {
-  background: linear-gradient(
-    135deg,
-    var(--mix-ifline-18) 0%,
-    var(--mix-accent-12) 100%
-  );
-}
-
-/* Reduced motion support */
-@media (prefers-reduced-motion: reduce) {
-  .writing-card::before,
-  .writing-area .tiptap p,
-  .word-count-pill,
-  .writing-loading::after {
-    animation: none !important;
-    transition: none !important;
-  }
-}
-
 /* ============================================================
-   SECTION 10B: WRITING CANVAS ENHANCED VISUAL EFFECTS
-   ============================================================ */
-
-/* CSS Noise texture for rice paper effect */
-.writing-surface--textured {
-  position: relative;
-}
-
-.writing-surface--textured::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  z-index: 1;
-  opacity: var(--paper-texture-opacity, 0.035);
-  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
-  background-repeat: repeat;
-  background-size: 200px 200px;
-  mix-blend-mode: overlay;
-}
-
-/* Vignette overlay for focus mode */
-.vignette-overlay {
-  position: relative;
-}
-
-.vignette-overlay::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  z-index: 2;
-  background: radial-gradient(
-    ellipse 80% 60% at 50% 50%,
-    transparent 50%,
-    var(--mix-ink-100-8) 85%,
-    var(--mix-ink-100-20) 100%
-  );
-  opacity: 0;
-  transition: opacity 0.8s cubic-bezier(0.22, 1, 0.36, 1);
-}
-
-.vignette-overlay.active::after {
-  opacity: 1;
-}
-
-/* Cursor glow effect - subtle bloom around caret */
-@keyframes caret-glow-pulse {
-  0%, 100% {
-    box-shadow: 0 0 2px var(--mix-character-30),
-                0 0 4px var(--mix-character-15);
-  }
-  50% {
-    box-shadow: 0 0 3px var(--mix-character-50),
-                0 0 6px var(--mix-character-25);
-  }
-}
-
-/* Current paragraph highlight - enhanced left indicator */
-.writing-area .tiptap p.is-current-paragraph {
-  position: relative;
-}
-
-.writing-area .tiptap p.is-current-paragraph::before {
-  content: '';
-  position: absolute;
-  left: -18px;
-  top: -2px;
-  bottom: -2px;
-  width: 3px;
-  background: linear-gradient(
-    180deg,
-    var(--mix-accent-70) 0%,
-    var(--mix-character-60) 50%,
-    var(--mix-accent-70) 100%
-  );
-  border-radius: 2px;
-  opacity: 0.8;
-  box-shadow:
-    0 0 6px var(--mix-accent-30),
-    0 0 12px var(--mix-accent-15);
-  animation: current-paragraph-indicator-in 0.3s cubic-bezier(0.22, 1, 0.36, 1) forwards;
-}
-
-@keyframes current-paragraph-indicator-in {
-  from { opacity: 0; transform: translateX(-4px); }
-  to { opacity: 0.8; transform: translateX(0); }
-}
-
-/* Paragraph hover indicator - subtle left line */
-.writing-area .tiptap p:hover::before {
-  content: '';
-  position: absolute;
-  left: -14px;
-  top: 2px;
-  bottom: 2px;
-  width: 2px;
-  background: linear-gradient(
-    180deg,
-    var(--mix-glow-primary-60) 0%,
-    transparent 100%
-  );
-  border-radius: 1px;
-  opacity: 0;
-  animation: paragraph-indicator-fade-in 0.2s ease forwards;
-}
-
-@keyframes paragraph-indicator-fade-in {
-  from { opacity: 0; transform: translateX(-2px); }
-  to { opacity: 0.5; transform: translateX(0); }
-}
-
-/* Enhanced paragraph spacing for Chinese reading */
-.writing-area .tiptap p {
-  margin-bottom: 1.75em;
-  line-height: 1.85;
-  text-indent: 2em;
-  transition: opacity 0.35s cubic-bezier(0.22, 1, 0.36, 1),
-              filter 0.35s cubic-bezier(0.22, 1, 0.36, 1);
-}
-
-/* Writing toolbar glassmorphism */
-.writing-toolbar--glass {
-  background: var(--mix-surface-base-85) !important;
-  backdrop-filter: blur(16px) saturate(1.2);
-  -webkit-backdrop-filter: blur(16px) saturate(1.2);
-  border-bottom: 1px solid var(--mix-border-subtle-60);
-}
-
-/* Toolbar button hover glow */
-.toolbar-btn-glow {
-  position: relative;
-  overflow: hidden;
-}
-
-.toolbar-btn-glow::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  border-radius: inherit;
-  background: radial-gradient(
-    circle at center,
-    var(--mix-accent-20) 0%,
-    transparent 70%
-  );
-  opacity: 0;
-  transition: opacity 0.25s cubic-bezier(0.22, 1, 0.36, 1);
-  pointer-events: none;
-}
-
-.toolbar-btn-glow:hover::before {
-  opacity: 1;
-}
-
-/* Active toolbar indicator - bottom glow bar */
-.toolbar-active-indicator {
-  position: absolute;
-  bottom: 0;
-  left: 20%;
-  right: 20%;
-  height: 2px;
-  border-radius: 1px;
-  background: linear-gradient(
-    90deg,
-    transparent 0%,
-    var(--accent-primary) 30%,
-    var(--accent-primary) 70%,
-    transparent 100%
-  );
-  box-shadow: 0 0 8px var(--mix-accent-50);
-  opacity: 0.8;
-}
-
-/* AI Drawer header gradient */
-.ai-drawer-header {
-  position: relative;
-  overflow: hidden;
-}
-
-.ai-drawer-header::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(
-    135deg,
-    var(--mix-accent-8) 0%,
-    var(--mix-accent-3) 50%,
-    transparent 100%
-  );
-  pointer-events: none;
-}
-
-/* AI Operation card stagger animation */
-.ai-op-card {
-  transition: transform 0.25s cubic-bezier(0.22, 1, 0.36, 1),
-              box-shadow 0.25s cubic-bezier(0.22, 1, 0.36, 1),
-              border-color 0.2s cubic-bezier(0.22, 1, 0.36, 1);
-}
-
-.ai-op-card:hover {
-  transform: translateY(-3px);
-  box-shadow:
-    0 8px 24px var(--mix-ink-100-12),
-    0 0 16px var(--mix-accent-12);
-  border-color: var(--mix-accent-30);
-}
-
-/* AI icon rotation animation */
-@keyframes ai-icon-spin {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
-}
-
-.ai-icon-spinning {
-  animation: ai-icon-spin 2s linear infinite;
-}
-
-/* Collaborator avatar online status */
-.collaborator-avatar {
-  position: relative;
-}
-
-.collaborator-avatar__status {
-  position: absolute;
-  bottom: -1px;
-  right: -1px;
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  border: 2px solid var(--color-surface-raised);
-  background: var(--color-ifline);
-  box-shadow: 0 0 4px var(--mix-ifline-50);
-}
-
-.collaborator-avatar__status--online {
-  background: var(--color-ifline);
-}
-
-.collaborator-avatar__status--away {
-  background: var(--color-character);
-}
-
-.collaborator-avatar__status--offline {
-  background: var(--text-tertiary);
-}
-
-/* Cursor indicator with user color */
-.collaborator-cursor {
-  position: absolute;
-  width: 2px;
-  height: 1.2em;
-  border-radius: 1px;
-  transition: top 0.15s ease, left 0.15s ease;
-}
-
-.collaborator-cursor__label {
-  position: absolute;
-  top: -18px;
-  left: 0;
-  padding: 1px 6px;
-  border-radius: 3px;
-  font-size: 10px;
-  font-weight: 500;
-  white-space: nowrap;
-  color: var(--ink-100);
-}
-
-/* Timeline connector line */
-.timeline-connector {
-  position: absolute;
-  left: 11px;
-  top: 24px;
-  bottom: -8px;
-  width: 1.5px;
-  background: linear-gradient(
-    180deg,
-    var(--mix-border-default-80) 0%,
-    var(--mix-border-subtle-60) 100%
-  );
-}
-
-/* Outline sidebar enhancements */
-.outline-indent-guide {
-  position: absolute;
-  pointer-events: none;
-  width: 1.5px;
-  background: linear-gradient(
-    180deg,
-    var(--mix-indent-color-25) 0%,
-    var(--mix-indent-color-15) 50%,
-    var(--mix-indent-color-25) 100%
-  );
-  opacity: 0.5;
-}
-
-.outline-active-glow {
-  position: absolute;
-  left: 0;
-  top: 4px;
-  bottom: 4px;
-  width: 3px;
-  border-radius: 0 2px 2px 0;
-  background: linear-gradient(
-    180deg,
-    var(--active-color) 0%,
-    var(--mix-active-color-60) 100%
-  );
-  box-shadow:
-    0 0 8px var(--mix-active-color-35),
-    0 0 16px var(--mix-active-color-18);
-}
-
-/* Progress ring for chapter completion */
-.progress-ring {
-  transform: rotate(-90deg);
-}
-
-.progress-ring__track {
-  fill: none;
-  stroke: var(--border-subtle);
-  stroke-width: 2;
-}
-
-.progress-ring__fill {
-  fill: none;
-  stroke: var(--progress-color);
-  stroke-width: 2;
-  stroke-linecap: round;
-  transition: stroke-dashoffset 0.6s cubic-bezier(0.22, 1, 0.36, 1);
-  filter: drop-shadow(0 0 2px var(--mix-progress-color-40));
-}
-
-/* Drag visual enhancements */
-.dragging-item {
-  opacity: 0.35;
-  transform: scale(0.97) rotate(1deg);
-  filter: grayscale(0.3);
-}
-
-.drag-over-indicator {
-  position: absolute;
-  left: 0;
-  right: 0;
-  height: 2px;
-  border-radius: 1px;
-  background: var(--accent-primary);
-  box-shadow: 0 0 8px var(--mix-accent-50);
-  z-index: 10;
-}
-
-.drag-over-indicator::before {
-  content: '';
-  position: absolute;
-  left: 0;
-  top: -3px;
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: var(--accent-primary);
-  box-shadow: 0 0 6px var(--mix-accent-70);
-}
-
-/* ============================================================
-   SECTION 11: ENTITY HIGHLIGHTS
+   SECTION 10: ENTITY HIGHLIGHTS
    ============================================================ */
 
 .entity-highlight {
@@ -2283,7 +851,7 @@ code, pre {
 .entity-ifline    { color: var(--color-ifline); }
 
 /* ============================================================
-   SECTION 12: AI OPERATION BUTTONS
+   SECTION 11: AI OPERATION BUTTONS
    ============================================================ */
 
 .ai-operation {
@@ -2327,7 +895,7 @@ code, pre {
 }
 
 /* ============================================================
-   SECTION 13: COLLABORATION SLIDER
+   SECTION 12: COLLABORATION SLIDER
    ============================================================ */
 
 .collaboration-slider {
@@ -2389,7 +957,7 @@ code, pre {
 }
 
 /* ============================================================
-   SECTION 14: DRAWER STYLES
+   SECTION 13: DRAWER STYLES
    ============================================================ */
 
 .drawer {
@@ -2455,772 +1023,7 @@ code, pre {
 }
 
 /* ============================================================
-   SECTION 14B: MOBILE RESPONSIVE UTILITIES
-   ============================================================ */
-
-/* Mobile layout tokens */
-:root {
-  --mobile-bottom-bar-height: 56px;
-  --mobile-topbar-height: 48px;
-  --mobile-drawer-width: 100vw;
-  --mobile-safe-bottom: env(safe-area-inset-bottom, 0px);
-  --mobile-safe-top: env(safe-area-inset-top, 0px);
-}
-
-/* Touch target minimum 44x44px */
-.touch-target-min {
-  min-height: 44px;
-  min-width: 44px;
-}
-
-.touch-target-button {
-  min-height: 44px;
-  min-width: 44px;
-}
-
-/* Mobile bottom sheet overlay */
-.mobile-bottom-sheet {
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  z-index: 50;
-  background: var(--color-surface-raised);
-  border-radius: var(--radius-xl) var(--radius-xl) 0 0;
-  border-top: 1px solid var(--border-default);
-  box-shadow: 0 -4px 24px rgba(0, 0, 0, 0.25);
-  max-height: 85vh;
-  transform: translateY(100%);
-  transition: transform 0.3s var(--ease-out);
-}
-
-.mobile-bottom-sheet--open {
-  transform: translateY(0);
-}
-
-/* Mobile fullscreen overlay for drawers */
-.mobile-drawer-overlay {
-  position: fixed;
-  inset: 0;
-  z-index: 40;
-  background: var(--color-overlay);
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.2s ease;
-}
-
-.mobile-drawer-overlay--open {
-  opacity: 1;
-  pointer-events: auto;
-}
-
-/* Mobile hamburger menu button */
-.mobile-menu-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 44px;
-  height: 44px;
-  border-radius: var(--radius-md);
-  background: var(--color-surface-raised);
-  border: 1px solid var(--border-default);
-  color: var(--text-secondary);
-  transition: all 0.15s ease;
-  position: relative;
-  overflow: hidden;
-  -webkit-tap-highlight-color: transparent;
-}
-
-.mobile-menu-btn:active {
-  background: var(--color-surface-hover);
-  transform: scale(0.95);
-}
-
-/* Mobile bottom sheet refinements */
-.mobile-bottom-sheet {
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  z-index: 50;
-  background: var(--color-surface-raised);
-  border-radius: var(--radius-2xl) var(--radius-2xl) 0 0;
-  border-top: 1px solid var(--border-default);
-  box-shadow: 0 -8px 40px rgba(0, 0, 0, 0.35), 0 -2px 8px rgba(0, 0, 0, 0.15);
-  max-height: 85vh;
-  transform: translateY(100%);
-  transition: transform 0.3s var(--ease-out);
-  display: flex;
-  flex-direction: column;
-}
-
-.mobile-bottom-sheet--open {
-  transform: translateY(0);
-}
-
-/* Mobile drawer overlay with enhanced blur */
-.mobile-drawer-overlay {
-  position: fixed;
-  inset: 0;
-  z-index: 40;
-  background: var(--color-overlay);
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.2s ease;
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-}
-
-.mobile-drawer-overlay--open {
-  opacity: 1;
-  pointer-events: auto;
-}
-
-/* ============================================================
-   SECTION 14C: MOBILE TOUCH FEEDBACK UTILITIES
-   ============================================================ */
-
-/* Tap highlight - ripple effect on touch devices */
-.tap-highlight {
-  position: relative;
-  overflow: hidden;
-  -webkit-tap-highlight-color: transparent;
-}
-
-.tap-highlight::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: radial-gradient(circle at var(--tap-x, 50%) var(--tap-y, 50%),
-    var(--mix-accent-25) 0%,
-    transparent 60%);
-  opacity: 0;
-  transform: scale(0.5);
-  transition: opacity 0.3s ease, transform 0.3s ease;
-  pointer-events: none;
-}
-
-.tap-highlight:active::after {
-  opacity: 1;
-  transform: scale(1.5);
-  transition: opacity 0.1s ease, transform 0.1s ease;
-}
-
-/* Active state scale animation for buttons */
-.btn-active-scale {
-  transition: transform 0.15s cubic-bezier(0.16, 1, 0.3, 1),
-              background-color 0.15s ease,
-              box-shadow 0.15s ease;
-}
-
-.btn-active-scale:active {
-  transform: scale(0.96);
-}
-
-/* Touch-optimized button with ripple */
-.btn-touch {
-  position: relative;
-  overflow: hidden;
-  -webkit-tap-highlight-color: transparent;
-  min-height: 44px;
-  min-width: 44px;
-  transition: transform 0.15s cubic-bezier(0.16, 1, 0.3, 1),
-              background-color 0.15s ease;
-}
-
-.btn-touch::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: radial-gradient(circle at var(--tap-x, 50%) var(--tap-y, 50%),
-    currentColor 0%,
-    transparent 60%);
-  opacity: 0;
-  transform: scale(0);
-  transition: opacity 0.4s ease, transform 0.4s ease;
-  pointer-events: none;
-}
-
-.btn-touch:active::before {
-  opacity: 0.12;
-  transform: scale(2);
-  transition: opacity 0.1s ease, transform 0.1s ease;
-}
-
-.btn-touch:active {
-  transform: scale(0.96);
-}
-
-/* Enhanced touch target with visual feedback */
-.touch-feedback {
-  position: relative;
-  -webkit-tap-highlight-color: transparent;
-  transition: transform 0.15s ease, background-color 0.15s ease;
-}
-
-.touch-feedback::after {
-  content: '';
-  position: absolute;
-  inset: -4px;
-  border-radius: inherit;
-  background: var(--mix-accent-10);
-  opacity: 0;
-  transform: scale(0.9);
-  transition: opacity 0.2s ease, transform 0.2s ease;
-  pointer-events: none;
-  z-index: -1;
-}
-
-.touch-feedback:active::after {
-  opacity: 1;
-  transform: scale(1);
-}
-
-.touch-feedback:active {
-  transform: scale(0.97);
-}
-
-/* Mobile scrollbar hide utility */
-.mobile-scrollbar-hide {
-  scrollbar-width: none;
-  -ms-overflow-style: none;
-}
-
-.mobile-scrollbar-hide::-webkit-scrollbar {
-  display: none;
-}
-
-/* Touch-optimized card with press effect */
-.card-touch {
-  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1),
-              box-shadow 0.2s ease,
-              border-color 0.2s ease;
-  -webkit-tap-highlight-color: transparent;
-}
-
-.card-touch:active {
-  transform: scale(0.98) translateY(1px);
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
-}
-
-/* Bottom sheet handle indicator */
-.mobile-sheet-handle {
-  width: 36px;
-  height: 4px;
-  border-radius: 2px;
-  background: var(--border-default);
-  margin: 8px auto;
-  transition: background-color 0.2s ease;
-}
-
-.mobile-sheet-handle:active {
-  background: var(--border-strong);
-}
-
-/* Mobile compact toolbar */
-.mobile-toolbar {
-  display: flex;
-  align-items: center;
-  gap: var(--space-1);
-  padding: var(--space-1) var(--space-2);
-  overflow-x: auto;
-  scrollbar-width: none;
-  -ms-overflow-style: none;
-}
-
-.mobile-toolbar::-webkit-scrollbar {
-  display: none;
-}
-
-/* Mobile action bar at bottom */
-.mobile-action-bar {
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  z-index: 30;
-  display: flex;
-  align-items: center;
-  justify-content: space-around;
-  padding: var(--space-2) var(--space-3);
-  padding-bottom: calc(var(--space-2) + var(--mobile-safe-bottom));
-  background: var(--glass-bg-strong);
-  backdrop-filter: blur(20px) saturate(1.2);
-  -webkit-backdrop-filter: blur(20px) saturate(1.2);
-  border-top: 1px solid var(--border-default);
-  gap: var(--space-2);
-}
-
-/* Mobile swipe hint indicator */
-.mobile-swipe-hint {
-  position: relative;
-}
-
-.mobile-swipe-hint::after {
-  content: '';
-  position: absolute;
-  top: 50%;
-  width: 4px;
-  height: 40px;
-  border-radius: 2px;
-  background: var(--border-subtle);
-  transform: translateY(-50%);
-}
-
-.mobile-swipe-hint--left::after {
-  left: 2px;
-}
-
-.mobile-swipe-hint--right::after {
-  right: 2px;
-}
-
-/* Mobile-optimized writing canvas padding */
-@media (max-width: 768px) {
-  .writing-area .tiptap {
-    padding: 1rem !important;
-    font-size: 16px !important; /* Prevent iOS zoom on focus */
-  }
-
-  .writing-area .tiptap p {
-    text-indent: 1.5em;
-    margin-bottom: 1em;
-  }
-
-  /* Reduce particle count on mobile via CSS */
-  .particle-background .particle:nth-child(n+9) {
-    display: none;
-  }
-
-  /* Simplify ambient glow on mobile */
-  .ambient-glow::before {
-    display: none;
-  }
-
-  /* Mobile drawer takes full width */
-  .drawer-responsive {
-    position: fixed !important;
-    top: 0;
-    bottom: 0;
-    width: 85vw !important;
-    max-width: 360px;
-    z-index: 50;
-  }
-
-  .drawer-responsive.drawer-right {
-    right: 0;
-    left: auto;
-  }
-
-  .drawer-responsive.drawer-left {
-    left: 0;
-    right: auto;
-  }
-
-  /* Mobile bottom sheet for panels */
-  .mobile-panel-sheet {
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    z-index: 50;
-    background: var(--color-surface-raised);
-    border-radius: var(--radius-xl) var(--radius-xl) 0 0;
-    border-top: 1px solid var(--border-default);
-    box-shadow: 0 -8px 32px rgba(0, 0, 0, 0.3);
-    max-height: 80vh;
-    overflow-y: auto;
-  }
-
-  /* Hide desktop-only elements */
-  .desktop-only {
-    display: none !important;
-  }
-
-  /* Mobile horizontal scroll for button groups */
-  .mobile-scroll-x {
-    display: flex;
-    gap: var(--space-2);
-    overflow-x: auto;
-    scrollbar-width: none;
-    -ms-overflow-style: none;
-    padding-bottom: var(--space-1);
-  }
-
-  .mobile-scroll-x::-webkit-scrollbar {
-    display: none;
-  }
-
-  /* Compact mobile header */
-  .mobile-header-compact {
-    height: var(--mobile-topbar-height);
-    padding: 0 var(--space-3);
-  }
-
-  /* Mobile-safe padding for content above bottom bar */
-  .mobile-safe-bottom {
-    padding-bottom: calc(var(--mobile-bottom-bar-height) + var(--mobile-safe-bottom));
-  }
-}
-
-/* Tablet adjustments (641px - 1024px) */
-@media (min-width: 769px) and (max-width: 1024px) {
-  .drawer-responsive.drawer-right {
-    width: 320px !important;
-  }
-
-  .drawer-responsive.drawer-left {
-    width: 220px !important;
-  }
-}
-
-/* Desktop - hide mobile-only elements */
-@media (min-width: 769px) {
-  .mobile-only {
-    display: none !important;
-  }
-}
-
-/* Small phone adjustments */
-@media (max-width: 480px) {
-  :root {
-    --layout-topbar-height: 44px;
-    --mobile-bottom-bar-height: 52px;
-  }
-
-  .writing-area .tiptap {
-    padding: 0.75rem !important;
-  }
-
-  /* Further reduce particles on small screens */
-  .particle-background .particle:nth-child(n+6) {
-    display: none;
-  }
-
-  /* Stack buttons vertically on very small screens */
-  .mobile-stack {
-    flex-direction: column !important;
-    gap: var(--space-2) !important;
-  }
-
-  .mobile-stack > * {
-    width: 100%;
-  }
-}
-
-/* Virtual keyboard handling - adjust layout when keyboard is open */
-@media (max-height: 500px) and (max-width: 768px) {
-  .mobile-action-bar {
-    display: none;
-  }
-
-  .mobile-hide-keyboard-open {
-    display: none !important;
-  }
-}
-
-/* ============================================================
-   SECTION 15: RESPONSIVE UTILITIES (Enhanced)
-   ============================================================ */
-
-/* Mobile-first breakpoints with refined targets */
-@custom-media --viewport-xs max-width: 480px;
-@custom-media --viewport-sm max-width: 640px;
-@custom-media --viewport-md max-width: 768px;
-@custom-media --viewport-lg max-width: 1024px;
-@custom-media --viewport-xl max-width: 1280px;
-@custom-media --viewport-2xl max-width: 1536px;
-
-/* Responsive breakpoints - Enhanced granularity */
-@media (max-width: 480px) {
-  .hide-xs { display: none !important; }
-  .drawer-xs-full { width: 100% !important; }
-}
-
-@media (max-width: 640px) {
-  .hide-mobile { display: none !important; }
-  .hide-sm { display: none !important; }
-  .drawer-mobile-full { width: 100% !important; }
-  .drawer-sm-full { width: 100% !important; }
-}
-
-@media (min-width: 641px) and (max-width: 768px) {
-  .hide-tablet { display: none !important; }
-  .hide-md { display: none !important; }
-}
-
-@media (min-width: 769px) and (max-width: 1024px) {
-  .hide-tablet { display: none !important; }
-  .hide-lg { display: none !important; }
-}
-
-@media (min-width: 1025px) {
-  .hide-desktop { display: none !important; }
-}
-
-@media (min-width: 1025px) and (max-width: 1280px) {
-  .hide-lg { display: none !important; }
-}
-
-@media (min-width: 1281px) {
-  .hide-xl { display: none !important; }
-}
-
-.drawer-collapsed { width: 0; }
-.drawer-normal    { width: 280px; }
-.drawer-wide      { width: 360px; }
-.drawer-xtra-wide { width: 420px; }
-
-@media (max-width: 640px) {
-  .drawer-normal, .drawer-wide, .drawer-xtra-wide { width: 100%; }
-  .drawer-collapsed { width: 0; }
-}
-
-@media (min-width: 641px) and (max-width: 1024px) {
-  .drawer-wide, .drawer-xtra-wide { width: 320px; }
-  .drawer-normal { width: 240px; }
-}
-
-/* ============================================================
-   SECTION 15B: MOBILE GESTURE & KEYBOARD UTILITIES
-   ============================================================ */
-
-/* Swipe gesture capture areas for writing editor */
-.mobile-swipe-area {
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  width: 16px;
-  z-index: 5;
-  pointer-events: auto;
-  touch-action: pan-y;
-}
-
-.mobile-swipe-area--left {
-  left: 0;
-}
-
-.mobile-swipe-area--right {
-  right: 0;
-}
-
-/* Mobile drawer as full-screen overlay */
-@media (max-width: 768px) {
-  .drawer-fullscreen-mobile {
-    position: fixed !important;
-    top: 0 !important;
-    bottom: 0 !important;
-    left: 0 !important;
-    right: 0 !important;
-    width: 100vw !important;
-    max-width: 100vw !important;
-    height: 100vh !important;
-    max-height: 100vh !important;
-    z-index: 50 !important;
-    border-radius: 0 !important;
-    border: none !important;
-  }
-
-  /* Mobile bottom sheet with handle */
-  .mobile-sheet-handle {
-    width: 36px;
-    height: 4px;
-    border-radius: 2px;
-    background: var(--border-default);
-    margin: 8px auto;
-  }
-
-  /* Mobile compact button group */
-  .mobile-btn-group {
-    display: flex;
-    gap: 4px;
-    overflow-x: auto;
-    scrollbar-width: none;
-    -ms-overflow-style: none;
-    padding: 2px;
-  }
-
-  .mobile-btn-group::-webkit-scrollbar {
-    display: none;
-  }
-
-  .mobile-btn-group > button {
-    flex-shrink: 0;
-    min-height: 40px;
-    min-width: 40px;
-    padding: 8px 12px;
-    font-size: 13px;
-  }
-
-  /* Mobile toolbar - single row scrollable */
-  .mobile-toolbar-scroll {
-    display: flex;
-    align-items: center;
-    gap: 2px;
-    overflow-x: auto;
-    scrollbar-width: none;
-    -ms-overflow-style: none;
-    padding: 4px 8px;
-    -webkit-overflow-scrolling: touch;
-  }
-
-  .mobile-toolbar-scroll::-webkit-scrollbar {
-    display: none;
-  }
-
-  /* Mobile writing canvas adjustments */
-  .mobile-writing-canvas {
-    padding: 12px !important;
-  }
-
-  .mobile-writing-canvas .ProseMirror {
-    padding: 12px !important;
-    font-size: 16px !important;
-    line-height: 1.75 !important;
-  }
-
-  /* Hide decorative elements on mobile for performance */
-  .mobile-hide-decorative {
-    display: none !important;
-  }
-
-  /* Mobile status bar compact */
-  .mobile-status-compact {
-    height: 36px;
-    padding: 0 12px;
-    font-size: 11px;
-  }
-
-  /* Mobile category nav as bottom sheet */
-  .mobile-category-sheet {
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    z-index: 50;
-    background: var(--color-surface-raised);
-    border-radius: 16px 16px 0 0;
-    border-top: 1px solid var(--border-default);
-    box-shadow: 0 -8px 32px rgba(0, 0, 0, 0.3);
-    max-height: 70vh;
-    overflow-y: auto;
-  }
-
-  /* Mobile entity cards - full width */
-  .mobile-entity-card {
-    width: 100%;
-    margin-bottom: 8px;
-  }
-
-  /* Mobile search input */
-  .mobile-search-input {
-    height: 40px;
-    font-size: 16px;
-  }
-
-  /* Mobile form fields */
-  .mobile-form-field {
-    margin-bottom: 12px;
-  }
-
-  .mobile-form-field label {
-    font-size: 13px;
-    margin-bottom: 4px;
-  }
-
-  .mobile-form-field input,
-  .mobile-form-field textarea,
-  .mobile-form-field select {
-    min-height: 44px;
-    font-size: 16px;
-    padding: 10px 12px;
-  }
-
-  /* Mobile chat area */
-  .mobile-chat-area {
-    padding: 12px;
-  }
-
-  .mobile-chat-bubble {
-    max-width: 90%;
-    padding: 10px 14px;
-    font-size: 14px;
-  }
-
-  /* Mobile input panel */
-  .mobile-input-panel {
-    padding: 8px 12px;
-    padding-bottom: calc(8px + var(--mobile-safe-bottom));
-  }
-
-  .mobile-input-panel textarea {
-    min-height: 44px;
-    font-size: 16px;
-    padding: 10px 12px;
-  }
-}
-
-/* Small phone specific (480px and below) */
-@media (max-width: 480px) {
-  .mobile-xs-hide {
-    display: none !important;
-  }
-
-  .mobile-xs-full {
-    width: 100% !important;
-  }
-
-  /* Even more compact toolbar */
-  .mobile-toolbar-compact {
-    padding: 2px 4px;
-  }
-
-  .mobile-toolbar-compact button {
-    min-height: 36px;
-    min-width: 36px;
-    padding: 6px 8px;
-  }
-
-  /* Smaller writing canvas padding */
-  .mobile-writing-canvas-xs {
-    padding: 8px !important;
-  }
-
-  .mobile-writing-canvas-xs .ProseMirror {
-    padding: 8px !important;
-  }
-}
-
-/* Tablet landscape optimization */
-@media (min-width: 769px) and (max-width: 1024px) and (orientation: landscape) {
-  .tablet-landscape-sidebar {
-    width: 200px !important;
-  }
-
-  .tablet-landscape-drawer {
-    width: 300px !important;
-  }
-}
-
-/* Virtual keyboard handling */
-@media (max-height: 500px) and (max-width: 768px) {
-  .keyboard-hide {
-    display: none !important;
-  }
-
-  .keyboard-compact {
-    padding: 4px 8px !important;
-    min-height: 36px !important;
-  }
-
-  .keyboard-adjust {
-    margin-bottom: 0 !important;
-    padding-bottom: 4px !important;
-  }
-}
-
-/* ============================================================
-   SECTION 16: FOCUS MODE
+   SECTION 14: FOCUS MODE
    ============================================================ */
 
 .focus-mode-active .layout-sidebar,
@@ -3245,410 +1048,7 @@ code, pre {
 }
 
 /* ============================================================
-   SECTION 17: ANIMATIONS
-   ============================================================ */
-
-@keyframes slide-in-from-bottom {
-  from { transform: translateY(8px); opacity: 0; }
-  to   { transform: translateY(0); opacity: 1; }
-}
-
-@keyframes slide-in-from-right {
-  from { transform: translateX(8px); opacity: 0; }
-  to   { transform: translateX(0); opacity: 1; }
-}
-
-@keyframes fade-in {
-  from { opacity: 0; }
-  to   { opacity: 1; }
-}
-
-@keyframes fade-out {
-  from { opacity: 1; }
-  to   { opacity: 0; }
-}
-
-@keyframes zoom-in {
-  from { transform: scale(0.95); opacity: 0; }
-  to   { transform: scale(1); opacity: 1; }
-}
-
-@keyframes zoom-out {
-  from { transform: scale(1); opacity: 1; }
-  to   { transform: scale(0.95); opacity: 0; }
-}
-
-@keyframes spin {
-  from { transform: rotate(0deg); }
-  to   { transform: rotate(360deg); }
-}
-
-@keyframes ripple {
-  0%   { width: 0; height: 0; opacity: 0.4; }
-  100% { width: 300px; height: 300px; opacity: 0; }
-}
-
-@keyframes glow-pulse {
-  0%, 100% { box-shadow: 0 0 4px rgba(94, 106, 210, 0.3), 0 0 8px rgba(94, 106, 210, 0.15); }
-  50%      { box-shadow: 0 0 8px rgba(94, 106, 210, 0.5), 0 0 16px rgba(94, 106, 210, 0.25); }
-}
-
-@keyframes shimmer {
-  0%   { background-position: -200% 0; }
-  100% { background-position: 200% 0; }
-}
-
-@keyframes pulse-ring {
-  0%   { transform: scale(0.8); opacity: 1; }
-  100% { transform: scale(2); opacity: 0; }
-}
-
-@keyframes dot-bounce {
-  0%, 80%, 100% { transform: translateY(0); }
-  40%           { transform: translateY(-6px); }
-}
-
-
-@keyframes typing-dot-bounce {
-  0%, 60%, 100% { transform: translateY(0); }
-  30%           { transform: translateY(-4px); }
-}
-
-/* ============================================================
-   SECTION 17A: NEW KEYFRAME ANIMATIONS (2026-04-25)
-   ============================================================ */
-
-/* Page load sequence - staggered entrance for page elements */
-@keyframes page-load-sequence {
-  0%   { opacity: 0; transform: translateY(12px) scale(0.98); }
-  60%  { opacity: 1; transform: translateY(-2px) scale(1.01); }
-  100% { opacity: 1; transform: translateY(0) scale(1); }
-}
-
-/* Button ripple - click ripple expansion effect */
-@keyframes button-ripple {
-  0%   { transform: translate(-50%, -50%) scale(0); opacity: 0.45; }
-  50%  { opacity: 0.2; }
-  100% { transform: translate(-50%, -50%) scale(2.5); opacity: 0; }
-}
-
-/* Card flip - 3D flip animation */
-@keyframes card-flip-front {
-  0%   { transform: rotateY(0deg); }
-  100% { transform: rotateY(180deg); }
-}
-
-@keyframes card-flip-back {
-  0%   { transform: rotateY(-180deg); }
-  100% { transform: rotateY(0deg); }
-}
-
-/* Text shimmer - gradient sweep across text */
-@keyframes text-shimmer {
-  0%   { background-position: -200% center; }
-  100% { background-position: 200% center; }
-}
-
-/* Float particle - decorative background particle float */
-@keyframes float-particle {
-  0%, 100% {
-    transform: translateY(0) translateX(0) rotate(0deg);
-    opacity: var(--particle-opacity, 0.04);
-  }
-  25% {
-    transform: translateY(-30px) translateX(15px) rotate(90deg);
-    opacity: calc(var(--particle-opacity, 0.04) * 1.5);
-  }
-  50% {
-    transform: translateY(-15px) translateX(-10px) rotate(180deg);
-    opacity: var(--particle-opacity, 0.04);
-  }
-  75% {
-    transform: translateY(-40px) translateX(5px) rotate(270deg);
-    opacity: calc(var(--particle-opacity, 0.04) * 0.7);
-  }
-}
-
-/* Scale bounce - elastic scale for notification badges */
-@keyframes scale-bounce {
-  0%   { transform: scale(0); opacity: 0; }
-  40%  { transform: scale(1.15); opacity: 1; }
-  60%  { transform: scale(0.92); }
-  80%  { transform: scale(1.04); }
-  100% { transform: scale(1); opacity: 1; }
-}
-
-/* Slide in bottom - entrance from below */
-@keyframes slide-in-bottom {
-  0%   { transform: translateY(24px); opacity: 0; }
-  100% { transform: translateY(0); opacity: 1; }
-}
-
-/* Fade scale in - combined fade and scale entrance */
-@keyframes fade-scale-in {
-  0%   { transform: scale(0.92); opacity: 0; }
-  100% { transform: scale(1); opacity: 1; }
-}
-
-@keyframes cursor-blink {
-  0%, 100% { opacity: 0; }
-  50%      { opacity: 1; }
-}
-
-/* Ambient orb float animation for immersive mode glow orbs
-   Organic, smooth trajectories with gentle scale/opacity breathing */
-@keyframes ambient-orb-float {
-  0%, 100% {
-    transform: translate(0, 0) scale(1);
-    opacity: 0.55;
-  }
-  20% {
-    transform: translate(2%, -3%) scale(1.04);
-    opacity: 0.72;
-  }
-  40% {
-    transform: translate(-1%, 2%) scale(0.97);
-    opacity: 0.62;
-  }
-  60% {
-    transform: translate(3%, 1%) scale(1.03);
-    opacity: 0.68;
-  }
-  80% {
-    transform: translate(-2%, -1%) scale(0.99);
-    opacity: 0.58;
-  }
-}
-
-@keyframes paragraph-indicator-fade-in {
-  from { opacity: 0; transform: translateX(-2px); }
-  to   { opacity: 1; transform: translateX(0); }
-}
-
-@keyframes wave-bar {
-  0%, 40%, 100% { transform: scaleY(0.4); }
-  20%           { transform: scaleY(1); }
-}
-
-@keyframes orbit-spin {
-  from { transform: rotate(0deg); }
-  to   { transform: rotate(360deg); }
-}
-
-@keyframes book-page-left {
-  0%, 100% { transform: rotateY(0deg); opacity: 1; }
-  50%      { transform: rotateY(-15deg); opacity: 0.7; }
-}
-
-@keyframes book-page-right {
-  0%, 100% { transform: rotateY(0deg); opacity: 1; }
-  50%      { transform: rotateY(15deg); opacity: 0.7; }
-}
-
-@keyframes gradient-shift {
-  0%   { background-position: 0% 50%; }
-  50%  { background-position: 100% 50%; }
-  100% { background-position: 0% 50%; }
-}
-
-@keyframes gradient-flow {
-  0%   { background-position: 0% 50%; }
-  50%  { background-position: 100% 50%; }
-  100% { background-position: 0% 50%; }
-}
-
-/* Vertical shimmer for decorative dividers */
-@keyframes shimmer-vertical {
-  0%   { background-position: 0 -200%; }
-  100% { background-position: 0 200%; }
-}
-
-/* Aurora background shift for AnimatedBackground */
-@keyframes aurora-shift {
-  0%, 100% { transform: translateX(-5%) translateY(-2%) scale(1.05); opacity: 0.8; }
-  33%      { transform: translateX(3%) translateY(3%) scale(1.02); opacity: 1; }
-  66%      { transform: translateX(-2%) translateY(-3%) scale(1.08); opacity: 0.9; }
-}
-
-@keyframes glow-border-pulse {
-  0%, 100% { opacity: 0.6; }
-  50%      { opacity: 1; }
-}
-
-/* Animation utility classes */
-.animate-shimmer {
-  background: linear-gradient(90deg, rgba(255, 255, 255, 0.06) 25%, rgba(255, 255, 255, 0.12) 50%, rgba(255, 255, 255, 0.06) 75%);
-  background-size: 200% 100%;
-  animation: shimmer 1.5s ease-in-out infinite;
-}
-
-.animate-pulse-ring {
-  animation: pulse-ring 1.5s cubic-bezier(0.16, 1, 0.3, 1) infinite;
-}
-
-.animate-dot-bounce {
-  animation: dot-bounce 1.4s ease-in-out infinite both;
-}
-
-.animate-dot-bounce-delay-1 {
-  animation: dot-bounce 1.4s ease-in-out infinite both;
-  animation-delay: 0.16s;
-}
-
-.animate-dot-bounce-delay-2 {
-  animation: dot-bounce 1.4s ease-in-out infinite both;
-  animation-delay: 0.32s;
-}
-
-.animate-slide-in {
-  animation: slide-in-from-bottom 200ms var(--ease-out) forwards;
-}
-
-.animate-slide-in-right {
-  animation: slide-in-from-right 200ms var(--ease-out) forwards;
-}
-
-.animate-fade-in {
-  animation: fade-in 150ms ease forwards;
-}
-
-.animate-fade-out {
-  animation: fade-out 150ms ease forwards;
-}
-
-.animate-zoom-in {
-  animation: zoom-in 200ms var(--ease-out) forwards;
-}
-
-.animate-zoom-out {
-  animation: zoom-out 200ms var(--ease-out) forwards;
-}
-
-.animate-spin {
-  animation: spin 1s linear infinite;
-}
-
-.animate-ripple {
-  animation: ripple 600ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
-}
-
-
-.animate-typing-dot-bounce {
-  animation: typing-dot-bounce 1.4s ease-in-out infinite;
-}
-
-.animate-typing-dot-bounce:nth-child(2) { animation-delay: 0.2s; }
-.animate-typing-dot-bounce:nth-child(3) { animation-delay: 0.4s; }
-
-.animate-delay-100 { animation-delay: 100ms; }
-.animate-delay-200 { animation-delay: 200ms; }
-.animate-delay-300 { animation-delay: 300ms; }
-.animate-delay-500 { animation-delay: 500ms; }
-
-/* Stagger delay helpers for page-load-sequence */
-.animate-stagger-1  { animation-delay: 0.05s; }
-.animate-stagger-2  { animation-delay: 0.10s; }
-.animate-stagger-3  { animation-delay: 0.15s; }
-.animate-stagger-4  { animation-delay: 0.20s; }
-.animate-stagger-5  { animation-delay: 0.25s; }
-.animate-stagger-6  { animation-delay: 0.30s; }
-.animate-stagger-7  { animation-delay: 0.35s; }
-.animate-stagger-8  { animation-delay: 0.40s; }
-.animate-stagger-9  { animation-delay: 0.45s; }
-.animate-stagger-10 { animation-delay: 0.50s; }
-
-/* New animation utility classes */
-.animate-page-load {
-  animation: page-load-sequence 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-  opacity: 0;
-}
-
-.animate-button-ripple {
-  position: relative;
-  overflow: hidden;
-}
-
-.animate-button-ripple::after {
-  content: '';
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 100%;
-  height: 100%;
-  border-radius: 50%;
-  background: currentColor;
-  animation: button-ripple 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-  pointer-events: none;
-}
-
-.animate-card-flip-front {
-  animation: card-flip-front 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-  backface-visibility: hidden;
-  transform-style: preserve-3d;
-}
-
-.animate-card-flip-back {
-  animation: card-flip-back 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-  backface-visibility: hidden;
-  transform-style: preserve-3d;
-}
-
-.animate-text-shimmer {
-  background: linear-gradient(
-    90deg,
-    var(--text-primary) 0%,
-    var(--accent-100) 25%,
-    var(--text-primary) 50%,
-    var(--accent-100) 75%,
-    var(--text-primary) 100%
-  );
-  background-size: 200% auto;
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
-  animation: text-shimmer 3s linear infinite;
-}
-
-.animate-float-particle {
-  animation: float-particle var(--particle-duration, 12s) ease-in-out infinite;
-  animation-delay: var(--particle-delay, 0s);
-  will-change: transform, opacity;
-}
-
-.animate-scale-bounce {
-  animation: scale-bounce 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
-}
-
-.animate-slide-in-bottom {
-  animation: slide-in-bottom 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-}
-
-.animate-fade-scale-in {
-  animation: fade-scale-in 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-}
-
-/* GPU acceleration utility */
-.gpu-accelerate {
-  transform: translateZ(0);
-  will-change: transform;
-  backface-visibility: hidden;
-}
-
-/* Will-change helpers (use sparingly) */
-.will-change-transform {
-  will-change: transform;
-}
-
-.will-change-opacity {
-  will-change: opacity;
-}
-
-.will-change-transform-opacity {
-  will-change: transform, opacity;
-}
-
-/* ============================================================
-   SECTION 18: UTILITY CLASSES
+   SECTION 15: UTILITY CLASSES
    ============================================================ */
 
 .text-primary   { color: var(--text-primary); }
@@ -3665,14 +1065,10 @@ code, pre {
 .text-accent-primary { color: var(--accent-primary); }
 .text-accent-hover   { color: var(--accent-hover); }
 
-.border-default { border-color: var(--border-default); }
-.border-subtle  { border-color: var(--border-subtle); }
-.border-strong  { border-color: var(--border-strong); }
-.border-focus   { border-color: var(--border-focus); }
-
 .border-default { border: 1px solid var(--border-default); }
 .border-subtle  { border: 1px solid var(--border-subtle); }
 .border-strong  { border: 1px solid var(--border-strong); }
+.border-focus   { border-color: var(--border-focus); }
 
 .shadow-glow-sm { box-shadow: var(--shadow-glow-sm); }
 .shadow-glow    { box-shadow: var(--shadow-glow); }
@@ -3686,13 +1082,13 @@ code, pre {
 .rounded-full { border-radius: var(--radius-full); }
 
 /* ============================================================
-   SECTION 19A: WRITING APP UTILITY CLASSES
+   SECTION 16: WRITING APP UTILITIES
    ============================================================ */
 
-/* Vignette overlay - darkens edges for immersive focus */
 .vignette-overlay {
   position: relative;
 }
+
 .vignette-overlay::after {
   content: '';
   position: absolute;
@@ -3701,52 +1097,57 @@ code, pre {
   background: radial-gradient(ellipse at center, transparent 50%, rgba(0, 0, 0, 0.35) 100%);
   z-index: 1;
 }
+
 .vignette-overlay--subtle::after {
   background: radial-gradient(ellipse at center, transparent 60%, rgba(0, 0, 0, 0.18) 100%);
 }
+
 .vignette-overlay--strong::after {
   background: radial-gradient(ellipse at center, transparent 40%, rgba(0, 0, 0, 0.55) 100%);
 }
 
-/* Typewriter mode - hides UI chrome, maximizes writing space */
 .typewriter-mode {
   --layout-sidebar-width: 0px;
   --layout-topbar-height: 0px;
   --layout-rightpanel-width: 0px;
 }
+
 .typewriter-mode .layout-sidebar,
 .typewriter-mode .layout-topbar,
 .typewriter-mode .layout-right-panel {
   display: none !important;
 }
+
 .typewriter-mode .writing-area {
   max-width: var(--writing-max-width);
   margin: 0 auto;
   padding: 4rem 2rem;
 }
 
-/* Focus dim - dims non-focused content for concentration */
 .focus-dim {
   transition: opacity 0.4s cubic-bezier(0.16, 1, 0.3, 1);
 }
+
 .focus-dim .focus-dim__target {
   opacity: 1;
   transition: opacity 0.4s cubic-bezier(0.16, 1, 0.3, 1);
 }
+
 .focus-dim--active .focus-dim__target:not(:hover):not(:focus-within):not(.focus-dim__exclude) {
   opacity: 0.35;
   filter: saturate(0.6);
 }
+
 .focus-dim--active .focus-dim__target:hover,
 .focus-dim--active .focus-dim__target:focus-within {
   opacity: 1;
   filter: saturate(1);
 }
 
-/* Ambient glow - subtle pulsing light around element */
 .ambient-glow {
   position: relative;
 }
+
 .ambient-glow::before {
   content: '';
   position: absolute;
@@ -3757,20 +1158,27 @@ code, pre {
   animation: ambient-glow-pulse 6s ease-in-out infinite;
   z-index: -1;
 }
+
 .ambient-glow--subtle::before {
   opacity: 0.2;
   inset: -10px;
 }
+
 .ambient-glow--strong::before {
   opacity: 0.7;
   inset: -30px;
 }
 
-/* Textured paper - adds paper grain and fiber texture */
+@keyframes ambient-glow-pulse {
+  0%, 100% { opacity: 0.5; }
+  50% { opacity: 1; }
+}
+
 .textured-paper {
   position: relative;
   background-color: var(--writing-bg);
 }
+
 .textured-paper::before {
   content: '';
   position: absolute;
@@ -3780,70 +1188,17 @@ code, pre {
   pointer-events: none;
   mix-blend-mode: overlay;
 }
+
 .textured-paper::after {
   content: '';
   position: absolute;
   inset: 0;
-  background:
-    linear-gradient(180deg, rgba(245, 240, 230, 0.02) 0%, transparent 30%, transparent 70%, rgba(0, 0, 0, 0.02) 100%);
+  background: linear-gradient(180deg, rgba(245, 240, 230, 0.02) 0%, transparent 30%, transparent 70%, rgba(0, 0, 0, 0.02) 100%);
   pointer-events: none;
-}
-
-/* Writing app combined patterns */
-.writing-immersive {
-  position: relative;
-  background-color: var(--writing-bg);
-}
-.writing-immersive::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  background: radial-gradient(ellipse at center, transparent 50%, rgba(0, 0, 0, 0.35) 100%);
-  z-index: 1;
-}
-.writing-immersive::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
-  opacity: var(--paper-texture-opacity, 0.04);
-  pointer-events: none;
-  mix-blend-mode: overlay;
-}
-
-.writing-focus-mode {
-  --layout-sidebar-width: 0px;
-  --layout-topbar-height: 0px;
-  --layout-rightpanel-width: 0px;
-  transition: opacity 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-}
-.writing-focus-mode .layout-sidebar,
-.writing-focus-mode .layout-topbar,
-.writing-focus-mode .layout-right-panel {
-  display: none !important;
-}
-.writing-focus-mode .writing-area {
-  max-width: var(--writing-max-width);
-  margin: 0 auto;
-  padding: 4rem 2rem;
-}
-.writing-focus-mode .focus-dim__target {
-  opacity: 1;
-  transition: opacity 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-}
-.writing-focus-mode--active .focus-dim__target:not(:hover):not(:focus-within):not(.focus-dim__exclude) {
-  opacity: 0.35;
-  filter: saturate(0.6);
-}
-.writing-focus-mode--active .focus-dim__target:hover,
-.writing-focus-mode--active .focus-dim__target:focus-within {
-  opacity: 1;
-  filter: saturate(1);
 }
 
 /* ============================================================
-   SECTION 19: INTERACTION FEEDBACK
+   SECTION 17: INTERACTION FEEDBACK
    ============================================================ */
 
 .hover-lift {
@@ -3896,14 +1251,13 @@ code, pre {
   padding: 1px;
   background: linear-gradient(135deg, rgba(94, 106, 210, 0.5), rgba(94, 181, 166, 0.3), rgba(232, 184, 125, 0.4));
   -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
   -webkit-mask-composite: xor;
   mask-composite: exclude;
   pointer-events: none;
 }
 
 /* ============================================================
-   SECTION 20: GRADIENT BACKGROUNDS
+   SECTION 18: GRADIENT BACKGROUNDS
    ============================================================ */
 
 .bg-ink-gradient {
@@ -3948,7 +1302,7 @@ code, pre {
 }
 
 /* ============================================================
-   SECTION 21: GLOW EFFECTS
+   SECTION 19: GLOW EFFECTS
    ============================================================ */
 
 .glow-accent {
@@ -3980,7 +1334,7 @@ code, pre {
 }
 
 /* ============================================================
-   SECTION 22: INNER GLOW
+   SECTION 20: INNER GLOW
    ============================================================ */
 
 .inner-glow {
@@ -4004,7 +1358,7 @@ code, pre {
 }
 
 /* ============================================================
-   SECTION 23: GLASS MORPHISM
+   SECTION 21: GLASS MORPHISM
    ============================================================ */
 
 .glass {
@@ -4045,7 +1399,7 @@ code, pre {
 }
 
 /* ============================================================
-   SECTION 24: TEXTURE EFFECTS
+   SECTION 22: TEXTURE EFFECTS
    ============================================================ */
 
 .paper-texture {
@@ -4098,7 +1452,6 @@ code, pre {
   mix-blend-mode: multiply;
 }
 
-/* Warm paper texture - enhanced for vintage/sepia aesthetic */
 .paper-texture-warm {
   position: relative;
   background-color: var(--writing-bg, #faf4e4);
@@ -4162,7 +1515,7 @@ code, pre {
 }
 
 /* ============================================================
-   SECTION 25: BORDER GLOW
+   SECTION 23: BORDER GLOW
    ============================================================ */
 
 .border-glow {
@@ -4188,7 +1541,7 @@ code, pre {
 }
 
 /* ============================================================
-   SECTION 26: PARTICLE STYLES
+   SECTION 24: PARTICLE STYLES
    ============================================================ */
 
 .particle-container {
@@ -4218,7 +1571,7 @@ code, pre {
 }
 
 /* ============================================================
-   SECTION 27: ADDITIONAL SHADOW UTILITIES
+   SECTION 25: ADDITIONAL SHADOW UTILITIES
    ============================================================ */
 
 .shadow-glow-accent {
@@ -4234,7 +1587,7 @@ code, pre {
 }
 
 /* ============================================================
-   SECTION 28: ANIMATED GLOW BORDERS
+   SECTION 26: ANIMATED GLOW BORDERS
    ============================================================ */
 
 .animate-glow-border {
@@ -4257,33 +1610,23 @@ code, pre {
   animation: glow-border-pulse 2s ease-in-out infinite;
 }
 
+@keyframes glow-border-pulse {
+  0%, 100% { opacity: 0.6; }
+  50% { opacity: 1; }
+}
+
 /* ============================================================
-   SECTION 29: REDUCED MOTION
+   SECTION 27: REDUCED MOTION
    ============================================================ */
 
 @media (prefers-reduced-motion: reduce) {
-  .bg-ink-gradient, .bg-aurora, .bg-warm-gradient, .bg-cool-gradient,
-  .glow-accent, .glow-vermillion, .glow-amber, .glow-jade,
-  .glow-text, .inner-glow, .inner-glow-md, .inner-glow-strong,
-  .glass, .glass-light, .glass-strong, .glass-card,
-  .paper-texture, .paper-texture-light, .ink-texture, .grain,
-  .border-glow, .particle-float, .animate-glow-border,
-  .animate-dot-bounce, .animate-dot-bounce-delay-1, .animate-dot-bounce-delay-2,
-  .animate-typing-dot-bounce, .animate-ping, .animate-ripple {
-    animation: none !important;
-    transition: none !important;
-  }
-
-  /* New animation fallbacks - instant state, no motion */
-  .animate-page-load,
-  .animate-button-ripple::after,
-  .animate-card-flip-front,
-  .animate-card-flip-back,
-  .animate-text-shimmer,
-  .animate-float-particle,
-  .animate-scale-bounce,
-  .animate-slide-in-bottom,
-  .animate-fade-scale-in {
+  .writing-card::before,
+  .writing-area .tiptap p,
+  .word-count-pill,
+  .writing-loading::after,
+  .ambient-glow::before,
+  .animate-glow-border,
+  .animate-glow-border::before {
     animation: none !important;
     transition: none !important;
   }
@@ -4307,20 +1650,10 @@ code, pre {
     opacity: 1;
     transform: none;
   }
-
-  .animate-text-shimmer {
-    background: none;
-    -webkit-text-fill-color: var(--text-primary);
-  }
-
-  .animate-card-flip-front,
-  .animate-card-flip-back {
-    transform: none;
-  }
 }
 
 /* ============================================================
-   SECTION 30: WRITING EDITOR SPECIFIC
+   SECTION 28: WRITING EDITOR SPECIFIC
    ============================================================ */
 
 .writing-surface {
@@ -4334,30 +1667,23 @@ code, pre {
   transition: box-shadow 0.3s ease, border-color 0.3s ease;
 }
 
-/* Enhanced writing card with glow border effect */
 .writing-card--glow {
   box-shadow:
-    0 2px 8px var(--mix-ink-100-10),
-    0 8px 24px var(--mix-ink-100-8),
-    0 16px 48px var(--mix-ink-100-5),
+    0 2px 8px color-mix(in srgb, var(--ink-100) 10%, transparent),
+    0 8px 24px color-mix(in srgb, var(--ink-100) 8%, transparent),
+    0 16px 48px color-mix(in srgb, var(--ink-100) 5%, transparent),
     inset 0 1px 0 var(--border-subtle),
-    inset 0 -1px 0 var(--mix-paper-100-20);
+    inset 0 -1px 0 color-mix(in srgb, var(--paper-100) 20%, transparent);
 }
 
-/* Subtle inner glow at top of writing card */
 .writing-card__top-glow {
   position: absolute;
   inset-inline: 32px;
   top: 0;
   height: 1px;
   border-radius: 1px;
-  background: linear-gradient(
-    90deg,
-    transparent,
-    var(--mix-character-15) 50%,
-    transparent
-  );
-  box-shadow: 0 0 12px var(--mix-character-10);
+  background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--color-character) 15%, transparent) 50%, transparent);
+  box-shadow: 0 0 12px color-mix(in srgb, var(--color-character) 10%, transparent);
   pointer-events: none;
 }
 
@@ -4367,25 +1693,21 @@ code, pre {
 }
 
 /* ============================================================
-   SECTION 31: IMMERSIVE MODE ENHANCEMENTS
+   SECTION 29: IMMERSIVE MODE
    ============================================================ */
 
-/* Multi-layer vignette with subtle animated pulse */
 .immersive-vignette {
   will-change: opacity;
 }
 
-/* Refined immersive indicator with glass morphism */
 .immersive-indicator {
   will-change: transform, opacity;
 }
 
-/* Immersive canvas - subtle ambient glow around cursor area */
 .immersive-canvas .ProseMirror {
   position: relative;
 }
 
-/* Subtle cursor glow effect in immersive mode */
 .immersive-mode .immersive-canvas .ProseMirror-focused::after {
   content: '';
   position: absolute;
@@ -4396,10 +1718,7 @@ code, pre {
   pointer-events: none;
   margin-left: -1px;
   border-radius: 2px;
-  box-shadow:
-    0 0 6px rgba(232, 184, 125, 0.4),
-    0 0 12px rgba(232, 184, 125, 0.2),
-    0 0 20px rgba(196, 92, 92, 0.1);
+  box-shadow: 0 0 6px rgba(232, 184, 125, 0.4), 0 0 12px rgba(232, 184, 125, 0.2), 0 0 20px rgba(196, 92, 92, 0.1);
 }
 
 @keyframes cursor-blink-immersive {
@@ -4407,7 +1726,6 @@ code, pre {
   50% { opacity: 1; }
 }
 
-/* Current paragraph soft highlight in immersive mode - uses theme-aware variables */
 .immersive-mode .immersive-canvas .tiptap p {
   transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
 }
@@ -4417,17 +1735,14 @@ code, pre {
   border-radius: 4px;
 }
 
-/* Enhanced focus mode dim in immersive mode */
 .immersive-mode [data-focus-mode-dim] {
   transition: opacity 0.5s cubic-bezier(0.16, 1, 0.3, 1), filter 0.5s cubic-bezier(0.16, 1, 0.3, 1) !important;
 }
 
-/* Immersive toolbar transition */
 .immersive-mode .writing-toolbar {
   transition: opacity 0.35s cubic-bezier(0.16, 1, 0.3, 1), transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-/* Smooth entrance/exit for immersive mode elements */
 .immersive-enter {
   animation: immersive-enter 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
@@ -4437,28 +1752,15 @@ code, pre {
 }
 
 @keyframes immersive-enter {
-  from {
-    opacity: 0;
-    transform: scale(1.01);
-  }
-  to {
-    opacity: 1;
-    transform: scale(1);
-  }
+  from { opacity: 0; transform: scale(1.01); }
+  to { opacity: 1; transform: scale(1); }
 }
 
 @keyframes immersive-exit {
-  from {
-    opacity: 1;
-    transform: scale(1);
-  }
-  to {
-    opacity: 0;
-    transform: scale(1.01);
-  }
+  from { opacity: 1; transform: scale(1); }
+  to { opacity: 0; transform: scale(1.01); }
 }
 
-/* Ambient glow pulse for writing area in immersive mode */
 .immersive-mode .writing-surface {
   position: relative;
 }
@@ -4467,18 +1769,11 @@ code, pre {
   content: '';
   position: absolute;
   inset: 0;
-  background:
-    radial-gradient(ellipse 50% 30% at 50% 50%, rgba(94, 106, 210, 0.015) 0%, transparent 70%);
+  background: radial-gradient(ellipse 50% 30% at 50% 50%, rgba(94, 106, 210, 0.015) 0%, transparent 70%);
   pointer-events: none;
   animation: ambient-glow-pulse 6s ease-in-out infinite;
 }
 
-@keyframes ambient-glow-pulse {
-  0%, 100% { opacity: 0.5; }
-  50% { opacity: 1; }
-}
-
-/* Reduced motion support for immersive effects */
 @media (prefers-reduced-motion: reduce) {
   .immersive-vignette,
   .immersive-indicator,
@@ -4490,7 +1785,7 @@ code, pre {
 }
 
 /* ============================================================
-   SECTION 32: COLLECTED INFO PANEL - ENTITY CARDS
+   SECTION 30: COLLECTED INFO PANEL
    ============================================================ */
 
 .collected-info-panel {
@@ -4498,7 +1793,6 @@ code, pre {
   overflow: hidden;
 }
 
-/* Subtle background texture for the panel */
 .collected-info-panel__texture {
   position: absolute;
   inset: 0;
@@ -4510,7 +1804,6 @@ code, pre {
     radial-gradient(ellipse at 90% 80%, rgba(232, 184, 125, 0.02) 0%, transparent 50%);
 }
 
-/* Custom scrollbar for collected info panel */
 .collected-info-panel ::-webkit-scrollbar {
   width: 6px;
 }
@@ -4526,10 +1819,9 @@ code, pre {
 }
 
 .collected-info-panel ::-webkit-scrollbar-thumb:hover {
-  background: var(--text-muted);
+  background: var(--text-tertiary);
 }
 
-/* Entity card styling */
 .entity-card {
   display: flex;
   align-items: stretch;
@@ -4550,17 +1842,11 @@ code, pre {
   transform: translateY(-1px);
 }
 
-/* Shimmer effect overlay */
 .entity-card__shimmer {
   position: absolute;
   inset: 0;
   pointer-events: none;
-  background: linear-gradient(
-    135deg,
-    transparent 0%,
-    rgba(255, 255, 255, 0.03) 50%,
-    transparent 100%
-  );
+  background: linear-gradient(135deg, transparent 0%, rgba(255, 255, 255, 0.03) 50%, transparent 100%);
   opacity: 0;
 }
 
@@ -4568,7 +1854,6 @@ code, pre {
   opacity: 1;
 }
 
-/* Left color bar with enhanced transition */
 .entity-card__color-bar {
   width: 3px;
   flex-shrink: 0;
@@ -4582,24 +1867,6 @@ code, pre {
   width: 4px;
 }
 
-/* Hover light strip - driven by CSS :hover */
-.entity-card:hover .entity-card__light-strip {
-  opacity: 0.8;
-  transform: scaleY(1);
-}
-
-/* Hover glow effect - driven by CSS :hover */
-.entity-card:hover .entity-card__glow {
-  opacity: 1;
-}
-
-/* Color glow effect on hover */
-.entity-card__color-glow {
-  pointer-events: none;
-  filter: blur(4px);
-}
-
-/* Card content */
 .entity-card__content {
   flex: 1;
   min-width: 0;
@@ -4609,7 +1876,6 @@ code, pre {
   justify-content: center;
 }
 
-/* Confirm button with enhanced hover */
 .entity-card__confirm {
   display: flex;
   align-items: center;
@@ -4627,7 +1893,6 @@ code, pre {
   background-color: var(--hover-bg);
 }
 
-/* Category section styling */
 .category-section {
   position: relative;
 }
@@ -4640,146 +1905,14 @@ code, pre {
   transform: translateY(-50%);
   width: 2px;
   height: 60%;
-  background: linear-gradient(
-    180deg,
-    transparent,
-    var(--border-subtle) 20%,
-    var(--border-subtle) 80%,
-    transparent
-  );
+  background: linear-gradient(180deg, transparent, var(--border-subtle) 20%, var(--border-subtle) 80%, transparent);
   border-radius: 1px;
 }
 
 /* ============================================================
-   SECTION 33: ENHANCED PARTICLE BACKGROUND ANIMATIONS
+   SECTION 31: DYNAMIC BACKGROUNDS
    ============================================================ */
 
-/* Particle float animation - uses transform for GPU acceleration */
-@keyframes particle-float {
-  0%, 100% {
-    transform: translateY(0) translateX(0) scale(var(--particle-scale, 1));
-    opacity: var(--particle-opacity, 0.03);
-  }
-  25% {
-    transform: translateY(-15px) translateX(8px) scale(calc(var(--particle-scale, 1) * 1.1));
-    opacity: calc(var(--particle-opacity, 0.03) * 1.3);
-  }
-  50% {
-    transform: translateY(-8px) translateX(-5px) scale(var(--particle-scale, 1));
-    opacity: var(--particle-opacity, 0.03);
-  }
-  75% {
-    transform: translateY(-20px) translateX(3px) scale(calc(var(--particle-scale, 1) * 0.9));
-    opacity: calc(var(--particle-opacity, 0.03) * 0.7);
-  }
-}
-
-/* Particle trail animation - follows main particle with delay */
-@keyframes particle-trail {
-  0%, 100% {
-    transform: translateY(0) translateX(0);
-    opacity: calc(var(--particle-opacity, 0.02) * 0.5);
-  }
-  25% {
-    transform: translateY(-12px) translateX(6px);
-    opacity: calc(var(--particle-opacity, 0.02) * 0.3);
-  }
-  50% {
-    transform: translateY(-6px) translateX(-4px);
-    opacity: calc(var(--particle-opacity, 0.02) * 0.5);
-  }
-  75% {
-    transform: translateY(-18px) translateX(2px);
-    opacity: calc(var(--particle-opacity, 0.02) * 0.2);
-  }
-}
-
-/* Connection line pulse */
-@keyframes connection-pulse {
-  0%, 100% { opacity: 0.02; }
-  50% { opacity: 0.06; }
-}
-
-/* Particle diamond rotation */
-@keyframes particle-diamond-rotate {
-  0% { transform: rotate(45deg) scale(var(--particle-scale, 1)); }
-  50% { transform: rotate(225deg) scale(calc(var(--particle-scale, 1) * 1.15)); }
-  100% { transform: rotate(405deg) scale(var(--particle-scale, 1)); }
-}
-
-/* Particle cross twinkle */
-@keyframes particle-cross-twinkle {
-  0%, 100% {
-    transform: rotate(var(--particle-rotation, 0deg)) scale(var(--particle-scale, 1));
-    opacity: var(--particle-opacity, 0.03);
-  }
-  50% {
-    transform: rotate(calc(var(--particle-rotation, 0deg) + 90deg)) scale(calc(var(--particle-scale, 1) * 1.2));
-    opacity: calc(var(--particle-opacity, 0.03) * 1.5);
-  }
-}
-
-/* Particle line sweep */
-@keyframes particle-line-sweep {
-  0%, 100% {
-    transform: rotate(var(--particle-rotation, 0deg)) scaleX(var(--particle-scale, 1));
-    opacity: var(--particle-opacity, 0.03);
-  }
-  50% {
-    transform: rotate(calc(var(--particle-rotation, 0deg) + 180deg)) scaleX(calc(var(--particle-scale, 1) * 1.3));
-    opacity: calc(var(--particle-opacity, 0.03) * 0.6);
-  }
-}
-
-/* Apply animations to particles */
-.particle {
-  animation: particle-float var(--particle-duration, 20s) ease-in-out infinite;
-  animation-delay: var(--particle-delay, 0s);
-}
-
-.particle--diamond {
-  animation: particle-float var(--particle-duration, 20s) ease-in-out infinite,
-             particle-diamond-rotate calc(var(--particle-duration, 20s) * 1.5) ease-in-out infinite;
-}
-
-.particle--cross {
-  animation: particle-cross-twinkle var(--particle-duration, 20s) ease-in-out infinite;
-  animation-delay: var(--particle-delay, 0s);
-}
-
-.particle--line {
-  animation: particle-line-sweep var(--particle-duration, 20s) ease-in-out infinite;
-  animation-delay: var(--particle-delay, 0s);
-}
-
-.particle-trail {
-  animation: particle-trail var(--particle-duration, 20s) ease-in-out infinite;
-  animation-delay: calc(var(--particle-delay, 0s) + 0.5s);
-}
-
-/* Particle background container */
-.particle-background {
-  position: fixed;
-  inset: 0;
-  pointer-events: none;
-  z-index: 0;
-  overflow: hidden;
-}
-
-/* Connection lines SVG */
-.particle-connections {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  pointer-events: none;
-}
-
-/* ============================================================
-   SECTION 34: DYNAMIC BACKGROUND MODES
-   ============================================================ */
-
-/* Grid background pattern */
 .bg-grid-pattern {
   background-image:
     linear-gradient(rgba(94, 106, 210, 0.03) 1px, transparent 1px),
@@ -4794,7 +1927,6 @@ code, pre {
   background-size: 60px 60px;
 }
 
-/* Wave background overlay */
 .bg-wave-overlay {
   position: relative;
 }
@@ -4803,14 +1935,7 @@ code, pre {
   content: '';
   position: absolute;
   inset: 0;
-  background:
-    repeating-linear-gradient(
-      0deg,
-      transparent,
-      transparent 40px,
-      rgba(94, 106, 210, 0.015) 40px,
-      rgba(94, 106, 210, 0.015) 41px
-    );
+  background: repeating-linear-gradient(0deg, transparent, transparent 40px, rgba(94, 106, 210, 0.015) 40px, rgba(94, 106, 210, 0.015) 41px);
   pointer-events: none;
   animation: wave-scroll 20s linear infinite;
 }
@@ -4820,7 +1945,6 @@ code, pre {
   100% { transform: translateY(40px); }
 }
 
-/* Starfield static background */
 .bg-starfield {
   background:
     radial-gradient(ellipse at 20% 30%, rgba(94, 106, 210, 0.04) 0%, transparent 40%),
@@ -4829,13 +1953,13 @@ code, pre {
 }
 
 /* ============================================================
-   SECTION 35: BACKGROUND LAYER SYSTEM
+   SECTION 32: BACKGROUND LAYER SYSTEM
    ============================================================ */
 
-/* Layered background container */
 .bg-layered {
   position: relative;
   isolation: isolate;
+  transition: background 0.6s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .bg-layered::before {
@@ -4846,30 +1970,15 @@ code, pre {
   background: var(--color-surface-base);
 }
 
-.bg-layered__gradient {
-  position: absolute;
-  inset: 0;
-  z-index: -2;
-  pointer-events: none;
-}
-
-.bg-layered__particles {
-  position: absolute;
-  inset: 0;
-  z-index: -1;
-  pointer-events: none;
-}
-
 .bg-layered__content {
   position: relative;
   z-index: 0;
 }
 
 /* ============================================================
-   SECTION 36: THEME-AWARE BACKGROUND UTILITIES
+   SECTION 33: THEME-AWARE BACKGROUND UTILITIES
    ============================================================ */
 
-/* Auto-switching gradient based on theme */
 .bg-theme-gradient {
   background:
     radial-gradient(ellipse at 20% 0%, rgba(94, 106, 210, 0.06) 0%, transparent 50%),
@@ -4886,16 +1995,14 @@ code, pre {
     linear-gradient(180deg, #faf8f3 0%, #f5f0e6 50%, #faf8f3 100%);
 }
 
-/* Warm-paper theme gradient - warm sepia tones */
-[data-theme="warm-paper"] .bg-theme-gradient,
-.warm-paper .bg-theme-gradient {
+[data-theme="sepia"] .bg-theme-gradient,
+.sepia .bg-theme-gradient {
   background:
     radial-gradient(ellipse at 25% 0%, rgba(180, 140, 90, 0.06) 0%, transparent 50%),
     radial-gradient(ellipse at 75% 100%, rgba(180, 112, 64, 0.04) 0%, transparent 50%),
     linear-gradient(180deg, #f7f2e8 0%, #f2ede3 50%, #f7f2e8 100%);
 }
 
-/* Ambient glow background */
 .bg-ambient-glow {
   position: relative;
 }
@@ -4917,65 +2024,9 @@ code, pre {
 }
 
 /* ============================================================
-   SECTION 37: REDUCED MOTION - ENHANCED
+   SECTION 34: INTERFACE-SPECIFIC BACKGROUNDS
    ============================================================ */
 
-@media (prefers-reduced-motion: reduce) {
-  .particle,
-  .particle--diamond,
-  .particle--cross,
-  .particle--line,
-  .particle-trail,
-  .bg-wave-overlay::before,
-  .bg-ambient-glow::before {
-    animation: none !important;
-  }
-
-  .particle-background,
-  .particle-connections {
-    display: none !important;
-  }
-
-  .bg-grid-pattern,
-  .bg-grid-pattern-light {
-    background-image: none !important;
-  }
-}
-
-/* ============================================================
-   SECTION 38: PERFORMANCE UTILITIES
-   ============================================================ */
-
-/* GPU acceleration hint */
-.gpu-accelerated {
-  transform: translateZ(0);
-  will-change: transform;
-}
-
-/* Content containment for background layers */
-.contain-layout {
-  contain: layout;
-}
-
-.contain-paint {
-  contain: paint;
-}
-
-.contain-strict {
-  contain: strict;
-}
-
-/* Layer promotion */
-.layer-promote {
-  transform: translateZ(0);
-  backface-visibility: hidden;
-}
-
-/* ============================================================
-   SECTION 39: INTERFACE-SPECIFIC BACKGROUNDS
-   ============================================================ */
-
-/* Chat interface - warm, inviting */
 .bg-chat {
   background:
     radial-gradient(ellipse at 20% 0%, rgba(94, 106, 210, 0.06) 0%, transparent 50%),
@@ -4983,7 +2034,6 @@ code, pre {
     linear-gradient(180deg, var(--color-surface-base) 0%, var(--ink-90) 100%);
 }
 
-/* Settings interface - cool, organized */
 .bg-settings {
   background:
     radial-gradient(ellipse at 30% 30%, rgba(94, 181, 166, 0.05) 0%, transparent 50%),
@@ -4991,7 +2041,6 @@ code, pre {
     linear-gradient(180deg, var(--color-surface-base) 0%, var(--ink-90) 100%);
 }
 
-/* Writing interface - focused, minimal */
 .bg-writing {
   background:
     radial-gradient(ellipse at 50% 50%, rgba(94, 106, 210, 0.02) 0%, transparent 60%),
@@ -5022,33 +2071,31 @@ code, pre {
     #faf8f3;
 }
 
-/* Warm-paper theme interface backgrounds */
-[data-theme="warm-paper"] .bg-chat,
-.warm-paper .bg-chat {
+/* Warm-paper theme */
+[data-theme="sepia"] .bg-chat,
+.sepia .bg-chat {
   background:
     radial-gradient(ellipse at 20% 0%, rgba(180, 140, 90, 0.05) 0%, transparent 50%),
     radial-gradient(ellipse at 80% 100%, rgba(180, 112, 64, 0.03) 0%, transparent 50%),
     linear-gradient(180deg, #f7f2e8 0%, #f2ede3 100%);
 }
 
-[data-theme="warm-paper"] .bg-settings,
-.warm-paper .bg-settings {
+[data-theme="sepia"] .bg-settings,
+.sepia .bg-settings {
   background:
     radial-gradient(ellipse at 30% 30%, rgba(180, 140, 90, 0.04) 0%, transparent 50%),
     radial-gradient(ellipse at 70% 70%, rgba(180, 112, 64, 0.025) 0%, transparent 50%),
     linear-gradient(180deg, #f7f2e8 0%, #f2ede3 100%);
 }
 
-[data-theme="warm-paper"] .bg-writing,
-.warm-paper .bg-writing {
+[data-theme="sepia"] .bg-writing,
+.sepia .bg-writing {
   background:
     radial-gradient(ellipse at 50% 50%, rgba(180, 112, 64, 0.02) 0%, transparent 60%),
     #faf4e4;
 }
 
-/* ============================================================
-   Eye-care theme interface backgrounds - soft green tones
-   ============================================================ */
+/* Eye-care theme */
 [data-theme="eye-care"] .bg-chat,
 .eye-care .bg-chat {
   background:
@@ -5072,63 +2119,58 @@ code, pre {
     var(--color-surface-base);
 }
 
-/* ============================================================
-   Midnight-blue theme interface backgrounds - deep blue tones
-   ============================================================ */
-[data-theme="midnight-blue"] .bg-chat,
-.midnight-blue .bg-chat {
+/* Midnight-blue theme */
+[data-theme="deep-blue"] .bg-chat,
+.deep-blue .bg-chat {
   background:
     radial-gradient(ellipse at 20% 0%, rgba(91, 152, 248, 0.07) 0%, transparent 50%),
     radial-gradient(ellipse at 80% 100%, rgba(157, 180, 207, 0.04) 0%, transparent 50%),
     linear-gradient(180deg, var(--color-surface-base) 0%, #0a1020 100%);
 }
 
-[data-theme="midnight-blue"] .bg-settings,
-.midnight-blue .bg-settings {
+[data-theme="deep-blue"] .bg-settings,
+.deep-blue .bg-settings {
   background:
     radial-gradient(ellipse at 30% 30%, rgba(91, 152, 248, 0.05) 0%, transparent 50%),
     radial-gradient(ellipse at 70% 70%, rgba(60, 117, 212, 0.03) 0%, transparent 50%),
     linear-gradient(180deg, var(--color-surface-base) 0%, #0a1020 100%);
 }
 
-[data-theme="midnight-blue"] .bg-writing,
-.midnight-blue .bg-writing {
+[data-theme="deep-blue"] .bg-writing,
+.deep-blue .bg-writing {
   background:
     radial-gradient(ellipse at 50% 50%, rgba(91, 152, 248, 0.02) 0%, transparent 60%),
     var(--color-surface-base);
 }
 
-/* ============================================================
-   Forest-green theme interface backgrounds - natural green tones
-   ============================================================ */
-[data-theme="forest-green"] .bg-chat,
-.forest-green .bg-chat {
+/* Forest-green theme */
+[data-theme="forest"] .bg-chat,
+.forest .bg-chat {
   background:
     radial-gradient(ellipse at 20% 0%, rgba(90, 175, 114, 0.07) 0%, transparent 50%),
     radial-gradient(ellipse at 80% 100%, rgba(148, 184, 148, 0.04) 0%, transparent 50%),
     linear-gradient(180deg, var(--color-surface-base) 0%, #0d1610 100%);
 }
 
-[data-theme="forest-green"] .bg-settings,
-.forest-green .bg-settings {
+[data-theme="forest"] .bg-settings,
+.forest .bg-settings {
   background:
     radial-gradient(ellipse at 30% 30%, rgba(90, 175, 114, 0.05) 0%, transparent 50%),
     radial-gradient(ellipse at 70% 70%, rgba(60, 140, 80, 0.03) 0%, transparent 50%),
     linear-gradient(180deg, var(--color-surface-base) 0%, #0d1610 100%);
 }
 
-[data-theme="forest-green"] .bg-writing,
-.forest-green .bg-writing {
+[data-theme="forest"] .bg-writing,
+.forest .bg-writing {
   background:
     radial-gradient(ellipse at 50% 50%, rgba(90, 175, 114, 0.02) 0%, transparent 60%),
     var(--color-surface-base);
 }
 
 /* ============================================================
-   SECTION 40: AI OPERATION DRAWER OPTIMIZATIONS
+   SECTION 35: AI OPERATION DRAWER
    ============================================================ */
 
-/* Refined scrollbar for AI drawer content */
 .ai-drawer-scroll {
   scrollbar-width: thin;
   scrollbar-color: var(--border-subtle) transparent;
@@ -5151,7 +2193,6 @@ code, pre {
   background: var(--border-default);
 }
 
-/* AI Operation button refinements */
 .ai-drawer-scroll .touch-target-button {
   position: relative;
   overflow: hidden;
@@ -5172,12 +2213,11 @@ code, pre {
   opacity: 1;
 }
 
-/* Loading skeleton shimmer refinement */
 .skeleton-shimmer {
   background: linear-gradient(
     90deg,
     var(--color-surface-raised) 0%,
-    var(--mix-surface-raised-80) 50%,
+    color-mix(in srgb, var(--color-surface-raised) 80%, var(--paper-100)) 50%,
     var(--color-surface-raised) 100%
   );
   background-size: 200% 100%;
@@ -5189,7 +2229,6 @@ code, pre {
   100% { background-position: -200% 0; }
 }
 
-/* Quality score badge glow */
 .quality-score {
   position: relative;
 }
@@ -5210,11 +2249,6 @@ code, pre {
   opacity: 0.15;
 }
 
-/* Diff preview card refinements */
-.diff-preview {
-  position: relative;
-}
-
 .diff-preview .original-text {
   border-left: 2px solid var(--color-vermillion);
   padding-left: 0.75rem;
@@ -5227,7 +2261,6 @@ code, pre {
   margin-left: -0.75rem;
 }
 
-/* Operation history timeline dot pulse */
 .operation-history .timeline-dot {
   position: relative;
 }
@@ -5248,7 +2281,6 @@ code, pre {
   50% { opacity: 0.4; transform: scale(1.3); }
 }
 
-/* Style button active state ring */
 .style-button-active {
   position: relative;
 }
@@ -5267,18 +2299,14 @@ code, pre {
   opacity: 0.6;
 }
 
-/* Global operation button hover lift */
 .global-op-button {
-  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1),
-              box-shadow 0.2s ease,
-              border-color 0.2s ease;
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s ease, border-color 0.2s ease;
 }
 
 .global-op-button:hover {
   transform: translateY(-1px);
 }
 
-/* Progress bar shimmer for active AI job */
 .ai-progress-bar {
   position: relative;
   overflow: hidden;
@@ -5288,12 +2316,7 @@ code, pre {
   content: '';
   position: absolute;
   inset: 0;
-  background: linear-gradient(
-    90deg,
-    transparent 0%,
-    rgba(255, 255, 255, 0.15) 50%,
-    transparent 100%
-  );
+  background: linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.15) 50%, transparent 100%);
   animation: progress-shimmer 1.5s ease-in-out infinite;
 }
 
@@ -5303,15 +2326,12 @@ code, pre {
 }
 
 /* ============================================================
-   SECTION 41: COLLABORATION PANEL OPTIMIZATIONS
+   SECTION 36: COLLABORATION PANEL
    ============================================================ */
 
-/* Panel card hover refinements */
 .collaboration-panel .panel-card {
   position: relative;
-  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1),
-              box-shadow 0.25s ease,
-              border-color 0.2s ease;
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s ease, border-color 0.2s ease;
 }
 
 .collaboration-panel .panel-card:hover {
@@ -5333,7 +2353,6 @@ code, pre {
   opacity: 1;
 }
 
-/* Status indicator refined pulse */
 .status-indicator {
   position: relative;
 }
@@ -5352,7 +2371,6 @@ code, pre {
   100% { opacity: 0; transform: scale(1.4); }
 }
 
-/* Character storyline card refinements */
 .character-storyline {
   position: relative;
   overflow: hidden;
@@ -5374,7 +2392,6 @@ code, pre {
   opacity: 0.6;
 }
 
-/* Plot thread item hover accent */
 .plot-thread {
   position: relative;
 }
@@ -5397,7 +2414,6 @@ code, pre {
   width: 3px;
 }
 
-/* Activity feed item refinements */
 .activity-feed .activity-item {
   position: relative;
   transition: background-color 0.15s ease, transform 0.15s ease;
@@ -5424,7 +2440,6 @@ code, pre {
   opacity: 0.4;
 }
 
-/* IF line card glow on hover */
 .if-line-card {
   position: relative;
 }
@@ -5445,11 +2460,8 @@ code, pre {
   opacity: 1;
 }
 
-/* Battle input focus refinement */
 .battle-input {
-  transition: border-color 0.2s ease,
-              box-shadow 0.2s ease,
-              transform 0.15s ease;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.15s ease;
 }
 
 .battle-input:focus {
@@ -5457,7 +2469,6 @@ code, pre {
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
-/* Chapter progress bar glow */
 .chapter-progress .progress-track {
   position: relative;
 }
@@ -5473,10 +2484,8 @@ code, pre {
   z-index: -1;
 }
 
-/* Collaborator avatar stack hover */
 .collaborator-avatars .avatar-item {
-  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1),
-              box-shadow 0.2s ease;
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s ease;
 }
 
 .collaborator-avatars:hover .avatar-item {
@@ -5488,7 +2497,6 @@ code, pre {
   z-index: 10;
 }
 
-/* Collapsible section header refinements */
 .collapsible-section-header {
   position: relative;
   overflow: hidden;
@@ -5505,17 +2513,14 @@ code, pre {
   opacity: 0.5;
 }
 
-/* Empty state icon hover */
 .empty-state-icon {
-  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1),
-              box-shadow 0.3s ease;
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.3s ease;
 }
 
 .empty-state:hover .empty-state-icon {
   transform: scale(1.05);
 }
 
-/* Badge glow for IF line count */
 .badge-glow {
   position: relative;
 }
@@ -5531,7 +2536,6 @@ code, pre {
   z-index: -1;
 }
 
-/* Panel scrollbar refinement */
 .collaboration-panel {
   scrollbar-width: thin;
   scrollbar-color: var(--border-subtle) transparent;
@@ -5554,7 +2558,6 @@ code, pre {
   background: var(--border-default);
 }
 
-/* Online status indicator refined */
 .online-indicator {
   position: relative;
 }
@@ -5574,7 +2577,6 @@ code, pre {
   100% { opacity: 0; transform: scale(1.6); }
 }
 
-/* Reduced motion preferences for drawer/panel */
 @media (prefers-reduced-motion: reduce) {
   .ai-drawer-scroll .touch-target-button::before,
   .collaboration-panel .panel-card::before,
@@ -5609,85 +2611,9 @@ code, pre {
 }
 
 /* ============================================================
-   Background transition effects
-   Smooth crossfade between interface backgrounds
+   SECTION 37: DECORATIVE CLASSES
    ============================================================ */
 
-/* Interface background base transition */
-.bg-layered {
-  transition: background 0.6s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.bg-layered.bg-transitioning .bg-layered__gradient,
-.bg-layered.bg-transitioning .bg-layered__particles {
-  opacity: 0.3 !important;
-}
-
-/* Background layer smooth opacity transitions */
-.bg-layered__gradient {
-  transition: opacity 0.5s ease-in-out;
-}
-
-.bg-layered__particles {
-  transition: opacity 0.5s ease-in-out;
-}
-
-/* Canvas crossfade transition */
-.bg-layered__gradient canvas {
-  transition: opacity 0.7s ease-in-out;
-}
-
-/* Immersive mode background minimization */
-.immersive-mode .bg-layered__gradient {
-  opacity: 0.4 !important;
-}
-
-.immersive-mode .bg-layered__particles {
-  opacity: 0.2 !important;
-}
-
-/* Focus mode further reduction */
-.focus-mode .bg-layered__gradient {
-  opacity: 0.25 !important;
-}
-
-.focus-mode .bg-layered__particles {
-  opacity: 0.1 !important;
-}
-
-/* Writing interface specific - always more subdued */
-.bg-writing .bg-layered__gradient {
-  opacity: 0.7;
-}
-
-.bg-writing .bg-layered__particles {
-  opacity: 0.6;
-}
-
-/* Chat interface - full vibrancy */
-.bg-chat .bg-layered__gradient {
-  opacity: 1;
-}
-
-.bg-chat .bg-layered__particles {
-  opacity: 1;
-}
-
-/* Settings interface - balanced */
-.bg-settings .bg-layered__gradient {
-  opacity: 0.9;
-}
-
-.bg-settings .bg-layered__particles {
-  opacity: 0.85;
-}
-
-/* ============================================================
-   SECTION 18: DECORATIVE CSS CLASSES
-   Enhanced visual layers, gradients, and ornamental styles
-   ============================================================ */
-
-/* --- Decorative Gradient Backgrounds --- */
 .gradient-aurora {
   background:
     radial-gradient(ellipse 90% 60% at 30% 20%, rgba(94, 106, 210, 0.12) 0%, transparent 50%),
@@ -5705,26 +2631,15 @@ code, pre {
 }
 
 .gradient-vignette-dark {
-  background: radial-gradient(
-    ellipse 80% 60% at 50% 50%,
-    transparent 0%,
-    rgba(13, 13, 18, 0.3) 70%,
-    rgba(13, 13, 18, 0.7) 100%
-  ),
-  var(--color-surface-base);
+  background: radial-gradient(ellipse 80% 60% at 50% 50%, transparent 0%, rgba(13, 13, 18, 0.3) 70%, rgba(13, 13, 18, 0.7) 100%),
+    var(--color-surface-base);
 }
 
 .gradient-spotlight {
-  background: radial-gradient(
-    ellipse 40% 30% at var(--spotlight-x, 50%) var(--spotlight-y, 30%),
-    rgba(94, 106, 210, 0.15) 0%,
-    rgba(94, 106, 210, 0.05) 40%,
-    transparent 70%
-  ),
-  var(--color-surface-base);
+  background: radial-gradient(ellipse 40% 30% at var(--spotlight-x, 50%) var(--spotlight-y, 30%), rgba(94, 106, 210, 0.15) 0%, rgba(94, 106, 210, 0.05) 40%, transparent 70%),
+    var(--color-surface-base);
 }
 
-/* --- Decorative Border Styles --- */
 .border-gradient-soft {
   position: relative;
   border: 1px solid var(--border-default);
@@ -5736,62 +2651,31 @@ code, pre {
   inset: -1px;
   border-radius: inherit;
   padding: 1px;
-  background: linear-gradient(
-    135deg,
-    rgba(94, 106, 210, 0.4) 0%,
-    transparent 40%,
-    transparent 60%,
-    rgba(126, 184, 74, 0.3) 100%
-  );
-  -webkit-mask:
-    linear-gradient(#fff 0 0) content-box,
-    linear-gradient(#fff 0 0);
+  background: linear-gradient(135deg, rgba(94, 106, 210, 0.4) 0%, transparent 40%, transparent 60%, rgba(126, 184, 74, 0.3) 100%);
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
   -webkit-mask-composite: xor;
   mask-composite: exclude;
   pointer-events: none;
 }
 
-.border-glow {
-  box-shadow:
-    0 0 0 1px rgba(94, 106, 210, 0.3),
-    0 0 12px rgba(94, 106, 210, 0.25),
-    0 0 24px rgba(94, 106, 210, 0.15);
-}
-
 .border-glow-warm {
-  box-shadow:
-    0 0 0 1px rgba(232, 184, 125, 0.3),
-    0 0 12px rgba(232, 184, 125, 0.2),
-    0 0 24px rgba(232, 184, 125, 0.1);
+  box-shadow: 0 0 0 1px rgba(232, 184, 125, 0.3), 0 0 12px rgba(232, 184, 125, 0.2), 0 0 24px rgba(232, 184, 125, 0.1);
 }
 
 .border-glow-vermillion {
-  box-shadow:
-    0 0 0 1px rgba(196, 92, 92, 0.35),
-    0 0 12px rgba(196, 92, 92, 0.25),
-    0 0 24px rgba(196, 92, 92, 0.15);
+  box-shadow: 0 0 0 1px rgba(196, 92, 92, 0.35), 0 0 12px rgba(196, 92, 92, 0.25), 0 0 24px rgba(196, 92, 92, 0.15);
 }
 
-/* --- Decorative Shadow Styles --- */
 .shadow-ornamental {
-  box-shadow:
-    0 2px 8px rgba(0, 0, 0, 0.15),
-    0 4px 16px rgba(0, 0, 0, 0.10),
-    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15), 0 4px 16px rgba(0, 0, 0, 0.10), inset 0 1px 0 rgba(255, 255, 255, 0.05);
 }
 
 .shadow-deep-soft {
-  box-shadow:
-    0 4px 12px rgba(0, 0, 0, 0.20),
-    0 8px 24px rgba(0, 0, 0, 0.14),
-    0 12px 32px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.20), 0 8px 24px rgba(0, 0, 0, 0.14), 0 12px 32px rgba(0, 0, 0, 0.08);
 }
 
 .shadow-floating {
-  box-shadow:
-    0 8px 32px rgba(0, 0, 0, 0.24),
-    0 16px 48px rgba(0, 0, 0, 0.16),
-    0 24px 64px rgba(0, 0, 0, 0.10);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.24), 0 16px 48px rgba(0, 0, 0, 0.16), 0 24px 64px rgba(0, 0, 0, 0.10);
 }
 
 .shadow-inner-light {
@@ -5802,7 +2686,6 @@ code, pre {
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
 }
 
-/* --- Decorative Layer Classes --- */
 .layer-surface {
   background: var(--color-surface-raised);
   border: 1px solid var(--border-default);
@@ -5826,7 +2709,6 @@ code, pre {
   box-shadow: var(--shadow-float);
 }
 
-/* --- Decorative Animation Classes --- */
 .decoration-pulse-subtle {
   animation: glow-border-pulse 3s ease-in-out infinite;
 }
@@ -5840,41 +2722,21 @@ code, pre {
 }
 
 .decoration-shimmer {
-  background: linear-gradient(
-    90deg,
-    transparent 0%,
-    rgba(255, 255, 255, 0.06) 50%,
-    transparent 100%
-  );
+  background: linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.06) 50%, transparent 100%);
   background-size: 200% 100%;
   animation: shimmer 2.5s ease-in-out infinite;
 }
 
-/* --- Decorative Divider --- */
 .divider-ornamental {
   height: 1px;
-  background: linear-gradient(
-    90deg,
-    transparent 0%,
-    var(--border-default) 20%,
-    var(--border-strong) 50%,
-    var(--border-default) 80%,
-    transparent 100%
-  );
+  background: linear-gradient(90deg, transparent 0%, var(--border-default) 20%, var(--border-strong) 50%, var(--border-default) 80%, transparent 100%);
 }
 
 .divider-gradient {
   height: 1px;
-  background: linear-gradient(
-    90deg,
-    transparent 0%,
-    rgba(94, 106, 210, 0.4) 30%,
-    rgba(126, 184, 74, 0.3) 70%,
-    transparent 100%
-  );
+  background: linear-gradient(90deg, transparent 0%, rgba(94, 106, 210, 0.4) 30%, rgba(126, 184, 74, 0.3) 70%, transparent 100%);
 }
 
-/* --- Corner Decorations --- */
 .corner-decoration {
   position: relative;
 }
@@ -5903,15 +2765,6 @@ code, pre {
   border-bottom: 2px solid;
 }
 
-.corner-decoration--tl::before {
-  content: '';
-}
-
-.corner-decoration--br::after {
-  content: '';
-}
-
-/* --- Status Indicator Decorations --- */
 .status-glow {
   position: relative;
 }
@@ -5927,19 +2780,10 @@ code, pre {
   z-index: -1;
 }
 
-.status-glow--success::after {
-  background: var(--color-success);
-}
+.status-glow--success::after { background: var(--color-success); }
+.status-glow--warning::after { background: var(--color-warning); }
+.status-glow--danger::after  { background: var(--color-danger); }
 
-.status-glow--warning::after {
-  background: var(--color-warning);
-}
-
-.status-glow--danger::after {
-  background: var(--color-danger);
-}
-
-/* --- Noise Texture Overlay --- */
 .noise-overlay {
   position: relative;
 }
@@ -5954,7 +2798,6 @@ code, pre {
   mix-blend-mode: overlay;
 }
 
-/* --- Ambient Glow Effects --- */
 .glow-ambient {
   position: relative;
 }
@@ -5966,46 +2809,25 @@ code, pre {
   height: 150%;
   top: -25%;
   left: -25%;
-  background: radial-gradient(
-    ellipse at center,
-    rgba(94, 106, 210, 0.12) 0%,
-    transparent 60%
-  );
+  background: radial-gradient(ellipse at center, rgba(94, 106, 210, 0.12) 0%, transparent 60%);
   pointer-events: none;
   z-index: -1;
 }
 
 .glow-ambient--warm::before {
-  background: radial-gradient(
-    ellipse at center,
-    rgba(232, 184, 125, 0.12) 0%,
-    transparent 60%
-  );
+  background: radial-gradient(ellipse at center, rgba(232, 184, 125, 0.12) 0%, transparent 60%);
 }
 
 .glow-ambient--green::before {
-  background: radial-gradient(
-    ellipse at center,
-    rgba(126, 184, 74, 0.12) 0%,
-    transparent 60%
-  );
+  background: radial-gradient(ellipse at center, rgba(126, 184, 74, 0.12) 0%, transparent 60%);
 }
 
-/* --- Visual Hierarchy Markers --- */
 .hierarchy-depth-1 {
-  background: linear-gradient(
-    135deg,
-    var(--color-surface-base) 0%,
-    var(--color-surface-raised) 100%
-  );
+  background: linear-gradient(135deg, var(--color-surface-base) 0%, var(--color-surface-raised) 100%);
 }
 
 .hierarchy-depth-2 {
-  background: linear-gradient(
-    135deg,
-    var(--color-surface-raised) 0%,
-    var(--color-surface-overlay) 100%
-  );
+  background: linear-gradient(135deg, var(--color-surface-raised) 0%, var(--color-surface-overlay) 100%);
   box-shadow: var(--shadow-elevated);
 }
 
@@ -6015,7 +2837,6 @@ code, pre {
   border: 1px solid var(--border-subtle);
 }
 
-/* --- Focus Ring Variants --- */
 .focus-ring-primary {
   outline: none;
   box-shadow: 0 0 0 3px var(--focus-ring);
@@ -6029,4 +2850,126 @@ code, pre {
 .focus-ring-success {
   outline: none;
   box-shadow: 0 0 0 3px rgba(94, 181, 166, 0.4);
+}
+
+/* ============================================================
+   SECTION 38: PERFORMANCE UTILITIES
+   ============================================================ */
+
+.gpu-accelerated {
+  transform: translateZ(0);
+  will-change: transform;
+}
+
+.contain-layout {
+  contain: layout;
+}
+
+.contain-paint {
+  contain: paint;
+}
+
+.contain-strict {
+  contain: strict;
+}
+
+.layer-promote {
+  transform: translateZ(0);
+  backface-visibility: hidden;
+}
+
+/* ============================================================
+   SECTION 39: REDUCED MOTION - ENHANCED
+   ============================================================ */
+
+@media (prefers-reduced-motion: reduce) {
+  .particle,
+  .particle--diamond,
+  .particle--cross,
+  .particle--line,
+  .particle-trail,
+  .bg-wave-overlay::before,
+  .bg-ambient-glow::before,
+  .decoration-pulse-subtle,
+  .decoration-float,
+  .decoration-spin-slow,
+  .decoration-shimmer {
+    animation: none !important;
+  }
+
+  .particle-background,
+  .particle-connections {
+    display: none !important;
+  }
+
+  .bg-grid-pattern,
+  .bg-grid-pattern-light {
+    background-image: none !important;
+  }
+}
+
+/* ============================================================
+   SECTION 40: THEME-SPECIFIC WRITING CARD ADJUSTMENTS
+   ============================================================ */
+
+[data-theme="light"] .writing-card::before,
+[data-theme="sepia"] .writing-card::before {
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--accent-primary) 8%, transparent) 0%,
+    color-mix(in srgb, var(--border-subtle) 20%, transparent) 30%,
+    transparent 60%,
+    color-mix(in srgb, var(--border-subtle) 15%, transparent) 100%
+  );
+}
+
+[data-theme="light"] .writing-area .tiptap[contenteditable="true"] .ProseMirror-focused::after,
+[data-theme="sepia"] .writing-area .tiptap[contenteditable="true"] .ProseMirror-focused::after {
+  box-shadow: 0 0 3px color-mix(in srgb, var(--accent-primary) 25%, transparent), 0 0 6px color-mix(in srgb, var(--accent-primary) 12%, transparent);
+}
+
+[data-theme="eye-care"] .writing-area .tiptap[contenteditable="true"] .ProseMirror-focused::after {
+  background: linear-gradient(180deg, color-mix(in srgb, var(--accent-primary) 80%, transparent) 0%, color-mix(in srgb, var(--color-ifline) 60%, transparent) 100%);
+}
+
+[data-theme="deep-blue"] .writing-area .tiptap[contenteditable="true"] .ProseMirror-focused::after {
+  background: linear-gradient(180deg, color-mix(in srgb, var(--accent-primary) 95%, transparent) 0%, color-mix(in srgb, var(--accent-primary) 80%, transparent) 100%);
+}
+
+[data-theme="dark"] .writing-card,
+[data-theme="deep-blue"] .writing-card {
+  box-shadow:
+    0 1px 2px color-mix(in srgb, var(--ink-100) 10%, transparent),
+    0 4px 16px color-mix(in srgb, var(--ink-100) 8%, transparent),
+    0 12px 40px color-mix(in srgb, var(--ink-100) 5%, transparent),
+    inset 0 1px 0 color-mix(in srgb, var(--paper-100) 6%, transparent) !important;
+}
+
+[data-theme="light"] .writing-card,
+[data-theme="sepia"] .writing-card {
+  box-shadow:
+    0 1px 3px color-mix(in srgb, var(--ink-100) 6%, transparent),
+    0 4px 12px color-mix(in srgb, var(--ink-100) 4%, transparent),
+    0 8px 24px color-mix(in srgb, var(--ink-100) 2%, transparent) !important;
+}
+
+[data-theme="eye-care"] .writing-card {
+  box-shadow:
+    0 1px 2px color-mix(in srgb, var(--ink-100) 5%, transparent),
+    0 4px 12px color-mix(in srgb, var(--ink-100) 3%, transparent) !important;
+}
+
+[data-theme="forest"] .writing-card {
+  box-shadow:
+    0 1px 2px color-mix(in srgb, #0a1f0a 12%, transparent),
+    0 4px 16px color-mix(in srgb, #0a1f0a 8%, transparent),
+    0 12px 40px color-mix(in srgb, #0a1f0a 5%, transparent) !important;
+}
+
+[data-theme="deep-blue"] .writing-empty-state__icon {
+  background: linear-gradient(135deg, color-mix(in srgb, var(--accent-primary) 18%, transparent) 0%, color-mix(in srgb, var(--color-outline) 12%, transparent) 100%);
+}
+
+[data-theme="forest"] .writing-empty-state__icon {
+  background: linear-gradient(135deg, color-mix(in srgb, var(--color-ifline) 18%, transparent) 0%, color-mix(in srgb, var(--accent-primary) 12%, transparent) 100%);
 }

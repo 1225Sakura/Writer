@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
+import { DURATION, EASE } from '@/components/shared/AnimationConfig'
 import {
   Bold,
   Italic,
@@ -221,7 +222,7 @@ export function EditorToolbar({ editor }: EditorToolbarProps) {
       key={`divider-${index}`}
       initial={{ opacity: 0, scaleY: 0 }}
       animate={{ opacity: 1, scaleY: 1 }}
-      transition={{ delay: index * 0.03, duration: 0.15 }}
+      transition={{ delay: index * 0.03, duration: DURATION.FAST, ease: EASE.SMOOTH }}
       className="w-px h-5 mx-1 relative overflow-hidden"
       style={{ background: 'transparent' }}
     >
@@ -335,7 +336,7 @@ export function EditorToolbar({ editor }: EditorToolbarProps) {
             <motion.button
               initial={{ opacity: 0, y: -4 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0, duration: 0.1 }}
+              transition={{ delay: 0, duration: DURATION.INSTANT, ease: EASE.SMOOTH }}
               onClick={(e) => {
                 e.preventDefault()
                 setStyleMenuOpen(!styleMenuOpen)

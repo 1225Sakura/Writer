@@ -19,8 +19,6 @@ import type {
   OOCCheckResponse,
   HighPointCheckResponse,
   ReaderPullCheckResponse,
-  CheckerBaseRequest,
-  OOCCheckerRequest,
 } from "./types"
 import { api, resolveBaseURL, getApiKey } from "./request"
 

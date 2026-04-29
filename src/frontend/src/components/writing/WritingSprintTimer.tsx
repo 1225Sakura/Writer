@@ -2,6 +2,8 @@ import { useState, useEffect, useCallback, useRef } from 'react'
 import { Button } from '@/components/ui/Button'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Timer, Play, Pause, RotateCcw, Settings, X, Coffee, Trophy, Zap, CheckCircle2 } from 'lucide-react'
+import { DURATION, EASE } from '@/components/shared/AnimationConfig'
+
 
 const DEFAULT_SPRINT_MINUTES = 25
 const DEFAULT_BREAK_MINUTES = 5
@@ -129,7 +131,7 @@ function CelebrationAnimation({ onComplete }: { onComplete: () => void }) {
         initial={{ scale: 0.5, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
         exit={{ scale: 0.5, opacity: 0 }}
-        transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+        transition={{ duration: DURATION.SLOW, ease: EASE.SMOOTH }}
         className="relative z-10"
       >
         <div
@@ -339,7 +341,7 @@ export function WritingSprintTimer() {
       initial={{ opacity: 0, scale: 0.92, y: -8 }}
       animate={{ opacity: 1, scale: 1, y: 0 }}
       exit={{ opacity: 0, scale: 0.92, y: -8 }}
-      transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
+      transition={{ duration: DURATION.SLOW, ease: EASE.SMOOTH }}
       className="fixed right-4 top-16 z-50 w-64 flex flex-col rounded-2xl overflow-hidden"
       style={{
         background: 'var(--color-surface-raised)',
@@ -458,7 +460,7 @@ export function WritingSprintTimer() {
             <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}>
               <Button
                 onClick={startTimer}
-                variant="primary"
+                variant="accent"
                 size="sm"
                 className="h-9 px-4"
               >
@@ -502,7 +504,7 @@ export function WritingSprintTimer() {
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: 'auto', opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
+            transition={{ duration: DURATION.NORMAL, ease: EASE.SMOOTH }}
             className="overflow-hidden"
           >
             <div className="px-4 pb-4 pt-3 border-t border-[var(--border-default)] space-y-3">

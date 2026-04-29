@@ -21,10 +21,10 @@ import {
   Sparkles,
   BarChart3,
   TrendingUp,
-  Clock,
   Zap,
   BookOpen,
 } from 'lucide-react'
+import { DURATION, EASE } from '@/components/shared/AnimationConfig'
 import type {
   CheckerBaseResponse,
   ContinuityCheckResponse,
@@ -61,6 +61,7 @@ interface CheckerResult {
     | HighPointCheckResponse
     | ReaderPullCheckResponse
     | null
+    | undefined
   timestamp: number | null
 }
 
@@ -292,7 +293,7 @@ function CheckerCard({
         border: '1px solid var(--border-default)',
       }}
       whileHover={{ borderColor: 'var(--border-strong)' }}
-      transition={{ duration: 0.15 }}
+      transition={{ duration: DURATION.FAST, ease: EASE.SMOOTH }}
     >
       {/* Card Header */}
       <button
@@ -390,7 +391,7 @@ function CheckerCard({
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: 'auto', opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
+            transition={{ duration: DURATION.NORMAL, ease: EASE.SMOOTH }}
             className="overflow-hidden"
           >
             <div
@@ -521,21 +522,21 @@ function SpecializedDisplay({
   switch (config.key) {
     case 'continuity': {
       const continuity = data as ContinuityCheckResponse
-      if (!continuity.plot_thread_status || Object.keys(continuity.plot_thread_status).length === 0) return null
+      if (!continuity.plot_thread_status || continuity.plot_thread_status.length === 0) return null
       return (
         <div className="space-y-1">
           <div className="text-[10px] font-medium" style={{ color: 'var(--text-tertiary)' }}>伏笔状态</div>
-          {Object.entries(continuity.plot_thread_status).map(([thread, status], i) => (
+          {continuity.plot_thread_status.map((threadStatus, i) => (
             <div key={i} className="flex items-center justify-between text-xs px-2 py-1 rounded-md" style={{ background: 'var(--color-surface-base)' }}>
-              <span style={{ color: 'var(--text-secondary)' }}>{thread}</span>
+              <span style={{ color: 'var(--text-secondary)' }}>{threadStatus.title}</span>
               <span
                 className="text-[10px] px-1.5 py-0.5 rounded-full font-medium"
                 style={{
-                  background: status === 'fulfilled' ? 'color-mix(in srgb, var(--color-ifline) 18%, transparent)' : 'color-mix(in srgb, var(--color-character) 18%, transparent)',
-                  color: status === 'fulfilled' ? 'var(--color-ifline)' : 'var(--color-character)',
+                  background: threadStatus.fulfilled ? 'color-mix(in srgb, var(--color-ifline) 18%, transparent)' : 'color-mix(in srgb, var(--color-character) 18%, transparent)',
+                  color: threadStatus.fulfilled ? 'var(--color-ifline)' : 'var(--color-character)',
                 }}
               >
-                {status === 'fulfilled' ? '已呼应' : '待呼应'}
+                {threadStatus.fulfilled ? '已呼应' : '待呼应'}
               </span>
             </div>
           ))}
@@ -561,7 +562,7 @@ function SpecializedDisplay({
                   style={{ background: config.color }}
                   initial={{ width: 0 }}
                   animate={{ width: `${strand.percentage}%` }}
-                  transition={{ duration: 0.5, delay: i * 0.1 }}
+                  transition={{ duration: DURATION.SLOW, delay: i * 0.1 , ease: EASE.SMOOTH }}
                 />
               </div>
             </div>
@@ -781,7 +782,7 @@ export function AICheckerPanel() {
       .map(async (config) => {
         setResult(config.key, { loading: true, error: null })
         try {
-          let data: CheckerResult['data']
+          let data: CheckerResult['data'] = null
           switch (config.key) {
             case 'consistency':
               data = await checkerApi.checkConsistency(currentChapterId)

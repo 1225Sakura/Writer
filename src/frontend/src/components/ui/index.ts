@@ -96,8 +96,29 @@ export type { CircularProgressProps } from './CircularProgress'
 export { AnimatedCounter } from './AnimatedCounter'
 export type { AnimatedCounterProps } from './AnimatedCounter'
 
-export { GlowCard } from './GlowCard'
-export type { GlowCardProps } from './GlowCard'
+// Unified GlassCard (replaces GlowCard, PremiumCard, SpotlightCard)
+export {
+  GlassCard,
+  GlassCardHeader,
+  GlassCardContent,
+  GlassCardFooter,
+  // Legacy compatibility aliases
+  GlowCard,
+  PremiumCard,
+  SpotlightCard,
+} from './GlassCard'
+export type {
+  GlassCardProps,
+  CardVariant,
+  CardIntensity,
+  EntityColor,
+  CardBorder,
+  GlowIntensity,
+  SpotlightColor,
+  GlassCardHeaderProps,
+  GlassCardContentProps,
+  GlassCardFooterProps,
+} from './GlassCard'
 
 export { TypewriterText } from './TypewriterText'
 export type { TypewriterTextProps } from './TypewriterText'
@@ -141,14 +162,8 @@ export { Toggle, toggleVariants } from './toggle'
 export { GradientText, AnimatedGradientText, ShimmerText } from './GradientText'
 export type { GradientTextProps, GradientTextColor, GradientTextDirection } from './GradientText'
 
-export { SpotlightCard, SpotlightGrid } from './SpotlightCard'
-export type { SpotlightCardProps, SpotlightColor, SpotlightIntensity } from './SpotlightCard'
-
 export { BentoGrid, BentoItem, BentoSection, BentoStat } from './BentoGrid'
 export type { BentoGridProps, BentoItemProps, BentoItemSize, BentoItemColor } from './BentoGrid'
-
-export { PremiumCard, PremiumCardHeader, PremiumCardContent, PremiumCardFooter } from './PremiumCard'
-export type { PremiumCardProps, PremiumCardHeaderProps, PremiumCardContentProps, PremiumCardFooterProps } from './PremiumCard'
 
 // Decorative UI components
 export { DecorativeDivider } from './DecorativeDivider'

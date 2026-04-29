@@ -12,16 +12,8 @@ export function useImmersiveMode(options: UseImmersiveModeOptions = {}) {
   const { hideDelay = IMMERSIVE_HIDE_DELAY } = options
   const prefersReducedMotion = usePrefersReducedMotion()
 
-  const {
-    immersiveMode,
-    setImmersiveMode,
-    aiDrawerOpen,
-    collaborationDrawerOpen,
-    outlineDrawerOpen,
-    toggleAIDrawer,
-    toggleCollaborationDrawer,
-    toggleOutlineDrawer,
-  } = useUIStore()
+  const immersiveMode = useUIStore((state) => state.immersiveMode)
+  const setImmersiveMode = useUIStore((state) => state.setImmersiveMode)
 
   const [chromeVisible, setChromeVisible] = useState(true)
   const hideTimeoutRef = useRef<NodeJS.Timeout | null>(null)

@@ -3,6 +3,7 @@ import { ExtractedEntity } from '@/store'
 import { CollectedInfoPanel } from './CollectedInfoPanel'
 import { motion, AnimatePresence } from 'framer-motion'
 import { PanelRightClose, PanelRightOpen } from 'lucide-react'
+import { GlassCard } from '@/components/ui/GlassCard'
 
 interface ChatSidebarProps {
   entities: ExtractedEntity[]
@@ -11,7 +12,7 @@ interface ChatSidebarProps {
 
 /**
  * ChatSidebar wraps CollectedInfoPanel with responsive layout.
- * - Desktop: fixed-width sidebar on the right
+ * - Desktop: fixed-width sidebar on the right with GlassCard styling
  * - Mobile: collapsible drawer with overlay
  */
 export function ChatSidebar({ entities, onConfirmEntity }: ChatSidebarProps) {
@@ -22,9 +23,10 @@ export function ChatSidebar({ entities, onConfirmEntity }: ChatSidebarProps) {
       {/* Desktop sidebar */}
       <div className="hidden md:block h-full">
         <motion.div
-          className="w-[280px] xl:w-[40%] xl:max-w-[480px] xl:min-w-[280px] h-full shrink-0 bg-surface-raised border-l border-default overflow-hidden"
+          className="w-[280px] xl:w-[40%] xl:max-w-[480px] xl:min-w-[280px] h-full shrink-0 overflow-hidden"
           style={{
-            boxShadow: 'inset 4px 0 20px color-mix(in srgb, var(--ink-100) 5%, transparent)',
+            background: 'var(--color-surface-raised)',
+            borderLeft: '1px solid var(--border-default)',
           }}
           initial={{ x: 24, opacity: 0 }}
           animate={{ x: 0, opacity: 1 }}
@@ -34,10 +36,9 @@ export function ChatSidebar({ entities, onConfirmEntity }: ChatSidebarProps) {
         </motion.div>
       </div>
 
-      {/* Mobile toggle button */}
+      {/* Mobile toggle button - enhanced with GlassCard */}
       <motion.button
-        className="md:hidden fixed right-4 bottom-20 z-50 w-10 h-10 rounded-full
-                   bg-surface-raised border border-default shadow-lg
+        className="md:hidden fixed right-4 bottom-20 z-50 w-11 h-11 rounded-full
                    flex items-center justify-center text-secondary hover:text-primary"
         onClick={() => setMobileOpen(!mobileOpen)}
         whileTap={{ scale: 0.9 }}
@@ -45,7 +46,17 @@ export function ChatSidebar({ entities, onConfirmEntity }: ChatSidebarProps) {
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.5 }}
       >
-        {mobileOpen ? <PanelRightOpen className="w-5 h-5" /> : <PanelRightClose className="w-5 h-5" />}
+        <GlassCard
+          intensity="strong"
+          border="subtle"
+          variant="elevated"
+          rounded="full"
+          padding="none"
+          hover
+          className="w-full h-full flex items-center justify-center"
+        >
+          {mobileOpen ? <PanelRightOpen className="w-5 h-5" /> : <PanelRightClose className="w-5 h-5" />}
+        </GlassCard>
       </motion.button>
 
       {/* Mobile drawer overlay */}
@@ -60,8 +71,11 @@ export function ChatSidebar({ entities, onConfirmEntity }: ChatSidebarProps) {
               onClick={() => setMobileOpen(false)}
             />
             <motion.div
-              className="md:hidden fixed right-0 top-0 bottom-0 z-40 w-[85%] max-w-[360px]
-                         bg-surface-raised shadow-2xl"
+              className="md:hidden fixed right-0 top-0 bottom-0 z-40 w-[85%] max-w-[360px]"
+              style={{
+                background: 'var(--color-surface-raised)',
+                boxShadow: '-8px 0 32px rgba(0,0,0,0.2)',
+              }}
               initial={{ x: '100%' }}
               animate={{ x: 0 }}
               exit={{ x: '100%' }}

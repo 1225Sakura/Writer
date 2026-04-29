@@ -1,8 +1,8 @@
 import { useState, useCallback, useEffect, useRef } from 'react'
 
-export type Theme = 'dark' | 'light' | 'eye-care' | 'midnight-blue' | 'warm-paper' | 'forest-green'
+export type Theme = 'dark' | 'light' | 'eye-care' | 'sepia' | 'deep-blue' | 'forest'
 
-const THEME_LIST: Theme[] = ['dark', 'light', 'eye-care', 'midnight-blue', 'warm-paper', 'forest-green']
+const THEME_LIST: Theme[] = ['dark', 'light', 'eye-care', 'sepia', 'deep-blue', 'forest']
 
 const STORAGE_KEY = 'theme'
 const SYSTEM_PREFERS_KEY = 'theme-system-prefers'
@@ -52,7 +52,7 @@ export function useTheme(): UseThemeReturn {
     localStorage.setItem(STORAGE_KEY, theme)
 
     // Also sync dark class for Tailwind/shadcn compatibility
-    const isDarkTheme = theme === 'dark' || theme === 'midnight-blue' || theme === 'eye-care' || theme === 'forest-green'
+    const isDarkTheme = theme === 'dark' || theme === 'deep-blue' || theme === 'eye-care' || theme === 'forest'
     if (isDarkTheme) {
       root.classList.add('dark')
     } else {
@@ -116,7 +116,7 @@ export function useTheme(): UseThemeReturn {
     }
   }, [])
 
-  const isDark = theme === 'dark' || theme === 'midnight-blue' || theme === 'eye-care' || theme === 'forest-green'
+  const isDark = theme === 'dark' || theme === 'deep-blue' || theme === 'eye-care' || theme === 'forest'
 
   return {
     theme,

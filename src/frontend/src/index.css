@@ -169,3 +169,44 @@
     color: var(--text-primary);
   }
 }
+
+/* ============================================================
+   shadcn/ui variable bridge
+   Maps shadcn HSL variables to our design token system.
+   These are kept for backward compatibility with shadcn components.
+   ============================================================ */
+
+@layer base {
+  :root {
+    --background: 240 10% 5%;
+    --foreground: 40 30% 93%;
+    --card: 240 8% 7%;
+    --card-foreground: 40 30% 93%;
+    --popover: 240 8% 7%;
+    --popover-foreground: 40 30% 93%;
+    --primary: 235 55% 59%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 240 5% 15%;
+    --secondary-foreground: 40 30% 93%;
+    --muted: 240 5% 15%;
+    --muted-foreground: 220 10% 65%;
+    --accent: 240 5% 15%;
+    --accent-foreground: 40 30% 93%;
+    --destructive: 0 60% 55%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 240 5% 15%;
+    --input: 240 5% 15%;
+    --ring: 235 55% 59%;
+    --radius: 0.5rem;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+    font-family: var(--font-sans);
+  }
+}

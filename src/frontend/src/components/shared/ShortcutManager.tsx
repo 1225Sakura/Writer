@@ -1,6 +1,5 @@
 import { useEffect, useCallback } from 'react'
 import { useUIStore, useWritingStore } from '@/store'
-import { shallow } from 'zustand/shallow'
 import { getEditorInstance } from '@/store/editorRegistry'
 import {
   AI_SHORTCUT_OPERATIONS,
@@ -88,20 +87,10 @@ export function useGlobalShortcuts() {
   const toggleTheme = useUIStore((state) => state.toggleTheme)
   const setCurrentInterface = useUIStore((state) => state.setCurrentInterface)
 
-  const {
-    currentChapterId,
-    saveCurrentChapter,
-    createChapter,
-    markSaved,
-  } = useWritingStore(
-    (state) => ({
-      currentChapterId: state.currentChapterId,
-      saveCurrentChapter: state.saveCurrentChapter,
-      createChapter: state.createChapter,
-      markSaved: state.markSaved,
-    }),
-    shallow
-  )
+  const currentChapterId = useWritingStore((state) => state.currentChapterId)
+  const saveCurrentChapter = useWritingStore((state) => state.saveCurrentChapter)
+  const createChapter = useWritingStore((state) => state.createChapter)
+  const markSaved = useWritingStore((state) => state.markSaved)
 
   // ===== 保存功能 =====
   const handleSave = useCallback(async () => {

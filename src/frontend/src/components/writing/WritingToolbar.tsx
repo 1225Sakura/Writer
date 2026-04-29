@@ -35,14 +35,16 @@ import { showToast } from '@/components/ui/Toast'
 import { getEditorInstance } from '@/store/editorRegistry'
 import { useThemeContext } from '@/components/shared/ThemeProvider'
 import type { Theme } from '@/hooks/useTheme'
+import { DURATION, EASE, SPRING } from '@/components/shared/AnimationConfig'
+
 
 const themeIconMap: Record<Theme, React.ReactNode> = {
   dark: <Moon className="w-4 h-4" />,
   light: <Sun className="w-4 h-4" />,
   'eye-care': <Eye className="w-4 h-4" />,
-  'midnight-blue': <Palette className="w-4 h-4" />,
-  'warm-paper': <Coffee className="w-4 h-4" />,
-  'forest-green': <TreePine className="w-4 h-4" />,
+  'deep-blue': <Palette className="w-4 h-4" />,
+  'sepia': <Coffee className="w-4 h-4" />,
+  'forest': <TreePine className="w-4 h-4" />,
 }
 
 export function WritingToolbar() {
@@ -76,8 +78,6 @@ export function WritingToolbar() {
     continue: continueWriting,
     polish,
     loading,
-    runAllChecks,
-    currentChapterId,
   } = useWritingStore()
   const todayWordCount = getTodayWordCount()
 
@@ -89,19 +89,6 @@ export function WritingToolbar() {
     const powerMsg = powerImbalanceWarnings.length > 0 ? `战力失衡警告:\n${powerImbalanceWarnings.join('\n')}` : ''
     showToast(`${oocMsg}${oocMsg && powerMsg ? '\n\n' : ''}${powerMsg}`, 'warning')
   }, [oocWarnings, powerImbalanceWarnings])
-
-  const handleRunChecks = useCallback(async () => {
-    if (!currentChapterId) {
-      showToast('请先选择章节', 'warning')
-      return
-    }
-    try {
-      await runAllChecks(currentChapterId)
-      showToast('检查完成', 'success')
-    } catch (error) {
-      showToast('检查失败', 'error')
-    }
-  }, [currentChapterId, runAllChecks])
 
   const hasWarnings = oocWarnings.length > 0 || powerImbalanceWarnings.length > 0
   const isAIGenerating = loading.ai
@@ -171,11 +158,8 @@ export function WritingToolbar() {
   return (
     <motion.div
       layout
-      transition={{ type: 'spring', stiffness: 400, damping: 30 }}
-      className={`flex items-center px-3 sm:px-4 gap-1.5 sm:gap-2 layout-topbar overflow-x-auto writing-toolbar writing-toolbar--glass ${toolbarCollapsed ? 'h-0 opacity-0 overflow-hidden' : 'h-[var(--layout-topbar-height)]'}`}
-      style={{
-        boxShadow: '0 1px 0 0 var(--border-subtle), 0 4px 24px color-mix(in srgb, var(--ink-100) 8%, transparent), inset 0 -1px 0 color-mix(in srgb, var(--paper-100) 2%, transparent)',
-      }}
+      transition={SPRING.SNAPPY}
+      className={`flex items-center px-3 sm:px-4 gap-1.5 sm:gap-2 layout-topbar overflow-x-auto writing-toolbar glass-ink ${toolbarCollapsed ? 'h-0 opacity-0 overflow-hidden' : 'h-[var(--layout-topbar-height)]'}`}
     >
       {/* 左侧：返回聊天 + 返回设定 */}
       <NavButton
@@ -227,26 +211,19 @@ export function WritingToolbar() {
         />
       </div>
 
-      {/* 中间偏右：人机比例快捷滑块 */}
+      {/* 中间偏右：人机比例快捷滑块 - minimal */}
       <div className="hidden lg:flex items-center gap-2 ml-2 flex-shrink-0">
         <Divider />
 
-        {/* Human-AI ratio mini control - refined visual with glow track */}
         <div
-          className="flex items-center gap-2.5 px-3.5 py-2 rounded-xl"
+          className="flex items-center gap-2.5 px-3 py-1.5 rounded-lg"
           style={{
-            background: 'color-mix(in srgb, var(--color-surface-raised) 95%, transparent)',
-            border: '1px solid color-mix(in srgb, var(--border-default) 60%, transparent)',
-            boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.15), 0 1px 0 color-mix(in srgb, var(--paper-100) 4%, transparent)',
+            background: 'color-mix(in srgb, var(--color-surface-raised) 80%, transparent)',
+            border: '1px solid color-mix(in srgb, var(--border-default) 40%, transparent)',
           }}
         >
-          <motion.div
-            whileHover={{ scale: 1.15 }}
-            transition={{ type: 'spring', stiffness: 400, damping: 15 }}
-          >
-            <Bot className="w-3.5 h-3.5" style={{ color: 'var(--accent-primary)' }} />
-          </motion.div>
-          <div className="w-28">
+          <Bot className="w-3.5 h-3.5" style={{ color: 'var(--accent-primary)' }} />
+          <div className="w-24">
             <RatioSlider
               value={[humanAIRatio]}
               min={0}
@@ -255,12 +232,7 @@ export function WritingToolbar() {
               onValueChange={(value) => setHumanAIRatio(value[0])}
             />
           </div>
-          <motion.div
-            whileHover={{ scale: 1.15 }}
-            transition={{ type: 'spring', stiffness: 400, damping: 15 }}
-          >
-            <User className="w-3.5 h-3.5 text-[var(--icon-secondary)]" />
-          </motion.div>
+          <User className="w-3.5 h-3.5 text-[var(--icon-secondary)]" />
           <span
             className="text-[10px] w-9 text-center font-semibold tracking-wide tabular-nums"
             style={{
@@ -290,7 +262,7 @@ export function WritingToolbar() {
               initial={{ opacity: 0, y: -4, scale: 0.95 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: -4, scale: 0.95 }}
-              transition={{ duration: 0.15 }}
+              transition={{ duration: DURATION.FAST, ease: EASE.SMOOTH }}
               className="absolute top-full left-0 mt-1.5 z-50 p-1.5 rounded-xl shadow-2xl min-w-[200px]"
               style={{
                 background: 'var(--color-surface-raised)',
@@ -336,63 +308,54 @@ export function WritingToolbar() {
 
       {/* 右侧：字数统计、警告和主题切换 */}
       <div className="ml-auto flex items-center gap-1 sm:gap-1.5 flex-shrink-0">
-        {/* AI生成状态指示 - enhanced with glow animation */}
+        {/* AI生成状态指示 - minimal dot */}
         <AnimatePresence>
           {isAIGenerating && (
             <motion.div
-              initial={{ opacity: 0, x: 8, scale: 0.95 }}
-              animate={{ opacity: 1, x: 0, scale: 1 }}
-              exit={{ opacity: 0, x: 8, scale: 0.95 }}
-              transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
-              className="flex items-center gap-1.5 px-2.5 py-1 rounded-full"
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.9 }}
+              transition={{ duration: DURATION.FAST, ease: EASE.SMOOTH }}
+              className="flex items-center gap-1.5 px-2 py-1 rounded-full"
               style={{
-                backgroundColor: 'color-mix(in srgb, var(--accent-primary) 15%, transparent)',
-                border: '1px solid color-mix(in srgb, var(--accent-primary) 30%, transparent)',
-                boxShadow: '0 0 12px color-mix(in srgb, var(--accent-primary) 20%, transparent), inset 0 1px 0 rgba(255,255,255,0.05)',
+                backgroundColor: 'color-mix(in srgb, var(--accent-primary) 10%, transparent)',
+                border: '1px solid color-mix(in srgb, var(--accent-primary) 20%, transparent)',
               }}
             >
-              <motion.div
-                animate={{ scale: [1, 1.2, 1], opacity: [0.8, 1, 0.8] }}
-                transition={{ duration: 1.4, repeat: Infinity, ease: 'easeInOut' }}
-              >
-                <Sparkles className="w-3 h-3" style={{ color: 'var(--accent-primary)' }} />
-              </motion.div>
-              <motion.span
-                animate={{ opacity: [0.7, 1, 0.7] }}
-                transition={{ duration: 1.4, repeat: Infinity, ease: 'easeInOut' }}
-                className="text-[10px] font-semibold"
-                style={{ color: 'var(--accent-primary)' }}
-              >
+              <span
+                className="w-1.5 h-1.5 rounded-full animate-pulse motion-reduce:animate-none"
+                style={{ backgroundColor: 'var(--accent-primary)' }}
+              />
+              <span className="text-[10px] font-medium" style={{ color: 'var(--accent-primary)' }}>
                 AI生成中
-              </motion.span>
+              </span>
             </motion.div>
           )}
         </AnimatePresence>
 
-        {/* 今日进度 - gradient fill */}
+        {/* 今日进度 - minimal */}
         <div
           className="hidden sm:flex items-center gap-1.5 mr-1 px-2 py-1 rounded-lg"
           style={{
-            background: 'color-mix(in srgb, var(--color-surface-raised) 90%, transparent)',
-            border: '1px solid color-mix(in srgb, var(--border-subtle) 50%, transparent)',
+            background: 'color-mix(in srgb, var(--color-surface-raised) 60%, transparent)',
+            border: '1px solid color-mix(in srgb, var(--border-subtle) 30%, transparent)',
           }}
           title="今日写作进度"
         >
           <BarChart3 className="w-3.5 h-3.5" style={{ color: 'var(--accent-primary)' }} />
-          <div className="w-16 h-1 bg-[var(--border-subtle)] rounded-full overflow-hidden">
+          <div className="w-14 h-1 bg-[var(--border-subtle)] rounded-full overflow-hidden">
             <motion.div
               className="h-full rounded-full"
               style={{
-                background: 'linear-gradient(90deg, var(--accent-primary) 0%, var(--color-ifline) 100%)',
-                boxShadow: '0 0 8px color-mix(in srgb, var(--accent-100) 35%, transparent)',
+                background: 'var(--accent-primary)',
               }}
               initial={{ width: 0 }}
               animate={{ width: `${Math.min(100, (todayWordCount / Math.max(1, targetWordCount)) * 100)}%` }}
-              transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+              transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
             />
           </div>
           <span className="text-[10px] tabular-nums" style={{ color: 'var(--text-tertiary)' }}>
-            {todayWordCount}/{targetWordCount}
+            {todayWordCount}
           </span>
         </div>
 
@@ -783,7 +746,7 @@ const RatioSlider = React.forwardRef<
     </SliderPrimitive.Track>
     <SliderPrimitive.Thumb
       className="block h-5 w-5 rounded-full border-2 transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-primary)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--color-surface-base)] disabled:pointer-events-none disabled:opacity-50
-                 hover:scale-110 active:scale-95 group-hover/slider:shadow-[0_0_12px_rgba(94,106,210,0.4)]"
+                 hover:scale-110 active:scale-95 group-hover/slider:shadow-[0_0_12px_var(--glow-primary)]"
       style={{
         borderColor: 'var(--accent-primary)',
         background: 'var(--color-surface-raised)',

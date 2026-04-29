@@ -50,6 +50,9 @@ export interface ImportProjectResponse {
   conflicts_count: number
 }
 
+// Re-export for consumers that need the type
+export type { ImportSummaryResponse }
+
 // ---------------------------------------------------------------------------
 // API Methods
 // ---------------------------------------------------------------------------

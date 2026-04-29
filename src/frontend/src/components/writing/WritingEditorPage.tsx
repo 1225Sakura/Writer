@@ -11,16 +11,17 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { WritingSkeleton } from '@/components/shared/SmartSkeleton'
 import { SectionLoadingOverlay } from '@/components/shared/LoadingOverlay'
 import {
-  ImmersiveVignette,
-  AmbientOrbs,
   SwipeHintModal,
   ImmersiveIndicator,
+  ImmersiveVignette,
   ImmersiveModeProvider,
   useImmersiveModeContext,
 } from './immersive'
 
-const IMMERSIVE_SPRING = { type: 'spring' as const, stiffness: 180, damping: 24 }
-const IMMERSIVE_EASE = [0.16, 1, 0.3, 1] as const
+import { EASE, DURATION, SPRING } from '@/components/shared/AnimationConfig'
+
+/** Unified subtle shadow for drawer edges - ink wash aesthetic */
+const DRAWER_EDGE_SHADOW = '0 0 32px rgba(0,0,0,0.14), 0 0 8px rgba(0,0,0,0.06), inset 0 0 0 1px rgba(255,255,255,0.02)'
 
 function WritingEditorPageContent() {
   const {
@@ -54,20 +55,21 @@ function WritingEditorPageContent() {
       {/* Mobile-safe top inset spacer */}
       <div className="h-[env(safe-area-inset-top)] bg-[var(--color-surface-base)] flex-shrink-0" />
 
-      {/* Immersive mode effects */}
+      {/* Immersive vignette overlay - ink wash aesthetic */}
       <ImmersiveVignette />
-      <AmbientOrbs />
+
+      {/* Immersive mode indicator */}
       <ImmersiveIndicator />
 
-      {/* Toolbar - smoother spring physics for show/hide */}
+      {/* Toolbar - glassmorphism with smart show/hide */}
       <AnimatePresence initial={false}>
         {(!immersiveMode || chromeVisible) && (
           <motion.div
             key="toolbar"
-            initial={immersiveMode ? { opacity: 0, y: -20 } : false}
+            initial={immersiveMode ? { opacity: 0, y: -16 } : false}
             animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            transition={IMMERSIVE_SPRING}
+            exit={{ opacity: 0, y: -16 }}
+            transition={SPRING.IMMERSIVE}
             className="relative z-20"
           >
             <WritingToolbar />
@@ -75,20 +77,10 @@ function WritingEditorPageContent() {
         )}
       </AnimatePresence>
 
-      {/* 主内容区 - refined z-index and spacing for immersive mode stacking */}
+      {/* Main content area */}
       <div className={`flex-1 flex overflow-hidden relative ${immersiveMode ? 'z-10' : ''}`}>
-        {/* 写作区域 - subtle writing-bg texture */}
-        <div className="flex-1 overflow-hidden relative">
-          {/* Subtle writing background texture - organic paper grain */}
-          <div
-            className="absolute inset-0 pointer-events-none z-0"
-            style={{
-              opacity: 0.012,
-              backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E")`,
-              backgroundRepeat: 'repeat',
-              backgroundSize: '200px 200px',
-            }}
-          />
+        {/* Writing area - textured paper background for immersion */}
+        <div className="flex-1 overflow-hidden relative textured-paper writing-texture-bg">
           <SectionLoadingOverlay
             visible={loading.chapters || loading.outlines}
             message="加载章节数据..."
@@ -106,96 +98,66 @@ function WritingEditorPageContent() {
         <ChapterNotesPanel />
         <WritingSprintTimer />
 
-        {/* Outline sidebar - refined edge glow */}
+        {/* Outline sidebar - unified edge style with ink shadow */}
         <AnimatePresence initial={false}>
           {outlineDrawerOpen && (!immersiveMode || chromeVisible) && (
             <motion.div
               key="outline-sidebar"
-              initial={{ width: 0, opacity: 0, x: -20 }}
+              initial={{ width: 0, opacity: 0, x: -24 }}
               animate={{ width: 280, opacity: 1, x: 0 }}
-              exit={{ width: 0, opacity: 0, x: -20 }}
+              exit={{ width: 0, opacity: 0, x: -24 }}
               transition={{
-                width: { type: 'spring', stiffness: 260, damping: 26, restSpeed: 0.5 },
-                opacity: { duration: 0.3, ease: IMMERSIVE_EASE },
-                x: { type: 'spring', stiffness: 260, damping: 26, restSpeed: 0.5 },
+                width: { type: 'spring', stiffness: 280, damping: 28, restSpeed: 0.5 },
+                opacity: { duration: DURATION.NORMAL, ease: EASE.SMOOTH },
+                x: SPRING.DRAWER,
               }}
               className="border-r border-[var(--border-default)] bg-[var(--color-surface-raised)] flex flex-col overflow-hidden relative z-20"
-              style={{
-                boxShadow: `
-                  4px 0 48px color-mix(in srgb, var(--color-outline) 10%, transparent),
-                  2px 0 16px color-mix(in srgb, var(--color-outline) 5%, transparent),
-                  inset -1px 0 0 color-mix(in srgb, var(--color-outline) 15%, transparent)
-                `,
-              }}
+              style={{ boxShadow: DRAWER_EDGE_SHADOW }}
             >
-              {/* Refined edge glow indicator */}
-              <motion.div
-                initial={{ opacity: 0, scaleY: 0 }}
-                animate={{ opacity: 1, scaleY: 1 }}
-                exit={{ opacity: 0, scaleY: 0 }}
-                transition={{ duration: 0.6, ease: IMMERSIVE_EASE }}
-                className="absolute top-0 right-0 w-[2px] h-full origin-top"
-                style={{
-                  background: 'linear-gradient(180deg, var(--color-outline) 0%, color-mix(in srgb, var(--color-outline) 50%, transparent) 35%, color-mix(in srgb, var(--color-outline) 20%, transparent) 70%, transparent 100%)',
-                  boxShadow: '0 0 12px color-mix(in srgb, var(--color-outline) 20%, transparent)',
-                }}
-              />
               <OutlineSidebar />
             </motion.div>
           )}
         </AnimatePresence>
 
-        {/* AI operation drawer - refined edge glow */}
+        {/* AI operation drawer - unified edge style with ink shadow */}
         <AnimatePresence initial={false}>
           {aiDrawerOpen && (!immersiveMode || chromeVisible) && (
             <motion.div
               key="ai-drawer"
-              initial={{ width: 0, opacity: 0, x: 40 }}
+              initial={{ width: 0, opacity: 0, x: 48 }}
               animate={{ width: 320, opacity: 1, x: 0 }}
-              exit={{ width: 0, opacity: 0, x: 40 }}
+              exit={{ width: 0, opacity: 0, x: 48 }}
               transition={{
-                width: { type: 'spring', stiffness: 240, damping: 24, restSpeed: 0.5 },
-                opacity: { duration: 0.35, ease: IMMERSIVE_EASE },
-                x: { type: 'spring', stiffness: 240, damping: 24, restSpeed: 0.5 }
+                width: SPRING.DRAWER,
+                opacity: { duration: DURATION.NORMAL, ease: EASE.SMOOTH },
+                x: SPRING.DRAWER
               }}
               className="drawer-responsive drawer-right border-l border-[var(--border-default)] bg-[var(--color-surface-raised)] flex flex-col overflow-hidden relative z-20
                          max-md:fixed max-md:inset-0 max-md:w-full max-md:h-full max-md:z-50 max-md:border-none max-md:rounded-none
                          md:w-[320px] lg:w-[360px]"
-              style={{
-                boxShadow: `
-                  -4px 0 56px color-mix(in srgb, var(--accent-primary) 14%, transparent),
-                  -2px 0 24px color-mix(in srgb, var(--accent-primary) 7%, transparent),
-                  inset 1px 0 0 color-mix(in srgb, var(--accent-primary) 12%, transparent)
-                `,
-              }}
+              style={{ boxShadow: DRAWER_EDGE_SHADOW }}
             >
               <AIOperationDrawer />
             </motion.div>
           )}
         </AnimatePresence>
 
-        {/* Collaboration panel - refined edge glow */}
+        {/* Collaboration panel - unified edge style with ink shadow */}
         <AnimatePresence initial={false}>
           {collaborationDrawerOpen && (!immersiveMode || chromeVisible) && (
             <motion.div
               key="collab-drawer"
-              initial={{ width: 0, opacity: 0, x: 30 }}
+              initial={{ width: 0, opacity: 0, x: 36 }}
               animate={{ width: 300, opacity: 1, x: 0 }}
-              exit={{ width: 0, opacity: 0, x: 30 }}
+              exit={{ width: 0, opacity: 0, x: 36 }}
               transition={{
-                width: { type: 'spring', stiffness: 240, damping: 24, restSpeed: 0.5 },
-                opacity: { duration: 0.35, ease: IMMERSIVE_EASE },
-                x: { type: 'spring', stiffness: 240, damping: 24, restSpeed: 0.5 }
+                width: SPRING.DRAWER,
+                opacity: { duration: DURATION.NORMAL, ease: EASE.SMOOTH },
+                x: SPRING.DRAWER
               }}
               className="drawer-responsive drawer-right border-l border-[var(--border-default)] bg-[var(--color-surface-raised)] flex flex-col overflow-hidden relative z-20
                          max-md:fixed max-md:inset-0 max-md:w-full max-md:h-full max-md:z-50 max-md:border-none max-md:rounded-none"
-              style={{
-                boxShadow: `
-                  -4px 0 56px color-mix(in srgb, var(--color-ifline) 12%, transparent),
-                  -2px 0 24px color-mix(in srgb, var(--color-ifline) 6%, transparent),
-                  inset 1px 0 0 color-mix(in srgb, var(--color-ifline) 10%, transparent)
-                `,
-              }}
+              style={{ boxShadow: DRAWER_EDGE_SHADOW }}
             >
               <CollaborationPanel />
             </motion.div>

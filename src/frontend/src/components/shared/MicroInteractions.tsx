@@ -18,11 +18,13 @@ import { cn } from '@/lib/utils'
 
 // ==================== Reusable Framer Motion Variants ====================
 
-/** 标准缓动曲线：cubic-bezier(0.22, 1, 0.36, 1) */
-export const easeOutSmooth = [0.22, 1, 0.36, 1] as const
+import { EASE } from './AnimationConfig'
 
-/** 弹性缓动曲线 */
-export const easeSpring = [0.34, 1.56, 0.64, 1] as const
+/** Standard ease-out curve (re-export from AnimationConfig) */
+export const easeOutSmooth = EASE.OUT
+
+/** Spring bounce curve (re-export from AnimationConfig) */
+export const easeSpring = EASE.BOUNCE
 
 /** 微交互变体集合 */
 export const microVariants: Record<string, Variants> = {

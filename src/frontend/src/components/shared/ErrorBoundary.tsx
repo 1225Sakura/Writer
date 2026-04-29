@@ -2,6 +2,7 @@ import { Component, ReactNode, ErrorInfo } from 'react'
 import { motion } from 'framer-motion'
 import { Button } from '@/components/ui/Button'
 import { AlertTriangle, RefreshCw, Home, Bug, Feather } from 'lucide-react'
+import { DURATION, EASE } from '@/components/shared/AnimationConfig'
 
 interface Props {
   children: ReactNode
@@ -63,7 +64,7 @@ export class ErrorBoundary extends Component<Props, State> {
           <motion.div
             initial={{ opacity: 0, y: 20, scale: 0.96 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
-            transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+            transition={{ duration: DURATION.SLOW, ease: EASE.SMOOTH }}
             className="max-w-md w-full rounded-2xl p-8 border"
             style={{
               backgroundColor: 'var(--ink-85)',

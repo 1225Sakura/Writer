@@ -261,8 +261,21 @@ export interface AIChapterInspectionResponse {
 // Checker Types (from /ai/check/* endpoints)
 // ============================================
 
+export interface ConsistencyCheckResponse extends CheckerBaseResponse {
+  inconsistencies: Array<{
+    type: string
+    description: string
+    severity: string
+  }>
+}
+
 export interface CheckerBaseRequest {
   chapter_id: number
+}
+
+export interface OOCCheckerRequest {
+  chapter_id: number
+  character_id: number
 }
 
 export interface CheckerBaseResponse {

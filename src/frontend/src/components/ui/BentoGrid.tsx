@@ -9,6 +9,8 @@
 import { motion } from 'framer-motion'
 import type { ReactNode, CSSProperties } from 'react'
 import { cn } from '@/lib/utils'
+import { DURATION, EASE } from '@/components/shared/AnimationConfig'
+
 
 export type BentoItemSize =
   | '1x1' // 标准单元格
@@ -171,7 +173,7 @@ export function BentoItem({
           : undefined
       }
       whileTap={onClick ? { scale: 0.98 } : undefined}
-      transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
+      transition={{ duration: DURATION.NORMAL, ease: EASE.SMOOTH }}
     >
       {/* Shimmer overlay */}
       {shimmer && (

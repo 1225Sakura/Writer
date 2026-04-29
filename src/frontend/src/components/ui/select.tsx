@@ -6,6 +6,8 @@ import { motion, AnimatePresence } from "framer-motion"
 import { Check, ChevronDown, ChevronUp } from "lucide-react"
 
 import { cn } from "@/lib/utils"
+import { DURATION, EASE, SPRING } from '@/components/shared/AnimationConfig'
+
 
 export type SelectStatus = 'default' | 'focus' | 'error' | 'disabled'
 
@@ -74,7 +76,7 @@ const SelectTrigger = React.forwardRef<
         <SelectPrimitive.Icon asChild>
           <motion.span
             animate={{ rotate: isFocused ? 180 : 0 }}
-            transition={{ duration: 0.2 }}
+            transition={{ duration: DURATION.FAST, ease: EASE.SMOOTH }}
             className="flex items-center"
           >
             <ChevronDown className="h-4 w-4 opacity-60 text-[var(--text-tertiary)]" />
@@ -89,7 +91,7 @@ const SelectTrigger = React.forwardRef<
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            transition={{ duration: 0.15 }}
+            transition={{ duration: DURATION.FAST, ease: EASE.SMOOTH }}
             className="absolute inset-0 rounded-[var(--radius-input)] pointer-events-none"
             style={{
               boxShadow: `inset 0 0 20px rgba(94, 106, 210, 0.12)`,
@@ -208,7 +210,7 @@ const SelectItem = React.forwardRef<
         <motion.span
           initial={{ scale: 0 }}
           animate={{ scale: 1 }}
-          transition={{ type: 'spring', stiffness: 400, damping: 20 }}
+          transition={SPRING.SNAPPY}
         >
           <Check className="h-4 w-4 text-[var(--accent-100)]" />
         </motion.span>

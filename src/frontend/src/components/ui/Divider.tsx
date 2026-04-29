@@ -2,6 +2,8 @@ import * as React from 'react'
 import { clsx } from 'clsx'
 import { twMerge } from 'tailwind-merge'
 import { motion } from 'framer-motion'
+import { DURATION, EASE } from '@/components/shared/AnimationConfig'
+
 
 export interface DividerProps extends React.HTMLAttributes<HTMLDivElement> {
   label?: string
@@ -59,7 +61,7 @@ export const Divider = React.forwardRef<HTMLDivElement, DividerProps>(
             )}
             initial={animated ? { opacity: 0, scale: 0.9 } : false}
             animate={animated ? { opacity: 1, scale: 1 } : false}
-            transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+            transition={{ duration: DURATION.SLOW, ease: EASE.SMOOTH }}
           >
             {label}
           </motion.span>

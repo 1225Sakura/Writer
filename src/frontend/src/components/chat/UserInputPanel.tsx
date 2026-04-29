@@ -5,6 +5,9 @@ import { ChatTemplates } from './ChatTemplates'
 import { motion, AnimatePresence } from 'framer-motion'
 import { getWebSocketClient } from '@/api/websocket'
 import { usePrefersReducedMotion } from '@/hooks/usePrefersReducedMotion'
+import { GlassCard } from '@/components/ui/GlassCard'
+import { DURATION, EASE } from '@/components/shared/AnimationConfig'
+
 
 const MAX_INPUT_LENGTH = 500
 
@@ -112,9 +115,11 @@ export function UserInputPanel() {
   const canSend = input.trim() && !isLoading && !isStreaming
 
   return (
-    <div className="flex flex-col gap-3 p-4 bg-surface-base border-t border-default">
+    <div className="flex flex-col gap-3 p-4 bg-surface-base border-t border-default"
+    >
       {/* Template selector + Export button row */}
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between"
+      >
         <ChatTemplates onSelect={handleTemplateSelect} disabled={isLoading || isStreaming} />
 
         {hasMessages && (
@@ -140,7 +145,7 @@ export function UserInputPanel() {
             initial={{ opacity: 0, y: 10, scale: 0.95 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -10, scale: 0.95 }}
-            transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
+            transition={{ duration: DURATION.NORMAL, ease: EASE.SMOOTH }}
             className="flex items-center gap-2 text-xs px-3 py-2 rounded-lg
                        bg-[rgba(126,184,74,0.1)] text-[var(--color-ifline)] border border-[rgba(126,184,74,0.2)]"
           >
@@ -166,54 +171,55 @@ export function UserInputPanel() {
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
-            transition={{ duration: 0.25 }}
+            transition={{ duration: DURATION.NORMAL, ease: EASE.SMOOTH }}
           >
-            {quickReplies.map((reply, i) => (
-              <motion.button
+            {quickReplies.map((reply) => (
+              <GlassCard
                 key={reply.label}
-                onClick={() => handleQuickReply(reply.message)}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs rounded-full border border-default
-                           text-secondary hover:bg-surface-raised hover:text-primary hover:border-strong
-                           transition-colors touch-target-min"
+                intensity="light"
+                border="subtle"
+                variant="default"
+                rounded="full"
+                padding="sm"
+                hover
+                className="inline-flex items-center gap-1.5 text-xs cursor-pointer text-secondary hover:text-primary"
                 style={{ whiteSpace: 'nowrap' }}
-                initial={{ opacity: 0, x: -8 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: i * 0.05, duration: 0.2 }}
-                whileHover={prefersReducedMotion ? {} : { y: -1, scale: 1.02 }}
-                whileTap={prefersReducedMotion ? {} : { scale: 0.95 }}
-                aria-label={reply.label}
+                onClick={() => handleQuickReply(reply.message)}
               >
                 <span className="flex-shrink-0 opacity-60">{reply.icon}</span>
                 <span>{reply.label}</span>
-              </motion.button>
+              </GlassCard>
             ))}
           </motion.div>
         )}
       </AnimatePresence>
 
-      <div className="flex gap-2 items-end">
+      <div className="flex gap-2 items-end"
+      >
         {/* New chat button */}
         <motion.button
-          className="min-w-11 min-h-11 flex-shrink-0 rounded-md bg-surface-raised border border-default touch-target-min"
+          className="min-w-11 min-h-11 flex-shrink-0 rounded-xl bg-surface-raised border border-default touch-target-min
+                     flex items-center justify-center text-secondary hover:text-primary hover:bg-surface-hover"
           title="开始新对话"
           onClick={handleNewChat}
-          whileHover={prefersReducedMotion ? {} : { scale: 1.08, backgroundColor: 'var(--color-surface-hover)' }}
+          whileHover={prefersReducedMotion ? {} : { scale: 1.06 }}
           whileTap={prefersReducedMotion ? {} : { scale: 0.92 }}
-          transition={{ duration: 0.15 }}
+          transition={{ duration: DURATION.FAST, ease: EASE.SMOOTH }}
         >
-          <RefreshCw className="w-5 h-5 text-[var(--icon-secondary)]" />
+          <RefreshCw className="w-5 h-5" />
         </motion.button>
 
         {/* Input area with enhanced focus effects */}
-        <div className="flex-1 relative min-w-0">
+        <div className="flex-1 relative min-w-0"
+        >
           <motion.div
             className="relative"
             animate={{
               boxShadow: isFocused
-                ? '0 0 0 2px var(--accent-primary), 0 0 0 4px rgba(94, 106, 210, 0.12), 0 0 32px rgba(94, 106, 210, 0.15)'
+                ? '0 0 0 2px var(--accent-primary), 0 0 0 4px rgba(94, 106, 210, 0.08), 0 0 24px rgba(94, 106, 210, 0.1)'
                 : '0 0 0 1px var(--border-default), 0 2px 8px rgba(0,0,0,0.04)',
             }}
-            transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
+            transition={{ duration: DURATION.NORMAL, ease: EASE.SMOOTH }}
             style={{ borderRadius: 'var(--radius-xl)' }}
           >
             <textarea
@@ -251,7 +257,7 @@ export function UserInputPanel() {
                     ? 'var(--color-warning)'
                     : 'var(--text-tertiary)'
               }}
-              transition={{ duration: 0.15 }}
+              transition={{ duration: DURATION.FAST, ease: EASE.SMOOTH }}
             >
               <span
                 className="text-xs font-mono tabular-nums"
@@ -263,79 +269,28 @@ export function UserInputPanel() {
                 {charCount}/{MAX_INPUT_LENGTH}
               </span>
             </motion.div>
-
-            {/* Enhanced focus glow overlay */}
-            <AnimatePresence>
-              {isFocused && (
-                <motion.div
-                  className="absolute inset-0 rounded-md pointer-events-none"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  transition={{ duration: 0.2 }}
-                  style={{
-                    background: 'radial-gradient(ellipse at center, rgba(94, 106, 210, 0.04) 0%, transparent 70%)',
-                  }}
-                />
-              )}
-            </AnimatePresence>
-
-            {/* Subtle animated border on focus */}
-            <AnimatePresence>
-              {isFocused && (
-                <motion.div
-                  className="absolute inset-0 rounded-md pointer-events-none"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  transition={{ duration: 0.3 }}
-                  style={{
-                    border: '1px solid',
-                    borderColor: 'transparent',
-                    borderRadius: 'inherit',
-                    background: 'linear-gradient(var(--accent-primary), var(--accent-primary)) padding-box, linear-gradient(135deg, rgba(94, 106, 210, 0.5), rgba(94, 181, 166, 0.3), rgba(232, 184, 125, 0.4)) border-box',
-                    animation: 'glow-border-pulse 2s ease-in-out infinite',
-                  }}
-                />
-              )}
-            </AnimatePresence>
           </motion.div>
         </div>
 
-        {/* Send button with enhanced micro-interactions */}
+        {/* Send button with glow effect */}
         <motion.button
           onClick={handleSend}
           disabled={!canSend}
           className="px-5 py-2.5 flex items-center gap-2 text-sm font-medium flex-shrink-0
                      rounded-xl text-primary disabled:opacity-40 disabled:cursor-not-allowed
-                     transition-all duration-200 relative overflow-hidden shadow-md touch-target-min"
+                     transition-all duration-200 relative overflow-hidden touch-target-min"
           style={{
             backgroundColor: canSend ? 'var(--accent-primary)' : 'var(--color-surface-input)',
             border: canSend ? '1px solid transparent' : '1px solid var(--border-default)',
+            color: canSend ? 'white' : 'var(--text-secondary)',
           }}
           whileHover={canSend && !prefersReducedMotion ? {
             scale: 1.04,
-            boxShadow: '0 0 28px rgba(94, 106, 210, 0.50), 0 4px 16px rgba(94, 106, 210, 0.25)',
+            boxShadow: '0 0 24px color-mix(in srgb, var(--accent-primary) 40%, transparent), 0 4px 12px color-mix(in srgb, var(--accent-primary) 20%, transparent)',
           } : {}}
           whileTap={canSend && !prefersReducedMotion ? { scale: 0.95 } : {}}
-          transition={{ duration: 0.2 }}
+          transition={{ duration: DURATION.FAST, ease: EASE.SMOOTH }}
         >
-          {/* Ripple effect on hover */}
-          {canSend && (
-            <motion.div
-              className="absolute inset-0 rounded-md"
-              initial={{ opacity: 0 }}
-              whileHover={prefersReducedMotion ? {} : {
-                opacity: [0, 0.3, 0],
-                scale: [1, 1.5],
-              }}
-              transition={{ duration: 0.6, repeat: Infinity, repeatDelay: 1.5 }}
-              style={{
-                background: 'radial-gradient(circle at center, rgba(255,255,255,0.2) 0%, transparent 70%)',
-              }}
-            />
-          )}
-
           {isLoading || isStreaming ? (
             <motion.div
               animate={{ rotate: 360 }}
@@ -344,20 +299,7 @@ export function UserInputPanel() {
               <Loader2 className="w-4 h-4" />
             </motion.div>
           ) : (
-            <motion.div
-              animate={canSend ? {
-                x: [0, 4, 0],
-                y: [0, -2, 0],
-              } : {}}
-              transition={{
-                duration: 0.8,
-                repeat: Infinity,
-                repeatDelay: 3,
-                ease: 'easeInOut',
-              }}
-            >
-              <Send className="w-4 h-4" />
-            </motion.div>
+            <Send className="w-4 h-4" />
           )}
           <span>{isLoading || isStreaming ? '发送中...' : '发送'}</span>
         </motion.button>
@@ -372,7 +314,7 @@ export function UserInputPanel() {
             initial={{ opacity: 0, y: -8, scale: 0.97 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -4, scale: 0.97 }}
-            transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
+            transition={{ duration: DURATION.NORMAL, ease: EASE.SMOOTH }}
           >
             <motion.span
               className="w-1.5 h-1.5 rounded-full flex-shrink-0"

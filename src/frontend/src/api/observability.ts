@@ -160,8 +160,7 @@ export const resolveDebtsByEntity = (
 ): Promise<{ resolved_count: number; entity_type: string; entity_id: number }> =>
   api.post<{ resolved_count: number; entity_type: string; entity_id: number }>(
     "/observability/debt/resolve-by-entity",
-    undefined,
-    { params: { entity_type: entityType, entity_id: entityId } }
+    { entity_type: entityType, entity_id: entityId }
   )
 
 /** Get writing quality trend report. */

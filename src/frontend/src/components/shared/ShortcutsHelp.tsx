@@ -13,6 +13,7 @@ import {
   Command,
   Search,
 } from 'lucide-react'
+import { DURATION, EASE, SPRING } from '@/components/shared/AnimationConfig'
 import {
   getShortcutsByCategory,
   CATEGORY_LABELS,
@@ -107,7 +108,7 @@ export function ShortcutsHelp({ initialInterface = 'global' }: ShortcutsHelpProp
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          transition={{ duration: 0.15 }}
+          transition={{ duration: DURATION.FAST, ease: EASE.SMOOTH }}
           className="fixed inset-0 z-50 flex items-center justify-center p-4"
           onClick={() => setIsOpen(false)}
         >
@@ -119,7 +120,7 @@ export function ShortcutsHelp({ initialInterface = 'global' }: ShortcutsHelpProp
             initial={{ scale: 0.95, opacity: 0, y: 20 }}
             animate={{ scale: 1, opacity: 1, y: 0 }}
             exit={{ scale: 0.95, opacity: 0, y: 20 }}
-            transition={{ type: 'spring', stiffness: 400, damping: 30 }}
+            transition={SPRING.SNAPPY}
             className="relative w-full max-w-2xl max-h-[85vh] rounded-2xl border border-[rgba(255,255,255,0.08)] bg-[var(--ink-90)] shadow-2xl overflow-hidden flex flex-col"
             onClick={(e) => e.stopPropagation()}
           >

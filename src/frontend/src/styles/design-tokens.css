@@ -2,7 +2,8 @@
  * Design Tokens — Ink/Parchment/Vermillion System
  * ============================================================
  * Central source of truth for all design tokens.
- * Colors follow CLAUDE.md color system specification.
+ * This is the ONLY file that defines CSS custom properties.
+ * All other CSS files reference these variables.
  *
  * Color Palette (from CLAUDE.md):
  * - 深墨色 #1a1a2e (写作区背景/dark backgrounds)
@@ -17,23 +18,12 @@
  * ============================================================
  */
 
-@import './globals.css';
-
 /* ============================================================
-   DESIGN TOKEN EXPORTS (CSS Custom Properties)
-   These re-export key tokens for external consumption
+   CORE DESIGN TOKENS
    ============================================================ */
 
 :root {
-  /* === Core Color Tokens === */
-  /* Dark theme writing background */
-  --color-writing-bg-dark: #1a1a2e;
-  /* Paper white for text/cards */
-  --color-paper-white: #f5f0e6;
-  /* Vermillion red for emphasis/warning */
-  --color-vermillion-red: #c45c5c;
-
-  /* === Ink Scale (Backgrounds) — dark theme === */
+  /* === Ink Scale (Backgrounds) === */
   --ink-100: #0d0d12;
   --ink-95:  #12121c;
   --ink-90:  #1a1a2e;
@@ -44,7 +34,7 @@
   --ink-65:  #44445a;
   --ink-60:  #4a4a5a;
 
-  /* === Paper Scale (Foregrounds) — light theme === */
+  /* === Paper Scale (Foregrounds) === */
   --paper-100: #f5f0e6;
   --paper-95:  #eee9df;
   --paper-90:  #e8e4dc;
@@ -69,15 +59,25 @@
   --vermillion-90:  #d45d5d;
   --vermillion-muted: rgba(196, 92, 92, 0.18);
 
+  /* === Entity Type Colors === */
+  --color-character: #e8b87d;
+  --color-item:      #9b7ed9;
+  --color-location:  #5eb5a6;
+  --color-faction:   #d45d5d;
+  --color-outline:   #5b8ee8;
+  --color-ifline:    #7eb84a;
+  --color-world:     #c9a96e;
+  --color-rule:      #8b9dc3;
+
   /* === Surface Colors === */
   --color-surface-base:     var(--ink-100);
-  --color-surface-raised:    var(--ink-95);
+  --color-surface-raised:   var(--ink-95);
   --color-surface-overlay:  var(--ink-90);
   --color-surface-input:    var(--ink-80);
   --color-surface-hover:    var(--ink-75);
-  --color-surface-pressed:  var(--ink-70);
-  --color-surface-elevated: var(--ink-95);
-  --color-surface-floating: var(--ink-90);
+  --color-surface-pressed:  #151618;
+  --color-surface-elevated: #2a2c30;
+  --color-surface-floating: #303236;
 
   /* === Text Hierarchy === */
   --text-primary:   var(--paper-100);
@@ -98,137 +98,251 @@
   --color-success: var(--color-location);
   --color-info:    var(--accent-100);
 
-  /* ============================================================
-     shadcn/ui HSL VARIABLE ALIAS BRIDGE (DEPRECATED)
-     These aliases map the old HSL variable names to ink/paper tokens.
-     Components using hsl(var(--background)) will resolve to hex via this layer.
-     Use ink/paper tokens directly in new code.
-     ============================================================ */
-
-  /* Semantic surfaces */
-  --background:    var(--color-surface-base);
-  --foreground:    var(--text-primary);
-  --card:          var(--color-surface-raised);
-  --card-foreground: var(--text-primary);
-  --popover:       var(--color-surface-raised);
-  --popover-foreground: var(--text-primary);
-
-  /* Brand / Interactive */
-  --primary:       var(--accent-100);
-  --primary-foreground: var(--paper-100);
-  --secondary:     var(--ink-75);
-  --secondary-foreground: var(--text-primary);
-  --muted:         var(--ink-80);
-  --muted-foreground: var(--text-tertiary);
-  --accent:        var(--ink-75);
-  --accent-foreground: var(--text-primary);
-
-  /* Status */
-  --destructive:   var(--vermillion-100);
+  /* === shadcn/ui Bridge === */
+  --background:             var(--color-surface-base);
+  --foreground:             var(--text-primary);
+  --card:                   var(--color-surface-raised);
+  --card-foreground:        var(--text-primary);
+  --popover:                var(--color-surface-raised);
+  --popover-foreground:     var(--text-primary);
+  --primary:                var(--accent-100);
+  --primary-foreground:     var(--paper-100);
+  --secondary:              var(--ink-75);
+  --secondary-foreground:   var(--text-primary);
+  --muted:                  var(--ink-80);
+  --muted-foreground:       var(--text-tertiary);
+  --accent:                 var(--ink-75);
+  --accent-foreground:      var(--text-primary);
+  --destructive:            var(--vermillion-100);
   --destructive-foreground: var(--paper-100);
+  --border:                 var(--border-default);
+  --input:                  var(--color-surface-input);
+  --ring:                   var(--border-focus);
+  --radius:                 0.5rem;
 
-  /* Form */
-  --border:        var(--border-default);
-  --input:         var(--color-surface-input);
-  --ring:          var(--border-focus);
+  /* === Glass Surface === */
+  --glass-base-rgb:    13, 13, 18;
+  --glass-bg:          rgba(var(--glass-base-rgb), 0.65);
+  --glass-bg-subtle:   rgba(var(--glass-base-rgb), 0.55);
+  --glass-bg-medium:   rgba(var(--glass-base-rgb), 0.75);
+  --glass-bg-strong:   rgba(var(--glass-base-rgb), 0.85);
+  --glass-border:      rgba(255, 255, 255, 0.08);
 
-  /* Radius */
-  --radius:        0.5rem;
-
-  /* === Entity Type Colors === */
-  --color-character: #e8b87d;
-  --color-item: #9b7ed9;
-  --color-location: #5eb5a6;
-  --color-faction: #d45d5d;
-  --color-outline: #5b8ee8;
-  --color-ifline: #7eb84a;
-  --color-world: #c9a96e;
-  --color-rule: #8b9dc3;
-
-  /* === Typography Tokens === */
-  --font-writing: 'Noto Serif SC', 'Source Han Serif CN', serif;
+  /* === Typography === */
+  --font-writing:   'Noto Serif SC', 'Source Han Serif CN', serif;
   --font-interface: 'Inter', -apple-system, sans-serif;
-  --font-mono: 'JetBrains Mono', monospace;
+  --font-mono:      'JetBrains Mono', monospace;
 
-  --writing-font-size-base: 16px;
-  --writing-line-height-base: 1.75;
+  --text-xs:   12px;
+  --text-sm:   13px;
+  --text-base: 14px;
+  --text-md:   15px;
+  --text-lg:   16px;
+  --text-xl:   18px;
+  --text-2xl:  20px;
+  --text-3xl:  24px;
+  --text-4xl:  36px;
 
-  /* === Spacing Base Unit (4px) === */
+  --weight-regular:  400;
+  --weight-medium:   500;
+  --weight-semibold: 510;
+  --weight-bold:     600;
+
+  --tracking-tight:  -0.015em;
+  --tracking-normal: 0;
+  --tracking-wide:   0.02em;
+  --tracking-wide-xl: 0.04em;
+
+  --leading-none:    1;
+  --leading-tight:   1.25;
+  --leading-normal:  1.5;
+  --leading-relaxed: 1.75;
+  --leading-loose:   2;
+
+  /* === Writing Typography === */
+  --writing-font-size:      17px;
+  --writing-line-height:    1.85;
+  --writing-letter-spacing: 0.01em;
+  --writing-paragraph-spacing: 1.5em;
+  --writing-text-indent: 2em;
+  --writing-bg:         #1a1a2e;
+  --writing-text:       var(--paper-100);
+  --writing-muted:      rgba(245, 240, 230, 0.60);
+  --writing-line-highlight: rgba(94, 106, 210, 0.08);
+  --writing-selection:  rgba(232, 184, 125, 0.28);
+
+  /* === Spacing (4px base) === */
   --space-unit: 4px;
+  --space-0:   0px;
+  --space-px:  1px;
+  --space-0-5: 2px;
+  --space-1:   4px;
+  --space-1-5: 6px;
+  --space-2:   8px;
+  --space-3:   12px;
+  --space-4:   16px;
+  --space-5:   20px;
+  --space-6:   24px;
+  --space-8:   32px;
+  --space-10:  40px;
+  --space-12:  48px;
+  --space-16:  64px;
+  --space-20:  80px;
+  --space-24:  96px;
+
+  /* === Border Radius === */
+  --radius-sm:   4px;
+  --radius-md:   6px;
+  --radius-lg:   10px;
+  --radius-xl:   14px;
+  --radius-2xl:  18px;
+  --radius-pill: 9999px;
+  --radius-full: 9999px;
+
+  /* === Shadows === */
+  --shadow-card:        0 1px 4px rgba(0, 0, 0, 0.18), 0 1px 2px rgba(0, 0, 0, 0.12);
+  --shadow-drawer:      0 3px 16px rgba(0, 0, 0, 0.22), 0 2px 4px rgba(0, 0, 0, 0.12);
+  --shadow-float:       0 6px 24px rgba(0, 0, 0, 0.26), 0 3px 8px rgba(0, 0, 0, 0.14);
+  --shadow-elevated:    0 3px 10px rgba(0, 0, 0, 0.22), 0 2px 4px rgba(0, 0, 0, 0.12);
+  --shadow-elevated-lg: 0 6px 20px rgba(0, 0, 0, 0.28), 0 4px 6px rgba(0, 0, 0, 0.14);
+  --shadow-glow-sm:     0 0 12px rgba(94, 106, 210, 0.35);
+  --shadow-glow:        0 0 24px rgba(94, 106, 210, 0.45), 0 0 48px rgba(94, 106, 210, 0.20);
+  --shadow-glow-lg:     0 0 40px rgba(94, 106, 210, 0.55), 0 0 80px rgba(94, 106, 210, 0.25);
+
+  /* === Glow Tokens === */
+  --glow-primary:    rgba(94, 106, 210, 0.45);
+  --glow-primary-sm: rgba(94, 106, 210, 0.30);
+  --glow-accent:     0 0 18px rgba(94, 106, 210, 0.45), 0 0 36px rgba(94, 106, 210, 0.25), 0 0 72px rgba(94, 106, 210, 0.12);
+
+  /* === Motion === */
+  --transition-instant: 50ms ease;
+  --transition-fast:    100ms ease-out;
+  --transition-base:    180ms ease-out;
+  --transition-normal:  250ms ease-out;
+  --transition-slow:    350ms ease-out;
+  --transition-spring:  400ms cubic-bezier(0.34, 1.56, 0.64, 1);
+
+  --ease-out:    cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --ease-smooth: cubic-bezier(0.4, 0, 0.2, 1);
+
+  /* === Layout === */
+  --layout-sidebar-width:      240px;
+  --layout-sidebar-collapsed:  48px;
+  --layout-rightpanel-width:   320px;
+  --layout-topbar-height:      48px;
+  --layout-content-max-width:  1200px;
+  --writing-max-width:         720px;
+
+  /* === Interaction States === */
+  --hover-bg:      rgba(255, 255, 255, 0.10);
+  --hover-border:  rgba(255, 255, 255, 0.28);
+  --active-bg:     rgba(94, 106, 210, 0.22);
+  --active-border: var(--accent-100);
+  --focus-ring:    rgba(94, 106, 210, 0.65);
+  --disabled-opacity: 0.50;
+
+  /* === Selection === */
+  --selection-bg:   rgba(94, 106, 210, 0.40);
+  --selection-color: var(--paper-100);
+
+  /* === Paper Texture === */
+  --paper-texture-opacity: 0.035;
+
+  /* === Ambient Glow === */
+  --ambient-glow-primary:   0.12;
+  --ambient-glow-secondary: 0.10;
+  --ambient-glow-tertiary:  0.05;
+
+  /* === UI Surface Aliases === */
+  --ui-bg:             var(--color-surface-base);
+  --ui-card:           var(--color-surface-raised);
+  --ui-text:           var(--text-primary);
+  --ui-text-secondary: var(--text-secondary);
+  --ui-border:         var(--border-default);
+  --ui-toolbar:        var(--color-surface-base);
+  --ui-drawer:         var(--color-surface-raised);
+
+  /* === Elevation Aliases === */
+  --elevation-1: var(--color-surface-base);
+  --elevation-2: var(--color-surface-raised);
+  --elevation-3: var(--color-surface-overlay);
+  --elevation-4: var(--color-surface-input);
+  --elevation-5: var(--color-surface-hover);
+
+  /* === Overlay / Backdrop === */
+  --color-overlay:       rgba(0, 0, 0, 0.55);
+  --color-overlay-light: rgba(0, 0, 0, 0.25);
+  --color-backdrop:      rgba(13, 13, 18, 0.65);
+
+  /* === Derived tokens (referenced by components) === */
+  --accent-primary: var(--accent-100);
+  --accent-hover:   var(--accent-90);
+  --active-color:   var(--accent-100);
+  --progress-color: var(--accent-100);
+  --indent-color:   var(--border-subtle);
+
+  /* === Legacy aliases (for backward compat) === */
+  --color-bg-surface:     var(--color-surface-base);
+  --color-text-writing:   var(--paper-100);
+  --color-writing-dark:   var(--ink-90);
+  --color-text-secondary: var(--text-secondary);
+  --color-text-muted:     var(--text-tertiary);
+  --color-bg-card:        var(--color-surface-base);
+  --color-toolbar:        var(--color-surface-base);
+  --color-drawer:         var(--color-surface-raised);
+  --color-border:         var(--border-default);
+  --color-border-subtle:  var(--border-subtle);
+  --color-border-strong:  var(--border-strong);
+  --accent-purple:        var(--accent-100);
+  --color-vermillion:     var(--vermillion-100);
+  --color-error:          var(--vermillion-100);
+  --color-black:          var(--ink-100);
+  --color-primary:        var(--accent-100);
+  --ink-black:            var(--ink-100);
+  --charcoal:             var(--ink-90);
+  --paper-white:          var(--paper-100);
+  --paper-frost:          var(--paper-90);
+  --smoke:                var(--ink-70);
 }
 
 /* ============================================================
-   THEME-SPECIFIC DESIGN TOKENS
+   THEME-SPECIFIC OVERRIDES
    ============================================================ */
 
-/* Dark theme (default) */
-[data-theme="dark"],
-.dark {
-  --writing-bg: #1a1a2e;
-  --writing-text: #f5f0e6;
-}
-
-/* Light theme */
 [data-theme="light"],
 .light {
   --writing-bg: #f5f0e6;
   --writing-text: #1a1a2e;
+  --glass-base-rgb: 255, 255, 255;
+  --glass-border: rgba(0, 0, 0, 0.06);
 }
 
-/* Eye-care theme */
 [data-theme="eye-care"] {
   --writing-bg: #1a211a;
   --writing-text: #d4e4cc;
+  --glass-base-rgb: 26, 33, 26;
+  --glass-border: rgba(180, 220, 160, 0.08);
 }
 
-/* Sepia theme */
 [data-theme="sepia"] {
   --writing-bg: #faf4e4;
   --writing-text: #3d3020;
+  --glass-base-rgb: 250, 244, 228;
+  --glass-border: rgba(61, 48, 32, 0.08);
 }
 
-/* Deep blue theme */
 [data-theme="deep-blue"] {
   --writing-bg: #0a1020;
   --writing-text: #e4ecf7;
+  --glass-base-rgb: 10, 16, 32;
+  --glass-border: rgba(180, 200, 230, 0.08);
 }
 
-/* Forest theme */
 [data-theme="forest"] {
   --writing-bg: #0d1610;
   --writing-text: #c8dcc8;
-}
-
-/* ============================================================
-   BACKGROUND TEXTURE UTILITIES
-   ============================================================ */
-
-/* Paper texture for writing areas */
-.bg-paper-texture {
-  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
-  background-repeat: repeat;
-  opacity: var(--paper-texture-opacity, 0.035);
-  pointer-events: none;
-  position: absolute;
-  inset: 0;
-  z-index: 0;
-}
-
-/* Subtle gradient overlay for depth */
-.bg-gradient-depth {
-  background: linear-gradient(
-    180deg,
-    transparent 0%,
-    rgba(26, 26, 46, 0.03) 50%,
-    transparent 100%
-  );
-}
-
-/* Ambient glow for dark mode */
-.bg-ambient {
-  background: radial-gradient(
-    ellipse at 50% 0%,
-    rgba(94, 106, 210, 0.08) 0%,
-    transparent 60%
-  );
+  --glass-base-rgb: 13, 22, 16;
+  --glass-border: rgba(180, 220, 180, 0.08);
 }

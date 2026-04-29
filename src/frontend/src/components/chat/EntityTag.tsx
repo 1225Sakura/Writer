@@ -1,6 +1,8 @@
 import { motion } from 'framer-motion'
 import { EntityType } from '@/store'
 import { User, Package, MapPin, Shield, Globe, Scale, FileText, GitBranch, Check } from 'lucide-react'
+import { SPRING } from '@/components/shared/AnimationConfig'
+
 
 interface EntityTagProps {
   type: EntityType
@@ -142,7 +144,7 @@ export function EntityTag({ type, size = 'medium', showIcon = true, selected = f
         <motion.span
           initial={{ scale: 0, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
-          transition={{ type: 'spring', stiffness: 500, damping: 25 }}
+          transition={SPRING.BADGE}
         >
           <Check className="w-2.5 h-2.5" />
         </motion.span>

@@ -2,6 +2,8 @@ import { useState, useRef, useEffect } from 'react'
 import { useSettingsStore } from '@/store'
 import { Tag, X, Plus } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
+import { SPRING } from '@/components/shared/AnimationConfig'
+
 
 interface TagInputProps {
   entityType: 'character' | 'item' | 'location' | 'faction' | 'world' | 'rule' | 'ifline'
@@ -206,7 +208,7 @@ export function TagInput({ entityType, entityId, tags }: TagInputProps) {
             initial={{ opacity: 0, y: -8, height: 0 }}
             animate={{ opacity: 1, y: 0, height: 'auto' }}
             exit={{ opacity: 0, y: -8, height: 0 }}
-            transition={{ type: 'spring', stiffness: 400, damping: 30 }}
+            transition={SPRING.SNAPPY}
           >
             <div className="flex items-center gap-2">
               <div className="relative flex-1">
@@ -258,7 +260,7 @@ export function TagInput({ entityType, entityId, tags }: TagInputProps) {
                   initial={{ opacity: 0, y: -4, scaleY: 0.9 }}
                   animate={{ opacity: 1, y: 0, scaleY: 1 }}
                   exit={{ opacity: 0, y: -4, scaleY: 0.9 }}
-                  transition={{ type: 'spring', stiffness: 400, damping: 30 }}
+                  transition={SPRING.SNAPPY}
                 >
                   {suggestions.map((suggestion, index) => {
                     const color = getTagColor(suggestion, entityType)

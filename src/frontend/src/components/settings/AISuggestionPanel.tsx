@@ -20,6 +20,9 @@ import {
 import { useSettingsStore, useUIStore } from "@/store";
 import { motion, AnimatePresence } from "framer-motion";
 import type { EntityType } from "@/shared/types";
+import { GlassCard } from "@/components/ui/GlassCard";
+import { DURATION, EASE, SPRING } from '@/components/shared/AnimationConfig'
+
 
 // ============================================
 // Types
@@ -207,23 +210,19 @@ function mapSeverity(apiSeverity?: string, apiType?: string): Severity {
 
 function SkeletonCard() {
 	return (
-		<motion.div
-			className="p-3.5 rounded-xl space-y-2.5"
-			style={{
-				background: "var(--color-surface-raised)",
-				border: "1px solid var(--border-subtle)",
-				borderLeft: "3px solid var(--border-subtle)",
-			}}
-			initial={{ opacity: 0 }}
-			animate={{ opacity: 1 }}
-			transition={{ duration: 0.3 }}
+		<GlassCard
+			intensity="light"
+			border="subtle"
+			padding="md"
+			rounded="lg"
+			className="space-y-2.5"
 		>
 			<div className="flex items-center gap-2">
 				<div
 					className="w-16 h-5 rounded-md animate-shimmer"
 					style={{
 						background:
-							"linear-gradient(90deg, var(--color-surface-overlay) 25%, rgba(255,255,255,0.08) 50%, var(--color-surface-overlay) 75%)",
+							"linear-gradient(90deg, var(--color-surface-overlay) 25%, var(--border-subtle) 50%, var(--color-surface-overlay) 75%)",
 						backgroundSize: "200% 100%",
 					}}
 				/>
@@ -231,7 +230,7 @@ function SkeletonCard() {
 					className="w-14 h-5 rounded-md animate-shimmer"
 					style={{
 						background:
-							"linear-gradient(90deg, var(--color-surface-overlay) 25%, rgba(255,255,255,0.08) 50%, var(--color-surface-overlay) 75%)",
+							"linear-gradient(90deg, var(--color-surface-overlay) 25%, var(--border-subtle) 50%, var(--color-surface-overlay) 75%)",
 						backgroundSize: "200% 100%",
 					}}
 				/>
@@ -240,7 +239,7 @@ function SkeletonCard() {
 				className="w-3/4 h-4 rounded-md animate-shimmer"
 				style={{
 					background:
-						"linear-gradient(90deg, var(--color-surface-overlay) 25%, rgba(255,255,255,0.08) 50%, var(--color-surface-overlay) 75%)",
+						"linear-gradient(90deg, var(--color-surface-overlay) 25%, var(--border-subtle) 50%, var(--color-surface-overlay) 75%)",
 					backgroundSize: "200% 100%",
 				}}
 			/>
@@ -248,11 +247,11 @@ function SkeletonCard() {
 				className="w-full h-3 rounded-md animate-shimmer"
 				style={{
 					background:
-						"linear-gradient(90deg, var(--color-surface-overlay) 25%, rgba(255,255,255,0.08) 50%, var(--color-surface-overlay) 75%)",
+						"linear-gradient(90deg, var(--color-surface-overlay) 25%, var(--border-subtle) 50%, var(--color-surface-overlay) 75%)",
 					backgroundSize: "200% 100%",
 				}}
 			/>
-		</motion.div>
+		</GlassCard>
 	);
 }
 
@@ -322,7 +321,7 @@ function SeverityFilterTabs({
 								}}
 								initial={{ scale: 0 }}
 								animate={{ scale: 1 }}
-								transition={{ type: "spring", stiffness: 500, damping: 25 }}
+								transition={SPRING.BADGE}
 							>
 								{count}
 							</motion.span>
@@ -368,7 +367,7 @@ function ReviewHistoryDrawer({
 						initial={{ x: "100%" }}
 						animate={{ x: 0 }}
 						exit={{ x: "100%" }}
-						transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
+						transition={{ duration: DURATION.NORMAL, ease: EASE.SMOOTH }}
 						className="absolute right-0 top-0 bottom-0 z-40 w-[280px] flex flex-col bg-[var(--color-surface-base)] border-l border-[var(--border-subtle)]"
 					>
 						<div className="flex items-center justify-between px-4 py-3 border-b border-[var(--border-subtle)]">
@@ -512,7 +511,7 @@ function IterationComparisonView({
 			className="absolute inset-x-0 bottom-0 z-20 rounded-t-2xl bg-[var(--color-surface-base)] border-t border-[var(--border-default)]"
 			style={{
 				maxHeight: "70%",
-				boxShadow: "0 -8px 32px rgba(0,0,0,0.4)",
+				boxShadow: "var(--shadow-float)",
 			}}
 		>
 			{/* Header */}
@@ -665,7 +664,7 @@ function IterationComparisonView({
 				{resolvedIds.length > 0 && (
 					<div
 						className="pt-2"
-						style={{ borderTop: "1px solid rgba(255,255,255,0.04)" }}
+						style={{ borderTop: "1px solid var(--border-subtle)" }}
 					>
 						<p className="text-[10px] mb-2 text-[var(--text-disabled)]">
 							已解决的问题
@@ -752,7 +751,7 @@ function SuggestionCard({
 				}
 			}}
 			exit={{ opacity: 0, x: -16, height: 0, marginBottom: 0, padding: 0 }}
-			transition={{ duration: 0.2 }}
+			transition={{ duration: DURATION.FAST, ease: EASE.SMOOTH }}
 		>
 			{/* Gradient left border accent with glow */}
 			<div
@@ -809,7 +808,7 @@ function SuggestionCard({
 						<motion.div
 							initial={false}
 							animate={{ height: isExpanded ? "auto" : "3.2em" }}
-							transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
+							transition={{ duration: DURATION.SLOW, ease: EASE.SMOOTH }}
 							className="overflow-hidden"
 						>
 							<p className="text-xs text-[var(--text-tertiary)] leading-relaxed">
@@ -825,7 +824,7 @@ function SuggestionCard({
 							>
 								<motion.span
 									animate={{ rotate: isExpanded ? 180 : 0 }}
-									transition={{ duration: 0.2 }}
+									transition={{ duration: DURATION.FAST, ease: EASE.SMOOTH }}
 								>
 									<ChevronDown className="w-3 h-3" />
 								</motion.span>
@@ -1128,7 +1127,7 @@ export function AISuggestionPanel() {
 					<motion.div
 						className="absolute inset-0 pointer-events-none"
 						style={{
-							background: "linear-gradient(90deg, transparent, rgba(94,106,210,0.06), transparent)",
+							background: "linear-gradient(90deg, transparent, var(--accent-glow), transparent)",
 							backgroundSize: "200% 100%",
 						}}
 						animate={{
@@ -1188,7 +1187,7 @@ export function AISuggestionPanel() {
 									}}
 									initial={{ scale: 0 }}
 									animate={{ scale: 1 }}
-									transition={{ type: "spring", stiffness: 500, damping: 25 }}
+									transition={SPRING.BADGE}
 								>
 									{severityCounts.error}
 								</motion.span>
@@ -1202,12 +1201,7 @@ export function AISuggestionPanel() {
 									}}
 									initial={{ scale: 0 }}
 									animate={{ scale: 1 }}
-									transition={{
-										type: "spring",
-										stiffness: 500,
-										damping: 25,
-										delay: 0.05,
-									}}
+									transition={{ ...SPRING.BADGE, delay: 0.05 }}
 								>
 									{severityCounts.warning}
 								</motion.span>
@@ -1221,12 +1215,7 @@ export function AISuggestionPanel() {
 									}}
 									initial={{ scale: 0 }}
 									animate={{ scale: 1 }}
-									transition={{
-										type: "spring",
-										stiffness: 500,
-										damping: 25,
-										delay: 0.1,
-									}}
+									transition={{ ...SPRING.BADGE, delay: 0.05 }}
 								>
 									{severityCounts.suggestion}
 								</motion.span>
@@ -1263,7 +1252,7 @@ export function AISuggestionPanel() {
 					)}
 					<motion.div
 						animate={{ rotate: isExpanded ? 0 : 180 }}
-						transition={{ duration: 0.2 }}
+						transition={{ duration: DURATION.FAST, ease: EASE.SMOOTH }}
 					>
 						<ChevronDown className="w-4 h-4 text-[var(--text-tertiary)]" />
 					</motion.div>
@@ -1278,7 +1267,7 @@ export function AISuggestionPanel() {
 						initial={{ height: 0, opacity: 0 }}
 						animate={{ height: "auto", opacity: 1 }}
 						exit={{ height: 0, opacity: 0 }}
-						transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
+						transition={{ duration: DURATION.SLOW, ease: EASE.SMOOTH }}
 					>
 						{/* Severity filter tabs */}
 						{currentSuggestions.length > 0 && (
@@ -1311,18 +1300,13 @@ export function AISuggestionPanel() {
 									className="text-center py-8"
 									initial={{ opacity: 0, scale: 0.9 }}
 									animate={{ opacity: 1, scale: 1 }}
-									transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
+									transition={{ duration: DURATION.SLOW, ease: EASE.SMOOTH }}
 								>
 									<motion.div
 										className="relative inline-block"
 										initial={{ scale: 0 }}
 										animate={{ scale: 1 }}
-										transition={{
-											type: "spring",
-											stiffness: 400,
-											damping: 20,
-											delay: 0.1,
-										}}
+										transition={{ ...SPRING.SNAPPY, delay: 0.1 }}
 									>
 										<div className="absolute inset-0 rounded-full bg-[var(--color-success)] opacity-10 blur-xl" />
 										<ThumbsUp className="w-8 h-8 mx-auto mb-3 text-[var(--color-success)] relative z-10" />

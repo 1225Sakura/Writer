@@ -21,23 +21,23 @@ const Card = React.forwardRef<
   return (
     <motion.div
       ref={ref}
-      initial={hoverable && !shouldReduceMotion ? { scale: 1, y: 0 } : undefined}
+      initial={hoverable && !shouldReduceMotion ? { scale: 1, y: 0 } : false}
       whileHover={hoverable && !shouldReduceMotion ? { scale: 1.02, y: -4 } : undefined}
       whileTap={pressed && !shouldReduceMotion ? { scale: 0.98 } : undefined}
       transition={{ duration: shouldReduceMotion ? 0 : 0.2, ease: [0.16, 1, 0.3, 1] }}
       className={cn(
         'rounded-xl border bg-card text-card-foreground',
-        'shadow-[0_1px_2px_rgba(0,0,0,0.05),0_2px_4px_rgba(0,0,0,0.08),0_4px_8px_rgba(0,0,0,0.04)]',
-        'dark:shadow-[0_1px_2px_rgba(0,0,0,0.3),0_2px_4px_rgba(0,0,0,0.2),0_4px_8px_rgba(0,0,0,0.15)]',
-        'hover:shadow-[0_8px_16px_rgba(0,0,0,0.1),0_16px_32px_rgba(0,0,0,0.08),0_32px_64px_rgba(0,0,0,0.06)]',
-        'dark:hover:shadow-[0_8px_16px_rgba(0,0,0,0.4),0_16px_32px_rgba(0,0,0,0.3),0_32px_64px_rgba(0,0,0,0.2)]',
+        'shadow-[0_1px_2px_color-mix(in_srgb,var(--ink-100)_5%,transparent),0_2px_4px_color-mix(in_srgb,var(--ink-100)_8%,transparent),0_4px_8px_color-mix(in_srgb,var(--ink-100)_4%,transparent)]',
+        'dark:shadow-[0_1px_2px_color-mix(in_srgb,var(--ink-100)_30%,transparent),0_2px_4px_color-mix(in_srgb,var(--ink-100)_20%,transparent),0_4px_8px_color-mix(in_srgb,var(--ink-100)_15%,transparent)]',
+        'hover:shadow-[0_8px_16px_color-mix(in_srgb,var(--ink-100)_10%,transparent),0_16px_32px_color-mix(in_srgb,var(--ink-100)_8%,transparent),0_32px_64px_color-mix(in_srgb,var(--ink-100)_6%,transparent)]',
+        'dark:hover:shadow-[0_8px_16px_color-mix(in_srgb,var(--ink-100)_40%,transparent),0_16px_32px_color-mix(in_srgb,var(--ink-100)_30%,transparent),0_32px_64px_color-mix(in_srgb,var(--ink-100)_20%,transparent)]',
         'transition-all duration-[var(--transition-base)] ease-out',
-        glowIntensity === 'subtle' && 'shadow-[0_0_12px_rgba(94,181,166,0.08)] dark:shadow-[0_0_12px_rgba(94,181,166,0.15)]',
-        glowIntensity === 'medium' && 'shadow-[0_0_16px_rgba(94,181,166,0.12)] dark:shadow-[0_0_16px_rgba(94,181,166,0.2)]',
-        glowIntensity === 'strong' && 'shadow-[0_0_20px_rgba(94,181,166,0.15),0_0_40px_rgba(94,181,166,0.08)] dark:shadow-[0_0_20px_rgba(94,181,166,0.25),0_0_40px_rgba(94,181,166,0.12)]',
+        glowIntensity === 'subtle' && 'shadow-[0_0_12px_color-mix(in_srgb,var(--color-location)_8%,transparent)] dark:shadow-[0_0_12px_color-mix(in_srgb,var(--color-location)_15%,transparent)]',
+        glowIntensity === 'medium' && 'shadow-[0_0_16px_color-mix(in_srgb,var(--color-location)_12%,transparent)] dark:shadow-[0_0_16px_color-mix(in_srgb,var(--color-location)_20%,transparent)]',
+        glowIntensity === 'strong' && 'shadow-[0_0_20px_color-mix(in_srgb,var(--color-location)_15%,transparent),0_0_40px_color-mix(in_srgb,var(--color-location)_8%,transparent)] dark:shadow-[0_0_20px_color-mix(in_srgb,var(--color-location)_25%,transparent),0_0_40px_color-mix(in_srgb,var(--color-location)_12%,transparent)]',
         className
       )}
-      {...props}
+      {...props as any}
     />
   )
 })

@@ -3,6 +3,8 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { ChevronDown, Filter, SortAsc, SortDesc } from 'lucide-react'
 import { EntityListItem, entityColors } from './EntityCard'
 import type { EntityType } from '@/store'
+import { DURATION, EASE } from '@/components/shared/AnimationConfig'
+
 
 interface EntityListEntity {
   id: number
@@ -81,8 +83,11 @@ export function EntityList({
 
   if (entities.length === 0) {
     return (
-      <div className="text-center py-8" style={{ color: 'var(--text-tertiary)' }}>
-        <p className="text-sm">{emptyMessage}</p>
+      <div className="text-center py-10">
+        <div className="w-12 h-12 mx-auto mb-3 rounded-xl flex items-center justify-center bg-[var(--color-surface-raised)] border border-[var(--border-subtle)]">
+          <Filter className="w-5 h-5 text-[var(--text-tertiary)]" />
+        </div>
+        <p className="text-sm text-[var(--text-secondary)]">{emptyMessage}</p>
       </div>
     )
   }
@@ -100,14 +105,14 @@ export function EntityList({
               color: showFilters ? 'var(--text-primary)' : 'var(--text-tertiary)',
               border: '1px solid var(--border-default)',
             }}
-            whileHover={{ backgroundColor: 'rgba(255,255,255,0.06)' }}
+            whileHover={{ backgroundColor: 'var(--hover-bg)' }}
             whileTap={{ scale: 0.95 }}
           >
             <Filter className="w-3 h-3" />
             筛选
             <motion.div
               animate={{ rotate: showFilters ? 180 : 0 }}
-              transition={{ duration: 0.2 }}
+              transition={{ duration: DURATION.FAST, ease: EASE.SMOOTH }}
             >
               <ChevronDown className="w-3 h-3" />
             </motion.div>
@@ -142,7 +147,7 @@ export function EntityList({
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
-            transition={{ duration: 0.2 }}
+            transition={{ duration: DURATION.FAST, ease: EASE.SMOOTH }}
           >
             {typeFilters.map(({ type, label, color }) => (
               <motion.button
@@ -192,7 +197,7 @@ export function EntityList({
                   key={`${entity.type}-${entity.id}`}
                   initial={{ opacity: 0, x: -8 }}
                   animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: index * 0.03, duration: 0.2 }}
+                  transition={{ delay: index * 0.03, duration: DURATION.FAST, ease: EASE.SMOOTH }}
                 >
                   <EntityListItem
                     name={entity.name}
@@ -215,7 +220,7 @@ export function EntityList({
               key={`${entity.type}-${entity.id}`}
               initial={{ opacity: 0, x: -8 }}
               animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: index * 0.03, duration: 0.2 }}
+              transition={{ delay: index * 0.03, duration: DURATION.FAST, ease: EASE.SMOOTH }}
             >
               <EntityListItem
                 name={entity.name}
@@ -232,8 +237,12 @@ export function EntityList({
       )}
 
       {filteredEntities.length === 0 && (
-        <div className="text-center py-6" style={{ color: 'var(--text-tertiary)' }}>
-          <p className="text-sm">没有匹配的实体</p>
+        <div className="text-center py-8">
+          <div className="w-10 h-10 mx-auto mb-2 rounded-lg flex items-center justify-center bg-[var(--color-surface-raised)] border border-[var(--border-subtle)]">
+            <Filter className="w-4 h-4 text-[var(--text-tertiary)]" />
+          </div>
+          <p className="text-sm text-[var(--text-secondary)]">没有匹配的实体</p>
+          <p className="text-xs text-[var(--text-tertiary)] mt-1">尝试调整筛选条件</p>
         </div>
       )}
     </div>

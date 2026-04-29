@@ -10,6 +10,7 @@ import * as React from 'react'
 import { motion, type Variants } from 'framer-motion'
 import type { ReactNode } from 'react'
 import { cn } from '@/lib/utils'
+import { DURATION, EASE } from '@/components/shared/AnimationConfig'
 
 /** 标准缓动曲线 */
 const easeOutSmooth = [0.22, 1, 0.36, 1] as const
@@ -479,7 +480,7 @@ export function HighlightText({
           key={`highlight-${hi}`}
           initial={{ opacity: 0.5 }}
           animate={{ opacity: 1 }}
-          transition={{ duration: 0.5, delay: hi * 0.15, ease: easeOutSmooth }}
+          transition={{ duration: DURATION.SLOW, delay: hi * 0.15, ease: EASE.SMOOTH }}
           className={cn('font-medium', highlightClassName)}
         >
           {highlight}

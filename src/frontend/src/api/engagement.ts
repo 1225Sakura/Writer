@@ -153,7 +153,7 @@ export const resolveDebt = (
   api.post<{ message: string; debt_id: number }>(
     `/engagement/debts/resolve/${debtId}`,
     undefined,
-    resolvedChapterId ? { params: { resolved_chapter_id: resolvedChapterId } } : undefined
+    resolvedChapterId ? { resolved_chapter_id: resolvedChapterId } as Record<string, unknown> : undefined
   )
 
 // ---------------------------------------------------------------------------

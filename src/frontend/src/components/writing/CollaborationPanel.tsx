@@ -4,6 +4,7 @@ import { usePrefersReducedMotion } from '@/hooks'
 import { Button } from '@/components/ui/Button'
 import { HumanAIRatioSlider } from '@/components/ui/HumanAIRatioSlider'
 import { motion, AnimatePresence } from 'framer-motion'
+import { DURATION, EASE } from '@/components/shared/AnimationConfig'
 import {
   Target,
   AlertCircle,
@@ -83,15 +84,7 @@ function PanelHeader() {
 
 export function CollaborationPanel() {
   return (
-    <div className="flex-1 overflow-y-auto relative">
-      {/* Subtle background gradient */}
-      <div
-        className="absolute inset-0 pointer-events-none"
-        style={{
-          background:
-            'radial-gradient(ellipse at 100% 0%, color-mix(in srgb, var(--accent-100) 4%, transparent) 0%, transparent 40%), radial-gradient(ellipse at 0% 100%, color-mix(in srgb, var(--color-ifline) 3%, transparent) 0%, transparent 40%)',
-        }}
-      />
+    <div className="flex-1 overflow-y-auto relative scrollbar-ink">
       <div className="relative z-10 space-y-3 px-3 py-2 md:px-4 md:py-3">
         <PanelHeader />
         <CollaborationStatus />
@@ -111,10 +104,10 @@ function PanelCard({ children, className = '', glowColor }: { children: React.Re
   return (
     <div
       className={`rounded-xl overflow-hidden bg-[var(--color-surface-base)] border border-[var(--border-default)]
-                  transition-all duration-200 hover:border-[var(--border-strong)] hover:shadow-[0_2px_12px_color-mix(in_srgb,_var(--ink-100),_12%,_transparent)]
+                  transition-all duration-200 hover:border-[var(--border-strong)]
                   ${className}`}
       style={{
-        boxShadow: glowColor ? `0 0 0 1px ${glowColor}10, inset 0 1px 0 ${glowColor}08` : undefined,
+        boxShadow: glowColor ? `inset 0 1px 0 ${glowColor}06` : undefined,
       }}
     >
       {children}
@@ -221,7 +214,7 @@ function ActivityItem({
     <motion.div
       initial={{ opacity: 0, x: -4 }}
       animate={{ opacity: 1, x: 0 }}
-      transition={{ duration: 0.2, ease: [0.22, 1, 0.36, 1] }}
+      transition={{ duration: DURATION.FAST, ease: EASE.OUT }}
       className={`flex items-center gap-2 text-xs px-1.5 py-1 rounded-md transition-all duration-150 relative
         ${highlight ? 'text-[var(--accent-primary)] bg-[var(--accent-muted)]' : 'text-[var(--text-secondary)] hover:bg-[var(--hover-bg)]'}`}
     >
@@ -268,7 +261,7 @@ function RatioSliderSection() {
           key={modeInfo.label}
           initial={{ opacity: 0, y: 4 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.2 }}
+          transition={{ duration: DURATION.FAST, ease: EASE.SMOOTH }}
         >
           <div className="flex items-center gap-1.5 mb-1">
             <span style={{ color: modeInfo.color }}>{modeInfo.icon}</span>
@@ -426,7 +419,7 @@ function IFLinesSection() {
                   <motion.div
                     className="h-full rounded-full"
                     style={{
-                      background: 'linear-gradient(90deg, var(--color-location) 0%, var(--color-ifline) 50%, #9ed95a 100%)',
+                      background: 'linear-gradient(90deg, var(--color-location) 0%, var(--color-ifline) 50%, color-mix(in srgb, var(--color-ifline) 60%, white) 100%)',
                       boxShadow: '0 0 6px color-mix(in srgb, var(--color-ifline) 40%, transparent)',
                     }}
                     initial={{ width: 0 }}
@@ -877,7 +870,7 @@ function CollapsibleSection({
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: 'auto', opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
+            transition={{ duration: DURATION.FAST, ease: EASE.SMOOTH }}
             className="overflow-hidden"
           >
             <div className="p-3 bg-[var(--color-surface-base)]"

@@ -7,6 +7,9 @@ import { EntityTag } from './EntityTag'
 import { usePrefersReducedMotion } from '@/hooks/usePrefersReducedMotion'
 import { ChatSkeleton } from '@/components/shared/SmartSkeleton'
 import { typeColors } from '@/lib/entityColors'
+import { GlassCard } from '@/components/ui/GlassCard'
+import { DURATION, EASE } from '@/components/shared/AnimationConfig'
+
 
 /* ============================================================
    TYPING EFFECT HOOK — Optimized to prevent re-init on parent re-render
@@ -78,7 +81,7 @@ function HighlightedContent({ content, entities }: { content: string; entities?:
   }
 
   const sortedEntities = [...entities].sort((a, b) => b.name.length - a.name.length)
-  // Use refs to cache the regex pattern and its dependency key - avoids recomputation on every render
+  // Use refs to cache the regex pattern and its dependency key
   const regexRef = useRef<RegExp | null>(null)
   const keyRef = useRef<string>('')
   const entityNamesKey = sortedEntities.map((e) => e.name).join(',')
@@ -135,7 +138,7 @@ function EntityChips({ entities, onConfirm }: { entities?: ExtractedEntity[]; on
           title={entity.confirmed ? '已确认' : '点击确认'}
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
-          transition={{ delay: i * 0.04, duration: 0.2, ease: [0.4, 0, 0.2, 1] }}
+          transition={{ delay: i * 0.04, duration: DURATION.FAST, ease: EASE.STANDARD }}
           whileHover={{ y: -1 }}
           whileTap={{ scale: 0.95 }}
         >
@@ -150,7 +153,7 @@ function EntityChips({ entities, onConfirm }: { entities?: ExtractedEntity[]; on
 }
 
 /* ============================================================
-   AI AVATAR with breathing glow animation - Enhanced
+   AI AVATAR - Simplified, elegant breathing glow
    ============================================================ */
 
 function AIAvatar({ isThinking = false }: { isThinking?: boolean }) {
@@ -160,7 +163,7 @@ function AIAvatar({ isThinking = false }: { isThinking?: boolean }) {
     <motion.div
       className="relative flex-shrink-0"
       animate={isThinking && !prefersReducedMotion ? {
-        scale: [1, 1.05, 1],
+        scale: [1, 1.03, 1],
       } : undefined}
       transition={prefersReducedMotion ? { duration: 0 } : isThinking ? {
         duration: 1.5,
@@ -172,17 +175,17 @@ function AIAvatar({ isThinking = false }: { isThinking?: boolean }) {
         ease: 'easeInOut',
       }}
     >
-      {/* Outer glow ring - accent color with pulsing effect */}
+      {/* Single glow ring */}
       <motion.div
-        className="absolute inset-[-6px] rounded-full"
+        className="absolute inset-[-5px] rounded-full"
         style={{
           background: 'radial-gradient(circle, var(--accent-primary) 0%, transparent 70%)',
-          opacity: 0.3,
-          filter: 'blur(6px)',
+          opacity: 0.2,
+          filter: 'blur(4px)',
         }}
         animate={prefersReducedMotion ? {} : {
-          scale: [1, 1.4, 1],
-          opacity: [0.2, 0.4, 0.2],
+          scale: [1, 1.3, 1],
+          opacity: [0.15, 0.3, 0.15],
         }}
         transition={prefersReducedMotion ? { duration: 0 } : {
           duration: isThinking ? 1.5 : 3,
@@ -191,67 +194,13 @@ function AIAvatar({ isThinking = false }: { isThinking?: boolean }) {
         }}
       />
 
-      {/* Inner breathing glow ring */}
-      <motion.div
-        className="absolute inset-[-3px] rounded-full"
-        style={{
-          background: 'radial-gradient(circle, var(--accent-primary) 0%, transparent 70%)',
-          opacity: 0.4,
-          filter: 'blur(4px)',
-        }}
-        animate={prefersReducedMotion ? {} : {
-          scale: [1, 1.3, 1],
-          opacity: [0.25, 0.45, 0.25],
-        }}
-        transition={prefersReducedMotion ? { duration: 0 } : {
-          duration: isThinking ? 1.2 : 2.5,
-          repeat: Infinity,
-          ease: 'easeInOut',
-        }}
-      />
-
-      {/* Secondary subtle glow */}
-      <motion.div
-        className="absolute inset-[-10px] rounded-full"
-        style={{
-          background: 'radial-gradient(circle, var(--accent-primary) 0%, transparent 70%)',
-          opacity: 0.12,
-          filter: 'blur(12px)',
-        }}
-        animate={prefersReducedMotion ? {} : {
-          scale: [1.1, 1.5, 1.1],
-          opacity: [0.06, 0.18, 0.06],
-        }}
-        transition={prefersReducedMotion ? { duration: 0 } : {
-          duration: isThinking ? 2 : 4,
-          repeat: Infinity,
-          ease: 'easeInOut',
-          delay: 0.3,
-        }}
-      />
-
-      <AnimatePresence>
-        {isThinking && (
-          <motion.div
-            className="absolute inset-0 rounded-full"
-            style={{
-              background: 'radial-gradient(circle, var(--accent-primary) 0%, transparent 70%)',
-            }}
-            initial={{ scale: 0.8, opacity: 0 }}
-            animate={prefersReducedMotion ? {} : { scale: [1, 1.8, 1], opacity: [0.3, 0.5, 0.3] }}
-            exit={{ scale: 0.8, opacity: 0 }}
-            transition={prefersReducedMotion ? { duration: 0 } : { duration: 1.8, repeat: Infinity, ease: 'easeInOut' }}
-          />
-        )}
-      </AnimatePresence>
-
       <div
         className="w-9 h-9 rounded-full flex items-center justify-center relative z-10
                    bg-gradient-to-br from-accent-primary/30 to-accent-primary/10 border-2 border-accent-primary/40"
         style={{
           boxShadow: isThinking
-            ? '0 0 20px color-mix(in srgb, var(--accent-primary) 50%, transparent), 0 0 40px color-mix(in srgb, var(--accent-primary) 25%, transparent), inset 0 1px 2px rgba(255,255,255,0.1)'
-            : '0 0 12px color-mix(in srgb, var(--accent-primary) 30%, transparent), 0 0 24px color-mix(in srgb, var(--accent-primary) 15%, transparent), inset 0 1px 2px rgba(255,255,255,0.05)',
+            ? '0 0 16px color-mix(in srgb, var(--accent-primary) 40%, transparent), inset 0 1px 2px rgba(255,255,255,0.1)'
+            : '0 0 10px color-mix(in srgb, var(--accent-primary) 25%, transparent), inset 0 1px 2px rgba(255,255,255,0.05)',
         }}
       >
         <Bot className="w-5 h-5 text-accent-primary" />
@@ -296,7 +245,7 @@ function MessageStatus({ status, timestamp }: { status?: 'sending' | 'sent' | 'e
           className="text-[var(--color-success)]/60"
           initial={{ opacity: 0, scale: 0.8 }}
           animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.2 }}
+          transition={{ duration: DURATION.FAST, ease: EASE.SMOOTH }}
         >
           <Check className="w-3 h-3" />
         </motion.span>
@@ -316,7 +265,7 @@ function MessageStatus({ status, timestamp }: { status?: 'sending' | 'sent' | 'e
 }
 
 /* ============================================================
-   CHAT BUBBLE with enhanced visual hierarchy and refined styling
+   CHAT BUBBLE - Enhanced visual hierarchy, reduced noise
    ============================================================ */
 
 interface ChatBubbleProps {
@@ -357,14 +306,9 @@ function ChatBubble({ message, onEdit, onDelete, onConfirmEntity, index, isGroup
     setIsEditing(false)
   }
 
-  // Enhanced glow colors with entity-based tinting
-  const bubbleGlowColor = isAssistant
-    ? 'rgba(94, 106, 210, 0.15)'
-    : 'rgba(94, 106, 210, 0.25)'
-
   return (
     <motion.div
-      initial={prefersReducedMotion ? { opacity: 0 } : { opacity: 0, y: 24, scale: 0.97 }}
+      initial={prefersReducedMotion ? { opacity: 0 } : { opacity: 0, y: 20, scale: 0.98 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
       exit={prefersReducedMotion ? { opacity: 0 } : { opacity: 0, y: -6, scale: 0.97 }}
       transition={
@@ -374,31 +318,31 @@ function ChatBubble({ message, onEdit, onDelete, onConfirmEntity, index, isGroup
               type: 'spring',
               stiffness: 350,
               damping: 30,
-              delay: Math.min(index * 0.06, 0.25),
+              delay: Math.min(index * 0.05, 0.2),
             }
       }
       className={`flex ${isAssistant ? 'justify-start' : 'justify-end'} ${isGrouped && !isFirstInGroup ? 'mb-2' : 'mb-5'}`}
       onMouseEnter={() => setShowActions(true)}
       onMouseLeave={() => setShowActions(false)}
     >
-      <div className={`flex gap-4 max-w-[85%] ${isAssistant ? 'flex-row' : 'flex-row-reverse'}`}>
+      <div className={`flex gap-3 max-w-[85%] ${isAssistant ? 'flex-row' : 'flex-row-reverse'}`}>
         {/* Avatar - only show for first message in group */}
         <motion.div
           className="flex-shrink-0 mt-0.5"
           initial={prefersReducedMotion ? {} : { opacity: 0, scale: 0.6 }}
           animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.35, delay: Math.min(index * 0.06, 0.25) + 0.12 }}
+          transition={{ duration: 0.35, delay: Math.min(index * 0.05, 0.2) + 0.1 }}
           style={{ visibility: isFirstInGroup ? 'visible' : 'hidden', width: isFirstInGroup ? 'auto' : '36px' }}
         >
           {isAssistant ? (
             <AIAvatar />
           ) : (
             <motion.div
-              className="w-9 h-9 rounded-full flex items-center justify-center bg-gradient-to-br from-accent-primary to-accent-primary/70 shadow-lg"
+              className="w-9 h-9 rounded-full flex items-center justify-center bg-gradient-to-br from-accent-primary to-accent-primary/70"
               style={{
-                boxShadow: '0 4px 14px color-mix(in srgb, var(--accent-primary) 40%, transparent)',
+                boxShadow: '0 4px 14px color-mix(in srgb, var(--accent-primary) 30%, transparent)',
               }}
-              whileHover={prefersReducedMotion ? {} : { scale: 1.08 }}
+              whileHover={prefersReducedMotion ? {} : { scale: 1.06 }}
               whileTap={prefersReducedMotion ? {} : { scale: 0.94 }}
             >
               <User className="w-4 h-4 text-white" />
@@ -406,44 +350,36 @@ function ChatBubble({ message, onEdit, onDelete, onConfirmEntity, index, isGroup
           )}
         </motion.div>
 
-        {/* Bubble with refined styling */}
+        {/* Bubble */}
         <div className="relative">
-          <motion.div
-            className={`relative px-5 py-3.5 transition-all duration-200 ${
-              isAssistant
-                ? `bg-gradient-to-b from-surface-raised to-surface-base text-primary ${isFirstInGroup ? 'rounded-2xl rounded-tl-sm rounded-tr-xl rounded-bl-lg rounded-br-md' : 'rounded-2xl rounded-tl-md rounded-tr-xl rounded-bl-md rounded-br-md'}`
-                : `bg-gradient-to-b from-accent-primary to-accent-primary/90 text-white shadow-lg ${isFirstInGroup ? 'rounded-2xl rounded-tl-xl rounded-tr-sm rounded-bl-md rounded-br-lg' : 'rounded-2xl rounded-tl-xl rounded-tr-md rounded-bl-lg rounded-br-md'}`
-            }`}
+          <GlassCard
+            intensity={isAssistant ? 'light' : 'medium'}
+            border={isAssistant ? 'subtle' : 'none'}
+            variant="default"
+            rounded="2xl"
+            padding="md"
+            hover={false}
+            className={`relative ${isAssistant ? 'rounded-tl-sm' : 'rounded-tr-sm'}`}
             style={{
+              background: isAssistant
+                ? 'var(--color-surface-raised)'
+                : 'linear-gradient(135deg, var(--accent-primary), color-mix(in srgb, var(--accent-primary) 85%, var(--accent-hover)))',
+              color: isAssistant ? 'var(--text-primary)' : 'white',
               boxShadow: isAssistant
-                ? `0 8px 32px rgba(0,0,0,0.12), 0 2px 8px rgba(0,0,0,0.08), inset 0 1px 0 rgba(255,255,255,0.04), 0 0 48px ${bubbleGlowColor}, 0 0 0 1px rgba(94,106,210,0.06)`
-                : `0 8px 32px color-mix(in srgb, var(--accent-primary) 35%, transparent), 0 4px 12px rgba(0,0,0,0.15), inset 0 1px 0 rgba(255,255,255,0.2), 0 0 48px ${bubbleGlowColor}`,
+                ? '0 4px 20px rgba(0,0,0,0.08), 0 1px 4px rgba(0,0,0,0.04), inset 0 1px 0 rgba(255,255,255,0.03)'
+                : '0 4px 20px color-mix(in srgb, var(--accent-primary) 25%, transparent), 0 2px 8px rgba(0,0,0,0.1)',
             }}
-            whileHover={prefersReducedMotion ? {} : { y: -2 }}
           >
-            {/* Left gradient border decoration for AI messages */}
+            {/* Left accent border for AI messages */}
             {isAssistant && (
               <motion.div
-                className="absolute left-0 top-2.5 bottom-2.5 w-[2.5px] rounded-full"
+                className="absolute left-0 top-3 bottom-3 w-[2px] rounded-full"
                 style={{
-                  background: 'linear-gradient(180deg, transparent 0%, var(--accent-primary) 30%, color-mix(in srgb, var(--accent-primary) 70%, transparent) 70%, transparent 100%)',
+                  background: 'linear-gradient(180deg, transparent 0%, var(--accent-primary) 30%, color-mix(in srgb, var(--accent-primary) 60%, transparent) 70%, transparent 100%)',
                 }}
                 initial={prefersReducedMotion ? {} : { scaleY: 0, opacity: 0 }}
                 animate={{ scaleY: 1, opacity: 1 }}
-                transition={{ duration: 0.5, delay: Math.min(index * 0.06, 0.25) + 0.18, ease: [0.22, 1, 0.36, 1] }}
-              />
-            )}
-
-            {/* Right gradient border decoration for user messages */}
-            {!isAssistant && (
-              <motion.div
-                className="absolute right-0 top-2.5 bottom-2.5 w-[2.5px] rounded-full"
-                style={{
-                  background: 'linear-gradient(180deg, transparent 0%, rgba(255,255,255,0.6) 30%, rgba(255,255,255,0.25) 70%, transparent 100%)',
-                }}
-                initial={prefersReducedMotion ? {} : { scaleY: 0, opacity: 0 }}
-                animate={{ scaleY: 1, opacity: 1 }}
-                transition={{ duration: 0.5, delay: Math.min(index * 0.06, 0.25) + 0.18, ease: [0.22, 1, 0.36, 1] }}
+                transition={{ duration: DURATION.SLOW, delay: Math.min(index * 0.05, 0.2) + 0.15, ease: EASE.SMOOTH }}
               />
             )}
 
@@ -454,7 +390,7 @@ function ChatBubble({ message, onEdit, onDelete, onConfirmEntity, index, isGroup
                   initial={{ opacity: 0, y: 6, scale: 0.9 }}
                   animate={{ opacity: 1, y: 0, scale: 1 }}
                   exit={{ opacity: 0, y: 6, scale: 0.9 }}
-                  transition={{ duration: 0.12, ease: [0.4, 0, 0.2, 1] }}
+                  transition={{ duration: DURATION.INSTANT, ease: EASE.STANDARD }}
                   className="absolute -top-10 right-0 flex gap-1.5 bg-surface-raised/95 backdrop-blur-sm rounded-xl p-1.5 shadow-lg border border-border-default/50"
                 >
                   <motion.button
@@ -525,9 +461,9 @@ function ChatBubble({ message, onEdit, onDelete, onConfirmEntity, index, isGroup
                       animate={{ opacity: [0.4, 1, 0.4] }}
                       transition={{ duration: 0.8, repeat: Infinity, ease: 'easeInOut' }}
                     >
-                      <span className="w-1.5 h-1.5 rounded-full bg-accent-primary mr-0.5 typing-indicator-dots__dot" />
-                      <span className="w-1 h-1 rounded-full bg-accent-primary mr-0.5 typing-indicator-dots__dot" style={{ animationDelay: '0.15s' }} />
-                      <span className="w-1 h-1 rounded-full bg-accent-primary typing-indicator-dots__dot" style={{ animationDelay: '0.3s' }} />
+                      <span className="w-1.5 h-1.5 rounded-full bg-accent-primary mr-0.5" />
+                      <span className="w-1 h-1 rounded-full bg-accent-primary mr-0.5" style={{ animationDelay: '0.15s' }} />
+                      <span className="w-1 h-1 rounded-full bg-accent-primary" style={{ animationDelay: '0.3s' }} />
                     </motion.span>
                   )}
                   {message.entities && message.entities.length > 0 && (
@@ -536,14 +472,14 @@ function ChatBubble({ message, onEdit, onDelete, onConfirmEntity, index, isGroup
                 </>
               )}
             </div>
-          </motion.div>
+          </GlassCard>
 
           {/* Timestamp */}
           <motion.div
             className={`mt-2 ${isAssistant ? 'ml-1' : 'mr-1 text-right'}`}
             initial={prefersReducedMotion ? {} : { opacity: 0, y: 4 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.25, delay: Math.min(index * 0.08, 0.3) + 0.2 }}
+            transition={{ duration: 0.25, delay: Math.min(index * 0.06, 0.25) + 0.15 }}
           >
             <MessageStatus timestamp={new Date(message.createdAt)} />
             {message.editedAt && (
@@ -563,7 +499,7 @@ function ChatBubble({ message, onEdit, onDelete, onConfirmEntity, index, isGroup
 }
 
 /* ============================================================
-   STREAMING BUBBLE with enhanced visual effects
+   STREAMING BUBBLE
    ============================================================ */
 
 function StreamingBubble({ content }: { content: string }) {
@@ -571,32 +507,38 @@ function StreamingBubble({ content }: { content: string }) {
 
   return (
     <motion.div
-      initial={prefersReducedMotion ? { opacity: 0 } : { opacity: 0, y: 20, scale: 0.96 }}
+      initial={prefersReducedMotion ? { opacity: 0 } : { opacity: 0, y: 16, scale: 0.97 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
       exit={prefersReducedMotion ? { opacity: 0 } : { opacity: 0, y: -6, scale: 0.97 }}
-      transition={prefersReducedMotion ? { duration: 0.15 } : { duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
+      transition={prefersReducedMotion ? { duration: DURATION.FAST } : { duration: DURATION.NORMAL, ease: EASE.OUT }}
       className="flex justify-start mb-6"
     >
-      <div className="flex gap-3.5 max-w-[82%]">
+      <div className="flex gap-3 max-w-[82%]">
         <motion.div
           className="flex-shrink-0 mt-1"
-          animate={prefersReducedMotion ? {} : { scale: [1, 1.05, 1] }}
+          animate={prefersReducedMotion ? {} : { scale: [1, 1.03, 1] }}
           transition={{ duration: 1.5, repeat: Infinity, ease: 'easeInOut' }}
         >
           <AIAvatar isThinking />
         </motion.div>
         <div className="relative">
-          <motion.div
-            className="relative px-[18px] py-4 bg-surface-raised rounded-2xl rounded-tl-2xl rounded-tr-lg rounded-bl-md rounded-br-lg overflow-hidden"
+          <GlassCard
+            intensity="light"
+            border="subtle"
+            variant="default"
+            rounded="2xl"
+            padding="md"
+            hover={false}
+            className="relative rounded-tl-sm overflow-hidden"
             style={{
-              boxShadow: '0 4px 20px rgba(0,0,0,0.10), 0 2px 8px rgba(0,0,0,0.06), 0 0 32px rgba(94, 106, 210, 0.12), 0 0 0 1px rgba(94,106,210,0.08)',
+              boxShadow: '0 4px 20px rgba(0,0,0,0.08), 0 1px 4px rgba(0,0,0,0.04)',
             }}
           >
-            {/* Animated left gradient border */}
+            {/* Animated left accent */}
             <motion.div
-              className="absolute left-0 top-3 bottom-3 w-[3px] rounded-full"
+              className="absolute left-0 top-3 bottom-3 w-[2px] rounded-full"
               style={{
-                background: 'linear-gradient(180deg, var(--accent-primary) 0%, color-mix(in srgb, var(--accent-primary) 60%, transparent) 50%, transparent 100%)',
+                background: 'linear-gradient(180deg, var(--accent-primary) 0%, color-mix(in srgb, var(--accent-primary) 50%, transparent) 100%)',
               }}
               animate={prefersReducedMotion ? {} : { opacity: [0.5, 1, 0.5] }}
               transition={{ duration: 1.2, repeat: Infinity, ease: 'easeInOut' }}
@@ -609,7 +551,7 @@ function StreamingBubble({ content }: { content: string }) {
                 transition={{ duration: 0.5, repeat: Infinity, ease: 'easeInOut' }}
               />
             </div>
-          </motion.div>
+          </GlassCard>
           <motion.div
             className="mt-2 ml-1 flex items-center gap-2"
             initial={prefersReducedMotion ? {} : { opacity: 0, y: 4 }}
@@ -647,23 +589,28 @@ function EmptyState() {
       className="flex flex-col items-center justify-center h-full text-center px-6 relative"
       initial={prefersReducedMotion ? { opacity: 0 } : { opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={prefersReducedMotion ? { duration: 0.2 } : { duration: 0.4, ease: [0.4, 0, 0.2, 1] }}
+      transition={prefersReducedMotion ? { duration: DURATION.FAST } : { duration: DURATION.SLOW, ease: EASE.STANDARD }}
     >
       <motion.div
-        className="relative w-20 h-20 rounded-2xl flex items-center justify-center mb-6
-                   bg-accent-muted border border-border-focus"
-        style={{
-          boxShadow: '0 0 20px rgba(94, 106, 210, 0.2), 0 4px 12px rgba(0, 0, 0, 0.15)',
-        }}
+        className="relative w-20 h-20 rounded-2xl flex items-center justify-center mb-6"
         initial={prefersReducedMotion ? { opacity: 0 } : { scale: 0.85, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
-        transition={prefersReducedMotion ? { duration: 0.15 } : { delay: 0.1, duration: 0.4, ease: [0.4, 0, 0.2, 1] }}
+        transition={prefersReducedMotion ? { duration: DURATION.FAST } : { delay: 0.1, duration: DURATION.SLOW, ease: EASE.STANDARD }}
       >
-        <Sparkles className="w-9 h-9 text-accent-primary" />
+        <GlassCard
+          intensity="medium"
+          border="subtle"
+          variant="elevated"
+          rounded="2xl"
+          padding="none"
+          className="w-full h-full flex items-center justify-center"
+        >
+          <Sparkles className="w-9 h-9 text-accent-primary" />
+        </GlassCard>
         {!prefersReducedMotion && (
           <motion.div
             className="absolute -inset-1 rounded-2xl border border-accent-primary/20"
-            animate={{ scale: [1, 1.08, 1], opacity: [0.3, 0.6, 0.3] }}
+            animate={{ scale: [1, 1.06, 1], opacity: [0.2, 0.4, 0.2] }}
             transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
           />
         )}
@@ -678,7 +625,7 @@ function EmptyState() {
         className="text-xl font-medium mb-3 text-primary"
         initial={prefersReducedMotion ? {} : { y: 10, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
-        transition={prefersReducedMotion ? { duration: 0.1 } : { delay: 0.15, duration: 0.3, ease: [0.4, 0, 0.2, 1] }}
+        transition={prefersReducedMotion ? { duration: DURATION.INSTANT } : { delay: 0.15, duration: DURATION.SLOW, ease: EASE.STANDARD }}
       >
         欢迎使用自动化写作软件
       </motion.h2>
@@ -687,7 +634,7 @@ function EmptyState() {
         className="inline-flex items-center gap-2 mb-6"
         initial={prefersReducedMotion ? {} : { y: 8, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
-        transition={prefersReducedMotion ? { duration: 0.1 } : { delay: 0.2, duration: 0.3, ease: [0.4, 0, 0.2, 1] }}
+        transition={prefersReducedMotion ? { duration: DURATION.INSTANT } : { delay: 0.2, duration: DURATION.SLOW, ease: EASE.STANDARD }}
       >
         <div className="h-px flex-1 bg-gradient-to-r from-transparent via-border-strong to-transparent" />
         <span className="inline-flex items-center gap-1.5 text-xs text-tertiary">
@@ -701,29 +648,23 @@ function EmptyState() {
         className="flex flex-wrap justify-center gap-2.5"
         initial={prefersReducedMotion ? {} : { y: 8, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
-        transition={prefersReducedMotion ? { duration: 0.1 } : { delay: 0.25, duration: 0.3, ease: [0.4, 0, 0.2, 1] }}
+        transition={prefersReducedMotion ? { duration: DURATION.INSTANT } : { delay: 0.25, duration: DURATION.SLOW, ease: EASE.STANDARD }}
       >
-        {['玄幻修仙', '都市异能', '悬疑推理', '言情', '科幻未来', '历史穿越'].map((tag, i) => (
-          <motion.button
+        {['玄幻修仙', '都市异能', '悬疑推理', '言情', '科幻未来', '历史穿越'].map((tag) => (
+          <GlassCard
             key={tag}
-            className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-sm cursor-pointer transition-all
-                       bg-surface-base border border-default text-secondary"
+            intensity="light"
+            border="subtle"
+            variant="default"
+            rounded="xl"
+            padding="sm"
+            hover
+            className="inline-flex items-center gap-1.5 text-sm cursor-pointer text-secondary hover:text-primary"
             style={{ whiteSpace: 'nowrap' }}
-            whileHover={prefersReducedMotion ? {} : {
-              backgroundColor: 'var(--color-surface-raised)',
-              borderColor: 'var(--border-strong)',
-              color: 'var(--text-primary)',
-              y: -2,
-              boxShadow: 'var(--shadow-elevated)',
-            }}
-            whileTap={prefersReducedMotion ? {} : { scale: 0.97 }}
-            initial={prefersReducedMotion ? { opacity: 1 } : { opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={prefersReducedMotion ? { duration: 0.1 } : { delay: 0.3 + i * 0.04, duration: 0.25, ease: [0.4, 0, 0.2, 1] }}
           >
-            <span className="flex-shrink-0"><MessageSquareText className="w-3.5 h-3.5 opacity-60" /></span>
+            <span className="flex-shrink-0 opacity-60"><MessageSquareText className="w-3.5 h-3.5" /></span>
             <span>{tag}</span>
-          </motion.button>
+          </GlassCard>
         ))}
       </motion.div>
     </motion.div>
@@ -761,7 +702,7 @@ export function ChatArea() {
       className="flex-1 flex flex-col min-w-0"
       initial={{ opacity: 0, x: -20 }}
       animate={{ opacity: 1, x: 0 }}
-      transition={{ duration: 0.4, delay: 0.1, ease: [0.22, 1, 0.36, 1] }}
+      transition={{ duration: DURATION.SLOW, delay: 0.1, ease: EASE.OUT }}
     >
       <div className="flex-1 overflow-hidden relative">
         {isLoading && messages.length === 0 ? (
@@ -808,7 +749,7 @@ export function ChatArea() {
                 initial={{ opacity: 0, y: 8 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -6 }}
-                transition={{ duration: 0.2, ease: [0.4, 0, 0.2, 1] }}
+                transition={{ duration: DURATION.FAST, ease: EASE.STANDARD }}
               >
                 <TypingIndicator />
               </motion.div>

@@ -4,7 +4,6 @@
  */
 
 export { PageTransition } from './PageTransition'
-export { ParticleBackground } from './ParticleBackground'
 export {
   AnimatedLayout,
   AnimatedLayoutGroup,
@@ -18,14 +17,6 @@ export { ErrorBoundary } from './ErrorBoundary'
 export { CommandPalette } from './CommandPalette'
 
 // Enhanced components (newer versions with more features)
-export {
-  GlowCard,
-  GlowBadge,
-  GlowDivider,
-  type GlowIntensity,
-  type GlowColor,
-} from './GlowCard'
-
 export {
   RippleEffect,
   ButtonFeedback,
@@ -46,12 +37,6 @@ export {
   easeSpring,
   useReducedMotion,
 } from './MicroInteractions'
-
-export {
-  EnhancedParticleBackground,
-} from './EnhancedParticleBackground'
-
-// Note: FloatingParticle is not exported by EnhancedParticleBackground
 
 export {
   EnhancedPageTransition,
@@ -98,17 +83,24 @@ export {
   type LoadingVariant,
 } from './LoadingOverlayVariants'
 
-// Glass morphism (enhanced with more variants)
+// Glass morphism - unified in ui/GlassCard, re-exported here for convenience
 export {
   GlassCard,
-  GlassPanel,
-  GlassBadge,
-  GlassButton,
-  GlassDivider,
-  type GlassIntensity,
-  type GlassBorder,
-  type GlassVariant,
-} from './GlassCard'
+  GlassCardHeader,
+  GlassCardContent,
+  GlassCardFooter,
+  // Legacy compatibility aliases
+  GlowCard,
+  PremiumCard,
+  SpotlightCard,
+  type GlassCardProps,
+  type CardVariant,
+  type CardIntensity,
+  type EntityColor,
+  type CardBorder,
+  type GlowIntensity,
+  type SpotlightColor,
+} from '@/components/ui/GlassCard'
 
 // Gradient borders
 export {
@@ -156,54 +148,16 @@ export {
   SkeletonGraph,
 } from './Skeleton'
 
-// Ambient light effects
+// Unified background system (replaces all legacy background components)
 export {
-  AmbientLight,
-  AmbientLightGroup,
-  AmbientGlow,
-} from './AmbientLight'
+  UnifiedBackground,
+  getBackgroundModeForInterface,
+  getBackgroundDensity,
+  getBackgroundSpeed,
+} from './UnifiedBackground'
 export type {
-  AmbientLightProps,
-  AmbientColor,
-  AmbientPosition,
-  AmbientSize,
-  AmbientShape,
-} from './AmbientLight'
-
-// New background effects
-export {
-  InkFlowBackground,
-} from './InkFlowBackground'
-export type {
-  InkFlowBackgroundProps,
-} from './InkFlowBackground'
-
-export {
-  AuroraBackground,
-} from './AuroraBackground'
-export type {
-  AuroraBackgroundProps,
-} from './AuroraBackground'
-
-export {
-  StarfieldBackground,
-} from './StarfieldBackground'
-export type {
-  StarfieldBackgroundProps,
-} from './StarfieldBackground'
-
-// Textured backgrounds
-export {
-  TexturedBackground,
-  WritingPaper,
-  NoiseOverlay,
-  GridOverlay,
-} from './TexturedBackground'
-export type {
-  TexturedBackgroundProps,
-  TextureType,
-  TextureIntensity,
-} from './TexturedBackground'
+  UnifiedBackgroundMode,
+} from './UnifiedBackground'
 
 // Keyboard shortcut display
 export {

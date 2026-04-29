@@ -32,6 +32,8 @@ import {
 	Info,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import { DURATION, EASE } from '@/components/shared/AnimationConfig'
+
 
 const ForceGraph2D = lazy(() => import("react-force-graph-2d"));
 const ForceGraph3D = lazy(() => import("react-force-graph-3d"));
@@ -75,7 +77,7 @@ interface HoverTooltipState {
 	y: number;
 }
 
-// Enhanced entity type config with glow variants and ring colors
+// Enhanced entity type config - unified with entityColor system
 const ENTITY_TYPE_CONFIG: Record<
 	EntityNodeType,
 	{
@@ -92,80 +94,81 @@ const ENTITY_TYPE_CONFIG: Record<
 		label: "角色",
 		color: "var(--color-character)",
 		icon: Users,
-		glowColor: "color-mix(in srgb, var(--color-character) 50%, transparent)",
-		glowStrong: "color-mix(in srgb, var(--color-character) 80%, transparent)",
-		ringColor: "color-mix(in srgb, var(--color-character) 25%, transparent)",
+		glowColor: "color-mix(in srgb, var(--color-character) 30%, transparent)",
+		glowStrong: "color-mix(in srgb, var(--color-character) 60%, transparent)",
+		ringColor: "color-mix(in srgb, var(--color-character) 20%, transparent)",
 		size: 8,
 	},
 	item: {
 		label: "物品",
 		color: "var(--color-item)",
 		icon: Scroll,
-		glowColor: "color-mix(in srgb, var(--color-item) 50%, transparent)",
-		glowStrong: "color-mix(in srgb, var(--color-item) 80%, transparent)",
-		ringColor: "color-mix(in srgb, var(--color-item) 25%, transparent)",
+		glowColor: "color-mix(in srgb, var(--color-item) 30%, transparent)",
+		glowStrong: "color-mix(in srgb, var(--color-item) 60%, transparent)",
+		ringColor: "color-mix(in srgb, var(--color-item) 20%, transparent)",
 		size: 6,
 	},
 	location: {
 		label: "地点",
 		color: "var(--color-location)",
 		icon: MapPin,
-		glowColor: "color-mix(in srgb, var(--color-location) 50%, transparent)",
-		glowStrong: "color-mix(in srgb, var(--color-location) 80%, transparent)",
-		ringColor: "color-mix(in srgb, var(--color-location) 25%, transparent)",
+		glowColor: "color-mix(in srgb, var(--color-location) 30%, transparent)",
+		glowStrong: "color-mix(in srgb, var(--color-location) 60%, transparent)",
+		ringColor: "color-mix(in srgb, var(--color-location) 20%, transparent)",
 		size: 7,
 	},
 	faction: {
 		label: "势力",
 		color: "var(--color-faction)",
 		icon: Swords,
-		glowColor: "color-mix(in srgb, var(--color-faction) 50%, transparent)",
-		glowStrong: "color-mix(in srgb, var(--color-faction) 80%, transparent)",
-		ringColor: "color-mix(in srgb, var(--color-faction) 25%, transparent)",
+		glowColor: "color-mix(in srgb, var(--color-faction) 30%, transparent)",
+		glowStrong: "color-mix(in srgb, var(--color-faction) 60%, transparent)",
+		ringColor: "color-mix(in srgb, var(--color-faction) 20%, transparent)",
 		size: 7,
 	},
 	world: {
 		label: "世界观",
 		color: "var(--color-world)",
 		icon: Globe,
-		glowColor: "color-mix(in srgb, var(--color-world) 50%, transparent)",
-		glowStrong: "color-mix(in srgb, var(--color-world) 80%, transparent)",
-		ringColor: "color-mix(in srgb, var(--color-world) 25%, transparent)",
+		glowColor: "color-mix(in srgb, var(--color-world) 30%, transparent)",
+		glowStrong: "color-mix(in srgb, var(--color-world) 60%, transparent)",
+		ringColor: "color-mix(in srgb, var(--color-world) 20%, transparent)",
 		size: 6,
 	},
 	rule: {
 		label: "规则",
 		color: "var(--color-rule)",
 		icon: BookOpen,
-		glowColor: "color-mix(in srgb, var(--color-rule) 50%, transparent)",
-		glowStrong: "color-mix(in srgb, var(--color-rule) 80%, transparent)",
-		ringColor: "color-mix(in srgb, var(--color-rule) 25%, transparent)",
+		glowColor: "color-mix(in srgb, var(--color-rule) 30%, transparent)",
+		glowStrong: "color-mix(in srgb, var(--color-rule) 60%, transparent)",
+		ringColor: "color-mix(in srgb, var(--color-rule) 20%, transparent)",
 		size: 5,
 	},
 	outline: {
 		label: "大纲",
 		color: "var(--color-outline)",
 		icon: BookOpen,
-		glowColor: "color-mix(in srgb, var(--color-outline) 50%, transparent)",
-		glowStrong: "color-mix(in srgb, var(--color-outline) 80%, transparent)",
-		ringColor: "color-mix(in srgb, var(--color-outline) 25%, transparent)",
+		glowColor: "color-mix(in srgb, var(--color-outline) 30%, transparent)",
+		glowStrong: "color-mix(in srgb, var(--color-outline) 60%, transparent)",
+		ringColor: "color-mix(in srgb, var(--color-outline) 20%, transparent)",
 		size: 5,
 	},
 	ifline: {
 		label: "IF线",
 		color: "var(--color-ifline)",
 		icon: Scroll,
-		glowColor: "color-mix(in srgb, var(--color-ifline) 50%, transparent)",
-		glowStrong: "color-mix(in srgb, var(--color-ifline) 80%, transparent)",
-		ringColor: "color-mix(in srgb, var(--color-ifline) 25%, transparent)",
+		glowColor: "color-mix(in srgb, var(--color-ifline) 30%, transparent)",
+		glowStrong: "color-mix(in srgb, var(--color-ifline) 60%, transparent)",
+		ringColor: "color-mix(in srgb, var(--color-ifline) 20%, transparent)",
 		size: 6,
 	},
 };
 
+// Unified relation colors - softer, more transparent to not overpower nodes
 const RELATION_TYPE_COLORS: Record<string, string> = {
 	family: "var(--color-location)",
 	friend: "var(--color-outline)",
-	enemy: "var(--vermillion-100)",
+	enemy: "var(--color-danger)",
 	master: "var(--color-item)",
 	disciple: "var(--color-rule)",
 	rival: "var(--color-character)",
@@ -339,8 +342,8 @@ function useGraphData() {
 
 function GraphFallback() {
 	return (
-		<div className="h-full flex items-center justify-center bg-[var(--color-surface-base)] relative overflow-hidden">
-			<div className="absolute inset-0 opacity-30">
+		<div className="h-full flex items-center justify-center bg-[var(--color-surface-base)] relative overflow-hidden rounded-lg">
+			<div className="absolute inset-0 opacity-[0.06]">
 				<div
 					className="absolute inset-0"
 					style={{
@@ -394,10 +397,9 @@ function NodeHoverTooltip({
 					(containerRef.current?.clientWidth || 800) - 260,
 				),
 				top: Math.max(tooltip.y - 12, 8),
-				background:
-					"linear-gradient(145deg, rgba(22, 24, 28, 0.98), rgba(15, 16, 20, 0.98))",
+				background: 'var(--color-surface-overlay)',
 				border: `1px solid ${config.color}30`,
-				boxShadow: `0 16px 48px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.03), 0 0 40px ${config.glowColor}30, 0 4px 12px rgba(0,0,0,0.3)`,
+				boxShadow: `0 16px 48px rgba(0,0,0,0.6), 0 0 0 1px var(--border-subtle), 0 0 40px ${config.glowColor}30, 0 4px 12px rgba(0,0,0,0.3)`,
 				backdropFilter: "blur(24px)",
 			}}
 		>
@@ -460,7 +462,7 @@ function NodeDetailPanel({
 			initial={{ opacity: 0, y: 8, scale: 0.96 }}
 			animate={{ opacity: 1, y: 0, scale: 1 }}
 			exit={{ opacity: 0, y: 8, scale: 0.96 }}
-			transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
+			transition={{ duration: DURATION.FAST, ease: EASE.SMOOTH }}
 			className="absolute z-20 rounded-xl p-3.5 min-w-[200px] max-w-[260px]"
 			style={{
 				left: Math.min(
@@ -468,10 +470,9 @@ function NodeDetailPanel({
 					(typeof window !== "undefined" ? window.innerWidth : 800) - 280,
 				),
 				top: Math.max(detail.y - 16, 8),
-				background:
-					"linear-gradient(145deg, rgba(22, 24, 28, 0.98), rgba(15, 16, 20, 0.98))",
-				border: "1px solid rgba(255, 255, 255, 0.08)",
-				boxShadow: `0 12px 40px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.02), 0 0 30px ${config.glowColor}20`,
+				background: 'var(--color-surface-overlay)',
+				border: "1px solid var(--border-default)",
+				boxShadow: `0 12px 40px rgba(0,0,0,0.5), 0 0 0 1px var(--border-subtle), 0 0 30px ${config.glowColor}20`,
 				backdropFilter: "blur(20px)",
 			}}
 		>
@@ -487,7 +488,7 @@ function NodeDetailPanel({
 						className="w-8 h-8 rounded-xl flex items-center justify-center relative"
 						style={{
 							background: `linear-gradient(135deg, ${config.color}20, ${config.color}08)`,
-							boxShadow: `0 0 12px ${config.glowColor}30, inset 0 1px 0 rgba(255,255,255,0.05)`,
+							boxShadow: `0 0 12px ${config.glowColor}30, inset 0 1px 0 var(--border-subtle)`,
 						}}
 					>
 						<Icon className="w-4 h-4" style={{ color: config.color }} />
@@ -503,7 +504,7 @@ function NodeDetailPanel({
 				</div>
 				<button
 					onClick={onClose}
-					className="p-1 rounded-lg hover:bg-white/10 transition-all duration-200 flex-shrink-0 group"
+					className="p-1 rounded-lg hover:bg-[var(--hover-bg)] transition-all duration-200 flex-shrink-0 group"
 				>
 					<X className="w-3.5 h-3.5 text-[var(--text-tertiary)] group-hover:text-[var(--text-primary)]" />
 				</button>
@@ -513,7 +514,7 @@ function NodeDetailPanel({
 					{detail.node.description}
 				</p>
 			)}
-			<div className="flex items-center gap-1.5 text-[10px] text-[var(--text-tertiary)] pt-2 border-t border-white/5">
+			<div className="flex items-center gap-1.5 text-[10px] text-[var(--text-tertiary)] pt-2 border-t border-[var(--border-subtle)]">
 				<LinkIcon className="w-3 h-3" style={{ color: config.color }} />
 				<span>{detail.node.val - 1} 条关系</span>
 			</div>
@@ -547,9 +548,8 @@ function FilterControls({
 			<div
 				className="flex flex-col gap-0.5 rounded-xl p-1.5"
 				style={{
-					background:
-						"linear-gradient(145deg, rgba(30, 32, 38, 0.95), rgba(22, 24, 28, 0.95))",
-					border: "1px solid rgba(255, 255, 255, 0.08)",
+					background: 'var(--color-surface-raised)',
+					border: "1px solid var(--border-default)",
 					boxShadow:
 						"0 4px 20px rgba(0,0,0,0.4), 0 0 0 1px rgba(255,255,255,0.02)",
 				}}
@@ -566,16 +566,15 @@ function FilterControls({
 			<div
 				className="rounded-xl p-1.5"
 				style={{
-					background:
-						"linear-gradient(145deg, rgba(30, 32, 38, 0.95), rgba(22, 24, 28, 0.95))",
-					border: "1px solid rgba(255, 255, 255, 0.06)",
+					background: 'var(--color-surface-raised)',
+					border: "1px solid var(--border-subtle)",
 					boxShadow:
 						"0 4px 20px rgba(0,0,0,0.3), 0 0 0 1px rgba(255,255,255,0.02)",
 				}}
 			>
 				<button
 					onClick={() => setIsExpanded(!isExpanded)}
-					className="flex items-center gap-1.5 px-2 py-1.5 rounded-lg hover:bg-white/5 transition-all duration-200 w-full group"
+					className="flex items-center gap-1.5 px-2 py-1.5 rounded-lg hover:bg-[var(--hover-bg)] transition-all duration-200 w-full group"
 				>
 					<Filter className="w-3 h-3 text-[var(--text-tertiary)] group-hover:text-[var(--text-secondary)] transition-colors" />
 					<span className="text-[10px] text-[var(--text-tertiary)] group-hover:text-[var(--text-secondary)] transition-colors font-medium">
@@ -593,7 +592,7 @@ function FilterControls({
 							initial={{ height: 0, opacity: 0 }}
 							animate={{ height: "auto", opacity: 1 }}
 							exit={{ height: 0, opacity: 0 }}
-							transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
+							transition={{ duration: DURATION.NORMAL, ease: EASE.SMOOTH }}
 							className="overflow-hidden"
 						>
 							<div className="pt-2 space-y-0.5">
@@ -651,7 +650,7 @@ function FilterControls({
 								})}
 							</div>
 
-							<div className="pt-2 mt-2 border-t border-white/5">
+							<div className="pt-2 mt-2 border-t border-[var(--border-subtle)]">
 								<p className="text-[10px] mb-1.5 px-2 text-[var(--text-tertiary)] font-medium">
 									关系类型
 								</p>
@@ -690,7 +689,7 @@ function FilterButton({
 }) {
 	return (
 		<button
-			className="p-2 rounded-lg hover:bg-white/10 transition-all duration-200 group flex items-center justify-center"
+			className="p-2 rounded-lg hover:bg-[var(--hover-bg)] transition-all duration-200 group flex items-center justify-center"
 			title={title}
 			onClick={onClick}
 		>
@@ -715,9 +714,8 @@ function Legend({
 				className="absolute bottom-3 right-3 z-10 p-2.5 rounded-xl transition-all duration-200 group"
 				title="显示图例"
 				style={{
-					background:
-						"linear-gradient(145deg, rgba(30, 32, 38, 0.95), rgba(22, 24, 28, 0.95))",
-					border: "1px solid rgba(255, 255, 255, 0.06)",
+					background: 'var(--color-surface-raised)',
+					border: "1px solid var(--border-subtle)",
 					boxShadow: "0 4px 20px rgba(0,0,0,0.3)",
 				}}
 			>
@@ -732,25 +730,24 @@ function Legend({
 		<motion.div
 			initial={{ opacity: 0, y: 8, scale: 0.96 }}
 			animate={{ opacity: 1, y: 0, scale: 1 }}
-			transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
+			transition={{ duration: DURATION.NORMAL, ease: EASE.SMOOTH }}
 			className="absolute bottom-3 right-3 z-10 rounded-xl overflow-hidden"
 			style={{
 				minWidth: "160px",
-				background:
-					"linear-gradient(145deg, rgba(22, 24, 28, 0.97), rgba(15, 16, 20, 0.97))",
-				border: "1px solid rgba(255, 255, 255, 0.08)",
+				background: 'var(--color-surface-overlay)',
+				border: "1px solid var(--border-default)",
 				boxShadow:
 					"0 8px 32px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.02)",
 				backdropFilter: "blur(20px)",
 			}}
 		>
-			<div className="flex items-center justify-between px-3 py-2.5 border-b border-white/5">
-				<span className="text-[10px] font-semibold text-[rgba(255,255,255,0.5)] uppercase tracking-wider">
+			<div className="flex items-center justify-between px-3 py-2.5 border-b border-[var(--border-subtle)]">
+				<span className="text-[10px] font-semibold text-[var(--text-tertiary)] uppercase tracking-wider">
 					图例
 				</span>
 				<button
 					onClick={onToggle}
-					className="p-1 rounded-lg hover:bg-white/10 transition-all duration-200"
+					className="p-1 rounded-lg hover:bg-[var(--hover-bg)] transition-all duration-200"
 				>
 					<EyeOff className="w-3.5 h-3.5 text-[var(--text-tertiary)]" />
 				</button>
@@ -781,7 +778,7 @@ function Legend({
 
 				{uniqueTypes.length > 0 && (
 					<>
-						<div className="border-t border-white/5 pt-2.5">
+						<div className="border-t border-[var(--border-subtle)] pt-2.5">
 							<span className="text-[9px] text-[var(--text-disabled)] font-medium uppercase tracking-wider mb-2 block">
 								关系类型
 							</span>
@@ -831,9 +828,8 @@ function StatsBar({
 		<div
 			className="absolute bottom-3 left-3 z-10 text-[10px] px-3 py-2 rounded-xl flex items-center gap-2.5"
 			style={{
-				background:
-					"linear-gradient(145deg, rgba(22, 24, 28, 0.95), rgba(15, 16, 20, 0.95))",
-				border: "1px solid rgba(255, 255, 255, 0.06)",
+				background: 'var(--color-surface-overlay)',
+				border: "1px solid var(--border-subtle)",
 				boxShadow:
 					"0 4px 20px rgba(0,0,0,0.3), 0 0 0 1px rgba(255,255,255,0.02)",
 				backdropFilter: "blur(16px)",
@@ -864,26 +860,29 @@ function StatsBar({
 function GraphBackground() {
 	return (
 		<div className="absolute inset-0 pointer-events-none overflow-hidden">
+			{/* Subtle dot grid - very low opacity for cleaner look */}
 			<div
-				className="absolute inset-0 opacity-[0.08]"
+				className="absolute inset-0 opacity-[0.03]"
 				style={{
 					backgroundImage:
-						"radial-gradient(circle, rgba(255,255,255,0.12) 1px, transparent 1px)",
-					backgroundSize: "32px 32px",
+						"radial-gradient(circle, var(--text-tertiary) 0.5px, transparent 0.5px)",
+					backgroundSize: "24px 24px",
 				}}
 			/>
+			{/* Vignette effect for depth */}
 			<div
 				className="absolute inset-0"
 				style={{
 					background:
-						"radial-gradient(ellipse at center, transparent 0%, rgba(0,0,0,0.12) 100%)",
+						"radial-gradient(ellipse at center, transparent 50%, rgba(0,0,0,0.06) 100%)",
 				}}
 			/>
+			{/* Subtle top accent glow */}
 			<div
-				className="absolute top-0 left-1/2 -translate-x-1/2 w-[500px] h-[250px] opacity-[0.04]"
+				className="absolute top-0 left-1/2 -translate-x-1/2 w-[400px] h-[200px] opacity-[0.02]"
 				style={{
 					background:
-						"radial-gradient(ellipse at center, var(--accent-100) 0%, transparent 70%)",
+						"radial-gradient(ellipse at center, var(--accent-primary) 0%, transparent 70%)",
 				}}
 			/>
 		</div>
@@ -1337,15 +1336,15 @@ export function RelationGraph() {
 			// Flowing dashed line animation for all links in full mode
 			if (renderMode === "full") {
 				const flowTime = animationTimeRef.current.flow;
-				const dashLength = 6;
-				const gapLength = isHighlighted ? 4 : 8;
+				const dashLength = 4;
+				const gapLength = isHighlighted ? 4 : 10;
 				const flowOffset = (flowTime * 10) % (dashLength + gapLength);
 
 				ctx.beginPath();
 				ctx.moveTo(sx, sy);
 				ctx.quadraticCurveTo(cx, cy, ex, ey);
-				ctx.strokeStyle = parseColor(color, isHighlighted ? opacity * 0.6 : opacity * 0.25);
-				ctx.lineWidth = (isHighlighted ? 2 : 1) / globalScale;
+				ctx.strokeStyle = parseColor(color, isHighlighted ? opacity * 0.5 : opacity * 0.18);
+				ctx.lineWidth = (isHighlighted ? 1.5 : 0.8) / globalScale;
 				ctx.setLineDash([dashLength, gapLength]);
 				ctx.lineDashOffset = -flowOffset;
 				ctx.stroke();
@@ -1400,27 +1399,26 @@ export function RelationGraph() {
 
 	if (characters.length === 0 && allNodes.length === 0) {
 		return (
-			<div className="h-full flex items-center justify-center text-center p-4 bg-[var(--color-surface-base)] relative overflow-hidden">
+			<div className="h-full flex items-center justify-center text-center p-4 bg-[var(--color-surface-base)] relative overflow-hidden rounded-lg border border-[var(--border-subtle)]">
 				<GraphBackground />
 				<motion.div
 					className="relative z-10"
 					initial={{ opacity: 0, y: 10 }}
 					animate={{ opacity: 1, y: 0 }}
-					transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+					transition={{ duration: DURATION.SLOW, ease: EASE.SMOOTH }}
 				>
 					<motion.div
-						className="relative mx-auto mb-4 w-16 h-16 rounded-2xl flex items-center justify-center"
+						className="relative mx-auto mb-4 w-14 h-14 rounded-xl flex items-center justify-center"
 						style={{
-							background:
-								"linear-gradient(135deg, rgba(94, 106, 210, 0.08), rgba(94, 106, 210, 0.03))",
-							border: "1px solid rgba(94, 106, 210, 0.12)",
-							boxShadow: "0 0 24px rgba(94, 106, 210, 0.06)",
+							background: "var(--color-surface-raised)",
+							border: "1px solid var(--border-subtle)",
+							boxShadow: "inset 0 1px 0 var(--border-subtle)",
 						}}
 						initial={{ scale: 0.9 }}
 						animate={{ scale: 1 }}
 						transition={{ type: "spring", stiffness: 400, damping: 25 }}
 					>
-						<LinkIcon className="w-6 h-6 text-[var(--accent-primary)] opacity-50" />
+						<LinkIcon className="w-5 h-5 text-[var(--text-tertiary)]" />
 					</motion.div>
 					<p className="text-sm mb-1 text-[var(--text-secondary)] font-medium">
 						添加角色后
@@ -1435,26 +1433,26 @@ export function RelationGraph() {
 
 	if (nodes.length === 0) {
 		return (
-			<div className="h-full flex items-center justify-center text-center p-4 bg-[var(--color-surface-base)] relative overflow-hidden">
+			<div className="h-full flex items-center justify-center text-center p-4 bg-[var(--color-surface-base)] relative overflow-hidden rounded-lg border border-[var(--border-subtle)]">
 				<GraphBackground />
 				<motion.div
 					className="relative z-10"
 					initial={{ opacity: 0, y: 10 }}
 					animate={{ opacity: 1, y: 0 }}
-					transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+					transition={{ duration: DURATION.SLOW, ease: EASE.SMOOTH }}
 				>
 					<motion.div
 						className="relative mx-auto mb-4 w-14 h-14 rounded-xl flex items-center justify-center"
 						style={{
-							background:
-								"linear-gradient(135deg, rgba(94, 106, 210, 0.1), rgba(94, 106, 210, 0.05))",
-							border: "1px solid rgba(94, 106, 210, 0.15)",
+							background: "var(--color-surface-raised)",
+							border: "1px solid var(--border-subtle)",
+							boxShadow: "inset 0 1px 0 var(--border-subtle)",
 						}}
 						initial={{ scale: 0.9 }}
 						animate={{ scale: 1 }}
 						transition={{ type: "spring", stiffness: 400, damping: 25 }}
 					>
-						<Filter className="w-5 h-5 text-[var(--accent-primary)]" />
+						<Filter className="w-5 h-5 text-[var(--text-tertiary)]" />
 					</motion.div>
 					<p className="text-sm mb-1 text-[var(--text-secondary)] font-medium">
 						筛选条件过于严格
@@ -1472,16 +1470,20 @@ export function RelationGraph() {
 	return (
 		<div
 			ref={containerRef}
-			className={`relative overflow-hidden bg-[var(--color-surface-base)] ${isFullscreen ? "fixed inset-0 z-50" : "h-full"}`}
+			className={`relative overflow-hidden bg-[var(--color-surface-base)] ${isFullscreen ? "fixed inset-0 z-50" : "h-full rounded-lg"}`}
+			style={{
+				border: isFullscreen ? undefined : "1px solid var(--border-subtle)",
+			}}
 		>
 			<GraphBackground />
 
-			{/* Top accent line */}
+			{/* Top accent line - simplified */}
 			<div
 				className="absolute top-0 left-0 right-0 h-px z-10"
 				style={{
 					background:
-						"linear-gradient(90deg, transparent, rgba(94, 106, 210, 0.4), rgba(94, 106, 210, 0.15), rgba(94, 106, 210, 0.4), transparent)",
+						"linear-gradient(90deg, transparent, var(--accent-100), transparent)",
+					opacity: 0.25,
 				}}
 			/>
 
@@ -1495,12 +1497,12 @@ export function RelationGraph() {
 					className="flex items-center gap-2 px-3.5 py-2 rounded-xl text-[11px] font-medium transition-all duration-300 disabled:opacity-70"
 					style={{
 						background: isGenerating
-							? "linear-gradient(135deg, rgba(94, 106, 210, 0.15), rgba(94, 106, 210, 0.08))"
-							: "linear-gradient(135deg, rgba(94, 106, 210, 0.2), rgba(94, 106, 210, 0.1))",
-						border: "1px solid rgba(94, 106, 210, 0.25)",
+							? "var(--accent-muted)"
+							: "var(--color-surface-raised)",
+						border: "1px solid var(--border-default)",
 						boxShadow: isGenerating
-							? "0 0 20px rgba(94, 106, 210, 0.1), inset 0 1px 0 rgba(255,255,255,0.05)"
-							: "0 4px 16px rgba(94, 106, 210, 0.15), 0 0 0 1px rgba(94, 106, 210, 0.1), inset 0 1px 0 rgba(255,255,255,0.08)",
+							? "0 0 12px var(--accent-glow)"
+							: "0 2px 8px rgba(0,0,0,0.08)",
 						color: "var(--accent-primary)",
 					}}
 				>
@@ -1525,9 +1527,8 @@ export function RelationGraph() {
 					className="p-2 rounded-xl transition-all duration-200 group"
 					title={isFullscreen ? "退出全屏" : "全屏"}
 					style={{
-						background:
-							"linear-gradient(145deg, rgba(30, 32, 38, 0.95), rgba(22, 24, 28, 0.95))",
-						border: "1px solid rgba(255, 255, 255, 0.06)",
+						background: 'var(--color-surface-raised)',
+						border: "1px solid var(--border-subtle)",
 						boxShadow: "0 4px 20px rgba(0,0,0,0.3)",
 					}}
 				>
@@ -1542,9 +1543,8 @@ export function RelationGraph() {
 					className="p-2 rounded-xl transition-all duration-200 flex items-center gap-1.5 group"
 					title={viewMode === "2d" ? "切换到3D视图" : "切换到2D视图"}
 					style={{
-						background:
-							"linear-gradient(145deg, rgba(30, 32, 38, 0.95), rgba(22, 24, 28, 0.95))",
-						border: "1px solid rgba(255, 255, 255, 0.06)",
+						background: 'var(--color-surface-raised)',
+						border: "1px solid var(--border-subtle)",
 						boxShadow: "0 4px 20px rgba(0,0,0,0.3)",
 					}}
 				>

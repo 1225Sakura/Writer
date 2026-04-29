@@ -21,6 +21,7 @@ import { AnimatePresence, motion, type Variants, type Transition } from 'framer-
 import type { ReactNode } from 'react'
 import type { InterfaceType } from '@/store/uiStore'
 import { usePrefersReducedMotion } from '@/hooks'
+import { EASE, DURATION, REDUCED_MOTION } from './AnimationConfig'
 
 interface PageTransitionProps {
   children: ReactNode
@@ -35,118 +36,64 @@ const interfaceOrder: Record<InterfaceType, number> = {
   global: 3,
 }
 
-/** Design spec easing */
-const EASE_OUT = [0.22, 1, 0.36, 1] as const
-
-/**
- * Calculate slide direction
- * Positive = right (new interface on right, slides in from right)
- * Negative = left (new interface on left, slides in from left)
- */
 function getDirection(from: InterfaceType, to: InterfaceType): number {
   return interfaceOrder[to] - interfaceOrder[from]
 }
 
-/**
- * Get transition type based on page switch combination
- * Settings↔Writing uses special fold animation
- */
-function getTransitionType(from: InterfaceType, to: InterfaceType): 'slide' | 'fold' | 'depth' {
+function getTransitionType(from: InterfaceType, to: InterfaceType): 'slide' | 'fold' {
   const pair = [from, to].sort((a, b) => interfaceOrder[a] - interfaceOrder[b]).join('-')
   if (pair === 'settings-writing') {
     return 'fold'
   }
-  if (pair === 'chat-settings') {
-    return 'depth'
-  }
   return 'slide'
 }
 
-/** Enhanced slide + fade + subtle scale */
+/** GPU-accelerated slide variants: only transform + opacity */
 const slideVariants: Variants = {
   enter: (direction: number) => ({
-    x: direction > 0 ? '6%' : '-6%',
+    x: direction > 0 ? '5%' : '-5%',
     opacity: 0,
-    scale: 0.985,
-    filter: 'blur(2px)',
+    scale: 0.99,
   }),
   center: {
     x: 0,
     opacity: 1,
     scale: 1,
-    filter: 'blur(0px)',
   },
   exit: (direction: number) => ({
-    x: direction > 0 ? '-5%' : '5%',
+    x: direction > 0 ? '-4%' : '4%',
     opacity: 0,
-    scale: 0.985,
-    filter: 'blur(2px)',
+    scale: 0.99,
   }),
 }
 
-/** Fold animation variants - for Settings↔Writing */
+/** Fold variants for Settings↔Writing */
 const foldVariants: Variants = {
   enter: (isForwardDir: boolean) => ({
-    y: isForwardDir ? '5%' : '-5%',
+    y: isForwardDir ? '6%' : '-6%',
     opacity: 0,
     scale: 0.98,
-    rotateX: isForwardDir ? 2 : -2,
   }),
   center: {
     y: 0,
     opacity: 1,
     scale: 1,
-    rotateX: 0,
   },
   exit: (isForwardDir: boolean) => ({
     y: isForwardDir ? '-4%' : '4%',
     opacity: 0,
     scale: 0.98,
-    rotateX: isForwardDir ? -2 : 2,
   }),
-}
-
-/** Depth animation - for Chat→Settings with z-layering */
-const depthVariants: Variants = {
-  enter: {
-    x: '4%',
-    opacity: 0,
-    scale: 0.99,
-    zIndex: 2,
-  },
-  center: {
-    x: 0,
-    opacity: 1,
-    scale: 1,
-    zIndex: 1,
-  },
-  exit: {
-    x: '-3%',
-    opacity: 0,
-    scale: 0.99,
-    zIndex: 0,
-  },
-}
-
-/** Reduced motion version: fade only */
-const reducedMotionVariants: Variants = {
-  enter: { opacity: 0 },
-  center: { opacity: 1 },
-  exit: { opacity: 0 },
 }
 
 /**
  * PageTransition - Three-interface switching animation
  *
  * Features:
- * - Bidirectional sliding: auto-detects slide direction based on interface order
- * - Fade + micro-scale: more natural visual transition
- * - Special fold animation for Settings↔Writing
- * - Depth layering for Chat→Settings
- * - GPU acceleration: only uses transform and opacity
+ * - Bidirectional sliding with auto-detected direction
+ * - GPU-accelerated: only transform and opacity
  * - Supports prefers-reduced-motion
- * - Spring physics for organic feel
- * - Design spec easing: cubic-bezier(0.22, 1, 0.36, 1)
+ * - Unified easing from AnimationConfig
  */
 export function PageTransition({ children, interfaceType, className }: PageTransitionProps) {
   const [prevInterface, setPrevInterface] = useState<InterfaceType>(interfaceType)
@@ -162,41 +109,22 @@ export function PageTransition({ children, interfaceType, className }: PageTrans
   const direction = getDirection(prevInterface, interfaceType)
   const transitionType = getTransitionType(prevInterface, interfaceType)
 
-  // First render has no animation
   const variants = isFirstRender.current
     ? { enter: { opacity: 1 }, center: { opacity: 1 }, exit: { opacity: 0 } }
     : reducedMotion
-      ? reducedMotionVariants
+      ? REDUCED_MOTION
       : transitionType === 'fold'
         ? foldVariants
-        : transitionType === 'depth'
-          ? depthVariants
-          : slideVariants
+        : slideVariants
 
-  // Different transition configs based on switch type
   const transition: Transition = reducedMotion
-    ? { opacity: { duration: 0.15 } }
-    : transitionType === 'fold'
-      ? {
-          y: { duration: 0.38, ease: EASE_OUT },
-          opacity: { duration: 0.32, ease: EASE_OUT },
-          scale: { duration: 0.38, ease: EASE_OUT },
-          rotateX: { duration: 0.38, ease: EASE_OUT },
-          filter: { duration: 0.3 },
-        }
-      : transitionType === 'depth'
-        ? {
-            x: { duration: 0.32, ease: EASE_OUT },
-            opacity: { duration: 0.28, ease: EASE_OUT },
-            scale: { duration: 0.32, ease: EASE_OUT },
-            filter: { duration: 0.25 },
-          }
-        : {
-            x: { duration: 0.32, ease: EASE_OUT },
-            opacity: { duration: 0.26, ease: EASE_OUT },
-            scale: { duration: 0.32, ease: EASE_OUT },
-            filter: { duration: 0.25 },
-          }
+    ? { opacity: { duration: DURATION.FAST } }
+    : {
+        x: { duration: DURATION.NORMAL, ease: EASE.OUT },
+        y: { duration: DURATION.NORMAL, ease: EASE.OUT },
+        opacity: { duration: DURATION.NORMAL, ease: EASE.OUT },
+        scale: { duration: DURATION.NORMAL, ease: EASE.OUT },
+      }
 
   useEffect(() => {
     isFirstRender.current = false
@@ -215,7 +143,6 @@ export function PageTransition({ children, interfaceType, className }: PageTrans
         style={{
           willChange: 'transform, opacity',
           transformOrigin: 'center center',
-          perspective: 1200,
         }}
         className={className}
       >
@@ -227,11 +154,9 @@ export function PageTransition({ children, interfaceType, className }: PageTrans
 
 /**
  * StaggeredPageTransition - Page transition with staggered child animations
- * Useful for pages with multiple sections that should animate in sequence
  */
 interface StaggeredPageTransitionProps extends PageTransitionProps {
   staggerDelay?: number
-  childSelector?: string
 }
 
 export function StaggeredPageTransition({
@@ -291,7 +216,7 @@ export function StaggeredPageTransition({
         initial="enter"
         animate="center"
         exit="exit"
-        transition={{ duration: 0.3, ease: EASE_OUT }}
+        transition={{ duration: DURATION.SLOW, ease: EASE.OUT }}
         className={className}
       >
         {children}

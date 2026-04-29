@@ -9,6 +9,7 @@
 import { motion } from 'framer-motion'
 import type { ReactNode, CSSProperties } from 'react'
 import { cn } from '@/lib/utils'
+import { DURATION, EASE } from '@/components/shared/AnimationConfig'
 
 export type GradientTextColor =
   | 'accent'
@@ -120,7 +121,7 @@ export function GradientText({
       style={baseStyle}
       initial={animated ? { opacity: 0.8 } : undefined}
       animate={animated ? { opacity: 1 } : undefined}
-      transition={{ duration: 0.5 }}
+      transition={{ duration: DURATION.SLOW, ease: EASE.SMOOTH }}
     >
       {children}
     </Component>

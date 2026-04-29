@@ -13,6 +13,8 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { BookOpen } from 'lucide-react'
 import { LoadingSpinner } from './LoadingSpinner'
 import { cn } from '@/lib/utils'
+import { DURATION, EASE } from '@/components/shared/AnimationConfig'
+
 
 export type OverlayVariant = 'default' | 'minimal' | 'branded' | 'skeleton'
 export type OverlaySize = 'fullscreen' | 'floating' | 'inline' | 'toolbar'
@@ -99,7 +101,7 @@ export function LoadingOverlay({
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
+          transition={{ duration: DURATION.SLOW, ease: EASE.SMOOTH }}
           className={cn(
             sizeStyle.container,
             'flex flex-col items-center justify-center',
@@ -131,7 +133,7 @@ export function LoadingOverlay({
             <motion.button
               initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.4, duration: 0.2 }}
+              transition={{ delay: 0.4, duration: DURATION.FAST, ease: EASE.SMOOTH }}
               onClick={onCancel}
               className="mt-8 px-5 py-2.5 text-sm rounded-lg border transition-all duration-200 hover:scale-105 active:scale-95"
               style={{
@@ -296,7 +298,7 @@ function BrandedOverlay({
       <motion.p
         initial={{ opacity: 0, y: 8 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.15, duration: 0.3 }}
+        transition={{ delay: 0.15, duration: DURATION.SLOW, ease: EASE.SMOOTH }}
         className={cn('text-base font-medium', msgStyle.tracking)}
         style={{ color: 'var(--text-secondary)' }}
       >
@@ -369,7 +371,7 @@ function ProgressBar({ progress }: { progress: number }) {
           }}
           initial={{ width: 0 }}
           animate={{ width: `${clampedProgress}%` }}
-          transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+          transition={{ duration: DURATION.SLOW, ease: EASE.SMOOTH }}
         />
       </div>
     </div>
@@ -393,7 +395,7 @@ export function SectionLoadingOverlay({
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
+          transition={{ duration: DURATION.FAST, ease: EASE.SMOOTH }}
           className="absolute inset-0 z-40 flex flex-col items-center justify-center rounded-lg"
           style={{
             background: 'rgba(10, 11, 14, 0.75)',

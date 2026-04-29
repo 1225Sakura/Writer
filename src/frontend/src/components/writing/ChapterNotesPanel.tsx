@@ -19,6 +19,8 @@ import {
   FileText,
 } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
+import { DURATION, EASE } from '@/components/shared/AnimationConfig'
+
 
 interface NoteCategory {
   id: string
@@ -118,7 +120,7 @@ function NoteCard({
       initial={{ opacity: 0, y: 8, scale: 0.97 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
       exit={{ opacity: 0, y: -8, scale: 0.97 }}
-      transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
+      transition={{ duration: DURATION.NORMAL, ease: EASE.SMOOTH }}
       className={`
         relative p-3 rounded-xl border transition-all duration-200 group
         ${isActive
@@ -211,7 +213,7 @@ function EmptyNotesState({ onCreate }: { onCreate: () => void }) {
     <motion.div
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+      transition={{ duration: DURATION.SLOW, ease: EASE.SMOOTH }}
       className="flex flex-col items-center justify-center py-10 px-6 text-center"
     >
       <div
@@ -386,7 +388,7 @@ export function ChapterNotesPanel() {
           initial={{ opacity: 0, scale: 0.85, y: 12 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.85, y: 12 }}
-          transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
+          transition={{ duration: DURATION.SLOW, ease: EASE.SMOOTH }}
           onClick={() => setIsOpen(true)}
           className="fixed right-4 bottom-14 z-50 flex items-center gap-2 px-3.5 py-2.5 rounded-xl text-xs font-medium
                      bg-[var(--color-surface-raised)] border border-[var(--border-default)] text-[var(--text-secondary)]
@@ -425,7 +427,7 @@ export function ChapterNotesPanel() {
           initial={{ opacity: 0, scale: 0.9, y: 20, x: 20 }}
           animate={{ opacity: 1, scale: 1, y: 0, x: 0 }}
           exit={{ opacity: 0, scale: 0.9, y: 20, x: 20 }}
-          transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
+          transition={{ duration: DURATION.NORMAL, ease: EASE.SMOOTH }}
           className="fixed right-4 bottom-14 z-50 w-80 flex flex-col rounded-2xl overflow-hidden"
           style={{
             background: 'var(--color-surface-raised)',
@@ -543,7 +545,7 @@ export function ChapterNotesPanel() {
                   initial={{ opacity: 0, x: 8 }}
                   animate={{ opacity: 1, x: 0 }}
                   exit={{ opacity: 0, x: -8 }}
-                  transition={{ duration: 0.15 }}
+                  transition={{ duration: DURATION.FAST, ease: EASE.SMOOTH }}
                 >
                   {/* Category Tags */}
                   <div className="px-4 pt-3 pb-2"
@@ -666,7 +668,7 @@ export function ChapterNotesPanel() {
                   initial={{ opacity: 0, x: -8 }}
                   animate={{ opacity: 1, x: 0 }}
                   exit={{ opacity: 0, x: 8 }}
-                  transition={{ duration: 0.15 }}
+                  transition={{ duration: DURATION.FAST, ease: EASE.SMOOTH }}
                   className="p-3 space-y-2 max-h-[360px] overflow-y-auto"
                 >
                   {notes.length === 0 ? (

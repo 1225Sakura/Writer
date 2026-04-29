@@ -6,6 +6,8 @@ import { ChevronDown } from "lucide-react"
 import { motion } from "framer-motion"
 
 import { cn } from "@/lib/utils"
+import { DURATION, EASE } from '@/components/shared/AnimationConfig'
+
 
 const Accordion = AccordionPrimitive.Root
 
@@ -40,13 +42,13 @@ const AccordionTrigger = React.forwardRef<
       <motion.span
         className="flex items-center gap-2"
         layout
-        transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
+        transition={{ duration: DURATION.FAST, ease: EASE.SMOOTH }}
       >
         {children}
       </motion.span>
       <motion.div
         className="flex items-center justify-center w-5 h-5 rounded-sm"
-        transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
+        transition={{ duration: DURATION.NORMAL, ease: EASE.SMOOTH }}
       >
         <ChevronDown className="h-4 w-4 text-[var(--text-tertiary)] group-hover:text-[var(--text-secondary)] group-data-[state=open]:text-[var(--accent-primary)] transition-colors duration-200" />
       </motion.div>
@@ -68,7 +70,7 @@ const AccordionContent = React.forwardRef<
       className={cn("pb-3 pt-1 px-2 text-sm text-[var(--text-secondary)]", className)}
       initial={{ opacity: 0, y: -4 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
+      transition={{ duration: DURATION.FAST, ease: EASE.SMOOTH }}
     >
       {children}
     </motion.div>

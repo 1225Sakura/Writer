@@ -4,7 +4,7 @@ import { immer } from 'zustand/middleware/immer'
 import { sessionApi, messageApi, entityApi } from '../api/chat'
 import type { ChatSession, ExtractedEntity } from '../api/types'
 import { createHybridStorage } from './utils/indexedDBStorage'
-import { showApiError, showSuccess, isRetryableError } from '@/utils/toastHelper'
+import { showApiError, showSuccess } from '@/utils/toastHelper'
 import type { ApiError } from '@/api/request'
 
 // ============================================
@@ -164,6 +164,8 @@ export const useChatStore = create<ChatState & ChatActions>()(
           streamAbortController: null,
           isLoading: false,
           error: null,
+          errorCode: null,
+          lastError: null,
           extractionState: 'idle',
           extractionProgress: 0,
           messageCache: { messages: {}, cachedAt: {} },

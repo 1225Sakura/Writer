@@ -4,7 +4,8 @@ import { useState, useCallback } from 'react'
 import { TagInput } from './TagInput'
 import { EntityCard, entityColors, cardStyle } from './EntityCard'
 import { motion, AnimatePresence } from 'framer-motion'
-import type { Item, Location, Faction, WorldSetting, Rule } from '@/shared/types'
+import { DURATION, EASE, SPRING } from '@/components/shared/AnimationConfig'
+
 
 interface EntityEditorProps {
   category: UIState['settingsCategory']
@@ -25,7 +26,7 @@ const inputStyle = {
 const inputFocusGlow = (isFocused: boolean, color?: string) =>
   isFocused
     ? {
-        boxShadow: `0 0 0 3px ${color || 'rgba(94, 106, 210, 0.15)'}, 0 0 12px ${color || 'rgba(94, 106, 210, 0.08)'}`,
+        boxShadow: `0 0 0 3px ${color || 'var(--accent-muted)'}, 0 0 12px ${color || 'var(--accent-muted)'}`,
         borderColor: color || 'var(--border-focus)',
       }
     : {}
@@ -52,8 +53,8 @@ const paperTextureStyle = {
       0deg,
       transparent,
       transparent 31px,
-      rgba(255,255,255,0.015) 31px,
-      rgba(255,255,255,0.015) 32px
+      var(--border-subtle) 31px,
+      var(--border-subtle) 32px
     )
   `,
   backgroundBlendMode: 'normal',
@@ -135,10 +136,10 @@ function FloatingLabelInput({
     switch (validation.state) {
       case 'invalid':
       case 'error':
-        return 'rgba(196, 92, 92, 0.2)'
+        return 'var(--vermillion-muted)'
       case 'valid':
       case 'saved':
-        return 'rgba(94, 184, 106, 0.15)'
+        return 'rgba(94, 181, 166, 0.15)'
       default:
         return undefined
     }
@@ -153,7 +154,7 @@ function FloatingLabelInput({
           y: isActive ? -20 : 12,
           scale: isActive ? 0.8 : 1,
         }}
-        transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
+        transition={{ duration: DURATION.FAST, ease: EASE.SMOOTH }}
       >
         {label}
         {required && <span className="ml-0.5" style={{ color: 'var(--color-danger)' }}>*</span>}
@@ -175,7 +176,7 @@ function FloatingLabelInput({
           borderColor: getBorderColor(),
         }}
         animate={inputFocusGlow(isFocused, getGlowColor() || (getBorderColor() !== 'var(--border-default)' ? getBorderColor() : undefined))}
-        transition={{ duration: 0.2 }}
+        transition={{ duration: DURATION.FAST, ease: EASE.SMOOTH }}
       />
       {/* Validation indicator */}
       <AnimatePresence>
@@ -185,7 +186,7 @@ function FloatingLabelInput({
             initial={{ opacity: 0, scale: 0.5 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.5 }}
-            transition={{ type: 'spring', stiffness: 500, damping: 25 }}
+            transition={SPRING.BADGE}
           >
             {validation.state === 'saving' && (
               <Loader2 className="w-4 h-4 animate-spin motion-reduce:animate-none" style={{ color: 'var(--accent-primary)' }} />
@@ -267,10 +268,10 @@ function FloatingLabelTextarea({
     switch (validation.state) {
       case 'invalid':
       case 'error':
-        return 'rgba(196, 92, 92, 0.2)'
+        return 'var(--vermillion-muted)'
       case 'valid':
       case 'saved':
-        return 'rgba(94, 184, 106, 0.15)'
+        return 'rgba(94, 181, 166, 0.15)'
       default:
         return undefined
     }
@@ -285,7 +286,7 @@ function FloatingLabelTextarea({
           y: isActive ? -20 : 12,
           scale: isActive ? 0.8 : 1,
         }}
-        transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
+        transition={{ duration: DURATION.FAST, ease: EASE.SMOOTH }}
       >
         {label}
       </motion.label>
@@ -308,7 +309,7 @@ function FloatingLabelTextarea({
           borderColor: getBorderColor(),
         }}
         animate={inputFocusGlow(isFocused, getGlowColor() || (getBorderColor() !== 'var(--border-default)' ? getBorderColor() : undefined))}
-        transition={{ duration: 0.2 }}
+        transition={{ duration: DURATION.FAST, ease: EASE.SMOOTH }}
       />
       {/* Bottom glow bar on focus */}
       <motion.div
@@ -318,7 +319,7 @@ function FloatingLabelTextarea({
           opacity: isFocused ? 1 : 0,
           scaleX: isFocused ? 1 : 0,
         }}
-        transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
+        transition={{ duration: DURATION.SLOW, ease: EASE.OUT }}
         style={{
           background: `linear-gradient(90deg, transparent, ${getGlowColor() || 'var(--accent-primary)'}, transparent)`,
         }}
@@ -358,12 +359,12 @@ function SaveStateIndicator({ state, message }: { state: ValidationState; messag
           initial={{ opacity: 0, y: 5 }}
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: -5 }}
-          transition={{ duration: 0.2 }}
+          transition={{ duration: DURATION.FAST, ease: EASE.SMOOTH }}
         >
           <motion.div
             initial={{ scale: 0 }}
             animate={{ scale: 1 }}
-            transition={{ type: 'spring', stiffness: 500, damping: 20 }}
+            transition={SPRING.BADGE}
           >
             <Check className="w-3.5 h-3.5 text-[var(--icon-success)]" />
           </motion.div>
@@ -410,7 +411,7 @@ function SectionHeader({
           style={{ backgroundColor: 'var(--color-surface-overlay)', color: 'var(--text-tertiary)' }}
           initial={{ scale: 0.8, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
-          transition={{ type: 'spring', stiffness: 500, damping: 25 }}
+          transition={SPRING.BADGE}
         >
           {count}
         </motion.span>
@@ -471,7 +472,7 @@ const tierLabels: Record<string, string> = {
 }
 
 // 通用实体编辑表单 with validation
-function EntityForm<T extends { name: string; description?: string }>({
+function EntityForm<T extends { name?: string; title?: string; description?: string }>({
   entity,
   onSave,
   onCancel,
@@ -646,9 +647,9 @@ function EntityForm<T extends { name: string; description?: string }>({
                 className="absolute inset-0 rounded-md pointer-events-none"
                 animate={{
                   boxShadow: [
-                    '0 0 0 0 rgba(94, 106, 210, 0)',
-                    '0 0 0 4px rgba(94, 106, 210, 0.15)',
-                    '0 0 0 0 rgba(94, 106, 210, 0)',
+                    '0 0 0 0 transparent',
+                    '0 0 0 4px var(--accent-muted)',
+                    '0 0 0 0 transparent',
                   ],
                 }}
                 transition={{
@@ -707,13 +708,13 @@ function CharacterCard({ character }: { character: CharacterLocal }) {
       className="p-4 rounded-lg"
       style={{
         ...cardStyle,
-        backgroundColor: isHovered ? 'rgba(255,255,255,0.04)' : 'rgba(255,255,255,0.02)',
-        borderColor: isHovered ? 'rgba(255,255,255,0.12)' : 'rgba(255,255,255,0.08)',
+        backgroundColor: isHovered ? 'var(--hover-bg)' : 'var(--color-surface-raised)',
+        borderColor: isHovered ? 'var(--border-strong)' : 'var(--border-default)',
       }}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
       whileHover={{ y: -1 }}
-      transition={{ duration: 0.15 }}
+      transition={{ duration: DURATION.FAST, ease: EASE.SMOOTH }}
     >
       <div className="flex items-start justify-between mb-2">
         <div className="flex items-center gap-2">
@@ -734,7 +735,7 @@ function CharacterCard({ character }: { character: CharacterLocal }) {
             className="p-1.5 rounded transition-all"
             style={{ color: 'var(--text-tertiary)' }}
             whileHover={{
-              backgroundColor: 'rgba(255,255,255,0.1)',
+              backgroundColor: 'var(--border-default)',
               color: 'var(--text-primary)',
               scale: 1.1,
             }}
@@ -747,7 +748,7 @@ function CharacterCard({ character }: { character: CharacterLocal }) {
             className="p-1.5 rounded transition-all"
             style={{ color: 'var(--text-tertiary)' }}
             whileHover={{
-              backgroundColor: 'rgba(196,92,92,0.15)',
+              backgroundColor: 'var(--vermillion-muted)',
               color: 'var(--color-danger)',
               scale: 1.1,
             }}
@@ -816,12 +817,12 @@ function NewCharacterForm() {
         borderStyle: 'dashed',
       }}
       onMouseEnter={(e) => {
-        e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.04)'
-        e.currentTarget.style.borderColor = 'rgba(94,106,210,0.3)'
+        e.currentTarget.style.backgroundColor = 'var(--hover-bg)'
+        e.currentTarget.style.borderColor = 'var(--accent-100)'
       }}
       onMouseLeave={(e) => {
-        e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.02)'
-        e.currentTarget.style.borderColor = 'rgba(255,255,255,0.08)'
+        e.currentTarget.style.backgroundColor = 'var(--color-surface-raised)'
+        e.currentTarget.style.borderColor = 'var(--border-default)'
       }}
       whileHover={{ scale: 1.005 }}
       whileTap={{ scale: 0.99 }}
@@ -1049,7 +1050,7 @@ function OutlineEditor() {
                   style={{
                     backgroundColor: 'transparent',
                     color: 'var(--text-tertiary)',
-                    border: '1px solid rgba(255,255,255,0.1)',
+                    border: '1px solid var(--border-default)',
                   }}
                   whileTap={{ scale: 0.97 }}
                 >
@@ -1072,15 +1073,15 @@ function OutlineEditor() {
               onClick={() => setIsCreatingOutline(true)}
               className="px-4 py-2 rounded-md text-sm font-medium transition-all"
               style={{
-                backgroundColor: 'rgba(255,255,255,0.05)',
+                backgroundColor: 'var(--hover-bg)',
                 color: 'var(--text-secondary)',
-                border: '1px solid rgba(255,255,255,0.08)',
+                border: '1px solid var(--border-default)',
               }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.08)'
+                e.currentTarget.style.backgroundColor = 'var(--border-default)'
               }}
               onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.05)'
+                e.currentTarget.style.backgroundColor = 'var(--hover-bg)'
               }}
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
@@ -1115,15 +1116,15 @@ function OutlineEditor() {
           onClick={() => setShowAddChapter(true)}
           className="flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-all"
           style={{
-            backgroundColor: 'rgba(255,255,255,0.05)',
+            backgroundColor: 'var(--hover-bg)',
             color: 'var(--text-secondary)',
-            border: '1px solid rgba(255,255,255,0.08)',
+            border: '1px solid var(--border-default)',
           }}
           onMouseEnter={(e) => {
-            e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.08)'
+            e.currentTarget.style.backgroundColor = 'var(--border-default)'
           }}
           onMouseLeave={(e) => {
-            e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.05)'
+            e.currentTarget.style.backgroundColor = 'var(--hover-bg)'
           }}
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.98 }}
@@ -1133,7 +1134,7 @@ function OutlineEditor() {
         </motion.button>
       </div>
 
-      <div className="mb-4 pb-3" style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
+      <div className="mb-4 pb-3" style={{ borderBottom: '1px solid var(--border-subtle)' }}>
         <h3 className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>
           {outline.title}
         </h3>
@@ -1157,16 +1158,16 @@ function OutlineEditor() {
               className="p-3 rounded-lg group"
               style={{
                 ...cardStyle,
-                backgroundColor: 'rgba(255,255,255,0.02)',
+                backgroundColor: 'var(--color-surface-raised)',
               }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.04)'
+                e.currentTarget.style.backgroundColor = 'var(--hover-bg)'
               }}
               onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.02)'
+                e.currentTarget.style.backgroundColor = 'var(--color-surface-raised)'
               }}
               whileHover={{ x: 2 }}
-              transition={{ duration: 0.15 }}
+              transition={{ duration: DURATION.FAST, ease: EASE.SMOOTH }}
             >
               <div className="flex items-start gap-3">
                 {/* 章节序号 */}
@@ -1241,7 +1242,7 @@ function OutlineEditor() {
                     className="p-1.5 rounded transition-all"
                     style={{ color: 'var(--text-tertiary)' }}
                     whileHover={{
-                      backgroundColor: 'rgba(255,255,255,0.1)',
+                      backgroundColor: 'var(--border-default)',
                       color: 'var(--text-primary)',
                     }}
                     whileTap={{ scale: 0.9 }}
@@ -1254,7 +1255,7 @@ function OutlineEditor() {
                     className="p-1.5 rounded transition-all"
                     style={{ color: 'var(--text-tertiary)' }}
                     whileHover={{
-                      backgroundColor: 'rgba(255,255,255,0.1)',
+                      backgroundColor: 'var(--border-default)',
                       color: 'var(--text-primary)',
                     }}
                     whileTap={{ scale: 0.9 }}
@@ -1267,7 +1268,7 @@ function OutlineEditor() {
                     className="p-1.5 rounded transition-all"
                     style={{ color: 'var(--text-tertiary)' }}
                     whileHover={{
-                      backgroundColor: 'rgba(196,92,92,0.15)',
+                      backgroundColor: 'var(--vermillion-muted)',
                       color: 'var(--color-danger)',
                     }}
                     whileTap={{ scale: 0.9 }}
@@ -1291,7 +1292,7 @@ function OutlineEditor() {
             initial={{ opacity: 0, y: -10, height: 0 }}
             animate={{ opacity: 1, y: 0, height: 'auto' }}
             exit={{ opacity: 0, y: -10, height: 0 }}
-            transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
+            transition={{ duration: DURATION.FAST, ease: EASE.SMOOTH }}
           >
             <div className="relative">
               <FloatingLabelInput
@@ -1321,7 +1322,7 @@ function OutlineEditor() {
                 style={{
                   backgroundColor: 'transparent',
                   color: 'var(--text-tertiary)',
-                  border: '1px solid rgba(255,255,255,0.1)',
+                  border: '1px solid var(--border-default)',
                 }}
                 whileTap={{ scale: 0.97 }}
               >
@@ -1381,7 +1382,7 @@ function ChapterSummaryModal({
   return (
     <motion.div
       className="fixed inset-0 flex items-center justify-center z-50"
-      style={{ backgroundColor: 'rgba(0,0,0,0.7)' }}
+      style={{ backgroundColor: 'var(--color-overlay)' }}
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
@@ -1394,7 +1395,7 @@ function ChapterSummaryModal({
         initial={{ opacity: 0, scale: 0.95, y: 20 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.95, y: 20 }}
-        transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
+        transition={{ duration: DURATION.FAST, ease: EASE.SMOOTH }}
       >
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>
@@ -1405,7 +1406,7 @@ function ChapterSummaryModal({
             className="p-1 rounded transition-all"
             style={{ color: 'var(--text-tertiary)' }}
             whileHover={{
-              backgroundColor: 'rgba(255,255,255,0.1)',
+              backgroundColor: 'var(--border-default)',
               color: 'var(--text-primary)',
             }}
             whileTap={{ scale: 0.9 }}
@@ -1433,7 +1434,7 @@ function ChapterSummaryModal({
               style={{
                 backgroundColor: 'transparent',
                 color: 'var(--text-tertiary)',
-                border: '1px solid rgba(255,255,255,0.1)',
+                border: '1px solid var(--border-default)',
               }}
               whileTap={{ scale: 0.97 }}
             >
@@ -1442,7 +1443,7 @@ function ChapterSummaryModal({
             <motion.button
               onClick={handleSave}
               className="px-4 py-2 rounded-md text-sm font-medium transition-all flex items-center gap-2"
-              style={{ backgroundColor: 'var(--color-outline)', color: '#fff' }}
+              style={{ backgroundColor: 'var(--color-outline)', color: 'var(--text-primary)' }}
               whileTap={{ scale: 0.97 }}
             >
               <Save className="w-4 h-4" />
@@ -1506,7 +1507,7 @@ function EmptyState({
       className="text-center py-10"
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
+      transition={{ duration: DURATION.SLOW, ease: EASE.SMOOTH }}
     >
       <motion.div
         className="relative w-14 h-14 mx-auto mb-3 rounded-xl flex items-center justify-center"
@@ -1533,7 +1534,7 @@ function EmptyState({
 }
 
 // Editable entity card wrapper that adds edit functionality for all entity types
-function EditableEntityCard<T extends { id: number; name: string; description?: string }>({
+function EditableEntityCard<T extends { id: number; name?: string; title?: string; description?: string }>({
   entity,
   entityType,
   badge,
@@ -1575,7 +1576,7 @@ function EditableEntityCard<T extends { id: number; name: string; description?: 
 
   return (
     <EntityCard
-      name={entity.name}
+      name={entity.name || entity.title || ''}
       description={entity.description}
       badge={badge}
       badgeColor={badgeColor}

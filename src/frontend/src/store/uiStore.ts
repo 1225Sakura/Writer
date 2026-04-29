@@ -69,7 +69,7 @@ export interface UIState {
   paperEdgeDecoration: boolean
 
   // Theme (expanded to match useTheme hook)
-  theme: 'light' | 'dark' | 'eye-care' | 'midnight-blue' | 'warm-paper' | 'forest-green'
+  theme: 'light' | 'dark' | 'eye-care' | 'sepia' | 'deep-blue' | 'forest'
 
   // Settings category
   settingsCategory: SettingsCategory
@@ -134,7 +134,7 @@ interface UIActions {
   setPaperEdgeDecoration: (enabled: boolean) => void
 
   // Theme
-  setTheme: (theme: 'light' | 'dark' | 'eye-care' | 'midnight-blue' | 'warm-paper' | 'forest-green') => void
+  setTheme: (theme: 'light' | 'dark' | 'eye-care' | 'sepia' | 'deep-blue' | 'forest') => void
   toggleTheme: () => void
 
   // Settings category
@@ -451,7 +451,9 @@ export const useUIStore = create<UIState & UIActions>()(
 
           toggleTheme: () => {
             set((state) => {
-              state.theme = state.theme === 'light' ? 'dark' : 'light'
+              const themes: UIState['theme'][] = ['light', 'dark', 'eye-care', 'sepia', 'deep-blue', 'forest']
+              const currentIndex = themes.indexOf(state.theme)
+              state.theme = themes[(currentIndex + 1) % themes.length]
             })
           },
 

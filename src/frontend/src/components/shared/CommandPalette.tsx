@@ -41,6 +41,8 @@ import {
   Feather,
 } from 'lucide-react'
 import type { AIOperationType } from '@/constants/shortcuts'
+import { DURATION, EASE } from '@/components/shared/AnimationConfig'
+
 
 // ============ 类型定义 ============
 type CommandCategory =
@@ -767,7 +769,7 @@ export function CommandPalette() {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      transition={{ duration: 0.2 }}
+      transition={{ duration: DURATION.FAST, ease: EASE.SMOOTH }}
       className="fixed inset-0 z-50 flex items-start justify-center pt-[12vh]"
       onClick={close}
     >
@@ -786,7 +788,7 @@ export function CommandPalette() {
         initial={{ opacity: 0, y: -20, scale: 0.96 }}
         animate={{ opacity: 1, y: 0, scale: 1 }}
         exit={{ opacity: 0, y: -10, scale: 0.98 }}
-        transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
+        transition={{ duration: DURATION.NORMAL, ease: EASE.SMOOTH }}
         className="relative w-full max-w-xl rounded-2xl border overflow-hidden"
         style={{
           background: 'rgba(22, 22, 28, 0.95)',
@@ -830,7 +832,7 @@ export function CommandPalette() {
               <motion.div
                 initial={{ opacity: 0, scale: 0.9 }}
                 animate={{ opacity: 1, scale: 1 }}
-                transition={{ duration: 0.2 }}
+                transition={{ duration: DURATION.FAST, ease: EASE.SMOOTH }}
               >
                 <Feather
                   className="w-10 h-10 mx-auto mb-4"

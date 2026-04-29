@@ -1,5 +1,4 @@
 export { ImmersiveVignette } from './ImmersiveVignette'
-export { AmbientOrbs } from './AmbientOrbs'
 export { SwipeHintModal } from './SwipeHintModal'
 export { ImmersiveIndicator } from './ImmersiveIndicator'
 export { ImmersiveModeProvider, useImmersiveModeContext } from './ImmersiveModeContext'

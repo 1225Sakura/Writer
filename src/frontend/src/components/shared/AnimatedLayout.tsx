@@ -9,6 +9,7 @@
 
 import { motion } from 'framer-motion'
 import type { ReactNode } from 'react'
+import { SPRING, EASE, DURATION } from './AnimationConfig'
 
 interface AnimatedLayoutProps {
   children: ReactNode
@@ -21,17 +22,8 @@ interface AnimatedLayoutProps {
 }
 
 const transitionPresets = {
-  spring: {
-    type: 'spring' as const,
-    stiffness: 400,
-    damping: 35,
-  },
-  smooth: {
-    type: 'spring' as const,
-    stiffness: 250,
-    damping: 28,
-    mass: 1,
-  },
+  spring: SPRING.SNAPPY,
+  smooth: SPRING.GENTLE,
   snappy: {
     type: 'spring' as const,
     stiffness: 500,
@@ -67,9 +59,7 @@ export function AnimatedLayout({
 }
 
 /**
- * AnimatedLayoutGroup - 支持子元素布局动画的容器
- *
- * 包裹一组需要布局动画的元素
+ * AnimatedLayoutGroup - Layout animation container for child elements
  */
 export function AnimatedLayoutGroup({
   children,
@@ -94,9 +84,7 @@ export function AnimatedLayoutGroup({
 }
 
 /**
- * AnimatedContainer - 带进入/退出动画的容器
- *
- * 适用于：列表项添加/删除、面板显示/隐藏
+ * AnimatedContainer - Container with enter/exit animations
  */
 export function AnimatedContainer({
   children,
@@ -118,7 +106,7 @@ export function AnimatedContainer({
       initial={initial}
       animate={animate}
       exit={exit}
-      transition={transition ?? { duration: 0.2, ease: [0.4, 0, 0.2, 1] }}
+      transition={transition ?? { duration: DURATION.FAST, ease: EASE.STANDARD }}
       className={className}
     >
       {children}
@@ -127,12 +115,12 @@ export function AnimatedContainer({
 }
 
 /**
- * AnimatedFade - 纯淡入淡出动画容器
+ * AnimatedFade - Pure fade animation container
  */
 export function AnimatedFade({
   children,
   className,
-  duration = 0.2,
+  duration = DURATION.FAST,
   delay = 0,
 }: {
   children: ReactNode
@@ -145,7 +133,7 @@ export function AnimatedFade({
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      transition={{ duration, delay, ease: [0.4, 0, 0.2, 1] }}
+      transition={{ duration, delay, ease: EASE.STANDARD }}
       className={className}
     >
       {children}
@@ -154,12 +142,12 @@ export function AnimatedFade({
 }
 
 /**
- * AnimatedScale - 缩放动画容器
+ * AnimatedScale - Scale animation container
  */
 export function AnimatedScale({
   children,
   className,
-  duration = 0.2,
+  duration = DURATION.FAST,
 }: {
   children: ReactNode
   className?: string
@@ -170,7 +158,7 @@ export function AnimatedScale({
       initial={{ opacity: 0, scale: 0.96 }}
       animate={{ opacity: 1, scale: 1 }}
       exit={{ opacity: 0, scale: 0.96 }}
-      transition={{ duration, ease: [0.4, 0, 0.2, 1] }}
+      transition={{ duration, ease: EASE.STANDARD }}
       className={className}
     >
       {children}

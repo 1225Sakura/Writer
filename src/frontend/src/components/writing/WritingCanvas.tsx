@@ -16,6 +16,8 @@ import { showToast } from '@/components/ui/Toast'
 import { EditorToolbar } from './EditorToolbar'
 import { WritingStatsOverlay } from './WritingStatsOverlay'
 import { Type } from 'lucide-react'
+import { DURATION, EASE } from '@/components/shared/AnimationConfig'
+
 
 const WRITING_STYLE_NAMES: Record<string, string> = {
   default: '默认',
@@ -76,7 +78,7 @@ function FloatingWordCount({ wordCount, isTyping }: { wordCount: number; isTypin
       className="word-count-pill word-count-pill--floating"
       initial={{ opacity: 0, y: 8, scale: 0.9 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
-      transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
+      transition={{ duration: DURATION.SLOW, ease: EASE.SMOOTH }}
       whileHover={{ y: -2, transition: { duration: 0.2 } }}
     >
       <motion.span
@@ -84,7 +86,7 @@ function FloatingWordCount({ wordCount, isTyping }: { wordCount: number; isTypin
         key={wordCount}
         initial={{ scale: 1.15, opacity: 0.8 }}
         animate={{ scale: 1, opacity: 1 }}
-        transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
+        transition={{ duration: DURATION.NORMAL, ease: EASE.SMOOTH }}
       >
         {wordCount}
       </motion.span>
@@ -100,7 +102,7 @@ function FloatingWordCount({ wordCount, isTyping }: { wordCount: number; isTypin
               background: 'var(--color-ifline)',
               boxShadow: '0 0 4px color-mix(in srgb, var(--color-ifline) 50%, transparent)',
             }}
-            transition={{ duration: 0.2 }}
+            transition={{ duration: DURATION.FAST, ease: EASE.SMOOTH }}
           />
         )}
       </AnimatePresence>
@@ -115,13 +117,13 @@ function EmptyStatePrompt({ onStart }: { onStart?: () => void }) {
       className="writing-empty-state"
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+      transition={{ duration: DURATION.SLOW, ease: EASE.SMOOTH }}
     >
       <motion.div
         className="writing-empty-state__icon"
         initial={{ scale: 0.8, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
-        transition={{ delay: 0.1, duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+        transition={{ delay: 0.1, duration: DURATION.SLOW, ease: EASE.SMOOTH }}
       >
         <Feather className="w-5 h-5" />
       </motion.div>
@@ -129,7 +131,7 @@ function EmptyStatePrompt({ onStart }: { onStart?: () => void }) {
         className="writing-empty-state__title"
         initial={{ opacity: 0, y: 8 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.15, duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+        transition={{ delay: 0.15, duration: DURATION.SLOW, ease: EASE.SMOOTH }}
       >
         开始你的创作
       </motion.h3>
@@ -137,7 +139,7 @@ function EmptyStatePrompt({ onStart }: { onStart?: () => void }) {
         className="writing-empty-state__hint"
         initial={{ opacity: 0, y: 6 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.2, duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+        transition={{ delay: 0.2, duration: DURATION.SLOW, ease: EASE.SMOOTH }}
       >
         点击此处开始写作，或使用快捷键 Ctrl+Shift+W 续写
       </motion.p>
@@ -150,7 +152,7 @@ function EmptyStatePrompt({ onStart }: { onStart?: () => void }) {
         }}
         initial={{ opacity: 0, y: 6 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.25, duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+        transition={{ delay: 0.25, duration: DURATION.SLOW, ease: EASE.SMOOTH }}
         whileHover={{
           scale: 1.03,
           background: 'color-mix(in srgb, var(--accent-primary) 18%, transparent)',
@@ -394,8 +396,8 @@ export function WritingCanvas() {
     },
     editorProps: {
       attributes: {
-        class: 'writing-area max-w-none focus:outline-none min-h-full px-8 py-6 immersive-canvas',
-        style: 'caret-color: var(--color-character); --glow-primary: var(--color-character);',
+        class: 'writing-area max-w-none focus:outline-none min-h-full px-8 py-6 immersive-canvas chinese-paragraphs cjk-punctuation-hang typewriter-caret-glow',
+        style: 'caret-color: var(--paper-85); --glow-primary: var(--color-character);',
         role: 'textbox',
         'aria-multiline': 'true',
         'aria-label': '写作区',
@@ -538,62 +540,39 @@ export function WritingCanvas() {
       className={`h-full flex flex-col ${typewriterMode ? 'typewriter-mode' : ''}`}
       style={{ backgroundColor: 'var(--writing-bg)' }}
     >
-      {/* 写作区域 - enhanced paper texture with layered gradients + vignette */}
+      {/* 写作区域 - immersive paper texture with vignette and ink wash aesthetic */}
       <div
-        className={`flex-1 overflow-y-auto relative writing-surface writing-surface--textured ${focusModeEnabled ? 'vignette-overlay active' : 'vignette-overlay'}`}
-        style={{
-          backgroundImage: `
-            /* Subtle warm center glow - reduces eye strain */
-            radial-gradient(ellipse 70% 45% at 50% 40%, color-mix(in srgb, var(--paper-100) 1.2%, transparent) 0%, transparent 55%),
-            /* Top highlight for paper depth */
-            radial-gradient(ellipse 90% 50% at 50% -15%, color-mix(in srgb, var(--accent-primary) 1.5%, transparent) 0%, transparent 60%),
-            /* Character warmth on right */
-            radial-gradient(ellipse 55% 40% at 88% 85%, color-mix(in srgb, var(--color-character) 1%, transparent) 0%, transparent 50%),
-            /* Outline cool tone on left */
-            radial-gradient(ellipse 45% 30% at 12% 55%, color-mix(in srgb, var(--color-outline) 0.8%, transparent) 0%, transparent 45%),
-            /* Deep ink shadow at bottom */
-            radial-gradient(ellipse 100% 50% at 50% 105%, color-mix(in srgb, var(--ink-100) 2.5%, transparent) 0%, transparent 75%),
-            /* Vertical paper gradient - soft sepia tint */
-            linear-gradient(180deg, color-mix(in srgb, var(--paper-100) 0.8%, transparent) 0%, transparent 18%, color-mix(in srgb, var(--ink-100) 1.2%, transparent) 100%)
-          `,
-        }}
+        className={`flex-1 overflow-y-auto relative writing-surface writing-surface--textured selection-warm ${focusModeEnabled ? 'vignette-overlay-strong' : 'vignette-overlay'} ${typewriterMode ? 'vignette-overlay-horizontal' : ''}`}
       >
         {/* 浮动工具栏 */}
         <EditorToolbar editor={editor} />
 
-        {/* 写作卡片容器 - refined with elegant glow border and layered shadows */}
+        {/* 写作卡片容器 - ink wash paper card with subtle depth */}
         <div
-          className={`my-8 rounded-2xl max-w-[var(--writing-max-width)] mx-auto writing-card relative
+          className={`my-8 rounded-2xl max-w-[var(--writing-max-width)] mx-auto writing-card relative ink-texture
             ${paperEdgeDecoration ? 'writing-card--paper-edge' : ''}`}
           style={{
             backgroundColor: 'var(--writing-bg)',
             boxShadow: `
-              /* Inner paper lift - subtle depth */
-              0 2px 4px color-mix(in srgb, var(--ink-100) 6%, transparent),
-              /* Mid layer shadow */
-              0 6px 16px color-mix(in srgb, var(--ink-100) 5%, transparent),
-              /* Outer soft shadow for floating effect */
-              0 16px 40px color-mix(in srgb, var(--ink-100) 3%, transparent),
-              /* Top highlight - paper edge gleam */
-              inset 0 1px 0 color-mix(in srgb, var(--paper-100) 12%, transparent),
-              /* Subtle warm undertone */
-              inset 0 -2px 8px color-mix(in srgb, var(--color-character) 1%, transparent)
+              0 1px 2px color-mix(in srgb, var(--ink-100) 5%, transparent),
+              0 4px 12px color-mix(in srgb, var(--ink-100) 4%, transparent),
+              0 12px 32px color-mix(in srgb, var(--ink-100) 3%, transparent),
+              inset 0 1px 0 color-mix(in srgb, var(--paper-100) 10%, transparent)
             `,
           }}
         >
-          {/* Subtle inner glow at top - paper edge highlight */}
+          {/* Paper edge highlight - ink wash gleam */}
           <div
-            className="absolute top-0 left-4 right-4 h-px pointer-events-none"
+            className="absolute top-0 left-6 right-6 h-px pointer-events-none"
             style={{
-              background: 'linear-gradient(90deg, transparent 0%, color-mix(in srgb, var(--paper-100) 20%, transparent) 30%, color-mix(in srgb, var(--color-character) 25%, transparent) 50%, color-mix(in srgb, var(--paper-100) 20%, transparent) 70%, transparent 100%)',
-              boxShadow: '0 0 12px color-mix(in srgb, var(--color-character) 15%, transparent)',
+              background: 'linear-gradient(90deg, transparent 0%, color-mix(in srgb, var(--paper-100) 15%, transparent) 25%, color-mix(in srgb, var(--paper-100) 20%, transparent) 50%, color-mix(in srgb, var(--paper-100) 15%, transparent) 75%, transparent 100%)',
             }}
           />
 
-          {/* 章节标题 - refined with elegant typography */}
+          {/* 章节标题 - ink wash typography */}
           <div className="px-12 pt-12 pb-5">
             <motion.h1
-              className="font-serif-cn text-2xl font-semibold tracking-tight"
+              className="font-serif-cn text-2xl font-semibold tracking-tight cjk-punctuation-hang"
               style={{
                 color: 'var(--writing-text)',
                 lineHeight: 'var(--leading-tight)',
@@ -603,26 +582,26 @@ export function WritingCanvas() {
               }}
               initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+              transition={{ duration: DURATION.SLOW, ease: EASE.SMOOTH }}
             >
               {chapterTitle}
             </motion.h1>
-            {/* Elegant underline decoration with gradient glow */}
+            {/* Ink wash underline decoration */}
             <motion.div
               className="mt-5 flex items-center gap-2"
               initial={{ opacity: 0, scaleX: 0.8 }}
               animate={{ opacity: 1, scaleX: 1 }}
-              transition={{ duration: 0.5, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
+              transition={{ duration: DURATION.SLOW, delay: 0.1, ease: EASE.SMOOTH }}
             >
-              <div className="h-px flex-1 bg-gradient-to-r from-transparent via-[var(--border-strong)] to-transparent opacity-40" />
+              <div className="h-px flex-1 ink-divider" />
               <div
-                className="w-12 h-[2px] rounded-full"
+                className="w-8 h-[2px] rounded-full"
                 style={{
-                  background: 'linear-gradient(90deg, color-mix(in srgb, var(--color-character) 50%, transparent), color-mix(in srgb, var(--color-vermillion) 50%, transparent))',
-                  boxShadow: '0 0 8px color-mix(in srgb, var(--color-character) 25%, transparent), 0 0 16px color-mix(in srgb, var(--accent-primary) 10%, transparent)',
+                  background: 'linear-gradient(90deg, color-mix(in srgb, var(--color-character) 40%, transparent), color-mix(in srgb, var(--color-vermillion) 40%, transparent))',
+                  boxShadow: '0 0 6px color-mix(in srgb, var(--color-character) 15%, transparent)',
                 }}
               />
-              <div className="h-px flex-1 bg-gradient-to-r from-transparent via-[var(--border-strong)] to-transparent opacity-40" />
+              <div className="h-px flex-1 ink-divider" />
             </motion.div>
           </div>
 
@@ -641,7 +620,7 @@ export function WritingCanvas() {
                   key="editor"
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
-                  transition={{ duration: 0.3 }}
+                  transition={{ duration: DURATION.SLOW, ease: EASE.SMOOTH }}
                 >
                   <EditorContent editor={editor} id="editor-content" />
                 </motion.div>
@@ -663,11 +642,10 @@ export function WritingCanvas() {
         targetWordCount={targetWordCount}
       />
 
-      {/* 底部状态栏 - refined visual design using CSS variables */}
+      {/* 底部状态栏 - glass-ink minimal design */}
       <div
-        className="flex items-center px-5 py-2 text-xs font-medium"
+        className="flex items-center px-5 py-2 text-xs font-medium glass-ink"
         style={{
-          background: 'linear-gradient(180deg, var(--color-surface-base) 0%, rgba(13, 13, 18, 0.98) 100%)',
           borderTop: '1px solid rgba(255,255,255,0.03)',
           color: 'var(--text-tertiary)',
           fontFamily: 'var(--font-sans)',
@@ -710,8 +688,8 @@ export function WritingCanvas() {
               : 'text-[var(--text-tertiary)]'
           }`}
           style={focusModeEnabled ? {
-            background: 'rgba(91, 142, 232, 0.12)',
-            border: '1px solid rgba(91, 142, 232, 0.2)',
+            background: 'color-mix(in srgb, var(--color-outline) 12%, transparent)',
+            border: '1px solid color-mix(in srgb, var(--color-outline) 20%, transparent)',
           } : {
             border: '1px solid transparent',
           }}
@@ -741,8 +719,8 @@ export function WritingCanvas() {
               exit={{ opacity: 0, scale: 0.8 }}
               className="flex items-center gap-1.5 px-2 py-0.5 rounded-md"
               style={{
-                background: 'rgba(126, 184, 74, 0.06)',
-                border: '1px solid rgba(126, 184, 74, 0.12)',
+                background: 'color-mix(in srgb, var(--color-ifline) 6%, transparent)',
+                border: '1px solid color-mix(in srgb, var(--color-ifline) 12%, transparent)',
               }}
             >
               <motion.div

@@ -4,6 +4,8 @@ import { Search, X, Clock, ArrowRight, Trash2 } from 'lucide-react'
 import { EntityIcon } from '@/components/ui/Icon'
 import type { EntityIconType } from '@/components/ui/Icon'
 import { motion, AnimatePresence } from 'framer-motion'
+import { DURATION, EASE, SPRING } from '@/components/shared/AnimationConfig'
+
 
 interface EntitySearchProps {
   onResultClick?: (type: EntityType, id: number) => void
@@ -199,13 +201,13 @@ export function EntitySearch({ onResultClick }: EntitySearchProps) {
           scale: 1.02,
           backgroundColor: 'var(--color-surface-overlay)',
           borderColor: 'var(--border-strong)',
-          boxShadow: '0 2px 8px rgba(0,0,0,0.12)',
+          boxShadow: 'var(--shadow-sm)',
         }}
         whileTap={{ scale: 0.98 }}
       >
         <motion.div
           animate={{ scale: [1, 1.15, 1], rotate: [0, 5, 0] }}
-          transition={{ duration: 0.4 }}
+          transition={{ duration: DURATION.SLOW, ease: EASE.SMOOTH }}
         >
           <Search className="w-3.5 h-3.5" />
         </motion.div>
@@ -230,7 +232,7 @@ export function EntitySearch({ onResultClick }: EntitySearchProps) {
               initial={{ opacity: 0, scale: 0.95, y: -20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: -20 }}
-              transition={{ type: 'spring', stiffness: 400, damping: 30 }}
+              transition={SPRING.SNAPPY}
               onClick={(e) => e.stopPropagation()}
             >
               {/* Input area */}
@@ -238,7 +240,7 @@ export function EntitySearch({ onResultClick }: EntitySearchProps) {
                 <motion.div
                   className="relative"
                   animate={isOpen ? { scale: [1, 1.1, 1] } : { scale: 1 }}
-                  transition={{ duration: 0.3 }}
+                  transition={{ duration: DURATION.SLOW, ease: EASE.SMOOTH }}
                 >
                   <Search className="w-5 h-5 flex-shrink-0 text-[var(--accent-primary)]" />
                   <motion.div
@@ -246,7 +248,7 @@ export function EntitySearch({ onResultClick }: EntitySearchProps) {
                     style={{ backgroundColor: 'var(--accent-primary)' }}
                     initial={{ opacity: 0 }}
                     animate={{ opacity: isOpen ? 0.3 : 0 }}
-                    transition={{ duration: 0.2 }}
+                    transition={{ duration: DURATION.FAST, ease: EASE.SMOOTH }}
                   />
                 </motion.div>
                 <input
@@ -263,7 +265,7 @@ export function EntitySearch({ onResultClick }: EntitySearchProps) {
                   }}
                   onFocus={(e) => {
                     e.currentTarget.style.borderBottomColor = 'var(--accent-primary)'
-                    e.currentTarget.style.boxShadow = '0 2px 8px rgba(var(--accent-primary-rgb, 91, 142, 232), 0.15)'
+                    e.currentTarget.style.boxShadow = '0 2px 8px var(--accent-glow)'
                   }}
                   onBlur={(e) => {
                     e.currentTarget.style.borderBottomColor = 'transparent'
@@ -311,7 +313,7 @@ export function EntitySearch({ onResultClick }: EntitySearchProps) {
                     >
                       <motion.div
                         animate={isActive ? { rotate: [0, -10, 10, 0], scale: [1, 1.2, 1] } : { rotate: 0, scale: 1 }}
-                        transition={{ duration: 0.4 }}
+                        transition={{ duration: DURATION.SLOW, ease: EASE.SMOOTH }}
                       >
                         {config.iconType === 'search' ? (
                           <Search className="w-3 h-3" />

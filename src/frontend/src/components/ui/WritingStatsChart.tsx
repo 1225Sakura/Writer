@@ -1,6 +1,8 @@
 import * as React from 'react'
 import { useState, useMemo } from 'react'
 import { motion } from 'framer-motion'
+import { DURATION, EASE } from '@/components/shared/AnimationConfig'
+
 
 export interface WritingStatsChartProps {
   data: Array<{ label: string; value: number }>
@@ -179,7 +181,7 @@ export function WritingStatsChart({
                 strokeWidth={2}
                 initial={{ scale: 0 }}
                 animate={{ scale: 1 }}
-                transition={{ duration: 0.3, delay: 0.8 + i * 0.05 }}
+                transition={{ duration: DURATION.SLOW, delay: 0.8 + i * 0.05 , ease: EASE.SMOOTH }}
                 opacity={hoveredIndex === null || hoveredIndex === i ? 1 : 0.4}
                 onMouseEnter={() => setHoveredIndex(i)}
                 onMouseLeave={() => setHoveredIndex(null)}
@@ -220,7 +222,7 @@ export function WritingStatsChart({
           }}
           initial={{ opacity: 0, y: 4 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.15 }}
+          transition={{ duration: DURATION.FAST, ease: EASE.SMOOTH }}
         >
           <span className="text-[var(--text-tertiary)]">{data[hoveredIndex].label}: </span>
           <span className="font-medium">{data[hoveredIndex].value}</span>

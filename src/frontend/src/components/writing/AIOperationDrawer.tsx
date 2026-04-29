@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/Button'
 import { HumanAIRatioSlider } from '@/components/ui/HumanAIRatioSlider'
 import { CircularProgress } from '@/components/ui/CircularProgress'
 import { motion, AnimatePresence } from 'framer-motion'
+import { DURATION, EASE } from '@/components/shared/AnimationConfig'
 import {
   ChevronDown,
   Feather,
@@ -162,7 +163,7 @@ function DiffPreview({
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: 8 }}
-      transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
+      transition={{ duration: DURATION.SLOW, ease: EASE.SMOOTH }}
       className="mt-4 space-y-3"
     >
       {/* Quality score */}
@@ -217,7 +218,7 @@ function DiffPreview({
 
       {/* Action buttons */}
       <div className="flex gap-2">
-        <Button onClick={onAccept} variant="primary" size="sm" className="flex-1">
+        <Button onClick={onAccept} variant="accent" size="sm" className="flex-1">
           <Check className="w-4 h-4 mr-1" />
           应用
         </Button>
@@ -315,55 +316,25 @@ function triggerHaptic() {
   }
 }
 
-// Refined AI Drawer Header with pulse glow + gradient title
+// Minimal AI Drawer Header
 function DrawerHeader() {
   return (
     <div className="flex items-center gap-3 pb-3 mb-1">
-      <div className="relative flex-shrink-0">
-        <div
-          className="w-9 h-9 rounded-xl flex items-center justify-center relative z-10"
-          style={{
-            background: 'linear-gradient(135deg, color-mix(in srgb, var(--accent-primary) 22%, transparent) 0%, color-mix(in srgb, var(--accent-primary) 8%, transparent) 100%)',
-            border: '1px solid color-mix(in srgb, var(--accent-primary) 30%, transparent)',
-            boxShadow: '0 0 16px color-mix(in srgb, var(--accent-primary) 15%, transparent), inset 0 1px 0 color-mix(in srgb, var(--accent-primary) 10%, transparent)',
-          }}
-        >
-          <Bot className="w-5 h-5" style={{ color: 'var(--accent-primary)' }} />
-        </div>
-        {/* Pulse glow ring */}
-        <span
-          className="absolute inset-[-2px] rounded-xl animate-ping opacity-25 motion-reduce:animate-none"
-          style={{
-            background: 'color-mix(in srgb, var(--accent-primary) 15%, transparent)',
-            animationDuration: '2.5s',
-            boxShadow: '0 0 12px color-mix(in srgb, var(--accent-primary) 20%, transparent)',
-          }}
-        />
-        {/* Inner glow */}
-        <span
-          className="absolute inset-0 rounded-xl opacity-40"
-          style={{
-            boxShadow: 'inset 0 0 8px color-mix(in srgb, var(--accent-primary) 20%, transparent)',
-          }}
-        />
+      <div
+        className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0"
+        style={{
+          background: 'color-mix(in srgb, var(--accent-primary) 12%, transparent)',
+          border: '1px solid color-mix(in srgb, var(--accent-primary) 20%, transparent)',
+        }}
+      >
+        <Bot className="w-4 h-4" style={{ color: 'var(--accent-primary)' }} />
       </div>
       <div className="flex-1 min-w-0">
-        <h3
-          className="text-sm font-bold tracking-tight"
-          style={{
-            background: 'linear-gradient(90deg, var(--accent-primary) 0%, var(--accent-90) 50%, #8b96e8 100%)',
-            WebkitBackgroundClip: 'text',
-            WebkitTextFillColor: 'transparent',
-            backgroundClip: 'text',
-          }}
-        >
+        <h3 className="text-sm font-semibold tracking-tight" style={{ color: 'var(--text-primary)' }}>
           AI 写作助手
         </h3>
         <p className="text-[10px] leading-tight flex items-center gap-1.5" style={{ color: 'var(--text-tertiary)' }}>
-          <span
-            className="inline-block w-1 h-1 rounded-full animate-pulse motion-reduce:animate-none"
-            style={{ background: 'var(--accent-primary)', boxShadow: '0 0 4px var(--accent-primary)' }}
-          />
+          <span className="inline-block w-1 h-1 rounded-full" style={{ background: 'var(--accent-primary)' }} />
           智能辅助 · 实时生成
         </p>
       </div>
@@ -425,7 +396,6 @@ export function AIOperationDrawer() {
   } | null>(null)
   const [isMinimized, _setIsMinimized] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
-  const [isHeaderHovered, setIsHeaderHovered] = useState(false)
 
   // Trigger haptic on mount
   useEffect(() => {
@@ -540,19 +510,8 @@ export function AIOperationDrawer() {
 
   return (
     <div className="flex-1 overflow-y-auto p-4 space-y-3 ai-drawer-scroll">
-      {/* Refined AI Drawer Header with gradient bg */}
-      <div
-        className="ai-drawer-header rounded-xl p-3 mb-1"
-        onMouseEnter={() => setIsHeaderHovered(true)}
-        onMouseLeave={() => setIsHeaderHovered(false)}
-        style={{
-          background: isHeaderHovered
-            ? 'linear-gradient(135deg, color-mix(in srgb, var(--accent-primary) 12%, transparent) 0%, color-mix(in srgb, var(--accent-primary) 5%, transparent) 100%)'
-            : 'linear-gradient(135deg, color-mix(in srgb, var(--accent-primary) 8%, transparent) 0%, transparent 100%)',
-          border: '1px solid color-mix(in srgb, var(--accent-primary) 15%, transparent)',
-          transition: 'background 0.3s cubic-bezier(0.22, 1, 0.36, 1)',
-        }}
-      >
+      {/* Minimal AI Drawer Header */}
+      <div className="p-3 mb-1">
         <DrawerHeader />
       </div>
 
@@ -564,7 +523,7 @@ export function AIOperationDrawer() {
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
-            transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
+            transition={{ duration: DURATION.NORMAL, ease: EASE.SMOOTH }}
             className="space-y-3"
           >
             {/* 全文操作 */}
@@ -618,7 +577,7 @@ export function AIOperationDrawer() {
                       }}
                       initial={false}
                       animate={{ width: `${humanAIRatio}%` }}
-                      transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
+                      transition={{ duration: DURATION.SLOW, ease: EASE.SMOOTH }}
                     />
                   </div>
                   <span className="text-xs font-medium min-w-[3.5em] text-right" style={{ color: 'var(--text-secondary)' }}>
@@ -729,7 +688,7 @@ export function AIOperationDrawer() {
                             style={{ background: 'var(--accent-primary)' }}
                             initial={{ width: 0 }}
                             animate={{ width: `${currentJob.progress}%` }}
-                            transition={{ duration: 0.3 }}
+                            transition={{ duration: DURATION.SLOW, ease: EASE.SMOOTH }}
                           />
                         </div>
                         <Button
@@ -814,7 +773,7 @@ export function AIOperationDrawer() {
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.9 }}
-            transition={{ duration: 0.2 }}
+            transition={{ duration: DURATION.FAST, ease: EASE.SMOOTH }}
             className="flex flex-col items-center gap-3 py-4"
           >
             <div
@@ -868,7 +827,7 @@ function Section({
         border: '1px solid var(--border-default)',
       }}
       whileHover={{ borderColor: 'var(--border-strong)' }}
-      transition={{ duration: 0.15 }}
+      transition={{ duration: DURATION.FAST, ease: EASE.SMOOTH }}
     >
       <motion.button
         onClick={onToggle}
@@ -901,7 +860,7 @@ function Section({
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: 'auto', opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
+            transition={{ duration: DURATION.NORMAL, ease: EASE.SMOOTH }}
             className="overflow-hidden"
           >
             <div
@@ -938,24 +897,19 @@ function AIOperationButton({
       onClick={onClick}
       disabled={isDisabled}
       variants={{
-        hidden: { opacity: 0, y: 12, scale: 0.95 },
+        hidden: { opacity: 0, y: 8, scale: 0.96 },
         visible: { opacity: 1, y: 0, scale: 1, transition: { type: 'spring', stiffness: 400, damping: 28 } }
       }}
-      whileHover={isDisabled ? {} : { y: -3, boxShadow: `0 8px 24px color-mix(in srgb, ${operation.color} 25%, transparent), 0 0 16px color-mix(in srgb, ${operation.color} 15%, transparent)` }}
-      whileTap={{ scale: isDisabled ? 1 : 0.95 }}
+      whileHover={isDisabled ? {} : { y: -2 }}
+      whileTap={{ scale: isDisabled ? 1 : 0.96 }}
       transition={{ type: 'spring', stiffness: 400, damping: 25 }}
-      className={`ai-op-card relative flex flex-col items-center gap-1.5 p-3 rounded-xl border transition-all duration-200 overflow-hidden touch-target-button
+      className={`relative flex flex-col items-center gap-1.5 p-3 rounded-xl border transition-all duration-200 overflow-hidden touch-target-button
         ${isLoading
-          ? 'border-[var(--accent-primary)]/50 bg-[var(--accent-primary)]/8 animate-glow-border'
+          ? 'border-[var(--accent-primary)]/40 bg-[var(--accent-primary)]/5'
           : 'border-[var(--border-default)] bg-[var(--color-surface-base)] hover:border-[var(--border-strong)]'
         }
         ${isDisabled && !isLoading ? 'opacity-40 cursor-not-allowed' : 'cursor-pointer'}
       `}
-      style={{
-        boxShadow: isLoading
-          ? `0 0 20px color-mix(in srgb, ${operation.color} 20%, transparent), inset 0 1px 0 color-mix(in srgb, ${operation.color} 10%, transparent)`
-          : undefined,
-      }}
     >
       {/* Loading overlay */}
       <AnimatePresence>
@@ -977,65 +931,58 @@ function AIOperationButton({
         )}
       </AnimatePresence>
 
-      {/* Icon with background circle */}
-      <motion.span
-        className={`flex items-center justify-center w-10 h-10 rounded-xl flex-shrink-0 transition-all duration-200 ${
+      {/* Icon */}
+      <span
+        className={`flex items-center justify-center w-9 h-9 rounded-lg flex-shrink-0 transition-all duration-200 ${
           isLoading ? 'scale-75 opacity-0' : ''
         }`}
         style={{
           background: isLoading
             ? 'transparent'
-            : `color-mix(in srgb, ${operation.color} 15%, transparent)`,
+            : `color-mix(in srgb, ${operation.color} 12%, transparent)`,
           color: isLoading ? 'var(--accent-primary)' : operation.color,
-          boxShadow: isLoading
-            ? 'none'
-            : `0 0 16px color-mix(in srgb, ${operation.color} 25%, transparent), inset 0 1px 0 color-mix(in srgb, ${operation.color} 20%, transparent)`,
         }}
-        whileHover={isLoading ? {} : { scale: 1.1, boxShadow: `0 0 24px color-mix(in srgb, ${operation.color} 40%, transparent)` }}
       >
         {isLoading ? operation.activeIcon : operation.icon}
-      </motion.span>
+      </span>
 
-      {/* Label with enhanced typography */}
-      <motion.span
-        className={`text-sm font-bold transition-opacity duration-200 ${isLoading ? 'opacity-0' : ''}`}
-        style={{ color: 'var(--text-primary)', letterSpacing: '0.02em' }}
+      {/* Label */}
+      <span
+        className={`text-sm font-semibold transition-opacity duration-200 ${isLoading ? 'opacity-0' : ''}`}
+        style={{ color: 'var(--text-primary)' }}
       >
         {operation.label}
-      </motion.span>
+      </span>
 
       {/* Description */}
-      <motion.span
+      <span
         className={`text-[10px] leading-tight text-center transition-opacity duration-200 ${isLoading ? 'opacity-0' : ''}`}
         style={{ color: 'var(--text-tertiary)' }}
       >
         {operation.description}
-      </motion.span>
+      </span>
 
-      {/* Enhanced KBD shortcut with better styling */}
-      <motion.kbd
-        className={`text-[9px] px-1.5 py-0.5 rounded-md font-mono transition-all duration-200 ${isLoading ? 'opacity-0' : ''}`}
+      {/* KBD shortcut */}
+      <kbd
+        className={`text-[9px] px-1.5 py-0.5 rounded font-mono transition-all duration-200 ${isLoading ? 'opacity-0' : ''}`}
         style={{
-          background: 'linear-gradient(180deg, var(--color-surface-input) 0%, color-mix(in srgb, var(--color-surface-input) 80%, transparent) 100%)',
+          background: 'var(--color-surface-input)',
           border: '1px solid var(--border-default)',
-          borderBottomWidth: '2px',
           color: 'var(--text-secondary)',
-          boxShadow: '0 1px 2px var(--shadow-sm)',
         }}
-        whileHover={isLoading ? {} : { scale: 1.05, borderColor: 'var(--border-strong)' }}
       >
         {operation.shortcut}
-      </motion.kbd>
+      </kbd>
 
       {/* Mini progress bar when loading */}
       {isLoading && progress !== undefined && progress > 0 && (
         <div className="absolute bottom-0 left-0 right-0 h-0.5 overflow-hidden" style={{ background: 'var(--border-subtle)' }}>
           <motion.div
             className="h-full"
-            style={{ background: `linear-gradient(90deg, var(--accent-primary) 0%, ${operation.color} 100%)` }}
+            style={{ background: operation.color }}
             initial={{ width: 0 }}
             animate={{ width: `${progress}%` }}
-            transition={{ duration: 0.3 }}
+            transition={{ duration: DURATION.SLOW, ease: EASE.SMOOTH }}
           />
         </div>
       )}

@@ -6,6 +6,7 @@ import './styles/globals.css'
 import './styles/animations.css'
 import './styles/responsive.css'
 import './styles/typography.css'
+import './styles/enhancements.css'
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>

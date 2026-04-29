@@ -1,0 +1,471 @@
+/**
+ * Visual Enhancements
+ * ============================================================
+ * Subtle visual effects and Chinese typography optimizations
+ * added as part of the frontend visual rebuild.
+ *
+ * These enhancements are designed to be:
+ * - Subtle and non-distracting
+ * - Opt-in via CSS classes
+ * - Compatible with existing design tokens
+ * - Performance-conscious
+ *
+ * Created: 2026-04-29
+ * Author: worker-9
+ * ============================================================
+ */
+
+/* ============================================================
+   1. FOCUS EDGE SOFTENING (Vignette Effect)
+   ============================================================
+   Creates a subtle darkening at the edges of the writing area
+   to draw the eye toward the center and reduce peripheral
+   distraction. Inspired by iA Writer's focus mode and
+   traditional ink wash "留白" (negative space) principles.
+   ============================================================ */
+
+/**
+ * Soft vignette overlay for writing areas
+ * Use on a pseudo-element or dedicated overlay div
+ */
+.vignette-overlay {
+  position: relative;
+}
+
+.vignette-overlay::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1;
+  background: radial-gradient(
+    ellipse at center,
+    transparent 0%,
+    transparent 60%,
+    color-mix(in srgb, var(--ink-100) 8%, transparent) 85%,
+    color-mix(in srgb, var(--ink-100) 15%, transparent) 100%
+  );
+}
+
+/**
+ * Stronger vignette for deep immersion mode
+ * Use when all chrome is hidden (F11 full-screen)
+ */
+.vignette-overlay-strong::before {
+  background: radial-gradient(
+    ellipse at center,
+    transparent 0%,
+    transparent 50%,
+    color-mix(in srgb, var(--ink-100) 12%, transparent) 75%,
+    color-mix(in srgb, var(--ink-100) 25%, transparent) 100%
+  );
+}
+
+/**
+ * Horizontal-only vignette (top/bottom fade)
+ * Useful for typewriter scrolling mode
+ */
+.vignette-overlay-horizontal::before {
+  background: linear-gradient(
+    to bottom,
+    color-mix(in srgb, var(--ink-100) 10%, transparent) 0%,
+    transparent 15%,
+    transparent 85%,
+    color-mix(in srgb, var(--ink-100) 10%, transparent) 100%
+  );
+}
+
+/* ============================================================
+   2. TYPEWRITER CURSOR OPTIMIZATION
+   ============================================================
+   Enhanced caret styling for writing areas.
+   - Slightly thicker cursor for visibility
+   - Soft glow effect (optional)
+   - Smooth blink animation
+   ============================================================ */
+
+/**
+ * Optimized caret for writing areas
+ * Overrides default browser caret with a more visible,
+   elegant cursor that doesn't distract.
+ */
+.typewriter-caret {
+  caret-color: var(--paper-85, #dcd6c8);
+}
+
+/**
+ * Enhanced caret with subtle glow
+ * Use sparingly — only in focused writing mode
+ */
+.typewriter-caret-glow {
+  caret-color: var(--paper-95, #eee9df);
+}
+
+.typewriter-caret-glow::caret {
+  /* Note: ::caret pseudo-element is not yet widely supported.
+     This serves as a forward-compatible declaration.
+     The glow effect is achieved via text-shadow on the parent. */
+  animation: caret-blink 1s step-end infinite;
+}
+
+@keyframes caret-blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+
+/**
+ * Block cursor style (alternative to line cursor)
+ * Inspired by Vim/Neovim block cursor
+ */
+.typewriter-caret-block {
+  caret-color: transparent;
+}
+
+.typewriter-caret-block *::selection {
+  background: var(--writing-selection);
+  color: var(--paper-100);
+}
+
+/* ============================================================
+   3. CHINESE TYPOGRAPHY ENHANCEMENTS
+   ============================================================
+   Advanced CJK typography rules for professional Chinese
+   novel writing and reading experience.
+   ============================================================ */
+
+/**
+ * CJK punctuation hanging optimization
+ * Ensures punctuation marks hang outside the text block
+ * for cleaner edge alignment.
+ */
+.cjk-punctuation-hang {
+  hanging-punctuation: first last;
+  text-spacing-trim: trim-start;
+}
+
+/**
+ * Enhanced paragraph styling for Chinese novels
+ * - Proper first-line indent (2em)
+ * - Generous paragraph spacing
+ * - Strict punctuation rules
+ */
+.chinese-paragraphs p {
+  margin-bottom: var(--writing-paragraph-spacing, 1.5em);
+  text-indent: var(--writing-text-indent, 2em);
+  hanging-punctuation: first last;
+  text-align: justify;
+  word-break: normal;
+  overflow-wrap: break-word;
+  line-break: strict;
+}
+
+/* First paragraph in a section/chapter has no indent */
+.chinese-paragraphs p:first-of-type,
+.chinese-paragraphs p:first-child,
+.chinese-paragraphs h1 + p,
+.chinese-paragraphs h2 + p,
+.chinese-paragraphs h3 + p {
+  text-indent: 0;
+}
+
+/**
+ * Mixed CJK/Latin spacing
+ * Automatically adds thin space between Chinese characters
+ * and Latin letters/numbers for better readability.
+ */
+.cjk-mixed-spacing {
+  /* Use word-spacing for the gap between CJK and Latin */
+  word-spacing: 0.12em;
+}
+
+/**
+ * More precise mixed-content spacing using :lang() selectors
+ * Requires content to be properly lang-tagged
+ */
+.cjk-mixed-spacing :lang(zh) + :lang(en),
+.cjk-mixed-spacing :lang(zh) + :lang(ja),
+.cjk-mixed-spacing :lang(en) + :lang(zh),
+.cjk-mixed-spacing :lang(ja) + :lang(zh) {
+  margin-left: 0.12em;
+}
+
+/**
+ * CJK emphasis styling
+ * Chinese text should not use italics (斜体) for emphasis
+ * as it reduces legibility. Use underline, emphasis marks,
+ * or weight change instead.
+ */
+.cjk-emphasis em,
+.cjk-emphasis i {
+  font-style: normal;
+  text-emphasis: dot filled;
+  text-emphasis-position: under right;
+  font-weight: var(--weight-semibold, 600);
+}
+
+/**
+ * CJK quotation marks
+ * Use proper Chinese quotation marks instead of ASCII quotes
+ */
+.cjk-quotes {
+  quotes: '\300c' '\300d' '\300e' '\300f'; /* 「」『』 */
+}
+
+.cjk-quotes q::before {
+  content: open-quote;
+}
+
+.cjk-quotes q::after {
+  content: close-quote;
+}
+
+/**
+ * Prevent punctuation at line start/end
+ * CSS text-spacing-trim handles modern browsers;
+ * these are additional safeguards.
+ */
+.cjk-line-break-strict {
+  line-break: strict;
+  word-break: normal;
+  overflow-wrap: break-word;
+}
+
+/* ============================================================
+   4. INK WASH AESTHETIC EFFECTS
+   ============================================================
+   Subtle effects inspired by Chinese ink wash painting.
+   These are decorative and should not interfere with usability.
+   ============================================================ */
+
+/**
+ * Subtle ink texture overlay
+ * Adds a very faint paper-like texture to backgrounds.
+ * Performance: Uses CSS gradient, no image download.
+ */
+.ink-texture {
+  position: relative;
+}
+
+.ink-texture::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.025;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+  background-repeat: repeat;
+  background-size: 200px 200px;
+  z-index: 0;
+}
+
+/**
+ * Soft divider line inspired by ink brush strokes
+ * Use between sections instead of solid borders
+ */
+.ink-divider {
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    color-mix(in srgb, var(--paper-100) 15%, transparent) 20%,
+    color-mix(in srgb, var(--paper-100) 25%, transparent) 50%,
+    color-mix(in srgb, var(--paper-100) 15%, transparent) 80%,
+    transparent 100%
+  );
+  border: none;
+  margin: 1.5em 0;
+}
+
+/**
+ * Ink fade-in animation for new text
+ * Subtle appearance when AI-generated text is inserted
+ */
+.ink-fade-in {
+  animation: ink-fade-in 0.4s ease-out forwards;
+}
+
+@keyframes ink-fade-in {
+  0% {
+    opacity: 0;
+    filter: blur(2px);
+    transform: translateY(2px);
+  }
+  100% {
+    opacity: 1;
+    filter: blur(0);
+    transform: translateY(0);
+  }
+}
+
+/* ============================================================
+   5. UTILITY CLASSES FOR COMPONENTS
+   ============================================================
+   Reusable utility classes that other components can use.
+   ============================================================ */
+
+/**
+ * Focus ring for interactive elements
+ * Subtle, elegant focus indicator that matches the ink theme
+ */
+.focus-ring-ink {
+  outline: none;
+  transition: box-shadow 0.15s ease;
+}
+
+.focus-ring-ink:focus-visible {
+  box-shadow:
+    0 0 0 1px var(--ink-100),
+    0 0 0 3px var(--accent-muted);
+}
+
+/**
+ * Hover lift effect for cards and panels
+ * Subtle elevation change on hover
+ */
+.hover-lift {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.hover-lift:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+/**
+ * Active press effect for buttons
+ * Subtle scale-down on press
+ */
+.active-press:active {
+  transform: scale(0.98);
+  transition: transform 0.05s ease;
+}
+
+/**
+ * Scrollbar styling for dark theme
+ * Thin, subtle scrollbar that matches the ink aesthetic
+ */
+.scrollbar-ink {
+  scrollbar-width: thin;
+  scrollbar-color: var(--glass-border) transparent;
+}
+
+.scrollbar-ink::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.scrollbar-ink::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.scrollbar-ink::-webkit-scrollbar-thumb {
+  background: var(--glass-border);
+  border-radius: 3px;
+}
+
+.scrollbar-ink::-webkit-scrollbar-thumb:hover {
+  background: var(--border-default);
+}
+
+/**
+ * Glass panel variant with ink wash feel
+ * More subtle than standard glassmorphism
+ */
+.glass-ink {
+  background: var(--glass-bg);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--glass-border);
+}
+
+/**
+ * Text selection styling for writing areas
+ * Warm, subtle highlight that doesn't hurt the eyes
+ */
+.selection-warm::selection,
+.selection-warm *::selection {
+  background: var(--writing-selection);
+  color: inherit;
+}
+
+/* ============================================================
+   6. ACCESSIBILITY OVERRIDES
+   ============================================================ */
+
+@media (prefers-reduced-motion: reduce) {
+  .ink-fade-in {
+    animation: none;
+    opacity: 1;
+    filter: none;
+    transform: none;
+  }
+
+  .hover-lift:hover {
+    transform: none;
+  }
+
+  .typewriter-caret-glow {
+    text-shadow: none;
+  }
+}
+
+@media (prefers-contrast: high) {
+  .vignette-overlay::before,
+  .vignette-overlay-strong::before,
+  .vignette-overlay-horizontal::before {
+    display: none;
+  }
+
+  .focus-ring-ink:focus-visible {
+    box-shadow: 0 0 0 3px var(--accent-100, #5e6ad2);
+  }
+}
+
+/* ============================================================
+   7. THEME-SPECIFIC ADJUSTMENTS
+   ============================================================ */
+
+/* Light theme adjustments */
+[data-theme="light"] .vignette-overlay::before {
+  background: radial-gradient(
+    ellipse at center,
+    transparent 0%,
+    transparent 60%,
+    color-mix(in srgb, var(--ink-100) 3%, transparent) 85%,
+    color-mix(in srgb, var(--ink-100) 6%, transparent) 100%
+  );
+}
+
+[data-theme="light"] .ink-divider {
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    color-mix(in srgb, var(--ink-100) 8%, transparent) 20%,
+    color-mix(in srgb, var(--ink-100) 15%, transparent) 50%,
+    color-mix(in srgb, var(--ink-100) 8%, transparent) 80%,
+    transparent 100%
+  );
+}
+
+[data-theme="light"] .scrollbar-ink {
+  scrollbar-color: var(--glass-border) transparent;
+}
+
+[data-theme="light"] .scrollbar-ink::-webkit-scrollbar-thumb {
+  background: var(--glass-border);
+}
+
+[data-theme="light"] .scrollbar-ink::-webkit-scrollbar-thumb:hover {
+  background: var(--border-default);
+}
+
+/* Sepia theme adjustments */
+[data-theme="sepia"] .vignette-overlay::before {
+  background: radial-gradient(
+    ellipse at center,
+    transparent 0%,
+    transparent 60%,
+    color-mix(in srgb, var(--ink-100) 5%, transparent) 85%,
+    color-mix(in srgb, var(--ink-100) 10%, transparent) 100%
+  );
+}

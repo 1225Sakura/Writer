@@ -48,8 +48,10 @@ interface StaggerChildrenProps {
   onComplete?: () => void
 }
 
-/** 标准缓动曲线：cubic-bezier(0.22, 1, 0.36, 1) */
-const easeOutSmooth = [0.22, 1, 0.36, 1] as const
+import { EASE } from './AnimationConfig'
+
+/** Standard ease-out from AnimationConfig */
+const easeOutSmooth = EASE.OUT
 
 /** 检测是否应减少动画 */
 function useReducedMotion(): boolean {

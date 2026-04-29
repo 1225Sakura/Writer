@@ -2,14 +2,8 @@ import { useState } from 'react'
 import { motion } from 'framer-motion'
 import { Trash2, Edit2 } from 'lucide-react'
 import { TagInput, TagChips } from './TagInput'
-
-// Shimmer sweep animation keyframes - injected via style tag
-const shimmerKeyframes = `
-  @keyframes shimmer-sweep {
-    0% { transform: translateX(-100%); }
-    100% { transform: translateX(100%); }
-  }
-`
+import { GlassCard } from '@/components/ui/GlassCard'
+import { EASE, DURATION } from '@/components/shared/AnimationConfig'
 
 export const entityColors: Record<string, { bg: string; text: string; border: string; glow: string }> = {
   character: { bg: 'rgba(232,184,125,0.12)', text: 'var(--color-character)', border: 'rgba(232,184,125,0.20)', glow: 'rgba(232,184,125,0.08)' },
@@ -25,15 +19,8 @@ export const entityColors: Record<string, { bg: string; text: string; border: st
 export const cardStyle = {
   backgroundColor: 'var(--color-surface-raised)',
   border: '1px solid var(--border-default)',
-  boxShadow: '0 1px 3px rgba(0,0,0,0.04), 0 1px 2px rgba(0,0,0,0.02)',
+  boxShadow: 'var(--shadow-card)',
 }
-
-export const cardGlowStyle = (color: string, isHovered: boolean, borderColor?: string) => ({
-  boxShadow: isHovered
-    ? `0 0 24px ${color}25, 0 8px 24px rgba(0,0,0,0.25), 0 2px 8px rgba(0,0,0,0.15), inset 0 0 0 1px ${borderColor || color}20, 0 0 0 1px rgba(255,255,255,0.03) inset`
-    : `0 2px 4px rgba(0,0,0,0.04), 0 4px 8px rgba(0,0,0,0.03)`,
-  transition: 'box-shadow 0.35s cubic-bezier(0.16, 1, 0.3, 1), transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.25s ease, background-color 0.25s ease',
-})
 
 interface EntityCardProps {
   name: string
@@ -63,166 +50,104 @@ export function EntityCard({
   onClick,
 }: EntityCardProps) {
   const [isHovered, setIsHovered] = useState(false)
-  const [tilt, setTilt] = useState({ rotateX: 0, rotateY: 0 })
 
-  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
-    const rect = e.currentTarget.getBoundingClientRect()
-    const x = (e.clientX - rect.left) / rect.width
-    const y = (e.clientY - rect.top) / rect.height
-    setTilt({
-      rotateX: (y - 0.5) * -4,
-      rotateY: (x - 0.5) * 4,
-    })
-  }
-
-  const handleMouseLeave = () => {
-    setIsHovered(false)
-    setTilt({ rotateX: 0, rotateY: 0 })
-  }
+  const entityColorKey = entityType || 'accent'
+  const colors = badgeColor || entityColors[entityType || 'character']
 
   return (
-    <>
-      <style>{shimmerKeyframes}</style>
-      <motion.div
-        className="p-4 rounded-xl relative overflow-hidden bg-[var(--color-surface-raised)] border"
-        style={{
-          ...cardGlowStyle(badgeColor?.text || 'var(--accent-primary)', isHovered, badgeColor?.border),
-          backgroundColor: isHovered ? 'var(--color-surface-overlay)' : 'var(--color-surface-raised)',
-          borderColor: isHovered ? (badgeColor?.border || 'var(--border-strong)') : 'rgba(255,255,255,0.06)',
-          cursor: onClick ? 'pointer' : 'default',
-          transformStyle: 'preserve-3d',
-          perspective: '800px',
-        }}
-        onMouseEnter={() => setIsHovered(true)}
-        onMouseMove={handleMouseMove}
-        onMouseLeave={handleMouseLeave}
-        animate={{
-          y: isHovered ? -3 : 0,
-          rotateX: tilt.rotateX,
-          rotateY: tilt.rotateY,
-        }}
-        transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
-        onClick={onClick}
-      >
-        {/* Top accent line with shimmer sweep animation */}
-        {badgeColor && (
-          <div className="absolute top-0 left-4 right-4 h-px rounded-full overflow-hidden">
-            <motion.div
-              className="absolute inset-0 rounded-full"
-              initial={{ opacity: 0, scaleX: 0 }}
-              animate={{
-                opacity: isHovered ? 0.8 : 0.2,
-                scaleX: isHovered ? 1 : 0.5,
-              }}
-              transition={{ duration: 0.3 }}
-              style={{
-                background: `linear-gradient(90deg, transparent, ${badgeColor.text}, transparent)`,
-              }}
-            />
-            {/* Shimmer sweep overlay */}
-            <motion.div
-              className="absolute inset-0 rounded-full"
-              animate={isHovered ? { opacity: 1 } : { opacity: 0 }}
-              transition={{ duration: 0.3 }}
-              style={{
-                background: `linear-gradient(90deg, transparent 0%, ${badgeColor.text}40 50%, transparent 100%)`,
-                backgroundSize: '200% 100%',
-                animation: isHovered ? 'shimmer-sweep 2s cubic-bezier(0.22, 1, 0.36, 1) infinite' : 'none',
-              }}
-            />
-          </div>
-        )}
-
-        {/* Enhanced corner glow on hover */}
-        {badgeColor && (
+    <div
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+    >
+    <GlassCard
+      intensity="medium"
+      border="subtle"
+      variant="elevated"
+      rounded="lg"
+      padding="md"
+      hover={!!onClick}
+      entityColor={entityColorKey as 'character' | 'item' | 'location' | 'faction' | 'outline' | 'ifline' | 'accent'}
+      onClick={onClick}
+      className="relative group"
+    >
+      {/* Top accent line with hover animation */}
+      {colors && (
+        <div className="absolute top-0 left-4 right-4 h-px rounded-full overflow-hidden">
           <motion.div
-            className="absolute top-0 right-0 w-40 h-40 pointer-events-none"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: isHovered ? 0.12 : 0 }}
-            transition={{ duration: 0.4 }}
+            className="absolute inset-0 rounded-full"
+            initial={{ opacity: 0, scaleX: 0.4 }}
+            animate={{
+              opacity: isHovered ? 0.6 : 0.15,
+              scaleX: isHovered ? 1 : 0.4,
+            }}
+            transition={{ duration: DURATION.NORMAL, ease: EASE.SMOOTH }}
             style={{
-              background: `radial-gradient(circle at 100% 0%, ${badgeColor.text}, transparent 70%)`,
+              background: `linear-gradient(90deg, transparent, ${colors.text}, transparent)`,
             }}
           />
-        )}
+        </div>
+      )}
 
-        {/* Bottom glow reflection */}
-        {badgeColor && (
-          <motion.div
-            className="absolute bottom-0 left-0 right-0 h-20 pointer-events-none"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: isHovered ? 0.06 : 0 }}
-            transition={{ duration: 0.4 }}
-            style={{
-              background: `radial-gradient(ellipse at 50% 100%, ${badgeColor.text}, transparent 70%)`,
-            }}
-          />
-        )}
-
-        <div className="flex items-start justify-between relative z-10">
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2 mb-1.5">
-              <h3 className="font-medium text-sm text-[var(--text-primary)]">
-                {name}
-              </h3>
-              {badge && badgeColor && (
-                <motion.span
-                  className="text-[11px] px-2 py-0.5 rounded-md font-medium"
-                  style={{
-                    backgroundColor: badgeColor.bg,
-                    color: badgeColor.text,
-                    border: `1px solid ${badgeColor.border}`,
-                    boxShadow: isHovered ? `0 0 12px ${badgeColor.glow}` : 'none',
-                  }}
-                  initial={false}
-                  animate={isHovered ? { scale: 1.08 } : { scale: 1 }}
-                  transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
-                >
-                  {badge}
-                </motion.span>
-              )}
-            </div>
-            {description && (
-              <p className="text-xs line-clamp-2 text-[var(--text-tertiary)] leading-relaxed">
-                {description}
-              </p>
-            )}
-            {extraContent}
-            {entityType && entityId !== undefined ? (
-              <TagInput entityType={entityType} entityId={entityId} tags={tags || []} />
-            ) : (
-              tags && tags.length > 0 && <TagChips tags={tags} entityType={entityType} />
-            )}
-          </div>
-          <div className="flex gap-0.5 ml-2">
-            {onEdit && (
-              <motion.button
-                onClick={(e) => {
-                  e.stopPropagation()
-                  onEdit()
+      <div className="flex items-start justify-between">
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2 mb-1.5">
+            <h3 className="font-medium text-sm text-[var(--text-primary)]">
+              {name}
+            </h3>
+            {badge && colors && (
+              <span
+                className="text-[11px] px-2 py-0.5 rounded-md font-medium"
+                style={{
+                  backgroundColor: colors.bg,
+                  color: colors.text,
+                  border: `1px solid ${colors.border}`,
                 }}
-                className="p-1.5 rounded-lg transition-all text-[var(--text-tertiary)] hover:bg-[var(--color-surface-hover)] hover:text-[var(--text-primary)]"
-                whileHover={{ scale: 1.1 }}
-                whileTap={{ scale: 0.9 }}
               >
-                <Edit2 className="w-3.5 h-3.5" />
-              </motion.button>
+                {badge}
+              </span>
             )}
+          </div>
+          {description && (
+            <p className="text-xs line-clamp-2 text-[var(--text-tertiary)] leading-relaxed">
+              {description}
+            </p>
+          )}
+          {extraContent}
+          {entityType && entityId !== undefined ? (
+            <TagInput entityType={entityType} entityId={entityId} tags={tags || []} />
+          ) : (
+            tags && tags.length > 0 && <TagChips tags={tags} entityType={entityType} />
+          )}
+        </div>
+        <div className="flex gap-0.5 ml-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+          {onEdit && (
             <motion.button
               onClick={(e) => {
                 e.stopPropagation()
-                onDelete()
+                onEdit()
               }}
-              className="p-1.5 rounded-lg transition-all text-[var(--text-tertiary)] hover:bg-[rgba(217,58,58,0.12)] hover:text-[var(--color-danger)]"
+              className="p-1.5 rounded-lg transition-all text-[var(--text-tertiary)] hover:bg-[var(--color-surface-hover)] hover:text-[var(--text-primary)]"
               whileHover={{ scale: 1.1 }}
               whileTap={{ scale: 0.9 }}
             >
-              <Trash2 className="w-3.5 h-3.5" />
+              <Edit2 className="w-3.5 h-3.5" />
             </motion.button>
-          </div>
+          )}
+          <motion.button
+            onClick={(e) => {
+              e.stopPropagation()
+              onDelete()
+            }}
+            className="p-1.5 rounded-lg transition-all text-[var(--text-tertiary)] hover:bg-[var(--vermillion-muted)] hover:text-[var(--color-danger)]"
+            whileHover={{ scale: 1.1 }}
+            whileTap={{ scale: 0.9 }}
+          >
+            <Trash2 className="w-3.5 h-3.5" />
+          </motion.button>
         </div>
-      </motion.div>
-    </>
+      </div>
+    </GlassCard>
+    </div>
   )
 }
 
@@ -248,9 +173,9 @@ export function EntityListItem({
 
   return (
     <motion.div
-      className="flex items-center gap-3 px-3 py-2.5 rounded-md cursor-pointer group relative"
+      className="flex items-center gap-3 px-3 py-2.5 rounded-lg cursor-pointer group relative"
       style={{
-        backgroundColor: isHovered ? 'rgba(255,255,255,0.03)' : 'transparent',
+        backgroundColor: isHovered ? 'var(--color-surface-hover)' : 'transparent',
         borderBottom: '1px solid var(--border-subtle)',
         transition: 'background-color 0.2s ease',
       }}
@@ -258,12 +183,12 @@ export function EntityListItem({
       onMouseLeave={() => setIsHovered(false)}
       onClick={onClick}
       whileHover={{ x: 3 }}
-      transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
+      transition={{ duration: DURATION.FAST, ease: EASE.SMOOTH }}
     >
-      {/* Hover glow */}
+      {/* Hover glow effect */}
       {isHovered && (
         <motion.div
-          className="absolute inset-0 pointer-events-none rounded-md"
+          className="absolute inset-0 pointer-events-none rounded-lg"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           style={{
@@ -275,7 +200,7 @@ export function EntityListItem({
         className="w-2 h-2 rounded-full flex-shrink-0"
         style={{ backgroundColor: typeColor }}
         animate={isHovered ? { scale: 1.3 } : { scale: 1 }}
-        transition={{ duration: 0.2 }}
+        transition={{ duration: DURATION.FAST, ease: EASE.SMOOTH }}
       />
       <div className="flex-1 min-w-0">
         <div className="text-sm font-medium truncate text-[var(--text-primary)]">

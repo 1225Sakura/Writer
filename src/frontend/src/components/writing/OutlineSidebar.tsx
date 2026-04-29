@@ -17,6 +17,8 @@ import {
   Sparkles,
 } from 'lucide-react'
 import { PlotThreadIcon, EntityIcon } from '@/components/ui/Icon'
+import { DURATION, EASE } from '@/components/shared/AnimationConfig'
+
 
 interface OutlineItem {
   id: string
@@ -236,7 +238,7 @@ function TreeNode({
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: 'auto', opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
+            transition={{ duration: DURATION.FAST, ease: EASE.SMOOTH }}
             className="overflow-hidden relative"
           >
             <div
@@ -283,7 +285,7 @@ function EmptyState({
     <motion.div
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+      transition={{ duration: DURATION.SLOW, ease: EASE.SMOOTH }}
       className="flex flex-col items-center justify-center py-12 px-6 text-center"
     >
       <div
@@ -478,25 +480,17 @@ export function OutlineSidebar() {
 
   return (
     <div className="flex flex-col h-full bg-[var(--color-surface-raised)] relative">
-      {/* Subtle panel background texture */}
-      <div
-        className="absolute inset-0 pointer-events-none opacity-[0.015]"
-        style={{
-          backgroundImage: `url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M11 18c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm48 25c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm-43-7c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm63 31c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM34 90c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm56-76c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM12 86c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm28-65c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm23-11c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-6 60c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm29 22c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zM32 63c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm57-13c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-9-21c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM60 91c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM35 41c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM12 60c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2z' fill='%23ffffff' fill-opacity='1' fill-rule='evenodd'/%3E%3C/svg%3E")`,
-        }}
-      />
-
-      {/* Header */}
+      {/* Header - minimal */}
       <div className="flex items-center justify-between px-4 py-3 border-b border-[var(--border-default)] relative z-10">
         <div className="flex items-center gap-2.5">
           <div
-            className="w-8 h-8 rounded-xl flex items-center justify-center"
+            className="w-7 h-7 rounded-lg flex items-center justify-center"
             style={{
-              background: 'linear-gradient(135deg, rgba(91, 142, 232, 0.15) 0%, rgba(94, 106, 210, 0.1) 100%)',
-              border: '1px solid rgba(91, 142, 232, 0.2)',
+              background: 'color-mix(in srgb, var(--color-outline) 10%, transparent)',
+              border: '1px solid color-mix(in srgb, var(--color-outline) 15%, transparent)',
             }}
           >
-            <BookOpen className="w-4 h-4 text-[var(--color-outline)]" />
+            <BookOpen className="w-3.5 h-3.5 text-[var(--color-outline)]" />
           </div>
           <div>
             <span className="font-semibold text-sm text-[var(--text-primary)] tracking-tight">大纲</span>
@@ -561,7 +555,7 @@ export function OutlineSidebar() {
               initial={{ opacity: 0, x: -8 }}
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -8 }}
-              transition={{ duration: 0.15 }}
+              transition={{ duration: DURATION.FAST, ease: EASE.SMOOTH }}
               className="p-2 space-y-0.5"
             >
               {outlineData.length === 0 ? (
@@ -617,7 +611,7 @@ export function OutlineSidebar() {
               initial={{ opacity: 0, x: -8 }}
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -8 }}
-              transition={{ duration: 0.15 }}
+              transition={{ duration: DURATION.FAST, ease: EASE.SMOOTH }}
               className="p-3 space-y-2.5"
             >
               {openThreads.length === 0 ? (
@@ -644,7 +638,7 @@ export function OutlineSidebar() {
               initial={{ opacity: 0, x: -8 }}
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -8 }}
-              transition={{ duration: 0.15 }}
+              transition={{ duration: DURATION.FAST, ease: EASE.SMOOTH }}
               className="p-3 space-y-2.5"
             >
               {ifLines.length === 0 ? (

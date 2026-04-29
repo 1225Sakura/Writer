@@ -1,9 +1,10 @@
 import { useUIStore, useSettingsStore, UIState } from '@/store'
 import { useShallow } from 'zustand/react/shallow'
-import { Button } from '@/components/ui/Button'
 import { Feather, Sparkles } from 'lucide-react'
 import { EntityIcon } from '@/components/ui/Icon'
 import { motion, AnimatePresence } from 'framer-motion'
+import { GlassCard } from '@/components/ui/GlassCard'
+import { EASE, DURATION, SPRING } from '@/components/shared/AnimationConfig'
 
 const categories: Array<{ key: UIState['settingsCategory']; label: string; iconType: Parameters<typeof EntityIcon>[0]['type'] }> = [
   { key: 'world', label: '世界观', iconType: 'world' },
@@ -29,20 +30,19 @@ const categoryColorVars: Record<string, string> = {
   ifline: 'var(--color-ifline)',
 }
 
-function CountBadge({ count, color }: { count: number; color: string }) {
+function CountBadge({ count, color, isActive }: { count: number; color: string; isActive: boolean }) {
   return (
     <motion.span
       key={count}
       initial={{ scale: 0.6, opacity: 0, y: -4 }}
       animate={{ scale: 1, opacity: 1, y: 0 }}
       exit={{ scale: 0.6, opacity: 0, y: -4 }}
-      transition={{ type: 'spring', stiffness: 500, damping: 25 }}
+      transition={SPRING.BADGE}
       className="ml-auto text-[10px] px-1.5 py-0.5 rounded-full font-medium min-w-[20px] text-center"
       style={{
-        backgroundColor: `${color}15`,
-        color: color,
-        boxShadow: `0 0 8px ${color}20, 0 1px 3px rgba(0,0,0,0.2)`,
-        border: `1px solid ${color}25`,
+        backgroundColor: isActive ? `${color}20` : 'var(--color-surface-overlay)',
+        color: isActive ? color : 'var(--text-tertiary)',
+        border: `1px solid ${isActive ? `${color}30` : 'transparent'}`,
       }}
     >
       {count}
@@ -75,22 +75,18 @@ export function CategoryNav() {
 
   return (
     <div className="h-full flex flex-col bg-[var(--color-surface-base)]">
-      {/* Header with subtle gradient accent */}
-      <div className="px-4 py-5 relative overflow-hidden border-b border-[var(--border-subtle)]">
-        <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-[var(--accent-100)] to-transparent opacity-40" />
-        <div className="absolute -top-8 -right-8 w-24 h-24 rounded-full opacity-[0.06]"
-          style={{ background: 'radial-gradient(circle, var(--accent-100), transparent 70%)' }}
-        />
-        <h2 className="font-semibold text-base text-[var(--text-primary)] relative">
+      {/* Header - clean with subtle glass effect */}
+      <div className="px-4 py-4 border-b border-[var(--border-subtle)]">
+        <h2 className="font-semibold text-sm text-[var(--text-primary)]">
           设定编辑
         </h2>
-        <p className="text-xs mt-1.5 text-[var(--text-tertiary)] relative">
+        <p className="text-[11px] mt-1 text-[var(--text-tertiary)]">
           管理你的世界观、角色、物品等
         </p>
       </div>
 
-      {/* Navigation list with flowing light indicator */}
-      <nav className="flex-1 overflow-y-auto py-3 category-nav-scroll">
+      {/* Navigation list with enhanced visual hierarchy */}
+      <nav className="flex-1 overflow-y-auto py-2 category-nav-scroll">
         <AnimatePresence>
           {categories.map(({ key, label, iconType }, index) => {
             const isActive = settingsCategory === key
@@ -109,83 +105,66 @@ export function CategoryNav() {
                 }}
                 className={`
                   w-full flex items-center gap-3 text-left relative overflow-hidden group cursor-pointer
-                  px-4 py-2.5 mb-0.5 touch-target-min
+                  mx-2 px-3 py-2.5 mb-1 rounded-lg touch-target-min
                   transition-all duration-200 ease-out
                   border-0 bg-transparent
                   focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-100)] focus-visible:ring-offset-2 focus-visible:ring-inset
-                  ${isActive
-                    ? ''
-                    : 'hover:bg-[var(--color-surface-hover)]'
-                  }
                 `}
                 initial={{ opacity: 0, x: -12 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{
-                  duration: 0.3,
+                  duration: DURATION.SLOW,
                   delay: index * 0.04,
-                  ease: [0.25, 0.46, 0.45, 0.94],
+                  ease: EASE.OUT,
                 }}
                 whileHover={isActive ? {} : { x: 2 }}
                 whileTap={{ scale: 0.98 }}
                 style={isActive ? {
-                  backgroundColor: `${color}10`,
+                  backgroundColor: `${color}12`,
                 } : undefined}
                 role="tab"
                 aria-pressed={isActive}
                 aria-label={`${label}分类，当前${isActive ? '选中' : '未选中'}`}
                 tabIndex={0}
               >
-                {/* Flowing light indicator - gradient left border glow */}
+                {/* Active indicator - animated left border with glow */}
                 <motion.div
                   className="absolute left-0 top-1/2 -translate-y-1/2 rounded-r-full"
                   initial={false}
                   animate={{
                     width: isActive ? 3 : 0,
-                    height: isActive ? 24 : 12,
+                    height: isActive ? 20 : 0,
                     opacity: isActive ? 1 : 0,
                   }}
-                  transition={{
-                    type: 'spring',
-                    stiffness: 500,
-                    damping: 28,
-                    mass: 0.8,
-                  }}
+                  transition={SPRING.SNAPPY}
                   style={{
-                    background: isActive
-                      ? `linear-gradient(180deg, ${color}00, ${color}, ${color}00)`
-                      : 'var(--text-tertiary)',
-                    boxShadow: isActive
-                      ? `0 0 12px ${color}80, 0 0 24px ${color}40, 0 0 36px ${color}20`
-                      : 'none',
+                    background: isActive ? color : 'transparent',
+                    boxShadow: isActive ? `0 0 8px ${color}60` : 'none',
                   }}
                 />
 
-                {/* Hover subtle indicator */}
-                <motion.div
-                  className="absolute left-0 top-1/2 -translate-y-1/2 rounded-r-full pointer-events-none"
-                  initial={false}
-                  animate={{
-                    width: !isActive ? 2 : 0,
-                    opacity: !isActive ? 0.4 : 0,
-                  }}
-                  transition={{ duration: 0.15 }}
-                  style={{
-                    height: 12,
-                    background: `linear-gradient(180deg, ${color}00, ${color}60, ${color}00)`,
-                  }}
-                />
+                {/* Hover indicator - subtle left accent */}
+                {!isActive && (
+                  <motion.div
+                    className="absolute left-0 top-1/2 -translate-y-1/2 w-[2px] h-0 rounded-r-full pointer-events-none"
+                    initial={{ height: 0, opacity: 0 }}
+                    whileHover={{ height: 12, opacity: 1 }}
+                    transition={{ duration: DURATION.FAST, ease: EASE.SMOOTH }}
+                    style={{ backgroundColor: `${color}50` }}
+                  />
+                )}
 
-                {/* Icon wrapper with animated background glow */}
+                {/* Icon wrapper with entity color coding */}
                 <motion.div
-                  className="w-7 h-7 flex items-center justify-center flex-shrink-0 rounded-lg"
-                  animate={isActive ? {
-                    backgroundColor: `${color}12`,
-                    boxShadow: `0 0 16px ${color}25, inset 0 0 12px ${color}08, 0 1px 3px rgba(0,0,0,0.15)`,
-                  } : {
-                    backgroundColor: 'transparent',
-                    boxShadow: 'none',
+                  className="w-8 h-8 flex items-center justify-center flex-shrink-0 rounded-lg transition-all duration-200"
+                  style={{
+                    backgroundColor: isActive ? `${color}15` : 'transparent',
+                    border: isActive ? `1px solid ${color}25` : '1px solid transparent',
                   }}
-                  transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
+                  whileHover={!isActive ? {
+                    backgroundColor: `${color}10`,
+                    borderColor: `${color}20`,
+                  } : {}}
                 >
                   <EntityIcon
                     type={iconType}
@@ -193,27 +172,37 @@ export function CategoryNav() {
                     className="transition-all duration-200"
                     style={{
                       color: isActive ? color : 'var(--text-tertiary)',
-                      filter: isActive ? `drop-shadow(0 0 4px ${color}50)` : 'none',
                       transform: isActive ? 'scale(1.1)' : 'scale(1)',
                     }}
                   />
                 </motion.div>
 
-                {/* Label with animated weight */}
-                <motion.span
-                  className="text-sm font-medium truncate"
-                  animate={{
+                {/* Label with active weight transition */}
+                <span
+                  className="text-sm truncate transition-all duration-200"
+                  style={{
                     color: isActive ? 'var(--text-primary)' : 'var(--text-secondary)',
-                    fontWeight: isActive ? 500 : 400,
+                    fontWeight: isActive ? 600 : 400,
                   }}
-                  transition={{ duration: 0.2 }}
                 >
                   {label}
-                </motion.span>
+                </span>
 
-                {/* Count badge */}
+                {/* Count badge with entity color */}
                 {count > 0 && (
-                  <CountBadge count={count} color={isActive ? color : 'var(--text-tertiary)'} />
+                  <CountBadge count={count} color={color} isActive={isActive} />
+                )}
+
+                {/* Active background glow */}
+                {isActive && (
+                  <motion.div
+                    className="absolute inset-0 pointer-events-none rounded-lg"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    style={{
+                      background: `radial-gradient(ellipse at 30% 50%, ${color}08 0%, transparent 70%)`,
+                    }}
+                  />
                 )}
               </motion.button>
             )
@@ -221,72 +210,52 @@ export function CategoryNav() {
         </AnimatePresence>
       </nav>
 
-      {/* Footer: AI tools with refined styling */}
-      <div className="p-4 flex flex-col gap-2 border-t border-[var(--border-subtle)] relative">
-        <div className="absolute top-0 left-4 right-4 h-px bg-gradient-to-r from-transparent via-[var(--border-default)] to-transparent" />
-        <AnimatePresence mode="wait">
-          {reviewableCategories.includes(settingsCategory) && (
-            <motion.div
-              initial={{ opacity: 0, height: 0, marginBottom: 0 }}
-              animate={{ opacity: 1, height: 'auto', marginBottom: 0 }}
-              exit={{ opacity: 0, height: 0, marginBottom: 0 }}
-              transition={{ duration: 0.25, ease: [0.25, 0.46, 0.45, 0.94] }}
-            >
-              <Button
-                onClick={() => reviewWithAI(settingsCategory as 'world' | 'character' | 'item' | 'location' | 'faction' | 'rule')}
-                variant="ghost"
-                size="md"
-                className="w-full group"
-                disabled={isLoading}
-              >
-                <motion.div
-                  className="flex items-center gap-2"
-                  whileHover={{ x: 2 }}
-                  transition={{ type: 'spring', stiffness: 400, damping: 25 }}
-                >
-                  <motion.span
-                    whileHover={{ rotate: -12 }}
-                    transition={{ type: 'spring', stiffness: 400 }}
-                  >
-                    <Feather className="w-4 h-4" />
-                  </motion.span>
-                  <span>AI审查</span>
-                </motion.div>
-              </Button>
-            </motion.div>
-          )}
-        </AnimatePresence>
-        <motion.div
-          whileHover={{ scale: 1.02 }}
-          whileTap={{ scale: 0.98 }}
-          transition={{ type: 'spring', stiffness: 400, damping: 25 }}
+      {/* Footer: AI tools with GlassCard container */}
+      <div className="p-3 border-t border-[var(--border-subtle)]">
+        <GlassCard
+          intensity="light"
+          border="subtle"
+          variant="default"
+          rounded="lg"
+          padding="sm"
+          className="space-y-1.5"
         >
-          <Button
+          <AnimatePresence mode="wait">
+            {reviewableCategories.includes(settingsCategory) && (
+              <motion.div
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: 'auto' }}
+                exit={{ opacity: 0, height: 0 }}
+                transition={{ duration: DURATION.NORMAL, ease: EASE.OUT }}
+              >
+                <motion.button
+                  onClick={() => reviewWithAI(settingsCategory as 'world' | 'character' | 'item' | 'location' | 'faction' | 'rule')}
+                  className="w-full flex items-center gap-2 px-3 py-2 rounded-md text-xs font-medium transition-all duration-200 text-[var(--text-secondary)] hover:text-[var(--accent-primary)] hover:bg-[var(--accent-muted)]"
+                  disabled={isLoading}
+                  whileHover={{ x: 2 }}
+                  whileTap={{ scale: 0.98 }}
+                >
+                  <Feather className="w-3.5 h-3.5" />
+                  <span>AI审查</span>
+                </motion.button>
+              </motion.div>
+            )}
+          </AnimatePresence>
+          <motion.button
             onClick={() => {
               if (settingsCategory !== 'outline' && settingsCategory !== 'ifline') {
                 generate(settingsCategory as 'character' | 'item' | 'location' | 'faction' | 'world' | 'rule')
               }
             }}
-            variant="ghost"
-            size="md"
-            className="w-full group"
+            className="w-full flex items-center gap-2 px-3 py-2 rounded-md text-xs font-medium transition-all duration-200 text-[var(--text-secondary)] hover:text-[var(--color-character)] hover:bg-[var(--color-character)]/10"
             disabled={isLoading}
+            whileHover={{ x: 2 }}
+            whileTap={{ scale: 0.98 }}
           >
-            <motion.div
-              className="flex items-center gap-2"
-              whileHover={{ x: 2 }}
-              transition={{ type: 'spring', stiffness: 400, damping: 25 }}
-            >
-              <motion.span
-                whileHover={{ scale: 1.15, rotate: 5 }}
-                transition={{ type: 'spring', stiffness: 400 }}
-              >
-                <Sparkles className="w-4 h-4" />
-              </motion.span>
-              <span>智能生成</span>
-            </motion.div>
-          </Button>
-        </motion.div>
+            <Sparkles className="w-3.5 h-3.5" />
+            <span>智能生成</span>
+          </motion.button>
+        </GlassCard>
       </div>
     </div>
   )
