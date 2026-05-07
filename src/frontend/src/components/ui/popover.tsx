@@ -21,10 +21,9 @@ const PopoverContent = React.forwardRef<
       className={cn(
         "z-50 w-72 rounded-xl",
         "border border-[var(--border-default)]",
-        "bg-gradient-to-b from-[var(--color-surface-raised)] to-[var(--color-surface-base)]",
-        "shadow-[0_4px_16px_rgba(0,0,0,0.2),0_8px_32px_rgba(0,0,0,0.15),0_2px_8px_rgba(0,0,0,0.1)]",
+        "bg-[var(--color-surface-overlay)]",
+        "shadow-[var(--shadow-float)]",
         "p-5",
-        "backdrop-blur-sm",
         "animate-in fade-in-0 zoom-in-95",
         "data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95",
         "data-[state=closed]:slide-out-to-bottom-2",

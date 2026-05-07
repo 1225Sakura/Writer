@@ -135,7 +135,6 @@ export function ChapterNotesPanel() {
           className="fixed right-4 bottom-14 z-50 flex items-center gap-2 px-3.5 py-2.5 rounded-xl text-xs font-medium
                      bg-[var(--color-surface-raised)] border border-[var(--border-default)] text-[var(--text-secondary)]
                      shadow-float transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[var(--shadow-elevated-lg)]"
-          style={{ backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)' }}
           title="章节笔记"
           aria-label="章节笔记"
         >
@@ -169,8 +168,6 @@ export function ChapterNotesPanel() {
             background: 'var(--color-surface-raised)',
             border: '1px solid var(--border-default)',
             boxShadow: 'var(--shadow-float), 0 0 0 1px var(--border-subtle)',
-            backdropFilter: 'blur(16px)',
-            WebkitBackdropFilter: 'blur(16px)',
           }}
         >
           <div className="absolute inset-0 pointer-events-none opacity-[0.012]" style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")` }} />

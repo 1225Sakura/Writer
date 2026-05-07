@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { ChevronDown, Filter, SortAsc, SortDesc } from 'lucide-react'
 import { EntityListItem, entityColors } from './EntityCard'
-import type { EntityType } from '@/store'
+import type { EntityType } from '@/shared/types'
 import { DURATION, EASE } from '@/components/shared/AnimationConfig'
 
 

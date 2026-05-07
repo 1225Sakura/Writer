@@ -49,18 +49,18 @@ export const microVariants: Record<string, Variants> = {
   },
   /** 卡片悬停发光扩展 */
   cardGlow: {
-    initial: { boxShadow: '0 0 0 rgba(94, 106, 210, 0)' },
+    initial: { boxShadow: '0 0 0 rgba(201, 169, 110, 0)' },
     hover: {
-      boxShadow: '0 0 20px rgba(94, 106, 210, 0.15), 0 0 40px rgba(94, 106, 210, 0.08), 0 8px 24px rgba(0, 0, 0, 0.12)',
+      boxShadow: '0 0 20px rgba(201, 169, 110, 0.15), 0 0 40px rgba(201, 169, 110, 0.08), 0 8px 24px rgba(0, 0, 0, 0.12)',
       y: -2,
       transition: { duration: 0.25, ease: easeOutSmooth },
     },
   },
   /** 输入框聚焦发光扩展 */
   inputGlow: {
-    initial: { boxShadow: '0 0 0 0 rgba(94, 106, 210, 0)' },
+    initial: { boxShadow: '0 0 0 0 rgba(201, 169, 110, 0)' },
     focus: {
-      boxShadow: '0 0 0 3px rgba(94, 106, 210, 0.15), 0 0 12px rgba(94, 106, 210, 0.1)',
+      boxShadow: '0 0 0 3px rgba(201, 169, 110, 0.15), 0 0 12px rgba(201, 169, 110, 0.1)',
       transition: { duration: 0.2, ease: easeOutSmooth },
     },
   },
@@ -290,7 +290,7 @@ interface CardHoverGlowProps extends HTMLMotionProps<'div'> {
 export function CardHoverGlow({
   children,
   className,
-  glowColor = 'rgba(94, 106, 210, 0.15)',
+  glowColor = 'rgba(201, 169, 110, 0.15)',
   glowIntensity = 1,
   ...props
 }: CardHoverGlowProps) {
@@ -330,7 +330,7 @@ interface InputFocusGlowProps extends React.InputHTMLAttributes<HTMLInputElement
 export function InputFocusGlow({
   className,
   containerClassName,
-  glowColor = 'rgba(94, 106, 210, 0.15)',
+  glowColor = 'rgba(201, 169, 110, 0.15)',
   onFocus,
   onBlur,
   ...props

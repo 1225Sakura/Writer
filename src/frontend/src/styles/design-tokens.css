@@ -1,20 +1,18 @@
 /**
- * Design Tokens — Ink/Parchment/Vermillion System
+ * Design Tokens — Vintage Study System
  * ============================================================
  * Central source of truth for all design tokens.
  * This is the ONLY file that defines CSS custom properties.
  * All other CSS files reference these variables.
  *
- * Color Palette (from CLAUDE.md):
- * - 深墨色 #1a1a2e (写作区背景/dark backgrounds)
- * - 宣纸白 #f5f0e6 (正文文字/卡片背景/paper white)
- * - 朱砂红 #c45c5c (强调/警告/error/danger)
- * - 角色橙 #e8b87d (character type)
- * - 物品紫 #9b7ed9 (item type)
- * - 地点青 #5eb5a6 (location type)
- * - 势力红 #d45d5d (faction type)
- * - 大纲蓝 #5b8ee8 (outline type)
- * - IF线绿 #7eb84a (IF line type)
+ * Color Palette (Vintage Study):
+ * - Ink scale: warm dark browns #1a1510 (darkest) to #2a1f14
+ * - Paper scale: parchment/cream #f5eed6 (lightest) to #e8dcc4
+ * - Accent scale: brass/gold #c9a96e (bright) to #8b7355 (muted)
+ * - Vermillion scale: burgundy/wine #8b3a3a (bright) to #6b2d2d (dark)
+ * - Entity colors: muted vintage tones
+ * - Textures: paper grain, leather, wood grain
+ * - Shadows: warm amber/brass glows
  * ============================================================
  */
 
@@ -23,51 +21,51 @@
    ============================================================ */
 
 :root {
-  /* === Ink Scale (Backgrounds) === */
-  --ink-100: #0d0d12;
-  --ink-95:  #12121c;
-  --ink-90:  #1a1a2e;
-  --ink-85:  #222238;
-  --ink-80:  #252540;
-  --ink-75:  #303048;
-  --ink-70:  #3a3a4a;
-  --ink-65:  #44445a;
-  --ink-60:  #4a4a5a;
+  /* === Ink Scale (Backgrounds — warm dark browns) === */
+  --ink-100: #1a1510;
+  --ink-95:  #1e1813;
+  --ink-90:  #2a1f14;
+  --ink-85:  #332820;
+  --ink-80:  #3d3028;
+  --ink-75:  #483a30;
+  --ink-70:  #554538;
+  --ink-65:  #625240;
+  --ink-60:  #705e4a;
 
-  /* === Paper Scale (Foregrounds) === */
-  --paper-100: #f5f0e6;
-  --paper-95:  #eee9df;
-  --paper-90:  #e8e4dc;
-  --paper-85:  #dcd6c8;
-  --paper-80:  #d8d2c4;
-  --paper-75:  #b8b8b8;
-  --paper-70:  #999999;
-  --paper-65:  #888888;
-  --paper-60:  #666666;
+  /* === Paper Scale (Foregrounds — parchment/cream) === */
+  --paper-100: #f5eed6;
+  --paper-95:  #efe7cd;
+  --paper-90:  #e8dcc4;
+  --paper-85:  #ddd0b5;
+  --paper-80:  #d4c5a8;
+  --paper-75:  #b8a88c;
+  --paper-70:  #9c8c70;
+  --paper-65:  #88785c;
+  --paper-60:  #746448;
 
-  /* === Accent Scale (Brand / Interactive) === */
-  --accent-100: #5e6ad2;
-  --accent-95:  #6475e0;
-  --accent-90:  #6b77e0;
-  --accent-85:  #5864c4;
-  --accent-80:  #4a5499;
-  --accent-muted: rgba(94, 106, 210, 0.18);
+  /* === Accent Scale (Brass/Gold — Brand / Interactive) === */
+  --accent-100: #c9a96e;
+  --accent-95:  #d0b27a;
+  --accent-90:  #b89858;
+  --accent-85:  #a68848;
+  --accent-80:  #8b7355;
+  --accent-muted: rgba(201, 169, 110, 0.18);
 
-  /* === Vermillion Scale (Warning / Error) === */
-  --vermillion-100: #c45c5c;
-  --vermillion-95:  #cc6262;
-  --vermillion-90:  #d45d5d;
-  --vermillion-muted: rgba(196, 92, 92, 0.18);
+  /* === Vermillion Scale (Burgundy/Wine — Warning / Error) === */
+  --vermillion-100: #8b3a3a;
+  --vermillion-95:  #964242;
+  --vermillion-90:  #a04848;
+  --vermillion-muted: rgba(139, 58, 58, 0.18);
 
-  /* === Entity Type Colors === */
-  --color-character: #e8b87d;
-  --color-item:      #9b7ed9;
-  --color-location:  #5eb5a6;
-  --color-faction:   #d45d5d;
-  --color-outline:   #5b8ee8;
-  --color-ifline:    #7eb84a;
+  /* === Entity Type Colors (muted vintage tones) === */
+  --color-character: #c9a06e;
+  --color-item:      #8b7aaa;
+  --color-location:  #6b9e8e;
+  --color-faction:   #a04848;
+  --color-outline:   #7088a8;
+  --color-ifline:    #7a9e58;
   --color-world:     #c9a96e;
-  --color-rule:      #8b9dc3;
+  --color-rule:      #8b8ea8;
 
   /* === Surface Colors === */
   --color-surface-base:     var(--ink-100);
@@ -75,9 +73,9 @@
   --color-surface-overlay:  var(--ink-90);
   --color-surface-input:    var(--ink-80);
   --color-surface-hover:    var(--ink-75);
-  --color-surface-pressed:  #151618;
-  --color-surface-elevated: #2a2c30;
-  --color-surface-floating: #303236;
+  --color-surface-pressed:  #171210;
+  --color-surface-elevated: #3a2e24;
+  --color-surface-floating: #443828;
 
   /* === Text Hierarchy === */
   --text-primary:   var(--paper-100);
@@ -87,14 +85,14 @@
   --text-inverse:   var(--ink-100);
 
   /* === Border === */
-  --border-default: rgba(255, 255, 255, 0.10);
-  --border-subtle:  rgba(255, 255, 255, 0.06);
-  --border-strong:  rgba(255, 255, 255, 0.18);
+  --border-default: rgba(201, 169, 110, 0.12);
+  --border-subtle:  rgba(201, 169, 110, 0.06);
+  --border-strong:  rgba(201, 169, 110, 0.22);
   --border-focus:   var(--accent-100);
 
   /* === Semantic Mappings === */
   --color-danger:  var(--vermillion-100);
-  --color-warning: #e8b87d;
+  --color-warning: var(--color-character);
   --color-success: var(--color-location);
   --color-info:    var(--accent-100);
 
@@ -120,17 +118,17 @@
   --ring:                   var(--border-focus);
   --radius:                 0.5rem;
 
-  /* === Glass Surface === */
-  --glass-base-rgb:    13, 13, 18;
+  /* === Glass Surface (parchment/leather tones) === */
+  --glass-base-rgb:    26, 21, 16;
   --glass-bg:          rgba(var(--glass-base-rgb), 0.65);
   --glass-bg-subtle:   rgba(var(--glass-base-rgb), 0.55);
   --glass-bg-medium:   rgba(var(--glass-base-rgb), 0.75);
   --glass-bg-strong:   rgba(var(--glass-base-rgb), 0.85);
-  --glass-border:      rgba(255, 255, 255, 0.08);
+  --glass-border:      rgba(201, 169, 110, 0.10);
 
   /* === Typography === */
   --font-writing:   'Noto Serif SC', 'Source Han Serif CN', serif;
-  --font-interface: 'Inter', -apple-system, sans-serif;
+  --font-interface: 'Source Han Sans', 'Inter', -apple-system, sans-serif;
   --font-mono:      'JetBrains Mono', monospace;
 
   --text-xs:   12px;
@@ -165,11 +163,16 @@
   --writing-letter-spacing: 0.01em;
   --writing-paragraph-spacing: 1.5em;
   --writing-text-indent: 2em;
-  --writing-bg:         #1a1a2e;
+  --writing-bg:         #2a1f14;
   --writing-text:       var(--paper-100);
-  --writing-muted:      rgba(245, 240, 230, 0.60);
-  --writing-line-highlight: rgba(94, 106, 210, 0.08);
-  --writing-selection:  rgba(232, 184, 125, 0.28);
+  --writing-muted:      rgba(245, 238, 214, 0.60);
+  --writing-line-highlight: rgba(201, 169, 110, 0.08);
+  --writing-selection:  rgba(201, 169, 110, 0.28);
+
+  /* === Material Texture Tokens === */
+  --texture-paper-grain: url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+  --texture-leather: linear-gradient(135deg, rgba(90, 60, 30, 0.06) 0%, rgba(60, 40, 20, 0.03) 50%, rgba(90, 60, 30, 0.06) 100%);
+  --texture-wood-grain: repeating-linear-gradient(90deg, transparent 0px, transparent 4px, rgba(120, 80, 40, 0.03) 4px, rgba(120, 80, 40, 0.03) 5px);
 
   /* === Spacing (4px base) === */
   --space-unit: 4px;
@@ -199,20 +202,20 @@
   --radius-pill: 9999px;
   --radius-full: 9999px;
 
-  /* === Shadows === */
-  --shadow-card:        0 1px 4px rgba(0, 0, 0, 0.18), 0 1px 2px rgba(0, 0, 0, 0.12);
-  --shadow-drawer:      0 3px 16px rgba(0, 0, 0, 0.22), 0 2px 4px rgba(0, 0, 0, 0.12);
-  --shadow-float:       0 6px 24px rgba(0, 0, 0, 0.26), 0 3px 8px rgba(0, 0, 0, 0.14);
-  --shadow-elevated:    0 3px 10px rgba(0, 0, 0, 0.22), 0 2px 4px rgba(0, 0, 0, 0.12);
-  --shadow-elevated-lg: 0 6px 20px rgba(0, 0, 0, 0.28), 0 4px 6px rgba(0, 0, 0, 0.14);
-  --shadow-glow-sm:     0 0 12px rgba(94, 106, 210, 0.35);
-  --shadow-glow:        0 0 24px rgba(94, 106, 210, 0.45), 0 0 48px rgba(94, 106, 210, 0.20);
-  --shadow-glow-lg:     0 0 40px rgba(94, 106, 210, 0.55), 0 0 80px rgba(94, 106, 210, 0.25);
+  /* === Shadows (warm amber/brass) === */
+  --shadow-card:        0 1px 4px rgba(26, 21, 16, 0.25), 0 1px 2px rgba(26, 21, 16, 0.18);
+  --shadow-drawer:      0 3px 16px rgba(26, 21, 16, 0.30), 0 2px 4px rgba(26, 21, 16, 0.18);
+  --shadow-float:       0 6px 24px rgba(26, 21, 16, 0.35), 0 3px 8px rgba(26, 21, 16, 0.20);
+  --shadow-elevated:    0 3px 10px rgba(26, 21, 16, 0.30), 0 2px 4px rgba(26, 21, 16, 0.18);
+  --shadow-elevated-lg: 0 6px 20px rgba(26, 21, 16, 0.38), 0 4px 6px rgba(26, 21, 16, 0.20);
+  --shadow-glow-sm:     0 0 12px rgba(201, 169, 110, 0.35);
+  --shadow-glow:        0 0 24px rgba(201, 169, 110, 0.45), 0 0 48px rgba(201, 169, 110, 0.20);
+  --shadow-glow-lg:     0 0 40px rgba(201, 169, 110, 0.55), 0 0 80px rgba(201, 169, 110, 0.25);
 
-  /* === Glow Tokens === */
-  --glow-primary:    rgba(94, 106, 210, 0.45);
-  --glow-primary-sm: rgba(94, 106, 210, 0.30);
-  --glow-accent:     0 0 18px rgba(94, 106, 210, 0.45), 0 0 36px rgba(94, 106, 210, 0.25), 0 0 72px rgba(94, 106, 210, 0.12);
+  /* === Glow Tokens (warm brass/amber) === */
+  --glow-primary:    rgba(201, 169, 110, 0.45);
+  --glow-primary-sm: rgba(201, 169, 110, 0.30);
+  --glow-accent:     0 0 18px rgba(201, 169, 110, 0.45), 0 0 36px rgba(201, 169, 110, 0.25), 0 0 72px rgba(201, 169, 110, 0.12);
 
   /* === Motion === */
   --transition-instant: 50ms ease;
@@ -235,16 +238,16 @@
   --layout-content-max-width:  1200px;
   --writing-max-width:         720px;
 
-  /* === Interaction States === */
-  --hover-bg:      rgba(255, 255, 255, 0.10);
-  --hover-border:  rgba(255, 255, 255, 0.28);
-  --active-bg:     rgba(94, 106, 210, 0.22);
+  /* === Interaction States (brass focus) === */
+  --hover-bg:      rgba(201, 169, 110, 0.10);
+  --hover-border:  rgba(201, 169, 110, 0.28);
+  --active-bg:     rgba(201, 169, 110, 0.22);
   --active-border: var(--accent-100);
-  --focus-ring:    rgba(94, 106, 210, 0.65);
+  --focus-ring:    rgba(201, 169, 110, 0.65);
   --disabled-opacity: 0.50;
 
-  /* === Selection === */
-  --selection-bg:   rgba(94, 106, 210, 0.40);
+  /* === Selection (warm gold) === */
+  --selection-bg:   rgba(201, 169, 110, 0.40);
   --selection-color: var(--paper-100);
 
   /* === Paper Texture === */
@@ -272,9 +275,9 @@
   --elevation-5: var(--color-surface-hover);
 
   /* === Overlay / Backdrop === */
-  --color-overlay:       rgba(0, 0, 0, 0.55);
-  --color-overlay-light: rgba(0, 0, 0, 0.25);
-  --color-backdrop:      rgba(13, 13, 18, 0.65);
+  --color-overlay:       rgba(26, 21, 16, 0.55);
+  --color-overlay-light: rgba(26, 21, 16, 0.25);
+  --color-backdrop:      rgba(26, 21, 16, 0.65);
 
   /* === Derived tokens (referenced by components) === */
   --accent-primary: var(--accent-100);
@@ -311,38 +314,373 @@
    THEME-SPECIFIC OVERRIDES
    ============================================================ */
 
+/* --- Light: lighter vintage (cream + warm white) --- */
 [data-theme="light"],
 .light {
-  --writing-bg: #f5f0e6;
-  --writing-text: #1a1a2e;
-  --glass-base-rgb: 255, 255, 255;
-  --glass-border: rgba(0, 0, 0, 0.06);
+  --ink-100: #f0e8d8;
+  --ink-95:  #ebe2d0;
+  --ink-90:  #e4dac6;
+  --ink-85:  #ddd2ba;
+  --ink-80:  #d6c8ac;
+  --ink-75:  #c8b898;
+  --ink-70:  #b8a880;
+  --ink-65:  #a89868;
+  --ink-60:  #988858;
+
+  --paper-100: #2a1f14;
+  --paper-95:  #332820;
+  --paper-90:  #3d3028;
+  --paper-85:  #4a3a30;
+  --paper-80:  #5a4a3a;
+  --paper-75:  #6a5a48;
+  --paper-70:  #7a6a54;
+  --paper-65:  #8a7a60;
+  --paper-60:  #9a8a6c;
+
+  --accent-100: #8b6830;
+  --accent-90:  #7a5a28;
+  --accent-80:  #6a4c20;
+
+  --color-surface-base:     #f0e8d8;
+  --color-surface-raised:   #f5eed6;
+  --color-surface-overlay:  #ebe2d0;
+  --color-surface-input:    #e4dac6;
+  --color-surface-hover:    #ddd2ba;
+  --color-surface-pressed:  #d6c8ac;
+  --color-surface-elevated: #f5eed6;
+  --color-surface-floating: #faf4e4;
+
+  --border-default: rgba(42, 31, 20, 0.10);
+  --border-subtle:  rgba(42, 31, 20, 0.06);
+  --border-strong:  rgba(42, 31, 20, 0.18);
+  --border-focus:   #8b6830;
+
+  --glass-base-rgb:    245, 238, 214;
+  --glass-bg:          rgba(var(--glass-base-rgb), 0.75);
+  --glass-bg-subtle:   rgba(var(--glass-base-rgb), 0.60);
+  --glass-bg-medium:   rgba(var(--glass-base-rgb), 0.82);
+  --glass-bg-strong:   rgba(var(--glass-base-rgb), 0.90);
+  --glass-border:      rgba(42, 31, 20, 0.08);
+
+  --text-primary:   var(--paper-100);
+  --text-secondary: var(--paper-85);
+  --text-tertiary:  var(--paper-70);
+  --text-inverse:   #f5eed6;
+
+  --shadow-card:        0 1px 4px rgba(42, 31, 20, 0.10), 0 1px 2px rgba(42, 31, 20, 0.06);
+  --shadow-drawer:      0 3px 16px rgba(42, 31, 20, 0.12), 0 2px 4px rgba(42, 31, 20, 0.06);
+  --shadow-float:       0 6px 24px rgba(42, 31, 20, 0.14), 0 3px 8px rgba(42, 31, 20, 0.08);
+  --shadow-elevated:    0 3px 10px rgba(42, 31, 20, 0.12), 0 2px 4px rgba(42, 31, 20, 0.06);
+  --shadow-elevated-lg: 0 6px 20px rgba(42, 31, 20, 0.16), 0 4px 6px rgba(42, 31, 20, 0.08);
+  --shadow-glow-sm:     0 0 12px rgba(139, 104, 48, 0.25);
+  --shadow-glow:        0 0 24px rgba(139, 104, 48, 0.30), 0 0 48px rgba(139, 104, 48, 0.12);
+  --shadow-glow-lg:     0 0 40px rgba(139, 104, 48, 0.40), 0 0 80px rgba(139, 104, 48, 0.18);
+
+  --glow-primary:    rgba(139, 104, 48, 0.35);
+  --glow-primary-sm: rgba(139, 104, 48, 0.22);
+  --glow-accent:     0 0 18px rgba(139, 104, 48, 0.35), 0 0 36px rgba(139, 104, 48, 0.18), 0 0 72px rgba(139, 104, 48, 0.08);
+
+  --hover-bg:      rgba(42, 31, 20, 0.06);
+  --hover-border:  rgba(42, 31, 20, 0.18);
+  --active-bg:     rgba(139, 104, 48, 0.15);
+  --focus-ring:    rgba(139, 104, 48, 0.55);
+  --selection-bg:  rgba(139, 104, 48, 0.30);
+
+  --color-overlay:       rgba(42, 31, 20, 0.35);
+  --color-overlay-light: rgba(42, 31, 20, 0.12);
+  --color-backdrop:      rgba(42, 31, 20, 0.45);
+
+  --writing-bg:   #f5eed6;
+  --writing-text: #2a1f14;
+  --writing-muted: rgba(42, 31, 20, 0.60);
+  --writing-line-highlight: rgba(139, 104, 48, 0.08);
+  --writing-selection: rgba(139, 104, 48, 0.25);
 }
 
+/* --- Eye-Care: muted sage green + parchment --- */
 [data-theme="eye-care"] {
-  --writing-bg: #1a211a;
-  --writing-text: #d4e4cc;
-  --glass-base-rgb: 26, 33, 26;
-  --glass-border: rgba(180, 220, 160, 0.08);
+  --ink-100: #1a2018;
+  --ink-95:  #1e241c;
+  --ink-90:  #242c20;
+  --ink-85:  #2c3428;
+  --ink-80:  #343c30;
+  --ink-75:  #3e4838;
+  --ink-70:  #4a5440;
+  --ink-65:  #566048;
+  --ink-60:  #626c50;
+
+  --paper-100: #e0e8d0;
+  --paper-95:  #d8e0c8;
+  --paper-90:  #d0d8be;
+  --paper-85:  #c4ccb0;
+  --paper-80:  #b8c0a0;
+  --paper-75:  #a0a888;
+  --paper-70:  #889070;
+  --paper-65:  #707858;
+  --paper-60:  #586040;
+
+  --accent-100: #9aaa70;
+  --accent-90:  #8a9a60;
+  --accent-80:  #7a8850;
+
+  --color-surface-base:     #1a2018;
+  --color-surface-raised:   #1e241c;
+  --color-surface-overlay:  #242c20;
+  --color-surface-input:    #343c30;
+  --color-surface-hover:    #3e4838;
+  --color-surface-pressed:  #161c14;
+  --color-surface-elevated: #2c3428;
+  --color-surface-floating: #343c30;
+
+  --border-default: rgba(154, 170, 112, 0.12);
+  --border-subtle:  rgba(154, 170, 112, 0.06);
+  --border-strong:  rgba(154, 170, 112, 0.22);
+  --border-focus:   #9aaa70;
+
+  --glass-base-rgb:    26, 32, 24;
+  --glass-bg:          rgba(var(--glass-base-rgb), 0.65);
+  --glass-bg-subtle:   rgba(var(--glass-base-rgb), 0.55);
+  --glass-bg-medium:   rgba(var(--glass-base-rgb), 0.75);
+  --glass-bg-strong:   rgba(var(--glass-base-rgb), 0.85);
+  --glass-border:      rgba(154, 170, 112, 0.10);
+
+  --shadow-glow-sm:     0 0 12px rgba(154, 170, 112, 0.30);
+  --shadow-glow:        0 0 24px rgba(154, 170, 112, 0.40), 0 0 48px rgba(154, 170, 112, 0.18);
+  --shadow-glow-lg:     0 0 40px rgba(154, 170, 112, 0.50), 0 0 80px rgba(154, 170, 112, 0.22);
+
+  --glow-primary:    rgba(154, 170, 112, 0.40);
+  --glow-primary-sm: rgba(154, 170, 112, 0.28);
+  --glow-accent:     0 0 18px rgba(154, 170, 112, 0.40), 0 0 36px rgba(154, 170, 112, 0.22), 0 0 72px rgba(154, 170, 112, 0.10);
+
+  --hover-bg:      rgba(154, 170, 112, 0.08);
+  --hover-border:  rgba(154, 170, 112, 0.22);
+  --active-bg:     rgba(154, 170, 112, 0.18);
+  --focus-ring:    rgba(154, 170, 112, 0.55);
+  --selection-bg:  rgba(154, 170, 112, 0.30);
+
+  --color-overlay:       rgba(26, 32, 24, 0.55);
+  --color-overlay-light: rgba(26, 32, 24, 0.25);
+  --color-backdrop:      rgba(26, 32, 24, 0.65);
+
+  --writing-bg:         #242c20;
+  --writing-text:       #e0e8d0;
+  --writing-muted:      rgba(224, 232, 208, 0.60);
+  --writing-line-highlight: rgba(154, 170, 112, 0.08);
+  --writing-selection:  rgba(154, 170, 112, 0.28);
 }
 
+/* --- Sepia: enhanced warm vintage (natural mapping) --- */
 [data-theme="sepia"] {
-  --writing-bg: #faf4e4;
-  --writing-text: #3d3020;
-  --glass-base-rgb: 250, 244, 228;
-  --glass-border: rgba(61, 48, 32, 0.08);
+  --ink-100: #1e1810;
+  --ink-95:  #241e14;
+  --ink-90:  #302418;
+  --ink-85:  #3a2c1e;
+  --ink-80:  #443424;
+  --ink-75:  #503e2c;
+  --ink-70:  #5e4a34;
+  --ink-65:  #6c563c;
+  --ink-60:  #7a6244;
+
+  --paper-100: #faf4e4;
+  --paper-95:  #f4ecc0;
+  --paper-90:  #ece0b0;
+  --paper-85:  #e0d098;
+  --paper-80:  #d4c080;
+  --paper-75:  #b8a060;
+  --paper-70:  #9c8448;
+  --paper-65:  #887038;
+  --paper-60:  #745c28;
+
+  --accent-100: #b88830;
+  --accent-90:  #a87828;
+  --accent-80:  #986820;
+
+  --color-surface-base:     #1e1810;
+  --color-surface-raised:   #241e14;
+  --color-surface-overlay:  #302418;
+  --color-surface-input:    #443424;
+  --color-surface-hover:    #503e2c;
+  --color-surface-pressed:  #181210;
+  --color-surface-elevated: #3a2c1e;
+  --color-surface-floating: #443424;
+
+  --border-default: rgba(184, 136, 48, 0.14);
+  --border-subtle:  rgba(184, 136, 48, 0.07);
+  --border-strong:  rgba(184, 136, 48, 0.25);
+  --border-focus:   #b88830;
+
+  --glass-base-rgb:    30, 24, 16;
+  --glass-bg:          rgba(var(--glass-base-rgb), 0.65);
+  --glass-bg-subtle:   rgba(var(--glass-base-rgb), 0.55);
+  --glass-bg-medium:   rgba(var(--glass-base-rgb), 0.75);
+  --glass-bg-strong:   rgba(var(--glass-base-rgb), 0.85);
+  --glass-border:      rgba(184, 136, 48, 0.10);
+
+  --shadow-glow-sm:     0 0 12px rgba(184, 136, 48, 0.35);
+  --shadow-glow:        0 0 24px rgba(184, 136, 48, 0.45), 0 0 48px rgba(184, 136, 48, 0.20);
+  --shadow-glow-lg:     0 0 40px rgba(184, 136, 48, 0.55), 0 0 80px rgba(184, 136, 48, 0.25);
+
+  --glow-primary:    rgba(184, 136, 48, 0.45);
+  --glow-primary-sm: rgba(184, 136, 48, 0.30);
+  --glow-accent:     0 0 18px rgba(184, 136, 48, 0.45), 0 0 36px rgba(184, 136, 48, 0.25), 0 0 72px rgba(184, 136, 48, 0.12);
+
+  --hover-bg:      rgba(184, 136, 48, 0.10);
+  --hover-border:  rgba(184, 136, 48, 0.28);
+  --active-bg:     rgba(184, 136, 48, 0.22);
+  --focus-ring:    rgba(184, 136, 48, 0.60);
+  --selection-bg:  rgba(184, 136, 48, 0.35);
+
+  --color-overlay:       rgba(30, 24, 16, 0.55);
+  --color-overlay-light: rgba(30, 24, 16, 0.25);
+  --color-backdrop:      rgba(30, 24, 16, 0.65);
+
+  --writing-bg:         #302418;
+  --writing-text:       #faf4e4;
+  --writing-muted:      rgba(250, 244, 228, 0.60);
+  --writing-line-highlight: rgba(184, 136, 48, 0.10);
+  --writing-selection:  rgba(184, 136, 48, 0.32);
 }
 
+/* --- Deep-Blue: midnight study (cool leather + dark parchment) --- */
 [data-theme="deep-blue"] {
-  --writing-bg: #0a1020;
-  --writing-text: #e4ecf7;
-  --glass-base-rgb: 10, 16, 32;
-  --glass-border: rgba(180, 200, 230, 0.08);
+  --ink-100: #0e1418;
+  --ink-95:  #121a20;
+  --ink-90:  #1a2430;
+  --ink-85:  #222e3c;
+  --ink-80:  #2c3a48;
+  --ink-75:  #364654;
+  --ink-70:  #405260;
+  --ink-65:  #4a5e6c;
+  --ink-60:  #546a78;
+
+  --paper-100: #dce4ec;
+  --paper-95:  #d0d8e0;
+  --paper-90:  #c4ccd4;
+  --paper-85:  #b4bcc4;
+  --paper-80:  #a4aab4;
+  --paper-75:  #8a929c;
+  --paper-70:  #707884;
+  --paper-65:  #5c6470;
+  --paper-60:  #48505c;
+
+  --accent-100: #8aa0c0;
+  --accent-90:  #7a90b0;
+  --accent-80:  #6a80a0;
+
+  --color-surface-base:     #0e1418;
+  --color-surface-raised:   #121a20;
+  --color-surface-overlay:  #1a2430;
+  --color-surface-input:    #2c3a48;
+  --color-surface-hover:    #364654;
+  --color-surface-pressed:  #0a1014;
+  --color-surface-elevated: #222e3c;
+  --color-surface-floating: #2c3a48;
+
+  --border-default: rgba(138, 160, 192, 0.12);
+  --border-subtle:  rgba(138, 160, 192, 0.06);
+  --border-strong:  rgba(138, 160, 192, 0.22);
+  --border-focus:   #8aa0c0;
+
+  --glass-base-rgb:    14, 20, 24;
+  --glass-bg:          rgba(var(--glass-base-rgb), 0.65);
+  --glass-bg-subtle:   rgba(var(--glass-base-rgb), 0.55);
+  --glass-bg-medium:   rgba(var(--glass-base-rgb), 0.75);
+  --glass-bg-strong:   rgba(var(--glass-base-rgb), 0.85);
+  --glass-border:      rgba(138, 160, 192, 0.10);
+
+  --shadow-glow-sm:     0 0 12px rgba(138, 160, 192, 0.30);
+  --shadow-glow:        0 0 24px rgba(138, 160, 192, 0.40), 0 0 48px rgba(138, 160, 192, 0.18);
+  --shadow-glow-lg:     0 0 40px rgba(138, 160, 192, 0.50), 0 0 80px rgba(138, 160, 192, 0.22);
+
+  --glow-primary:    rgba(138, 160, 192, 0.40);
+  --glow-primary-sm: rgba(138, 160, 192, 0.28);
+  --glow-accent:     0 0 18px rgba(138, 160, 192, 0.40), 0 0 36px rgba(138, 160, 192, 0.22), 0 0 72px rgba(138, 160, 192, 0.10);
+
+  --hover-bg:      rgba(138, 160, 192, 0.08);
+  --hover-border:  rgba(138, 160, 192, 0.22);
+  --active-bg:     rgba(138, 160, 192, 0.18);
+  --focus-ring:    rgba(138, 160, 192, 0.55);
+  --selection-bg:  rgba(138, 160, 192, 0.30);
+
+  --color-overlay:       rgba(14, 20, 24, 0.55);
+  --color-overlay-light: rgba(14, 20, 24, 0.25);
+  --color-backdrop:      rgba(14, 20, 24, 0.65);
+
+  --writing-bg:         #1a2430;
+  --writing-text:       #dce4ec;
+  --writing-muted:      rgba(220, 228, 236, 0.60);
+  --writing-line-highlight: rgba(138, 160, 192, 0.08);
+  --writing-selection:  rgba(138, 160, 192, 0.28);
 }
 
+/* --- Forest: earth vintage (forest green + aged paper) --- */
 [data-theme="forest"] {
-  --writing-bg: #0d1610;
-  --writing-text: #c8dcc8;
-  --glass-base-rgb: 13, 22, 16;
-  --glass-border: rgba(180, 220, 180, 0.08);
+  --ink-100: #101810;
+  --ink-95:  #141e14;
+  --ink-90:  #1c2818;
+  --ink-85:  #243220;
+  --ink-80:  #2e3c28;
+  --ink-75:  #384830;
+  --ink-70:  #445438;
+  --ink-65:  #506040;
+  --ink-60:  #5c6c48;
+
+  --paper-100: #dde4d0;
+  --paper-95:  #d4dcc4;
+  --paper-90:  #c8d0b4;
+  --paper-85:  #bcc4a4;
+  --paper-80:  #b0b894;
+  --paper-75:  #98a078;
+  --paper-70:  #808860;
+  --paper-65:  #687048;
+  --paper-60:  #505830;
+
+  --accent-100: #8aaa58;
+  --accent-90:  #7a9a48;
+  --accent-80:  #6a8a38;
+
+  --color-surface-base:     #101810;
+  --color-surface-raised:   #141e14;
+  --color-surface-overlay:  #1c2818;
+  --color-surface-input:    #2e3c28;
+  --color-surface-hover:    #384830;
+  --color-surface-pressed:  #0c140c;
+  --color-surface-elevated: #243220;
+  --color-surface-floating: #2e3c28;
+
+  --border-default: rgba(138, 170, 88, 0.12);
+  --border-subtle:  rgba(138, 170, 88, 0.06);
+  --border-strong:  rgba(138, 170, 88, 0.22);
+  --border-focus:   #8aaa58;
+
+  --glass-base-rgb:    16, 24, 16;
+  --glass-bg:          rgba(var(--glass-base-rgb), 0.65);
+  --glass-bg-subtle:   rgba(var(--glass-base-rgb), 0.55);
+  --glass-bg-medium:   rgba(var(--glass-base-rgb), 0.75);
+  --glass-bg-strong:   rgba(var(--glass-base-rgb), 0.85);
+  --glass-border:      rgba(138, 170, 88, 0.10);
+
+  --shadow-glow-sm:     0 0 12px rgba(138, 170, 88, 0.30);
+  --shadow-glow:        0 0 24px rgba(138, 170, 88, 0.40), 0 0 48px rgba(138, 170, 88, 0.18);
+  --shadow-glow-lg:     0 0 40px rgba(138, 170, 88, 0.50), 0 0 80px rgba(138, 170, 88, 0.22);
+
+  --glow-primary:    rgba(138, 170, 88, 0.40);
+  --glow-primary-sm: rgba(138, 170, 88, 0.28);
+  --glow-accent:     0 0 18px rgba(138, 170, 88, 0.40), 0 0 36px rgba(138, 170, 88, 0.22), 0 0 72px rgba(138, 170, 88, 0.10);
+
+  --hover-bg:      rgba(138, 170, 88, 0.08);
+  --hover-border:  rgba(138, 170, 88, 0.22);
+  --active-bg:     rgba(138, 170, 88, 0.18);
+  --focus-ring:    rgba(138, 170, 88, 0.55);
+  --selection-bg:  rgba(138, 170, 88, 0.30);
+
+  --color-overlay:       rgba(16, 24, 16, 0.55);
+  --color-overlay-light: rgba(16, 24, 16, 0.25);
+  --color-backdrop:      rgba(16, 24, 16, 0.65);
+
+  --writing-bg:         #1c2818;
+  --writing-text:       #dde4d0;
+  --writing-muted:      rgba(221, 228, 208, 0.60);
+  --writing-line-highlight: rgba(138, 170, 88, 0.08);
+  --writing-selection:  rgba(138, 170, 88, 0.28);
 }

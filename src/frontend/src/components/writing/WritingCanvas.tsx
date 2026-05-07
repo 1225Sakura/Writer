@@ -391,7 +391,7 @@ export function WritingCanvas() {
         targetWordCount={targetWordCount}
       />
 
-      {/* Bottom status bar - glass-ink minimal design */}
+      {/* Bottom status bar - vintage minimal design */}
       <StatusBar
         chapterTitle={chapterTitle}
         wordCount={wordCount}
@@ -407,9 +407,10 @@ export function WritingCanvas() {
 
       {/* Extended status bar with typing indicator and save status */}
       <div
-        className="flex items-center px-5 py-2 text-xs font-medium glass-ink"
+        className="flex items-center px-5 py-2 text-xs font-medium"
         style={{
-          borderTop: '1px solid rgba(255,255,255,0.03)',
+          background: 'var(--color-surface-raised)',
+          borderTop: '1px solid var(--border-default)',
           color: 'var(--text-tertiary)',
           minHeight: '32px',
         }}

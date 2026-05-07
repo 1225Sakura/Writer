@@ -145,7 +145,7 @@ export class ErrorBoundary extends Component<Props, State> {
                 className="w-full justify-center"
                 style={{
                   background: 'linear-gradient(135deg, var(--accent-100) 0%, var(--accent-85) 100%)',
-                  boxShadow: '0 4px 16px rgba(94, 106, 210, 0.25)',
+                  boxShadow: '0 4px 16px rgba(201, 169, 110, 0.25)',
                 }}
               >
                 <RefreshCw className="w-4 h-4 mr-2" />

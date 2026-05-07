@@ -113,7 +113,7 @@ export function ShortcutsHelp({ initialInterface = 'global' }: ShortcutsHelpProp
           onClick={() => setIsOpen(false)}
         >
           {/* Backdrop */}
-          <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" />
+          <div className="absolute inset-0 bg-black/70" />
 
           {/* Modal */}
           <motion.div

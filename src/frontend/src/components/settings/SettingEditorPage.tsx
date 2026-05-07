@@ -1,4 +1,5 @@
-import { useUIStore, useSettingsStore } from '@/store'
+import { useUIStore } from '@/store/uiStore'
+import { useSettingsStore } from '@/store/settingsStore'
 import type { SettingsCategory } from '@/store/uiStore'
 import { CategoryNav } from './CategoryNav'
 import { EntityEditor } from './EntityEditor'
@@ -6,9 +7,10 @@ import { RelationGraph } from './RelationGraph'
 import { AISuggestionPanel } from './AISuggestionPanel'
 import { EntitySearch } from './EntitySearch'
 import { Button } from '@/components/ui/Button'
+import { LeftSidebar } from '@/components/shared/LeftSidebar'
 import {
   Settings, RefreshCw, PenTool, ArrowLeft, Check, AlertCircle,
-  Keyboard, Sparkles, BarChart3, Zap, Menu, X
+  Keyboard, Sparkles, BarChart3, Zap, Menu
 } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { EntityListSkeletonPreset, SmartSkeleton } from '@/components/shared/SmartSkeleton'
@@ -23,14 +25,14 @@ function StatusBar() {
   const settingsCategory = useUIStore((state) => state.settingsCategory)
   const isLoading = useSettingsStore((state) => state.isLoading)
 
-  // Project statistics
-  const stats = useSettingsStore((state) => ({
-    characters: state.characters.length,
-    items: state.items.length,
-    locations: state.locations.length,
-    factions: state.factions.length,
-    chapters: state.chapters.length,
-  }))
+  // Project statistics - use individual selectors to avoid object creation
+  const characterCount = useSettingsStore((state) => state.characters.length)
+  const itemCount = useSettingsStore((state) => state.items.length)
+  const locationCount = useSettingsStore((state) => state.locations.length)
+  const factionCount = useSettingsStore((state) => state.factions.length)
+  const chapterCount = useSettingsStore((state) => state.chapters.length)
+
+  const totalEntities = characterCount + itemCount + locationCount + factionCount + chapterCount
 
   const categoryLabels: Record<string, string> = {
     world: '世界观',
@@ -57,8 +59,6 @@ function StatusBar() {
   const formatTime = (date: Date) => {
     return date.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit', second: '2-digit' })
   }
-
-  const totalEntities = stats.characters + stats.items + stats.locations + stats.factions + stats.chapters
 
   return (
     <motion.div
@@ -157,6 +157,7 @@ export function SettingEditorPage() {
   const generate = useSettingsStore((state) => state.generate)
   const loadAll = useSettingsStore((state) => state.loadAll)
   const isLoading = useSettingsStore((state) => state.isLoading)
+  const [sidebarOpen, setSidebarOpen] = useState(true)
   const [mobileNavOpen, setMobileNavOpen] = useState(false)
 
   useEffect(() => {
@@ -173,22 +174,17 @@ export function SettingEditorPage() {
     >
       {/* Clean background - no embedded decorative elements */}
 
-      {/* Left: CategoryNav */}
-      <motion.div
-        className="flex-shrink-0 h-full overflow-hidden flex flex-col relative bg-[var(--color-surface-base)] border-r border-[var(--border-subtle)]
-                   hidden md:flex"
-        style={{
-          width: 'var(--layout-sidebar-width, 200px)',
-          minWidth: '160px',
-          maxWidth: '280px',
-          zIndex: 1,
-        }}
-        initial={{ x: -20, opacity: 0 }}
-        animate={{ x: 0, opacity: 1 }}
-        transition={{ duration: DURATION.SLOW, ease: EASE.SMOOTH, delay: 0.05 }}
+      {/* Left: CategoryNav via shared LeftSidebar */}
+      <LeftSidebar
+        isOpen={sidebarOpen}
+        onToggle={() => setSidebarOpen(!sidebarOpen)}
+        showOnMobile
+        mobileOpen={mobileNavOpen}
+        onMobileClose={() => setMobileNavOpen(false)}
+        width="var(--layout-sidebar-width, 200px)"
       >
         <CategoryNav />
-      </motion.div>
+      </LeftSidebar>
 
       {/* Center: EntityEditor */}
       <motion.div
@@ -325,44 +321,6 @@ export function SettingEditorPage() {
         </div>
       </motion.div>
 
-      {/* Mobile: CategoryNav fullscreen overlay */}
-      <AnimatePresence>
-        {mobileNavOpen && (
-          <>
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="mobile-drawer-overlay mobile-drawer-overlay--open md:hidden"
-              onClick={() => setMobileNavOpen(false)}
-            />
-            <motion.div
-              initial={{ x: '-100%' }}
-              animate={{ x: 0 }}
-              exit={{ x: '-100%' }}
-              transition={SPRING.DRAWER}
-              className="fixed top-0 left-0 bottom-0 w-[280px] max-w-[80vw] z-50 bg-[var(--color-surface-base)] border-r border-[var(--border-default)] flex flex-col md:hidden"
-              style={{
-                boxShadow: 'var(--shadow-drawer)',
-              }}
-            >
-              <div className="flex items-center justify-between px-4 py-3 border-b border-[var(--border-default)]">
-                <span className="font-medium text-sm text-[var(--text-primary)]">分类导航</span>
-                <button
-                  onClick={() => setMobileNavOpen(false)}
-                  className="mobile-menu-btn btn-active-scale"
-                  aria-label="关闭"
-                >
-                  <X className="w-4 h-4" />
-                </button>
-              </div>
-              <div className="flex-1 overflow-y-auto">
-                <CategoryNav />
-              </div>
-            </motion.div>
-          </>
-        )}
-      </AnimatePresence>
     </motion.div>
   )
 }

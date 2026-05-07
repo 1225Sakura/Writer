@@ -16,9 +16,10 @@ export function ImmersiveIndicator() {
           animate={{ opacity: 1, y: 0, scale: 1 }}
           exit={{ opacity: 0, y: -12, scale: 0.92 }}
           transition={{ ...IMMERSIVE_SPRING, delay: 0.15 }}
-          className="fixed top-5 left-5 z-40 flex items-center gap-2 px-3 py-1.5 rounded-full glass-ink"
+          className="fixed top-5 left-5 z-40 flex items-center gap-2 px-3 py-1.5 rounded-full"
           style={{
-            border: '1px solid color-mix(in srgb, var(--paper-100) 6%, transparent)',
+            background: 'var(--color-surface-raised)',
+            border: '1px solid var(--border-default)',
           }}
         >
           <motion.div

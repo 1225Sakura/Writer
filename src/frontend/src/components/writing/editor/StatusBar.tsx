@@ -34,9 +34,10 @@ export function StatusBar({
 }: StatusBarProps) {
   return (
     <div
-      className="flex items-center px-5 py-2 text-xs font-medium glass-ink"
+      className="flex items-center px-5 py-2 text-xs font-medium"
       style={{
-        borderTop: '1px solid rgba(255,255,255,0.03)',
+        background: 'var(--color-surface-raised)',
+        borderTop: '1px solid var(--border-default)',
         color: 'var(--text-tertiary)',
         fontFamily: 'var(--font-sans)',
         minHeight: '36px',
@@ -47,8 +48,8 @@ export function StatusBar({
         className="px-2 py-0.5 rounded-md"
         style={{
           color: 'var(--text-secondary)',
-          background: 'rgba(255,255,255,0.03)',
-          border: '1px solid rgba(255,255,255,0.04)',
+          background: 'color-mix(in srgb, var(--accent-primary) 8%, transparent)',
+          border: '1px solid var(--border-subtle)',
         }}
       >
         {chapterTitle}
@@ -85,8 +86,8 @@ export function StatusBar({
         }}
         onMouseEnter={(e) => {
           if (!focusModeEnabled) {
-            (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.04)'
-            ;(e.currentTarget as HTMLElement).style.borderColor = 'rgba(255,255,255,0.06)'
+            (e.currentTarget as HTMLElement).style.background = 'color-mix(in srgb, var(--accent-primary) 8%, transparent)'
+            ;(e.currentTarget as HTMLElement).style.borderColor = 'var(--border-subtle)'
           }
         }}
         onMouseLeave={(e) => {

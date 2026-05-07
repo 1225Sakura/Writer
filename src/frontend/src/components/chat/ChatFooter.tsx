@@ -40,7 +40,7 @@ export function ChatFooter() {
   return (
     <motion.footer
       className="h-[var(--layout-topbar-height)] flex items-center justify-between px-2 sm:px-4 shrink-0 relative z-20
-                 bg-[var(--glass-bg-strong)] backdrop-blur-2xl"
+                 bg-[var(--color-surface-raised)]"
       style={{
         boxShadow: `
           0 -6px 30px color-mix(in srgb, var(--ink-100) 12%, transparent),

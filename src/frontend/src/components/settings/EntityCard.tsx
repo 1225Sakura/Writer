@@ -10,7 +10,7 @@ export const entityColors: Record<string, { bg: string; text: string; border: st
   item: { bg: 'rgba(155,126,217,0.12)', text: 'var(--color-item)', border: 'rgba(155,126,217,0.20)', glow: 'rgba(155,126,217,0.08)' },
   location: { bg: 'rgba(94,181,166,0.12)', text: 'var(--color-location)', border: 'rgba(94,181,166,0.20)', glow: 'rgba(94,181,166,0.08)' },
   faction: { bg: 'rgba(212,93,93,0.12)', text: 'var(--color-faction)', border: 'rgba(212,93,93,0.20)', glow: 'rgba(212,93,93,0.08)' },
-  world: { bg: 'rgba(94,106,210,0.12)', text: 'var(--color-world)', border: 'rgba(94,106,210,0.20)', glow: 'rgba(94,106,210,0.08)' },
+  world: { bg: 'rgba(201,169,110,0.12)', text: 'var(--color-world)', border: 'rgba(201,169,110,0.20)', glow: 'rgba(201,169,110,0.08)' },
   rule: { bg: 'rgba(126,184,74,0.12)', text: 'var(--color-rule)', border: 'rgba(126,184,74,0.20)', glow: 'rgba(126,184,74,0.08)' },
   outline: { bg: 'rgba(91,142,232,0.12)', text: 'var(--color-outline)', border: 'rgba(91,142,232,0.20)', glow: 'rgba(91,142,232,0.08)' },
   ifline: { bg: 'rgba(126,184,74,0.12)', text: 'var(--color-ifline)', border: 'rgba(126,184,74,0.20)', glow: 'rgba(126,184,74,0.08)' },

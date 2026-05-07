@@ -118,7 +118,7 @@ export function LoadingOverlay({
             className="absolute inset-0 pointer-events-none"
             style={{
               background: `
-                radial-gradient(circle at 30% 40%, rgba(94, 106, 210, 0.06) 0%, transparent 50%),
+                radial-gradient(circle at 30% 40%, rgba(201, 169, 110, 0.06) 0%, transparent 50%),
                 radial-gradient(circle at 70% 60%, rgba(196, 92, 92, 0.04) 0%, transparent 50%)
               `,
             }}
@@ -174,7 +174,7 @@ function DefaultOverlay({
         style={{
           width: isLarge ? 160 : 100,
           height: isLarge ? 160 : 100,
-          background: 'radial-gradient(circle, rgba(94, 106, 210, 0.08) 0%, transparent 70%)',
+          background: 'radial-gradient(circle, rgba(201, 169, 110, 0.08) 0%, transparent 70%)',
         }}
         animate={{ scale: [1, 1.1, 1], opacity: [0.5, 0.8, 0.5] }}
         transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
@@ -274,7 +274,7 @@ function BrandedOverlay({
       <motion.div
         className="absolute w-48 h-48 rounded-full motion-reduce:hidden"
         style={{
-          background: 'radial-gradient(circle, rgba(94, 106, 210, 0.1) 0%, transparent 70%)',
+          background: 'radial-gradient(circle, rgba(201, 169, 110, 0.1) 0%, transparent 70%)',
         }}
         animate={{ scale: [1, 1.15, 1], opacity: [0.4, 0.7, 0.4] }}
         transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
@@ -286,9 +286,9 @@ function BrandedOverlay({
           transition={{ duration: 6, repeat: Infinity, ease: 'linear' }}
           className="relative z-10 w-16 h-16 rounded-2xl flex items-center justify-center"
           style={{
-            backgroundColor: 'rgba(94, 106, 210, 0.1)',
-            border: '1.5px solid rgba(94, 106, 210, 0.3)',
-            boxShadow: '0 0 40px rgba(94, 106, 210, 0.2), inset 0 0 20px rgba(94, 106, 210, 0.05)',
+            backgroundColor: 'rgba(201, 169, 110, 0.1)',
+            border: '1.5px solid rgba(201, 169, 110, 0.3)',
+            boxShadow: '0 0 40px rgba(201, 169, 110, 0.2), inset 0 0 20px rgba(201, 169, 110, 0.05)',
           }}
         >
           <BookOpen className="w-8 h-8" style={{ color: 'var(--accent-primary)' }} />
@@ -366,8 +366,8 @@ function ProgressBar({ progress }: { progress: number }) {
         <motion.div
           className="h-full rounded-full"
           style={{
-            background: 'linear-gradient(90deg, var(--accent-primary), rgba(94, 106, 210, 0.7))',
-            boxShadow: '0 0 10px rgba(94, 106, 210, 0.4)',
+            background: 'linear-gradient(90deg, var(--accent-primary), rgba(201, 169, 110, 0.7))',
+            boxShadow: '0 0 10px rgba(201, 169, 110, 0.4)',
           }}
           initial={{ width: 0 }}
           animate={{ width: `${clampedProgress}%` }}

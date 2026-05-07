@@ -24,17 +24,17 @@ const buttonVariants = cva(
         ghost:
           'bg-transparent text-[var(--text-secondary)] hover:bg-[var(--color-surface-hover)] active:bg-[var(--color-surface-active)] border border-transparent',
         subtle:
-          'bg-[rgba(255,255,255,0.04)] text-[var(--text-secondary)] hover:bg-[rgba(255,255,255,0.08)] active:bg-[rgba(255,255,255,0.12)] border border-[var(--border-default)]',
+          'bg-[var(--color-surface-overlay)] text-[var(--text-secondary)] hover:bg-[var(--color-surface-hover)] active:bg-[var(--color-surface-pressed)] border border-[var(--border-subtle)]',
         accent:
           'bg-[var(--accent-primary)] text-[var(--text-primary)] hover:brightness-110 active:brightness-90',
         danger:
           'bg-[var(--color-danger)] text-white hover:brightness-110 active:brightness-90',
         glass:
-          'bg-[rgba(255,255,255,0.06)] text-[var(--text-primary)] backdrop-blur-md border border-[rgba(255,255,255,0.1)] hover:bg-[rgba(255,255,255,0.1)] active:bg-[rgba(255,255,255,0.08)]',
+          'bg-[var(--color-surface-raised)] text-[var(--text-primary)] border border-[var(--border-default)] hover:bg-[var(--color-surface-hover)] active:bg-[var(--color-surface-pressed)]',
         outline:
-          'bg-transparent text-[var(--text-primary)] border border-[var(--border-default)] hover:bg-[rgba(255,255,255,0.06)] active:bg-[rgba(255,255,255,0.1)]',
+          'bg-transparent text-[var(--text-primary)] border border-[var(--border-default)] hover:bg-[var(--hover-bg)] active:bg-[var(--active-bg)]',
         secondary:
-          'bg-[rgba(255,255,255,0.06)] text-[var(--text-primary)] border border-[var(--border-default)] hover:bg-[rgba(255,255,255,0.1)] active:bg-[rgba(255,255,255,0.08)]',
+          'bg-[var(--color-surface-overlay)] text-[var(--text-primary)] border border-[var(--border-default)] hover:bg-[var(--color-surface-hover)] active:bg-[var(--color-surface-pressed)]',
         ink:
           'bg-[var(--ink-90)] text-[var(--paper-100)] border border-[var(--ink-70)] hover:bg-[var(--ink-85)] active:bg-[var(--ink-80)]',
         paper:
@@ -44,7 +44,7 @@ const buttonVariants = cva(
         premium:
           'bg-[var(--color-surface-raised)] text-[var(--text-primary)] border border-[var(--border-default)]',
         glow:
-          'bg-[var(--accent-primary)] text-[var(--text-primary)] hover:brightness-110 active:brightness-90',
+          'bg-[var(--accent-primary)] text-[var(--ink-100)] hover:brightness-110 active:brightness-90',
         primary:
           'bg-[var(--accent-primary)] text-[var(--text-primary)] hover:brightness-110 active:brightness-90',
       },
@@ -103,7 +103,7 @@ function Ripple({ x, y, onComplete }: { x: number; y: number; onComplete: () => 
       style={{
         left: x,
         top: y,
-        background: 'radial-gradient(circle, rgba(94, 106, 210, 0.2) 0%, rgba(94, 106, 210, 0.08) 40%, transparent 70%)',
+        background: 'radial-gradient(circle, rgba(201, 169, 110, 0.2) 0%, rgba(201, 169, 110, 0.08) 40%, transparent 70%)',
       }}
       initial={{ width: 0, height: 0, x: 0, y: 0, opacity: 0.6 }}
       animate={{ width: 240, height: 240, x: -120, y: -120, opacity: 0 }}
@@ -119,7 +119,7 @@ function PremiumBackground({ isHovered, isPressed }: { isHovered: boolean; isPre
     <motion.span
       className="absolute inset-0 rounded-inherit pointer-events-none"
       style={{
-        background: 'linear-gradient(135deg, rgba(94, 106, 210, 0.15) 0%, rgba(94, 181, 166, 0.08) 50%, rgba(232, 184, 125, 0.1) 100%)',
+        background: 'linear-gradient(135deg, rgba(201, 169, 110, 0.15) 0%, rgba(139, 115, 85, 0.08) 50%, rgba(201, 160, 110, 0.1) 100%)',
       }}
       animate={{ opacity: isHovered ? 1 : 0.6, scale: isPressed ? 0.98 : 1 }}
       transition={{ duration: DURATION.NORMAL, ease: EASE.SMOOTH }}
@@ -134,7 +134,7 @@ function PremiumGlowBorder({ isHovered }: { isHovered: boolean }) {
       className="absolute inset-0 rounded-inherit pointer-events-none"
       style={{
         padding: '1px',
-        background: 'linear-gradient(135deg, rgba(94, 106, 210, 0.5), rgba(94, 181, 166, 0.3), rgba(232, 184, 125, 0.4))',
+        background: 'linear-gradient(135deg, rgba(201, 169, 110, 0.5), rgba(139, 115, 85, 0.3), rgba(201, 160, 110, 0.4))',
         WebkitMask: 'linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)',
         WebkitMaskComposite: 'xor',
         maskComposite: 'exclude',
@@ -242,7 +242,7 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
         disabled={isDisabled}
         className={cn(
           buttonVariants({ variant, size }),
-          'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-primary)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--color-surface-base)]',
+          'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus-ring)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--color-surface-base)]',
           'disabled:pointer-events-none disabled:opacity-50',
           'transition-all duration-[var(--transition-base)] ease-out',
           className
@@ -251,7 +251,7 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
           cursor: isDisabled ? 'not-allowed' : 'pointer',
           ...(isGlass || isGlow
             ? {
-                boxShadow: `0 0 16px ${glowColor}40, 0 0 32px ${glowColor}20, inset 0 1px 0 rgba(255,255,255,0.1)`,
+                boxShadow: `0 0 16px ${glowColor}40, 0 0 32px ${glowColor}20, inset 0 1px 0 rgba(201,169,110,0.08)`,
               }
             : {}),
           ...(isPremium
@@ -354,7 +354,7 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
           variant !== 'ghost' &&
           variant !== 'subtle' &&
           variant !== 'glass' && (
-            <span className="absolute inset-0 rounded-inherit pointer-events-none opacity-[0.03] bg-gradient-to-b from-white to-transparent" />
+            <span className="absolute inset-0 rounded-inherit pointer-events-none opacity-[0.04] bg-gradient-to-b from-[var(--paper-100)] to-transparent" />
           )}
       </Comp>
     )

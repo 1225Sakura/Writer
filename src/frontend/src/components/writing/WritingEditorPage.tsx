@@ -7,6 +7,7 @@ import { CollaborationPanel } from './CollaborationPanel'
 import { OutlineSidebar } from './OutlineSidebar'
 import { ChapterNotesPanel } from './ChapterNotesPanel'
 import { WritingSprintTimer } from './WritingSprintTimer'
+import { LeftSidebar } from '@/components/shared/LeftSidebar'
 import { motion, AnimatePresence } from 'framer-motion'
 import { WritingSkeleton } from '@/components/shared/SmartSkeleton'
 import { SectionLoadingOverlay } from '@/components/shared/LoadingOverlay'
@@ -61,7 +62,7 @@ function WritingEditorPageContent() {
       {/* Immersive mode indicator */}
       <ImmersiveIndicator />
 
-      {/* Toolbar - glassmorphism with smart show/hide */}
+      {/* Toolbar - vintage wood-grain strip with smart show/hide */}
       <AnimatePresence initial={false}>
         {(!immersiveMode || chromeVisible) && (
           <motion.div
@@ -98,26 +99,15 @@ function WritingEditorPageContent() {
         <ChapterNotesPanel />
         <WritingSprintTimer />
 
-        {/* Outline sidebar - unified edge style with ink shadow */}
-        <AnimatePresence initial={false}>
-          {outlineDrawerOpen && (!immersiveMode || chromeVisible) && (
-            <motion.div
-              key="outline-sidebar"
-              initial={{ width: 0, opacity: 0, x: -24 }}
-              animate={{ width: 280, opacity: 1, x: 0 }}
-              exit={{ width: 0, opacity: 0, x: -24 }}
-              transition={{
-                width: { type: 'spring', stiffness: 280, damping: 28, restSpeed: 0.5 },
-                opacity: { duration: DURATION.NORMAL, ease: EASE.SMOOTH },
-                x: SPRING.DRAWER,
-              }}
-              className="border-r border-[var(--border-default)] bg-[var(--color-surface-raised)] flex flex-col overflow-hidden relative z-20"
-              style={{ boxShadow: DRAWER_EDGE_SHADOW }}
-            >
-              <OutlineSidebar />
-            </motion.div>
-          )}
-        </AnimatePresence>
+        {/* Outline sidebar via shared LeftSidebar */}
+        <LeftSidebar
+          isOpen={outlineDrawerOpen && (!immersiveMode || chromeVisible)}
+          onToggle={toggleOutlineDrawer}
+          width={280}
+          visible={!immersiveMode || chromeVisible || outlineDrawerOpen}
+        >
+          <OutlineSidebar />
+        </LeftSidebar>
 
         {/* AI operation drawer - unified edge style with ink shadow */}
         <AnimatePresence initial={false}>

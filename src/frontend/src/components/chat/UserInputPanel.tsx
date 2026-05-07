@@ -1,5 +1,5 @@
 import { useState, useRef, useCallback, useEffect } from 'react'
-import { useChatStore } from '@/store'
+import { useChatStore } from '@/store/chatStore'
 import { Send, RefreshCw, Loader2, FileText, Zap, Wand2, Lightbulb } from 'lucide-react'
 import { ChatTemplates } from './ChatTemplates'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -216,7 +216,7 @@ export function UserInputPanel() {
             className="relative"
             animate={{
               boxShadow: isFocused
-                ? '0 0 0 2px var(--accent-primary), 0 0 0 4px rgba(94, 106, 210, 0.08), 0 0 24px rgba(94, 106, 210, 0.1)'
+                ? '0 0 0 2px var(--accent-primary), 0 0 0 4px rgba(201, 169, 110, 0.08), 0 0 24px rgba(201, 169, 110, 0.1)'
                 : '0 0 0 1px var(--border-default), 0 2px 8px rgba(0,0,0,0.04)',
             }}
             transition={{ duration: DURATION.NORMAL, ease: EASE.SMOOTH }}

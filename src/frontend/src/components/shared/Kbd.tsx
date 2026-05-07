@@ -78,9 +78,9 @@ const variantMap: Record<KbdVariant, CSSProperties> = {
   },
   accent: {
     background: 'var(--accent-muted)',
-    border: '1px solid rgba(94, 106, 210, 0.25)',
+    border: '1px solid rgba(201, 169, 110, 0.25)',
     color: 'var(--accent-100)',
-    boxShadow: '0 0 8px rgba(94, 106, 210, 0.1)',
+    boxShadow: '0 0 8px rgba(201, 169, 110, 0.1)',
   },
   danger: {
     background: 'rgba(196, 92, 92, 0.08)',

@@ -17,7 +17,8 @@ import {
 	Wand2,
 	ThumbsUp,
 } from "lucide-react";
-import { useSettingsStore, useUIStore } from "@/store";
+import { useSettingsStore } from "@/store/settingsStore";
+import { useUIStore } from "@/store/uiStore";
 import { motion, AnimatePresence } from "framer-motion";
 import type { EntityType } from "@/shared/types";
 import { GlassCard } from "@/components/ui/GlassCard";
@@ -169,13 +170,13 @@ const cardVariants = {
 
 const pulseGlowVariants = {
 	idle: {
-		boxShadow: "0 0 0px rgba(94, 106, 210, 0)",
+		boxShadow: "0 0 0px rgba(201, 169, 110, 0)",
 	},
 	active: {
 		boxShadow: [
-			"0 0 4px rgba(94, 106, 210, 0.2)",
-			"0 0 14px rgba(94, 106, 210, 0.45)",
-			"0 0 4px rgba(94, 106, 210, 0.2)",
+			"0 0 4px rgba(201, 169, 110, 0.2)",
+			"0 0 14px rgba(201, 169, 110, 0.45)",
+			"0 0 4px rgba(201, 169, 110, 0.2)",
 		],
 		transition: {
 			duration: 2,
@@ -738,7 +739,7 @@ function SuggestionCard({
 			onMouseEnter={(e) => {
 				if (!isApplied) {
 					e.currentTarget.style.background =
-						"linear-gradient(135deg, rgba(94,106,210,0.06) 0%, var(--color-surface-overlay) 100%)";
+						"linear-gradient(135deg, rgba(201,169,110,0.06) 0%, var(--color-surface-overlay) 100%)";
 					e.currentTarget.style.borderColor = `${config.colors.border}`;
 					e.currentTarget.style.boxShadow = `0 4px 20px rgba(0,0,0,0.25), 0 0 0 1px ${config.colors.glow}50, 0 0 24px ${config.colors.glow}30`;
 				}
@@ -1116,7 +1117,7 @@ export function AISuggestionPanel() {
 				style={{
 					borderBottom: isExpanded ? "1px solid var(--border-subtle)" : "none",
 					background: isReviewing
-						? "linear-gradient(135deg, rgba(94,106,210,0.08) 0%, var(--color-surface-base) 60%)"
+						? "linear-gradient(135deg, rgba(201,169,110,0.08) 0%, var(--color-surface-base) 60%)"
 						: "transparent",
 				}}
 				animate={isReviewing ? "active" : "idle"}
@@ -1411,17 +1412,17 @@ export function AISuggestionPanel() {
 									className="w-full py-2.5 rounded-xl text-xs font-semibold flex items-center justify-center gap-2 transition-all disabled:opacity-50 relative overflow-hidden"
 									style={{
 										background: isReviewing
-											? "linear-gradient(135deg, rgba(94,106,210,0.15) 0%, rgba(94,106,210,0.08) 100%)"
-											: "linear-gradient(135deg, rgba(94,106,210,0.12) 0%, rgba(94,106,210,0.06) 100%)",
+											? "linear-gradient(135deg, rgba(201,169,110,0.15) 0%, rgba(201,169,110,0.08) 100%)"
+											: "linear-gradient(135deg, rgba(201,169,110,0.12) 0%, rgba(201,169,110,0.06) 100%)",
 										color: "var(--accent-primary)",
-										border: "1px solid rgba(94,106,210,0.25)",
+										border: "1px solid rgba(201,169,110,0.25)",
 									}}
 									whileHover={
 										!isReviewing
 											? {
 													scale: 1.01,
 													boxShadow:
-														"0 0 18px rgba(94,106,210,0.3), 0 0 36px rgba(94,106,210,0.15)",
+														"0 0 18px rgba(201,169,110,0.3), 0 0 36px rgba(201,169,110,0.15)",
 												}
 											: {}
 									}
@@ -1433,7 +1434,7 @@ export function AISuggestionPanel() {
 											className="absolute inset-0"
 											style={{
 												background:
-													"linear-gradient(90deg, transparent 0%, rgba(94,106,210,0.1) 50%, transparent 100%)",
+													"linear-gradient(90deg, transparent 0%, rgba(201,169,110,0.1) 50%, transparent 100%)",
 												backgroundSize: "200% 100%",
 											}}
 											variants={shimmerVariants}

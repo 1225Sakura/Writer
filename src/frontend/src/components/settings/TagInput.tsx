@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react'
-import { useSettingsStore } from '@/store'
+import { useSettingsStore } from '@/store/settingsStore'
 import { Tag, X, Plus } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { SPRING } from '@/components/shared/AnimationConfig'

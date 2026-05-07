@@ -64,7 +64,7 @@ export function ChatSidebar({ entities, onConfirmEntity }: ChatSidebarProps) {
         {mobileOpen && (
           <>
             <motion.div
-              className="md:hidden fixed inset-0 z-40 bg-black/50 backdrop-blur-sm"
+              className="md:hidden fixed inset-0 z-40 bg-black/50"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}

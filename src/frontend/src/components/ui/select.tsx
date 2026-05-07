@@ -31,7 +31,7 @@ const SelectTrigger = React.forwardRef<
     },
     focus: {
       border: 'var(--accent-100)',
-      ring: 'rgba(94, 106, 210, 0.25)',
+      ring: 'rgba(201, 169, 110, 0.25)',
       labelColor: 'var(--accent-100)',
     },
     error: {
@@ -94,7 +94,7 @@ const SelectTrigger = React.forwardRef<
             transition={{ duration: DURATION.FAST, ease: EASE.SMOOTH }}
             className="absolute inset-0 rounded-[var(--radius-input)] pointer-events-none"
             style={{
-              boxShadow: `inset 0 0 20px rgba(94, 106, 210, 0.12)`,
+              boxShadow: `inset 0 0 20px rgba(201, 169, 110, 0.12)`,
               border: `1px solid var(--accent-100)`,
             }}
           />

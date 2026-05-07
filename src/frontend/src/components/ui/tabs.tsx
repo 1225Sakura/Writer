@@ -20,8 +20,8 @@ const TabsList = React.forwardRef<
     ref={ref}
     className={cn(
       "relative inline-flex h-10 items-center justify-center rounded-[var(--radius-lg)]",
-      "bg-[var(--color-surface-base)]/80 backdrop-blur-sm",
-      "border border-[var(--border-default)]/50 shadow-[inset_0_1px_1px_rgba(255,255,255,0.05)]",
+      "bg-[var(--color-surface-overlay)]",
+      "border border-[var(--border-default)] shadow-[inset_0_1px_1px_rgba(201,169,110,0.04)]",
       "p-1 gap-1",
       className
     )}
@@ -42,7 +42,7 @@ const TabsTrigger = React.forwardRef<
       "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-primary)]/50 focus-visible:ring-offset-1",
       "disabled:pointer-events-none disabled:opacity-40",
       "data-[state=active]:text-[var(--text-primary)] data-[state=active]:font-semibold",
-      "data-[state=active]:shadow-[0_1px_2px_rgba(0,0,0,0.1)]",
+      "data-[state=active]:shadow-[var(--shadow-card)]",
       "hover:text-[var(--text-secondary)]",
       "hover:bg-[var(--color-surface-hover)]",
       className
@@ -108,15 +108,15 @@ const AnimatedTabs = React.forwardRef<
         ref={listRef}
         className={cn(
           "relative inline-flex h-10 items-center justify-center rounded-[var(--radius-lg)]",
-          "bg-[var(--color-surface-base)]/80 backdrop-blur-sm",
-          "border border-[var(--border-default)]/50 shadow-[inset_0_1px_1px_rgba(255,255,255,0.05)]",
+          "bg-[var(--color-surface-overlay)]",
+          "border border-[var(--border-default)] shadow-[inset_0_1px_1px_rgba(201,169,110,0.04)]",
           "p-1 gap-1 overflow-hidden",
           indicatorClassName
         )}
       >
         {/* Sliding indicator */}
         <motion.div
-          className="absolute top-1 bottom-1 rounded-lg bg-[var(--color-surface-raised)] shadow-sm border border-[var(--border-default)]/30"
+          className="absolute top-1 bottom-1 rounded-lg bg-[var(--color-surface-raised)] shadow-sm border border-[var(--border-strong)]"
           initial={false}
           animate={indicatorStyle as any}
           transition={shouldReduceMotion

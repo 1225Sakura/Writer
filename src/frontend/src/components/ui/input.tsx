@@ -21,12 +21,12 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
         type={type}
         className={cn(
           // Base layout
-          'flex h-10 w-full rounded-lg border bg-[var(--color-surface-base)] px-3 py-2 text-sm',
+          'flex h-10 w-full rounded-lg border bg-[var(--color-surface-input)] px-3 py-2 text-sm',
           'ring-offset-[var(--color-surface-base)] placeholder:text-[var(--text-tertiary)]',
           // Focus states
           'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2',
-          'focus-visible:ring-[var(--accent-primary)] focus-visible:border-[var(--accent-primary)]',
-          'focus-visible:shadow-[0_0_0_3px_rgba(94,181,166,0.15)]',
+          'focus-visible:ring-[var(--focus-ring)] focus-visible:border-[var(--accent-100)]',
+          'focus-visible:shadow-[0_0_0_3px_rgba(201,169,110,0.15)]',
           // Hover states
           'hover:border-[var(--border-strong)] hover:bg-[var(--color-surface-hover)]',
           // Disabled states
@@ -36,9 +36,9 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
           // File input
           'file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-[var(--text-primary)]',
           // Error state
-          error && 'border-[var(--color-danger)] focus-visible:ring-[var(--color-danger)] focus-visible:border-[var(--color-danger)] focus-visible:shadow-[0_0_0_3px_rgba(196,92,92,0.15)]',
+          error && 'border-[var(--color-danger)] focus-visible:ring-[var(--vermillion-100)] focus-visible:border-[var(--color-danger)] focus-visible:shadow-[0_0_0_3px_var(--vermillion-muted)]',
           // Success state
-          success && 'border-[var(--color-success)] focus-visible:ring-[var(--color-success)] focus-visible:border-[var(--color-success)] focus-visible:shadow-[0_0_0_3px_rgba(126,184,74,0.15)]',
+          success && 'border-[var(--color-success)] focus-visible:ring-[var(--color-success)] focus-visible:border-[var(--color-success)] focus-visible:shadow-[0_0_0_3px_rgba(107,158,142,0.15)]',
           // Default border (when not error/success)
           !error && !success && 'border-[var(--border-default)]',
           className

@@ -22,9 +22,7 @@ const SheetOverlay = React.forwardRef<
       "fixed inset-0 z-50",
       "data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0",
       "data-[state=closed]:duration-200 data-[state=open]:duration-200",
-      "bg-gradient-to-br from-black/80 via-black/60 to-black/80",
-      "backdrop-blur-xl",
-      "max-md:bg-black/80 max-md:backdrop-blur-2xl",
+      "bg-[var(--color-overlay)]",
       className
     )}
     {...props}

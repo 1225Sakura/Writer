@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
-import { useChatStore, ChatMessage, ExtractedEntity } from '@/store'
+import { useChatStore } from '@/store/chatStore'
+import type { ChatMessage, ExtractedEntity } from '@/store'
 import { Bot, User, Pencil, Trash2, Check, X, Sparkles, MessageSquareText, Wand2 } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { TypingIndicator } from './TypingIndicator'
@@ -391,7 +392,7 @@ function ChatBubble({ message, onEdit, onDelete, onConfirmEntity, index, isGroup
                   animate={{ opacity: 1, y: 0, scale: 1 }}
                   exit={{ opacity: 0, y: 6, scale: 0.9 }}
                   transition={{ duration: DURATION.INSTANT, ease: EASE.STANDARD }}
-                  className="absolute -top-10 right-0 flex gap-1.5 bg-surface-raised/95 backdrop-blur-sm rounded-xl p-1.5 shadow-lg border border-border-default/50"
+                  className="absolute -top-10 right-0 flex gap-1.5 bg-surface-raised rounded-xl p-1.5 shadow-lg border border-border-default/50"
                 >
                   <motion.button
                     onClick={() => setIsEditing(true)}

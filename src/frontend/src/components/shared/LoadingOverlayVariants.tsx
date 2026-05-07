@@ -445,7 +445,7 @@ export function BrandLoadingScreen({
           <motion.div
             className="absolute w-96 h-96 rounded-full"
             style={{
-              background: 'radial-gradient(circle, rgba(94, 106, 210, 0.15) 0%, transparent 70%)',
+              background: 'radial-gradient(circle, rgba(201, 169, 110, 0.15) 0%, transparent 70%)',
             }}
             animate={{ scale: [1, 1.2, 1], opacity: [0.5, 0.8, 0.5] }}
             transition={{ duration: 3, repeat: Infinity }}
@@ -462,8 +462,8 @@ export function BrandLoadingScreen({
               className="w-20 h-20 rounded-2xl flex items-center justify-center"
               style={{
                 background: 'var(--accent-muted)',
-                border: '1px solid rgba(94, 106, 210, 0.3)',
-                boxShadow: '0 0 40px rgba(94, 106, 210, 0.3)',
+                border: '1px solid rgba(201, 169, 110, 0.3)',
+                boxShadow: '0 0 40px rgba(201, 169, 110, 0.3)',
               }}
             >
               <motion.div

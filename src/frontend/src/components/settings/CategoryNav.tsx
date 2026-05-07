@@ -1,4 +1,5 @@
-import { useUIStore, useSettingsStore, UIState } from '@/store'
+import { useUIStore, type UIState } from '@/store/uiStore'
+import { useSettingsStore } from '@/store/settingsStore'
 import { useShallow } from 'zustand/react/shallow'
 import { Feather, Sparkles } from 'lucide-react'
 import { EntityIcon } from '@/components/ui/Icon'

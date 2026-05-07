@@ -355,27 +355,28 @@
 }
 
 .scrollbar-ink::-webkit-scrollbar-track {
-  background: transparent;
+  background: color-mix(in srgb, var(--leather-track, #2a1f14) 30%, transparent);
 }
 
 .scrollbar-ink::-webkit-scrollbar-thumb {
-  background: var(--glass-border);
+  background: linear-gradient(180deg, var(--brass-400, #b8860b), var(--brass-600, #8b6914));
   border-radius: 3px;
 }
 
 .scrollbar-ink::-webkit-scrollbar-thumb:hover {
-  background: var(--border-default);
+  background: linear-gradient(180deg, var(--brass-300, #d4a017), var(--brass-400, #b8860b));
 }
 
 /**
- * Glass panel variant with ink wash feel
- * More subtle than standard glassmorphism
+ * Vintage panel with warm tones (replaces glassmorphism)
+ * Uses solid background with subtle texture instead of blur
  */
 .glass-ink {
-  background: var(--glass-bg);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid var(--glass-border);
+  background: color-mix(in srgb, var(--color-surface-raised) 92%, var(--paper-100));
+  border: 1px solid color-mix(in srgb, var(--border-default) 80%, var(--paper-100));
+  box-shadow:
+    inset 0 1px 0 color-mix(in srgb, var(--paper-100) 8%, transparent),
+    0 2px 8px rgba(0, 0, 0, 0.12);
 }
 
 /**
@@ -417,7 +418,7 @@
   }
 
   .focus-ring-ink:focus-visible {
-    box-shadow: 0 0 0 3px var(--accent-100, #5e6ad2);
+    box-shadow: 0 0 0 3px var(--accent-100, #c9a96e);
   }
 }
 
@@ -468,4 +469,113 @@
     color-mix(in srgb, var(--ink-100) 5%, transparent) 85%,
     color-mix(in srgb, var(--ink-100) 10%, transparent) 100%
   );
+}
+
+/* ============================================================
+   8. VINTAGE TEXTURE UTILITIES
+   ============================================================
+   Warm, tactile textures evoking a scholar's study.
+   Replaces glassmorphism with solid, textured surfaces.
+   ============================================================ */
+
+/**
+ * Vintage leather accent stripe
+ * For card edges, dividers, or decorative borders
+ */
+.vintage-leather-accent {
+  position: relative;
+}
+
+.vintage-leather-accent::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--leather-track, #2a1f14) 60%, transparent) 0%,
+    color-mix(in srgb, var(--leather-track, #2a1f14) 30%, transparent) 50%,
+    color-mix(in srgb, var(--leather-track, #2a1f14) 60%, transparent) 100%
+  );
+  border-radius: inherit;
+  z-index: 0;
+}
+
+/**
+ * Brass accent border
+ * For interactive elements, active states
+ */
+.brass-accent-border {
+  border-color: color-mix(in srgb, var(--brass-400, #b8860b) 50%, transparent);
+  transition: border-color 0.2s ease;
+}
+
+.brass-accent-border:hover {
+  border-color: color-mix(in srgb, var(--brass-300, #d4a017) 70%, transparent);
+}
+
+/**
+ * Warm paper surface (enhanced version of existing textured-paper)
+ * Adds vintage warmth to paper-like surfaces
+ */
+.vintage-paper-surface {
+  background-color: color-mix(in srgb, var(--writing-bg) 95%, var(--paper-100));
+  position: relative;
+}
+
+.vintage-paper-surface::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.025'/%3E%3C/svg%3E");
+  opacity: var(--paper-texture-opacity, 0.05);
+  pointer-events: none;
+  mix-blend-mode: multiply;
+  border-radius: inherit;
+}
+
+.vintage-paper-surface::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image:
+    radial-gradient(ellipse at 30% 0%, rgba(180, 140, 90, 0.02) 0%, transparent 60%),
+    radial-gradient(ellipse at 70% 100%, rgba(120, 80, 40, 0.015) 0%, transparent 50%);
+  pointer-events: none;
+  mix-blend-mode: soft-light;
+  border-radius: inherit;
+}
+
+/**
+ * Writing texture background (enhanced)
+ * Warm, subtle grain for the writing surface
+ */
+.writing-texture-bg {
+  position: relative;
+  background-color: var(--writing-bg);
+}
+
+.writing-texture-bg::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.55' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.02'/%3E%3C/svg%3E");
+  opacity: var(--paper-texture-opacity, 0.04);
+  pointer-events: none;
+  mix-blend-mode: multiply;
+  border-radius: inherit;
+  z-index: 0;
+}
+
+.writing-texture-bg::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image:
+    radial-gradient(ellipse at 20% 10%, rgba(180, 140, 90, 0.018) 0%, transparent 55%),
+    radial-gradient(ellipse at 80% 90%, rgba(120, 80, 40, 0.012) 0%, transparent 50%);
+  pointer-events: none;
+  mix-blend-mode: soft-light;
+  border-radius: inherit;
+  z-index: 0;
 }

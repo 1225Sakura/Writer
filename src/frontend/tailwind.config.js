@@ -156,6 +156,7 @@ export default {
           'serif'
         ],
         sans: [
+          'Source Han Sans',
           'Inter',
           '-apple-system',
           'BlinkMacSystemFont',

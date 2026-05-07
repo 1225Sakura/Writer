@@ -136,7 +136,7 @@
 .ripple-effect {
   position: absolute;
   border-radius: 50%;
-  background: rgba(94, 106, 210, 0.15);
+  background: rgba(201, 169, 110, 0.15);
   animation: ripple-effect 350ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
   pointer-events: none;
 }
@@ -205,11 +205,11 @@
 /* glow-breathe - glow breathing for emphasis */
 @keyframes glow-breathe {
   0%, 100% {
-    box-shadow: 0 0 4px rgba(94, 106, 210, 0.2), 0 0 8px rgba(94, 106, 210, 0.1);
+    box-shadow: 0 0 4px rgba(201, 169, 110, 0.2), 0 0 8px rgba(201, 169, 110, 0.1);
     opacity: 1;
   }
   50% {
-    box-shadow: 0 0 12px rgba(94, 106, 210, 0.4), 0 0 24px rgba(94, 106, 210, 0.2);
+    box-shadow: 0 0 12px rgba(201, 169, 110, 0.4), 0 0 24px rgba(201, 169, 110, 0.2);
     opacity: 0.95;
   }
 }
@@ -300,9 +300,9 @@
 }
 
 @keyframes input-glow-expand {
-  0%   { box-shadow: 0 0 0 0 rgba(94, 106, 210, 0.35); }
-  70%  { box-shadow: 0 0 0 6px rgba(94, 106, 210, 0); }
-  100% { box-shadow: 0 0 0 0 rgba(94, 106, 210, 0); }
+  0%   { box-shadow: 0 0 0 0 rgba(201, 169, 110, 0.35); }
+  70%  { box-shadow: 0 0 0 6px rgba(201, 169, 110, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(201, 169, 110, 0); }
 }
 
 @keyframes toast-slide-up {
@@ -474,7 +474,7 @@
 
 .card-hover-glow:hover {
   transform: translateY(-2px);
-  box-shadow: 0 0 20px rgba(94, 106, 210, 0.15), 0 0 40px rgba(94, 106, 210, 0.08), 0 8px 24px rgba(0, 0, 0, 0.12);
+  box-shadow: 0 0 20px rgba(201, 169, 110, 0.15), 0 0 40px rgba(201, 169, 110, 0.08), 0 8px 24px rgba(0, 0, 0, 0.12);
 }
 
 .btn-interactive {
@@ -532,7 +532,7 @@
 
 .input-focus-glow:focus {
   border-color: var(--border-focus);
-  box-shadow: 0 0 0 3px var(--accent-muted), 0 0 12px rgba(94, 106, 210, 0.15);
+  box-shadow: 0 0 0 3px var(--accent-muted), 0 0 12px rgba(201, 169, 110, 0.15);
 }
 
 /* ============================================================
@@ -1078,8 +1078,8 @@
 .empty-state-action-glow button:hover,
 .empty-state-action-glow a:hover,
 .empty-state-action-glow [role="button"]:hover {
-  box-shadow: 0 0 16px rgba(94, 106, 210, 0.25),
-              0 0 32px rgba(94, 106, 210, 0.12),
+  box-shadow: 0 0 16px rgba(201, 169, 110, 0.25),
+              0 0 32px rgba(201, 169, 110, 0.12),
               0 4px 12px rgba(0, 0, 0, 0.1);
   transform: translateY(-1px);
 }
@@ -1088,7 +1088,7 @@
 .empty-state-action-glow a:active,
 .empty-state-action-glow [role="button"]:active {
   transform: translateY(0) scale(0.98);
-  box-shadow: 0 0 8px rgba(94, 106, 210, 0.15),
+  box-shadow: 0 0 8px rgba(201, 169, 110, 0.15),
               0 2px 6px rgba(0, 0, 0, 0.08);
 }
 
@@ -1238,11 +1238,11 @@
 /* High contrast mode support */
 @media (prefers-contrast: high) {
   .ripple-effect {
-    background: rgba(94, 106, 210, 0.3);
+    background: rgba(201, 169, 110, 0.3);
   }
 
   .animate-glow-breathe {
-    box-shadow: 0 0 8px rgba(94, 106, 210, 0.5);
+    box-shadow: 0 0 8px rgba(201, 169, 110, 0.5);
   }
 }
 
@@ -1381,11 +1381,11 @@
 @keyframes pulse-attention {
   0%, 100% {
     transform: scale(1);
-    box-shadow: 0 0 0 0 rgba(94, 106, 210, 0.4);
+    box-shadow: 0 0 0 0 rgba(201, 169, 110, 0.4);
   }
   50% {
     transform: scale(1.02);
-    box-shadow: 0 0 0 8px rgba(94, 106, 210, 0);
+    box-shadow: 0 0 0 8px rgba(201, 169, 110, 0);
   }
 }
 
@@ -1563,13 +1563,14 @@
   filter: saturate(1.2);
 }
 
-/* Hover blur backdrop */
+/* Hover depth effect (replaces glassmorphism blur) */
 .hover-blur {
-  transition: backdrop-filter 200ms cubic-bezier(0.22, 1, 0.36, 1);
+  transition: box-shadow 200ms cubic-bezier(0.22, 1, 0.36, 1), background 200ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 .hover-blur:hover {
-  backdrop-filter: blur(4px);
+  box-shadow: inset 0 0 0 1px var(--border-subtle), 0 2px 8px rgba(0, 0, 0, 0.12);
+  background: var(--color-surface-hover);
 }
 
 /* ============================================================

@@ -1,26 +1,26 @@
-/* shadcn/ui variables mapped to design token system */
+/* shadcn/ui variables mapped to vintage study design token system */
 @layer base {
   :root {
-    /* shadcn HSL variables — mapped to our design tokens via index.css */
-    --background: 240 10% 5%;
-    --foreground: 40 30% 93%;
-    --card: 240 8% 7%;
-    --card-foreground: 40 30% 93%;
-    --popover: 240 8% 7%;
-    --popover-foreground: 40 30% 93%;
-    --primary: 235 55% 59%;
-    --primary-foreground: 0 0% 100%;
-    --secondary: 240 5% 15%;
-    --secondary-foreground: 40 30% 93%;
-    --muted: 240 5% 15%;
-    --muted-foreground: 220 10% 65%;
-    --accent: 240 5% 15%;
-    --accent-foreground: 40 30% 93%;
-    --destructive: 0 60% 55%;
+    /* shadcn HSL variables — vintage study palette */
+    --background: 240 15% 8%;
+    --foreground: 36 35% 90%;
+    --card: 240 12% 10%;
+    --card-foreground: 36 35% 90%;
+    --popover: 240 12% 10%;
+    --popover-foreground: 36 35% 90%;
+    --primary: 30 60% 62%;
+    --primary-foreground: 240 15% 8%;
+    --secondary: 240 8% 14%;
+    --secondary-foreground: 36 35% 90%;
+    --muted: 240 8% 14%;
+    --muted-foreground: 36 15% 60%;
+    --accent: 30 50% 55%;
+    --accent-foreground: 36 35% 90%;
+    --destructive: 0 55% 50%;
     --destructive-foreground: 0 0% 100%;
-    --border: 240 5% 15%;
-    --input: 240 5% 15%;
-    --ring: 235 55% 59%;
+    --border: 240 8% 16%;
+    --input: 240 8% 14%;
+    --ring: 30 60% 62%;
     --radius: 0.5rem;
   }
 }

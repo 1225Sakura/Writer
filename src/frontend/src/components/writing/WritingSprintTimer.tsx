@@ -301,10 +301,7 @@ export function WritingSprintTimer() {
         onClick={() => setIsOpen(true)}
         className={`fixed right-4 top-16 z-50 flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-medium
                    transition-all duration-200 border ${timerBg} ${timerBorder} ${timerText} ${timerGlow}`}
-        style={{
-          backdropFilter: 'blur(12px)',
-          WebkitBackdropFilter: 'blur(12px)',
-        }}
+        style={{ background: 'var(--color-surface-raised)' }}
         title="写作冲刺计时器"
       >
         {timer.isRunning ? (
@@ -347,8 +344,6 @@ export function WritingSprintTimer() {
         background: 'var(--color-surface-raised)',
         border: '1px solid var(--border-default)',
         boxShadow: 'var(--shadow-float), 0 0 0 1px var(--border-subtle)',
-        backdropFilter: 'blur(16px)',
-        WebkitBackdropFilter: 'blur(16px)',
       }}
     >
       {/* Subtle panel texture */}

@@ -107,16 +107,14 @@ export function Toast({ message, type = 'info', duration = 3000, onClose }: Toas
           ? { duration: 0.15 }
           : { type: 'spring', stiffness: 400, damping: 28, mass: 0.8 }
       }
-      className="relative flex items-start gap-3 px-4 py-3.5 rounded-xl border backdrop-blur-md overflow-hidden min-w-[320px] max-w-[440px]"
+      className="relative flex items-start gap-3 px-4 py-3.5 rounded-xl border overflow-hidden min-w-[320px] max-w-[440px]"
       style={{
-        background: 'rgba(26, 26, 30, 0.85)',
-        borderColor: 'rgba(255, 255, 255, 0.08)',
+        background: 'var(--color-surface-overlay)',
+        borderColor: 'var(--border-subtle)',
         borderLeftWidth: '3px',
         borderLeftColor: config.borderColor,
         boxShadow: `
-          0 8px 32px rgba(0, 0, 0, 0.28),
-          0 2px 8px rgba(0, 0, 0, 0.14),
-          inset 0 1px 0 rgba(255, 255, 255, 0.04),
+          var(--shadow-card),
           0 0 20px ${config.glowColor}
         `,
       }}
@@ -159,7 +157,7 @@ export function Toast({ message, type = 'info', duration = 3000, onClose }: Toas
       {/* Close button */}
       <button
         onClick={onClose}
-        className="relative flex-shrink-0 p-1.5 rounded-lg transition-all duration-200 hover:bg-white/10 hover:scale-110 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-primary)]"
+        className="relative flex-shrink-0 p-1.5 rounded-lg transition-all duration-200 hover:bg-[var(--color-surface-hover)] hover:scale-110 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus-ring)]"
         style={{ color: 'var(--text-tertiary)' }}
         aria-label="关闭提示"
       >
@@ -169,7 +167,7 @@ export function Toast({ message, type = 'info', duration = 3000, onClose }: Toas
       {/* Progress bar */}
       <div
         className="absolute bottom-0 left-0 right-0 h-[3px] overflow-hidden rounded-b-xl"
-        style={{ backgroundColor: 'rgba(255, 255, 255, 0.04)' }}
+        style={{ backgroundColor: 'var(--color-surface-base)' }}
       >
         <motion.div
           className="h-full rounded-full"

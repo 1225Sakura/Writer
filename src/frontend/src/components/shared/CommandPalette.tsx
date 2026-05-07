@@ -876,7 +876,7 @@ export function CommandPalette() {
                           opacity: cmd.disabled ? 0.4 : 1,
                           cursor: cmd.disabled ? 'not-allowed' : 'pointer',
                           background: isSelected
-                            ? 'linear-gradient(90deg, rgba(94, 106, 210, 0.12) 0%, rgba(94, 106, 210, 0.04) 100%)'
+                            ? 'linear-gradient(90deg, rgba(201, 169, 110, 0.12) 0%, rgba(201, 169, 110, 0.04) 100%)'
                             : 'transparent',
                           borderLeft: isSelected
                             ? '3px solid var(--accent-primary)'

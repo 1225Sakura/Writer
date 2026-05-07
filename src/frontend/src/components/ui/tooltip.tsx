@@ -20,7 +20,7 @@ const TooltipContent = React.forwardRef<
       ref={ref}
       sideOffset={sideOffset}
       className={cn(
-        "z-50 overflow-hidden rounded-xl border border-white/10 bg-gradient-to-b from-[var(--ink-85)] to-[var(--ink-90)] px-3.5 py-2.5 text-xs text-[var(--text-primary)] shadow-xl shadow-black/30",
+        "z-50 overflow-hidden rounded-xl border border-[var(--border-default)] bg-[var(--color-surface-overlay)] px-3.5 py-2.5 text-xs text-[var(--text-primary)] shadow-[var(--shadow-float)]",
         "animate-in fade-in-0 zoom-in-95 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95",
         "data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2",
         "data-[state=closed]:slide-out-to-bottom-2 data-[state=closed]:slide-out-to-left-2 data-[state=closed]:slide-out-to-right-2 data-[state=closed]:slide-out-to-top-2",
@@ -32,7 +32,7 @@ const TooltipContent = React.forwardRef<
     >
       {props.children}
       <TooltipPrimitive.Arrow
-        className="fill-[var(--ink-85)]"
+        className="fill-[var(--color-surface-overlay)]"
         width={12}
         height={6}
       />

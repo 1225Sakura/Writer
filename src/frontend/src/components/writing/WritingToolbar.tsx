@@ -17,7 +17,8 @@ export function WritingToolbar() {
     <motion.div
       layout
       transition={SPRING.SNAPPY}
-      className={`flex items-center px-3 sm:px-4 gap-1.5 sm:gap-2 layout-topbar overflow-x-auto writing-toolbar glass-ink ${toolbarCollapsed ? 'h-0 opacity-0 overflow-hidden' : 'h-[var(--layout-topbar-height)]'}`}
+      className={`flex items-center px-3 sm:px-4 gap-1.5 sm:gap-2 layout-topbar overflow-x-auto writing-toolbar ${toolbarCollapsed ? 'h-0 opacity-0 overflow-hidden' : 'h-[var(--layout-topbar-height)]'}`}
+      style={{ background: 'var(--color-surface-raised)', borderBottom: '1px solid var(--border-default)' }}
     >
       <NavButtons />
 

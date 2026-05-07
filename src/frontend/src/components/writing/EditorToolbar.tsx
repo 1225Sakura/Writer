@@ -324,8 +324,6 @@ export function EditorToolbar({ editor }: EditorToolbarProps) {
             background: 'linear-gradient(180deg, rgba(25, 26, 27, 0.92) 0%, rgba(20, 21, 22, 0.96) 100%)',
             border: '1px solid rgba(255, 255, 255, 0.08)',
             boxShadow: '0 8px 32px rgba(0,0,0,0.28), 0 4px 12px rgba(0,0,0,0.16), inset 0 1px 0 rgba(255,255,255,0.06)',
-            backdropFilter: 'blur(16px)',
-            WebkitBackdropFilter: 'blur(16px)',
           }}
           role="toolbar"
           aria-label="文本编辑工具栏"
@@ -376,8 +374,6 @@ export function EditorToolbar({ editor }: EditorToolbarProps) {
                     background: 'linear-gradient(180deg, rgba(28, 29, 30, 0.96) 0%, rgba(22, 23, 24, 0.98) 100%)',
                     boxShadow: '0 8px 24px rgba(0,0,0,0.24), 0 2px 8px rgba(0,0,0,0.12), inset 0 1px 0 rgba(255,255,255,0.04)',
                     border: '1px solid rgba(255, 255, 255, 0.08)',
-                    backdropFilter: 'blur(16px)',
-                    WebkitBackdropFilter: 'blur(16px)',
                   }}
                   role="listbox"
                   aria-label="段落样式"

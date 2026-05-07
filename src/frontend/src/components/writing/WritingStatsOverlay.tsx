@@ -159,7 +159,6 @@ export function WritingStatsOverlay({
               background: 'linear-gradient(180deg, rgba(22, 23, 24, 0.95) 0%, rgba(16, 17, 18, 0.98) 100%)',
               border: '1px solid rgba(255, 255, 255, 0.05)',
               boxShadow: '0 4px 20px rgba(0,0,0,0.25), 0 8px 40px rgba(0,0,0,0.15), inset 0 1px 0 rgba(255,255,255,0.04)',
-              backdropFilter: 'blur(16px)',
             }}
           >
             {/* Header */}

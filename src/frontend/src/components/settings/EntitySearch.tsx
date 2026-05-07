@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
-import { useSettingsStore, type EntityType } from '@/store'
+import { useSettingsStore } from '@/store/settingsStore'
+import type { EntityType } from '@/shared/types'
 import { Search, X, Clock, ArrowRight, Trash2 } from 'lucide-react'
 import { EntityIcon } from '@/components/ui/Icon'
 import type { EntityIconType } from '@/components/ui/Icon'

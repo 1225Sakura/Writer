@@ -347,7 +347,7 @@ function ChatBubble({ message, onEdit, onDelete, onConfirmEntity, index }: {
                   animate={{ opacity: 1, y: 0, scale: 1 }}
                   exit={{ opacity: 0, y: 6, scale: 0.9 }}
                   transition={{ duration: DURATION.INSTANT, ease: EASE.STANDARD }}
-                  className="absolute -top-10 right-0 flex gap-1.5 bg-surface-raised/95 backdrop-blur-sm rounded-xl p-1.5 shadow-lg border border-border-default/50"
+                  className="absolute -top-10 right-0 flex gap-1.5 bg-surface-raised rounded-xl p-1.5 shadow-lg border border-border-default/50"
                 >
                   <motion.button
                     onClick={() => setIsEditing(true)}

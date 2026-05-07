@@ -45,14 +45,14 @@ const ScrollBar = React.forwardRef<
     <ScrollAreaPrimitive.ScrollAreaThumb
       className={cn(
         "relative flex-1 rounded-full",
-        "bg-[var(--border-strong)]",
-        "hover:bg-[var(--text-tertiary)]",
-        "active:bg-[var(--accent-primary)]",
+        "bg-[var(--ink-70)]",
+        "hover:bg-[var(--accent-80)]",
+        "active:bg-[var(--accent-100)]",
         "transition-colors duration-150",
-        "shadow-[inset_0_1px_1px_rgba(255,255,255,0.1)]",
+        "shadow-[inset_0_1px_1px_rgba(201,169,110,0.06)]",
         "before:absolute before:inset-0 before:rounded-full",
-        "before:bg-gradient-to-b before:from-white/10 before:to-transparent",
-        "hover:shadow-[inset_0_1px_2px_rgba(255,255,255,0.15)]"
+        "before:bg-gradient-to-b before:from-[var(--paper-100)]/5 before:to-transparent",
+        "hover:shadow-[inset_0_1px_2px_rgba(201,169,110,0.1)]"
       )}
       style={{
         minWidth: orientation === "vertical" ? "6px" : undefined,

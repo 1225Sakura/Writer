@@ -39,7 +39,7 @@ interface UnifiedBackgroundProps {
 
 // ============ Performance Detection ============
 
-function isLowPerformanceDevice(): boolean {
+export function isLowPerformanceDevice(): boolean {
   const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
   const isSmallScreen = window.innerWidth < 768
   const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
@@ -68,10 +68,10 @@ function isLowPerformanceDevice(): boolean {
 function getThemeColors(): string[] {
   const root = getComputedStyle(document.documentElement)
   return [
-    root.getPropertyValue('--accent-100').trim() || '#5e6ad2',
+    root.getPropertyValue('--accent-100').trim() || '#c9a96e',
     root.getPropertyValue('--color-character').trim() || '#e8b87d',
     root.getPropertyValue('--color-location').trim() || '#5eb5a6',
-    root.getPropertyValue('--color-item').trim() || '#9b7ed9',
+    root.getPropertyValue('--color-item').trim() || '#8b6d4f',
     root.getPropertyValue('--vermillion-100').trim() || '#c45c5c',
   ]
 }

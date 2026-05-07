@@ -26,15 +26,13 @@ const Card = React.forwardRef<
       whileTap={pressed && !shouldReduceMotion ? { scale: 0.98 } : undefined}
       transition={{ duration: shouldReduceMotion ? 0 : 0.2, ease: [0.16, 1, 0.3, 1] }}
       className={cn(
-        'rounded-xl border bg-card text-card-foreground',
-        'shadow-[0_1px_2px_color-mix(in_srgb,var(--ink-100)_5%,transparent),0_2px_4px_color-mix(in_srgb,var(--ink-100)_8%,transparent),0_4px_8px_color-mix(in_srgb,var(--ink-100)_4%,transparent)]',
-        'dark:shadow-[0_1px_2px_color-mix(in_srgb,var(--ink-100)_30%,transparent),0_2px_4px_color-mix(in_srgb,var(--ink-100)_20%,transparent),0_4px_8px_color-mix(in_srgb,var(--ink-100)_15%,transparent)]',
-        'hover:shadow-[0_8px_16px_color-mix(in_srgb,var(--ink-100)_10%,transparent),0_16px_32px_color-mix(in_srgb,var(--ink-100)_8%,transparent),0_32px_64px_color-mix(in_srgb,var(--ink-100)_6%,transparent)]',
-        'dark:hover:shadow-[0_8px_16px_color-mix(in_srgb,var(--ink-100)_40%,transparent),0_16px_32px_color-mix(in_srgb,var(--ink-100)_30%,transparent),0_32px_64px_color-mix(in_srgb,var(--ink-100)_20%,transparent)]',
+        'rounded-xl border border-[var(--border-default)] bg-[var(--color-surface-raised)] text-[var(--text-primary)]',
+        'shadow-[var(--shadow-card)]',
+        'hover:shadow-[var(--shadow-drawer)]',
         'transition-all duration-[var(--transition-base)] ease-out',
-        glowIntensity === 'subtle' && 'shadow-[0_0_12px_color-mix(in_srgb,var(--color-location)_8%,transparent)] dark:shadow-[0_0_12px_color-mix(in_srgb,var(--color-location)_15%,transparent)]',
-        glowIntensity === 'medium' && 'shadow-[0_0_16px_color-mix(in_srgb,var(--color-location)_12%,transparent)] dark:shadow-[0_0_16px_color-mix(in_srgb,var(--color-location)_20%,transparent)]',
-        glowIntensity === 'strong' && 'shadow-[0_0_20px_color-mix(in_srgb,var(--color-location)_15%,transparent),0_0_40px_color-mix(in_srgb,var(--color-location)_8%,transparent)] dark:shadow-[0_0_20px_color-mix(in_srgb,var(--color-location)_25%,transparent),0_0_40px_color-mix(in_srgb,var(--color-location)_12%,transparent)]',
+        glowIntensity === 'subtle' && 'shadow-[var(--shadow-glow-sm)]',
+        glowIntensity === 'medium' && 'shadow-[var(--shadow-glow)]',
+        glowIntensity === 'strong' && 'shadow-[var(--shadow-glow-lg)]',
         className
       )}
       {...props as any}

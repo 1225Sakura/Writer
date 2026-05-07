@@ -100,7 +100,7 @@ export {
   type CardBorder,
   type GlowIntensity,
   type SpotlightColor,
-} from '@/components/ui/GlassCard'
+} from '@/components/ui/MaterialCard'
 
 // Gradient borders
 export {
@@ -154,6 +154,7 @@ export {
   getBackgroundModeForInterface,
   getBackgroundDensity,
   getBackgroundSpeed,
+  isLowPerformanceDevice,
 } from './UnifiedBackground'
 export type {
   UnifiedBackgroundMode,

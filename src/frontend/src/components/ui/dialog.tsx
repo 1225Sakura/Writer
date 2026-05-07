@@ -22,8 +22,7 @@ const DialogOverlay = React.forwardRef<
     ref={ref}
     className={cn(
       "fixed inset-0 z-50",
-      "bg-gradient-to-br from-black/80 via-black/60 to-black/80",
-      "backdrop-blur-xl",
+      "bg-[var(--color-overlay)]",
       "data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0",
       "data-[state=closed]:duration-200 data-[state=open]:duration-200",
       className
@@ -54,7 +53,6 @@ const DialogContent = React.forwardRef<
         "data-[state=open]:slide-in-from-left-1/2 data-[state=open]:slide-in-from-top-[48%]",
         "data-[state=closed]:duration-200 data-[state=open]:duration-200",
         "rounded-[var(--radius-2xl)]",
-        "backdrop-blur-sm",
         "max-h-[85vh] overflow-y-auto",
         className
       )}

@@ -50,7 +50,7 @@ const themeMetaList: ThemeMeta[] = [
     preview: {
       surface: '#0d0d12',
       text: '#f5f0e6',
-      accent: '#5e6ad2',
+      accent: '#c9a96e',
       border: 'rgba(255,255,255,0.10)',
     },
   },
@@ -62,7 +62,7 @@ const themeMetaList: ThemeMeta[] = [
     preview: {
       surface: '#f5f0e6',
       text: '#1a1a2e',
-      accent: '#5e6ad2',
+      accent: '#c9a96e',
       border: 'rgba(0,0,0,0.10)',
     },
   },

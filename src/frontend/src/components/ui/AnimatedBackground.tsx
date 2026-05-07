@@ -195,7 +195,7 @@ export const AnimatedBackground = React.forwardRef<HTMLDivElement, AnimatedBackg
         <div
           className="absolute inset-0 pointer-events-none"
           style={{
-            background: `linear-gradient(180deg, transparent 0%, var(--color-surface-base, #0d0d12) ${100 - overlayOpacity * 100}%)`,
+            background: `linear-gradient(180deg, transparent 0%, var(--color-surface-base, #1a1a14) ${100 - overlayOpacity * 100}%)`,
             opacity: mode === 'floating-shapes' || mode === 'aurora' ? overlayOpacity : 0,
           }}
         />

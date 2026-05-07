@@ -30,6 +30,10 @@ import {
 	Minimize2,
 	Sparkles,
 	Info,
+	Search,
+	Focus,
+	ExternalLink,
+	Highlighter,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { DURATION, EASE } from '@/components/shared/AnimationConfig'
@@ -72,6 +76,12 @@ interface NodeDetail {
 }
 
 interface HoverTooltipState {
+	node: GraphNode;
+	x: number;
+	y: number;
+}
+
+interface ContextMenuState {
 	node: GraphNode;
 	x: number;
 	y: number;
@@ -342,13 +352,13 @@ function useGraphData() {
 
 function GraphFallback() {
 	return (
-		<div className="h-full flex items-center justify-center bg-[var(--color-surface-base)] relative overflow-hidden rounded-lg">
-			<div className="absolute inset-0 opacity-[0.06]">
+		<div className="h-full flex items-center justify-center relative overflow-hidden rounded-lg" style={{ background: 'var(--ink-100)' }}>
+			<div className="absolute inset-0 opacity-[0.04]">
 				<div
 					className="absolute inset-0"
 					style={{
 						backgroundImage:
-							"radial-gradient(circle, var(--border-subtle) 1px, transparent 1px)",
+							"radial-gradient(circle, var(--accent-primary) 0.5px, transparent 0.5px)",
 						backgroundSize: "24px 24px",
 					}}
 				/>
@@ -362,10 +372,10 @@ function GraphFallback() {
 					/>
 					<Sparkles className="w-4 h-4 absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-[var(--accent-primary)]" />
 				</div>
-				<p className="text-xs text-[var(--text-tertiary)] font-medium">
+				<p className="text-xs font-medium" style={{ color: 'var(--paper-80)', opacity: 0.6 }}>
 					加载图谱引擎...
 				</p>
-				<p className="text-[10px] text-[var(--text-disabled)] mt-1">
+				<p className="text-[10px] mt-1" style={{ color: 'var(--paper-80)', opacity: 0.3 }}>
 					正在构建节点关系
 				</p>
 			</div>
@@ -397,10 +407,10 @@ function NodeHoverTooltip({
 					(containerRef.current?.clientWidth || 800) - 260,
 				),
 				top: Math.max(tooltip.y - 12, 8),
-				background: 'var(--color-surface-overlay)',
-				border: `1px solid ${config.color}30`,
+				background: 'var(--paper-80)',
+				border: `1px solid var(--border-default)`,
 				boxShadow: `0 16px 48px rgba(0,0,0,0.6), 0 0 0 1px var(--border-subtle), 0 0 40px ${config.glowColor}30, 0 4px 12px rgba(0,0,0,0.3)`,
-				backdropFilter: "blur(24px)",
+				fontFamily: 'var(--font-sans)',
 			}}
 		>
 			<div
@@ -420,20 +430,20 @@ function NodeHoverTooltip({
 					<Icon className="w-3.5 h-3.5" style={{ color: config.color }} />
 				</div>
 				<div className="min-w-0">
-					<p className="text-sm font-semibold text-[var(--text-primary)] truncate">
+					<p className="text-sm font-semibold truncate" style={{ color: 'var(--ink-100)' }}>
 						{tooltip.node.name}
 					</p>
-					<p className="text-[10px] text-[var(--text-tertiary)] uppercase tracking-wider">
+					<p className="text-[10px] uppercase tracking-wider" style={{ color: 'var(--ink-90)', opacity: 0.6 }}>
 						{config.label}
 					</p>
 				</div>
 			</div>
 			{tooltip.node.description && (
-				<p className="text-[11px] text-[var(--text-secondary)] leading-relaxed line-clamp-2 mb-2">
+				<p className="text-[11px] leading-relaxed line-clamp-2 mb-2" style={{ color: 'var(--ink-90)', opacity: 0.75 }}>
 					{tooltip.node.description}
 				</p>
 			)}
-			<div className="flex items-center gap-3 text-[10px] text-[var(--text-tertiary)]">
+			<div className="flex items-center gap-3 text-[10px]" style={{ color: 'var(--ink-90)', opacity: 0.5 }}>
 				<span className="flex items-center gap-1">
 					<LinkIcon className="w-3 h-3" style={{ color: config.color }} />
 					{tooltip.node.val - 1} 条关系
@@ -470,10 +480,10 @@ function NodeDetailPanel({
 					(typeof window !== "undefined" ? window.innerWidth : 800) - 280,
 				),
 				top: Math.max(detail.y - 16, 8),
-				background: 'var(--color-surface-overlay)',
+				background: 'var(--paper-80)',
 				border: "1px solid var(--border-default)",
 				boxShadow: `0 12px 40px rgba(0,0,0,0.5), 0 0 0 1px var(--border-subtle), 0 0 30px ${config.glowColor}20`,
-				backdropFilter: "blur(20px)",
+				fontFamily: 'var(--font-sans)',
 			}}
 		>
 			<div
@@ -494,10 +504,10 @@ function NodeDetailPanel({
 						<Icon className="w-4 h-4" style={{ color: config.color }} />
 					</div>
 					<div>
-						<p className="text-sm font-semibold text-[var(--text-primary)]">
+						<p className="text-sm font-semibold" style={{ color: 'var(--ink-100)' }}>
 							{detail.node.name}
 						</p>
-						<p className="text-[10px] text-[var(--text-tertiary)] uppercase tracking-wider">
+						<p className="text-[10px] uppercase tracking-wider" style={{ color: 'var(--ink-90)', opacity: 0.6 }}>
 							{config.label}
 						</p>
 					</div>
@@ -510,11 +520,11 @@ function NodeDetailPanel({
 				</button>
 			</div>
 			{detail.node.description && (
-				<p className="text-xs line-clamp-3 mb-2.5 text-[var(--text-secondary)] leading-relaxed">
+				<p className="text-xs line-clamp-3 mb-2.5 leading-relaxed" style={{ color: 'var(--ink-90)', opacity: 0.75 }}>
 					{detail.node.description}
 				</p>
 			)}
-			<div className="flex items-center gap-1.5 text-[10px] text-[var(--text-tertiary)] pt-2 border-t border-[var(--border-subtle)]">
+			<div className="flex items-center gap-1.5 text-[10px] pt-2 border-t border-[var(--border-subtle)]" style={{ color: 'var(--ink-90)', opacity: 0.5 }}>
 				<LinkIcon className="w-3 h-3" style={{ color: config.color }} />
 				<span>{detail.node.val - 1} 条关系</span>
 			</div>
@@ -530,6 +540,10 @@ function FilterControls({
 	onZoomIn,
 	onZoomOut,
 	onResetView,
+	searchQuery,
+	onSearchChange,
+	searchResults,
+	onSelectResult,
 }: {
 	activeTypes: Set<EntityNodeType>;
 	onToggleType: (type: EntityNodeType) => void;
@@ -538,6 +552,10 @@ function FilterControls({
 	onZoomIn: () => void;
 	onZoomOut: () => void;
 	onResetView: () => void;
+	searchQuery: string;
+	onSearchChange: (query: string) => void;
+	searchResults: GraphNode[];
+	onSelectResult: (node: GraphNode) => void;
 }) {
 	const [isExpanded, setIsExpanded] = useState(false);
 
@@ -545,13 +563,21 @@ function FilterControls({
 
 	return (
 		<div className="absolute top-3 left-3 z-10 flex flex-col gap-2">
+			{/* Search input */}
+			<SearchInput
+				searchQuery={searchQuery}
+				onSearchChange={onSearchChange}
+				searchResults={searchResults}
+				onSelectResult={onSelectResult}
+			/>
+
 			<div
 				className="flex flex-col gap-0.5 rounded-xl p-1.5"
 				style={{
-					background: 'var(--color-surface-raised)',
+					background: 'var(--paper-80)',
 					border: "1px solid var(--border-default)",
 					boxShadow:
-						"0 4px 20px rgba(0,0,0,0.4), 0 0 0 1px rgba(255,255,255,0.02)",
+						"0 4px 20px rgba(0,0,0,0.4), 0 0 0 1px var(--border-subtle)",
 				}}
 			>
 				<FilterButton icon={ZoomIn} title="放大 (滚轮上)" onClick={onZoomIn} />
@@ -566,23 +592,23 @@ function FilterControls({
 			<div
 				className="rounded-xl p-1.5"
 				style={{
-					background: 'var(--color-surface-raised)',
+					background: 'var(--paper-80)',
 					border: "1px solid var(--border-subtle)",
 					boxShadow:
-						"0 4px 20px rgba(0,0,0,0.3), 0 0 0 1px rgba(255,255,255,0.02)",
+						"0 4px 20px rgba(0,0,0,0.3), 0 0 0 1px var(--border-subtle)",
 				}}
 			>
 				<button
 					onClick={() => setIsExpanded(!isExpanded)}
 					className="flex items-center gap-1.5 px-2 py-1.5 rounded-lg hover:bg-[var(--hover-bg)] transition-all duration-200 w-full group"
 				>
-					<Filter className="w-3 h-3 text-[var(--text-tertiary)] group-hover:text-[var(--text-secondary)] transition-colors" />
-					<span className="text-[10px] text-[var(--text-tertiary)] group-hover:text-[var(--text-secondary)] transition-colors font-medium">
+					<Filter className="w-3 h-3 transition-colors" style={{ color: 'var(--ink-90)', opacity: 0.5 }} />
+					<span className="text-[10px] transition-colors font-medium" style={{ color: 'var(--ink-90)', opacity: 0.5 }}>
 						筛选
 					</span>
 					<ChevronRight
-						className="w-3 h-3 ml-auto transition-transform text-[var(--text-tertiary)]"
-						style={{ transform: isExpanded ? "rotate(90deg)" : "rotate(0deg)" }}
+						className="w-3 h-3 ml-auto transition-transform"
+						style={{ transform: isExpanded ? "rotate(90deg)" : "rotate(0deg)", color: 'var(--ink-90)', opacity: 0.4 }}
 					/>
 				</button>
 
@@ -616,7 +642,7 @@ function FilterControls({
 											onMouseEnter={(e) => {
 												if (!isActive)
 													e.currentTarget.style.backgroundColor =
-														"rgba(255,255,255,0.04)";
+														"rgba(201, 169, 110, 0.06)";
 											}}
 											onMouseLeave={(e) => {
 												if (!isActive)
@@ -640,7 +666,8 @@ function FilterControls({
 												style={{
 													color: isActive
 														? config.color
-														: "var(--text-tertiary)",
+														: "var(--ink-90)",
+													opacity: isActive ? 1 : 0.5,
 												}}
 											>
 												{config.label}
@@ -651,15 +678,18 @@ function FilterControls({
 							</div>
 
 							<div className="pt-2 mt-2 border-t border-[var(--border-subtle)]">
-								<p className="text-[10px] mb-1.5 px-2 text-[var(--text-tertiary)] font-medium">
+								<p className="text-[10px] mb-1.5 px-2 font-medium" style={{ color: 'var(--ink-90)', opacity: 0.5 }}>
 									关系类型
 								</p>
 								<select
 									value={filterRelation}
 									onChange={(e) => onSetRelationFilter(e.target.value)}
-									className="w-full text-[10px] px-2 py-1.5 rounded-lg border-none outline-none cursor-pointer text-[var(--text-tertiary)] transition-colors"
+									className="w-full text-[10px] px-2 py-1.5 rounded-lg outline-none cursor-pointer transition-colors"
 									style={{
-										background: "rgba(255,255,255,0.04)",
+										background: "var(--paper-100)",
+										color: "var(--ink-100)",
+										border: "1px solid var(--border-subtle)",
+										fontFamily: 'var(--font-sans)',
 									}}
 								>
 									<option value="all">全部关系</option>
@@ -693,7 +723,7 @@ function FilterButton({
 			title={title}
 			onClick={onClick}
 		>
-			<Icon className="w-4 h-4 text-[var(--text-tertiary)] group-hover:text-[var(--text-secondary)] transition-colors" />
+			<Icon className="w-4 h-4 transition-colors" style={{ color: 'var(--ink-90)', opacity: 0.5 }} />
 		</button>
 	);
 }
@@ -714,12 +744,12 @@ function Legend({
 				className="absolute bottom-3 right-3 z-10 p-2.5 rounded-xl transition-all duration-200 group"
 				title="显示图例"
 				style={{
-					background: 'var(--color-surface-raised)',
+					background: 'var(--paper-80)',
 					border: "1px solid var(--border-subtle)",
 					boxShadow: "0 4px 20px rgba(0,0,0,0.3)",
 				}}
 			>
-				<Eye className="w-4 h-4 text-[var(--text-tertiary)] group-hover:text-[var(--text-secondary)] transition-colors" />
+				<Eye className="w-4 h-4 transition-colors" style={{ color: 'var(--ink-90)', opacity: 0.5 }} />
 			</button>
 		);
 	}
@@ -734,22 +764,22 @@ function Legend({
 			className="absolute bottom-3 right-3 z-10 rounded-xl overflow-hidden"
 			style={{
 				minWidth: "160px",
-				background: 'var(--color-surface-overlay)',
+				background: 'var(--paper-80)',
 				border: "1px solid var(--border-default)",
 				boxShadow:
-					"0 8px 32px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.02)",
-				backdropFilter: "blur(20px)",
+					"0 8px 32px rgba(0,0,0,0.5), 0 0 0 1px var(--border-subtle)",
+				fontFamily: 'var(--font-sans)',
 			}}
 		>
 			<div className="flex items-center justify-between px-3 py-2.5 border-b border-[var(--border-subtle)]">
-				<span className="text-[10px] font-semibold text-[var(--text-tertiary)] uppercase tracking-wider">
+				<span className="text-[10px] font-semibold uppercase tracking-wider" style={{ color: 'var(--ink-90)', opacity: 0.6 }}>
 					图例
 				</span>
 				<button
 					onClick={onToggle}
 					className="p-1 rounded-lg hover:bg-[var(--hover-bg)] transition-all duration-200"
 				>
-					<EyeOff className="w-3.5 h-3.5 text-[var(--text-tertiary)]" />
+					<EyeOff className="w-3.5 h-3.5" style={{ color: 'var(--ink-90)', opacity: 0.5 }} />
 				</button>
 			</div>
 
@@ -769,7 +799,7 @@ function Legend({
 									boxShadow: `0 0 8px ${config.glowColor}`,
 								}}
 							/>
-							<span className="text-[10px] text-[var(--text-secondary)]">
+							<span className="text-[10px]" style={{ color: 'var(--ink-90)', opacity: 0.75 }}>
 								{config.label}
 							</span>
 						</div>
@@ -779,7 +809,7 @@ function Legend({
 				{uniqueTypes.length > 0 && (
 					<>
 						<div className="border-t border-[var(--border-subtle)] pt-2.5">
-							<span className="text-[9px] text-[var(--text-disabled)] font-medium uppercase tracking-wider mb-2 block">
+							<span className="text-[9px] font-medium uppercase tracking-wider mb-2 block" style={{ color: 'var(--ink-90)', opacity: 0.4 }}>
 								关系类型
 							</span>
 							<div className="space-y-1.5">
@@ -794,13 +824,13 @@ function Legend({
 												boxShadow: `0 0 6px ${RELATION_TYPE_COLORS[type] || RELATION_TYPE_COLORS.other}50`,
 											}}
 										/>
-										<span className="text-[10px] text-[var(--text-secondary)]">
+										<span className="text-[10px]" style={{ color: 'var(--ink-90)', opacity: 0.75 }}>
 											{RELATION_TYPE_LABELS[type] || type}
 										</span>
 									</div>
 								))}
 								{uniqueTypes.length > 6 && (
-									<span className="text-[9px] text-[var(--text-disabled)]">
+									<span className="text-[9px]" style={{ color: 'var(--ink-90)', opacity: 0.35 }}>
 										+{uniqueTypes.length - 6} 更多
 									</span>
 								)}
@@ -828,25 +858,26 @@ function StatsBar({
 		<div
 			className="absolute bottom-3 left-3 z-10 text-[10px] px-3 py-2 rounded-xl flex items-center gap-2.5"
 			style={{
-				background: 'var(--color-surface-overlay)',
+				background: 'var(--paper-80)',
 				border: "1px solid var(--border-subtle)",
 				boxShadow:
-					"0 4px 20px rgba(0,0,0,0.3), 0 0 0 1px rgba(255,255,255,0.02)",
-				backdropFilter: "blur(16px)",
+					"0 4px 20px rgba(0,0,0,0.3), 0 0 0 1px var(--border-subtle)",
+				fontFamily: 'var(--font-sans)',
 			}}
 		>
-			<span className="text-[var(--text-secondary)] font-medium">
+			<span className="font-medium" style={{ color: 'var(--ink-90)', opacity: 0.75 }}>
 				{nodeCount} 节点
 			</span>
-			<span className="text-[var(--text-disabled)]">·</span>
-			<span className="text-[var(--text-secondary)] font-medium">
+			<span style={{ color: 'var(--ink-90)', opacity: 0.3 }}>·</span>
+			<span className="font-medium" style={{ color: 'var(--ink-90)', opacity: 0.75 }}>
 				{linkCount} 关系
 			</span>
 			{filterRelation !== "all" && (
 				<>
-					<span className="text-[var(--text-disabled)]">·</span>
+					<span style={{ color: 'var(--ink-90)', opacity: 0.3 }}>·</span>
 					<button
-						className="underline hover:text-[var(--accent-primary)] transition-colors duration-200"
+						className="underline transition-colors duration-200"
+						style={{ color: 'var(--accent-primary)' }}
 						onClick={onClearFilter}
 					>
 						清除筛选
@@ -857,29 +888,219 @@ function StatsBar({
 	);
 }
 
+function ContextMenu({
+	menu,
+	onClose,
+	onHighlight,
+	onFocus,
+	onViewDetails,
+}: {
+	menu: ContextMenuState;
+	onClose: () => void;
+	onHighlight: (nodeId: string) => void;
+	onFocus: (node: GraphNode) => void;
+	onViewDetails: (node: GraphNode, x: number, y: number) => void;
+}) {
+	const config = ENTITY_TYPE_CONFIG[menu.node.type];
+	const Icon = config.icon;
+
+	const menuItems = [
+		{
+			icon: Info,
+			label: "查看详情",
+			action: () => { onViewDetails(menu.node, menu.x, menu.y); onClose(); },
+		},
+		{
+			icon: Highlighter,
+			label: "高亮关联",
+			action: () => { onHighlight(menu.node.id); onClose(); },
+		},
+		{
+			icon: Focus,
+			label: "聚焦节点",
+			action: () => { onFocus(menu.node); onClose(); },
+		},
+		{
+			icon: ExternalLink,
+			label: "展开连接",
+			action: () => { onHighlight(menu.node.id); onClose(); },
+		},
+	];
+
+	return (
+		<motion.div
+			initial={{ opacity: 0, scale: 0.92, y: -4 }}
+			animate={{ opacity: 1, scale: 1, y: 0 }}
+			exit={{ opacity: 0, scale: 0.92, y: -4 }}
+			transition={{ duration: 0.12, ease: [0.16, 1, 0.3, 1] }}
+			className="absolute z-40 rounded-xl overflow-hidden min-w-[160px]"
+			style={{
+				left: menu.x,
+				top: menu.y,
+				background: 'var(--paper-80)',
+				border: '1px solid var(--border-default)',
+				boxShadow: '0 12px 40px rgba(0,0,0,0.5), 0 0 0 1px var(--border-subtle)',
+				fontFamily: 'var(--font-sans)',
+			}}
+			onContextMenu={(e) => e.preventDefault()}
+		>
+			{/* Header */}
+			<div className="flex items-center gap-2 px-3 py-2 border-b border-[var(--border-subtle)]">
+				<div
+					className="w-5 h-5 rounded-md flex items-center justify-center"
+					style={{
+						background: `linear-gradient(135deg, ${config.color}20, ${config.color}08)`,
+					}}
+				>
+					<Icon className="w-3 h-3" style={{ color: config.color }} />
+				</div>
+				<span className="text-[11px] font-semibold truncate" style={{ color: 'var(--ink-100)' }}>
+					{menu.node.name}
+				</span>
+			</div>
+
+			{/* Menu items */}
+			<div className="p-1">
+				{menuItems.map((item, idx) => (
+					<button
+						key={idx}
+						onClick={item.action}
+						className="flex items-center gap-2.5 w-full px-2.5 py-1.5 rounded-lg text-left transition-all duration-150"
+						style={{ color: 'var(--ink-90)' }}
+						onMouseEnter={(e) => {
+							e.currentTarget.style.backgroundColor = 'rgba(201, 169, 110, 0.1)';
+							e.currentTarget.style.color = 'var(--accent-primary)';
+						}}
+						onMouseLeave={(e) => {
+							e.currentTarget.style.backgroundColor = 'transparent';
+							e.currentTarget.style.color = 'var(--ink-90)';
+						}}
+					>
+						<item.icon className="w-3.5 h-3.5 flex-shrink-0" style={{ opacity: 0.6 }} />
+						<span className="text-[11px]">{item.label}</span>
+					</button>
+				))}
+			</div>
+		</motion.div>
+	);
+}
+
+function SearchInput({
+	searchQuery,
+	onSearchChange,
+	searchResults,
+	onSelectResult,
+}: {
+	searchQuery: string;
+	onSearchChange: (query: string) => void;
+	searchResults: GraphNode[];
+	onSelectResult: (node: GraphNode) => void;
+}) {
+	const [isFocused, setIsFocused] = useState(false);
+	const showResults = isFocused && searchQuery.length > 0 && searchResults.length > 0;
+
+	return (
+		<div className="relative">
+			<div
+				className="flex items-center gap-1.5 rounded-lg px-2 py-1.5 transition-all duration-200"
+				style={{
+					background: 'var(--color-surface-base)',
+					border: `1px solid ${isFocused ? 'var(--accent-primary)' : 'var(--border-subtle)'}`,
+					boxShadow: isFocused ? '0 0 0 2px rgba(201, 169, 110, 0.15)' : 'none',
+				}}
+			>
+				<Search className="w-3 h-3 flex-shrink-0" style={{ color: isFocused ? 'var(--accent-primary)' : 'var(--ink-90)', opacity: isFocused ? 0.8 : 0.4 }} />
+				<input
+					type="text"
+					value={searchQuery}
+					onChange={(e) => onSearchChange(e.target.value)}
+					onFocus={() => setIsFocused(true)}
+					onBlur={() => { setTimeout(() => setIsFocused(false), 150); }}
+					placeholder="搜索节点..."
+					className="w-full bg-transparent text-[10px] outline-none"
+					style={{
+						color: 'var(--ink-100)',
+						'--tw-placeholder-opacity': '0.4',
+					} as React.CSSProperties}
+				/>
+				{searchQuery && (
+					<button
+						onClick={() => onSearchChange('')}
+						className="p-0.5 rounded hover:bg-[var(--hover-bg)] transition-colors"
+					>
+						<X className="w-2.5 h-2.5" style={{ color: 'var(--ink-90)', opacity: 0.4 }} />
+					</button>
+				)}
+			</div>
+
+			<AnimatePresence>
+				{showResults && (
+					<motion.div
+						initial={{ opacity: 0, y: -4 }}
+						animate={{ opacity: 1, y: 0 }}
+						exit={{ opacity: 0, y: -4 }}
+						transition={{ duration: 0.12 }}
+						className="absolute top-full left-0 right-0 mt-1 rounded-lg overflow-hidden z-50 max-h-[160px] overflow-y-auto"
+						style={{
+							background: 'var(--paper-80)',
+							border: '1px solid var(--border-default)',
+							boxShadow: '0 8px 24px rgba(0,0,0,0.4)',
+						}}
+					>
+						{searchResults.slice(0, 8).map((node) => {
+							const cfg = ENTITY_TYPE_CONFIG[node.type];
+							const NodeIcon = cfg.icon;
+							return (
+								<button
+									key={node.id}
+									onClick={() => onSelectResult(node)}
+									className="flex items-center gap-2 w-full px-2.5 py-1.5 text-left transition-all duration-150"
+									style={{ color: 'var(--ink-90)' }}
+									onMouseEnter={(e) => {
+										e.currentTarget.style.backgroundColor = 'rgba(201, 169, 110, 0.08)';
+									}}
+									onMouseLeave={(e) => {
+										e.currentTarget.style.backgroundColor = 'transparent';
+									}}
+								>
+									<div
+										className="w-2.5 h-2.5 rounded-full flex-shrink-0"
+										style={{ backgroundColor: cfg.color }}
+									/>
+									<NodeIcon className="w-3 h-3 flex-shrink-0" style={{ color: cfg.color, opacity: 0.7 }} />
+									<span className="text-[10px] truncate">{node.name}</span>
+								</button>
+							);
+						})}
+					</motion.div>
+				)}
+			</AnimatePresence>
+		</div>
+	);
+}
+
 function GraphBackground() {
 	return (
 		<div className="absolute inset-0 pointer-events-none overflow-hidden">
-			{/* Subtle dot grid - very low opacity for cleaner look */}
+			{/* Paper grain texture - subtle noise pattern */}
 			<div
-				className="absolute inset-0 opacity-[0.03]"
+				className="absolute inset-0 opacity-[0.04]"
 				style={{
-					backgroundImage:
-						"radial-gradient(circle, var(--text-tertiary) 0.5px, transparent 0.5px)",
-					backgroundSize: "24px 24px",
+					backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.5'/%3E%3C/svg%3E")`,
+					backgroundSize: "200px 200px",
 				}}
 			/>
-			{/* Vignette effect for depth */}
+			{/* Warm vignette effect for depth */}
 			<div
 				className="absolute inset-0"
 				style={{
 					background:
-						"radial-gradient(ellipse at center, transparent 50%, rgba(0,0,0,0.06) 100%)",
+						"radial-gradient(ellipse at center, transparent 40%, rgba(26,21,16,0.12) 100%)",
 				}}
 			/>
-			{/* Subtle top accent glow */}
+			{/* Subtle brass accent glow at top */}
 			<div
-				className="absolute top-0 left-1/2 -translate-x-1/2 w-[400px] h-[200px] opacity-[0.02]"
+				className="absolute top-0 left-1/2 -translate-x-1/2 w-[400px] h-[200px] opacity-[0.04]"
 				style={{
 					background:
 						"radial-gradient(ellipse at center, var(--accent-primary) 0%, transparent 70%)",
@@ -917,6 +1138,9 @@ export function RelationGraph() {
 		null,
 	);
 	const [isFullscreen, setIsFullscreen] = useState(false);
+	const [contextMenu, setContextMenu] = useState<ContextMenuState | null>(null);
+	const [searchQuery, setSearchQuery] = useState('');
+	const [highlightedNodeId, setHighlightedNodeId] = useState<string | null>(null);
 
 	const { nodes: allNodes, links: allLinks } = useGraphData();
 
@@ -1016,6 +1240,8 @@ export function RelationGraph() {
 
 	const handleBackgroundClick = useCallback(() => {
 		setSelectedNode(null);
+		setContextMenu(null);
+		setHighlightedNodeId(null);
 	}, []);
 
 	const toggleFullscreen = useCallback(() => {
@@ -1032,6 +1258,67 @@ export function RelationGraph() {
 		setTimeout(() => {
 			setIsGenerating(false);
 		}, 2000);
+	}, []);
+
+	// Search results
+	const searchResults = useMemo(() => {
+		if (!searchQuery.trim()) return [];
+		const q = searchQuery.toLowerCase();
+		return allNodes.filter(
+			(n) => n.name.toLowerCase().includes(q) || n.type.toLowerCase().includes(q)
+		);
+	}, [searchQuery, allNodes]);
+
+	// Combined active highlight: selected node or explicitly highlighted node
+	const activeHighlightId = highlightedNodeId || selectedNode?.node.id || null;
+
+	// Right-click context menu handler
+	const handleNodeRightClick = useCallback((node: any, event: MouseEvent) => {
+		event.preventDefault();
+		if (!containerRef.current) return;
+		const rect = containerRef.current.getBoundingClientRect();
+		setContextMenu({
+			node: node as GraphNode,
+			x: event.clientX - rect.left,
+			y: event.clientY - rect.top,
+		});
+		setSelectedNode(null);
+	}, []);
+
+	// Context menu actions
+	const handleHighlightConnections = useCallback((nodeId: string) => {
+		setHighlightedNodeId((prev) => (prev === nodeId ? null : nodeId));
+	}, []);
+
+	const handleFocusNode = useCallback((node: GraphNode) => {
+		if (fgRef.current) {
+			const graphNode = (fgRef.current as any).graphData()?.nodes?.find(
+				(n: any) => n.id === node.id
+			);
+			if (graphNode) {
+				fgRef.current.centerAt(graphNode.x, graphNode.y, 600);
+				fgRef.current.zoom(2.5, 600);
+			}
+		}
+		setHighlightedNodeId(node.id);
+	}, []);
+
+	const handleViewDetailsFromMenu = useCallback((node: GraphNode, x: number, y: number) => {
+		setSelectedNode({ node, x, y });
+	}, []);
+
+	const handleSearchResultSelect = useCallback((node: GraphNode) => {
+		setSearchQuery('');
+		setHighlightedNodeId(node.id);
+		if (fgRef.current) {
+			const graphNode = (fgRef.current as any).graphData()?.nodes?.find(
+				(n: any) => n.id === node.id
+			);
+			if (graphNode) {
+				fgRef.current.centerAt(graphNode.x, graphNode.y, 600);
+				fgRef.current.zoom(2.5, 600);
+			}
+		}
 	}, []);
 
 	// Track node position for hover tooltip during drag
@@ -1071,7 +1358,7 @@ export function RelationGraph() {
 		(node: any, ctx: CanvasRenderingContext2D, globalScale: number) => {
 			const config = ENTITY_TYPE_CONFIG[node.type as EntityNodeType];
 			const isHovered = node.id === hoveredNodeId;
-			const isSelected = selectedNode?.node.id === node.id;
+			const isSelected = selectedNode?.node.id === node.id || activeHighlightId === node.id;
 			const baseSize = config?.size || 6;
 			const baseRadius = Math.sqrt(node.val) * baseSize + baseSize;
 			const radius = baseRadius * (isHovered ? 1.3 : 1);
@@ -1097,9 +1384,9 @@ export function RelationGraph() {
 					);
 					glowGradient.addColorStop(
 						0,
-						config?.glowStrong || "rgba(94, 106, 210, 0.5)",
+						config?.glowStrong || "rgba(201, 169, 110, 0.5)",
 					);
-					glowGradient.addColorStop(0.4, config?.glowColor || "rgba(94, 106, 210, 0.2)");
+					glowGradient.addColorStop(0.4, config?.glowColor || "rgba(201, 169, 110, 0.2)");
 					glowGradient.addColorStop(1, "transparent");
 					ctx.fillStyle = glowGradient;
 					ctx.beginPath();
@@ -1114,7 +1401,7 @@ export function RelationGraph() {
 				const ringRadius = finalRadius + 14;
 				ctx.beginPath();
 				ctx.arc(x, y, ringRadius, time, time + Math.PI * 1.5);
-				ctx.strokeStyle = config?.ringColor || "rgba(94, 106, 210, 0.3)";
+				ctx.strokeStyle = config?.ringColor || "rgba(201, 169, 110, 0.3)";
 				ctx.lineWidth = 1.5;
 				ctx.setLineDash([4, 4]);
 				ctx.stroke();
@@ -1128,7 +1415,7 @@ export function RelationGraph() {
 					x, y, finalRadius,
 					x, y, innerGlowRadius,
 				);
-				innerGlow.addColorStop(0, `${config?.color || "#5e6ad2"}30`);
+				innerGlow.addColorStop(0, `${config?.color || "#c9a96e"}30`);
 				innerGlow.addColorStop(1, "transparent");
 				ctx.fillStyle = innerGlow;
 				ctx.beginPath();
@@ -1138,13 +1425,13 @@ export function RelationGraph() {
 
 			// Outer ring shadow
 			ctx.shadowColor = isHovered
-				? config?.color || "#5e6ad2"
+				? config?.color || "#c9a96e"
 				: "rgba(0,0,0,0.5)";
 			ctx.shadowBlur = isHovered ? 25 : 8;
 			ctx.shadowOffsetX = 0;
 			ctx.shadowOffsetY = isHovered ? 0 : 4;
 
-			// Main node circle with gradient
+			// Main node circle - leather-textured warm brown gradient
 			const nodeGradient = ctx.createRadialGradient(
 				x - finalRadius * 0.35,
 				y - finalRadius * 0.35,
@@ -1153,20 +1440,32 @@ export function RelationGraph() {
 				y,
 				finalRadius,
 			);
-			nodeGradient.addColorStop(0, config?.color || "#5e6ad2");
-			nodeGradient.addColorStop(0.7, `${config?.color || "#5e6ad2"}dd`);
-			nodeGradient.addColorStop(1, `${config?.color || "#5e6ad2"}99`);
+			nodeGradient.addColorStop(0, "#3d3225");
+			nodeGradient.addColorStop(0.5, "#2a2118");
+			nodeGradient.addColorStop(1, "#1e1812");
 
 			ctx.beginPath();
 			ctx.arc(x, y, finalRadius, 0, 2 * Math.PI);
 			ctx.fillStyle = nodeGradient;
 			ctx.fill();
 
+			// Entity-type color ring around the node
+			const ringRadius = finalRadius + 1.5;
+			ctx.beginPath();
+			ctx.arc(x, y, ringRadius, 0, 2 * Math.PI);
+			ctx.strokeStyle = isHovered
+				? `${config?.color || "#c9a96e"}cc`
+				: isSelected
+					? `${config?.color || "#c9a96e"}99`
+					: `${config?.color || "#c9a96e"}55`;
+			ctx.lineWidth = isHovered ? 2.5 : isSelected ? 2 : 1.5;
+			ctx.stroke();
+
 			// Reset shadow
 			ctx.shadowBlur = 0;
 			ctx.shadowOffsetY = 0;
 
-			// Inner highlight (top-left)
+			// Inner highlight (top-left) - subtle leather sheen
 			const highlightGradient = ctx.createRadialGradient(
 				x - finalRadius * 0.3,
 				y - finalRadius * 0.3,
@@ -1175,34 +1474,33 @@ export function RelationGraph() {
 				y,
 				finalRadius * 0.7,
 			);
-			highlightGradient.addColorStop(0, "rgba(255,255,255,0.35)");
-			highlightGradient.addColorStop(0.5, "rgba(255,255,255,0.08)");
+			highlightGradient.addColorStop(0, "rgba(201, 169, 110, 0.15)");
+			highlightGradient.addColorStop(0.5, "rgba(201, 169, 110, 0.04)");
 			highlightGradient.addColorStop(1, "transparent");
 			ctx.beginPath();
 			ctx.arc(x, y, finalRadius * 0.7, 0, 2 * Math.PI);
 			ctx.fillStyle = highlightGradient;
 			ctx.fill();
 
-			// Animated border ring
-			const borderWidth = isHovered ? 2.5 : isSelected ? 2 : 1;
-			const borderOpacity = isHovered ? 0.7 : isSelected ? 0.5 : 0.2;
-			ctx.beginPath();
-			ctx.arc(x, y, finalRadius + 2, 0, 2 * Math.PI);
-			ctx.strokeStyle = isHovered
-				? `rgba(255,255,255,${borderOpacity})`
-				: isSelected
-					? `${config?.color || "#5e6ad2"}80`
-					: "rgba(255,255,255,0.15)";
-			ctx.lineWidth = borderWidth;
-			ctx.stroke();
+			// Animated border ring - brass accent for selected
+			const borderWidth = isHovered ? 2.5 : isSelected ? 2 : 0;
+			if (borderWidth > 0) {
+				ctx.beginPath();
+				ctx.arc(x, y, finalRadius + 4, 0, 2 * Math.PI);
+				ctx.strokeStyle = isHovered
+					? "rgba(201, 169, 110, 0.7)"
+					: "rgba(201, 169, 110, 0.5)";
+				ctx.lineWidth = borderWidth;
+				ctx.stroke();
+			}
 
-			// Connection ring for nodes with many relationships
+			// Connection ring for nodes with many relationships - brass dashed
 			if (node.val > 3) {
 				ctx.beginPath();
-				ctx.arc(x, y, finalRadius + 5, 0, 2 * Math.PI);
-				ctx.strokeStyle = `${config?.color || "#5e6ad2"}30`;
+				ctx.arc(x, y, finalRadius + 7, 0, 2 * Math.PI);
+				ctx.strokeStyle = "rgba(201, 169, 110, 0.2)";
 				ctx.lineWidth = 1;
-				ctx.setLineDash([3, 3]);
+				ctx.setLineDash([6, 3]);
 				ctx.stroke();
 				ctx.setLineDash([]);
 			}
@@ -1210,7 +1508,7 @@ export function RelationGraph() {
 			// Node label
 			const label = node.name;
 			const fontSize = Math.max(11 / globalScale, 9);
-			ctx.font = `${isHovered ? "600" : "500"} ${fontSize}px Inter, system-ui, sans-serif`;
+			ctx.font = `${isHovered ? "600" : "500"} ${fontSize}px "Source Han Sans", "Noto Sans SC", system-ui, sans-serif`;
 			ctx.textAlign = "center";
 			ctx.textBaseline = "middle";
 
@@ -1233,7 +1531,7 @@ export function RelationGraph() {
 			);
 			ctx.fill();
 
-			ctx.fillStyle = "rgba(15, 16, 20, 0.85)";
+			ctx.fillStyle = "rgba(26, 21, 16, 0.88)";
 			ctx.beginPath();
 			ctx.roundRect(
 				x - textWidth / 2 - padding,
@@ -1244,8 +1542,8 @@ export function RelationGraph() {
 			);
 			ctx.fill();
 
-			// Label text
-			ctx.fillStyle = isHovered ? "#ffffff" : "rgba(255,255,255,0.75)";
+			// Label text - warm white
+			ctx.fillStyle = isHovered ? "#f5eed6" : "rgba(245, 238, 214, 0.78)";
 			ctx.fillText(displayLabel, x, y + yOffset);
 
 			// Type indicator dot for hovered nodes
@@ -1261,16 +1559,17 @@ export function RelationGraph() {
 				ctx.shadowBlur = 0;
 			}
 		},
-		[hoveredNodeId, selectedNode, renderMode],
+		[hoveredNodeId, selectedNode, activeHighlightId, renderMode],
 	);
 
 	// Custom link renderer with gradient and animated flow
 	const linkCanvasObject = useCallback(
 		(link: any, ctx: CanvasRenderingContext2D, globalScale: number) => {
+			const focusId = hoveredNodeId || activeHighlightId;
 			const isHighlighted =
-				hoveredNodeId &&
-				(link.source.id === hoveredNodeId || link.target.id === hoveredNodeId);
-			const isDimmed = hoveredNodeId && !isHighlighted;
+				focusId &&
+				(link.source.id === focusId || link.target.id === focusId);
+			const isDimmed = focusId && !isHighlighted;
 
 			if (isDimmed && renderMode === "simple") return;
 
@@ -1296,7 +1595,8 @@ export function RelationGraph() {
 			const opacity = isDimmed ? 0.05 : isHighlighted ? 1 : 0.45;
 			const lineWidth = isHighlighted ? 3 : isDimmed ? 0.5 : 1.5;
 
-			const color = link.color || "#6b7280";
+			// Brass-tinted edge color
+			const color = link.color || "#c9a96e";
 
 			const parseColor = (c: string, a: number) => {
 				if (c.startsWith("#")) {
@@ -1333,11 +1633,11 @@ export function RelationGraph() {
 
 			ctx.shadowBlur = 0;
 
-			// Flowing dashed line animation for all links in full mode
+			// Flowing dashed line animation for all links in full mode - vintage dash
 			if (renderMode === "full") {
 				const flowTime = animationTimeRef.current.flow;
-				const dashLength = 4;
-				const gapLength = isHighlighted ? 4 : 10;
+				const dashLength = 6;
+				const gapLength = isHighlighted ? 3 : 8;
 				const flowOffset = (flowTime * 10) % (dashLength + gapLength);
 
 				ctx.beginPath();
@@ -1394,12 +1694,12 @@ export function RelationGraph() {
 				ctx.fill();
 			}
 		},
-		[hoveredNodeId, renderMode],
+		[hoveredNodeId, activeHighlightId, renderMode],
 	);
 
 	if (characters.length === 0 && allNodes.length === 0) {
 		return (
-			<div className="h-full flex items-center justify-center text-center p-4 bg-[var(--color-surface-base)] relative overflow-hidden rounded-lg border border-[var(--border-subtle)]">
+			<div className="h-full flex items-center justify-center text-center p-4 bg-[var(--ink-100)] relative overflow-hidden rounded-lg border border-[var(--border-subtle)]">
 				<GraphBackground />
 				<motion.div
 					className="relative z-10"
@@ -1410,7 +1710,7 @@ export function RelationGraph() {
 					<motion.div
 						className="relative mx-auto mb-4 w-14 h-14 rounded-xl flex items-center justify-center"
 						style={{
-							background: "var(--color-surface-raised)",
+							background: "var(--paper-80)",
 							border: "1px solid var(--border-subtle)",
 							boxShadow: "inset 0 1px 0 var(--border-subtle)",
 						}}
@@ -1418,12 +1718,12 @@ export function RelationGraph() {
 						animate={{ scale: 1 }}
 						transition={{ type: "spring", stiffness: 400, damping: 25 }}
 					>
-						<LinkIcon className="w-5 h-5 text-[var(--text-tertiary)]" />
+						<LinkIcon className="w-5 h-5" style={{ color: 'var(--accent-primary)', opacity: 0.6 }} />
 					</motion.div>
-					<p className="text-sm mb-1 text-[var(--text-secondary)] font-medium">
+					<p className="text-sm mb-1 font-medium" style={{ color: 'var(--paper-80)', opacity: 0.75 }}>
 						添加角色后
 					</p>
-					<p className="text-xs text-[var(--text-tertiary)]">
+					<p className="text-xs" style={{ color: 'var(--paper-80)', opacity: 0.4 }}>
 						这里将显示关系图谱
 					</p>
 				</motion.div>
@@ -1433,7 +1733,7 @@ export function RelationGraph() {
 
 	if (nodes.length === 0) {
 		return (
-			<div className="h-full flex items-center justify-center text-center p-4 bg-[var(--color-surface-base)] relative overflow-hidden rounded-lg border border-[var(--border-subtle)]">
+			<div className="h-full flex items-center justify-center text-center p-4 bg-[var(--ink-100)] relative overflow-hidden rounded-lg border border-[var(--border-subtle)]">
 				<GraphBackground />
 				<motion.div
 					className="relative z-10"
@@ -1444,7 +1744,7 @@ export function RelationGraph() {
 					<motion.div
 						className="relative mx-auto mb-4 w-14 h-14 rounded-xl flex items-center justify-center"
 						style={{
-							background: "var(--color-surface-raised)",
+							background: "var(--paper-80)",
 							border: "1px solid var(--border-subtle)",
 							boxShadow: "inset 0 1px 0 var(--border-subtle)",
 						}}
@@ -1452,12 +1752,12 @@ export function RelationGraph() {
 						animate={{ scale: 1 }}
 						transition={{ type: "spring", stiffness: 400, damping: 25 }}
 					>
-						<Filter className="w-5 h-5 text-[var(--text-tertiary)]" />
+						<Filter className="w-5 h-5" style={{ color: 'var(--accent-primary)', opacity: 0.6 }} />
 					</motion.div>
-					<p className="text-sm mb-1 text-[var(--text-secondary)] font-medium">
+					<p className="text-sm mb-1 font-medium" style={{ color: 'var(--paper-80)', opacity: 0.75 }}>
 						筛选条件过于严格
 					</p>
-					<p className="text-xs text-[var(--text-tertiary)]">
+					<p className="text-xs" style={{ color: 'var(--paper-80)', opacity: 0.4 }}>
 						没有符合条件的节点
 					</p>
 				</motion.div>
@@ -1470,10 +1770,12 @@ export function RelationGraph() {
 	return (
 		<div
 			ref={containerRef}
-			className={`relative overflow-hidden bg-[var(--color-surface-base)] ${isFullscreen ? "fixed inset-0 z-50" : "h-full rounded-lg"}`}
+			className={`relative overflow-hidden ${isFullscreen ? "fixed inset-0 z-50" : "h-full rounded-lg"}`}
 			style={{
+				background: 'var(--ink-100)',
 				border: isFullscreen ? undefined : "1px solid var(--border-subtle)",
 			}}
+			onContextMenu={(e) => e.preventDefault()}
 		>
 			<GraphBackground />
 
@@ -1498,7 +1800,7 @@ export function RelationGraph() {
 					style={{
 						background: isGenerating
 							? "var(--accent-muted)"
-							: "var(--color-surface-raised)",
+							: "var(--paper-80)",
 						border: "1px solid var(--border-default)",
 						boxShadow: isGenerating
 							? "0 0 12px var(--accent-glow)"
@@ -1527,15 +1829,15 @@ export function RelationGraph() {
 					className="p-2 rounded-xl transition-all duration-200 group"
 					title={isFullscreen ? "退出全屏" : "全屏"}
 					style={{
-						background: 'var(--color-surface-raised)',
+						background: 'var(--paper-80)',
 						border: "1px solid var(--border-subtle)",
 						boxShadow: "0 4px 20px rgba(0,0,0,0.3)",
 					}}
 				>
 					{isFullscreen ? (
-						<Minimize2 className="w-3.5 h-3.5 text-[var(--text-tertiary)] group-hover:text-[var(--text-secondary)] transition-colors" />
+						<Minimize2 className="w-3.5 h-3.5 transition-colors" style={{ color: 'var(--ink-90)', opacity: 0.5 }} />
 					) : (
-						<Maximize2 className="w-3.5 h-3.5 text-[var(--text-tertiary)] group-hover:text-[var(--text-secondary)] transition-colors" />
+						<Maximize2 className="w-3.5 h-3.5 transition-colors" style={{ color: 'var(--ink-90)', opacity: 0.5 }} />
 					)}
 				</button>
 				<button
@@ -1543,17 +1845,17 @@ export function RelationGraph() {
 					className="p-2 rounded-xl transition-all duration-200 flex items-center gap-1.5 group"
 					title={viewMode === "2d" ? "切换到3D视图" : "切换到2D视图"}
 					style={{
-						background: 'var(--color-surface-raised)',
+						background: 'var(--paper-80)',
 						border: "1px solid var(--border-subtle)",
 						boxShadow: "0 4px 20px rgba(0,0,0,0.3)",
 					}}
 				>
 					{viewMode === "2d" ? (
-						<Box className="w-3.5 h-3.5 text-[var(--text-tertiary)] group-hover:text-[var(--text-secondary)] transition-colors" />
+						<Box className="w-3.5 h-3.5 transition-colors" style={{ color: 'var(--ink-90)', opacity: 0.5 }} />
 					) : (
-						<Grid2x2 className="w-3.5 h-3.5 text-[var(--text-tertiary)] group-hover:text-[var(--text-secondary)] transition-colors" />
+						<Grid2x2 className="w-3.5 h-3.5 transition-colors" style={{ color: 'var(--ink-90)', opacity: 0.5 }} />
 					)}
-					<span className="text-[10px] text-[var(--text-tertiary)] group-hover:text-[var(--text-secondary)] transition-colors font-medium">
+					<span className="text-[10px] transition-colors font-medium" style={{ color: 'var(--ink-90)', opacity: 0.5 }}>
 						{viewMode.toUpperCase()}
 					</span>
 				</button>
@@ -1568,6 +1870,10 @@ export function RelationGraph() {
 				onZoomIn={() => fgRef.current?.zoom(fgRef.current.zoom() * 1.3, 300)}
 				onZoomOut={() => fgRef.current?.zoom(fgRef.current.zoom() / 1.3, 300)}
 				onResetView={() => fgRef.current?.zoomToFit(400, 40)}
+				searchQuery={searchQuery}
+				onSearchChange={setSearchQuery}
+				searchResults={searchResults}
+				onSelectResult={handleSearchResultSelect}
 			/>
 
 			{/* Force Graph */}
@@ -1585,35 +1891,39 @@ export function RelationGraph() {
 						nodeRelSize={6}
 						linkColor={(link: any) => link.color}
 						linkWidth={(link: any) => {
+							const focusId = hoveredNodeId || activeHighlightId;
 							const isHighlighted =
-								hoveredNodeId &&
-								(link.source.id === hoveredNodeId ||
-									link.target.id === hoveredNodeId);
+								focusId &&
+								(link.source.id === focusId ||
+									link.target.id === focusId);
 							return isHighlighted ? 2.5 : 1;
 						}}
 						{...{
 							linkOpacity: (link: any) => {
 								if (renderMode === "simple") return 0.2;
+								const focusId = hoveredNodeId || activeHighlightId;
 								const isHighlighted =
-									hoveredNodeId &&
-									(link.source.id === hoveredNodeId ||
-										link.target.id === hoveredNodeId);
-								const isDimmed = hoveredNodeId && !isHighlighted;
+									focusId &&
+									(link.source.id === focusId ||
+										link.target.id === focusId);
+								const isDimmed = focusId && !isHighlighted;
 								return isDimmed ? 0.08 : isHighlighted ? 0.9 : 0.35;
 							},
 						}}
 						linkDirectionalParticles={renderMode === "full" ? 2 : 0}
 						linkDirectionalParticleSpeed={renderMode === "full" ? 0.008 : 0}
 						linkDirectionalParticleWidth={(link: any) => {
+							const focusId = hoveredNodeId || activeHighlightId;
 							const isHighlighted =
 								renderMode !== "simple" &&
-								hoveredNodeId &&
-								(link.source.id === hoveredNodeId ||
-									link.target.id === hoveredNodeId);
+								focusId &&
+								(link.source.id === focusId ||
+									link.target.id === focusId);
 							return isHighlighted ? 2 : 0;
 						}}
 						onNodeClick={handleNodeClick}
 						onBackgroundClick={handleBackgroundClick}
+						onNodeRightClick={handleNodeRightClick}
 						onNodeHover={
 							renderMode !== "simple"
 								? (node: any) => {
@@ -1673,6 +1983,7 @@ export function RelationGraph() {
 						linkOpacity={0.4}
 						onNodeClick={handleNodeClick}
 						onBackgroundClick={handleBackgroundClick}
+						onNodeRightClick={handleNodeRightClick}
 						enableNodeDrag={true}
 						enableNavigationControls={true}
 						showNavInfo={false}
@@ -1698,6 +2009,19 @@ export function RelationGraph() {
 					<NodeDetailPanel
 						detail={selectedNode}
 						onClose={() => setSelectedNode(null)}
+					/>
+				)}
+			</AnimatePresence>
+
+			{/* Context menu (right-click) */}
+			<AnimatePresence>
+				{contextMenu && (
+					<ContextMenu
+						menu={contextMenu}
+						onClose={() => setContextMenu(null)}
+						onHighlight={handleHighlightConnections}
+						onFocus={handleFocusNode}
+						onViewDetails={handleViewDetailsFromMenu}
 					/>
 				)}
 			</AnimatePresence>

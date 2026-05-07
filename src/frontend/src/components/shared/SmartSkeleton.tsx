@@ -44,7 +44,7 @@ function getShimmerGradient(tone: ShimmerTone): string {
     case 'cool':
       return 'linear-gradient(90deg, transparent, rgba(94, 181, 166, 0.08), transparent)'
     case 'accent':
-      return 'linear-gradient(90deg, transparent, rgba(94, 106, 210, 0.08), transparent)'
+      return 'linear-gradient(90deg, transparent, rgba(201, 169, 110, 0.08), transparent)'
     case 'neutral':
     default:
       return 'linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.06), transparent)'

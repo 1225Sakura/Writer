@@ -27,12 +27,14 @@
 
   /* === Chinese Sans-Serif (中文无衬线) ===
      Noto Sans SC / Source Han Sans CN / PingFang SC / Microsoft YaHei / sans-serif */
-  --font-sans: 'Inter',
+  --font-sans: 'Source Han Sans',
+    'Source Han Sans CN',
+    'Source Han Sans SC',
+    'Inter',
     -apple-system,
     'SF Pro Display',
     BlinkMacSystemFont,
     'Noto Sans SC',
-    'Source Han Sans CN',
     'PingFang SC',
     'Hiragino Sans GB',
     'Microsoft YaHei',

@@ -111,11 +111,11 @@ function DividerLine({ variant, animated, orientation, direction, full }: Divide
     'block',
     isHorizontal ? 'h-[1px]' : 'w-[1px]',
     full ? (isHorizontal ? 'w-full' : 'h-full') : 'flex-1',
-    variant === 'default' && 'bg-[rgba(255,255,255,0.08)]',
+    variant === 'default' && 'bg-[var(--border-subtle)]',
     variant === 'gradient' &&
       (isHorizontal
-        ? 'bg-gradient-to-r from-transparent via-[rgba(255,255,255,0.15)] to-transparent'
-        : 'bg-gradient-to-b from-transparent via-[rgba(255,255,255,0.15)] to-transparent'),
+        ? 'bg-gradient-to-r from-transparent via-[var(--border-default)] to-transparent'
+        : 'bg-gradient-to-b from-transparent via-[var(--border-default)] to-transparent'),
     variant === 'glow' &&
       (isHorizontal
         ? 'bg-gradient-to-r from-transparent via-[var(--accent-100)]/40 to-transparent'

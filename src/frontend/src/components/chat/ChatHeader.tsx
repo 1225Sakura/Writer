@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from 'react'
-import { useChatStore, useUIStore } from '@/store'
+import { useChatStore } from '@/store/chatStore'
+import { useUIStore } from '@/store'
 import { Button } from '@/components/ui/Button'
 import {
   ArrowRight, Settings, PenTool, Sun, Moon, Eye,
@@ -15,7 +16,7 @@ import { DURATION, EASE } from '@/components/shared/AnimationConfig'
 
 
 const themeMeta: Record<Theme, { label: string; icon: React.ReactNode; color: string }> = {
-  dark:            { label: '深色',   icon: <Moon className="w-3.5 h-3.5" />,     color: '#5e6ad2' },
+  dark:            { label: '深色',   icon: <Moon className="w-3.5 h-3.5" />,     color: '#c9a96e' },
   light:           { label: '浅色',   icon: <Sun className="w-3.5 h-3.5" />,      color: '#e8b87d' },
   'eye-care':      { label: '护眼',   icon: <Eye className="w-3.5 h-3.5" />,      color: '#7eb87a' },
   'deep-blue': { label: '深夜蓝', icon: <Palette className="w-3.5 h-3.5" />,  color: '#60a5fa' },
@@ -90,7 +91,7 @@ function ThemeSelector() {
                 0 12px 40px color-mix(in srgb, var(--ink-100) 25%, transparent),
                 0 4px 16px color-mix(in srgb, var(--ink-100) 12%, transparent)
               `,
-              backdropFilter: 'blur(20px)',
+
             }}
             initial={{ opacity: 0, y: -8, scale: 0.95 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
@@ -335,7 +336,7 @@ export function ChatHeader({ onMobileMenuClick }: { onMobileMenuClick?: () => vo
   return (
     <motion.header
       className="h-[var(--layout-topbar-height)] flex items-center justify-between px-4 z-20 relative shrink-0
-                 bg-surface-base/85 backdrop-blur-xl border-b border-transparent"
+                 bg-surface-base border-b border-transparent"
       style={{
         borderImage: 'linear-gradient(90deg, transparent 0%, color-mix(in srgb, var(--accent-100) 20%, transparent) 30%, color-mix(in srgb, var(--accent-100) 30%, transparent) 50%, color-mix(in srgb, var(--accent-100) 20%, transparent) 70%, transparent 100%) 1',
         borderImageSlice: '0 0 1 0',

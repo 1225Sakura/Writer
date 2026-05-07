@@ -68,8 +68,8 @@ const colorMap: Record<BentoItemColor, CSSProperties> = {
     borderColor: 'var(--border-subtle)',
   },
   accent: {
-    background: 'rgba(94, 106, 210, 0.08)',
-    borderColor: 'rgba(94, 106, 210, 0.2)',
+    background: 'rgba(201, 169, 110, 0.08)',
+    borderColor: 'rgba(201, 169, 110, 0.2)',
   },
   character: {
     background: 'rgba(232, 184, 125, 0.06)',

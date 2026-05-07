@@ -1,4 +1,7 @@
-import { useSettingsStore, type CharacterLocal, UIState, Chapter } from '@/store'
+import { useSettingsStore } from '@/store/settingsStore'
+import type { CharacterLocal } from '@/store/settingsStore'
+import type { UIState } from '@/store/uiStore'
+import type { Chapter } from '@/shared/types'
 import { Trash2, Edit2, Users, Plus, FileText, X, Sparkles, Check, AlertCircle, Loader2, Save, MapPin, Swords, Globe, BookOpen, GitBranch } from 'lucide-react'
 import { useState, useCallback } from 'react'
 import { TagInput } from './TagInput'

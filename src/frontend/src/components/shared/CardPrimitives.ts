@@ -40,7 +40,7 @@ export const glowColorMap: Record<GlowColor, string> = {
 }
 
 export const spotlightColorMap: Record<SpotlightColor, string> = {
-  accent: '94, 106, 210',
+  accent: '201, 169, 110',
   character: '232, 184, 125',
   item: '155, 126, 217',
   location: '94, 181, 166',
@@ -76,76 +76,48 @@ export const entityGlowMap: Record<string, string> = {
 export const intensityStyles: Record<GlassIntensity, CSSProperties> = {
   light: {
     background: 'var(--glass-bg-subtle)',
-    backdropFilter: 'blur(8px) saturate(1.1)',
-    WebkitBackdropFilter: 'blur(8px) saturate(1.1)',
   },
   subtle: {
     background: 'var(--glass-bg-subtle)',
-    backdropFilter: 'blur(12px) saturate(1.15)',
-    WebkitBackdropFilter: 'blur(12px) saturate(1.15)',
   },
   medium: {
     background: 'var(--glass-bg)',
-    backdropFilter: 'blur(16px) saturate(1.2)',
-    WebkitBackdropFilter: 'blur(16px) saturate(1.2)',
   },
   strong: {
     background: 'var(--glass-bg-strong)',
-    backdropFilter: 'blur(24px) saturate(1.3)',
-    WebkitBackdropFilter: 'blur(24px) saturate(1.3)',
   },
   heavy: {
     background: 'var(--glass-bg-strong)',
-    backdropFilter: 'blur(32px) saturate(1.4)',
-    WebkitBackdropFilter: 'blur(32px) saturate(1.4)',
   },
   ultra: {
     background: 'var(--glass-bg-strong)',
-    backdropFilter: 'blur(48px) saturate(1.5)',
-    WebkitBackdropFilter: 'blur(48px) saturate(1.5)',
   },
   writing: {
     background: 'var(--glass-bg-medium)',
-    backdropFilter: 'blur(20px) saturate(1.1)',
-    WebkitBackdropFilter: 'blur(20px) saturate(1.1)',
   },
 }
 
 export const lightIntensityStyles: Record<GlassIntensity, CSSProperties> = {
   light: {
     background: 'var(--glass-bg-subtle)',
-    backdropFilter: 'blur(8px) saturate(1.1)',
-    WebkitBackdropFilter: 'blur(8px) saturate(1.1)',
   },
   subtle: {
     background: 'var(--glass-bg-subtle)',
-    backdropFilter: 'blur(12px) saturate(1.15)',
-    WebkitBackdropFilter: 'blur(12px) saturate(1.15)',
   },
   medium: {
     background: 'var(--glass-bg)',
-    backdropFilter: 'blur(16px) saturate(1.2)',
-    WebkitBackdropFilter: 'blur(16px) saturate(1.2)',
   },
   strong: {
     background: 'var(--glass-bg-strong)',
-    backdropFilter: 'blur(24px) saturate(1.3)',
-    WebkitBackdropFilter: 'blur(24px) saturate(1.3)',
   },
   heavy: {
     background: 'var(--glass-bg-strong)',
-    backdropFilter: 'blur(32px) saturate(1.4)',
-    WebkitBackdropFilter: 'blur(32px) saturate(1.4)',
   },
   ultra: {
     background: 'var(--glass-bg-strong)',
-    backdropFilter: 'blur(48px) saturate(1.5)',
-    WebkitBackdropFilter: 'blur(48px) saturate(1.5)',
   },
   writing: {
     background: 'var(--glass-bg-medium)',
-    backdropFilter: 'blur(20px) saturate(1.05)',
-    WebkitBackdropFilter: 'blur(20px) saturate(1.05)',
   },
 }
 
@@ -218,19 +190,13 @@ export const variantStyles: Record<GlassVariant, CSSProperties> = {
   },
   outlined: {
     background: 'transparent',
-    backdropFilter: 'none',
-    WebkitBackdropFilter: 'none',
     border: '1px solid var(--border-default)',
   },
   filled: {
     background: 'var(--color-surface-raised)',
-    backdropFilter: 'none',
-    WebkitBackdropFilter: 'none',
   },
   writing: {
     background: 'var(--glass-bg-medium)',
-    backdropFilter: 'blur(24px) saturate(1.05)',
-    WebkitBackdropFilter: 'blur(24px) saturate(1.05)',
     border: '1px solid var(--glass-border)',
     boxShadow: '0 4px 24px rgba(0, 0, 0, 0.3), inset 0 1px 0 var(--border-subtle)',
   },
@@ -247,19 +213,13 @@ export const lightVariantStyles: Record<GlassVariant, CSSProperties> = {
   },
   outlined: {
     background: 'transparent',
-    backdropFilter: 'none',
-    WebkitBackdropFilter: 'none',
     border: '1px solid var(--border-default)',
   },
   filled: {
     background: 'var(--color-surface-raised)',
-    backdropFilter: 'none',
-    WebkitBackdropFilter: 'none',
   },
   writing: {
     background: 'var(--glass-bg-medium)',
-    backdropFilter: 'blur(24px) saturate(1.05)',
-    WebkitBackdropFilter: 'blur(24px) saturate(1.05)',
     border: '1px solid var(--glass-border)',
     boxShadow: '0 4px 24px rgba(0, 0, 0, 0.08), inset 0 1px 0 var(--border-subtle)',
   },
