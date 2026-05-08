@@ -8,9 +8,10 @@ import { AISuggestionPanel } from './AISuggestionPanel'
 import { EntitySearch } from './EntitySearch'
 import { Button } from '@/components/ui/Button'
 import { LeftSidebar } from '@/components/shared/LeftSidebar'
+import { CanvasView } from './CanvasView'
 import {
   Settings, RefreshCw, PenTool, ArrowLeft, Check, AlertCircle,
-  Keyboard, Sparkles, BarChart3, Zap, Menu
+  Keyboard, Sparkles, BarChart3, Zap, Menu, Network, List
 } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { EntityListSkeletonPreset, SmartSkeleton } from '@/components/shared/SmartSkeleton'
@@ -159,6 +160,7 @@ export function SettingEditorPage() {
   const isLoading = useSettingsStore((state) => state.isLoading)
   const [sidebarOpen, setSidebarOpen] = useState(true)
   const [mobileNavOpen, setMobileNavOpen] = useState(false)
+  const [viewMode, setViewMode] = useState<'edit' | 'canvas'>('edit')
 
   useEffect(() => {
     loadAll()
@@ -186,7 +188,7 @@ export function SettingEditorPage() {
         <CategoryNav />
       </LeftSidebar>
 
-      {/* Center: EntityEditor */}
+      {/* Center: EntityEditor or CanvasView */}
       <motion.div
         className="flex-1 overflow-hidden flex flex-col min-w-0 relative"
         style={{ zIndex: 1 }}
@@ -214,7 +216,7 @@ export function SettingEditorPage() {
               <Settings className="w-4 h-4 text-[var(--accent-primary)]" />
             </motion.div>
             <span className="font-medium text-sm text-[var(--text-primary)]">
-              设定编辑器
+              {viewMode === 'canvas' ? '画布视图' : '设定编辑器'}
             </span>
           </div>
           {/* Button group with unified styling */}
@@ -226,6 +228,16 @@ export function SettingEditorPage() {
               }
             }} />
             <div className="flex items-center gap-0.5 ml-1">
+              <Button
+                onClick={() => setViewMode(viewMode === 'edit' ? 'canvas' : 'edit')}
+                variant="ghost"
+                size="sm"
+                className="gap-1"
+                title={viewMode === 'edit' ? '切换到画布视图' : '切换到编辑视图'}
+              >
+                {viewMode === 'edit' ? <Network className="w-3.5 h-3.5" /> : <List className="w-3.5 h-3.5" />}
+                {viewMode === 'edit' ? '画布' : '编辑'}
+              </Button>
               <Button
                 onClick={() => setCurrentInterface('chat')}
                 variant="ghost"
@@ -262,29 +274,37 @@ export function SettingEditorPage() {
         </div>
 
         {/* Editor content area */}
-        <div className="flex-1 overflow-y-auto p-6 relative">
-          <SectionLoadingOverlay visible={isLoading} message="加载实体数据..." />
-          {isLoading ? (
-            <div className="space-y-4">
-              <SmartSkeleton variant="text" lines={1} width="30%" height={24} />
-              <EntityListSkeletonPreset items={5} />
+        {viewMode === 'canvas' ? (
+          <div className="flex-1 relative">
+            <CanvasView />
+          </div>
+        ) : (
+          <>
+            <div className="flex-1 overflow-y-auto p-6 relative">
+              <SectionLoadingOverlay visible={isLoading} message="加载实体数据..." />
+              {isLoading ? (
+                <div className="space-y-4">
+                  <SmartSkeleton variant="text" lines={1} width="30%" height={24} />
+                  <EntityListSkeletonPreset items={5} />
+                </div>
+              ) : (
+                <EntityEditor category={settingsCategory} />
+              )}
             </div>
-          ) : (
-            <EntityEditor category={settingsCategory} />
-          )}
-        </div>
 
-        {/* AI Suggestion Panel */}
-        <div className="border-t border-[var(--border-subtle)] relative z-10">
-          <AISuggestionPanel />
-        </div>
+            {/* AI Suggestion Panel */}
+            <div className="border-t border-[var(--border-subtle)] relative z-10">
+              <AISuggestionPanel />
+            </div>
+          </>
+        )}
 
         {/* Bottom status bar */}
         <StatusBar />
       </motion.div>
 
-      {/* Right: RelationGraph */}
-      <motion.div
+      {/* Right: RelationGraph (hidden in canvas mode) */}
+      {viewMode !== 'canvas' && <motion.div
         className="flex-shrink-0 h-full flex flex-col overflow-hidden relative bg-[var(--color-surface-raised)] border-l border-[var(--border-subtle)]
                    hidden xl:flex"
         style={{
@@ -319,7 +339,7 @@ export function SettingEditorPage() {
         <div className="flex-1 overflow-hidden">
           <RelationGraph />
         </div>
-      </motion.div>
+      </motion.div>}
 
     </motion.div>
   )
