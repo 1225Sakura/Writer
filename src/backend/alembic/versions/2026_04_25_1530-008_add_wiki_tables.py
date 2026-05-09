@@ -1,7 +1,7 @@
 """008_add_wiki_tables
 
 Revision ID: 008_add_wiki
-Revises: 007_add_tags
+Revises: 009_add_embedding_constraint_ext
 Create Date: 2026-04-25 15:30:00.000000
 
 """
@@ -13,7 +13,7 @@ import sqlalchemy as sa
 
 # revision identifiers, used by Alembic.
 revision: str = '008_add_wiki'
-down_revision: Union[str, Sequence[str], None] = '007_add_tags'
+down_revision: Union[str, Sequence[str], None] = '009_add_embedding_constraint_ext'
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 

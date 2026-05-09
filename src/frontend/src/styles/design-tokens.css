@@ -96,27 +96,7 @@
   --color-success: var(--color-location);
   --color-info:    var(--accent-100);
 
-  /* === shadcn/ui Bridge === */
-  --background:             var(--color-surface-base);
-  --foreground:             var(--text-primary);
-  --card:                   var(--color-surface-raised);
-  --card-foreground:        var(--text-primary);
-  --popover:                var(--color-surface-raised);
-  --popover-foreground:     var(--text-primary);
-  --primary:                var(--accent-100);
-  --primary-foreground:     var(--paper-100);
-  --secondary:              var(--ink-75);
-  --secondary-foreground:   var(--text-primary);
-  --muted:                  var(--ink-80);
-  --muted-foreground:       var(--text-tertiary);
-  --accent:                 var(--ink-75);
-  --accent-foreground:      var(--text-primary);
-  --destructive:            var(--vermillion-100);
-  --destructive-foreground: var(--paper-100);
-  --border:                 var(--border-default);
-  --input:                  var(--color-surface-input);
-  --ring:                   var(--border-focus);
-  --radius:                 0.5rem;
+  /* shadcn/ui bridge variables are now defined in styles/shadcn.css */
 
   /* === Glass Surface (parchment/leather tones) === */
   --glass-base-rgb:    26, 21, 16;
@@ -303,7 +283,7 @@
   --color-error:          var(--vermillion-100);
   --color-black:          var(--ink-100);
   --color-primary:        var(--accent-100);
-  --ink-black:            var(--ink-100);
+  /* --ink-black removed: use --ink-100 directly */
   --charcoal:             var(--ink-90);
   --paper-white:          var(--paper-100);
   --paper-frost:          var(--paper-90);

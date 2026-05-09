@@ -52,7 +52,7 @@ function WritingEditorPageContent() {
   }
 
   return (
-    <div className={`h-full flex flex-col bg-[var(--ink-black)] ${immersiveMode ? 'immersive-mode' : ''}`}>
+    <div className={`h-full flex flex-col bg-[var(--ink-100)] ${immersiveMode ? 'immersive-mode' : ''}`}>
       {/* Mobile-safe top inset spacer */}
       <div className="h-[env(safe-area-inset-top)] bg-[var(--color-surface-base)] flex-shrink-0" />
 

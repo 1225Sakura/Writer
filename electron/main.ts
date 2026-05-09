@@ -478,7 +478,7 @@ function createSplashWindow(): BrowserWindow {
           padding: 0;
           width: 400px;
           height: 300px;
-          background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+          background: linear-gradient(135deg, #1a1510 0%, #2a1f14 100%);
           display: flex;
           flex-direction: column;
           align-items: center;
@@ -504,7 +504,7 @@ function createSplashWindow(): BrowserWindow {
         }
         .status {
           font-size: 12px;
-          color: #c45c5c;
+          color: #c9a96e;
           animation: pulse 1.5s ease-in-out infinite;
         }
         @keyframes pulse {
@@ -522,7 +522,7 @@ function createSplashWindow(): BrowserWindow {
         .progress-fill {
           height: 100%;
           width: 0%;
-          background: #c45c5c;
+          background: #c9a96e;
           border-radius: 2px;
           animation: progress 2s ease-in-out infinite;
         }
@@ -574,7 +574,7 @@ async function createWindow(): Promise<void> {
     minWidth: 1024,
     minHeight: 768,
     title: 'Writer - 自动化写作软件',
-    backgroundColor: '#1a1a2e',
+    backgroundColor: '#1a1510',
     show: false,
     webPreferences: {
       nodeIntegration: false,

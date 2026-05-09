@@ -50,6 +50,16 @@ if (-not $SkipFrontend) {
     finally {
         Pop-Location
     }
+
+    # Copy frontend build to electron/frontend-build (clean first to avoid stale artifacts)
+    Write-Host "  - 同步前端产物到 Electron..." -ForegroundColor Gray
+    $frontendDist = Join-Path $ProjectRoot "src\frontend\dist"
+    $electronFrontend = Join-Path $ProjectRoot "electron\frontend-build"
+    if (Test-Path $electronFrontend) {
+        Remove-Item $electronFrontend -Recurse -Force
+    }
+    Copy-Item $frontendDist $electronFrontend -Recurse
+    Write-Host "  [OK] 前端产物同步完成" -ForegroundColor Green
 }
 else {
     Write-Host "[1/3] 跳过前端构建" -ForegroundColor Gray

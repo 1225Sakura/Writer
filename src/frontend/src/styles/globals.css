@@ -1692,7 +1692,7 @@ code, pre {
 
 .immersive-mode {
   transition: all var(--transition-slow) var(--ease-out);
-  background: var(--ink-black) !important;
+  background: var(--ink-100) !important;
 }
 
 /* ============================================================

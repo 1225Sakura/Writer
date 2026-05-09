@@ -1,1 +1,0 @@
-import{r as n}from"./vendor-react-i10yni_i.js";function d(){const[s,r]=n.useState(!1);return n.useEffect(()=>{const e=window.matchMedia("(prefers-reduced-motion: reduce)");r(e.matches);const t=o=>{r(o.matches)};return e.addEventListener("change",t),()=>e.removeEventListener("change",t)},[]),s}export{d as u};

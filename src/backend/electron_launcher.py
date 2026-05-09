@@ -31,9 +31,7 @@ _ALIASES = [
     'middleware',
     'utils',
     'services',
-    'models',
     'agents',
-    'schemas',
 ]
 
 for _name in _ALIASES:
