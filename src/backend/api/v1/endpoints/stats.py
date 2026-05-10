@@ -9,20 +9,11 @@ from typing import Any
 
 from fastapi import APIRouter, Depends
 from pydantic import BaseModel, Field
-from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.infrastructure.database import get_db
 from backend.middleware.auth import require_auth
-from backend.core.domain import (
-    Chapter,
-    Character,
-    DraftVersion,
-    Outline,
-    IFLine,
-    PlotThread,
-    ChatSession,
-)
+from backend.core.services.stats.stats_service import StatsService
 
 router = APIRouter(prefix="/stats", tags=["stats"])
 
@@ -54,6 +45,11 @@ class ProjectStatsResponse(BaseModel):
     chapters_by_status: dict[str, int] = Field(..., description="Chapter count grouped by status")
 
 
+def get_stats_service(db: AsyncSession = Depends(get_db)) -> StatsService:
+    """Dependency to inject StatsService."""
+    return StatsService(db)
+
+
 @router.get(
     "/overview",
     response_model=ProjectStatsResponse,
@@ -61,39 +57,11 @@ class ProjectStatsResponse(BaseModel):
     summary="获取项目概览统计",
     description="返回项目级别的统计数据，包括章节数、角色数、字数等关键指标。",
 )
-async def get_project_stats(db: AsyncSession = Depends(get_db)) -> dict[str, Any]:
+async def get_project_stats(
+    stats_service: StatsService = Depends(get_stats_service),
+) -> dict[str, Any]:
     """Get overall project statistics.
 
     Returns counts of key entities and aggregated metrics.
     """
-    # Count queries
-    chapter_count = await db.scalar(select(func.count()).select_from(Chapter))
-    character_count = await db.scalar(select(func.count()).select_from(Character))
-    outline_count = await db.scalar(select(func.count()).select_from(Outline))
-    if_line_count = await db.scalar(select(func.count()).select_from(IFLine))
-    draft_count = await db.scalar(select(func.count()).select_from(DraftVersion))
-    plot_thread_count = await db.scalar(select(func.count()).select_from(PlotThread))
-    chat_session_count = await db.scalar(select(func.count()).select_from(ChatSession))
-
-    # Word count aggregation
-    word_count_result = await db.execute(select(func.sum(Chapter.word_count)))
-    total_words = word_count_result.scalar_one_or_none() or 0
-
-    # Chapters by status
-    status_result = await db.execute(
-        select(Chapter.status, func.count())
-        .group_by(Chapter.status)
-    )
-    chapters_by_status = {row[0] or "unknown": row[1] for row in status_result.all()}
-
-    return {
-        "total_chapters": chapter_count or 0,
-        "total_characters": character_count or 0,
-        "total_outlines": outline_count or 0,
-        "total_if_lines": if_line_count or 0,
-        "total_draft_versions": draft_count or 0,
-        "total_plot_threads": plot_thread_count or 0,
-        "total_word_count": int(total_words),
-        "total_chat_sessions": chat_session_count or 0,
-        "chapters_by_status": chapters_by_status,
-    }
+    return await stats_service.get_project_overview()

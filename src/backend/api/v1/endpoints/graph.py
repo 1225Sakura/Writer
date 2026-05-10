@@ -19,8 +19,27 @@ from backend.infrastructure.database import get_db
 from backend.middleware.auth import require_auth
 from backend.services.entity_linker import EntityLinker, DisambiguationResult
 from backend.services.graph_service import GraphService
+from backend.api.v1.dependencies import get_event_bus
+from backend.infrastructure.cache.cache_service import get_cache_service
+from backend.core.services.character.character_service import CharacterService
+from backend.core.services.item.item_service import ItemService
+from backend.core.services.location.location_service import LocationService
+from backend.core.services.faction.faction_service import FactionService
 
 router = APIRouter(prefix="/graph", tags=["graph"])
+
+
+def get_character_service(db: AsyncSession = Depends(get_db)) -> CharacterService:
+    return CharacterService(db, get_event_bus(), get_cache_service())
+
+def get_item_service(db: AsyncSession = Depends(get_db)) -> ItemService:
+    return ItemService(db, get_event_bus(), get_cache_service())
+
+def get_location_service(db: AsyncSession = Depends(get_db)) -> LocationService:
+    return LocationService(db, get_event_bus(), get_cache_service())
+
+def get_faction_service(db: AsyncSession = Depends(get_db)) -> FactionService:
+    return FactionService(db, get_event_bus(), get_cache_service())
 
 
 # ------------------------------------------------------------------
@@ -219,36 +238,40 @@ def get_graph_service(db: AsyncSession = Depends(get_db)) -> GraphService:
 async def list_entities(
     project_id: Optional[int] = Query(None, description="Filter by project ID"),
     entity_type: Optional[str] = Query(None, description="Filter by entity type: character, item, location, faction"),
-    db: AsyncSession = Depends(get_db),
+    character_svc: CharacterService = Depends(get_character_service),
+    item_svc: ItemService = Depends(get_item_service),
+    location_svc: LocationService = Depends(get_location_service),
+    faction_svc: FactionService = Depends(get_faction_service),
 ):
     """List all entities with optional filtering."""
-    from backend.core.domain import Character, Item, Location, Faction
-    from sqlalchemy import select
-
-    models = {
-        "character": Character,
-        "item": Item,
-        "location": Location,
-        "faction": Faction,
+    service_map = {
+        "character": character_svc,
+        "item": item_svc,
+        "location": location_svc,
+        "faction": faction_svc,
     }
 
-    if entity_type and entity_type not in models:
+    if entity_type and entity_type not in service_map:
         raise HTTPException(
             status_code=400,
-            detail=f"Invalid entity_type. Must be one of: {', '.join(models.keys())}"
+            detail=f"Invalid entity_type. Must be one of: {', '.join(service_map.keys())}"
         )
 
-    types_to_query = [entity_type] if entity_type else list(models.keys())
+    types_to_query = [entity_type] if entity_type else list(service_map.keys())
     results = []
 
     for etype in types_to_query:
-        model = models[etype]
-        stmt = select(model)
-        if project_id is not None and hasattr(model, "project_id"):
-            stmt = stmt.where(model.project_id == project_id)
-
-        result = await db.execute(stmt)
-        for entity in result.scalars().all():
+        svc = service_map[etype]
+        filters = {}
+        if project_id is not None:
+            filters["project_id"] = project_id
+        entities = await svc.list_entities(**filters) if hasattr(svc, 'list_entities') else []
+        if not entities:
+            # Fallback: try list_{type} method
+            list_method = getattr(svc, f"list_{etype}s", None) or getattr(svc, f"list_{etype}", None)
+            if list_method:
+                entities = await list_method(**filters)
+        for entity in (entities or []):
             results.append({
                 "id": entity.id,
                 "type": etype,

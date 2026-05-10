@@ -7,10 +7,11 @@ from pydantic import BaseModel, Field, field_validator
 from typing import Optional, AsyncIterator, List
 
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
 
 from backend.infrastructure.database import get_db
-from backend.core.domain import WritingSettings, Chapter
+from backend.core.services.chapter.chapter_service import ChapterService
+from backend.core.services.writing_settings.writing_settings_service import WritingSettingsService
+from backend.infrastructure.cache.cache_service import get_cache_service
 from backend.core.services.ai.ai_service import AIService, ai_service
 from backend.config import settings
 from backend.agents.context_agent import ContextAgent
@@ -26,7 +27,7 @@ from backend.agents.checkers import (
 
 from backend.middleware.auth import require_auth, verify_api_key
 from backend.middleware.rate_limit import check_checker_rate_limit
-from backend.utils.event_bus import AsyncEventBus
+from backend.api.v1.dependencies import get_event_bus
 
 router = APIRouter(prefix="/ai", tags=["ai"], dependencies=[require_auth])
 
@@ -35,16 +36,7 @@ MAX_PROMPT_LENGTH = 10000
 MAX_CONTENT_LENGTH = 100000
 
 # Global instances
-_event_bus: Optional[AsyncEventBus] = None
 _ai_provider = None  # Will be set during app startup
-
-
-def get_event_bus() -> AsyncEventBus:
-    """Get or create the shared event bus instance."""
-    global _event_bus
-    if _event_bus is None:
-        _event_bus = AsyncEventBus()
-    return _event_bus
 
 
 def set_ai_provider(provider) -> None:
@@ -66,6 +58,16 @@ def get_ai_service() -> AIService:
             detail="MiniMax API key not configured. Set MINIMAX_API_KEY in environment."
         )
     return ai_service
+
+
+def get_chapter_service(db: AsyncSession = Depends(get_db)) -> ChapterService:
+    """Dependency: provide ChapterService instance."""
+    return ChapterService(db, get_event_bus(), get_cache_service())
+
+
+def get_writing_settings_service(db: AsyncSession = Depends(get_db)) -> WritingSettingsService:
+    """Dependency: provide WritingSettingsService instance."""
+    return WritingSettingsService(db, get_event_bus(), get_cache_service())
 
 
 def require_checker_rate_limit(request) -> None:
@@ -314,7 +316,7 @@ class ReaderPullCheckResponse(CheckerBaseResponse):
 )
 async def generate_content(
     request: GenerateRequest,
-    db: AsyncSession = Depends(get_db)
+    writing_settings_service: WritingSettingsService = Depends(get_writing_settings_service),
 ):
     """Generate AI content with streaming response.
 
@@ -329,8 +331,8 @@ async def generate_content(
     ai_service = get_ai_service()
 
     # Get writing settings for defaults
-    result = await db.execute(select(WritingSettings))
-    writing_settings = result.scalar_one_or_none()
+    settings_list = await writing_settings_service.list_writing_settings()
+    writing_settings = settings_list[0] if settings_list else None
 
     human_ai_ratio = request.human_ai_ratio
     style = request.style
@@ -432,26 +434,22 @@ async def extract_entities(request: ExtractEntitiesRequest) -> dict:
     summary="AI审查章节",
     description="对指定章节进行AI审查，检查角色一致性、情节逻辑、世界观一致性、伏笔运用等。",
 )
-async def inspect_chapter(chapter_id: int, db: AsyncSession = Depends(get_db)) -> dict:
+async def inspect_chapter(
+    chapter_id: int,
+    chapter_service: ChapterService = Depends(get_chapter_service),
+) -> dict:
     """Run AI inspection on a chapter.
 
     Checks for consistency, plot holes, character consistency, etc.
     """
     # Get chapter
-    result = await db.execute(select(Chapter).where(Chapter.id == chapter_id))
-    chapter = result.scalar_one_or_none()
+    chapter = await chapter_service.get_chapter(chapter_id)
     if not chapter:
         raise HTTPException(status_code=404, detail="Chapter not found")
 
-    # Get all drafts for this chapter
-    from backend.core.domain import DraftVersion
-    result = await db.execute(
-        select(DraftVersion)
-        .where(DraftVersion.chapter_id == chapter_id)
-        .order_by(DraftVersion.version_number.desc())
-        .limit(1)
-    )
-    draft = result.scalar_one_or_none()
+    # Get latest draft for this chapter
+    drafts = await chapter_service.list_draft_versions(chapter_id)
+    draft = max(drafts, key=lambda d: d.version_number, default=None) if drafts else None
 
     if not draft:
         raise HTTPException(status_code=404, detail="No draft found for chapter")
@@ -664,6 +662,7 @@ async def extract_structured_entities(
 async def check_consistency(
     request: CheckerBaseRequest,
     db: AsyncSession = Depends(get_db),
+    chapter_service: ChapterService = Depends(get_chapter_service),
     _rate_limit=Depends(require_checker_rate_limit)
 ) -> ConsistencyCheckResponse:
     """Check world consistency for a chapter.
@@ -675,8 +674,7 @@ async def check_consistency(
     checker = ConsistencyChecker(ai_service)
 
     # Verify chapter exists
-    result = await db.execute(select(Chapter).where(Chapter.id == request.chapter_id))
-    chapter = result.scalar_one_or_none()
+    chapter = await chapter_service.get_chapter(request.chapter_id)
     if not chapter:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -707,6 +705,7 @@ async def check_consistency(
 async def check_continuity(
     request: CheckerBaseRequest,
     db: AsyncSession = Depends(get_db),
+    chapter_service: ChapterService = Depends(get_chapter_service),
     _rate_limit=Depends(require_checker_rate_limit)
 ) -> ContinuityCheckResponse:
     """Check scene and narrative continuity for a chapter.
@@ -717,8 +716,7 @@ async def check_continuity(
     ai_service = get_ai_service()
     checker = ContinuityChecker(ai_service)
 
-    result = await db.execute(select(Chapter).where(Chapter.id == request.chapter_id))
-    chapter = result.scalar_one_or_none()
+    chapter = await chapter_service.get_chapter(request.chapter_id)
     if not chapter:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -750,6 +748,7 @@ async def check_continuity(
 async def check_pacing(
     request: CheckerBaseRequest,
     db: AsyncSession = Depends(get_db),
+    chapter_service: ChapterService = Depends(get_chapter_service),
     _rate_limit=Depends(require_checker_rate_limit)
 ) -> PacingCheckResponse:
     """Check narrative pacing and strand ratios for a chapter.
@@ -760,8 +759,7 @@ async def check_pacing(
     ai_service = get_ai_service()
     checker = PacingChecker(ai_service)
 
-    result = await db.execute(select(Chapter).where(Chapter.id == request.chapter_id))
-    chapter = result.scalar_one_or_none()
+    chapter = await chapter_service.get_chapter(request.chapter_id)
     if not chapter:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -794,6 +792,7 @@ async def check_pacing(
 async def check_ooc(
     request: OOCCheckerRequest,
     db: AsyncSession = Depends(get_db),
+    chapter_service: ChapterService = Depends(get_chapter_service),
     _rate_limit=Depends(require_checker_rate_limit)
 ) -> OOCCheckResponse:
     """Check for Out-Of-Character behavior.
@@ -804,8 +803,7 @@ async def check_ooc(
     ai_service = get_ai_service()
     checker = OOCChecker(ai_service)
 
-    result = await db.execute(select(Chapter).where(Chapter.id == request.chapter_id))
-    chapter = result.scalar_one_or_none()
+    chapter = await chapter_service.get_chapter(request.chapter_id)
     if not chapter:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -848,6 +846,7 @@ async def check_ooc(
 async def check_high_point(
     request: CheckerBaseRequest,
     db: AsyncSession = Depends(get_db),
+    chapter_service: ChapterService = Depends(get_chapter_service),
     _rate_limit=Depends(require_checker_rate_limit)
 ) -> HighPointCheckResponse:
     """Check excitement density and high points for a chapter.
@@ -858,8 +857,7 @@ async def check_high_point(
     ai_service = get_ai_service()
     checker = HighPointChecker(ai_service)
 
-    result = await db.execute(select(Chapter).where(Chapter.id == request.chapter_id))
-    chapter = result.scalar_one_or_none()
+    chapter = await chapter_service.get_chapter(request.chapter_id)
     if not chapter:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -903,6 +901,7 @@ async def check_high_point(
 async def check_reader_pull(
     request: CheckerBaseRequest,
     db: AsyncSession = Depends(get_db),
+    chapter_service: ChapterService = Depends(get_chapter_service),
     _rate_limit=Depends(require_checker_rate_limit)
 ) -> ReaderPullCheckResponse:
     """Check reader engagement and hooks for a chapter.
@@ -913,8 +912,7 @@ async def check_reader_pull(
     ai_service = get_ai_service()
     checker = ReaderPullChecker(ai_service)
 
-    result = await db.execute(select(Chapter).where(Chapter.id == request.chapter_id))
-    chapter = result.scalar_one_or_none()
+    chapter = await chapter_service.get_chapter(request.chapter_id)
     if not chapter:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,

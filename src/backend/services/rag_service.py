@@ -186,6 +186,21 @@ class RAGService:
                 emb_bytes,
             ))
 
+            # Also insert into vec_items for KNN search
+            try:
+                import sqlite_vec
+                if emb_bytes is not None:
+                    cursor.execute(
+                        "SELECT rowid FROM vectors WHERE chunk_id = ?", [chunk_id]
+                    )
+                    rowid = cursor.fetchone()[0]
+                    cursor.execute(
+                        "INSERT INTO vec_items(rowid, embedding) VALUES (?, ?)",
+                        [rowid, embedding.tobytes() if hasattr(embedding, 'tobytes') else emb_bytes]
+                    )
+            except (ImportError, Exception):
+                pass
+
             # Update BM25 index
             await self._update_bm25_index(cursor, chunk_id, chunk.content)
 
@@ -266,6 +281,18 @@ class RAGService:
             )
         """)
 
+        # sqlite-vec virtual table for native KNN search
+        try:
+            import sqlite_vec
+            embedding_dim = self.embedding_service.get_embedding_dim()
+            cursor.execute(f"""
+                CREATE VIRTUAL TABLE IF NOT EXISTS vec_items USING vec0(
+                    embedding float[{embedding_dim}]
+                )
+            """)
+        except ImportError:
+            pass  # sqlite-vec not available, fallback to cosine similarity
+
         # Create indexes
         cursor.execute("""
             CREATE INDEX IF NOT EXISTS idx_chunks_chapter
@@ -283,6 +310,52 @@ class RAGService:
             CREATE INDEX IF NOT EXISTS idx_bm25_term
             ON bm25_index(term)
         """)
+
+    async def migrate_vectors_to_vec0(self) -> int:
+        """Migrate existing vectors to vec0 table. Returns count migrated."""
+        try:
+            import sqlite_vec
+        except ImportError:
+            logger.warning("sqlite-vec not available, skipping migration")
+            return 0
+
+        conn = self._get_conn()
+        cursor = conn.cursor()
+
+        embedding_dim = self.embedding_service.get_embedding_dim()
+
+        # Create vec0 table if not exists
+        cursor.execute(f"""
+            CREATE VIRTUAL TABLE IF NOT EXISTS vec_items USING vec0(
+                embedding float[{embedding_dim}]
+            )
+        """)
+
+        # Check existing count
+        cursor.execute("SELECT COUNT(*) FROM vec_items")
+        existing = cursor.fetchone()[0]
+        if existing > 0:
+            logger.info(f"vec_items already has {existing} entries, skipping migration")
+            return 0
+
+        # Migrate from vectors table
+        cursor.execute("SELECT rowid, embedding FROM vectors WHERE embedding IS NOT NULL")
+        count = 0
+        for rowid, emb_bytes in cursor.fetchall():
+            if emb_bytes:
+                try:
+                    embedding = self.embedding_service.deserialize_embedding(emb_bytes)
+                    cursor.execute(
+                        "INSERT INTO vec_items(rowid, embedding) VALUES (?, ?)",
+                        [rowid, embedding.tobytes() if hasattr(embedding, 'tobytes') else emb_bytes]
+                    )
+                    count += 1
+                except Exception as e:
+                    logger.warning(f"Failed to migrate vector rowid={rowid}: {e}")
+
+        conn.commit()
+        logger.info(f"Migrated {count} vectors to vec_items")
+        return count
 
     def _tokenize(self, text: str) -> List[str]:
         """Tokenize text for BM25 indexing."""
@@ -415,7 +488,7 @@ class RAGService:
         chunk_type: Optional[str],
         chapter_id: Optional[int],
     ) -> List[SearchResult]:
-        """Vector similarity search."""
+        """Vector similarity search using sqlite-vec KNN."""
         conn = self._get_conn()
         cursor = conn.cursor()
 
@@ -426,14 +499,66 @@ class RAGService:
 
         query_embedding = embeddings[0]
 
-        # Build query
+        # Try sqlite-vec KNN first
+        try:
+            import sqlite_vec
+            emb_bytes = query_embedding.tobytes() if hasattr(query_embedding, 'tobytes') else self.embedding_service.serialize_embedding(query_embedding)
+
+            # Check if vec_items table has data
+            cursor.execute("SELECT COUNT(*) FROM vec_items")
+            vec_count = cursor.fetchone()[0]
+
+            if vec_count > 0:
+                # Build KNN query with optional filters
+                sql = """
+                    SELECT v.chunk_id, v.chapter_id, v.scene_index, v.content,
+                           v.parent_chunk_id, v.chunk_type, v.source_file,
+                           distance
+                    FROM vec_items
+                    JOIN vectors v ON v.rowid = vec_items.rowid
+                    WHERE vec_items.embedding MATCH ?
+                """
+                params: List[Any] = [emb_bytes]
+
+                if chunk_type:
+                    sql += " AND v.chunk_type = ?"
+                    params.append(chunk_type)
+                if chapter_id is not None:
+                    sql += " AND v.chapter_id <= ?"
+                    params.append(chapter_id)
+
+                sql += " ORDER BY distance LIMIT ?"
+                params.append(top_k)
+
+                cursor.execute(sql, params)
+                results: List[SearchResult] = []
+                for row in cursor.fetchall():
+                    chunk_id, ch_id, scene_idx, content, parent_id, ctype, src_file, distance = row
+                    # sqlite-vec returns L2 distance, convert to similarity score (0-1)
+                    score = max(0.0, 1.0 - distance)
+                    results.append(SearchResult(
+                        chunk_id=chunk_id,
+                        chapter_id=ch_id,
+                        scene_index=scene_idx,
+                        content=content,
+                        score=score,
+                        source="vector",
+                        parent_chunk_id=parent_id,
+                        chunk_type=ctype,
+                        source_file=src_file,
+                    ))
+                return results
+        except (ImportError, Exception) as e:
+            logger.debug(f"sqlite-vec KNN failed, falling back to cosine: {e}")
+
+        # Fallback: cosine similarity (original implementation)
         sql = """
             SELECT chunk_id, chapter_id, scene_index, content,
                    embedding, parent_chunk_id, chunk_type, source_file
             FROM vectors
             WHERE embedding IS NOT NULL
         """
-        params: List[Any] = []
+        params = []
         if chunk_type:
             sql += " AND chunk_type = ?"
             params.append(chunk_type)
@@ -443,31 +568,18 @@ class RAGService:
 
         cursor.execute(sql, params)
 
-        results: List[SearchResult] = []
+        results = []
         for row in cursor.fetchall():
-            (
-                chunk_id, ch_id, scene_idx, content,
-                emb_bytes, parent_id, ctype, src_file,
-            ) = row
-
+            chunk_id, ch_id, scene_idx, content, emb_bytes, parent_id, ctype, src_file = row
             if not emb_bytes:
                 continue
-
             embedding = self.embedding_service.deserialize_embedding(emb_bytes)
             score = self._cosine_similarity(query_embedding, embedding)
-
             results.append(SearchResult(
-                chunk_id=chunk_id,
-                chapter_id=ch_id,
-                scene_index=scene_idx,
-                content=content,
-                score=score,
-                source="vector",
-                parent_chunk_id=parent_id,
-                chunk_type=ctype,
-                source_file=src_file,
+                chunk_id=chunk_id, chapter_id=ch_id, scene_index=scene_idx,
+                content=content, score=score, source="vector",
+                parent_chunk_id=parent_id, chunk_type=ctype, source_file=src_file,
             ))
-
         results.sort(key=lambda x: x.score, reverse=True)
         return results[:top_k]
 

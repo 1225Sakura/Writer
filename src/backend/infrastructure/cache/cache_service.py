@@ -560,3 +560,6 @@ def invalidate_ai_result_cache(prompt_hash: Optional[str] = None) -> None:
 # Backward-compatible alias for module-level cache_service
 # (legacy code imports this as: from backend.infrastructure.cache.cache_service import cache_service)
 cache_service = get_cache_service()
+
+# Module-level alias for hash_prompt (used by tests and AI caching)
+hash_prompt = CacheService.hash_prompt

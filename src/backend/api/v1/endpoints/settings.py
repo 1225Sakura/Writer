@@ -16,7 +16,7 @@ from backend.core.domain import (
 )
 from backend.infrastructure.cache.cache_service import get_cache_service
 from backend.core.services.character.character_service import CharacterService
-from backend.utils.event_bus import AsyncEventBus
+from backend.api.v1.dependencies import get_event_bus
 from backend.middleware.auth import require_auth
 from backend.core.domain.schemas.request_schemas import (
     CharacterCreateRequest,
@@ -56,13 +56,9 @@ from backend.core.services.world_setting.world_setting_service import WorldSetti
 from backend.core.services.rule.rule_service import RuleService
 from backend.core.services.writing_settings.writing_settings_service import WritingSettingsService
 
-# Global event bus instance
-event_bus = AsyncEventBus()
-
-
 def get_character_service(db: AsyncSession = Depends(get_db)) -> CharacterService:
     """Dependency to inject CharacterService with event bus and cache."""
-    return CharacterService(db, event_bus, get_cache_service())
+    return CharacterService(db, get_event_bus(), get_cache_service())
 
 
 def _tags_to_json(tags: Optional[List[str]]) -> Optional[str]:
@@ -234,21 +230,12 @@ async def create_character_relationship(
 async def delete_character_relationship(
     character_id: int,
     relationship_id: int,
-    db: AsyncSession = Depends(get_db)
+    service: CharacterService = Depends(get_character_service)
 ):
     """Delete a character relationship."""
-    from sqlalchemy import select
-    result = await db.execute(
-        select(CharacterRelationship).where(
-            CharacterRelationship.id == relationship_id,
-            CharacterRelationship.character_id == character_id
-        )
-    )
-    relationship = result.scalar_one_or_none()
-    if not relationship:
+    deleted = await service.delete_relationship(character_id, relationship_id)
+    if not deleted:
         raise HTTPException(status_code=404, detail="Relationship not found")
-    await db.delete(relationship)
-    get_cache_service().clear_entity_cache("character_relationship")
     return {"message": "Relationship deleted"}
 
 
@@ -292,27 +279,13 @@ async def update_character_storyline(
     character_id: int,
     storyline_id: int,
     storyline: CharacterStorylineCreateRequest,
-    db: AsyncSession = Depends(get_db)
+    service: CharacterService = Depends(get_character_service)
 ):
     """Update a character storyline."""
-    from sqlalchemy import select
-    result = await db.execute(
-        select(CharacterStoryline).where(
-            CharacterStoryline.id == storyline_id,
-            CharacterStoryline.character_id == character_id
-        )
-    )
-    db_storyline = result.scalar_one_or_none()
-    if not db_storyline:
+    updated = await service.update_storyline(character_id, storyline_id, storyline.model_dump(exclude_unset=True))
+    if not updated:
         raise HTTPException(status_code=404, detail="Storyline not found")
-
-    for key, value in storyline.model_dump(exclude_unset=True).items():
-        setattr(db_storyline, key, value)
-
-    await db.flush()
-    await db.refresh(db_storyline)
-    get_cache_service().clear_entity_cache("character_storyline")
-    return db_storyline
+    return updated
 
 
 @router.delete(
@@ -324,21 +297,12 @@ async def update_character_storyline(
 async def delete_character_storyline(
     character_id: int,
     storyline_id: int,
-    db: AsyncSession = Depends(get_db)
+    service: CharacterService = Depends(get_character_service)
 ):
     """Delete a character storyline."""
-    from sqlalchemy import select
-    result = await db.execute(
-        select(CharacterStoryline).where(
-            CharacterStoryline.id == storyline_id,
-            CharacterStoryline.character_id == character_id
-        )
-    )
-    storyline = result.scalar_one_or_none()
-    if not storyline:
+    deleted = await service.delete_storyline(character_id, storyline_id)
+    if not deleted:
         raise HTTPException(status_code=404, detail="Storyline not found")
-    await db.delete(storyline)
-    get_cache_service().clear_entity_cache("character_storyline")
     return {"message": "Storyline deleted"}
 
 
@@ -348,7 +312,7 @@ async def delete_character_storyline(
 
 def get_item_service(db: AsyncSession = Depends(get_db)) -> ItemService:
     """Dependency to inject ItemService."""
-    return ItemService(db, event_bus, get_cache_service())
+    return ItemService(db, get_event_bus(), get_cache_service())
 
 
 @router.get(
@@ -444,7 +408,7 @@ async def delete_item(item_id: int, service: ItemService = Depends(get_item_serv
 
 def get_location_service(db: AsyncSession = Depends(get_db)) -> LocationService:
     """Dependency to inject LocationService."""
-    return LocationService(db, event_bus, get_cache_service())
+    return LocationService(db, get_event_bus(), get_cache_service())
 
 
 @router.get(
@@ -549,7 +513,7 @@ async def delete_location(
 
 def get_faction_service(db: AsyncSession = Depends(get_db)) -> FactionService:
     """Dependency to inject FactionService."""
-    return FactionService(db, event_bus, get_cache_service())
+    return FactionService(db, get_event_bus(), get_cache_service())
 
 
 @router.get(
@@ -654,7 +618,7 @@ async def delete_faction(
 
 def get_world_setting_service(db: AsyncSession = Depends(get_db)) -> WorldSettingService:
     """Dependency to inject WorldSettingService."""
-    return WorldSettingService(db, event_bus, get_cache_service())
+    return WorldSettingService(db, get_event_bus(), get_cache_service())
 
 
 @router.get(
@@ -754,7 +718,7 @@ async def delete_world_setting(
 
 def get_rule_service(db: AsyncSession = Depends(get_db)) -> RuleService:
     """Dependency to inject RuleService."""
-    return RuleService(db, event_bus, get_cache_service())
+    return RuleService(db, get_event_bus(), get_cache_service())
 
 
 @router.get(
@@ -859,7 +823,7 @@ async def delete_rule(
 
 def get_writing_settings_service(db: AsyncSession = Depends(get_db)) -> WritingSettingsService:
     """Dependency to inject WritingSettingsService."""
-    return WritingSettingsService(db, event_bus, get_cache_service())
+    return WritingSettingsService(db, get_event_bus(), get_cache_service())
 
 
 @router.get(
@@ -904,7 +868,7 @@ async def update_writing_settings(
     description="将所有项目数据导出为JSON格式，用于备份和迁移。",
 )
 async def export_data(
-    db: AsyncSession = Depends(get_db),
+    character_service: CharacterService = Depends(get_character_service),
     item_service: ItemService = Depends(get_item_service),
     location_service: LocationService = Depends(get_location_service),
     faction_service: FactionService = Depends(get_faction_service),
@@ -913,11 +877,9 @@ async def export_data(
     writing_service: WritingSettingsService = Depends(get_writing_settings_service),
 ):
     """Export all project data as JSON."""
-    from sqlalchemy import select
-
-    characters = (await db.execute(select(Character))).scalars().all()
-    relationships = (await db.execute(select(CharacterRelationship))).scalars().all()
-    storylines = (await db.execute(select(CharacterStoryline))).scalars().all()
+    characters = await character_service.list_all_characters()
+    relationships = await character_service.list_all_relationships()
+    storylines = await character_service.list_all_storylines()
     items = await item_service.list_items(limit=10000)
     locations = await location_service.list_locations(limit=10000)
     factions = await faction_service.list_factions(limit=10000)
@@ -947,7 +909,7 @@ async def export_data(
 )
 async def import_data(
     data: ExportDataRequest,
-    db: AsyncSession = Depends(get_db),
+    character_service: CharacterService = Depends(get_character_service),
     item_service: ItemService = Depends(get_item_service),
     location_service: LocationService = Depends(get_location_service),
     faction_service: FactionService = Depends(get_faction_service),
@@ -975,9 +937,7 @@ async def import_data(
     for char_data in data.characters:
         char_data_clean = {k: v for k, v in char_data.items()
                           if k not in ('_type', 'id', 'created_at', 'updated_at')}
-        char = Character(**char_data_clean)
-        db.add(char)
-        await db.flush()
+        char = await character_service.create_character(char_data_clean)
         old_id = char_data.get('id')
         if old_id is not None:
             id_mapping[old_id] = char.id
@@ -998,7 +958,7 @@ async def import_data(
                             if k not in ('_type', 'id', 'created_at', 'updated_at')}
                 rel_clean['character_id'] = id_mapping[old_char_id]
                 rel_clean['target_id'] = id_mapping[old_target_id]
-                db.add(CharacterRelationship(**rel_clean))
+                await character_service.create_relationship(rel_clean)
                 imported_count['character_relationships'] += 1
             else:
                 unresolved.append(rel_data)
@@ -1011,7 +971,7 @@ async def import_data(
             story_clean = {k: v for k, v in story_data.items()
                           if k not in ('_type', 'id', 'created_at', 'updated_at')}
             story_clean['character_id'] = id_mapping[old_char_id]
-            db.add(CharacterStoryline(**story_clean))
+            await character_service.create_storyline(story_clean)
             imported_count['character_storylines'] += 1
 
     # Import items
@@ -1048,8 +1008,6 @@ async def import_data(
                      if k not in ('_type', 'id', 'created_at', 'updated_at')}
         await rule_service.create_rule(rule_clean)
         imported_count['rules'] += 1
-
-    await db.flush()
 
     return {
         "message": "Import successful",

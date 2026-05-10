@@ -20,6 +20,9 @@ from backend.middleware.auth import require_auth
 from backend.services.pacing_analyzer import PacingAnalyzer
 from backend.services.rhythm_advisor import RhythmAdvisor
 from backend.services.strand_classifier import StrandClassifier
+from backend.core.services.outline.outline_service import OutlineService
+from backend.api.v1.dependencies import get_event_bus
+from backend.infrastructure.cache.cache_service import get_cache_service
 
 router = APIRouter(prefix="/pacing", tags=["pacing"], dependencies=[require_auth])
 
@@ -96,6 +99,11 @@ def get_rhythm_advisor() -> RhythmAdvisor:
 def get_strand_classifier() -> StrandClassifier:
     """Get StrandClassifier instance."""
     return StrandClassifier()
+
+
+def get_outline_service(db: AsyncSession = Depends(get_db)) -> OutlineService:
+    """Dependency to inject OutlineService with event bus and cache."""
+    return OutlineService(db, get_event_bus(), get_cache_service())
 
 
 # ------------------------------------------------------------------
@@ -176,24 +184,22 @@ async def analyze_pacing(
     use_ai: bool = Query(default=False, description="Use AI-powered classification"),
     db: AsyncSession = Depends(get_db),
     analyzer: PacingAnalyzer = Depends(get_pacing_analyzer),
+    outline_service: OutlineService = Depends(get_outline_service),
 ):
     """Analyze pacing for all chapters in an outline.
 
     Args:
         outline_id: The outline ID to analyze.
         use_ai: If True, use AI for classification instead of heuristic.
-        db: Database session.
+        db: Database session (used by analyzer).
         analyzer: PacingAnalyzer instance.
+        outline_service: OutlineService for outline existence check.
 
     Returns:
         PacingAnalysisResponse with full analysis.
     """
-    from sqlalchemy import select
-    from backend.core.domain import Outline
-
     # Verify outline exists
-    result = await db.execute(select(Outline).where(Outline.id == outline_id))
-    outline = result.scalar_one_or_none()
+    outline = await outline_service.get_outline(outline_id)
     if not outline:
         raise HTTPException(status_code=404, detail="Outline not found")
 
@@ -223,22 +229,21 @@ async def get_redlines(
     outline_id: int = Query(..., gt=0, description="Outline ID to check"),
     db: AsyncSession = Depends(get_db),
     analyzer: PacingAnalyzer = Depends(get_pacing_analyzer),
+    outline_service: OutlineService = Depends(get_outline_service),
 ):
     """Get current red line status for an outline.
 
     Args:
         outline_id: The outline ID to check.
-        db: Database session.
+        db: Database session (used by analyzer).
         analyzer: PacingAnalyzer instance.
+        outline_service: OutlineService for outline existence check.
 
     Returns:
         RedLinesResponse with red line definitions and current status.
     """
-    from sqlalchemy import select
-    from backend.core.domain import Outline
-
-    result = await db.execute(select(Outline).where(Outline.id == outline_id))
-    outline = result.scalar_one_or_none()
+    # Verify outline exists
+    outline = await outline_service.get_outline(outline_id)
     if not outline:
         raise HTTPException(status_code=404, detail="Outline not found")
 
@@ -294,23 +299,22 @@ async def get_advice(
     db: AsyncSession = Depends(get_db),
     advisor: RhythmAdvisor = Depends(get_rhythm_advisor),
     analyzer: PacingAnalyzer = Depends(get_pacing_analyzer),
+    outline_service: OutlineService = Depends(get_outline_service),
 ):
     """Get advice for the next chapter's strand.
 
     Args:
         request: AdviceRequest with outline_id and options.
-        db: Database session.
+        db: Database session (used by advisor/analyzer).
         advisor: RhythmAdvisor instance.
         analyzer: PacingAnalyzer instance.
+        outline_service: OutlineService for outline existence check.
 
     Returns:
         AdviceResponse with recommendation and reasoning.
     """
-    from sqlalchemy import select
-    from backend.core.domain import Outline
-
-    result = await db.execute(select(Outline).where(Outline.id == request.outline_id))
-    outline = result.scalar_one_or_none()
+    # Verify outline exists
+    outline = await outline_service.get_outline(request.outline_id)
     if not outline:
         raise HTTPException(status_code=404, detail="Outline not found")
 

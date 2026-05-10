@@ -89,6 +89,27 @@ class CharacterService:
         )
         return instance
 
+    async def delete_relationship(self, character_id: int, relationship_id: int) -> bool:
+        """Delete a character relationship by ID, verifying ownership."""
+        from sqlalchemy import select
+        result = await self.db.execute(
+            select(CharacterRelationship).where(
+                CharacterRelationship.id == relationship_id,
+                CharacterRelationship.character_id == character_id,
+            )
+        )
+        relationship = result.scalar_one_or_none()
+        if not relationship:
+            return False
+        await self.db.delete(relationship)
+        await self.db.flush()
+        self.cache.clear_entity_cache("character")
+        await self.event_bus.publish(
+            ENTITY_DELETED,
+            {"entity_type": "character_relationship", "id": relationship_id},
+        )
+        return True
+
     async def get_storylines(self, character_id: int) -> List[CharacterStoryline]:
         """Get all storylines for a character."""
         return await self.repo.get_storylines(character_id)
@@ -105,3 +126,64 @@ class CharacterService:
             {"entity_type": "character_storyline", "id": instance.id},
         )
         return instance
+
+    async def update_storyline(self, character_id: int, storyline_id: int, data: dict) -> Optional[CharacterStoryline]:
+        """Update a character storyline by ID, verifying ownership."""
+        from sqlalchemy import select
+        result = await self.db.execute(
+            select(CharacterStoryline).where(
+                CharacterStoryline.id == storyline_id,
+                CharacterStoryline.character_id == character_id,
+            )
+        )
+        storyline = result.scalar_one_or_none()
+        if not storyline:
+            return None
+        for key, value in data.items():
+            setattr(storyline, key, value)
+        storyline.updated_at = datetime.utcnow()
+        await self.db.flush()
+        await self.db.refresh(storyline)
+        self.cache.clear_entity_cache("character")
+        await self.event_bus.publish(
+            ENTITY_UPDATED,
+            {"entity_type": "character_storyline", "id": storyline_id},
+        )
+        return storyline
+
+    async def delete_storyline(self, character_id: int, storyline_id: int) -> bool:
+        """Delete a character storyline by ID, verifying ownership."""
+        from sqlalchemy import select
+        result = await self.db.execute(
+            select(CharacterStoryline).where(
+                CharacterStoryline.id == storyline_id,
+                CharacterStoryline.character_id == character_id,
+            )
+        )
+        storyline = result.scalar_one_or_none()
+        if not storyline:
+            return False
+        await self.db.delete(storyline)
+        await self.db.flush()
+        self.cache.clear_entity_cache("character")
+        await self.event_bus.publish(
+            ENTITY_DELETED,
+            {"entity_type": "character_storyline", "id": storyline_id},
+        )
+        return True
+
+    async def list_all_characters(self) -> List[Character]:
+        """List all characters (no pagination, for export)."""
+        return await self.repo.list(skip=0, limit=100000)
+
+    async def list_all_relationships(self) -> List[CharacterRelationship]:
+        """List all character relationships (for export)."""
+        from sqlalchemy import select
+        result = await self.db.execute(select(CharacterRelationship))
+        return list(result.scalars().all())
+
+    async def list_all_storylines(self) -> List[CharacterStoryline]:
+        """List all character storylines (for export)."""
+        from sqlalchemy import select
+        result = await self.db.execute(select(CharacterStoryline))
+        return list(result.scalars().all())

@@ -11,8 +11,9 @@ from backend.infrastructure.database import get_db
 from backend.middleware.auth import require_auth
 from backend.services.wiki_service import WikiService, WikiPage, WikiVersion, WikiEntityLink
 from backend.api.v1.exceptions import NotFoundException, ValidationException
-from pydantic import BaseModel, Field, ConfigDict
+from pydantic import BaseModel, Field, ConfigDict, computed_field
 from datetime import datetime
+import mistune
 
 logger = logging.getLogger(__name__)
 
@@ -61,6 +62,14 @@ class WikiPageResponse(BaseModel):
     is_draft: bool
     created_at: datetime
     updated_at: datetime
+
+    @computed_field
+    @property
+    def content_html(self) -> str:
+        """Render Markdown content to HTML."""
+        if not self.content:
+            return ""
+        return mistune.html(self.content)
 
 
 class WikiPageDetailResponse(WikiPageResponse):

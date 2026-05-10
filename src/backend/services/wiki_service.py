@@ -5,6 +5,7 @@ import logging
 from datetime import datetime
 from typing import Optional, List, Any
 
+import mistune
 from sqlalchemy import select, text, and_, or_
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
@@ -524,9 +525,21 @@ class WikiService:
             "entity_id": row.entity_id,
             "title": row.title,
             "content": row.content,
+            "content_html": self.render_content(row.content),
             "version": row.version,
             "is_draft": bool(row.is_draft),
             "created_at": row.created_at,
             "updated_at": row.updated_at,
             "rank": row.rank,
         }
+
+    # ------------------------------------------------------------------------
+    # Markdown Rendering
+    # ------------------------------------------------------------------------
+
+    @staticmethod
+    def render_content(content: str) -> str:
+        """Render Markdown content to HTML using mistune."""
+        if not content:
+            return ""
+        return mistune.html(content)

@@ -7,7 +7,9 @@ import os
 import sys
 
 # Add src directory to path so 'backend' can be imported as a package
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..'))
+_src_dir = os.path.join(os.path.dirname(__file__), '..', '..')
+if _src_dir not in sys.path:
+    sys.path.insert(0, _src_dir)
 
 from httpx import AsyncClient, ASGITransport
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sessionmaker
@@ -22,6 +24,7 @@ os.environ.setdefault("API_KEY", "test_api_key_for_tests")
 from backend.infrastructure.database import Base, get_db
 from backend.interface.web.main import app
 from backend.middleware.auth import set_api_key, clear_api_key_cache
+from backend.infrastructure.cache.cache_service import cache_service
 
 
 # =============================================================================

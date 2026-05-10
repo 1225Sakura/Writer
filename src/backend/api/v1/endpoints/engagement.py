@@ -17,17 +17,19 @@ from datetime import datetime
 from fastapi import APIRouter, HTTPException, Depends, Query
 from pydantic import BaseModel, ConfigDict
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, desc
 
 from backend.infrastructure.database import get_db
 from backend.middleware.auth import require_auth
-from backend.core.domain import Chapter, DraftVersion, AIInspectionResult, PlotThread
 from backend.services.content_storage import ContentStorage
-from backend.services.hook_detector import HookDetector, hook_detector
-from backend.services.engagement_analyzer import EngagementAnalyzer, engagement_analyzer
-from backend.services.debt_tracker import DebtTracker, debt_tracker, NarrativeDebt
+from backend.services.hook_detector import hook_detector
+from backend.services.engagement_analyzer import engagement_analyzer
+from backend.services.debt_tracker import debt_tracker, NarrativeDebt
 from backend.infrastructure.cache.cache_service import cached, get_cache_service
 from backend.config import settings
+from backend.api.v1.dependencies import get_event_bus
+from backend.core.services.chapter.chapter_service import ChapterService
+from backend.core.services.ai_inspection_result.ai_inspection_result_service import AIInspectionResultService
+from backend.core.services.plot_thread.plot_thread_service import PlotThreadService
 
 
 # ------------------------------------------------------------------
@@ -162,14 +164,29 @@ content_storage = ContentStorage()
 
 
 # ------------------------------------------------------------------
+# Dependency Injection
+# ------------------------------------------------------------------
+
+def get_chapter_service(db: AsyncSession = Depends(get_db)) -> ChapterService:
+    return ChapterService(db, get_event_bus(), get_cache_service())
+
+
+def get_ai_inspection_result_service(db: AsyncSession = Depends(get_db)) -> AIInspectionResultService:
+    return AIInspectionResultService(db, get_event_bus(), get_cache_service())
+
+
+def get_plot_thread_service(db: AsyncSession = Depends(get_db)) -> PlotThreadService:
+    return PlotThreadService(db, get_event_bus(), get_cache_service())
+
+
+# ------------------------------------------------------------------
 # Helpers
 # ------------------------------------------------------------------
 
-async def _get_chapter_content(chapter_id: int, db: AsyncSession) -> str:
+async def _get_chapter_content(chapter_id: int, chapter_service: ChapterService) -> str:
     """Get chapter content from storage or draft versions."""
     # Try to get chapter with content_storage_id
-    result = await db.execute(select(Chapter).where(Chapter.id == chapter_id))
-    chapter = result.scalar_one_or_none()
+    chapter = await chapter_service.get_chapter(chapter_id)
     if not chapter:
         raise HTTPException(status_code=404, detail="Chapter not found")
 
@@ -184,15 +201,11 @@ async def _get_chapter_content(chapter_id: int, db: AsyncSession) -> str:
             pass
 
     # Fall back to latest draft version
-    result = await db.execute(
-        select(DraftVersion)
-        .where(DraftVersion.chapter_id == chapter_id)
-        .order_by(desc(DraftVersion.version_number))
-        .limit(1)
-    )
-    draft = result.scalar_one_or_none()
-    if draft and draft.content:
-        return draft.content
+    drafts = await chapter_service.list_draft_versions(chapter_id)
+    if drafts:
+        latest = max(drafts, key=lambda d: d.version_number or 0)
+        if latest.content:
+            return latest.content
 
     # Try summary as last resort
     if chapter.summary:
@@ -228,27 +241,26 @@ def _grade_from_score(score: float) -> str:
 )
 async def analyze_chapter_engagement(
     chapter_id: int,
-    db: AsyncSession = Depends(get_db),
+    chapter_service: ChapterService = Depends(get_chapter_service),
+    ai_inspection_service: AIInspectionResultService = Depends(get_ai_inspection_result_service),
 ):
     """Perform full engagement analysis on a chapter."""
-    content = await _get_chapter_content(chapter_id, db)
+    content = await _get_chapter_content(chapter_id, chapter_service)
     if not content:
         raise HTTPException(status_code=400, detail="Chapter has no content to analyze")
 
     result = engagement_analyzer.analyze_quick(chapter_id, content)
 
     # Store result as AIInspectionResult for persistence
-    inspection = AIInspectionResult(
-        chapter_id=chapter_id,
-        inspection_type="engagement_analysis",
-        issues_json=json.dumps({
+    await ai_inspection_service.create_ai_inspection_result({
+        "chapter_id": chapter_id,
+        "inspection_type": "engagement_analysis",
+        "issues_json": json.dumps({
             "predicted_retention": result.get("predicted_retention"),
             "pacing": result.get("pacing_analysis", {}),
         }, ensure_ascii=False),
-        suggestions_json=json.dumps(result.get("suggestions", []), ensure_ascii=False),
-    )
-    db.add(inspection)
-    await db.flush()
+        "suggestions_json": json.dumps(result.get("suggestions", []), ensure_ascii=False),
+    })
 
     return result
 
@@ -262,10 +274,10 @@ async def analyze_chapter_engagement(
 @cached(ttl=settings.cache_default_ttl, key_prefix="engagement:hooks", invalidate_on=["chapters"])
 async def detect_chapter_hooks(
     chapter_id: int,
-    db: AsyncSession = Depends(get_db),
+    chapter_service: ChapterService = Depends(get_chapter_service),
 ):
     """Detect narrative hooks in a chapter."""
-    content = await _get_chapter_content(chapter_id, db)
+    content = await _get_chapter_content(chapter_id, chapter_service)
     if not content:
         raise HTTPException(status_code=400, detail="Chapter has no content to analyze")
 
@@ -282,16 +294,14 @@ async def detect_chapter_hooks(
 async def get_narrative_debts(
     project_id: Optional[int] = Query(None, description="Project ID to filter debts"),
     current_chapter_id: Optional[int] = Query(None, description="Current chapter for overdue calc"),
-    db: AsyncSession = Depends(get_db),
+    plot_thread_service: PlotThreadService = Depends(get_plot_thread_service),
 ):
     """Get narrative debt report."""
     # Load debts from PlotThread table (repurposed via JSON)
-    query = select(PlotThread)
+    filters = {}
     if project_id:
-        query = query.where(PlotThread.project_id == project_id)
-
-    result = await db.execute(query.order_by(desc(PlotThread.created_at)))
-    plot_threads = result.scalars().all()
+        filters["project_id"] = project_id
+    plot_threads = await plot_thread_service.list_plot_threads(**filters)
 
     # Convert PlotThreads to NarrativeDebts
     debts = []
@@ -336,10 +346,10 @@ async def get_narrative_debts(
 @cached(ttl=settings.cache_default_ttl, key_prefix="engagement:score", invalidate_on=["chapters"])
 async def get_chapter_engagement_score(
     chapter_id: int,
-    db: AsyncSession = Depends(get_db),
+    chapter_service: ChapterService = Depends(get_chapter_service),
 ):
     """Get combined engagement score for a chapter."""
-    content = await _get_chapter_content(chapter_id, db)
+    content = await _get_chapter_content(chapter_id, chapter_service)
     if not content:
         raise HTTPException(status_code=400, detail="Chapter has no content to analyze")
 
@@ -378,22 +388,21 @@ async def get_chapter_engagement_score(
 )
 async def detect_debts_from_chapter(
     chapter_id: int,
-    db: AsyncSession = Depends(get_db),
+    chapter_service: ChapterService = Depends(get_chapter_service),
+    plot_thread_service: PlotThreadService = Depends(get_plot_thread_service),
 ):
     """Detect new narrative debts from chapter content."""
-    content = await _get_chapter_content(chapter_id, db)
+    content = await _get_chapter_content(chapter_id, chapter_service)
     if not content:
         raise HTTPException(status_code=400, detail="Chapter has no content to analyze")
 
     # Get chapter title
-    result = await db.execute(select(Chapter).where(Chapter.id == chapter_id))
-    chapter = result.scalar_one_or_none()
+    chapter = await chapter_service.get_chapter(chapter_id)
     if not chapter:
         raise HTTPException(status_code=404, detail="Chapter not found")
 
     # Load existing debts
-    existing_result = await db.execute(select(PlotThread))
-    existing_threads = existing_result.scalars().all()
+    existing_threads = await plot_thread_service.list_plot_threads()
     existing_debts = []
     for thread in existing_threads:
         if thread.description and thread.description.startswith("{"):
@@ -415,16 +424,14 @@ async def detect_debts_from_chapter(
 
     # Save new debts as PlotThreads
     for debt in new_debts:
-        thread = PlotThread(
-            project_id=chapter.project_id,
-            title=debt.title,
-            description=json.dumps(debt_tracker.debt_to_json(debt), ensure_ascii=False),
-            status="active",
-            created_chapter_id=chapter_id,
-        )
-        db.add(thread)
+        await plot_thread_service.create_plot_thread({
+            "project_id": chapter.project_id,
+            "title": debt.title,
+            "description": json.dumps(debt_tracker.debt_to_json(debt), ensure_ascii=False),
+            "status": "active",
+            "created_chapter_id": chapter_id,
+        })
 
-    await db.flush()
     await get_cache_service().ainvalidate_tag("plotthreads")
 
     return [debt_tracker.debt_to_json(d) for d in new_debts]
@@ -438,30 +445,31 @@ async def detect_debts_from_chapter(
 async def resolve_debt(
     debt_id: int,
     resolved_chapter_id: Optional[int] = Query(None, description="Chapter where debt was resolved"),
-    db: AsyncSession = Depends(get_db),
+    plot_thread_service: PlotThreadService = Depends(get_plot_thread_service),
 ):
     """Mark a narrative debt as fulfilled."""
-    result = await db.execute(select(PlotThread).where(PlotThread.id == debt_id))
-    thread = result.scalar_one_or_none()
+    thread = await plot_thread_service.get_plot_thread(debt_id)
     if not thread:
         raise HTTPException(status_code=404, detail="Debt not found")
 
     # Update status in JSON description
+    update_data = {
+        "status": "resolved",
+    }
     if thread.description and thread.description.startswith("{"):
         try:
             debt_data = json.loads(thread.description)
             debt_data["status"] = "fulfilled"
             debt_data["resolved_chapter_id"] = resolved_chapter_id
             debt_data["resolved_at"] = datetime.utcnow().isoformat()
-            thread.description = json.dumps(debt_data, ensure_ascii=False)
+            update_data["description"] = json.dumps(debt_data, ensure_ascii=False)
         except json.JSONDecodeError:
             pass
 
-    thread.status = "resolved"
     if resolved_chapter_id:
-        thread.reveal_chapter_id = resolved_chapter_id
+        update_data["reveal_chapter_id"] = resolved_chapter_id
 
-    await db.flush()
+    await plot_thread_service.update_plot_thread(debt_id, update_data)
     await get_cache_service().ainvalidate_tag("plotthreads")
 
     return {"message": "Debt marked as fulfilled", "debt_id": debt_id}

@@ -1,22 +1,20 @@
 # Auto Novel Writer - Chapters Routes
 # Interface 3: Chapter and story structure management
 
-from fastapi import APIRouter, HTTPException, Depends
+from fastapi import APIRouter, Depends
 from typing import List, Optional
-from datetime import datetime
 
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
 
 from backend.infrastructure.database import get_db
-from backend.core.domain import (
-    Outline, Chapter, IFLine, DraftVersion, PlotThread, AIInspectionResult
-)
 from backend.middleware.auth import require_auth
 from backend.infrastructure.cache.cache_service import cached, get_cache_service
 from backend.core.services.chapter.chapter_service import ChapterService
 from backend.core.services.outline.outline_service import OutlineService
-from backend.utils.event_bus import AsyncEventBus
+from backend.core.services.if_line.if_line_service import IFLineService
+from backend.core.services.plot_thread.plot_thread_service import PlotThreadService
+from backend.core.services.ai_inspection_result.ai_inspection_result_service import AIInspectionResultService
+from backend.api.v1.dependencies import get_event_bus
 from backend.config import settings
 from backend.api.v1.exceptions import (
     ChapterNotFoundException,
@@ -38,18 +36,29 @@ from backend.core.domain.schemas import (
     MessageResponse,
 )
 
-# Global event bus instance
-event_bus = AsyncEventBus()
-
-
 def get_chapter_service(db: AsyncSession = Depends(get_db)) -> ChapterService:
     """Dependency to inject ChapterService with event bus and cache."""
-    return ChapterService(db, event_bus, get_cache_service())
+    return ChapterService(db, get_event_bus(), get_cache_service())
 
 
 def get_outline_service(db: AsyncSession = Depends(get_db)) -> OutlineService:
     """Dependency to inject OutlineService with event bus and cache."""
-    return OutlineService(db, event_bus, get_cache_service())
+    return OutlineService(db, get_event_bus(), get_cache_service())
+
+
+def get_if_line_service(db: AsyncSession = Depends(get_db)) -> IFLineService:
+    """Dependency to inject IFLineService with event bus and cache."""
+    return IFLineService(db, get_event_bus(), get_cache_service())
+
+
+def get_plot_thread_service(db: AsyncSession = Depends(get_db)) -> PlotThreadService:
+    """Dependency to inject PlotThreadService with event bus and cache."""
+    return PlotThreadService(db, get_event_bus(), get_cache_service())
+
+
+def get_ai_inspection_result_service(db: AsyncSession = Depends(get_db)) -> AIInspectionResultService:
+    """Dependency to inject AIInspectionResultService with event bus and cache."""
+    return AIInspectionResultService(db, get_event_bus(), get_cache_service())
 
 
 router = APIRouter(prefix="/chapters", tags=["chapters"], dependencies=[require_auth])
@@ -289,17 +298,10 @@ async def list_inspections(
     chapter_id: int,
     skip: int = 0,
     limit: int = 20,
-    db: AsyncSession = Depends(get_db)
+    service: AIInspectionResultService = Depends(get_ai_inspection_result_service)
 ):
     """List all AI inspection results for a chapter."""
-    result = await db.execute(
-        select(AIInspectionResult)
-        .where(AIInspectionResult.chapter_id == chapter_id)
-        .order_by(AIInspectionResult.created_at.desc())
-        .offset(skip)
-        .limit(limit)
-    )
-    return result.scalars().all()
+    return await service.get_by_chapter(chapter_id)
 
 
 @router.post(
@@ -313,20 +315,16 @@ async def create_inspection_result(
     inspection_type: str,
     issues_json: Optional[str] = None,
     suggestions_json: Optional[str] = None,
-    db: AsyncSession = Depends(get_db)
+    service: AIInspectionResultService = Depends(get_ai_inspection_result_service)
 ):
     """Create a new AI inspection result."""
-    db_inspection = AIInspectionResult(
-        chapter_id=chapter_id,
-        inspection_type=inspection_type,
-        issues_json=issues_json,
-        suggestions_json=suggestions_json
-    )
-    db.add(db_inspection)
-    await db.flush()
-    await db.refresh(db_inspection)
-    await get_cache_service().ainvalidate_tag("inspections")
-    return db_inspection
+    data = {
+        "chapter_id": chapter_id,
+        "inspection_type": inspection_type,
+        "issues_json": issues_json,
+        "suggestions_json": suggestions_json,
+    }
+    return await service.create_ai_inspection_result(data)
 
 
 # IF Lines - MUST be registered BEFORE /{chapter_id} to avoid route conflicts
@@ -341,15 +339,13 @@ async def list_if_lines(
     skip: int = 0,
     limit: int = 50,
     character_id: Optional[int] = None,
-    db: AsyncSession = Depends(get_db)
+    service: IFLineService = Depends(get_if_line_service)
 ):
     """List all IF lines."""
-    query = select(IFLine)
+    filters = {}
     if character_id is not None:
-        query = query.where(IFLine.linked_character_id == character_id)
-
-    result = await db.execute(query.offset(skip).limit(limit))
-    return result.scalars().all()
+        filters["linked_character_id"] = character_id
+    return await service.list_if_lines(skip=skip, limit=limit, **filters)
 
 
 @router.post(
@@ -358,14 +354,12 @@ async def list_if_lines(
     summary="创建IF线",
     description="创建新的IF线（角色故事线）。",
 )
-async def create_if_line(if_line: IFLineCreateRequest, db: AsyncSession = Depends(get_db)):
+async def create_if_line(
+    if_line: IFLineCreateRequest,
+    service: IFLineService = Depends(get_if_line_service)
+):
     """Create a new IF line."""
-    db_if_line = IFLine(**if_line.model_dump())
-    db.add(db_if_line)
-    await db.flush()
-    await db.refresh(db_if_line)
-    await get_cache_service().ainvalidate_tag("iflines")
-    return db_if_line
+    return await service.create_if_line(if_line.model_dump())
 
 
 @router.get(
@@ -375,10 +369,12 @@ async def create_if_line(if_line: IFLineCreateRequest, db: AsyncSession = Depend
     description="获取指定ID的IF线详细信息。",
 )
 @cached(ttl=settings.cache_default_ttl, key_prefix="chapters:iflines:detail", invalidate_on=["iflines"])
-async def get_if_line(if_line_id: int, db: AsyncSession = Depends(get_db)):
+async def get_if_line(
+    if_line_id: int,
+    service: IFLineService = Depends(get_if_line_service)
+):
     """Get a specific IF line."""
-    result = await db.execute(select(IFLine).where(IFLine.id == if_line_id))
-    if_line = result.scalar_one_or_none()
+    if_line = await service.get_if_line(if_line_id)
     if not if_line:
         raise IFLineNotFoundException(if_line_id=if_line_id)
     return if_line
@@ -393,22 +389,12 @@ async def get_if_line(if_line_id: int, db: AsyncSession = Depends(get_db)):
 async def update_if_line(
     if_line_id: int,
     if_line: IFLineUpdateRequest,
-    db: AsyncSession = Depends(get_db)
+    service: IFLineService = Depends(get_if_line_service)
 ):
     """Update an IF line."""
-    result = await db.execute(select(IFLine).where(IFLine.id == if_line_id))
-    db_if_line = result.scalar_one_or_none()
+    db_if_line = await service.update_if_line(if_line_id, if_line.model_dump(exclude_unset=True))
     if not db_if_line:
         raise IFLineNotFoundException(if_line_id=if_line_id)
-
-    update_data = if_line.model_dump(exclude_unset=True)
-    for key, value in update_data.items():
-        setattr(db_if_line, key, value)
-
-    db_if_line.updated_at = datetime.utcnow()
-    await db.flush()
-    await db.refresh(db_if_line)
-    await get_cache_service().ainvalidate_tag("iflines")
     return db_if_line
 
 
@@ -417,14 +403,14 @@ async def update_if_line(
     summary="删除IF线",
     description="删除指定ID的IF线。",
 )
-async def delete_if_line(if_line_id: int, db: AsyncSession = Depends(get_db)):
+async def delete_if_line(
+    if_line_id: int,
+    service: IFLineService = Depends(get_if_line_service)
+):
     """Delete an IF line."""
-    result = await db.execute(select(IFLine).where(IFLine.id == if_line_id))
-    if_line = result.scalar_one_or_none()
-    if not if_line:
+    deleted = await service.delete_if_line(if_line_id)
+    if not deleted:
         raise IFLineNotFoundException(if_line_id=if_line_id)
-    await db.delete(if_line)
-    await get_cache_service().ainvalidate_tag("iflines")
     return {"message": "IF line deleted"}
 
 
@@ -440,15 +426,13 @@ async def list_plot_threads(
     skip: int = 0,
     limit: int = 100,
     status: Optional[str] = None,
-    db: AsyncSession = Depends(get_db)
+    service: PlotThreadService = Depends(get_plot_thread_service)
 ):
     """List all plot threads."""
-    query = select(PlotThread)
+    filters = {}
     if status:
-        query = query.where(PlotThread.status == status)
-
-    result = await db.execute(query.offset(skip).limit(limit))
-    return result.scalars().all()
+        filters["status"] = status
+    return await service.list_plot_threads(skip=skip, limit=limit, **filters)
 
 
 @router.post(
@@ -459,15 +443,10 @@ async def list_plot_threads(
 )
 async def create_plot_thread(
     plot_thread: PlotThreadCreateRequest,
-    db: AsyncSession = Depends(get_db)
+    service: PlotThreadService = Depends(get_plot_thread_service)
 ):
     """Create a new plot thread."""
-    db_plot_thread = PlotThread(**plot_thread.model_dump())
-    db.add(db_plot_thread)
-    await db.flush()
-    await db.refresh(db_plot_thread)
-    await get_cache_service().ainvalidate_tag("plotthreads")
-    return db_plot_thread
+    return await service.create_plot_thread(plot_thread.model_dump())
 
 
 @router.get(
@@ -477,10 +456,12 @@ async def create_plot_thread(
     description="获取指定ID的伏笔详细信息。",
 )
 @cached(ttl=settings.cache_default_ttl, key_prefix="chapters:plotthreads:detail", invalidate_on=["plotthreads"])
-async def get_plot_thread(plot_thread_id: int, db: AsyncSession = Depends(get_db)):
+async def get_plot_thread(
+    plot_thread_id: int,
+    service: PlotThreadService = Depends(get_plot_thread_service)
+):
     """Get a specific plot thread."""
-    result = await db.execute(select(PlotThread).where(PlotThread.id == plot_thread_id))
-    plot_thread = result.scalar_one_or_none()
+    plot_thread = await service.get_plot_thread(plot_thread_id)
     if not plot_thread:
         raise PlotThreadNotFoundException(plot_thread_id=plot_thread_id)
     return plot_thread
@@ -495,21 +476,12 @@ async def get_plot_thread(plot_thread_id: int, db: AsyncSession = Depends(get_db
 async def update_plot_thread(
     plot_thread_id: int,
     plot_thread: PlotThreadUpdateRequest,
-    db: AsyncSession = Depends(get_db)
+    service: PlotThreadService = Depends(get_plot_thread_service)
 ):
     """Update a plot thread."""
-    result = await db.execute(select(PlotThread).where(PlotThread.id == plot_thread_id))
-    db_plot_thread = result.scalar_one_or_none()
+    db_plot_thread = await service.update_plot_thread(plot_thread_id, plot_thread.model_dump(exclude_unset=True))
     if not db_plot_thread:
         raise PlotThreadNotFoundException(plot_thread_id=plot_thread_id)
-
-    update_data = plot_thread.model_dump(exclude_unset=True)
-    for key, value in update_data.items():
-        setattr(db_plot_thread, key, value)
-
-    await db.flush()
-    await db.refresh(db_plot_thread)
-    await get_cache_service().ainvalidate_tag("plotthreads")
     return db_plot_thread
 
 
@@ -518,12 +490,12 @@ async def update_plot_thread(
     summary="删除伏笔",
     description="删除指定ID的伏笔。",
 )
-async def delete_plot_thread(plot_thread_id: int, db: AsyncSession = Depends(get_db)):
+async def delete_plot_thread(
+    plot_thread_id: int,
+    service: PlotThreadService = Depends(get_plot_thread_service)
+):
     """Delete a plot thread."""
-    result = await db.execute(select(PlotThread).where(PlotThread.id == plot_thread_id))
-    plot_thread = result.scalar_one_or_none()
-    if not plot_thread:
+    deleted = await service.delete_plot_thread(plot_thread_id)
+    if not deleted:
         raise PlotThreadNotFoundException(plot_thread_id=plot_thread_id)
-    await db.delete(plot_thread)
-    await get_cache_service().ainvalidate_tag("plotthreads")
     return {"message": "Plot thread deleted"}

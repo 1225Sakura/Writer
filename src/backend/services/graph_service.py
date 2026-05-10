@@ -5,6 +5,7 @@
 from __future__ import annotations
 
 import json
+import logging
 from collections import defaultdict, deque
 from dataclasses import dataclass, field
 from typing import Dict, List, Optional, Set, Tuple, Any
@@ -15,6 +16,16 @@ from sqlalchemy import select, or_
 from backend.core.domain import (
     Character, Item, Location, Faction, CharacterRelationship
 )
+
+# NetworkX is optional — graceful fallback if not installed
+try:
+    import networkx as nx
+    _HAS_NETWORKX = True
+except ImportError:
+    nx = None  # type: ignore[assignment]
+    _HAS_NETWORKX = False
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass
@@ -792,3 +803,469 @@ class GraphService:
                 queue.append((neighbor, new_path))
 
         return None
+
+    # ==================== NetworkX 图分析（来自 GraphAnalyzer） ====================
+
+    def build_networkx_graph(
+        self,
+        graph_data: GraphData,
+        *,
+        _entity_id_to_type: Optional[Dict[int, str]] = None,
+    ) -> Tuple[Any, Any]:
+        """将 GraphData 转换为 NetworkX 有向图和无向图
+
+        Args:
+            graph_data: 图谱数据（节点+边）
+            _entity_id_to_type: 可选的预构建 id->type 映射（O(1)查找）
+
+        Returns:
+            (DiGraph, Graph) 元组
+        """
+        if not _HAS_NETWORKX:
+            logger.warning("NetworkX not installed, cannot build NetworkX graph")
+            return None, None
+
+        # 构建 O(1) 实体类型查找索引
+        if _entity_id_to_type is None:
+            _entity_id_to_type = {node.id: node.type for node in graph_data.nodes}
+
+        G = nx.DiGraph()
+        undirected_G = nx.Graph()
+
+        _node_key_to_id_type: Dict[str, Tuple[int, str]] = {}
+        _id_type_to_node_key: Dict[Tuple[int, str], str] = {}
+
+        def _node_key(entity_id: int, entity_type: str) -> str:
+            return f"{entity_type}:{entity_id}"
+
+        try:
+            # 添加节点
+            for node in graph_data.nodes:
+                key = _node_key(node.id, node.type)
+                node_attrs = dict(
+                    id=node.id,
+                    type=node.type,
+                    label=node.label,
+                    **node.properties,
+                )
+                G.add_node(key, **node_attrs)
+                undirected_G.add_node(key, **node_attrs)
+                _node_key_to_id_type[key] = (node.id, node.type)
+                _id_type_to_node_key[(node.id, node.type)] = key
+
+            # 添加边
+            for edge in graph_data.edges:
+                src_type = _entity_id_to_type.get(edge.source)
+                tgt_type = _entity_id_to_type.get(edge.target)
+                src_key = _id_type_to_node_key.get((edge.source, src_type)) if src_type else None
+                tgt_key = _id_type_to_node_key.get((edge.target, tgt_type)) if tgt_type else None
+                if src_key and tgt_key:
+                    edge_attrs = dict(
+                        label=edge.label,
+                        type=edge.type,
+                        directed=edge.directed,
+                        **edge.properties,
+                    )
+                    G.add_edge(src_key, tgt_key, **edge_attrs)
+                    undirected_G.add_edge(src_key, tgt_key, **edge_attrs)
+
+            logger.info(
+                f"Built NetworkX graph with {G.number_of_nodes()} nodes "
+                f"and {G.number_of_edges()} edges"
+            )
+        except Exception as e:
+            logger.error(f"Failed to build NetworkX graph: {e}")
+
+        # 将辅助映射附加到图对象上，供后续方法使用
+        G._node_key_to_id_type = _node_key_to_id_type
+        G._id_type_to_node_key = _id_type_to_node_key
+        undirected_G._node_key_to_id_type = _node_key_to_id_type
+        undirected_G._id_type_to_node_key = _id_type_to_node_key
+
+        return G, undirected_G
+
+    def nx_shortest_path(
+        self,
+        graph_data: GraphData,
+        source_id: int,
+        source_type: str,
+        target_id: int,
+        target_type: str,
+        directed: bool = False,
+    ) -> Optional[List[Dict[str, Any]]]:
+        """NetworkX 最短路径查询
+
+        Args:
+            graph_data: 图谱数据
+            source_id: 起始实体ID
+            source_type: 起始实体类型
+            target_id: 目标实体ID
+            target_type: 目标实体类型
+            directed: 是否考虑边的方向
+
+        Returns:
+            路径节点列表，每项包含 id, type, label
+            未找到路径时返回 None
+        """
+        if not _HAS_NETWORKX:
+            logger.warning("NetworkX not installed, cannot use nx_shortest_path")
+            return None
+
+        G, undirected_G = self.build_networkx_graph(graph_data)
+        if not G:
+            return None
+
+        _id_type_to_node_key = G._id_type_to_node_key
+
+        src_key = _id_type_to_node_key.get((source_id, source_type))
+        tgt_key = _id_type_to_node_key.get((target_id, target_type))
+
+        if not src_key or not tgt_key:
+            logger.warning(f"Node not found: {source_type}:{source_id} or {target_type}:{target_id}")
+            return None
+
+        try:
+            g = G if directed else undirected_G
+            path_keys = nx.shortest_path(g, src_key, tgt_key)
+
+            return [
+                {
+                    "id": G.nodes[k].get("id"),
+                    "type": G.nodes[k].get("type"),
+                    "label": G.nodes[k].get("label"),
+                }
+                for k in path_keys
+            ]
+        except nx.NetworkXNoPath:
+            logger.debug(f"No path found between {source_type}:{source_id} and {target_type}:{target_id}")
+            return None
+        except nx.NodeNotFound as e:
+            logger.warning(f"Node not found in graph: {e}")
+            return None
+
+    def all_paths(
+        self,
+        graph_data: GraphData,
+        source_id: int,
+        source_type: str,
+        target_id: int,
+        target_type: str,
+        max_depth: int = 5,
+        directed: bool = False,
+    ) -> List[List[Dict[str, Any]]]:
+        """查找两个实体间的所有简单路径（限深度）
+
+        Args:
+            graph_data: 图谱数据
+            source_id: 起始实体ID
+            source_type: 起始实体类型
+            target_id: 目标实体ID
+            target_type: 目标实体类型
+            max_depth: 最大路径深度
+            directed: 是否考虑边的方向
+
+        Returns:
+            所有有效路径的列表
+        """
+        if not _HAS_NETWORKX:
+            logger.warning("NetworkX not installed, cannot use all_paths")
+            return []
+
+        G, undirected_G = self.build_networkx_graph(graph_data)
+        if not G:
+            return []
+
+        _id_type_to_node_key = G._id_type_to_node_key
+
+        src_key = _id_type_to_node_key.get((source_id, source_type))
+        tgt_key = _id_type_to_node_key.get((target_id, target_type))
+
+        if not src_key or not tgt_key:
+            return []
+
+        try:
+            g = G if directed else undirected_G
+            path_keys_list = list(
+                nx.all_simple_paths(g, src_key, tgt_key, cutoff=max_depth)
+            )
+
+            return [
+                [
+                    {
+                        "id": G.nodes[k].get("id"),
+                        "type": G.nodes[k].get("type"),
+                        "label": G.nodes[k].get("label"),
+                    }
+                    for k in path_keys
+                ]
+                for path_keys in path_keys_list
+            ]
+        except (nx.NodeNotFound, nx.NetworkXError) as e:
+            logger.warning(f"Error finding all paths: {e}")
+            return []
+
+    def find_reachable(
+        self,
+        graph_data: GraphData,
+        source_id: int,
+        source_type: str,
+        max_depth: int = 3,
+        directed: bool = False,
+    ) -> List[Dict[str, Any]]:
+        """查找从指定实体可达的所有节点
+
+        Args:
+            graph_data: 图谱数据
+            source_id: 起始实体ID
+            source_type: 起始实体类型
+            max_depth: 最大深度
+            directed: 是否考虑边的方向
+
+        Returns:
+            可达节点列表（去重）
+        """
+        if not _HAS_NETWORKX:
+            logger.warning("NetworkX not installed, cannot use find_reachable")
+            return []
+
+        G, undirected_G = self.build_networkx_graph(graph_data)
+        if not G:
+            return []
+
+        _id_type_to_node_key = G._id_type_to_node_key
+
+        src_key = _id_type_to_node_key.get((source_id, source_type))
+        if not src_key:
+            return []
+
+        try:
+            g = G if directed else undirected_G
+            reachable_keys: Set[str] = set()
+
+            for depth in range(1, max_depth + 1):
+                nodes_at_depth = nx.nodes_at_distance(g, src_key, depth)
+                reachable_keys.update(nodes_at_depth)
+
+            return [
+                {
+                    "id": G.nodes[k].get("id"),
+                    "type": G.nodes[k].get("type"),
+                    "label": G.nodes[k].get("label"),
+                    "distance": nx.shortest_path_length(g, src_key, k) if g.has_node(k) else None,
+                }
+                for k in reachable_keys
+                if k != src_key
+            ]
+        except nx.NetworkXError as e:
+            logger.warning(f"Error finding reachable nodes: {e}")
+            return []
+
+    def community_detection(
+        self,
+        graph_data: GraphData,
+        method: str = "connected_components",
+    ) -> List[List[Dict[str, Any]]]:
+        """社区检测（社群发现）
+
+        Args:
+            graph_data: 图谱数据
+            method: 检测方法
+                - "connected_components": 无向连通分量（默认）
+                - "weakly_connected": 有向弱连通分量
+                - "label_propagation": 标签传播算法
+
+        Returns:
+            社区列表，每项是节点列表
+        """
+        if not _HAS_NETWORKX:
+            logger.warning("NetworkX not installed, cannot use community_detection")
+            return []
+
+        G, undirected_G = self.build_networkx_graph(graph_data)
+        if not undirected_G:
+            return []
+
+        try:
+            if method == "connected_components":
+                components = list(nx.connected_components(undirected_G))
+            elif method == "weakly_connected" and G:
+                components = list(nx.weakly_connected_components(G))
+            elif method == "label_propagation":
+                components = list(nx.label_propagation_communities(undirected_G))
+            else:
+                components = list(nx.connected_components(undirected_G))
+
+            return [
+                [
+                    {
+                        "id": undirected_G.nodes[k].get("id"),
+                        "type": undirected_G.nodes[k].get("type"),
+                        "label": undirected_G.nodes[k].get("label"),
+                    }
+                    for k in component
+                ]
+                for component in components
+            ]
+        except nx.NetworkXError as e:
+            logger.warning(f"Error in community detection ({method}): {e}")
+            return []
+
+    def find_cliques(
+        self,
+        graph_data: GraphData,
+        min_size: int = 3,
+    ) -> List[List[Dict[str, Any]]]:
+        """查找图中所有极大团（cliques）
+
+        Args:
+            graph_data: 图谱数据
+            min_size: 最小团大小
+
+        Returns:
+            团列表
+        """
+        if not _HAS_NETWORKX:
+            logger.warning("NetworkX not installed, cannot use find_cliques")
+            return []
+
+        _, undirected_G = self.build_networkx_graph(graph_data)
+        if not undirected_G:
+            return []
+
+        try:
+            cliques = list(nx.find_cliques(undirected_G))
+            return [
+                [
+                    {
+                        "id": undirected_G.nodes[k].get("id"),
+                        "type": undirected_G.nodes[k].get("type"),
+                        "label": undirected_G.nodes[k].get("label"),
+                    }
+                    for k in clique
+                ]
+                for clique in cliques
+                if len(clique) >= min_size
+            ]
+        except nx.NetworkXError as e:
+            logger.warning(f"Error finding cliques: {e}")
+            return []
+
+    def nx_centrality(
+        self,
+        graph_data: GraphData,
+        metric: str = "degree",
+    ) -> Dict[Tuple[int, str], float]:
+        """NetworkX 中心性分析
+
+        Args:
+            graph_data: 图谱数据
+            metric: 中心性指标
+                - "degree": 度中心性（邻居数量）
+                - "betweenness": 介数中心性
+                - "closeness": 接近中心性
+                - "pagerank": PageRank
+
+        Returns:
+            Dict[(entity_id, entity_type), score]
+        """
+        if not _HAS_NETWORKX:
+            logger.warning("NetworkX not installed, cannot use nx_centrality")
+            return {}
+
+        G, undirected_G = self.build_networkx_graph(graph_data)
+        if not G or not undirected_G:
+            return {}
+
+        _node_key_to_id_type = G._node_key_to_id_type
+
+        try:
+            g = undirected_G if metric != "pagerank" else G
+
+            if metric == "degree":
+                scores = nx.degree_centrality(g)
+            elif metric == "betweenness":
+                scores = nx.betweenness_centrality(g)
+            elif metric == "closeness":
+                scores = nx.closeness_centrality(g)
+            elif metric == "pagerank":
+                scores = nx.pagerank(G)
+            else:
+                scores = nx.degree_centrality(g)
+
+            result: Dict[Tuple[int, str], float] = {}
+            for key, score in scores.items():
+                id_type = _node_key_to_id_type.get(key)
+                if id_type:
+                    result[id_type] = round(score, 4)
+
+            return result
+        except nx.NetworkXError as e:
+            logger.warning(f"Error computing centrality ({metric}): {e}")
+            return {}
+
+    def top_centrality(
+        self,
+        graph_data: GraphData,
+        metric: str = "degree",
+        top_n: int = 10,
+        entity_type: Optional[str] = None,
+    ) -> List[Dict[str, Any]]:
+        """获取中心性最高的节点
+
+        Args:
+            graph_data: 图谱数据
+            metric: 中心性指标
+            top_n: 返回前N个
+            entity_type: 过滤实体类型
+
+        Returns:
+            排序后的节点列表
+        """
+        all_scores = self.nx_centrality(graph_data, metric)
+
+        filtered = [
+            {"id": id_type[0], "type": id_type[1], "score": score}
+            for id_type, score in all_scores.items()
+            if entity_type is None or id_type[1] == entity_type
+        ]
+
+        filtered.sort(key=lambda x: x["score"], reverse=True)
+        return filtered[:top_n]
+
+    def graph_stats(self, graph_data: GraphData) -> Dict[str, Any]:
+        """获取图的基本统计信息
+
+        Args:
+            graph_data: 图谱数据
+
+        Returns:
+            统计信息字典
+        """
+        if not _HAS_NETWORKX:
+            logger.warning("NetworkX not installed, cannot use graph_stats")
+            return {}
+
+        G, undirected_G = self.build_networkx_graph(graph_data)
+        if not G:
+            return {}
+
+        return {
+            "num_nodes": G.number_of_nodes(),
+            "num_edges": G.number_of_edges(),
+            "num_undirected_edges": undirected_G.number_of_edges() if undirected_G else 0,
+            "density": nx.density(G) if G else 0,
+            "is_directed": G.is_directed(),
+            "is_connected": nx.is_connected(undirected_G) if undirected_G else False,
+            "num_connected_components": (
+                nx.number_connected_components(undirected_G)
+                if undirected_G else 0
+            ),
+            "node_types": self._count_by_type(graph_data),
+        }
+
+    def _count_by_type(self, graph_data: GraphData) -> Dict[str, int]:
+        """统计各类型节点数量"""
+        counts: Dict[str, int] = {}
+        for node in graph_data.nodes:
+            counts[node.type] = counts.get(node.type, 0) + 1
+        return counts

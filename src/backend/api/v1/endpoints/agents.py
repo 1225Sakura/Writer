@@ -15,18 +15,19 @@ from typing import Any, Optional, Dict
 from fastapi import APIRouter, HTTPException, Depends, status, Request
 from pydantic import BaseModel, Field, field_validator
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, func
 
 from backend.middleware.auth import require_auth
 from backend.services.ai.provider import AIProvider
 from backend.core.services.ai.ai_service import AIService, ai_service
 from backend.infrastructure.database import get_db
 from backend.config import settings
-from backend.utils.event_bus import AsyncEventBus
-from backend.core.domain import (
-    Chapter, DraftVersion, Outline, Character, Location, Item,
-    Faction, WorldSetting, Rule, PlotThread, Project, WritingSettings
-)
+from backend.api.v1.dependencies import get_event_bus
+from backend.infrastructure.cache.cache_service import get_cache_service
+from backend.core.services.chapter.chapter_service import ChapterService
+from backend.core.services.outline.outline_service import OutlineService
+from backend.core.services.world_setting.world_setting_service import WorldSettingService
+from backend.core.services.rule.rule_service import RuleService
+from backend.core.services.character.character_service import CharacterService
 from backend.agents.checkers import (
     BaseChecker,
     CheckerResult,
@@ -49,16 +50,7 @@ router = APIRouter(prefix="/agents", tags=["agents"])
 # Dependencies
 # ------------------------------------------------------------------
 
-_event_bus: Optional[AsyncEventBus] = None
 _ai_provider: Optional[AIProvider] = None
-
-
-def get_event_bus() -> AsyncEventBus:
-    """Get or create the shared event bus instance."""
-    global _event_bus
-    if _event_bus is None:
-        _event_bus = AsyncEventBus()
-    return _event_bus
 
 
 def set_ai_provider(provider: AIProvider) -> None:
@@ -103,6 +95,26 @@ def require_checker_rate_limit(request: Request) -> None:
         )
     request.state.rate_limit_remaining = remaining
     request.state.rate_limit_limit = limit
+
+
+def get_chapter_service(db: AsyncSession = Depends(get_db)) -> ChapterService:
+    return ChapterService(db, get_event_bus(), get_cache_service())
+
+
+def get_outline_service(db: AsyncSession = Depends(get_db)) -> OutlineService:
+    return OutlineService(db, get_event_bus(), get_cache_service())
+
+
+def get_world_setting_service(db: AsyncSession = Depends(get_db)) -> WorldSettingService:
+    return WorldSettingService(db, get_event_bus(), get_cache_service())
+
+
+def get_rule_service(db: AsyncSession = Depends(get_db)) -> RuleService:
+    return RuleService(db, get_event_bus(), get_cache_service())
+
+
+def get_character_service(db: AsyncSession = Depends(get_db)) -> CharacterService:
+    return CharacterService(db, get_event_bus(), get_cache_service())
 
 
 # ------------------------------------------------------------------
@@ -341,27 +353,25 @@ _CHECKER_REGISTRY: Dict[str, Any] = {
 async def _build_checker_context(
     checker_name: str,
     chapter_id: int,
-    db: AsyncSession
+    chapter_service: ChapterService,
+    outline_service: OutlineService,
+    world_setting_service: WorldSettingService,
+    rule_service: RuleService,
+    character_service: CharacterService,
 ) -> Dict[str, Any]:
-    """Build context dict for deep analysis from database."""
+    """Build context dict for deep analysis from services."""
     context: Dict[str, Any] = {}
 
-    result = await db.execute(select(Chapter).where(Chapter.id == chapter_id))
-    chapter = result.scalar_one_or_none()
+    chapter = await chapter_service.get_chapter(chapter_id)
     if not chapter:
         return context
 
-    result = await db.execute(
-        select(DraftVersion)
-        .where(DraftVersion.chapter_id == chapter_id)
-        .order_by(DraftVersion.version_number.desc())
-    )
-    draft = result.scalar_one_or_none()
+    drafts = await chapter_service.list_draft_versions(chapter_id)
+    draft = drafts[0] if drafts else None
     context["chapter_content"] = draft.content if draft else chapter.summary or ""
 
     if chapter.outline_id:
-        result = await db.execute(select(Outline).where(Outline.id == chapter.outline_id))
-        outline = result.scalar_one_or_none()
+        outline = await outline_service.get_outline(chapter.outline_id)
         if outline:
             context["outline"] = {
                 "id": outline.id,
@@ -369,22 +379,19 @@ async def _build_checker_context(
                 "description": outline.description,
             }
 
-    result = await db.execute(select(WorldSetting))
-    world_settings = result.scalars().all()
+    world_settings = await world_setting_service.list_world_settings()
     context["world_settings"] = [
         {"id": ws.id, "name": ws.name, "description": ws.description}
         for ws in world_settings
     ]
 
-    result = await db.execute(select(Rule))
-    rules = result.scalars().all()
+    rules = await rule_service.list_rules()
     context["rules"] = [
         {"id": r.id, "name": r.name, "description": r.description, "type": r.type}
         for r in rules
     ]
 
-    result = await db.execute(select(Character))
-    characters = result.scalars().all()
+    characters = await character_service.list_characters()
     context["characters"] = [
         {
             "id": c.id,
@@ -398,25 +405,18 @@ async def _build_checker_context(
         for c in characters
     ]
 
-    result = await db.execute(
-        select(Chapter)
-        .where(
-            Chapter.outline_id == chapter.outline_id,
-            Chapter.chapter_order < chapter.chapter_order
-        )
-        .order_by(Chapter.chapter_order.desc())
-        .limit(3)
-    )
-    prev_chapters = result.scalars().all()
+    outline_chapters = await chapter_service.list_chapters(outline_id=chapter.outline_id)
+    prev_chapters = sorted(
+        [c for c in outline_chapters if c.chapter_order < chapter.chapter_order],
+        key=lambda c: c.chapter_order,
+        reverse=True,
+    )[:3]
     context["previous_chapters"] = [
         {"id": c.id, "title": c.title, "summary": c.summary}
         for c in prev_chapters
     ]
 
-    result = await db.execute(
-        select(func.count(Character.id)).where(Character.cultivation_realm.isnot(None))
-    )
-    has_cultivation = result.scalar() or 0
+    has_cultivation = sum(1 for c in characters if c.cultivation_realm is not None)
     if has_cultivation > 0:
         context["power_system"] = {
             "type": "cultivation",
@@ -663,13 +663,17 @@ async def list_checkers():
 )
 async def run_checker(
     request: CheckerRunRequest,
-    db: AsyncSession = Depends(get_db),
+    chapter_service: ChapterService = Depends(get_chapter_service),
+    outline_service: OutlineService = Depends(get_outline_service),
+    world_setting_service: WorldSettingService = Depends(get_world_setting_service),
+    rule_service: RuleService = Depends(get_rule_service),
+    character_service: CharacterService = Depends(get_character_service),
     _rate_limit=Depends(require_checker_rate_limit)
 ):
     """Run a specific checker on a chapter.
 
     Supports both quick_scan (heuristic) and deep_analyze (AI-powered) modes.
-    For 'deep' mode, automatically builds context from the database.
+    For 'deep' mode, automatically builds context from services.
     """
     checker_cls = _CHECKER_REGISTRY.get(request.checker_name)
     if not checker_cls:
@@ -678,20 +682,15 @@ async def run_checker(
             detail=f"Unknown checker: {request.checker_name}"
         )
 
-    result = await db.execute(select(Chapter).where(Chapter.id == request.chapter_id))
-    chapter = result.scalar_one_or_none()
+    chapter = await chapter_service.get_chapter(request.chapter_id)
     if not chapter:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"Chapter {request.chapter_id} not found"
         )
 
-    result = await db.execute(
-        select(DraftVersion)
-        .where(DraftVersion.chapter_id == request.chapter_id)
-        .order_by(DraftVersion.version_number.desc())
-    )
-    draft = result.scalar_one_or_none()
+    drafts = await chapter_service.list_draft_versions(request.chapter_id)
+    draft = drafts[0] if drafts else None
     content = draft.content if draft else chapter.summary or ""
 
     ai_svc = get_ai_service()
@@ -703,21 +702,25 @@ async def run_checker(
                 result_obj: CheckerResult = await checker.quick_scan(content)
             else:
                 checker = checker_cls(ai_svc)
-                raw = await checker.check(request.chapter_id, db)
+                raw = await checker.check(request.chapter_id, chapter_service.db)
                 result_obj = CheckerResult(
                     score=raw.get("score", 0),
                     issues=[{"type": "legacy", "message": issue} for issue in raw.get("issues", [])],
                     suggestions=raw.get("suggestions", []),
                 )
         else:
-            context = await _build_checker_context(request.checker_name, request.chapter_id, db)
+            context = await _build_checker_context(
+                request.checker_name, request.chapter_id,
+                chapter_service, outline_service, world_setting_service,
+                rule_service, character_service,
+            )
 
             if issubclass(checker_cls, BaseChecker):
                 checker = checker_cls(ai_svc)
                 result_obj = await checker.deep_analyze(content, context)
             else:
                 checker = checker_cls(ai_svc)
-                raw = await checker.check(request.chapter_id, db)
+                raw = await checker.check(request.chapter_id, chapter_service.db)
                 result_obj = CheckerResult(
                     score=raw.get("score", 0),
                     issues=[{"type": "legacy", "message": issue} for issue in raw.get("issues", [])],
@@ -749,15 +752,18 @@ async def run_checker(
 )
 async def run_all_checkers(
     request: PipelineRequest,
-    db: AsyncSession = Depends(get_db),
+    chapter_service: ChapterService = Depends(get_chapter_service),
+    outline_service: OutlineService = Depends(get_outline_service),
+    world_setting_service: WorldSettingService = Depends(get_world_setting_service),
+    rule_service: RuleService = Depends(get_rule_service),
+    character_service: CharacterService = Depends(get_character_service),
     _rate_limit=Depends(require_checker_rate_limit)
 ):
     """Run all available checkers on a chapter and aggregate results.
 
     Uses CheckerPipeline for parallel execution.
     """
-    result = await db.execute(select(Chapter).where(Chapter.id == request.chapter_id))
-    chapter = result.scalar_one_or_none()
+    chapter = await chapter_service.get_chapter(request.chapter_id)
     if not chapter:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -779,19 +785,19 @@ async def run_all_checkers(
 
     pipeline = CheckerPipeline(base_checkers)
 
-    result = await db.execute(
-        select(DraftVersion)
-        .where(DraftVersion.chapter_id == request.chapter_id)
-        .order_by(DraftVersion.version_number.desc())
-    )
-    draft = result.scalar_one_or_none()
+    drafts = await chapter_service.list_draft_versions(request.chapter_id)
+    draft = drafts[0] if drafts else None
     content = draft.content if draft else chapter.summary or ""
 
     try:
         if request.mode == "quick":
             results = await pipeline.run_quick_scan(content)
         else:
-            context = await _build_checker_context("all", request.chapter_id, db)
+            context = await _build_checker_context(
+                "all", request.chapter_id,
+                chapter_service, outline_service, world_setting_service,
+                rule_service, character_service,
+            )
             results = await pipeline.run_deep_analysis(content, context)
 
         aggregated = pipeline.aggregate_results(results)

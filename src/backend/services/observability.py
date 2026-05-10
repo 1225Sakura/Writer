@@ -298,6 +298,10 @@ class ObservabilityService:
             if overall_scores else 0.0,
         }
 
+    async def get_historical_system_metrics(self, hours: int = 24) -> list[dict]:
+        """Get historical system metrics from persistent storage."""
+        return await metrics_service.get_historical_metrics(hours)
+
     async def get_api_call_stats(
         self,
         window_seconds: float = 3600.0,

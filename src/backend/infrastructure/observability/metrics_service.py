@@ -13,6 +13,8 @@ from collections import deque
 from dataclasses import dataclass, field
 from typing import Any
 
+from sqlalchemy import text
+
 from backend.utils.logging import get_logger
 
 logger = get_logger("writer-api.metrics")
@@ -289,6 +291,7 @@ class MetricsService:
                 pass
             self._flush_task = None
         await self._flush_history()
+        await self._flush_to_db()
         logger.info("MetricsService stopped")
 
     async def _flush_loop(self) -> None:
@@ -300,6 +303,8 @@ class MetricsService:
                 )
             except asyncio.TimeoutError:
                 await self._flush_history()
+                await self._flush_to_db()
+                await self._aggregate_5min()
 
     async def _flush_history(self) -> None:
         """Aggregate current-minute data and append to history."""
@@ -335,6 +340,185 @@ class MetricsService:
             self._current_minute_requests.clear()
             self._current_minute_ai_calls.clear()
             self._current_minute_db_queries.clear()
+
+    # ------------------------------------------------------------------
+    # SQLite persistence
+    # ------------------------------------------------------------------
+
+    async def init_persistence(self, db_session_factory) -> None:
+        """Initialize SQLite persistence. Call once at startup.
+
+        Creates metric_samples and metric_agg_5min tables if they don't exist.
+        Starts background flush task.
+        """
+        self._db_factory = db_session_factory
+        # Create tables
+        async with self._db_factory() as session:
+            await session.execute(text("""
+                CREATE TABLE IF NOT EXISTS metric_samples (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    ts REAL NOT NULL,
+                    metric_name TEXT NOT NULL,
+                    value REAL NOT NULL
+                )
+            """))
+            await session.execute(text("""
+                CREATE TABLE IF NOT EXISTS metric_agg_5min (
+                    bucket_ts REAL NOT NULL,
+                    metric_name TEXT NOT NULL,
+                    count INTEGER NOT NULL,
+                    sum REAL NOT NULL,
+                    min REAL NOT NULL,
+                    max REAL NOT NULL,
+                    PRIMARY KEY (bucket_ts, metric_name)
+                )
+            """))
+            await session.commit()
+        # Load recent history from DB
+        await self._load_history()
+        logger.info("Metrics persistence initialized")
+
+    async def _flush_to_db(self) -> None:
+        """Flush in-memory samples to SQLite. Called by background task."""
+        if not hasattr(self, '_db_factory'):
+            return
+
+        async with self._lock:
+            # Collect samples to flush
+            samples = []
+            now = time.time()
+            for r in list(self._requests)[-100:]:  # last 100
+                if r.timestamp > (self._last_flush_ts if hasattr(self, '_last_flush_ts') else 0):
+                    samples.append((r.timestamp, "request_latency", r.duration_ms))
+            for c in list(self._ai_calls)[-50:]:
+                if c.timestamp > (self._last_flush_ts if hasattr(self, '_last_flush_ts') else 0):
+                    samples.append((c.timestamp, "ai_call_duration", c.duration_ms))
+                    samples.append((c.timestamp, "ai_call_success", 1.0 if c.success else 0.0))
+            for q in list(self._db_queries)[-100:]:
+                if q.timestamp > (self._last_flush_ts if hasattr(self, '_last_flush_ts') else 0):
+                    samples.append((q.timestamp, "db_query_duration", q.duration_ms))
+            self._last_flush_ts = now
+
+        if not samples:
+            return
+
+        try:
+            async with self._db_factory() as session:
+                for ts, name, val in samples:
+                    await session.execute(
+                        text("INSERT INTO metric_samples (ts, metric_name, value) VALUES (:ts, :name, :val)"),
+                        {"ts": ts, "name": name, "val": val}
+                    )
+                await session.commit()
+            logger.debug(f"Flushed {len(samples)} metric samples to DB")
+        except Exception as e:
+            logger.error(f"Failed to flush metrics to DB: {e}")
+
+    async def _aggregate_5min(self) -> None:
+        """Roll up raw samples into 5-minute buckets."""
+        if not hasattr(self, '_db_factory'):
+            return
+
+        try:
+            async with self._db_factory() as session:
+                # Find unaggregated samples (older than 5 min)
+                cutoff = time.time() - 300
+                result = await session.execute(text("""
+                    SELECT metric_name,
+                           MIN(ts) as bucket_start,
+                           COUNT(*) as cnt,
+                           SUM(value) as val_sum,
+                           MIN(value) as val_min,
+                           MAX(value) as val_max
+                    FROM metric_samples
+                    WHERE ts < :cutoff
+                    GROUP BY metric_name, CAST(ts / 300 AS INTEGER)
+                """), {"cutoff": cutoff})
+
+                for row in result.fetchall():
+                    bucket_ts = float(row[1]) // 300 * 300
+                    await session.execute(text("""
+                        INSERT OR REPLACE INTO metric_agg_5min
+                        (bucket_ts, metric_name, count, sum, min, max)
+                        VALUES (:bt, :mn, :cnt, :s, :mi, :ma)
+                    """), {
+                        "bt": bucket_ts, "mn": row[0], "cnt": row[2],
+                        "s": row[3], "mi": row[4], "ma": row[5]
+                    })
+
+                # Delete old raw samples (keep 1 hour)
+                old_cutoff = time.time() - 3600
+                await session.execute(
+                    text("DELETE FROM metric_samples WHERE ts < :cutoff"),
+                    {"cutoff": old_cutoff}
+                )
+                await session.commit()
+        except Exception as e:
+            logger.error(f"Failed to aggregate metrics: {e}")
+
+    async def _load_history(self) -> None:
+        """Load recent aggregated history from DB into memory."""
+        if not hasattr(self, '_db_factory'):
+            return
+
+        try:
+            async with self._db_factory() as session:
+                cutoff = time.time() - self._history_minutes * 60
+                result = await session.execute(text("""
+                    SELECT bucket_ts, metric_name, count, sum, min, max
+                    FROM metric_agg_5min
+                    WHERE bucket_ts > :cutoff
+                    ORDER BY bucket_ts
+                """), {"cutoff": cutoff})
+
+                # Group by bucket
+                buckets: dict[float, dict] = {}
+                for row in result.fetchall():
+                    ts = row[0]
+                    if ts not in buckets:
+                        buckets[ts] = {}
+                    buckets[ts][row[1]] = {"count": row[2], "sum": row[3], "min": row[4], "max": row[5]}
+
+                for ts, data in sorted(buckets.items()):
+                    point = TimeSeriesPoint(
+                        timestamp=ts,
+                        requests_per_minute=float(data.get("request_latency", {}).get("count", 0)),
+                        avg_latency_ms=round(data.get("request_latency", {}).get("sum", 0) / max(data.get("request_latency", {}).get("count", 1), 1), 2),
+                        ai_calls_per_minute=float(data.get("ai_call_duration", {}).get("count", 0)),
+                    )
+                    self._history.append(point)
+
+                logger.info(f"Loaded {len(buckets)} historical metric buckets")
+        except Exception as e:
+            logger.warning(f"Could not load metric history: {e}")
+
+    async def get_historical_metrics(self, hours: int = 24) -> list[dict]:
+        """Query aggregated historical metrics from SQLite."""
+        if not hasattr(self, '_db_factory'):
+            return []
+
+        try:
+            async with self._db_factory() as session:
+                cutoff = time.time() - hours * 3600
+                result = await session.execute(text("""
+                    SELECT bucket_ts, metric_name, count, sum, min, max
+                    FROM metric_agg_5min
+                    WHERE bucket_ts > :cutoff
+                    ORDER BY bucket_ts
+                """), {"cutoff": cutoff})
+
+                buckets: dict[float, dict] = {}
+                for row in result.fetchall():
+                    ts = row[0]
+                    if ts not in buckets:
+                        buckets[ts] = {"timestamp": ts}
+                    buckets[ts][f"{row[1]}_count"] = row[2]
+                    buckets[ts][f"{row[1]}_avg"] = round(row[3] / max(row[2], 1), 2)
+
+                return sorted(buckets.values(), key=lambda x: x["timestamp"])
+        except Exception as e:
+            logger.error(f"Failed to query historical metrics: {e}")
+            return []
 
     # ------------------------------------------------------------------
     # Helpers

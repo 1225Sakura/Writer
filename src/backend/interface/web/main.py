@@ -491,10 +491,9 @@ async def lifespan(app: FastAPI):
         from agents.orchestrator import AgentOrchestrator, StageConfig
         from agents.workflows import WORKFLOW_REGISTRY
         from routes.workflows import set_orchestrator
-        from utils.event_bus import AsyncEventBus
+        from backend.api.v1.dependencies import get_event_bus
 
-        event_bus = AsyncEventBus()
-        orchestrator = AgentOrchestrator(event_bus)
+        orchestrator = AgentOrchestrator(get_event_bus())
 
         # Register all core workflows
         for wf_name, stages in WORKFLOW_REGISTRY.items():
