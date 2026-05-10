@@ -19,11 +19,11 @@ if str(parent_dir) not in sys.path:
 from sqlalchemy import create_engine
 from sqlalchemy.pool import NullPool
 
-from database import Base
-from config import settings
+from backend.infrastructure.database import Base
+from backend.config import settings
 
 # Import all models so they register with Base.metadata
-from core.domain.entities import (
+from backend.core.domain.entities import (
     Project,
     GenreConfiguration,
     BackgroundTask,
@@ -48,7 +48,7 @@ from core.domain.entities import (
     WorkflowExecution,
     AgentExecutionLog,
 )
-from core.domain.extensions import (
+from backend.core.domain.extensions import (
     ContextChunk,
     QueryLog,
     EngagementScore,

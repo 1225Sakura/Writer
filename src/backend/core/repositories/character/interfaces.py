@@ -4,7 +4,7 @@
 from abc import ABC, abstractmethod
 from typing import Optional, List
 
-from core.domain.entities import Character
+from backend.core.domain.entities import Character
 
 
 class CharacterRepositoryInterface(ABC):

@@ -15,8 +15,8 @@ from typing import Any, Awaitable, Callable, Dict, List, Optional
 from sqlalchemy import select, update, delete, and_
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from database import async_session_maker
-from core.domain.entities import BackgroundTask
+from backend.infrastructure.database import async_session_maker
+from backend.core.domain.entities import BackgroundTask
 
 logger = logging.getLogger(__name__)
 
@@ -312,8 +312,8 @@ task_queue = TaskQueue(max_workers=3, max_retries=3)
 @register_task_handler(TaskType.AI_GENERATE)
 async def handle_ai_generate(task: Task) -> Dict[str, Any]:
     """Handle AI generation task."""
-    from services.ai_service import AIService
-    from config import settings
+    from backend.core.services.ai.ai_service import AIService
+    from backend.config import settings
 
     payload = task.payload
     prompt = payload.get("prompt", "")

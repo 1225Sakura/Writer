@@ -8,7 +8,7 @@ from fastapi.responses import JSONResponse
 from starlette.middleware.base import BaseHTTPMiddleware
 from pydantic import ValidationError
 
-from utils.logging import get_logger
+from backend.utils.logging import get_logger
 
 logger = get_logger("writer-api.middleware.error")
 

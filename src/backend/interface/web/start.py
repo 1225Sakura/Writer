@@ -9,26 +9,6 @@ BASE_DIR = Path(__file__).parent.parent.parent.parent  # D:/writer/src
 sys.path.insert(0, str(BASE_DIR))
 os.chdir(BASE_DIR / 'backend')
 
-# Alias backend submodules as top-level modules so bare imports in main.py
-# and relative imports in routes/agents work together.
-# Ensure backend package itself is loaded first
-import backend
-
-_ALIASES = [
-    'config', 'database', 'init_db', 'migrations',
-    'routes', 'middleware', 'utils', 'services',
-    'agents', 'api', 'core', 'db', 'events',
-    'infrastructure', 'repositories',
-]
-for _name in _ALIASES:
-    _full = f'backend.{_name}'
-    try:
-        _mod = __import__(_full, fromlist=[''])
-        if _name not in sys.modules:
-            sys.modules[_name] = _mod
-    except Exception as _e:
-        pass  # Some modules may not be needed at startup
-
 # Load environment variables from .env.example if .env doesn't exist
 ENV_FILE = Path(__file__).parent / '.env'
 if not ENV_FILE.exists():

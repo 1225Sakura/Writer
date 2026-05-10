@@ -11,7 +11,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 
 from backend.core.domain import Project, GenreConfiguration
-from backend.services.cache_service import get_cache_service
+from backend.infrastructure.cache.cache_service import get_cache_service
 
 
 # ============================================

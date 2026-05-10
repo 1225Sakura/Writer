@@ -30,6 +30,7 @@ from backend.api.v1.endpoints import (
     constraints,
     observability,
     engagement,
+    wiki,
 )
 
 # Include all routers
@@ -56,3 +57,4 @@ api_router.include_router(context.router, tags=["context"])
 api_router.include_router(constraints.router, tags=["constraints"])
 api_router.include_router(observability.router, tags=["observability"])
 api_router.include_router(engagement.router, tags=["engagement"])
+api_router.include_router(wiki.router, tags=["wiki"])

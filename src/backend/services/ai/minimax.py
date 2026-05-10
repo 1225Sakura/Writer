@@ -8,7 +8,7 @@ from typing import AsyncIterator
 import httpx
 
 from .provider import AIProvider
-from backend.services.cache_service import (
+from backend.infrastructure.cache.cache_service import (
     get_cached_ai_result,
     set_cached_ai_result,
     get_cache_service,

@@ -5,7 +5,7 @@ import pytest_asyncio
 from unittest.mock import AsyncMock, MagicMock, patch
 from datetime import datetime
 
-from services.constraint_engine import (
+from backend.services.constraint_engine import (
     ConstraintEngine,
     ConstraintRule,
     ConstraintViolation,

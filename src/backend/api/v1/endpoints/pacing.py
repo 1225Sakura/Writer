@@ -15,7 +15,7 @@ from fastapi import APIRouter, HTTPException, Depends, Query
 from pydantic import BaseModel, Field
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from backend.database import get_db
+from backend.infrastructure.database import get_db
 from backend.middleware.auth import require_auth
 from backend.services.pacing_analyzer import PacingAnalyzer
 from backend.services.rhythm_advisor import RhythmAdvisor

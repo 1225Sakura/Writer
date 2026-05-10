@@ -4,7 +4,7 @@ import pytest
 import pytest_asyncio
 from unittest.mock import AsyncMock, MagicMock
 
-from services.constraint_dsl import (
+from backend.services.constraint_dsl import (
     ConstraintDSLCParser,
     DSLValidationError,
     ConditionParser,
@@ -13,7 +13,7 @@ from services.constraint_dsl import (
     MonotonicMode,
     ConditionType,
 )
-from services.constraint_engine import (
+from backend.services.constraint_engine import (
     ConstraintRule,
     LawType,
     Severity,

@@ -8,8 +8,9 @@ from typing import Any, Dict, List, Optional
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from repositories.workflow_repository import WorkflowExecutionRepository, AgentExecutionLogRepository
-from core.domain.entities import WorkflowExecution, AgentExecutionLog
+from backend.core.repositories.workflow_execution.sqlalchemy_repository import SQLAlchemyWorkflowExecutionRepository
+from backend.core.repositories.agent_execution_log.sqlalchemy_repository import SQLAlchemyAgentExecutionLogRepository
+from backend.core.domain.entities import WorkflowExecution, AgentExecutionLog
 
 logger = logging.getLogger(__name__)
 
@@ -22,24 +23,12 @@ class WorkflowExecutionService:
     """
 
     def __init__(self, db: AsyncSession):
-        """Initialize the service with a database session.
-
-        Args:
-            db: Async SQLAlchemy session
-        """
         self.db = db
-        self.workflow_repo = WorkflowExecutionRepository(db)
-        self.agent_log_repo = AgentExecutionLogRepository(db)
+        self.workflow_repo = SQLAlchemyWorkflowExecutionRepository(db)
+        self.agent_log_repo = SQLAlchemyAgentExecutionLogRepository(db)
 
     async def create_execution(self, workflow_name: str) -> WorkflowExecution:
-        """Create a new workflow execution record.
-
-        Args:
-            workflow_name: Name of the workflow being executed
-
-        Returns:
-            The created WorkflowExecution instance
-        """
+        """Create a new workflow execution record."""
         execution = await self.workflow_repo.create({
             "workflow_name": workflow_name,
             "status": "running",
@@ -55,16 +44,7 @@ class WorkflowExecutionService:
         results: Optional[Dict[str, Any]] = None,
         error: Optional[str] = None,
     ) -> Optional[WorkflowExecution]:
-        """Mark a workflow execution as completed or failed.
-
-        Args:
-            execution_id: ID of the workflow execution to update
-            results: Optional execution results dict (serialized to JSON)
-            error: Optional error message if the workflow failed
-
-        Returns:
-            Updated WorkflowExecution or None if not found
-        """
+        """Mark a workflow execution as completed or failed."""
         data: Dict[str, Any] = {
             "status": "failed" if error else "completed",
             "completed_at": datetime.utcnow(),
@@ -91,17 +71,7 @@ class WorkflowExecutionService:
         stage_name: str,
         result: Dict[str, Any],
     ) -> AgentExecutionLog:
-        """Record an agent execution log entry.
-
-        Args:
-            workflow_execution_id: Parent workflow execution ID
-            agent_name: Name of the agent that executed
-            stage_name: Name of the workflow stage
-            result: Agent execution result dict
-
-        Returns:
-            The created AgentExecutionLog instance
-        """
+        """Record an agent execution log entry."""
         status = result.get("status", "completed")
         result_json = json.dumps(result, ensure_ascii=False, default=str)
 
@@ -125,23 +95,9 @@ class WorkflowExecutionService:
         return log_entry
 
     async def get_execution_history(self, limit: int = 50) -> List[WorkflowExecution]:
-        """Get recent workflow execution history.
-
-        Args:
-            limit: Maximum number of records to return
-
-        Returns:
-            List of WorkflowExecution records ordered by start time desc
-        """
-        return await self.workflow_repo.get_recent_executions(limit=limit)
+        """Get recent workflow execution history."""
+        return await self.workflow_repo.list(limit=limit)
 
     async def get_execution_logs(self, workflow_execution_id: int) -> List[AgentExecutionLog]:
-        """Get agent execution logs for a specific workflow execution.
-
-        Args:
-            workflow_execution_id: ID of the workflow execution
-
-        Returns:
-            List of AgentExecutionLog records
-        """
-        return await self.agent_log_repo.get_by_workflow_execution_id(workflow_execution_id)
+        """Get agent execution logs for a specific workflow execution."""
+        return await self.agent_log_repo.get_by_workflow(workflow_execution_id)

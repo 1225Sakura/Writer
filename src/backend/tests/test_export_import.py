@@ -16,7 +16,7 @@ from backend.core.domain import (
     Item, Location, Faction, WorldSetting, Rule, WritingSettings,
     Outline, Chapter
 )
-from backend.database import Base
+from backend.infrastructure.database import Base
 
 
 @pytest.fixture

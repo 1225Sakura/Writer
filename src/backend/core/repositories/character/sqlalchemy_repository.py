@@ -5,8 +5,8 @@ from typing import Optional, List
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 
-from core.repositories.character.interfaces import CharacterRepositoryInterface
-from core.domain.entities import Character, CharacterRelationship, CharacterStoryline
+from backend.core.repositories.character.interfaces import CharacterRepositoryInterface
+from backend.core.domain.entities import Character, CharacterRelationship, CharacterStoryline
 
 
 class SQLAlchemyCharacterRepository(CharacterRepositoryInterface):

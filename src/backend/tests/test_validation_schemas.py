@@ -7,7 +7,7 @@ from datetime import datetime, date, timezone, timedelta
 from decimal import Decimal
 from uuid import UUID
 
-from schemas.common_schemas import (
+from backend.core.domain.schemas.common_schemas import (
     sanitize_text,
     sanitize_html_content,
     validate_chinese_name,
@@ -23,7 +23,7 @@ from schemas.common_schemas import (
     SuccessResponse,
     MessageResponse,
 )
-from schemas.request_schemas import (
+from backend.core.domain.schemas.request_schemas import (
     CharacterCreateRequest,
     CharacterUpdateRequest,
     CharacterRelationshipCreateRequest,
@@ -44,11 +44,11 @@ from schemas.request_schemas import (
     WritingSettingsUpdateRequest,
     ImportRequest,
 )
-from schemas.response_schemas import (
+from backend.core.domain.schemas.response_schemas import (
     CharacterResponse,
     ChapterResponse,
 )
-from utils.serialization import (
+from backend.utils.serialization import (
     serialize_to_json,
     deserialize_json,
     serialize_datetime,

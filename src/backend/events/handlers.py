@@ -3,7 +3,7 @@
 import logging
 from typing import Any, Dict
 
-from backend.services.cache_service import get_cache_service
+from backend.infrastructure.cache.cache_service import get_cache_service
 from backend.utils.event_bus import (
     CACHE_INVALIDATE,
     ENTITY_DELETED,

@@ -10,7 +10,7 @@ from pydantic import BaseModel, Field
 
 from backend.agents.orchestrator import AgentOrchestrator, StageConfig
 from backend.agents.workflows import WORKFLOW_REGISTRY
-from backend.database import get_db
+from backend.infrastructure.database import get_db
 from backend.middleware.auth import require_auth
 from backend.services.workflow_service import WorkflowExecutionService
 

@@ -18,9 +18,9 @@ os.chdir(BASE_DIR / 'src' / 'backend')
 from dotenv import load_dotenv
 load_dotenv()
 
-from config import settings
-from database import engine, async_session_maker, Base
-from core.domain.entities import (
+from backend.config import settings
+from backend.infrastructure.database import engine, async_session_maker, Base
+from backend.core.domain.entities import (
     Character, CharacterRelationship, CharacterStoryline,
     Item, Location, Faction, WorldSetting, Rule,
     Outline, Chapter, IFLine,

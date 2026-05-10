@@ -4,8 +4,8 @@ import pytest
 from unittest.mock import MagicMock, AsyncMock
 from dataclasses import dataclass
 
-from agents.base import BaseAgent, DatabaseMixin, AgentContext, AgentResult
-from agents.checkers.base import BaseChecker, CheckerResult
+from backend.agents.base import BaseAgent, DatabaseMixin, AgentContext, AgentResult
+from backend.agents.checkers.base import BaseChecker, CheckerResult
 
 
 # =============================================================================

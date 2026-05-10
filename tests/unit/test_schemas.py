@@ -7,7 +7,7 @@ No database required — pure schema validation tests.
 import pytest
 from pydantic import ValidationError
 
-from schemas.request_schemas import (
+from backend.core.domain.schemas.request_schemas import (
     CharacterCreateRequest,
     CharacterUpdateRequest,
     CharacterRelationshipCreateRequest,

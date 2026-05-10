@@ -29,7 +29,7 @@ router = APIRouter(prefix="/health", tags=["health"])
 async def _check_database() -> dict:
     """Check database connectivity."""
     try:
-        from backend.database import engine
+        from backend.infrastructure.database import engine
         async with engine.connect() as conn:
             await conn.execute(text("SELECT 1"))
         return {"status": "connected", "latency_ms": 0}
@@ -41,7 +41,7 @@ async def _check_database() -> dict:
 async def _check_ai_service() -> dict:
     """Check AI service (MiniMax) configuration and basic connectivity."""
     try:
-        from backend.services.ai_service import ai_service
+        from backend.core.services.ai.ai_service import ai_service
         if settings.minimax_api_key:
             return {
                 "status": "configured",

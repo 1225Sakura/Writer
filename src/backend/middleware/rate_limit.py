@@ -9,8 +9,8 @@ from fastapi import Request
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.responses import JSONResponse
 
-from config import settings
-from utils.logging import get_logger
+from backend.config import settings
+from backend.utils.logging import get_logger
 
 logger = get_logger('writer-api')
 

@@ -21,7 +21,7 @@ from fastapi import APIRouter, HTTPException, Depends, status, Query
 from pydantic import BaseModel, Field, field_validator
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from backend.database import get_db
+from backend.infrastructure.database import get_db
 from backend.middleware.auth import require_auth
 from backend.services.constraint_engine import (
     ConstraintEngine,
@@ -32,7 +32,7 @@ from backend.services.constraint_engine import (
     RuleStatus,
     ConstraintCheckResult,
 )
-from backend.services.style_constraint import StyleConstraintEnforcer
+from backend.core.services.style.style_constraint import StyleConstraintEnforcer
 
 router = APIRouter(prefix="/constraints", tags=["constraints"])
 

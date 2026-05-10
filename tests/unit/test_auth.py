@@ -8,7 +8,7 @@ import pytest
 from fastapi import Request, HTTPException
 from unittest.mock import patch, MagicMock
 
-from middleware.auth import (
+from backend.middleware.auth import (
     generate_api_key,
     get_or_create_api_key,
     set_api_key,

@@ -13,7 +13,7 @@ _src_dir = Path(__file__).parent.parent / "src"
 sys.path.insert(0, str(_src_dir))
 
 from sqlalchemy import text
-from database import engine, async_session_maker, Base
+from backend.infrastructure.database import engine, async_session_maker, Base
 from backend.core.domain import (
     Character, CharacterRelationship, CharacterStoryline,
     Item, Location, Faction, WorldSetting, Rule,

@@ -21,28 +21,6 @@ src_dir = os.path.dirname(backend_dir)
 if src_dir not in sys.path:
     sys.path.insert(0, src_dir)
 
-# Alias backend submodules as top-level modules so bare imports work.
-# This allows main.py's 'from config import settings' to resolve correctly
-# when main is imported as backend.main.
-_ALIASES = [
-    'config',
-    'database',
-    'routes',
-    'middleware',
-    'utils',
-    'services',
-    'agents',
-]
-
-for _name in _ALIASES:
-    _full = f'backend.{_name}'
-    try:
-        _mod = __import__(_full, fromlist=[''])
-        if _name not in sys.modules:
-            sys.modules[_name] = _mod
-    except Exception as _e:
-        print(f'[Launcher] Warning: could not alias backend.{_name}: {_e}')
-
 # Auto-initialize database if needed using alembic migrations
 def ensure_database():
     """Ensure database exists and is initialized using alembic migrations.

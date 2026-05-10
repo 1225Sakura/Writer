@@ -8,14 +8,14 @@ import json
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from backend.database import get_db
+from backend.infrastructure.database import get_db
 from backend.core.domain import (
     Character, CharacterRelationship, CharacterStoryline,
     Item, Location, Faction, WorldSetting, Rule,
     WritingSettings
 )
-from backend.services.cache_service import get_cache_service
-from backend.services.character_service import CharacterService
+from backend.infrastructure.cache.cache_service import get_cache_service
+from backend.core.services.character.character_service import CharacterService
 from backend.utils.event_bus import AsyncEventBus
 from backend.middleware.auth import require_auth
 from backend.core.domain.schemas.request_schemas import (
@@ -49,14 +49,12 @@ from backend.core.domain.schemas.response_schemas import (
     ExportDataResponse,
 )
 from backend.core.domain.schemas.common_schemas import MessageResponse
-from backend.repositories import (
-    ItemRepository,
-    LocationRepository,
-    FactionRepository,
-    WorldSettingRepository,
-    RuleRepository,
-    WritingSettingsRepository,
-)
+from backend.core.services.item.item_service import ItemService
+from backend.core.services.location.location_service import LocationService
+from backend.core.services.faction.faction_service import FactionService
+from backend.core.services.world_setting.world_setting_service import WorldSettingService
+from backend.core.services.rule.rule_service import RuleService
+from backend.core.services.writing_settings.writing_settings_service import WritingSettingsService
 
 # Global event bus instance
 event_bus = AsyncEventBus()
@@ -345,12 +343,12 @@ async def delete_character_storyline(
 
 
 # ---------------------------------------------------------------------------
-# Item endpoints (use ItemRepository)
+# Item endpoints (use ItemService)
 # ---------------------------------------------------------------------------
 
-def get_item_repo(db: AsyncSession = Depends(get_db)) -> ItemRepository:
-    """Dependency to inject ItemRepository."""
-    return ItemRepository(db)
+def get_item_service(db: AsyncSession = Depends(get_db)) -> ItemService:
+    """Dependency to inject ItemService."""
+    return ItemService(db, event_bus, get_cache_service())
 
 
 @router.get(
@@ -363,10 +361,10 @@ async def list_items(
     skip: int = 0,
     limit: int = 100,
     owner: Optional[str] = None,
-    repo: ItemRepository = Depends(get_item_repo)
+    service: ItemService = Depends(get_item_service)
 ):
     """List all items."""
-    items = await repo.list(skip=skip, limit=limit, owner=owner)
+    items = await service.list_items(skip=skip, limit=limit, owner=owner)
     for item in items:
         _attach_tags_to_response(item)
     return items
@@ -380,11 +378,11 @@ async def list_items(
 )
 async def create_item(
     item: ItemCreateRequest,
-    repo: ItemRepository = Depends(get_item_repo)
+    service: ItemService = Depends(get_item_service)
 ):
     """Create a new item."""
     data = _prepare_create_data(item)
-    db_item = await repo.create(data)
+    db_item = await service.create_item(data)
     _attach_tags_to_response(db_item)
     get_cache_service().clear_entity_cache("item")
     return db_item
@@ -396,9 +394,9 @@ async def create_item(
     summary="获取物品详情",
     description="获取指定ID的物品详细信息。",
 )
-async def get_item(item_id: int, repo: ItemRepository = Depends(get_item_repo)):
+async def get_item(item_id: int, service: ItemService = Depends(get_item_service)):
     """Get a specific item by ID."""
-    item = await repo.get_by_id(item_id)
+    item = await service.get_item(item_id)
     if not item:
         raise HTTPException(status_code=404, detail="Item not found")
     _attach_tags_to_response(item)
@@ -414,10 +412,10 @@ async def get_item(item_id: int, repo: ItemRepository = Depends(get_item_repo)):
 async def update_item(
     item_id: int,
     item: ItemUpdateRequest,
-    repo: ItemRepository = Depends(get_item_repo)
+    service: ItemService = Depends(get_item_service)
 ):
     """Update an item."""
-    db_item = await repo.update(item_id, _prepare_update_data(item))
+    db_item = await service.update_item(item_id, _prepare_update_data(item))
     if not db_item:
         raise HTTPException(status_code=404, detail="Item not found")
     _attach_tags_to_response(db_item)
@@ -431,9 +429,9 @@ async def update_item(
     summary="删除物品",
     description="删除指定ID的物品。",
 )
-async def delete_item(item_id: int, repo: ItemRepository = Depends(get_item_repo)):
+async def delete_item(item_id: int, service: ItemService = Depends(get_item_service)):
     """Delete an item."""
-    deleted = await repo.delete(item_id)
+    deleted = await service.delete_item(item_id)
     if not deleted:
         raise HTTPException(status_code=404, detail="Item not found")
     get_cache_service().clear_entity_cache("item")
@@ -441,12 +439,12 @@ async def delete_item(item_id: int, repo: ItemRepository = Depends(get_item_repo
 
 
 # ---------------------------------------------------------------------------
-# Location endpoints (use LocationRepository)
+# Location endpoints (use LocationService)
 # ---------------------------------------------------------------------------
 
-def get_location_repo(db: AsyncSession = Depends(get_db)) -> LocationRepository:
-    """Dependency to inject LocationRepository."""
-    return LocationRepository(db)
+def get_location_service(db: AsyncSession = Depends(get_db)) -> LocationService:
+    """Dependency to inject LocationService."""
+    return LocationService(db, event_bus, get_cache_service())
 
 
 @router.get(
@@ -459,13 +457,13 @@ async def list_locations(
     skip: int = 0,
     limit: int = 100,
     importance: Optional[str] = None,
-    repo: LocationRepository = Depends(get_location_repo)
+    service: LocationService = Depends(get_location_service)
 ):
     """List all locations."""
     if importance:
-        locations = await repo.get_by_importance(importance, skip=skip, limit=limit)
+        locations = await service.list_locations(skip=skip, limit=limit, importance=importance)
     else:
-        locations = await repo.list(skip=skip, limit=limit)
+        locations = await service.list_locations(skip=skip, limit=limit)
     for location in locations:
         _attach_tags_to_response(location)
     return locations
@@ -479,11 +477,11 @@ async def list_locations(
 )
 async def create_location(
     location: LocationCreateRequest,
-    repo: LocationRepository = Depends(get_location_repo)
+    service: LocationService = Depends(get_location_service)
 ):
     """Create a new location."""
     data = _prepare_create_data(location)
-    db_location = await repo.create(data)
+    db_location = await service.create_location(data)
     _attach_tags_to_response(db_location)
     get_cache_service().clear_entity_cache("location")
     return db_location
@@ -497,10 +495,10 @@ async def create_location(
 )
 async def get_location(
     location_id: int,
-    repo: LocationRepository = Depends(get_location_repo)
+    service: LocationService = Depends(get_location_service)
 ):
     """Get a specific location by ID."""
-    location = await repo.get_by_id(location_id)
+    location = await service.get_location(location_id)
     if not location:
         raise HTTPException(status_code=404, detail="Location not found")
     _attach_tags_to_response(location)
@@ -516,10 +514,10 @@ async def get_location(
 async def update_location(
     location_id: int,
     location: LocationUpdateRequest,
-    repo: LocationRepository = Depends(get_location_repo)
+    service: LocationService = Depends(get_location_service)
 ):
     """Update a location."""
-    db_location = await repo.update(location_id, _prepare_update_data(location))
+    db_location = await service.update_location(location_id, _prepare_update_data(location))
     if not db_location:
         raise HTTPException(status_code=404, detail="Location not found")
     _attach_tags_to_response(db_location)
@@ -535,10 +533,10 @@ async def update_location(
 )
 async def delete_location(
     location_id: int,
-    repo: LocationRepository = Depends(get_location_repo)
+    service: LocationService = Depends(get_location_service)
 ):
     """Delete a location."""
-    deleted = await repo.delete(location_id)
+    deleted = await service.delete_location(location_id)
     if not deleted:
         raise HTTPException(status_code=404, detail="Location not found")
     get_cache_service().clear_entity_cache("location")
@@ -546,12 +544,12 @@ async def delete_location(
 
 
 # ---------------------------------------------------------------------------
-# Faction endpoints (use FactionRepository)
+# Faction endpoints (use FactionService)
 # ---------------------------------------------------------------------------
 
-def get_faction_repo(db: AsyncSession = Depends(get_db)) -> FactionRepository:
-    """Dependency to inject FactionRepository."""
-    return FactionRepository(db)
+def get_faction_service(db: AsyncSession = Depends(get_db)) -> FactionService:
+    """Dependency to inject FactionService."""
+    return FactionService(db, event_bus, get_cache_service())
 
 
 @router.get(
@@ -564,13 +562,13 @@ async def list_factions(
     skip: int = 0,
     limit: int = 100,
     type: Optional[str] = None,
-    repo: FactionRepository = Depends(get_faction_repo)
+    service: FactionService = Depends(get_faction_service)
 ):
     """List all factions."""
     if type:
-        factions = await repo.get_by_type(type, skip=skip, limit=limit)
+        factions = await service.list_factions(skip=skip, limit=limit, type=type)
     else:
-        factions = await repo.list(skip=skip, limit=limit)
+        factions = await service.list_factions(skip=skip, limit=limit)
     for faction in factions:
         _attach_tags_to_response(faction)
     return factions
@@ -584,11 +582,11 @@ async def list_factions(
 )
 async def create_faction(
     faction: FactionCreateRequest,
-    repo: FactionRepository = Depends(get_faction_repo)
+    service: FactionService = Depends(get_faction_service)
 ):
     """Create a new faction."""
     data = _prepare_create_data(faction)
-    db_faction = await repo.create(data)
+    db_faction = await service.create_faction(data)
     _attach_tags_to_response(db_faction)
     get_cache_service().clear_entity_cache("faction")
     return db_faction
@@ -602,10 +600,10 @@ async def create_faction(
 )
 async def get_faction(
     faction_id: int,
-    repo: FactionRepository = Depends(get_faction_repo)
+    service: FactionService = Depends(get_faction_service)
 ):
     """Get a specific faction by ID."""
-    faction = await repo.get_by_id(faction_id)
+    faction = await service.get_faction(faction_id)
     if not faction:
         raise HTTPException(status_code=404, detail="Faction not found")
     _attach_tags_to_response(faction)
@@ -621,10 +619,10 @@ async def get_faction(
 async def update_faction(
     faction_id: int,
     faction: FactionUpdateRequest,
-    repo: FactionRepository = Depends(get_faction_repo)
+    service: FactionService = Depends(get_faction_service)
 ):
     """Update a faction."""
-    db_faction = await repo.update(faction_id, _prepare_update_data(faction))
+    db_faction = await service.update_faction(faction_id, _prepare_update_data(faction))
     if not db_faction:
         raise HTTPException(status_code=404, detail="Faction not found")
     _attach_tags_to_response(db_faction)
@@ -640,10 +638,10 @@ async def update_faction(
 )
 async def delete_faction(
     faction_id: int,
-    repo: FactionRepository = Depends(get_faction_repo)
+    service: FactionService = Depends(get_faction_service)
 ):
     """Delete a faction."""
-    deleted = await repo.delete(faction_id)
+    deleted = await service.delete_faction(faction_id)
     if not deleted:
         raise HTTPException(status_code=404, detail="Faction not found")
     get_cache_service().clear_entity_cache("faction")
@@ -651,12 +649,12 @@ async def delete_faction(
 
 
 # ---------------------------------------------------------------------------
-# World Setting endpoints (use WorldSettingRepository)
+# World Setting endpoints (use WorldSettingService)
 # ---------------------------------------------------------------------------
 
-def get_world_setting_repo(db: AsyncSession = Depends(get_db)) -> WorldSettingRepository:
-    """Dependency to inject WorldSettingRepository."""
-    return WorldSettingRepository(db)
+def get_world_setting_service(db: AsyncSession = Depends(get_db)) -> WorldSettingService:
+    """Dependency to inject WorldSettingService."""
+    return WorldSettingService(db, event_bus, get_cache_service())
 
 
 @router.get(
@@ -668,10 +666,10 @@ def get_world_setting_repo(db: AsyncSession = Depends(get_db)) -> WorldSettingRe
 async def list_world_settings(
     skip: int = 0,
     limit: int = 100,
-    repo: WorldSettingRepository = Depends(get_world_setting_repo)
+    service: WorldSettingService = Depends(get_world_setting_service)
 ):
     """List all world settings."""
-    settings = await repo.list(skip=skip, limit=limit)
+    settings = await service.list_world_settings(skip=skip, limit=limit)
     for setting in settings:
         _attach_tags_to_response(setting)
     return settings
@@ -685,11 +683,11 @@ async def list_world_settings(
 )
 async def create_world_setting(
     setting: WorldSettingCreateRequest,
-    repo: WorldSettingRepository = Depends(get_world_setting_repo)
+    service: WorldSettingService = Depends(get_world_setting_service)
 ):
     """Create a new world setting."""
     data = _prepare_create_data(setting)
-    db_setting = await repo.create(data)
+    db_setting = await service.create_world_setting(data)
     _attach_tags_to_response(db_setting)
     get_cache_service().clear_entity_cache("world_setting")
     return db_setting
@@ -703,10 +701,10 @@ async def create_world_setting(
 )
 async def get_world_setting(
     setting_id: int,
-    repo: WorldSettingRepository = Depends(get_world_setting_repo)
+    service: WorldSettingService = Depends(get_world_setting_service)
 ):
     """Get a specific world setting by ID."""
-    setting = await repo.get_by_id(setting_id)
+    setting = await service.get_world_setting(setting_id)
     if not setting:
         raise HTTPException(status_code=404, detail="World setting not found")
     _attach_tags_to_response(setting)
@@ -722,10 +720,10 @@ async def get_world_setting(
 async def update_world_setting(
     setting_id: int,
     setting: WorldSettingUpdateRequest,
-    repo: WorldSettingRepository = Depends(get_world_setting_repo)
+    service: WorldSettingService = Depends(get_world_setting_service)
 ):
     """Update a world setting."""
-    db_setting = await repo.update(setting_id, _prepare_update_data(setting))
+    db_setting = await service.update_world_setting(setting_id, _prepare_update_data(setting))
     if not db_setting:
         raise HTTPException(status_code=404, detail="World setting not found")
     _attach_tags_to_response(db_setting)
@@ -740,10 +738,10 @@ async def update_world_setting(
 )
 async def delete_world_setting(
     setting_id: int,
-    repo: WorldSettingRepository = Depends(get_world_setting_repo)
+    service: WorldSettingService = Depends(get_world_setting_service)
 ):
     """Delete a world setting."""
-    deleted = await repo.delete(setting_id)
+    deleted = await service.delete_world_setting(setting_id)
     if not deleted:
         raise HTTPException(status_code=404, detail="World setting not found")
     get_cache_service().clear_entity_cache("world_setting")
@@ -751,12 +749,12 @@ async def delete_world_setting(
 
 
 # ---------------------------------------------------------------------------
-# Rule endpoints (use RuleRepository)
+# Rule endpoints (use RuleService)
 # ---------------------------------------------------------------------------
 
-def get_rule_repo(db: AsyncSession = Depends(get_db)) -> RuleRepository:
-    """Dependency to inject RuleRepository."""
-    return RuleRepository(db)
+def get_rule_service(db: AsyncSession = Depends(get_db)) -> RuleService:
+    """Dependency to inject RuleService."""
+    return RuleService(db, event_bus, get_cache_service())
 
 
 @router.get(
@@ -769,13 +767,13 @@ async def list_rules(
     skip: int = 0,
     limit: int = 100,
     type: Optional[str] = None,
-    repo: RuleRepository = Depends(get_rule_repo)
+    service: RuleService = Depends(get_rule_service)
 ):
     """List all rules."""
     if type:
-        rules = await repo.get_by_type(type, skip=skip, limit=limit)
+        rules = await service.list_rules(skip=skip, limit=limit, type=type)
     else:
-        rules = await repo.list(skip=skip, limit=limit)
+        rules = await service.list_rules(skip=skip, limit=limit)
     for rule in rules:
         _attach_tags_to_response(rule)
     return rules
@@ -789,11 +787,11 @@ async def list_rules(
 )
 async def create_rule(
     rule: RuleCreateRequest,
-    repo: RuleRepository = Depends(get_rule_repo)
+    service: RuleService = Depends(get_rule_service)
 ):
     """Create a new rule."""
     data = _prepare_create_data(rule)
-    db_rule = await repo.create(data)
+    db_rule = await service.create_rule(data)
     _attach_tags_to_response(db_rule)
     get_cache_service().clear_entity_cache("rule")
     return db_rule
@@ -807,10 +805,10 @@ async def create_rule(
 )
 async def get_rule(
     rule_id: int,
-    repo: RuleRepository = Depends(get_rule_repo)
+    service: RuleService = Depends(get_rule_service)
 ):
     """Get a specific rule by ID."""
-    rule = await repo.get_by_id(rule_id)
+    rule = await service.get_rule(rule_id)
     if not rule:
         raise HTTPException(status_code=404, detail="Rule not found")
     _attach_tags_to_response(rule)
@@ -826,10 +824,10 @@ async def get_rule(
 async def update_rule(
     rule_id: int,
     rule: RuleUpdateRequest,
-    repo: RuleRepository = Depends(get_rule_repo)
+    service: RuleService = Depends(get_rule_service)
 ):
     """Update a rule."""
-    db_rule = await repo.update(rule_id, _prepare_update_data(rule))
+    db_rule = await service.update_rule(rule_id, _prepare_update_data(rule))
     if not db_rule:
         raise HTTPException(status_code=404, detail="Rule not found")
     _attach_tags_to_response(db_rule)
@@ -845,10 +843,10 @@ async def update_rule(
 )
 async def delete_rule(
     rule_id: int,
-    repo: RuleRepository = Depends(get_rule_repo)
+    service: RuleService = Depends(get_rule_service)
 ):
     """Delete a rule."""
-    deleted = await repo.delete(rule_id)
+    deleted = await service.delete_rule(rule_id)
     if not deleted:
         raise HTTPException(status_code=404, detail="Rule not found")
     get_cache_service().clear_entity_cache("rule")
@@ -856,12 +854,12 @@ async def delete_rule(
 
 
 # ---------------------------------------------------------------------------
-# Writing Settings endpoints (use WritingSettingsRepository)
+# Writing Settings endpoints (use WritingSettingsService)
 # ---------------------------------------------------------------------------
 
-def get_writing_settings_repo(db: AsyncSession = Depends(get_db)) -> WritingSettingsRepository:
-    """Dependency to inject WritingSettingsRepository."""
-    return WritingSettingsRepository(db)
+def get_writing_settings_service(db: AsyncSession = Depends(get_db)) -> WritingSettingsService:
+    """Dependency to inject WritingSettingsService."""
+    return WritingSettingsService(db, event_bus, get_cache_service())
 
 
 @router.get(
@@ -871,10 +869,10 @@ def get_writing_settings_repo(db: AsyncSession = Depends(get_db)) -> WritingSett
     description="获取当前的写作设定配置。如不存在则创建默认值。",
 )
 async def get_writing_settings(
-    repo: WritingSettingsRepository = Depends(get_writing_settings_repo)
+    service: WritingSettingsService = Depends(get_writing_settings_service)
 ):
     """Get current writing settings."""
-    return await repo.get_or_create()
+    return await service.get_writing_settings()
 
 
 @router.patch(
@@ -885,11 +883,11 @@ async def get_writing_settings(
 )
 async def update_writing_settings(
     updates: WritingSettingsUpdateRequest,
-    repo: WritingSettingsRepository = Depends(get_writing_settings_repo)
+    service: WritingSettingsService = Depends(get_writing_settings_service)
 ):
     """Update writing settings."""
-    settings = await repo.get_or_create()
-    db_settings = await repo.update(settings.id, updates.model_dump(exclude_unset=True))
+    settings = await service.get_writing_settings()
+    db_settings = await service.update_writing_settings(settings.id, updates.model_dump(exclude_unset=True))
     if db_settings:
         get_cache_service().clear_entity_cache("writing_settings")
     return db_settings or settings
@@ -907,12 +905,12 @@ async def update_writing_settings(
 )
 async def export_data(
     db: AsyncSession = Depends(get_db),
-    item_repo: ItemRepository = Depends(get_item_repo),
-    location_repo: LocationRepository = Depends(get_location_repo),
-    faction_repo: FactionRepository = Depends(get_faction_repo),
-    world_repo: WorldSettingRepository = Depends(get_world_setting_repo),
-    rule_repo: RuleRepository = Depends(get_rule_repo),
-    writing_repo: WritingSettingsRepository = Depends(get_writing_settings_repo),
+    item_service: ItemService = Depends(get_item_service),
+    location_service: LocationService = Depends(get_location_service),
+    faction_service: FactionService = Depends(get_faction_service),
+    world_service: WorldSettingService = Depends(get_world_setting_service),
+    rule_service: RuleService = Depends(get_rule_service),
+    writing_service: WritingSettingsService = Depends(get_writing_settings_service),
 ):
     """Export all project data as JSON."""
     from sqlalchemy import select
@@ -920,12 +918,12 @@ async def export_data(
     characters = (await db.execute(select(Character))).scalars().all()
     relationships = (await db.execute(select(CharacterRelationship))).scalars().all()
     storylines = (await db.execute(select(CharacterStoryline))).scalars().all()
-    items = await item_repo.list(limit=10000)
-    locations = await location_repo.list(limit=10000)
-    factions = await faction_repo.list(limit=10000)
-    world_settings = await world_repo.list(limit=10000)
-    rules = await rule_repo.list(limit=10000)
-    writing_settings = await writing_repo.get_or_create()
+    items = await item_service.list_items(limit=10000)
+    locations = await location_service.list_locations(limit=10000)
+    factions = await faction_service.list_factions(limit=10000)
+    world_settings = await world_service.list_world_settings(limit=10000)
+    rules = await rule_service.list_rules(limit=10000)
+    writing_settings = await writing_service.get_writing_settings()
 
     return ExportDataResponse(
         version="1.0",
@@ -950,11 +948,11 @@ async def export_data(
 async def import_data(
     data: ExportDataRequest,
     db: AsyncSession = Depends(get_db),
-    item_repo: ItemRepository = Depends(get_item_repo),
-    location_repo: LocationRepository = Depends(get_location_repo),
-    faction_repo: FactionRepository = Depends(get_faction_repo),
-    world_repo: WorldSettingRepository = Depends(get_world_setting_repo),
-    rule_repo: RuleRepository = Depends(get_rule_repo),
+    item_service: ItemService = Depends(get_item_service),
+    location_service: LocationService = Depends(get_location_service),
+    faction_service: FactionService = Depends(get_faction_service),
+    world_service: WorldSettingService = Depends(get_world_setting_service),
+    rule_service: RuleService = Depends(get_rule_service),
 ):
     """Import project data from JSON with relationship support."""
     imported_count = {
@@ -1020,35 +1018,35 @@ async def import_data(
     for item_data in data.items:
         item_clean = {k: v for k, v in item_data.items()
                      if k not in ('_type', 'id', 'created_at', 'updated_at')}
-        await item_repo.create(item_clean)
+        await item_service.create_item(item_clean)
         imported_count['items'] += 1
 
     # Import locations
     for loc_data in data.locations:
         loc_clean = {k: v for k, v in loc_data.items()
                     if k not in ('_type', 'id', 'created_at', 'updated_at')}
-        await location_repo.create(loc_clean)
+        await location_service.create_location(loc_clean)
         imported_count['locations'] += 1
 
     # Import factions
     for fac_data in data.factions:
         fac_clean = {k: v for k, v in fac_data.items()
                     if k not in ('_type', 'id', 'created_at', 'updated_at')}
-        await faction_repo.create(fac_clean)
+        await faction_service.create_faction(fac_clean)
         imported_count['factions'] += 1
 
     # Import world settings
     for ws_data in data.world_settings:
         ws_clean = {k: v for k, v in ws_data.items()
                    if k not in ('_type', 'id', 'created_at', 'updated_at')}
-        await world_repo.create(ws_clean)
+        await world_service.create_world_setting(ws_clean)
         imported_count['world_settings'] += 1
 
     # Import rules
     for rule_data in data.rules:
         rule_clean = {k: v for k, v in rule_data.items()
                      if k not in ('_type', 'id', 'created_at', 'updated_at')}
-        await rule_repo.create(rule_clean)
+        await rule_service.create_rule(rule_clean)
         imported_count['rules'] += 1
 
     await db.flush()

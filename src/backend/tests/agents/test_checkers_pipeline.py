@@ -4,8 +4,8 @@ import pytest
 import pytest_asyncio
 from unittest.mock import MagicMock, AsyncMock
 
-from agents.checkers.pipeline import CheckerPipeline
-from agents.checkers.base import BaseChecker, CheckerResult
+from backend.agents.checkers.pipeline import CheckerPipeline
+from backend.agents.checkers.base import BaseChecker, CheckerResult
 
 
 # =============================================================================

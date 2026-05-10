@@ -11,7 +11,7 @@ from typing import Any
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from backend.database import async_session_maker
+from backend.infrastructure.database import async_session_maker
 from backend.core.domain import (
     Character,
     CharacterRelationship,

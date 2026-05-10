@@ -7,7 +7,7 @@ from typing import AsyncIterator
 
 import httpx
 
-from backend.services.ai_service import AIService, STYLE_PROMPTS
+from backend.core.services.ai.ai_service import AIService, STYLE_PROMPTS
 
 
 # =============================================================================

@@ -7,11 +7,7 @@ import json
 import time
 from unittest.mock import AsyncMock, MagicMock, patch
 
-import sys
-import os
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'src', 'backend'))
-
-from main import app, manager, ConnectionManager, QueuedMessage
+from backend.interface.web.main import app, manager, ConnectionManager, QueuedMessage
 
 
 class TestConnectionManager:

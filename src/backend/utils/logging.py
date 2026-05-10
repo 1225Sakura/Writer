@@ -9,7 +9,7 @@ from datetime import datetime, timezone
 from typing import Optional, Dict, Any
 from pathlib import Path
 
-from middleware.request_context import get_request_id, get_correlation_id, get_user_id
+from backend.middleware.request_context import get_request_id, get_correlation_id, get_user_id
 
 
 class TimedRotatingFileHandler(logging.handlers.TimedRotatingFileHandler):

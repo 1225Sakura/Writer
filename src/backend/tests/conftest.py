@@ -19,10 +19,9 @@ os.environ.setdefault("DATABASE_URL", "sqlite+aiosqlite:///:memory:")
 os.environ.setdefault("API_KEY", "test_api_key_for_tests")
 
 # Use the same import style as existing tests
-from database import Base, get_db
-from interface.web.main import app
-from middleware.auth import set_api_key, clear_api_key_cache
-from services.cache_service import cache_service
+from backend.infrastructure.database import Base, get_db
+from backend.interface.web.main import app
+from backend.middleware.auth import set_api_key, clear_api_key_cache
 
 
 # =============================================================================

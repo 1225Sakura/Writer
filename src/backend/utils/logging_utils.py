@@ -4,7 +4,7 @@ import logging
 import sys
 from typing import Optional
 
-from middleware.request_context import get_request_id, get_correlation_id
+from backend.middleware.request_context import get_request_id, get_correlation_id
 
 
 def setup_logging(

@@ -4,7 +4,7 @@ import pytest
 import time
 from unittest.mock import MagicMock, AsyncMock
 
-from backend.services.cache_service import (
+from backend.infrastructure.cache.cache_service import (
     LRUCache,
     CacheService,
     cache_service,

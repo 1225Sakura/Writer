@@ -13,9 +13,12 @@ from typing import Any
 from datetime import datetime
 
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, desc, asc
-from sqlalchemy.orm import selectinload
 
+from backend.core.repositories.chat.sqlalchemy_repository import (
+    SQLAlchemyChatSessionRepository,
+    SQLAlchemyChatMessageRepository,
+    SQLAlchemyExtractedEntityRepository,
+)
 from backend.core.domain.entities import ChatSession, ChatMessage, ExtractedEntity
 from backend.agents.chat_agent import ChatAgent
 from backend.agents.base import AgentContext
@@ -28,42 +31,21 @@ class ChatSessionService:
 
     def __init__(self, db: AsyncSession) -> None:
         self._db = db
+        self._session_repo = SQLAlchemyChatSessionRepository(db)
 
     # ------------------------------------------------------------------
     # Session CRUD
     # ------------------------------------------------------------------
 
     async def create(self, project_id: int | None = None) -> ChatSession:
-        """Create a new chat session.
-
-        Args:
-            project_id: Optional project to associate with the session.
-
-        Returns:
-            The newly created ChatSession.
-        """
-        session = ChatSession(project_id=project_id)
-        self._db.add(session)
-        await self._db.flush()
-        await self._db.refresh(session)
+        """Create a new chat session."""
+        session = await self._session_repo.create({"project_id": project_id})
         logger.info("Created chat session id=%s", session.id)
         return session
 
     async def get(self, session_id: int) -> ChatSession | None:
-        """Get a session by ID.
-
-        Args:
-            session_id: The session ID.
-
-        Returns:
-            The ChatSession or None if not found.
-        """
-        result = await self._db.execute(
-            select(ChatSession)
-            .where(ChatSession.id == session_id)
-            .options(selectinload(ChatSession.messages))
-        )
-        return result.scalar_one_or_none()
+        """Get a session by ID with messages eagerly loaded."""
+        return await self._session_repo.get_with_messages(session_id)
 
     async def list_sessions(
         self,
@@ -71,49 +53,25 @@ class ChatSessionService:
         limit: int = 20,
         project_id: int | None = None,
     ) -> list[ChatSession]:
-        """List chat sessions with pagination.
-
-        Args:
-            skip: Number of sessions to skip.
-            limit: Maximum number of sessions to return.
-            project_id: Optional filter by project.
-
-        Returns:
-            List of ChatSession objects.
-        """
-        query = select(ChatSession).order_by(desc(ChatSession.updated_at))
+        """List chat sessions with pagination."""
+        filters = {}
         if project_id is not None:
-            query = query.where(ChatSession.project_id == project_id)
-
-        result = await self._db.execute(query.offset(skip).limit(limit))
-        return list(result.scalars().all())
+            filters["project_id"] = project_id
+        return await self._session_repo.list(skip=skip, limit=limit, **filters)
 
     async def end(self, session_id: int) -> bool:
-        """End (delete) a chat session and all associated data.
-
-        Args:
-            session_id: The session ID to delete.
-
-        Returns:
-            True if deleted, False if not found.
-        """
-        session = await self.get(session_id)
+        """End (delete) a chat session and all associated data."""
+        session = await self._session_repo.get_by_id(session_id)
         if session is None:
             return False
-
-        await self._db.delete(session)
-        logger.info("Ended chat session id=%s", session_id)
-        return True
+        deleted = await self._session_repo.delete(session_id)
+        if deleted:
+            logger.info("Ended chat session id=%s", session_id)
+        return deleted
 
     async def update_timestamp(self, session_id: int) -> None:
-        """Update the session's updated_at timestamp.
-
-        Args:
-            session_id: The session ID.
-        """
-        session = await self.get(session_id)
-        if session:
-            session.updated_at = datetime.utcnow()
+        """Update the session's updated_at timestamp."""
+        await self._session_repo.update(session_id, {})
 
     async def update(
         self,
@@ -121,29 +79,17 @@ class ChatSessionService:
         title: str | None = None,
         status: str | None = None,
     ) -> ChatSession | None:
-        """Update a chat session's fields.
-
-        Args:
-            session_id: The session ID.
-            title: Optional new title.
-            status: Optional new status.
-
-        Returns:
-            The updated ChatSession or None if not found.
-        """
-        session = await self.get(session_id)
-        if session is None:
-            return None
-
+        """Update a chat session's fields."""
+        data: dict[str, Any] = {}
         if title is not None:
-            session.title = title
+            data["title"] = title
         if status is not None:
-            session.status = status
-
-        session.updated_at = datetime.utcnow()
-        await self._db.flush()
-        await self._db.refresh(session)
-        logger.info("Updated chat session id=%s", session_id)
+            data["status"] = status
+        if not data:
+            return await self._session_repo.get_by_id(session_id)
+        session = await self._session_repo.update(session_id, data)
+        if session:
+            logger.info("Updated chat session id=%s", session_id)
         return session
 
 
@@ -157,6 +103,9 @@ class ChatMessageService:
     ) -> None:
         self._db = db
         self._agent = agent
+        self._session_repo = SQLAlchemyChatSessionRepository(db)
+        self._message_repo = SQLAlchemyChatMessageRepository(db)
+        self._entity_repo = SQLAlchemyExtractedEntityRepository(db)
 
     # ------------------------------------------------------------------
     # Message CRUD
@@ -168,28 +117,13 @@ class ChatMessageService:
         role: str,
         content: str,
     ) -> ChatMessage:
-        """Add a message to a chat session.
-
-        Args:
-            session_id: The session ID.
-            role: Message role (user, assistant, system).
-            content: Message content.
-
-        Returns:
-            The created ChatMessage.
-        """
-        message = ChatMessage(
-            session_id=session_id,
-            role=role,
-            content=content,
-        )
-        self._db.add(message)
-
-        # Update session timestamp
-        await self._update_session_timestamp(session_id)
-
-        await self._db.flush()
-        await self._db.refresh(message)
+        """Add a message to a chat session."""
+        message = await self._message_repo.create({
+            "session_id": session_id,
+            "role": role,
+            "content": content,
+        })
+        await self._session_repo.update(session_id, {})
         logger.debug("Added message id=%s to session=%s", message.id, session_id)
         return message
 
@@ -199,38 +133,12 @@ class ChatMessageService:
         skip: int = 0,
         limit: int = 100,
     ) -> list[ChatMessage]:
-        """Get message history for a session.
-
-        Args:
-            session_id: The session ID.
-            skip: Number of messages to skip.
-            limit: Maximum number of messages to return.
-
-        Returns:
-            List of ChatMessage objects, oldest first.
-        """
-        result = await self._db.execute(
-            select(ChatMessage)
-            .where(ChatMessage.session_id == session_id)
-            .order_by(asc(ChatMessage.created_at))
-            .offset(skip)
-            .limit(limit)
-        )
-        return list(result.scalars().all())
+        """Get message history for a session (oldest first)."""
+        return await self._message_repo.get_by_session(session_id, skip=skip, limit=limit)
 
     async def get_message(self, message_id: int) -> ChatMessage | None:
-        """Get a single message by ID.
-
-        Args:
-            message_id: The message ID.
-
-        Returns:
-            The ChatMessage or None.
-        """
-        result = await self._db.execute(
-            select(ChatMessage).where(ChatMessage.id == message_id)
-        )
-        return result.scalar_one_or_none()
+        """Get a single message by ID."""
+        return await self._message_repo.get_by_id(message_id)
 
     # ------------------------------------------------------------------
     # AI Integration
@@ -243,28 +151,11 @@ class ChatMessageService:
         collected_settings: dict[str, Any] | None = None,
         current_category: str = "genre",
     ) -> dict[str, Any]:
-        """Process a user message and generate an AI response.
-
-        This method:
-        1. Stores the user message
-        2. Runs the ChatAgent to determine the next question
-        3. Stores the AI response
-        4. Returns both messages + agent metadata
-
-        Args:
-            session_id: The session ID.
-            content: User's message content.
-            collected_settings: Previously collected settings dict.
-            current_category: Current setting category being collected.
-
-        Returns:
-            Dict with user_message, ai_message, and agent_result.
-        """
+        """Process a user message and generate an AI response."""
         # Store user message
         user_message = await self.send(session_id, "user", content)
 
         if self._agent is None:
-            # No agent configured - return a generic response
             ai_content = "收到，请继续告诉我更多关于您小说的设定。"
             ai_message = await self.send(session_id, "assistant", ai_content)
             return {
@@ -309,15 +200,8 @@ class ChatMessageService:
         }
 
     async def generate_summary(self, session_id: int) -> str:
-        """Generate a summary of all collected settings from a session.
-
-        Args:
-            session_id: The session ID.
-
-        Returns:
-            A human-readable summary string.
-        """
-        entities = await self._get_extracted_entities(session_id)
+        """Generate a summary of all collected settings from a session."""
+        entities = await self._entity_repo.get_by_session(session_id)
         if not entities:
             return "尚未收集任何设定信息。"
 
@@ -347,28 +231,14 @@ class ChatMessageService:
         name: str,
         description: str | None = None,
     ) -> ExtractedEntity:
-        """Record an extracted entity from the conversation.
-
-        Args:
-            session_id: The session ID.
-            entity_type: Type of entity (character, location, item, etc.).
-            name: Entity name.
-            description: Optional description.
-
-        Returns:
-            The created ExtractedEntity.
-        """
-        entity = ExtractedEntity(
-            session_id=session_id,
-            type=entity_type,
-            name=name,
-            description=description,
-            confirmed=False,
-        )
-        self._db.add(entity)
-        await self._db.flush()
-        await self._db.refresh(entity)
-        return entity
+        """Record an extracted entity from the conversation."""
+        return await self._entity_repo.create({
+            "session_id": session_id,
+            "type": entity_type,
+            "name": name,
+            "description": description,
+            "confirmed": False,
+        })
 
     async def get_extracted_entities(
         self,
@@ -376,62 +246,22 @@ class ChatMessageService:
         entity_type: str | None = None,
         confirmed: bool | None = None,
     ) -> list[ExtractedEntity]:
-        """Get extracted entities for a session.
-
-        Args:
-            session_id: The session ID.
-            entity_type: Optional filter by type.
-            confirmed: Optional filter by confirmation status.
-
-        Returns:
-            List of ExtractedEntity objects.
-        """
-        query = select(ExtractedEntity).where(
-            ExtractedEntity.session_id == session_id
-        )
-
+        """Get extracted entities for a session."""
+        filters: dict[str, Any] = {}
         if entity_type is not None:
-            query = query.where(ExtractedEntity.type == entity_type)
+            filters["entity_type"] = entity_type
         if confirmed is not None:
-            query = query.where(ExtractedEntity.confirmed == (1 if confirmed else 0))
-
-        result = await self._db.execute(
-            query.order_by(desc(ExtractedEntity.created_at))
-        )
-        return list(result.scalars().all())
+            filters["confirmed"] = confirmed
+        return await self._entity_repo.get_by_session(session_id, **filters)
 
     async def confirm_entity(self, entity_id: int, confirmed: bool = True) -> bool:
-        """Update an entity's confirmation status.
-
-        Args:
-            entity_id: The entity ID.
-            confirmed: New confirmation status.
-
-        Returns:
-            True if updated, False if not found.
-        """
-        result = await self._db.execute(
-            select(ExtractedEntity).where(ExtractedEntity.id == entity_id)
-        )
-        entity = result.scalar_one_or_none()
-        if entity is None:
-            return False
-
-        entity.confirmed = 1 if confirmed else 0
-        return True
+        """Update an entity's confirmation status."""
+        entity = await self._entity_repo.update(entity_id, {"confirmed": 1 if confirmed else 0})
+        return entity is not None
 
     # ------------------------------------------------------------------
     # Internal helpers
     # ------------------------------------------------------------------
-
-    async def _update_session_timestamp(self, session_id: int) -> None:
-        """Update the parent session's updated_at."""
-        result = await self._db.execute(
-            select(ChatSession).where(ChatSession.id == session_id)
-        )
-        session = result.scalar_one_or_none()
-        if session:
-            session.updated_at = datetime.utcnow()
 
     async def _get_history_for_agent(
         self,

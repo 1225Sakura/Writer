@@ -19,14 +19,14 @@ from pydantic import BaseModel, ConfigDict
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, desc
 
-from backend.database import get_db
+from backend.infrastructure.database import get_db
 from backend.middleware.auth import require_auth
 from backend.core.domain import Chapter, DraftVersion, AIInspectionResult, PlotThread
 from backend.services.content_storage import ContentStorage
 from backend.services.hook_detector import HookDetector, hook_detector
 from backend.services.engagement_analyzer import EngagementAnalyzer, engagement_analyzer
 from backend.services.debt_tracker import DebtTracker, debt_tracker, NarrativeDebt
-from backend.services.cache_service import cached, get_cache_service
+from backend.infrastructure.cache.cache_service import cached, get_cache_service
 from backend.config import settings
 
 

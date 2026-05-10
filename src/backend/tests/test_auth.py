@@ -5,7 +5,7 @@ import asyncio
 from httpx import AsyncClient, ASGITransport
 from fastapi import Request
 
-from middleware.auth import (
+from backend.middleware.auth import (
     verify_api_key,
     get_or_create_api_key,
     generate_api_key,

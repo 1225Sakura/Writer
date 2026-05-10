@@ -11,7 +11,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from sqlalchemy.orm import selectinload
 
-from backend.database import get_db
+from backend.infrastructure.database import get_db
 from backend.core.domain import ChatSession, ChatMessage, ExtractedEntity
 from backend.middleware.auth import require_auth
 from backend.core.domain.schemas import (
@@ -21,7 +21,7 @@ from backend.core.domain.schemas import (
     ChatSessionResponse,
     ExtractedEntityResponse,
 )
-from backend.services.chat_service import ChatSessionService, ChatMessageService
+from backend.core.services.chat.chat_service import ChatSessionService, ChatMessageService
 from backend.agents.chat_agent import ChatAgent
 from backend.services.ai.provider import AIProvider
 from backend.utils.event_bus import AsyncEventBus

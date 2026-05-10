@@ -10,7 +10,7 @@ from pydantic import BaseModel, Field, ConfigDict
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from backend.database import get_db
+from backend.infrastructure.database import get_db
 from backend.services.genre_service import GenreService
 from backend.services.guidance_builder import GuidanceBuilder
 from backend.middleware.auth import require_auth

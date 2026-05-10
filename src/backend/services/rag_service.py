@@ -20,7 +20,7 @@ from typing import Any, Dict, List, Optional, Tuple
 
 import numpy as np
 
-from backend.database import async_session_maker
+from backend.infrastructure.database import async_session_maker
 from backend.services.chunk_strategy import Chunk, ChunkStrategy, create_chunker
 from backend.services.embedding_service import (
     EmbeddingService,

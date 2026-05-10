@@ -7,7 +7,7 @@ from datetime import datetime
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
-from middleware.errors import (
+from backend.middleware.errors import (
     ErrorCode,
     AppException,
     NotFoundError,
@@ -53,7 +53,7 @@ from middleware.errors import (
     get_current_request_id,
     set_request_context,
 )
-from middleware.request_context import (
+from backend.middleware.request_context import (
     get_request_id,
     set_request_id,
     get_correlation_id,

@@ -5,9 +5,9 @@ import pytest_asyncio
 from unittest.mock import AsyncMock, MagicMock, patch
 from datetime import datetime
 
-from core.services.character.character_service import CharacterService
-from core.domain.entities import Character, CharacterRelationship, CharacterStoryline
-from utils.event_bus import AsyncEventBus, ENTITY_CREATED, ENTITY_UPDATED, ENTITY_DELETED
+from backend.core.services.character.character_service import CharacterService
+from backend.core.domain.entities import Character, CharacterRelationship, CharacterStoryline
+from backend.utils.event_bus import AsyncEventBus, ENTITY_CREATED, ENTITY_UPDATED, ENTITY_DELETED
 
 
 # =============================================================================

@@ -7,7 +7,7 @@ Each test runs in a transaction that is rolled back automatically.
 
 import pytest
 from factories import OutlineFactory, ChapterFactory, DraftVersionFactory
-from backend.services.cache_service import cache_service
+from backend.infrastructure.cache.cache_service import cache_service
 
 pytestmark = pytest.mark.integration
 

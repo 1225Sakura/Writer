@@ -7,7 +7,7 @@ from typing import List, Optional
 from fastapi import APIRouter, HTTPException, Depends, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from backend.database import get_db
+from backend.infrastructure.database import get_db
 from backend.middleware.auth import require_auth
 from backend.services.wiki_service import WikiService, WikiPage, WikiVersion, WikiEntityLink
 from backend.api.v1.exceptions import NotFoundException, ValidationException

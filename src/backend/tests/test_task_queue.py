@@ -4,7 +4,7 @@ import pytest
 import asyncio
 from datetime import datetime
 
-from services.task_queue import (
+from backend.services.task_queue import (
     TaskQueue,
     Task,
     TaskType,
@@ -13,7 +13,7 @@ from services.task_queue import (
     register_task_handler,
     _task_handlers,
 )
-from database import async_session_maker
+from backend.infrastructure.database import async_session_maker
 
 
 # Test handler

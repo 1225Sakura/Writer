@@ -8,14 +8,14 @@ from datetime import datetime
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 
-from backend.database import get_db
+from backend.infrastructure.database import get_db
 from backend.core.domain import (
     Outline, Chapter, IFLine, DraftVersion, PlotThread, AIInspectionResult
 )
 from backend.middleware.auth import require_auth
-from backend.services.cache_service import cached, get_cache_service
-from backend.services.chapter_service import ChapterService
-from backend.services.outline_service import OutlineService
+from backend.infrastructure.cache.cache_service import cached, get_cache_service
+from backend.core.services.chapter.chapter_service import ChapterService
+from backend.core.services.outline.outline_service import OutlineService
 from backend.utils.event_bus import AsyncEventBus
 from backend.config import settings
 from backend.api.v1.exceptions import (

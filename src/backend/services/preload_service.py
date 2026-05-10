@@ -8,8 +8,8 @@ from typing import Any, Optional
 from sqlalchemy import select, desc
 from sqlalchemy.orm import selectinload
 
-from database import async_session_maker
-from core.domain.entities import (
+from backend.infrastructure.database import async_session_maker
+from backend.core.domain.entities import (
     WorldSetting,
     Character,
     Outline,
@@ -20,8 +20,8 @@ from core.domain.entities import (
     Location,
     Faction,
 )
-from services.tiered_cache import TieredCache
-from services.cache_service import get_cache_service
+from backend.services.tiered_cache import TieredCache
+from backend.infrastructure.cache.cache_service import get_cache_service
 
 logger = logging.getLogger(__name__)
 

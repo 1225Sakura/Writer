@@ -9,7 +9,7 @@ from unittest.mock import patch
 
 import pytest
 
-from services.cache_service import (
+from backend.infrastructure.cache.cache_service import (
     LRUCache,
     CacheService,
     cache_service,

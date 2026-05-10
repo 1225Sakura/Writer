@@ -25,7 +25,7 @@ class TestMiddlewareIntegration:
             mock_settings.cors_origins = ["http://localhost:5173"]
             mock_settings.database_url = "sqlite+aiosqlite:///./test.db"
 
-            from backend.main import app
+            from backend.interface.web.main import app
             yield TestClient(app)
 
     def test_request_id_generated_when_missing(self, client):
@@ -88,7 +88,7 @@ class TestErrorHandlingMiddleware:
             mock_settings.cors_origins = ["http://localhost:5173"]
             mock_settings.database_url = "sqlite+aiosqlite:///./test.db"
 
-            from backend.main import app
+            from backend.interface.web.main import app
             yield TestClient(app)
 
     def test_404_returns_json_error(self, client):
@@ -130,7 +130,7 @@ class TestLoggingMiddleware:
             mock_settings.cors_origins = ["http://localhost:5173"]
             mock_settings.database_url = "sqlite+aiosqlite:///./test.db"
 
-            from backend.main import app
+            from backend.interface.web.main import app
             yield TestClient(app)
 
     def test_successful_request_logged(self, client, caplog):
@@ -172,7 +172,7 @@ class TestMiddlewareOrder:
             mock_settings.cors_origins = ["http://localhost:5173"]
             mock_settings.database_url = "sqlite+aiosqlite:///./test.db"
 
-            from backend.main import app
+            from backend.interface.web.main import app
             yield TestClient(app)
 
     def test_cors_before_logging(self, client):

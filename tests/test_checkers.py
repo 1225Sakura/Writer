@@ -5,11 +5,7 @@ Tests for all 6 AI checker agents.
 import pytest
 from unittest.mock import AsyncMock, MagicMock, Mock, patch
 
-import sys
-import os
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'src', 'backend'))
-
-from agents.checkers import (
+from backend.agents.checkers import (
     ConsistencyChecker,
     PacingChecker,
     OOCChecker,

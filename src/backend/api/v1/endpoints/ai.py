@@ -9,9 +9,9 @@ from typing import Optional, AsyncIterator, List
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 
-from backend.database import get_db
+from backend.infrastructure.database import get_db
 from backend.core.domain import WritingSettings, Chapter
-from backend.services.ai_service import AIService, ai_service
+from backend.core.services.ai.ai_service import AIService, ai_service
 from backend.config import settings
 from backend.agents.context_agent import ContextAgent
 from backend.agents.data_agent import DataAgent

@@ -7,11 +7,7 @@ import json
 from unittest.mock import AsyncMock, MagicMock, patch, Mock
 from contextlib import asynccontextmanager
 
-import sys
-import os
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'src', 'backend'))
-
-from services.ai_service import AIService, STYLE_PROMPTS
+from backend.core.services.ai.ai_service import AIService, STYLE_PROMPTS
 
 
 @pytest.fixture

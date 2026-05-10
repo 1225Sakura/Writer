@@ -4,10 +4,10 @@
 from typing import Optional, List
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from repositories.outline_repository import OutlineRepository
-from core.domain.entities import Outline
-from utils.event_bus import AsyncEventBus, ENTITY_CREATED, ENTITY_UPDATED, ENTITY_DELETED
-from backend.services.cache_service import CacheService
+from backend.core.repositories.outline.sqlalchemy_repository import SQLAlchemyOutlineRepository
+from backend.core.domain.entities import Outline
+from backend.utils.event_bus import AsyncEventBus, ENTITY_CREATED, ENTITY_UPDATED, ENTITY_DELETED
+from backend.infrastructure.cache.cache_service import CacheService
 
 
 class OutlineService:
@@ -17,7 +17,7 @@ class OutlineService:
         self.db = db
         self.event_bus = event_bus
         self.cache = cache
-        self.repo = OutlineRepository(db)
+        self.repo = SQLAlchemyOutlineRepository(db)
 
     async def create_outline(self, data: dict) -> Outline:
         """Create a new outline and publish creation event."""
@@ -41,7 +41,7 @@ class OutlineService:
         return outline
 
     async def get_outline(self, id: int) -> Optional[Outline]:
-        """Get a outline by ID."""
+        """Get an outline by ID."""
         return await self.repo.get_by_id(id)
 
     async def get_outline_with_chapters(self, id: int) -> Optional[Outline]:

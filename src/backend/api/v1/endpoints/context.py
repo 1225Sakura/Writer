@@ -13,10 +13,10 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel, Field, field_validator
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from backend.database import get_db
+from backend.infrastructure.database import get_db
 from backend.middleware.auth import require_auth
 from backend.services.context_manager import ContextManager, TextChunk
-from backend.services.rag_adapter import RAGAdapter, SearchResult
+from backend.core.services.ai.rag_adapter import RAGAdapter, SearchResult
 
 router = APIRouter(prefix="/context", tags=["context"], dependencies=[require_auth])
 

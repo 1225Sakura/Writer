@@ -29,13 +29,18 @@ from sqlalchemy.orm import sessionmaker
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "src", "backend"))
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "src"))
 
-# Pre-import database and models to prevent SQLAlchemy "Table already defined"
+# Pre-import database and entities to prevent SQLAlchemy "Table already defined"
 # errors when backend code imports both `database` and `backend.database`.
-import database as _database_module
-import models.entities as _entities_module
+import backend.infrastructure.database as _database_module
+import core.domain.entities as _entities_module
 
 sys.modules["backend.database"] = _database_module
+sys.modules["database"] = _database_module
 sys.modules["backend.models.entities"] = _entities_module
+sys.modules["backend.core.domain.entities"] = _entities_module
+
+import core.domain.extensions as _extensions_module
+sys.modules["backend.core.domain.extensions"] = _extensions_module
 
 # ---------------------------------------------------------------------------
 # Database fixtures
@@ -55,7 +60,7 @@ def event_loop() -> Generator[asyncio.AbstractEventLoop, None, None]:
 @pytest_asyncio.fixture(scope="session")
 async def db_engine():
     """Create a shared async engine pointing to an in-memory SQLite database."""
-    from backend.models.entities import Base
+    from backend.infrastructure.database import Base
 
     engine = create_async_engine(
         TEST_DATABASE_URL,
@@ -151,7 +156,7 @@ def ai_mock():
             result = await some_function_that_calls_ai()
             assert result == "Generated text"
     """
-    from backend.services.ai_service import AIService
+    from backend.core.services.ai.ai_service import AIService
 
     with patch.object(AIService, "generate", new_callable=AsyncMock) as mock_generate:
         mock_generate.return_value = "这是一段测试生成的文本内容。"
@@ -161,7 +166,7 @@ def ai_mock():
 @pytest.fixture
 def ai_stream_mock():
     """Provide a mocked AIService.generate_stream async iterator."""
-    from backend.services.ai_service import AIService
+    from backend.core.services.ai.ai_service import AIService
 
     async def _fake_stream(*args, **kwargs):
         chunks = ["这是", "一段", "测试", "流式", "输出。"]

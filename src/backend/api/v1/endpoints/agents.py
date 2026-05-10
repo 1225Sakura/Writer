@@ -19,8 +19,8 @@ from sqlalchemy import select, func
 
 from backend.middleware.auth import require_auth
 from backend.services.ai.provider import AIProvider
-from backend.services.ai_service import AIService, ai_service
-from backend.database import get_db
+from backend.core.services.ai.ai_service import AIService, ai_service
+from backend.infrastructure.database import get_db
 from backend.config import settings
 from backend.utils.event_bus import AsyncEventBus
 from backend.core.domain import (

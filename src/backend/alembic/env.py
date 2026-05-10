@@ -17,8 +17,8 @@ parent_dir = backend_dir.parent
 sys.path.insert(0, str(backend_dir))
 sys.path.insert(0, str(parent_dir))
 
-from database import Base
-from core.domain.entities import (
+from backend.infrastructure.database import Base
+from backend.core.domain.entities import (
     Project,
     GenreConfiguration,
     BackgroundTask,
@@ -56,7 +56,7 @@ if config.config_file_name is not None:
 target_metadata = Base.metadata
 
 # Import settings to get the real database URL
-from config import settings
+from backend.config import settings
 
 
 def get_database_url() -> str:

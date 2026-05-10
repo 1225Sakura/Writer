@@ -9,8 +9,8 @@ from fastapi import Request, HTTPException, Depends, status
 from fastapi.security import APIKeyHeader
 from pydantic import BaseModel
 
-from config import settings
-from utils.logging import get_logger
+from backend.config import settings
+from backend.utils.logging import get_logger
 
 logger = get_logger('auth')
 

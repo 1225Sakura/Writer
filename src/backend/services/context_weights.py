@@ -9,7 +9,7 @@ from __future__ import annotations
 import json
 from typing import Any, Dict, List, Optional
 
-from backend.services.cache_service import get_cache_service
+from backend.infrastructure.cache.cache_service import get_cache_service
 
 
 DEFAULT_TEMPLATE = "plot"

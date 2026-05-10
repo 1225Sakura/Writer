@@ -10,7 +10,7 @@ import sys
 import os
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'src', 'backend'))
 
-from middleware.rate_limit import (
+from backend.middleware.rate_limit import (
     RateLimitStore,
     rate_limit_middleware,
     RateLimitMiddleware,

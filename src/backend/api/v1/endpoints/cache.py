@@ -4,7 +4,7 @@
 from fastapi import APIRouter, HTTPException, Depends
 from pydantic import BaseModel, Field
 
-from backend.services.cache_service import get_cache_service
+from backend.infrastructure.cache.cache_service import get_cache_service
 from backend.middleware.auth import require_auth
 
 router = APIRouter(prefix="/cache", tags=["cache"], dependencies=[require_auth])

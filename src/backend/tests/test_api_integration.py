@@ -10,7 +10,7 @@ import pytest_asyncio
 from httpx import AsyncClient, ASGITransport
 from unittest.mock import AsyncMock, patch, MagicMock
 
-from interface.web.main import app
+from backend.interface.web.main import app
 
 
 @pytest.fixture

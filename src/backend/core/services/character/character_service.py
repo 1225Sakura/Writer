@@ -5,11 +5,11 @@ from typing import Optional, List
 from datetime import datetime
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from core.repositories.character.interfaces import CharacterRepositoryInterface
-from core.repositories.character.sqlalchemy_repository import SQLAlchemyCharacterRepository
-from core.domain.entities import Character, CharacterRelationship, CharacterStoryline
-from utils.event_bus import AsyncEventBus, ENTITY_CREATED, ENTITY_UPDATED, ENTITY_DELETED
-from backend.services.cache_service import CacheService, get_cache_service
+from backend.core.repositories.character.interfaces import CharacterRepositoryInterface
+from backend.core.repositories.character.sqlalchemy_repository import SQLAlchemyCharacterRepository
+from backend.core.domain.entities import Character, CharacterRelationship, CharacterStoryline
+from backend.utils.event_bus import AsyncEventBus, ENTITY_CREATED, ENTITY_UPDATED, ENTITY_DELETED
+from backend.infrastructure.cache.cache_service import CacheService, get_cache_service
 
 
 class CharacterService:

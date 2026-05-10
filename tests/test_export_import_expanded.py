@@ -13,7 +13,7 @@ import sys
 import os
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'src', 'backend'))
 
-from services.export_import import (
+from backend.services.export_import import (
     export_project,
     export_to_json,
     export_to_zip,

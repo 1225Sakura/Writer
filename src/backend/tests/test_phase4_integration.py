@@ -14,7 +14,7 @@ import pytest_asyncio
 from httpx import AsyncClient, ASGITransport
 from unittest.mock import AsyncMock, patch, MagicMock
 
-from interface.web.main import app
+from backend.interface.web.main import app
 
 
 @pytest.fixture
@@ -342,7 +342,7 @@ class TestRouteRegistration:
     @pytest.mark.asyncio
     async def test_api_router_has_all_routers(self):
         """Test api_router includes all expected sub-routers."""
-        from routes import api_router
+        from backend.routes import api_router
         routes = api_router.routes
         route_paths = set()
         for route in routes:
@@ -386,7 +386,7 @@ class TestRouteRegistration:
     @pytest.mark.asyncio
     async def test_no_duplicate_route_prefixes(self):
         """Test there are no conflicting duplicate route prefixes."""
-        from routes import api_router
+        from backend.routes import api_router
         prefixes = []
         for route in api_router.routes:
             if hasattr(route, "path"):
@@ -520,12 +520,12 @@ class TestCacheService:
 
     def test_cache_service_singleton_exists(self):
         """Test cache service singleton exists."""
-        from services.cache_service import cache_service
+        from backend.infrastructure.cache.cache_service import cache_service
         assert cache_service is not None
 
     def test_cache_service_has_stats_method(self):
         """Test cache service has stats method."""
-        from services.cache_service import cache_service
+        from backend.infrastructure.cache.cache_service import cache_service
         assert hasattr(cache_service, "stats")
         stats = cache_service.stats()
         assert isinstance(stats, dict)
@@ -533,12 +533,12 @@ class TestCacheService:
 
     def test_cache_service_has_clear_all(self):
         """Test cache service has clear_all method."""
-        from services.cache_service import cache_service
+        from backend.infrastructure.cache.cache_service import cache_service
         assert hasattr(cache_service, "clear_all")
 
     def test_lru_cache_basic_operations(self):
         """Test LRU cache basic get/set/delete."""
-        from services.cache_service import LRUCache
+        from backend.infrastructure.cache.cache_service import LRUCache
 
         cache = LRUCache(max_size=10, default_ttl=300)
         cache.set("key1", "value1")
@@ -548,7 +548,7 @@ class TestCacheService:
 
     def test_lru_cache_stats(self):
         """Test LRU cache stats."""
-        from services.cache_service import LRUCache
+        from backend.infrastructure.cache.cache_service import LRUCache
 
         cache = LRUCache(max_size=10, default_ttl=300)
         cache.set("key1", "value1")

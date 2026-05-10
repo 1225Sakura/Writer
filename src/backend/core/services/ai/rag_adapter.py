@@ -640,7 +640,7 @@ class RAGAdapter:
         expanded = list(seeds)
 
         try:
-            from backend.services.database_service import async_session_maker
+            from backend.infrastructure.database import async_session_maker
             from backend.core.domain import Character, CharacterRelationship
             from sqlalchemy import select
 

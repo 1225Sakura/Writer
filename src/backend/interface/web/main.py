@@ -16,15 +16,15 @@ from typing import Dict, List, Optional
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 
-from config import settings
-from routes import api_router
-from middleware.logging import setup_logging_middleware
-from middleware.errors import register_exception_handlers
-from middleware.rate_limit import RateLimitMiddleware
-from middleware.performance import setup_performance_middleware
-from middleware.request_context import set_request_context
-from utils.logging import setup_logging, get_logger
-from services.metrics_service import metrics_service
+from backend.config import settings
+from backend.routes import api_router
+from backend.middleware.logging import setup_logging_middleware
+from backend.middleware.errors import register_exception_handlers
+from backend.middleware.rate_limit import RateLimitMiddleware
+from backend.middleware.performance import setup_performance_middleware
+from backend.middleware.request_context import set_request_context
+from backend.utils.logging import setup_logging, get_logger
+from backend.services.metrics_service import metrics_service
 
 # WebSocket auth - verify API key from query param
 async def verify_websocket_auth(api_key: Optional[str]) -> bool:
@@ -443,7 +443,7 @@ async def lifespan(app: FastAPI):
     # Initialize AI ProviderRouter and wire to AIService
     try:
         from services.ai import ProviderRouter, MiniMaxProvider, OpenAICompatibleProvider
-        from services.ai_service import ai_service
+        from backend.core.services.ai.ai_service import ai_service
 
         providers = []
 

@@ -5,7 +5,7 @@ import httpx
 from typing import AsyncIterator, Optional
 
 from backend.services.ai import ProviderRouter, MiniMaxProvider, OpenAICompatibleProvider
-from backend.services.cache_service import (
+from backend.infrastructure.cache.cache_service import (
     get_cached_ai_result,
     set_cached_ai_result,
     get_cache_service,
