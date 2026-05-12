@@ -48,7 +48,16 @@ class CacheInvalidateResponse(BaseModel):
 async def get_cache_stats():
     """Get cache statistics."""
     stats = get_cache_service().stats()
-    return CacheStatsResponse(**stats)
+    # Compute totals from all memory caches
+    total_size = 0
+    for cache_stats in stats.get("memory_caches", {}).values():
+        total_size += cache_stats.get("size", 0)
+    directory = ""
+    disk = stats.get("disk_cache")
+    if disk:
+        total_size += disk.get("size", 0)
+        directory = disk.get("directory", "")
+    return CacheStatsResponse(size=total_size, directory=directory)
 
 
 @router.post(

@@ -1,23 +1,41 @@
 """High point checker for excitement and excitement density.
 
 quick_scan: Heuristic check for obvious high point / excitement patterns.
-deep_analyze: AI-powered analysis for subtle high point placement and intensity.
-
-Note: This checker is currently a placeholder. Full implementation requires
-defining what constitutes a "high point" in the context of this novel's genre
-and target audience.
+deep_analyze: AI-powered analysis for high point placement and intensity.
 """
 
 from __future__ import annotations
 
+import json
+import re
 from typing import Any
 
 from .base import BaseChecker, CheckerResult
 from backend.core.services.ai.ai_service import AIService
+from backend.config import settings
+from ..utils import MiniMaxAPIClient
 
 
 class HighPointChecker(BaseChecker):
     """Checks excitement/excitement density in chapters."""
+
+    # Keywords indicating high-point moments
+    CLIMAX_KEYWORDS = [
+        "爆发", "释放", "突破", "觉醒", "领悟", "顿悟", "逆转", "反转",
+        "震惊", "惊骇", "骇然", "大惊", "不敢相信", "难以置信",
+    ]
+    TENSION_KEYWORDS = [
+        "紧张", "危险", "生死", "千钧一发", "命悬一线", "岌岌可危",
+        "紧迫", "焦急", "屏息", "窒息", "心跳加速", "汗流浃背",
+    ]
+    CONFLICT_KEYWORDS = [
+        "战斗", "对决", "交锋", "激战", "厮杀", "拼杀", "搏斗",
+        "大战", "交手", "过招", "比拼", "较量", "决战",
+    ]
+    REVEAL_KEYWORDS = [
+        "真相", "秘密", "揭露", "揭穿", "揭开", "发现", "原来",
+        "竟然", "居然", "没想到", "始料未及", "出乎意料",
+    ]
 
     def __init__(self, ai_service: AIService | None = None) -> None:
         super().__init__(
@@ -25,6 +43,7 @@ class HighPointChecker(BaseChecker):
             description="检查章节兴奋点/高潮密度（战斗、冲突、揭示、逆转等）",
         )
         self._ai_service = ai_service
+        self._api_client = MiniMaxAPIClient(ai_service) if ai_service else None
 
     async def quick_scan(self, content: str) -> CheckerResult:
         """Heuristic scan for obvious high point patterns.
@@ -34,11 +53,95 @@ class HighPointChecker(BaseChecker):
         - Tension building signals
         - Dramatic reveal markers
         """
-        # TODO: implement heuristic high point detection
-        raise NotImplementedError(
-            "HighPointChecker.quick_scan() 尚未实现。"
-            "需要定义兴奋点检测的启发式规则（如战斗关键词密度、紧张信号等）。"
-        )
+        issues: list[dict[str, Any]] = []
+        suggestions: list[str] = []
+        score = 100
+
+        text = content or ""
+        if not text:
+            return CheckerResult(score=100, issues=[], suggestions=[])
+
+        char_count = len(text)
+
+        # Count keyword hits per category
+        climax_hits = sum(1 for kw in self.CLIMAX_KEYWORDS if kw in text)
+        tension_hits = sum(1 for kw in self.TENSION_KEYWORDS if kw in text)
+        conflict_hits = sum(1 for kw in self.CONFLICT_KEYWORDS if kw in text)
+        reveal_hits = sum(1 for kw in self.REVEAL_KEYWORDS if kw in text)
+
+        total_hits = climax_hits + tension_hits + conflict_hits + reveal_hits
+
+        # Density check (hits per 1000 chars)
+        if char_count > 500:
+            density = total_hits / (char_count / 1000)
+
+            if density < 0.5:
+                issues.append({
+                    "type": "low_excitement_density",
+                    "severity": "medium",
+                    "message": f"兴奋点密度过低: {density:.1f}/千字，章节可能缺乏高潮",
+                })
+                suggestions.append("增加战斗、揭示或逆转等高潮情节")
+                score -= 15
+            elif density > 8.0:
+                issues.append({
+                    "type": "high_excitement_density",
+                    "severity": "low",
+                    "message": f"兴奋点密度过高: {density:.1f}/千字，可能造成审美疲劳",
+                })
+                suggestions.append("适当增加过渡和铺垫，让高潮更有冲击力")
+                score -= 5
+
+        # Check for climax distribution (should not all be in one section)
+        if char_count > 2000:
+            third = char_count // 3
+            first_third = text[:third]
+            mid_third = text[third:2*third]
+            last_third = text[2*third:]
+
+            sections = [("开头", first_third), ("中段", mid_third), ("结尾", last_third)]
+            sections_with_climax = 0
+            for _, section in sections:
+                section_hits = sum(1 for kw in self.CLIMAX_KEYWORDS + self.TENSION_KEYWORDS if kw in section)
+                if section_hits > 0:
+                    sections_with_climax += 1
+
+            if sections_with_climax == 0:
+                issues.append({
+                    "type": "no_high_points",
+                    "severity": "high",
+                    "message": "章节缺乏明显的高潮或兴奋点",
+                })
+                suggestions.append("至少在章节结尾设置一个高潮或悬念")
+                score -= 20
+            elif sections_with_climax == 1:
+                issues.append({
+                    "type": "concentrated_high_points",
+                    "severity": "low",
+                    "message": "高潮点集中在单一区域，节奏可能不均衡",
+                })
+                suggestions.append("考虑在章节不同位置设置小高潮，增加节奏变化")
+                score -= 5
+
+        # Ending cliffhanger check
+        last_200 = text[-200:] if len(text) > 200 else text
+        cliffhanger_patterns = [
+            r"(?:突然|忽然|骤然)", r"(?:……|…|\.{3})",
+            r"(?:难道|莫非|难道说)", r"(?:没想到|始料未及)",
+            r"(?:竟然|居然|竟是)", r"(?:目光一凝|瞳孔一缩|脸色一变)",
+        ]
+        has_cliffhanger = any(re.search(p, last_200) for p in cliffhanger_patterns)
+        if not has_cliffhanger and char_count > 1000:
+            issues.append({
+                "type": "weak_ending",
+                "severity": "medium",
+                "message": "章节结尾缺乏悬念钩子",
+            })
+            suggestions.append("在章节结尾设置悬念，激发读者继续阅读的欲望")
+            score -= 10
+
+        score = max(0, score)
+        return CheckerResult(score=score, issues=issues, suggestions=suggestions)
 
     async def deep_analyze(
         self, content: str, context: dict[str, Any]
@@ -49,8 +152,94 @@ class HighPointChecker(BaseChecker):
             content: Chapter text to analyze.
             context: Optional context including genre, target_audience, previous_chapters.
         """
-        # TODO: implement AI-powered high point analysis
-        raise NotImplementedError(
-            "HighPointChecker.deep_analyze() 尚未实现。"
-            "需要分析本章高潮点的设置是否合理、高潮密度是否适中、结尾钩子是否足够。"
+        if not self._api_client:
+            return CheckerResult(
+                score=0,
+                issues=[{
+                    "type": "configuration_error",
+                    "message": "HighPointChecker 未配置 AI 服务",
+                }],
+                suggestions=["请在初始化时传入 ai_service 参数"],
+            )
+
+        genre = context.get("genre", "")
+        previous_chapters = context.get("previous_chapters", [])
+        prev_text = (
+            previous_chapters if isinstance(previous_chapters, str)
+            else json.dumps(previous_chapters, ensure_ascii=False, indent=2)
         )
+
+        prompt = f"""请深度分析以下章节的高潮点设置和兴奋点密度。
+
+【章节内容】
+{content}
+
+【类型/风格】
+{genre}
+
+【前文摘要】
+{prev_text}
+
+请从以下维度分析：
+1. **高潮点数量**：本章是否有足够的高潮/兴奋点
+2. **高潮点位置**：高潮点分布是否合理（应有前中后分布，结尾应有钩子）
+3. **高潮强度**：每个高潮点的冲击力是否足够
+4. **铺垫质量**：高潮前的铺垫是否充分，是否有伏笔呼应
+5. **情绪曲线**：整体情绪曲线是否有起伏，是否有张弛
+6. **结尾钩子**：章节结尾是否有足够的悬念或认知差
+
+请以JSON格式返回：
+{{
+    "score": 0-100的评分,
+    "issues": [
+        {{
+            "type": "问题类型",
+            "severity": "critical|high|medium|low",
+            "message": "问题描述",
+            "evidence": "正文中的证据片段"
+        }}
+    ],
+    "suggestions": ["改进建议列表"]
+}}"""
+
+        system_prompt = (
+            "你是一位专业的叙事高潮分析专家。你的任务是评估小说章节的高潮设置是否合理。"
+            "好的章节应该有2-3个不同强度的高潮点，结尾应有悬念钩子。"
+            "评分标准：100=高潮完美，80=高潮良好，60=高潮一般，40=高潮不足，20=缺乏高潮，0=完全平淡。"
+        )
+
+        try:
+            ai_result = await self._api_client.call(
+                system_prompt=system_prompt,
+                user_content=prompt,
+                temperature=settings.ai_temperature,
+            )
+
+            try:
+                parsed = json.loads(ai_result)
+                return CheckerResult(
+                    score=parsed.get("score", 70),
+                    issues=parsed.get("issues", []),
+                    suggestions=parsed.get("suggestions", []),
+                )
+            except json.JSONDecodeError:
+                return CheckerResult(
+                    score=70,
+                    issues=[{
+                        "type": "parse_error",
+                        "severity": "low",
+                        "message": f"AI返回格式错误，原始响应: {ai_result[:200]}",
+                    }],
+                    suggestions=["请重试深度分析"],
+                )
+
+        except Exception as e:
+            return CheckerResult(
+                score=0,
+                issues=[{
+                    "type": "analysis_error",
+                    "severity": "critical",
+                    "message": f"高潮检查分析失败: {str(e)}",
+                }],
+                suggestions=["请检查AI服务配置或稍后重试"],
+            )

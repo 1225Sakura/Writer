@@ -23,7 +23,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.infrastructure.database import get_db
 from backend.middleware.auth import require_auth
-from backend.services.constraint_engine import (
+from backend.services.constraints import (
     ConstraintEngine,
     ConstraintRule,
     ConstraintViolation,
@@ -488,7 +488,7 @@ async def check_style_constraints(
         )
 
     # Compute score
-    from backend.services.constraint_engine import ConstraintEngine
+    from backend.services.constraints import ConstraintEngine
     score = ConstraintEngine._compute_score.__func__(None, violations)
 
     # Build a simple summary

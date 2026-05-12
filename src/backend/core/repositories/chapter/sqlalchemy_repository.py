@@ -2,70 +2,18 @@
 # Concrete SQLAlchemy implementation of ChapterRepositoryInterface
 
 from typing import Optional, List
-from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 
+from backend.core.repositories.base import SQLAlchemyBaseRepository
 from backend.core.repositories.chapter.interfaces import ChapterRepositoryInterface
 from backend.core.domain.entities import Chapter, DraftVersion
 
 
-class SQLAlchemyChapterRepository(ChapterRepositoryInterface):
+class SQLAlchemyChapterRepository(SQLAlchemyBaseRepository[Chapter], ChapterRepositoryInterface):
     """SQLAlchemy implementation of Chapter repository."""
 
-    def __init__(self, db: AsyncSession):
-        self.db = db
-
-    async def get_by_id(self, id: int) -> Optional[Chapter]:
-        result = await self.db.execute(
-            select(Chapter).where(Chapter.id == id)
-        )
-        return result.scalar_one_or_none()
-
-    async def get_by_project(self, project_id: int) -> List[Chapter]:
-        result = await self.db.execute(
-            select(Chapter).where(Chapter.project_id == project_id)
-        )
-        return list(result.scalars().all())
-
-    async def create(self, data: dict) -> Chapter:
-        instance = Chapter(**data)
-        self.db.add(instance)
-        await self.db.flush()
-        await self.db.refresh(instance)
-        return instance
-
-    async def update(self, id: int, data: dict) -> Optional[Chapter]:
-        result = await self.db.execute(
-            select(Chapter).where(Chapter.id == id)
-        )
-        chapter = result.scalar_one_or_none()
-        if chapter is None:
-            return None
-        for key, value in data.items():
-            setattr(chapter, key, value)
-        await self.db.flush()
-        await self.db.refresh(chapter)
-        return chapter
-
-    async def delete(self, id: int) -> bool:
-        result = await self.db.execute(
-            select(Chapter).where(Chapter.id == id)
-        )
-        chapter = result.scalar_one_or_none()
-        if chapter is None:
-            return False
-        await self.db.delete(chapter)
-        await self.db.flush()
-        return True
-
-    async def list(self, skip: int = 0, limit: int = 100, **filters) -> List[Chapter]:
-        stmt = select(Chapter)
-        for column, value in filters.items():
-            if hasattr(Chapter, column) and value is not None:
-                stmt = stmt.where(getattr(Chapter, column) == value)
-        stmt = stmt.offset(skip).limit(limit)
-        result = await self.db.execute(stmt)
-        return list(result.scalars().all())
+    def __init__(self, db):
+        super().__init__(db, Chapter)
 
     async def get_by_outline(self, outline_id: int, skip: int = 0, limit: int = 100) -> List[Chapter]:
         result = await self.db.execute(

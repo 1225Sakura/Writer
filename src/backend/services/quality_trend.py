@@ -12,7 +12,7 @@ Uses existing AIInspectionResult, Chapter, and DraftVersion tables with JSON fie
 from __future__ import annotations
 
 import json
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Any
 
 from sqlalchemy import select, func, desc
@@ -74,7 +74,7 @@ class QualityTrendService:
 
         if not inspections:
             return {
-                "generated_at": datetime.utcnow().isoformat(),
+                "generated_at": datetime.now(timezone.utc).isoformat(),
                 "count": 0,
                 "limit": limit,
                 "overall_avg": 0.0,
@@ -146,7 +146,7 @@ class QualityTrendService:
         )
 
         return {
-            "generated_at": datetime.utcnow().isoformat(),
+            "generated_at": datetime.now(timezone.utc).isoformat(),
             "count": len(trend_items),
             "limit": limit,
             "overall_avg": overall_avg,

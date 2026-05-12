@@ -3,7 +3,7 @@
 
 import json
 import logging
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional
 
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -32,7 +32,7 @@ class WorkflowExecutionService:
         execution = await self.workflow_repo.create({
             "workflow_name": workflow_name,
             "status": "running",
-            "started_at": datetime.utcnow(),
+            "started_at": datetime.now(timezone.utc),
         })
         await self.db.commit()
         logger.info("Created workflow execution id=%s for '%s'", execution.id, workflow_name)
@@ -47,7 +47,7 @@ class WorkflowExecutionService:
         """Mark a workflow execution as completed or failed."""
         data: Dict[str, Any] = {
             "status": "failed" if error else "completed",
-            "completed_at": datetime.utcnow(),
+            "completed_at": datetime.now(timezone.utc),
         }
         if results is not None:
             data["results_json"] = json.dumps(results, ensure_ascii=False, default=str)
@@ -81,8 +81,8 @@ class WorkflowExecutionService:
             "stage_name": stage_name,
             "status": status,
             "result_json": result_json,
-            "started_at": datetime.utcnow(),
-            "completed_at": datetime.utcnow(),
+            "started_at": datetime.now(timezone.utc),
+            "completed_at": datetime.now(timezone.utc),
         })
         await self.db.commit()
         logger.debug(

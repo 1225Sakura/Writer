@@ -2,7 +2,7 @@
 # Concrete SQLAlchemy implementations for ChatSession, ChatMessage, ExtractedEntity
 
 from typing import Optional, List
-from datetime import datetime
+from datetime import datetime, timezone
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, desc, asc
 from sqlalchemy.orm import selectinload
@@ -43,7 +43,7 @@ class SQLAlchemyChatSessionRepository(ChatSessionRepositoryInterface):
             return None
         for key, value in data.items():
             setattr(session, key, value)
-        session.updated_at = datetime.utcnow()
+        session.updated_at = datetime.now(timezone.utc)
         await self.db.flush()
         await self.db.refresh(session)
         return session

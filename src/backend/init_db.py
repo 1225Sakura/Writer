@@ -48,6 +48,9 @@ from backend.core.domain.entities import (
     WorkflowExecution,
     AgentExecutionLog,
 )
+# Wiki models (moved to domain layer)
+from backend.core.domain.extensions import WikiPage, WikiVersion, WikiEntityLink
+
 from backend.core.domain.extensions import (
     ContextChunk,
     QueryLog,

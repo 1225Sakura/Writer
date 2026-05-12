@@ -25,7 +25,7 @@ from typing import TYPE_CHECKING, Any, Optional
 import yaml
 
 if TYPE_CHECKING:
-    from backend.services.constraint_engine import (
+    from backend.services.constraints import (
         ConstraintRule,
         ConstraintViolation,
         LawType,
@@ -118,7 +118,7 @@ class CharacterMilestoneCondition(DSLCondition):
         context: dict[str, Any],
     ) -> list["ConstraintViolation"]:
         # Lazy import to avoid circular dependency
-        from backend.services.constraint_engine import ConstraintViolation, LawType, Severity
+        from backend.services.constraints import ConstraintViolation, LawType, Severity
 
         violations = []
 
@@ -222,7 +222,7 @@ class FieldMonotonicCondition(DSLCondition):
         context: dict[str, Any],
     ) -> list["ConstraintViolation"]:
         # Lazy import to avoid circular dependency
-        from backend.services.constraint_engine import ConstraintViolation, LawType, Severity
+        from backend.services.constraints import ConstraintViolation, LawType, Severity
 
         violations = []
 
@@ -350,7 +350,7 @@ class RelationshipConsistencyCondition(DSLCondition):
         context: dict[str, Any],
     ) -> list["ConstraintViolation"]:
         # Lazy import to avoid circular dependency
-        from backend.services.constraint_engine import ConstraintViolation, LawType, Severity
+        from backend.services.constraints import ConstraintViolation, LawType, Severity
 
         violations = []
 
@@ -436,7 +436,7 @@ class TemporalConsistencyCondition(DSLCondition):
         context: dict[str, Any],
     ) -> list["ConstraintViolation"]:
         # Lazy import to avoid circular dependency
-        from backend.services.constraint_engine import ConstraintViolation, LawType, Severity
+        from backend.services.constraints import ConstraintViolation, LawType, Severity
 
         violations = []
 
@@ -516,7 +516,7 @@ class OwnershipExclusivityCondition(DSLCondition):
         context: dict[str, Any],
     ) -> list["ConstraintViolation"]:
         # Lazy import to avoid circular dependency
-        from backend.services.constraint_engine import ConstraintViolation, LawType, Severity
+        from backend.services.constraints import ConstraintViolation, LawType, Severity
 
         violations = []
 
@@ -735,7 +735,7 @@ class ConstraintDSLCParser:
     def _parse_rule(self, data: dict[str, Any], idx: int) -> "ConstraintRule":
         """Parse a single rule from the DSL data."""
         # Lazy import to avoid circular dependency
-        from backend.services.constraint_engine import ConstraintRule, LawType, RuleStatus, Severity
+        from backend.services.constraints import ConstraintRule, LawType, RuleStatus, Severity
 
         if not isinstance(data, dict):
             raise DSLValidationError(
@@ -841,7 +841,7 @@ class ConstraintDSLCParser:
             Tuple of (is_valid, error_messages).
         """
         # Lazy import to avoid circular dependency
-        from backend.services.constraint_engine import LawType, Severity
+        from backend.services.constraints import LawType, Severity
 
         errors: list[str] = []
 

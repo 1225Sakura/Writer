@@ -7,7 +7,7 @@ import os
 import zipfile
 import io
 import yaml
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Any, Optional, Callable
 from uuid import UUID
 
@@ -600,7 +600,7 @@ async def export_project(
 
         return {
             "version": "1.0",
-            "exported_at": datetime.utcnow().isoformat(),
+            "exported_at": datetime.now(timezone.utc).isoformat(),
             "incremental": incremental,
             "since": since.isoformat() if since else None,
             "data": {
@@ -764,7 +764,7 @@ def export_to_zip(data: dict, format: str = "json") -> bytes:
         # Also include metadata file
         zf.writestr("export_info.json", json.dumps({
             "format": format,
-            "exported_at": datetime.utcnow().isoformat(),
+            "exported_at": datetime.now(timezone.utc).isoformat(),
         }, ensure_ascii=False))
     return zip_buffer.getvalue()
 

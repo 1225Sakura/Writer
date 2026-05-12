@@ -9,8 +9,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.infrastructure.database import get_db
 from backend.middleware.auth import require_auth
-from backend.services.wiki_service import WikiService, WikiPage, WikiVersion, WikiEntityLink
-from backend.api.v1.exceptions import NotFoundException, ValidationException
+from backend.services.wiki_service import WikiService
+from backend.core.domain.extensions import WikiPage, WikiVersion, WikiEntityLink
+from backend.middleware.errors import NotFoundError, ValidationError
 from pydantic import BaseModel, Field, ConfigDict, computed_field
 from datetime import datetime
 import mistune
@@ -202,7 +203,7 @@ async def get_wiki_page(
     """Get a specific wiki page."""
     page = await service.get_page(page_id)
     if not page:
-        raise NotFoundException(code="WIKI_PAGE_NOT_FOUND", message=f"Wiki page not found (id={page_id})")
+        raise NotFoundError(error_code="WIKI_PAGE_NOT_FOUND", message=f"Wiki page not found (id={page_id})")
     return page
 
 
@@ -228,7 +229,7 @@ async def update_wiki_page(
         change_summary=request.change_summary,
     )
     if not page:
-        raise NotFoundException(code="WIKI_PAGE_NOT_FOUND", message=f"Wiki page not found (id={page_id})")
+        raise NotFoundError(error_code="WIKI_PAGE_NOT_FOUND", message=f"Wiki page not found (id={page_id})")
     return page
 
 
@@ -245,7 +246,7 @@ async def delete_wiki_page(
     """Delete a wiki page."""
     deleted = await service.delete_page(page_id)
     if not deleted:
-        raise NotFoundException(code="WIKI_PAGE_NOT_FOUND", message=f"Wiki page not found (id={page_id})")
+        raise NotFoundError(error_code="WIKI_PAGE_NOT_FOUND", message=f"Wiki page not found (id={page_id})")
 
 
 # ============================================================================
@@ -268,7 +269,7 @@ async def get_wiki_page_versions(
     # Verify page exists
     page = await service.get_page(page_id)
     if not page:
-        raise NotFoundException(code="WIKI_PAGE_NOT_FOUND", message=f"Wiki page not found (id={page_id})")
+        raise NotFoundError(error_code="WIKI_PAGE_NOT_FOUND", message=f"Wiki page not found (id={page_id})")
 
     versions = await service.get_versions(page_id, skip=skip, limit=limit)
     return versions
@@ -288,8 +289,8 @@ async def revert_wiki_page(
     """Revert wiki page to a specific version."""
     page = await service.revert_to_version(page_id, version)
     if not page:
-        raise NotFoundException(
-            code="VERSION_NOT_FOUND",
+        raise NotFoundError(
+            error_code="VERSION_NOT_FOUND",
             message=f"Version {version} not found for wiki page (id={page_id})"
         )
     return page
@@ -312,7 +313,7 @@ async def get_wiki_page_links(
     """Get entity links for a wiki page."""
     page = await service.get_page(page_id)
     if not page:
-        raise NotFoundException(code="WIKI_PAGE_NOT_FOUND", message=f"Wiki page not found (id={page_id})")
+        raise NotFoundError(error_code="WIKI_PAGE_NOT_FOUND", message=f"Wiki page not found (id={page_id})")
     return page.entity_links
 
 
@@ -331,8 +332,8 @@ async def add_wiki_page_link(
     """Add an entity link to a wiki page."""
     valid_link_types = {"documents", "references", "extends"}
     if request.link_type not in valid_link_types:
-        raise ValidationException(
-            code="INVALID_LINK_TYPE",
+        raise ValidationError(
+            error_code="INVALID_LINK_TYPE",
             message=f"link_type must be one of: {', '.join(sorted(valid_link_types))}"
         )
 
@@ -343,7 +344,7 @@ async def add_wiki_page_link(
         link_type=request.link_type,
     )
     if not link:
-        raise NotFoundException(code="WIKI_PAGE_NOT_FOUND", message=f"Wiki page not found (id={page_id})")
+        raise NotFoundError(error_code="WIKI_PAGE_NOT_FOUND", message=f"Wiki page not found (id={page_id})")
     return link
 
 
@@ -360,7 +361,7 @@ async def remove_wiki_page_link(
     """Remove an entity link."""
     removed = await service.remove_entity_link(link_id)
     if not removed:
-        raise NotFoundException(code="ENTITY_LINK_NOT_FOUND", message=f"Entity link not found (id={link_id})")
+        raise NotFoundError(error_code="ENTITY_LINK_NOT_FOUND", message=f"Entity link not found (id={link_id})")
 
 
 @router.get(

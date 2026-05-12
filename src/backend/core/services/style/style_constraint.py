@@ -21,7 +21,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.core.domain import WritingSettings, Project
-from backend.services.constraint_engine import (
+from backend.services.constraints import (
     ConstraintViolation,
     LawType,
     Severity,

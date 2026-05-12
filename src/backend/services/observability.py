@@ -8,7 +8,7 @@ and chapter-level statistics.
 from __future__ import annotations
 
 import json
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Any
 
 from sqlalchemy import select, func, desc
@@ -24,7 +24,7 @@ from backend.core.domain import (
     WorkflowExecution,
     AgentExecutionLog,
 )
-from backend.services.metrics_service import metrics_service
+from backend.infrastructure.observability.metrics_service import metrics_service
 from backend.utils.logging import get_logger
 
 logger = get_logger("writer-api.observability")
@@ -60,7 +60,7 @@ class ObservabilityService:
             workflow_stats = await self._get_workflow_stats(session)
 
         return {
-            "timestamp": datetime.utcnow().isoformat(),
+            "timestamp": datetime.now(timezone.utc).isoformat(),
             "window_seconds": window_seconds,
             "runtime": runtime_metrics,
             "entities": entity_counts,
@@ -132,7 +132,7 @@ class ObservabilityService:
         auto_fixed_counts = {str(row[0]): row[1] for row in auto_fixed_result.all()}
 
         # Recent inspections (last 24 hours)
-        since = datetime.utcnow() - timedelta(hours=24)
+        since = datetime.now(timezone.utc) - timedelta(hours=24)
         recent_result = await session.execute(
             select(func.count())
             .select_from(AIInspectionResult)
@@ -161,7 +161,7 @@ class ObservabilityService:
         )
 
         # Recent workflows (last 24 hours)
-        since = datetime.utcnow() - timedelta(hours=24)
+        since = datetime.now(timezone.utc) - timedelta(hours=24)
         recent_result = await session.execute(
             select(func.count())
             .select_from(WorkflowExecution)
@@ -319,7 +319,7 @@ class ObservabilityService:
         ai_calls = metrics.get("ai_calls", {})
 
         return {
-            "timestamp": datetime.utcnow().isoformat(),
+            "timestamp": datetime.now(timezone.utc).isoformat(),
             "window_seconds": window_seconds,
             "ai_calls": ai_calls,
             "summary": {

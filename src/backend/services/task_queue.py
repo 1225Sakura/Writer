@@ -8,7 +8,7 @@ import logging
 import time
 import uuid
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import datetime, timezone
 from enum import Enum
 from typing import Any, Awaitable, Callable, Dict, List, Optional
 
@@ -48,8 +48,8 @@ class Task:
     result: Optional[Any] = None
     error: Optional[str] = None
     retries: int = 0
-    created_at: datetime = field(default_factory=datetime.utcnow)
-    updated_at: datetime = field(default_factory=datetime.utcnow)
+    created_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    updated_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
     _cancel_event: asyncio.Event = field(default_factory=asyncio.Event)
 
     def is_cancelled(self) -> bool:
@@ -221,7 +221,7 @@ class TaskQueue:
             return
 
         task.status = TaskStatus.RUNNING
-        task.updated_at = datetime.utcnow()
+        task.updated_at = datetime.now(timezone.utc)
         await self._persist_task(task)
 
         try:
@@ -247,7 +247,7 @@ class TaskQueue:
                 task.error = str(e)
                 logger.error(f"Task failed permanently: {task.id}: {e}")
 
-        task.updated_at = datetime.utcnow()
+        task.updated_at = datetime.now(timezone.utc)
         await self._persist_task(task)
 
     async def _persist_task(self, task: Task):
@@ -260,7 +260,7 @@ class TaskQueue:
                     db_task.result = json.dumps(task.result, ensure_ascii=False, default=str) if task.result is not None else None
                     db_task.error = task.error
                     db_task.retries = task.retries
-                    db_task.updated_at = datetime.utcnow()
+                    db_task.updated_at = datetime.now(timezone.utc)
                 else:
                     db_task = BackgroundTask(
                         id=task.id,
@@ -404,7 +404,7 @@ async def handle_batch_operation(task: Task) -> Dict[str, Any]:
 async def handle_cleanup(task: Task) -> Dict[str, Any]:
     """Handle cleanup task (e.g., remove old completed tasks)."""
     max_age_hours = task.payload.get("max_age_hours", 24)
-    cutoff = datetime.utcnow().timestamp() - (max_age_hours * 3600)
+    cutoff = datetime.now(timezone.utc).timestamp() - (max_age_hours * 3600)
 
     async with async_session_maker() as session:
         from sqlalchemy import delete

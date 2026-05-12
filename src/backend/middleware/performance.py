@@ -11,7 +11,7 @@ from fastapi import Request, Response
 from starlette.middleware.base import BaseHTTPMiddleware
 
 from backend.utils.logging import get_logger
-from backend.services.metrics_service import metrics_service
+from backend.infrastructure.observability.metrics_service import metrics_service
 
 logger = get_logger("writer-api.performance")
 

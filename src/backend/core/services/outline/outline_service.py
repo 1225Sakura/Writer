@@ -1,66 +1,30 @@
 # Auto Novel Writer - Outline Service
 # Business logic layer for Outline operations with event publishing
 
-from typing import Optional, List
-from sqlalchemy.ext.asyncio import AsyncSession
-
-from backend.core.repositories.outline.sqlalchemy_repository import SQLAlchemyOutlineRepository
+from typing import Optional
+from backend.core.services.base import BaseService
 from backend.core.domain.entities import Outline
-from backend.utils.event_bus import AsyncEventBus, ENTITY_CREATED, ENTITY_UPDATED, ENTITY_DELETED
-from backend.infrastructure.cache.cache_service import CacheService
+from backend.core.repositories.outline.sqlalchemy_repository import SQLAlchemyOutlineRepository
 
 
-class OutlineService:
-    """Service for Outline entity operations with event publishing."""
+class OutlineService(BaseService[Outline]):
+    """Service for Outline operations with event publishing."""
 
-    def __init__(self, db: AsyncSession, event_bus: AsyncEventBus, cache: CacheService) -> None:
-        self.db = db
-        self.event_bus = event_bus
-        self.cache = cache
+    _cache_tag = "outlines"
+    _entity_type = "outline"
+
+    def __init__(self, db, event_bus, cache):
+        super().__init__(db, event_bus, cache, Outline)
+        # Use specialized repository for custom query methods (e.g. get_with_chapters)
         self.repo = SQLAlchemyOutlineRepository(db)
-
-    async def create_outline(self, data: dict) -> Outline:
-        """Create a new outline and publish creation event."""
-        outline = await self.repo.create(data)
-        await self.cache.ainvalidate_tag("outlines")
-        await self.event_bus.publish(
-            ENTITY_CREATED,
-            {"entity_type": "outline", "id": outline.id, "data": data},
-        )
-        return outline
-
-    async def update_outline(self, id: int, data: dict) -> Optional[Outline]:
-        """Update an outline and publish update event."""
-        outline = await self.repo.update(id, data)
-        if outline:
-            await self.cache.ainvalidate_tag("outlines")
-            await self.event_bus.publish(
-                ENTITY_UPDATED,
-                {"entity_type": "outline", "id": id, "data": data},
-            )
-        return outline
-
-    async def get_outline(self, id: int) -> Optional[Outline]:
-        """Get an outline by ID."""
-        return await self.repo.get_by_id(id)
 
     async def get_outline_with_chapters(self, id: int) -> Optional[Outline]:
         """Get an outline with its chapters eagerly loaded."""
         return await self.repo.get_with_chapters(id)
 
-    async def list_outlines(
-        self, skip: int = 0, limit: int = 50
-    ) -> List[Outline]:
-        """List all outlines with pagination."""
-        return await self.repo.list(skip=skip, limit=limit)
-
-    async def delete_outline(self, id: int) -> bool:
-        """Delete an outline and publish deletion event."""
-        deleted = await self.repo.delete(id)
-        if deleted:
-            await self.cache.ainvalidate_tag("outlines")
-            await self.event_bus.publish(
-                ENTITY_DELETED,
-                {"entity_type": "outline", "id": id},
-            )
-        return deleted
+    # Backward-compatible aliases
+    create_outline = BaseService.create
+    update_outline = BaseService.update
+    get_outline = BaseService.get
+    list_outlines = BaseService.list
+    delete_outline = BaseService.delete

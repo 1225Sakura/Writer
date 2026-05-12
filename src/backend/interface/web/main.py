@@ -17,14 +17,14 @@ from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 
 from backend.config import settings
-from backend.routes import api_router
+from backend.api.v1.router import api_router
 from backend.middleware.logging import setup_logging_middleware
 from backend.middleware.errors import register_exception_handlers
 from backend.middleware.rate_limit import RateLimitMiddleware
 from backend.middleware.performance import setup_performance_middleware
 from backend.middleware.request_context import set_request_context
 from backend.utils.logging import setup_logging, get_logger
-from backend.services.metrics_service import metrics_service
+from backend.infrastructure.observability.metrics_service import metrics_service
 
 # WebSocket auth - verify API key from query param
 async def verify_websocket_auth(api_key: Optional[str]) -> bool:
@@ -668,7 +668,7 @@ async def root():
 @app.get("/health")
 async def legacy_health_check():
     """Legacy health check - redirects to /api/v1/health."""
-    from routes.health import health_check
+    from backend.api.v1.endpoints.health import health_check
     return await health_check()
 
 
@@ -676,7 +676,7 @@ async def legacy_health_check():
 @app.get("/ready")
 async def root_ready():
     """Kubernetes-style readiness probe at /ready."""
-    from routes.health import readiness_check
+    from backend.api.v1.endpoints.health import readiness_check
     return await readiness_check()
 
 
@@ -684,7 +684,7 @@ async def root_ready():
 @app.get("/live")
 async def root_live():
     """Kubernetes-style liveness probe at /live."""
-    from routes.health import liveness_check
+    from backend.api.v1.endpoints.health import liveness_check
     return await liveness_check()
 
 

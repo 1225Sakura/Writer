@@ -2,7 +2,7 @@
 # Additional tables for data that should be normalized (not just JSON fields)
 # Created by Phase 4 ecosystem integration.
 
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Optional
 from sqlalchemy import (
     Column, Integer, String, Text, Float, DateTime, ForeignKey, Index, JSON
@@ -412,6 +412,65 @@ class NarrativeDebtRecord(Base):
     resolved_at = Column(DateTime, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+
+# ============================================
+# Wiki Pages
+# ============================================
+
+class WikiPage(Base):
+    """Wiki page entity for storing world-building content."""
+    __tablename__ = "wiki_pages"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    project_id = Column(Integer, ForeignKey("projects.id"), nullable=True, index=True)
+    entity_type = Column(String(50), nullable=True)
+    entity_id = Column(Integer, nullable=True)
+    title = Column(String(255), nullable=False)
+    content = Column(Text, nullable=False, default="")
+    version = Column(Integer, default=1)
+    is_draft = Column(Integer, default=0)
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+    updated_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
+
+    versions = relationship(
+        "WikiVersion",
+        back_populates="page",
+        cascade="all, delete-orphan",
+        order_by="WikiVersion.version.desc()"
+    )
+    entity_links = relationship(
+        "WikiEntityLink",
+        back_populates="wiki_page",
+        cascade="all, delete-orphan"
+    )
+
+
+class WikiVersion(Base):
+    """Version history for wiki pages."""
+    __tablename__ = "wiki_versions"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    page_id = Column(Integer, ForeignKey("wiki_pages.id", ondelete="CASCADE"), nullable=False)
+    version = Column(Integer, nullable=False)
+    content = Column(Text, nullable=False)
+    change_summary = Column(Text, nullable=True)
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+
+    page = relationship("WikiPage", back_populates="versions")
+
+
+class WikiEntityLink(Base):
+    """Bidirectional links between wiki pages and entities."""
+    __tablename__ = "wiki_entity_links"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    wiki_page_id = Column(Integer, ForeignKey("wiki_pages.id", ondelete="CASCADE"), nullable=False)
+    linked_entity_type = Column(String(50), nullable=False)
+    linked_entity_id = Column(Integer, nullable=False)
+    link_type = Column(String(50), nullable=False)
+
+    wiki_page = relationship("WikiPage", back_populates="entity_links")
 
 
 # ============================================

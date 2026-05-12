@@ -16,13 +16,13 @@ from backend.core.services.plot_thread.plot_thread_service import PlotThreadServ
 from backend.core.services.ai_inspection_result.ai_inspection_result_service import AIInspectionResultService
 from backend.api.v1.dependencies import get_event_bus
 from backend.config import settings
-from backend.api.v1.exceptions import (
-    ChapterNotFoundException,
-    OutlineNotFoundException,
-    DraftVersionNotFoundException,
-    IFLineNotFoundException,
-    PlotThreadNotFoundException,
-    ValidationException,
+from backend.middleware.errors import (
+    ChapterNotFoundError,
+    OutlineNotFoundError,
+    DraftVersionNotFoundError,
+    IFLineNotFoundError,
+    PlotThreadNotFoundError,
+    ValidationError,
 )
 
 # Import centralized schemas for enhanced validation
@@ -109,7 +109,7 @@ async def get_outline(
     """Get a specific outline."""
     outline = await service.get_outline(outline_id)
     if not outline:
-        raise OutlineNotFoundException(outline_id=outline_id)
+        raise OutlineNotFoundError(outline_id=outline_id)
     return outline
 
 
@@ -127,7 +127,7 @@ async def update_outline(
     """Update an outline."""
     db_outline = await service.update_outline(outline_id, outline.model_dump(exclude_unset=True))
     if not db_outline:
-        raise OutlineNotFoundException(outline_id=outline_id)
+        raise OutlineNotFoundError(outline_id=outline_id)
     return db_outline
 
 
@@ -143,8 +143,182 @@ async def delete_outline(
     """Delete an outline."""
     deleted = await service.delete_outline(outline_id)
     if not deleted:
-        raise OutlineNotFoundException(outline_id=outline_id)
+        raise OutlineNotFoundError(outline_id=outline_id)
     return {"message": "Outline deleted"}
+
+
+# IF Lines - registered BEFORE /{chapter_id} to avoid route conflicts
+@router.get(
+    "/if-lines",
+    response_model=List[IFLineResponse],
+    summary="列出所有IF线",
+    description="获取所有IF线的列表，可按关联角色ID过滤。",
+)
+@cached(ttl=settings.cache_default_ttl, key_prefix="chapters:iflines:list", invalidate_on=["iflines"])
+async def list_if_lines(
+    skip: int = 0,
+    limit: int = 50,
+    character_id: Optional[int] = None,
+    service: IFLineService = Depends(get_if_line_service)
+):
+    """List all IF lines."""
+    filters = {}
+    if character_id is not None:
+        filters["linked_character_id"] = character_id
+    return await service.list_if_lines(skip=skip, limit=limit, **filters)
+
+
+@router.post(
+    "/if-lines",
+    response_model=IFLineResponse,
+    summary="创建IF线",
+    description="创建新的IF线（角色故事线）。",
+)
+async def create_if_line(
+    if_line: IFLineCreateRequest,
+    service: IFLineService = Depends(get_if_line_service)
+):
+    """Create a new IF line."""
+    return await service.create_if_line(if_line.model_dump())
+
+
+@router.get(
+    "/if-lines/{if_line_id}",
+    response_model=IFLineResponse,
+    summary="获取IF线详情",
+    description="获取指定ID的IF线详细信息。",
+)
+@cached(ttl=settings.cache_default_ttl, key_prefix="chapters:iflines:detail", invalidate_on=["iflines"])
+async def get_if_line(
+    if_line_id: int,
+    service: IFLineService = Depends(get_if_line_service)
+):
+    """Get a specific IF line."""
+    if_line = await service.get_if_line(if_line_id)
+    if not if_line:
+        raise IFLineNotFoundError(if_line_id=if_line_id)
+    return if_line
+
+
+@router.patch(
+    "/if-lines/{if_line_id}",
+    response_model=IFLineResponse,
+    summary="更新IF线",
+    description="更新指定ID的IF线信息。",
+)
+async def update_if_line(
+    if_line_id: int,
+    if_line: IFLineUpdateRequest,
+    service: IFLineService = Depends(get_if_line_service)
+):
+    """Update an IF line."""
+    db_if_line = await service.update_if_line(if_line_id, if_line.model_dump(exclude_unset=True))
+    if not db_if_line:
+        raise IFLineNotFoundError(if_line_id=if_line_id)
+    return db_if_line
+
+
+@router.delete(
+    "/if-lines/{if_line_id}",
+    summary="删除IF线",
+    description="删除指定ID的IF线。",
+)
+async def delete_if_line(
+    if_line_id: int,
+    service: IFLineService = Depends(get_if_line_service)
+):
+    """Delete an IF line."""
+    deleted = await service.delete_if_line(if_line_id)
+    if not deleted:
+        raise IFLineNotFoundError(if_line_id=if_line_id)
+    return {"message": "IF line deleted"}
+
+
+# Plot Threads - registered BEFORE /{chapter_id} to avoid route conflicts
+@router.get(
+    "/plot-threads",
+    response_model=List[PlotThreadResponse],
+    summary="列出所有伏笔",
+    description="获取所有伏笔（剧情线）的列表，可按状态过滤。",
+)
+@cached(ttl=settings.cache_default_ttl, key_prefix="chapters:plotthreads:list", invalidate_on=["plotthreads"])
+async def list_plot_threads(
+    skip: int = 0,
+    limit: int = 100,
+    status: Optional[str] = None,
+    service: PlotThreadService = Depends(get_plot_thread_service)
+):
+    """List all plot threads."""
+    filters = {}
+    if status:
+        filters["status"] = status
+    return await service.list_plot_threads(skip=skip, limit=limit, **filters)
+
+
+@router.post(
+    "/plot-threads",
+    response_model=PlotThreadResponse,
+    summary="创建伏笔",
+    description="创建新的伏笔（剧情线）。",
+)
+async def create_plot_thread(
+    plot_thread: PlotThreadCreateRequest,
+    service: PlotThreadService = Depends(get_plot_thread_service)
+):
+    """Create a new plot thread."""
+    return await service.create_plot_thread(plot_thread.model_dump())
+
+
+@router.get(
+    "/plot-threads/{plot_thread_id}",
+    response_model=PlotThreadResponse,
+    summary="获取伏笔详情",
+    description="获取指定ID的伏笔详细信息。",
+)
+@cached(ttl=settings.cache_default_ttl, key_prefix="chapters:plotthreads:detail", invalidate_on=["plotthreads"])
+async def get_plot_thread(
+    plot_thread_id: int,
+    service: PlotThreadService = Depends(get_plot_thread_service)
+):
+    """Get a specific plot thread."""
+    plot_thread = await service.get_plot_thread(plot_thread_id)
+    if not plot_thread:
+        raise PlotThreadNotFoundError(plot_thread_id=plot_thread_id)
+    return plot_thread
+
+
+@router.patch(
+    "/plot-threads/{plot_thread_id}",
+    response_model=PlotThreadResponse,
+    summary="更新伏笔",
+    description="更新指定ID的伏笔信息。",
+)
+async def update_plot_thread(
+    plot_thread_id: int,
+    plot_thread: PlotThreadUpdateRequest,
+    service: PlotThreadService = Depends(get_plot_thread_service)
+):
+    """Update a plot thread."""
+    db_plot_thread = await service.update_plot_thread(plot_thread_id, plot_thread.model_dump(exclude_unset=True))
+    if not db_plot_thread:
+        raise PlotThreadNotFoundError(plot_thread_id=plot_thread_id)
+    return db_plot_thread
+
+
+@router.delete(
+    "/plot-threads/{plot_thread_id}",
+    summary="删除伏笔",
+    description="删除指定ID的伏笔。",
+)
+async def delete_plot_thread(
+    plot_thread_id: int,
+    service: PlotThreadService = Depends(get_plot_thread_service)
+):
+    """Delete a plot thread."""
+    deleted = await service.delete_plot_thread(plot_thread_id)
+    if not deleted:
+        raise PlotThreadNotFoundError(plot_thread_id=plot_thread_id)
+    return {"message": "Plot thread deleted"}
 
 
 # Chapter endpoints
@@ -194,7 +368,7 @@ async def get_chapter(
     """Get a specific chapter."""
     chapter = await service.get_chapter(chapter_id)
     if not chapter:
-        raise ChapterNotFoundException(chapter_id=chapter_id)
+        raise ChapterNotFoundError(chapter_id=chapter_id)
     return chapter
 
 
@@ -212,7 +386,7 @@ async def update_chapter(
     """Update a chapter."""
     db_chapter = await service.update_chapter(chapter_id, chapter.model_dump(exclude_unset=True))
     if not db_chapter:
-        raise ChapterNotFoundException(chapter_id=chapter_id)
+        raise ChapterNotFoundError(chapter_id=chapter_id)
     return db_chapter
 
 
@@ -228,7 +402,7 @@ async def delete_chapter(
     """Delete a chapter."""
     deleted = await service.delete_chapter(chapter_id)
     if not deleted:
-        raise ChapterNotFoundException(chapter_id=chapter_id)
+        raise ChapterNotFoundError(chapter_id=chapter_id)
     return {"message": "Chapter deleted"}
 
 
@@ -263,7 +437,7 @@ async def create_draft_version(
 ):
     """Create a new draft version for a chapter."""
     if draft.chapter_id != chapter_id:
-        raise ValidationException(code="CHAPTER_ID_MISMATCH", message="Chapter ID mismatch")
+        raise ValidationError(code="CHAPTER_ID_MISMATCH", message="Chapter ID mismatch")
     return await service.create_draft_version(draft.model_dump())
 
 
@@ -282,7 +456,7 @@ async def get_draft_version(
     """Get a specific draft version."""
     draft = await service.get_draft_version(chapter_id, version_number)
     if not draft:
-        raise DraftVersionNotFoundException(chapter_id=chapter_id)
+        raise DraftVersionNotFoundError(chapter_id=chapter_id)
     return draft
 
 
@@ -325,177 +499,3 @@ async def create_inspection_result(
         "suggestions_json": suggestions_json,
     }
     return await service.create_ai_inspection_result(data)
-
-
-# IF Lines - MUST be registered BEFORE /{chapter_id} to avoid route conflicts
-@router.get(
-    "/if-lines",
-    response_model=List[IFLineResponse],
-    summary="列出所有IF线",
-    description="获取所有IF线的列表，可按关联角色ID过滤。",
-)
-@cached(ttl=settings.cache_default_ttl, key_prefix="chapters:iflines:list", invalidate_on=["iflines"])
-async def list_if_lines(
-    skip: int = 0,
-    limit: int = 50,
-    character_id: Optional[int] = None,
-    service: IFLineService = Depends(get_if_line_service)
-):
-    """List all IF lines."""
-    filters = {}
-    if character_id is not None:
-        filters["linked_character_id"] = character_id
-    return await service.list_if_lines(skip=skip, limit=limit, **filters)
-
-
-@router.post(
-    "/if-lines",
-    response_model=IFLineResponse,
-    summary="创建IF线",
-    description="创建新的IF线（角色故事线）。",
-)
-async def create_if_line(
-    if_line: IFLineCreateRequest,
-    service: IFLineService = Depends(get_if_line_service)
-):
-    """Create a new IF line."""
-    return await service.create_if_line(if_line.model_dump())
-
-
-@router.get(
-    "/if-lines/{if_line_id}",
-    response_model=IFLineResponse,
-    summary="获取IF线详情",
-    description="获取指定ID的IF线详细信息。",
-)
-@cached(ttl=settings.cache_default_ttl, key_prefix="chapters:iflines:detail", invalidate_on=["iflines"])
-async def get_if_line(
-    if_line_id: int,
-    service: IFLineService = Depends(get_if_line_service)
-):
-    """Get a specific IF line."""
-    if_line = await service.get_if_line(if_line_id)
-    if not if_line:
-        raise IFLineNotFoundException(if_line_id=if_line_id)
-    return if_line
-
-
-@router.patch(
-    "/if-lines/{if_line_id}",
-    response_model=IFLineResponse,
-    summary="更新IF线",
-    description="更新指定ID的IF线信息。",
-)
-async def update_if_line(
-    if_line_id: int,
-    if_line: IFLineUpdateRequest,
-    service: IFLineService = Depends(get_if_line_service)
-):
-    """Update an IF line."""
-    db_if_line = await service.update_if_line(if_line_id, if_line.model_dump(exclude_unset=True))
-    if not db_if_line:
-        raise IFLineNotFoundException(if_line_id=if_line_id)
-    return db_if_line
-
-
-@router.delete(
-    "/if-lines/{if_line_id}",
-    summary="删除IF线",
-    description="删除指定ID的IF线。",
-)
-async def delete_if_line(
-    if_line_id: int,
-    service: IFLineService = Depends(get_if_line_service)
-):
-    """Delete an IF line."""
-    deleted = await service.delete_if_line(if_line_id)
-    if not deleted:
-        raise IFLineNotFoundException(if_line_id=if_line_id)
-    return {"message": "IF line deleted"}
-
-
-# Plot Threads - MUST be registered BEFORE /{chapter_id} to avoid route conflicts
-@router.get(
-    "/plot-threads",
-    response_model=List[PlotThreadResponse],
-    summary="列出所有伏笔",
-    description="获取所有伏笔（剧情线）的列表，可按状态过滤。",
-)
-@cached(ttl=settings.cache_default_ttl, key_prefix="chapters:plotthreads:list", invalidate_on=["plotthreads"])
-async def list_plot_threads(
-    skip: int = 0,
-    limit: int = 100,
-    status: Optional[str] = None,
-    service: PlotThreadService = Depends(get_plot_thread_service)
-):
-    """List all plot threads."""
-    filters = {}
-    if status:
-        filters["status"] = status
-    return await service.list_plot_threads(skip=skip, limit=limit, **filters)
-
-
-@router.post(
-    "/plot-threads",
-    response_model=PlotThreadResponse,
-    summary="创建伏笔",
-    description="创建新的伏笔（剧情线）。",
-)
-async def create_plot_thread(
-    plot_thread: PlotThreadCreateRequest,
-    service: PlotThreadService = Depends(get_plot_thread_service)
-):
-    """Create a new plot thread."""
-    return await service.create_plot_thread(plot_thread.model_dump())
-
-
-@router.get(
-    "/plot-threads/{plot_thread_id}",
-    response_model=PlotThreadResponse,
-    summary="获取伏笔详情",
-    description="获取指定ID的伏笔详细信息。",
-)
-@cached(ttl=settings.cache_default_ttl, key_prefix="chapters:plotthreads:detail", invalidate_on=["plotthreads"])
-async def get_plot_thread(
-    plot_thread_id: int,
-    service: PlotThreadService = Depends(get_plot_thread_service)
-):
-    """Get a specific plot thread."""
-    plot_thread = await service.get_plot_thread(plot_thread_id)
-    if not plot_thread:
-        raise PlotThreadNotFoundException(plot_thread_id=plot_thread_id)
-    return plot_thread
-
-
-@router.patch(
-    "/plot-threads/{plot_thread_id}",
-    response_model=PlotThreadResponse,
-    summary="更新伏笔",
-    description="更新指定ID的伏笔信息。",
-)
-async def update_plot_thread(
-    plot_thread_id: int,
-    plot_thread: PlotThreadUpdateRequest,
-    service: PlotThreadService = Depends(get_plot_thread_service)
-):
-    """Update a plot thread."""
-    db_plot_thread = await service.update_plot_thread(plot_thread_id, plot_thread.model_dump(exclude_unset=True))
-    if not db_plot_thread:
-        raise PlotThreadNotFoundException(plot_thread_id=plot_thread_id)
-    return db_plot_thread
-
-
-@router.delete(
-    "/plot-threads/{plot_thread_id}",
-    summary="删除伏笔",
-    description="删除指定ID的伏笔。",
-)
-async def delete_plot_thread(
-    plot_thread_id: int,
-    service: PlotThreadService = Depends(get_plot_thread_service)
-):
-    """Delete a plot thread."""
-    deleted = await service.delete_plot_thread(plot_thread_id)
-    if not deleted:
-        raise PlotThreadNotFoundException(plot_thread_id=plot_thread_id)
-    return {"message": "Plot thread deleted"}

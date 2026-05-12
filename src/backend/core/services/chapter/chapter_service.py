@@ -2,49 +2,25 @@
 # Business logic layer for Chapter operations with event publishing
 
 from typing import Optional, List
-from datetime import datetime
-from sqlalchemy.ext.asyncio import AsyncSession
+from datetime import datetime, timezone
 
-from backend.core.repositories.chapter.sqlalchemy_repository import SQLAlchemyChapterRepository
+from backend.core.services.base import BaseService
 from backend.core.domain.entities import Chapter, DraftVersion
-from backend.utils.event_bus import AsyncEventBus, ENTITY_CREATED, ENTITY_UPDATED, ENTITY_DELETED
-from backend.infrastructure.cache.cache_service import CacheService
 
 
-class ChapterService:
-    """Service for Chapter entity operations with event publishing."""
+class ChapterService(BaseService[Chapter]):
+    """Service for Chapter operations with event publishing."""
 
-    def __init__(self, db: AsyncSession, event_bus: AsyncEventBus, cache: CacheService) -> None:
-        self.db = db
-        self.event_bus = event_bus
-        self.cache = cache
-        self.repo = SQLAlchemyChapterRepository(db)
+    _cache_tag = "chapters"
+    _entity_type = "chapter"
 
-    async def create_chapter(self, data: dict) -> Chapter:
-        """Create a new chapter and publish creation event."""
-        chapter = await self.repo.create(data)
-        await self.cache.ainvalidate_tag("chapters")
-        await self.event_bus.publish(
-            ENTITY_CREATED,
-            {"entity_type": "chapter", "id": chapter.id, "data": data},
-        )
-        return chapter
+    def __init__(self, db, event_bus, cache):
+        super().__init__(db, event_bus, cache, Chapter)
 
-    async def update_chapter(self, id: int, data: dict) -> Optional[Chapter]:
-        """Update a chapter and publish update event."""
-        data["updated_at"] = datetime.utcnow()
-        chapter = await self.repo.update(id, data)
-        if chapter:
-            await self.cache.ainvalidate_tag("chapters")
-            await self.event_bus.publish(
-                ENTITY_UPDATED,
-                {"entity_type": "chapter", "id": id, "data": data},
-            )
-        return chapter
-
-    async def get_chapter(self, id: int) -> Optional[Chapter]:
-        """Get a chapter by ID."""
-        return await self.repo.get_by_id(id)
+    async def update(self, id: int, data: dict) -> Optional[Chapter]:
+        """Update a chapter, automatically setting updated_at."""
+        data["updated_at"] = datetime.now(timezone.utc)
+        return await super().update(id, data)
 
     async def list_chapters(
         self, skip: int = 0, limit: int = 100, outline_id: Optional[int] = None, status: Optional[str] = None
@@ -56,17 +32,6 @@ class ChapterService:
             return await self.repo.list(skip=skip, limit=limit, status=status)
         return await self.repo.list(skip=skip, limit=limit)
 
-    async def delete_chapter(self, id: int) -> bool:
-        """Delete a chapter and publish deletion event."""
-        deleted = await self.repo.delete(id)
-        if deleted:
-            await self.cache.ainvalidate_tag("chapters")
-            await self.event_bus.publish(
-                ENTITY_DELETED,
-                {"entity_type": "chapter", "id": id},
-            )
-        return deleted
-
     async def list_draft_versions(self, chapter_id: int, skip: int = 0, limit: int = 20) -> List[DraftVersion]:
         """List all draft versions for a chapter."""
         return await self.repo.get_draft_versions(chapter_id)
@@ -76,7 +41,7 @@ class ChapterService:
         instance = await self.repo.create_draft_version(data)
         await self.cache.ainvalidate_tag("drafts")
         await self.event_bus.publish(
-            ENTITY_CREATED,
+            "entity.created",
             {"entity_type": "draft_version", "id": instance.id},
         )
         return instance
@@ -84,3 +49,9 @@ class ChapterService:
     async def get_draft_version(self, chapter_id: int, version_number: int) -> Optional[DraftVersion]:
         """Get a specific draft version."""
         return await self.repo.get_draft_version(chapter_id, version_number)
+
+    # Backward-compatible aliases
+    create_chapter = BaseService.create
+    update_chapter = update
+    get_chapter = BaseService.get
+    delete_chapter = BaseService.delete

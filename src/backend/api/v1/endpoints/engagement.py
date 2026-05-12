@@ -12,7 +12,7 @@ Endpoints for reader engagement analysis, hook detection, and narrative debt tra
 
 import json
 from typing import List, Optional
-from datetime import datetime
+from datetime import datetime, timezone
 
 from fastapi import APIRouter, HTTPException, Depends, Query
 from pydantic import BaseModel, ConfigDict
@@ -461,7 +461,7 @@ async def resolve_debt(
             debt_data = json.loads(thread.description)
             debt_data["status"] = "fulfilled"
             debt_data["resolved_chapter_id"] = resolved_chapter_id
-            debt_data["resolved_at"] = datetime.utcnow().isoformat()
+            debt_data["resolved_at"] = datetime.now(timezone.utc).isoformat()
             update_data["description"] = json.dumps(debt_data, ensure_ascii=False)
         except json.JSONDecodeError:
             pass

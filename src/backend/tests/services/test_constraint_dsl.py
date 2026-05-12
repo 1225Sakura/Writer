@@ -13,7 +13,7 @@ from backend.services.constraint_dsl import (
     MonotonicMode,
     ConditionType,
 )
-from backend.services.constraint_engine import (
+from backend.services.constraints import (
     ConstraintRule,
     LawType,
     Severity,

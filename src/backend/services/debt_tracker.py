@@ -17,7 +17,7 @@ import json
 from dataclasses import dataclass, field
 from typing import List, Dict, Any, Optional
 from enum import Enum
-from datetime import datetime
+from datetime import datetime, timezone
 
 
 class DebtType(str, Enum):
@@ -205,7 +205,7 @@ class DebtTracker:
                         created_chapter_id=chapter_id,
                         created_chapter_title=chapter_title,
                         keywords=config["keywords"][:3],
-                        created_at=datetime.utcnow().isoformat(),
+                        created_at=datetime.now(timezone.utc).isoformat(),
                     )
                     new_debts.append(debt)
                     existing_titles.add(title)
@@ -229,7 +229,7 @@ class DebtTracker:
                                 created_chapter_id=chapter_id,
                                 created_chapter_title=chapter_title,
                                 keywords=[keyword],
-                                created_at=datetime.utcnow().isoformat(),
+                                created_at=datetime.now(timezone.utc).isoformat(),
                             )
                             new_debts.append(debt)
                             existing_titles.add(title)
@@ -269,7 +269,7 @@ class DebtTracker:
                     if any(kw in content for kw in debt.keywords):
                         debt.status = DebtStatus.FULFILLED
                         debt.resolved_chapter_id = chapter_id
-                        debt.resolved_at = datetime.utcnow().isoformat()
+                        debt.resolved_at = datetime.now(timezone.utc).isoformat()
                         fulfilled.append(debt)
                         break
 
@@ -279,7 +279,7 @@ class DebtTracker:
                     if self._check_keyword_fulfillment(keyword, content):
                         debt.status = DebtStatus.FULFILLED
                         debt.resolved_chapter_id = chapter_id
-                        debt.resolved_at = datetime.utcnow().isoformat()
+                        debt.resolved_at = datetime.now(timezone.utc).isoformat()
                         fulfilled.append(debt)
                         break
 

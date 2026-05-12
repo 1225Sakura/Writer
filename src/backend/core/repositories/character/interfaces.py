@@ -1,44 +1,15 @@
 # Auto Novel Writer - Character Repository Interface
 # Abstract interface for Character persistence operations
 
-from abc import ABC, abstractmethod
+from abc import abstractmethod
 from typing import Optional, List
 
-from backend.core.domain.entities import Character
+from backend.core.repositories.base import BaseRepositoryInterface
+from backend.core.domain.entities import Character, CharacterRelationship, CharacterStoryline
 
 
-class CharacterRepositoryInterface(ABC):
+class CharacterRepositoryInterface(BaseRepositoryInterface[Character]):
     """Abstract interface for Character repository operations."""
-
-    @abstractmethod
-    async def get_by_id(self, id: int) -> Optional[Character]:
-        """Fetch a character by primary key."""
-        ...
-
-    @abstractmethod
-    async def get_by_project(self, project_id: int) -> List[Character]:
-        """Fetch all characters belonging to a project."""
-        ...
-
-    @abstractmethod
-    async def create(self, data: dict) -> Character:
-        """Create and persist a new character."""
-        ...
-
-    @abstractmethod
-    async def update(self, id: int, data: dict) -> Optional[Character]:
-        """Update a character by primary key."""
-        ...
-
-    @abstractmethod
-    async def delete(self, id: int) -> bool:
-        """Delete a character by primary key. Returns True if deleted."""
-        ...
-
-    @abstractmethod
-    async def list(self, skip: int = 0, limit: int = 100, **filters) -> List[Character]:
-        """List characters with optional pagination and filters."""
-        ...
 
     @abstractmethod
     async def get_by_tier(self, tier: str, skip: int = 0, limit: int = 100) -> List[Character]:
@@ -46,11 +17,46 @@ class CharacterRepositoryInterface(ABC):
         ...
 
     @abstractmethod
-    async def get_relationships(self, character_id: int) -> List:
+    async def get_relationships(self, character_id: int) -> List[CharacterRelationship]:
         """Fetch all relationships for a given character."""
         ...
 
     @abstractmethod
-    async def get_storylines(self, character_id: int) -> List:
+    async def get_storylines(self, character_id: int) -> List[CharacterStoryline]:
         """Fetch all storylines for a given character."""
+        ...
+
+    @abstractmethod
+    async def create_relationship(self, data: dict) -> CharacterRelationship:
+        """Create and persist a new character relationship."""
+        ...
+
+    @abstractmethod
+    async def delete_relationship(self, character_id: int, relationship_id: int) -> bool:
+        """Delete a character relationship by ID, verifying ownership. Returns True if deleted."""
+        ...
+
+    @abstractmethod
+    async def create_storyline(self, data: dict) -> CharacterStoryline:
+        """Create and persist a new character storyline."""
+        ...
+
+    @abstractmethod
+    async def update_storyline(self, character_id: int, storyline_id: int, data: dict) -> Optional[CharacterStoryline]:
+        """Update a character storyline by ID, verifying ownership."""
+        ...
+
+    @abstractmethod
+    async def delete_storyline(self, character_id: int, storyline_id: int) -> bool:
+        """Delete a character storyline by ID, verifying ownership. Returns True if deleted."""
+        ...
+
+    @abstractmethod
+    async def list_all_relationships(self) -> List[CharacterRelationship]:
+        """Fetch all character relationships (no pagination, for export)."""
+        ...
+
+    @abstractmethod
+    async def list_all_storylines(self) -> List[CharacterStoryline]:
+        """Fetch all character storylines (no pagination, for export)."""
         ...

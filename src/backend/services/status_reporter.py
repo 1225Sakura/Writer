@@ -15,7 +15,7 @@ PlotThread, AIInspectionResult, DraftVersion, etc.
 from __future__ import annotations
 
 import json
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Any
 
 from sqlalchemy import select, func, desc
@@ -68,7 +68,7 @@ class StatusReporter:
         Returns:
             Dictionary with all status sections.
         """
-        generated_at = datetime.utcnow().isoformat()
+        generated_at = datetime.now(timezone.utc).isoformat()
 
         basic_stats = await self._get_basic_stats()
         character_activity = await self._get_character_activity()
@@ -309,7 +309,7 @@ class StatusReporter:
             avg_words = avg_words_result.scalar_one_or_none() or 0
 
             # Recent chapters (last 7 days)
-            since = datetime.utcnow() - timedelta(days=7)
+            since = datetime.now(timezone.utc) - timedelta(days=7)
             recent_result = await session.execute(
                 select(func.count(Chapter.id))
                 .where(Chapter.created_at >= since)
@@ -368,7 +368,7 @@ class StatusReporter:
             by_type = {row[0]: row[1] for row in type_result.all()}
 
             # Recent inspections (last 7 days)
-            since = datetime.utcnow() - timedelta(days=7)
+            since = datetime.now(timezone.utc) - timedelta(days=7)
             recent_result = await session.execute(
                 select(func.count())
                 .select_from(AIInspectionResult)
@@ -405,7 +405,7 @@ class StatusReporter:
 
     async def _get_recent_activity(self) -> dict[str, Any]:
         """Get recent project activity summary."""
-        since = datetime.utcnow() - timedelta(days=7)
+        since = datetime.now(timezone.utc) - timedelta(days=7)
 
         async with async_session_maker() as session:
             # Recent chapters
@@ -556,7 +556,7 @@ class StatusReporter:
             pending_count = pending_result.scalar_one_or_none() or 0
 
             # Recent activity (24h)
-            since = datetime.utcnow() - timedelta(hours=24)
+            since = datetime.now(timezone.utc) - timedelta(hours=24)
             recent_chapters = await session.scalar(
                 select(func.count())
                 .select_from(Chapter)
@@ -569,7 +569,7 @@ class StatusReporter:
             )
 
         return {
-            "timestamp": datetime.utcnow().isoformat(),
+            "timestamp": datetime.now(timezone.utc).isoformat(),
             "total_chapters": chapter_count or 0,
             "total_words": int(total_words),
             "pending_chapters": pending_count,

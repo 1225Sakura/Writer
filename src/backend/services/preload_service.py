@@ -20,7 +20,7 @@ from backend.core.domain.entities import (
     Location,
     Faction,
 )
-from backend.services.tiered_cache import TieredCache
+from backend.infrastructure.cache.tiered_cache import TieredCache
 from backend.infrastructure.cache.cache_service import get_cache_service
 
 logger = logging.getLogger(__name__)

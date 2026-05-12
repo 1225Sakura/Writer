@@ -53,6 +53,8 @@ class Settings(BaseSettings):
     # keyring if available so the system keyring always takes precedence.
     minimax_api_key: str | None = None
     minimax_api_url: str = "https://api.minimax.chat/v1"
+    minimax_model: str = "MiniMax-Text-01"
+    minimax_max_tokens: int = 4096
 
     # Local Auth
     api_key: str | None = None

@@ -3,7 +3,7 @@
 
 from fastapi import APIRouter, HTTPException, Depends
 from typing import List, Optional
-from datetime import datetime
+from datetime import datetime, timezone
 import json
 
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -836,7 +836,16 @@ async def get_writing_settings(
     service: WritingSettingsService = Depends(get_writing_settings_service)
 ):
     """Get current writing settings."""
-    return await service.get_writing_settings()
+    result = await service.get_writing_settings()
+    if result is None:
+        # Create default writing settings if none exist
+        defaults = {
+            "human_ai_ratio": 0.5,
+            "writing_style": "default",
+            "target_word_count": 3000,
+        }
+        result = await service.create(defaults)
+    return result
 
 
 @router.patch(
@@ -887,18 +896,22 @@ async def export_data(
     rules = await rule_service.list_rules(limit=10000)
     writing_settings = await writing_service.get_writing_settings()
 
+    def _clean_dict(obj):
+        """Remove SQLAlchemy internal state from dict."""
+        return {k: v for k, v in obj.__dict__.items() if not k.startswith('_')}
+
     return ExportDataResponse(
         version="1.0",
-        exported_at=datetime.utcnow().isoformat(),
-        characters=[{**c.__dict__, '_type': 'character'} for c in characters],
-        character_relationships=[{**r.__dict__, '_type': 'relationship'} for r in relationships],
-        character_storylines=[{**s.__dict__, '_type': 'storyline'} for s in storylines],
-        items=[{**i.__dict__, '_type': 'item'} for i in items],
-        locations=[{**l.__dict__, '_type': 'location'} for l in locations],
-        factions=[{**f.__dict__, '_type': 'faction'} for f in factions],
-        world_settings=[{**w.__dict__, '_type': 'world_setting'} for w in world_settings],
-        rules=[{**r.__dict__, '_type': 'rule'} for r in rules],
-        writing_settings=writing_settings.__dict__ if writing_settings else None,
+        exported_at=datetime.now(timezone.utc).isoformat(),
+        characters=[{**_clean_dict(c), '_type': 'character'} for c in characters],
+        character_relationships=[{**_clean_dict(r), '_type': 'relationship'} for r in relationships],
+        character_storylines=[{**_clean_dict(s), '_type': 'storyline'} for s in storylines],
+        items=[{**_clean_dict(i), '_type': 'item'} for i in items],
+        locations=[{**_clean_dict(l), '_type': 'location'} for l in locations],
+        factions=[{**_clean_dict(f), '_type': 'faction'} for f in factions],
+        world_settings=[{**_clean_dict(w), '_type': 'world_setting'} for w in world_settings],
+        rules=[{**_clean_dict(r), '_type': 'rule'} for r in rules],
+        writing_settings=_clean_dict(writing_settings) if writing_settings else None,
     )
 
 

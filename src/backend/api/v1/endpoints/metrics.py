@@ -10,7 +10,7 @@ from __future__ import annotations
 from fastapi import APIRouter, Query
 
 from backend.middleware.auth import require_auth
-from backend.services.metrics_service import metrics_service
+from backend.infrastructure.observability.metrics_service import metrics_service
 
 router = APIRouter(prefix="/metrics", tags=["metrics"])
 

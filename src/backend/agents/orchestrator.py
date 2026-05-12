@@ -10,7 +10,7 @@ import asyncio
 import json
 import logging
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import datetime, timezone
 from enum import Enum
 from typing import Any, Awaitable, Callable, Dict, List, Optional
 
@@ -268,7 +268,7 @@ class AgentOrchestrator:
         if not workflow:
             raise ValueError(f"Workflow '{name}' not found")
 
-        execution_id = f"{name}_{datetime.utcnow().strftime('%Y%m%d_%H%M%S_%f')}"
+        execution_id = f"{name}_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S_%f')}"
         wf_context = WorkflowContext(
             execution_id=execution_id,
             workflow_name=name,
@@ -295,7 +295,7 @@ class AgentOrchestrator:
             {
                 "execution_id": execution_id,
                 "workflow_name": name,
-                "timestamp": datetime.utcnow().isoformat(),
+                "timestamp": datetime.now(timezone.utc).isoformat(),
             },
         )
 
@@ -332,7 +332,7 @@ class AgentOrchestrator:
                         "workflow_name": name,
                         "stage_name": stage.name,
                         "status": "completed",
-                        "timestamp": datetime.utcnow().isoformat(),
+                        "timestamp": datetime.now(timezone.utc).isoformat(),
                     },
                 )
 
@@ -357,7 +357,7 @@ class AgentOrchestrator:
                     "execution_id": execution_id,
                     "workflow_name": name,
                     "results": wf_context.stage_results,
-                    "timestamp": datetime.utcnow().isoformat(),
+                    "timestamp": datetime.now(timezone.utc).isoformat(),
                 },
             )
 
@@ -394,7 +394,7 @@ class AgentOrchestrator:
                     "execution_id": execution_id,
                     "workflow_name": name,
                     "error": str(exc),
-                    "timestamp": datetime.utcnow().isoformat(),
+                    "timestamp": datetime.now(timezone.utc).isoformat(),
                 },
             )
 
@@ -536,12 +536,12 @@ class AgentOrchestrator:
         agent_context.settings["workflow_name"] = workflow_name
         agent_context.settings["stage_name"] = stage_name
 
-        started_at = datetime.utcnow()
+        started_at = datetime.now(timezone.utc)
 
         try:
             result: AgentResult = await agent.execute(agent_context)
 
-            completed_at = datetime.utcnow()
+            completed_at = datetime.now(timezone.utc)
 
             result_dict = {
                 "status": AgentExecutionStatus.COMPLETED.value,
@@ -581,7 +581,7 @@ class AgentOrchestrator:
             return result_dict
 
         except Exception as exc:
-            completed_at = datetime.utcnow()
+            completed_at = datetime.now(timezone.utc)
 
             # Persist failed agent execution log
             if db_execution_id is not None and self._workflow_service is not None:

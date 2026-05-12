@@ -2,7 +2,7 @@
 # Layer 3: LLM Wiki - Persistent markdown knowledge base for novel world building
 
 import logging
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Optional, List, Any
 
 import mistune
@@ -10,70 +10,7 @@ from sqlalchemy import select, text, and_, or_
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
-from backend.infrastructure.database import Base
-from sqlalchemy import Column, Integer, String, Text, DateTime, ForeignKey, Index
-from sqlalchemy.orm import relationship
-
-logger = logging.getLogger(__name__)
-
-
-# ============================================================================
-# SQLAlchemy Models
-# ============================================================================
-
-class WikiPage(Base):
-    """Wiki page entity for storing world-building content."""
-    __tablename__ = "wiki_pages"
-
-    id = Column(Integer, primary_key=True, autoincrement=True)
-    project_id = Column(Integer, ForeignKey("projects.id"), nullable=True, index=True)
-    entity_type = Column(String(50), nullable=True)  # character, location, item, faction, world_setting
-    entity_id = Column(Integer, nullable=True)
-    title = Column(String(255), nullable=False)
-    content = Column(Text, nullable=False, default="")
-    version = Column(Integer, default=1)
-    is_draft = Column(Integer, default=0)
-    created_at = Column(DateTime, default=datetime.utcnow)
-    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
-
-    versions = relationship(
-        "WikiVersion",
-        back_populates="page",
-        cascade="all, delete-orphan",
-        order_by="WikiVersion.version.desc()"
-    )
-    entity_links = relationship(
-        "WikiEntityLink",
-        back_populates="wiki_page",
-        cascade="all, delete-orphan"
-    )
-
-
-class WikiVersion(Base):
-    """Version history for wiki pages."""
-    __tablename__ = "wiki_versions"
-
-    id = Column(Integer, primary_key=True, autoincrement=True)
-    page_id = Column(Integer, ForeignKey("wiki_pages.id", ondelete="CASCADE"), nullable=False)
-    version = Column(Integer, nullable=False)
-    content = Column(Text, nullable=False)
-    change_summary = Column(Text, nullable=True)
-    created_at = Column(DateTime, default=datetime.utcnow)
-
-    page = relationship("WikiPage", back_populates="versions")
-
-
-class WikiEntityLink(Base):
-    """Bidirectional links between wiki pages and entities."""
-    __tablename__ = "wiki_entity_links"
-
-    id = Column(Integer, primary_key=True, autoincrement=True)
-    wiki_page_id = Column(Integer, ForeignKey("wiki_pages.id", ondelete="CASCADE"), nullable=False)
-    linked_entity_type = Column(String(50), nullable=False)  # character, location, item, faction, world_setting
-    linked_entity_id = Column(Integer, nullable=False)
-    link_type = Column(String(50), nullable=False)  # documents, references, extends
-
-    wiki_page = relationship("WikiPage", back_populates="entity_links")
+from backend.core.domain.extensions import WikiPage, WikiVersion, WikiEntityLink
 
 
 # ============================================================================
@@ -222,7 +159,7 @@ class WikiService:
             )
             self.db.add(version)
 
-        page.updated_at = datetime.utcnow()
+        page.updated_at = datetime.now(timezone.utc)
         await self.db.flush()
         await self.db.refresh(page)
 

@@ -10,7 +10,7 @@ Integrates with Chapter, Character, PlotThread, and AIInspectionResult entities.
 from __future__ import annotations
 
 import json
-from datetime import datetime
+from datetime import datetime, timezone
 from enum import Enum
 from typing import Any
 
@@ -107,7 +107,7 @@ class IndexDebtTracker:
         debts.sort(key=lambda d: severity_order.get(d.get("severity"), 99))
 
         self._debt_cache = debts
-        self._cache_timestamp = datetime.utcnow()
+        self._cache_timestamp = datetime.now(timezone.utc)
         return debts
 
     async def _scan_chapter_reindex_debt(self) -> list[dict[str, Any]]:
@@ -154,7 +154,7 @@ class IndexDebtTracker:
                     "entity_id": ch.id,
                     "entity_name": ch.title or f"第{ch.chapter_order}章",
                     "description": reason,
-                    "created_at": datetime.utcnow().isoformat(),
+                    "created_at": datetime.now(timezone.utc).isoformat(),
                     "status": DebtStatus.PENDING,
                 })
 
@@ -186,7 +186,7 @@ class IndexDebtTracker:
                     "entity_id": char.id,
                     "entity_name": char.name,
                     "description": f"角色 '{char.name}' 没有定义任何关系",
-                    "created_at": datetime.utcnow().isoformat(),
+                    "created_at": datetime.now(timezone.utc).isoformat(),
                     "status": DebtStatus.PENDING,
                 })
 
@@ -206,7 +206,7 @@ class IndexDebtTracker:
                 "entity_id": item.id,
                 "entity_name": item.name,
                 "description": f"物品 '{item.name}' 没有指定所有者",
-                "created_at": datetime.utcnow().isoformat(),
+                "created_at": datetime.now(timezone.utc).isoformat(),
                 "status": DebtStatus.PENDING,
             })
 
@@ -240,7 +240,7 @@ class IndexDebtTracker:
                     "entity_id": char.id,
                     "entity_name": char.name,
                     "description": f"角色 '{char.name}' 没有任何人际关系定义",
-                    "created_at": datetime.utcnow().isoformat(),
+                    "created_at": datetime.now(timezone.utc).isoformat(),
                     "status": DebtStatus.PENDING,
                 })
 
@@ -271,7 +271,7 @@ class IndexDebtTracker:
                         "description": (
                             f"伏笔 '{thread.title}' 从创建到揭示跨越 {gap} 章"
                         ),
-                        "created_at": datetime.utcnow().isoformat(),
+                        "created_at": datetime.now(timezone.utc).isoformat(),
                         "status": DebtStatus.PENDING,
                         "meta": {
                             "created_chapter": thread.created_chapter_id,
@@ -290,7 +290,7 @@ class IndexDebtTracker:
                     "entity_id": thread.id,
                     "entity_name": thread.title,
                     "description": f"伏笔 '{thread.title}' 已创建但未设置揭示章节",
-                    "created_at": datetime.utcnow().isoformat(),
+                    "created_at": datetime.now(timezone.utc).isoformat(),
                     "status": DebtStatus.PENDING,
                 })
 
@@ -326,7 +326,7 @@ class IndexDebtTracker:
                     "entity_id": ch.id,
                     "entity_name": ch.title or f"第{ch.chapter_order}章",
                     "description": f"章节 '{ch.title or '未命名'}' 没有AI审查记录",
-                    "created_at": datetime.utcnow().isoformat(),
+                    "created_at": datetime.now(timezone.utc).isoformat(),
                     "status": DebtStatus.PENDING,
                 })
 
@@ -361,7 +361,7 @@ class IndexDebtTracker:
                     f"章节 '{ch.title or '未命名'}' 有内容存储但字数为0，"
                     "可能需要重新统计字数"
                 ),
-                "created_at": datetime.utcnow().isoformat(),
+                "created_at": datetime.now(timezone.utc).isoformat(),
                 "status": DebtStatus.PENDING,
             })
 
@@ -391,7 +391,7 @@ class IndexDebtTracker:
             "by_type": by_type,
             "by_severity": by_severity,
             "by_status": by_status,
-            "timestamp": datetime.utcnow().isoformat(),
+            "timestamp": datetime.now(timezone.utc).isoformat(),
         }
 
     async def get_debts_by_type(
@@ -443,7 +443,7 @@ class IndexDebtTracker:
                     }
 
                 debt["status"] = DebtStatus.RESOLVED
-                debt["resolved_at"] = datetime.utcnow().isoformat()
+                debt["resolved_at"] = datetime.now(timezone.utc).isoformat()
                 # Invalidate cache since we modified a debt
                 self._debt_cache = None
                 self._cache_timestamp = None
@@ -475,7 +475,7 @@ class IndexDebtTracker:
         for debt in debts:
             if debt["id"] == debt_id:
                 debt["status"] = DebtStatus.IGNORED
-                debt["ignored_at"] = datetime.utcnow().isoformat()
+                debt["ignored_at"] = datetime.now(timezone.utc).isoformat()
                 if reason:
                     debt["ignore_reason"] = reason
                 self._debt_cache = None
@@ -513,7 +513,7 @@ class IndexDebtTracker:
                 and debt.get("status") != DebtStatus.RESOLVED
             ):
                 debt["status"] = DebtStatus.RESOLVED
-                debt["resolved_at"] = datetime.utcnow().isoformat()
+                debt["resolved_at"] = datetime.now(timezone.utc).isoformat()
                 resolved_count += 1
 
         if resolved_count > 0:

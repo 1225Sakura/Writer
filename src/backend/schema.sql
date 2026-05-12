@@ -1,795 +1,690 @@
--- Auto Novel Writer Database Schema
--- SQLite compatible
--- Generated from SQLAlchemy models in core/domain/entities.py and core/domain/extensions.py
-
-PRAGMA foreign_keys = ON;
-
--- ============================================
--- Project & Genre Configuration
--- ============================================
-
-CREATE TABLE IF NOT EXISTS projects (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    name TEXT NOT NULL,
-    description TEXT,
-    genre TEXT,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+CREATE TABLE projects (
+	id INTEGER NOT NULL, 
+	name VARCHAR(255) NOT NULL, 
+	description TEXT, 
+	genre VARCHAR(100), 
+	created_at DATETIME, 
+	updated_at DATETIME, 
+	PRIMARY KEY (id)
 );
-
-CREATE TABLE IF NOT EXISTS genre_configurations (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    genre TEXT NOT NULL UNIQUE,
-    config_json TEXT NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+CREATE TABLE genre_configurations (
+	id INTEGER NOT NULL, 
+	genre VARCHAR(100) NOT NULL, 
+	config_json TEXT NOT NULL, 
+	created_at DATETIME, 
+	updated_at DATETIME, 
+	PRIMARY KEY (id), 
+	UNIQUE (genre)
 );
-
--- ============================================
--- Background Tasks
--- ============================================
-
-CREATE TABLE IF NOT EXISTS background_tasks (
-    id TEXT PRIMARY KEY,
-    type TEXT NOT NULL,
-    status TEXT NOT NULL DEFAULT 'pending',
-    payload TEXT,
-    result TEXT,
-    error TEXT,
-    retries INTEGER DEFAULT 0,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+CREATE TABLE background_tasks (
+	id VARCHAR NOT NULL, 
+	type VARCHAR NOT NULL, 
+	status VARCHAR NOT NULL, 
+	payload TEXT, 
+	result TEXT, 
+	error TEXT, 
+	retries INTEGER, 
+	created_at DATETIME, 
+	updated_at DATETIME, 
+	PRIMARY KEY (id)
 );
-
--- ============================================
--- Workflow Execution Tracking
--- ============================================
-
-CREATE TABLE IF NOT EXISTS workflow_executions (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    workflow_name TEXT NOT NULL,
-    status TEXT DEFAULT 'pending',
-    started_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    completed_at TIMESTAMP,
-    results_json TEXT,
-    error_message TEXT
+CREATE TABLE workflow_executions (
+	id INTEGER NOT NULL, 
+	workflow_name VARCHAR NOT NULL, 
+	status VARCHAR, 
+	started_at DATETIME, 
+	completed_at DATETIME, 
+	results_json TEXT, 
+	error_message TEXT, 
+	PRIMARY KEY (id)
 );
-
-CREATE TABLE IF NOT EXISTS agent_execution_logs (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    workflow_execution_id INTEGER NOT NULL,
-    agent_name TEXT NOT NULL,
-    stage_name TEXT NOT NULL,
-    status TEXT DEFAULT 'pending',
-    result_json TEXT,
-    started_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    completed_at TIMESTAMP,
-    FOREIGN KEY (workflow_execution_id) REFERENCES workflow_executions(id) ON DELETE CASCADE
+CREATE TABLE characters (
+	id INTEGER NOT NULL, 
+	project_id INTEGER, 
+	name VARCHAR NOT NULL, 
+	gender VARCHAR, 
+	personality TEXT, 
+	desires TEXT, 
+	flaws TEXT, 
+	description TEXT, 
+	tier VARCHAR, 
+	cultivation_realm VARCHAR, 
+	created_at DATETIME, 
+	updated_at DATETIME, 
+	PRIMARY KEY (id), 
+	FOREIGN KEY(project_id) REFERENCES projects (id)
 );
-
-CREATE INDEX IF NOT EXISTS idx_agent_logs_workflow ON agent_execution_logs(workflow_execution_id);
-
--- ============================================
--- Characters & Relationships
--- ============================================
-
-CREATE TABLE IF NOT EXISTS characters (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    project_id INTEGER,
-    name TEXT NOT NULL,
-    gender TEXT,
-    personality TEXT,
-    desires TEXT,
-    flaws TEXT,
-    description TEXT,
-    tier TEXT,
-    cultivation_realm TEXT,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE CASCADE
+CREATE INDEX ix_characters_project_id ON characters (project_id);
+CREATE TABLE items (
+	id INTEGER NOT NULL, 
+	project_id INTEGER, 
+	name VARCHAR NOT NULL, 
+	description TEXT, 
+	owner VARCHAR, 
+	location VARCHAR, 
+	tags TEXT, 
+	PRIMARY KEY (id), 
+	FOREIGN KEY(project_id) REFERENCES projects (id)
 );
-
-CREATE INDEX IF NOT EXISTS idx_characters_project ON characters(project_id);
-CREATE INDEX IF NOT EXISTS idx_characters_name ON characters(name);
-CREATE INDEX IF NOT EXISTS idx_characters_tier_realm ON characters(tier, cultivation_realm);
-
-CREATE TABLE IF NOT EXISTS character_relationships (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    project_id INTEGER,
-    character_id INTEGER NOT NULL,
-    target_id INTEGER NOT NULL,
-    type TEXT NOT NULL,
-    description TEXT,
-    FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE CASCADE,
-    FOREIGN KEY (character_id) REFERENCES characters(id) ON DELETE CASCADE,
-    FOREIGN KEY (target_id) REFERENCES characters(id) ON DELETE CASCADE
+CREATE INDEX ix_items_project_id ON items (project_id);
+CREATE TABLE locations (
+	id INTEGER NOT NULL, 
+	project_id INTEGER, 
+	name VARCHAR NOT NULL, 
+	description TEXT, 
+	importance VARCHAR, 
+	tags TEXT, 
+	PRIMARY KEY (id), 
+	FOREIGN KEY(project_id) REFERENCES projects (id)
 );
-
-CREATE INDEX IF NOT EXISTS idx_character_relationships_project ON character_relationships(project_id);
-CREATE INDEX IF NOT EXISTS idx_character_relationships_character ON character_relationships(character_id);
-CREATE INDEX IF NOT EXISTS idx_character_relationships_target ON character_relationships(target_id);
-
-CREATE TABLE IF NOT EXISTS character_storylines (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    project_id INTEGER,
-    character_id INTEGER NOT NULL,
-    title TEXT NOT NULL,
-    arc TEXT,
-    progress INTEGER DEFAULT 0,
-    FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE CASCADE,
-    FOREIGN KEY (character_id) REFERENCES characters(id) ON DELETE CASCADE
+CREATE INDEX ix_locations_project_id ON locations (project_id);
+CREATE TABLE factions (
+	id INTEGER NOT NULL, 
+	project_id INTEGER, 
+	name VARCHAR NOT NULL, 
+	description TEXT, 
+	type VARCHAR, 
+	tags TEXT, 
+	PRIMARY KEY (id), 
+	FOREIGN KEY(project_id) REFERENCES projects (id)
 );
-
-CREATE INDEX IF NOT EXISTS idx_character_storylines_project ON character_storylines(project_id);
-CREATE INDEX IF NOT EXISTS idx_character_storylines_character ON character_storylines(character_id);
-
--- ============================================
--- World Entities
--- ============================================
-
-CREATE TABLE IF NOT EXISTS items (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    project_id INTEGER,
-    name TEXT NOT NULL,
-    description TEXT,
-    owner TEXT,
-    location TEXT,
-    FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE CASCADE
+CREATE INDEX ix_factions_project_id ON factions (project_id);
+CREATE TABLE world_settings (
+	id INTEGER NOT NULL, 
+	project_id INTEGER, 
+	name VARCHAR NOT NULL, 
+	description TEXT, 
+	details_json TEXT, 
+	tags TEXT, 
+	PRIMARY KEY (id), 
+	FOREIGN KEY(project_id) REFERENCES projects (id)
 );
-
-CREATE INDEX IF NOT EXISTS idx_items_project ON items(project_id);
-CREATE INDEX IF NOT EXISTS idx_items_name ON items(name);
-CREATE INDEX IF NOT EXISTS idx_items_owner ON items(owner);
-CREATE INDEX IF NOT EXISTS idx_items_location ON items(location);
-
-CREATE TABLE IF NOT EXISTS locations (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    project_id INTEGER,
-    name TEXT NOT NULL,
-    description TEXT,
-    importance TEXT,
-    FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE CASCADE
+CREATE INDEX ix_world_settings_project_id ON world_settings (project_id);
+CREATE TABLE rules (
+	id INTEGER NOT NULL, 
+	project_id INTEGER, 
+	name VARCHAR NOT NULL, 
+	description TEXT, 
+	type VARCHAR, 
+	tags TEXT, 
+	PRIMARY KEY (id), 
+	FOREIGN KEY(project_id) REFERENCES projects (id)
 );
-
-CREATE INDEX IF NOT EXISTS idx_locations_project ON locations(project_id);
-CREATE INDEX IF NOT EXISTS idx_locations_name ON locations(name);
-CREATE INDEX IF NOT EXISTS idx_locations_importance ON locations(importance);
-
-CREATE TABLE IF NOT EXISTS factions (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    project_id INTEGER,
-    name TEXT NOT NULL,
-    description TEXT,
-    type TEXT,
-    FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE CASCADE
+CREATE INDEX ix_rules_project_id ON rules (project_id);
+CREATE TABLE outlines (
+	id INTEGER NOT NULL, 
+	project_id INTEGER, 
+	title VARCHAR NOT NULL, 
+	description TEXT, 
+	PRIMARY KEY (id), 
+	FOREIGN KEY(project_id) REFERENCES projects (id)
 );
-
-CREATE INDEX IF NOT EXISTS idx_factions_project ON factions(project_id);
-CREATE INDEX IF NOT EXISTS idx_factions_name ON factions(name);
-CREATE INDEX IF NOT EXISTS idx_factions_type ON factions(type);
-
-CREATE TABLE IF NOT EXISTS world_settings (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    project_id INTEGER,
-    name TEXT NOT NULL,
-    description TEXT,
-    details_json TEXT,
-    FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE CASCADE
+CREATE INDEX ix_outlines_project_id ON outlines (project_id);
+CREATE TABLE chat_sessions (
+	id INTEGER NOT NULL, 
+	project_id INTEGER, 
+	title VARCHAR(255), 
+	status VARCHAR(50), 
+	created_at DATETIME, 
+	updated_at DATETIME, 
+	PRIMARY KEY (id), 
+	FOREIGN KEY(project_id) REFERENCES projects (id)
 );
-
-CREATE INDEX IF NOT EXISTS idx_world_settings_project ON world_settings(project_id);
-CREATE INDEX IF NOT EXISTS idx_world_settings_name ON world_settings(name);
-
-CREATE TABLE IF NOT EXISTS rules (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    project_id INTEGER,
-    name TEXT NOT NULL,
-    description TEXT,
-    type TEXT,
-    FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE CASCADE
+CREATE INDEX ix_chat_sessions_project_id ON chat_sessions (project_id);
+CREATE TABLE writing_settings (
+	id INTEGER NOT NULL, 
+	project_id INTEGER, 
+	human_ai_ratio FLOAT, 
+	writing_style VARCHAR, 
+	target_word_count INTEGER, 
+	created_at DATETIME, 
+	updated_at DATETIME, 
+	PRIMARY KEY (id), 
+	FOREIGN KEY(project_id) REFERENCES projects (id)
 );
-
-CREATE INDEX IF NOT EXISTS idx_rules_project ON rules(project_id);
-CREATE INDEX IF NOT EXISTS idx_rules_name ON rules(name);
-CREATE INDEX IF NOT EXISTS idx_rules_type ON rules(type);
-
--- ============================================
--- Story Structure
--- ============================================
-
-CREATE TABLE IF NOT EXISTS outlines (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    project_id INTEGER,
-    title TEXT NOT NULL,
-    description TEXT,
-    FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE CASCADE
+CREATE INDEX ix_writing_settings_project_id ON writing_settings (project_id);
+CREATE TABLE agent_execution_logs (
+	id INTEGER NOT NULL, 
+	workflow_execution_id INTEGER NOT NULL, 
+	agent_name VARCHAR NOT NULL, 
+	stage_name VARCHAR NOT NULL, 
+	status VARCHAR, 
+	result_json TEXT, 
+	started_at DATETIME, 
+	completed_at DATETIME, 
+	PRIMARY KEY (id), 
+	FOREIGN KEY(workflow_execution_id) REFERENCES workflow_executions (id) ON DELETE CASCADE
 );
-
-CREATE INDEX IF NOT EXISTS idx_outlines_project ON outlines(project_id);
-CREATE INDEX IF NOT EXISTS idx_outlines_title ON outlines(title);
-
-CREATE TABLE IF NOT EXISTS chapters (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    project_id INTEGER,
-    outline_id INTEGER,
-    title TEXT,
-    summary TEXT,
-    status TEXT DEFAULT 'pending',
-    word_count INTEGER DEFAULT 0,
-    chapter_order INTEGER DEFAULT 0,
-    content_storage_id TEXT,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE CASCADE,
-    FOREIGN KEY (outline_id) REFERENCES outlines(id) ON DELETE SET NULL
+CREATE TABLE genre_profiles (
+	id INTEGER NOT NULL, 
+	project_id INTEGER, 
+	genre_name VARCHAR(100) NOT NULL, 
+	profile_key VARCHAR(100) NOT NULL, 
+	description TEXT, 
+	core_tropes_json TEXT, 
+	narrative_rhythm_json TEXT, 
+	terminology_hints_json TEXT, 
+	character_archetypes_json TEXT, 
+	world_building_focus_json TEXT, 
+	pressure_source VARCHAR(255), 
+	release_target VARCHAR(255), 
+	guidance_text TEXT, 
+	composite_hints_json TEXT, 
+	is_preset INTEGER, 
+	created_at DATETIME, 
+	updated_at DATETIME, 
+	PRIMARY KEY (id), 
+	FOREIGN KEY(project_id) REFERENCES projects (id) ON DELETE CASCADE
 );
-
-CREATE INDEX IF NOT EXISTS idx_chapters_project ON chapters(project_id);
-CREATE INDEX IF NOT EXISTS idx_chapters_outline ON chapters(outline_id);
-CREATE INDEX IF NOT EXISTS idx_chapters_status_order ON chapters(status, chapter_order);
-CREATE INDEX IF NOT EXISTS idx_chapters_updated_at ON chapters(updated_at DESC);
-
-CREATE TABLE IF NOT EXISTS if_lines (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    project_id INTEGER,
-    title TEXT NOT NULL,
-    linked_character_id INTEGER,
-    description TEXT,
-    sync_mode TEXT DEFAULT 'auto',
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE CASCADE,
-    FOREIGN KEY (linked_character_id) REFERENCES characters(id) ON DELETE SET NULL
+CREATE INDEX ix_genre_profiles_project_id ON genre_profiles (project_id);
+CREATE INDEX ix_genre_profiles_is_preset ON genre_profiles (is_preset);
+CREATE INDEX ix_genre_profiles_profile_key ON genre_profiles (profile_key);
+CREATE INDEX ix_genre_profiles_genre_name ON genre_profiles (genre_name);
+CREATE TABLE snapshot_records (
+	id INTEGER NOT NULL, 
+	project_id INTEGER, 
+	snapshot_id VARCHAR(64) NOT NULL, 
+	name VARCHAR(255) NOT NULL, 
+	description TEXT, 
+	triggered_by VARCHAR(32), 
+	version VARCHAR(16), 
+	file_path VARCHAR(512), 
+	size_bytes INTEGER, 
+	entities_count INTEGER, 
+	created_at DATETIME, 
+	PRIMARY KEY (id), 
+	FOREIGN KEY(project_id) REFERENCES projects (id) ON DELETE CASCADE
 );
-
-CREATE INDEX IF NOT EXISTS idx_if_lines_project ON if_lines(project_id);
-CREATE INDEX IF NOT EXISTS idx_if_lines_character ON if_lines(linked_character_id);
-CREATE INDEX IF NOT EXISTS idx_if_lines_character_sync ON if_lines(linked_character_id, sync_mode);
-
--- ============================================
--- Chat / Conversation (Interface 1)
--- ============================================
-
-CREATE TABLE IF NOT EXISTS chat_sessions (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    project_id INTEGER,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE CASCADE
+CREATE INDEX ix_snapshot_records_created_at ON snapshot_records (created_at);
+CREATE INDEX ix_snapshot_records_triggered_by ON snapshot_records (triggered_by);
+CREATE INDEX ix_snapshot_records_project_id ON snapshot_records (project_id);
+CREATE UNIQUE INDEX ix_snapshot_records_snapshot_id ON snapshot_records (snapshot_id);
+CREATE TABLE backup_schedule_records (
+	id INTEGER NOT NULL, 
+	project_id INTEGER, 
+	enabled INTEGER, 
+	interval_minutes INTEGER, 
+	max_snapshots INTEGER, 
+	backup_on_shutdown INTEGER, 
+	backup_on_chapter_save INTEGER, 
+	backup_on_settings_change INTEGER, 
+	last_backup_at DATETIME, 
+	last_backup_id VARCHAR(64), 
+	total_backups INTEGER, 
+	created_at DATETIME, 
+	updated_at DATETIME, 
+	PRIMARY KEY (id), 
+	FOREIGN KEY(project_id) REFERENCES projects (id) ON DELETE CASCADE
 );
-
-CREATE INDEX IF NOT EXISTS idx_chat_sessions_project ON chat_sessions(project_id);
-
-CREATE TABLE IF NOT EXISTS chat_messages (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    project_id INTEGER,
-    session_id INTEGER NOT NULL,
-    role TEXT NOT NULL,
-    content TEXT NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE CASCADE,
-    FOREIGN KEY (session_id) REFERENCES chat_sessions(id) ON DELETE CASCADE
+CREATE INDEX ix_backup_schedule_records_project_id ON backup_schedule_records (project_id);
+CREATE TABLE archive_records (
+	id INTEGER NOT NULL, 
+	project_id INTEGER, 
+	filename VARCHAR(255) NOT NULL, 
+	file_path VARCHAR(512), 
+	format VARCHAR(16), 
+	size_bytes INTEGER, 
+	snapshot_id VARCHAR(64), 
+	created_at DATETIME, 
+	PRIMARY KEY (id), 
+	FOREIGN KEY(project_id) REFERENCES projects (id) ON DELETE CASCADE
 );
-
-CREATE INDEX IF NOT EXISTS idx_chat_messages_project ON chat_messages(project_id);
-CREATE INDEX IF NOT EXISTS idx_chat_messages_session ON chat_messages(session_id);
-CREATE INDEX IF NOT EXISTS idx_chat_messages_session_created ON chat_messages(session_id, created_at);
-
-CREATE TABLE IF NOT EXISTS extracted_entities (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    project_id INTEGER,
-    session_id INTEGER NOT NULL,
-    type TEXT NOT NULL,
-    name TEXT NOT NULL,
-    description TEXT,
-    confirmed INTEGER DEFAULT 0,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE CASCADE,
-    FOREIGN KEY (session_id) REFERENCES chat_sessions(id) ON DELETE CASCADE
+CREATE INDEX ix_archive_records_project_id ON archive_records (project_id);
+CREATE INDEX ix_archive_records_created_at ON archive_records (created_at);
+CREATE INDEX ix_archive_records_snapshot_id ON archive_records (snapshot_id);
+CREATE TABLE index_debt_records (
+	id INTEGER NOT NULL, 
+	project_id INTEGER, 
+	debt_type VARCHAR(64) NOT NULL, 
+	severity VARCHAR(16), 
+	status VARCHAR(16), 
+	entity_type VARCHAR(32), 
+	entity_id INTEGER, 
+	entity_name VARCHAR(255), 
+	description TEXT NOT NULL, 
+	meta_json TEXT, 
+	resolved_at DATETIME, 
+	ignore_reason TEXT, 
+	created_at DATETIME, 
+	updated_at DATETIME, 
+	PRIMARY KEY (id), 
+	FOREIGN KEY(project_id) REFERENCES projects (id) ON DELETE CASCADE
 );
-
-CREATE INDEX IF NOT EXISTS idx_extracted_entities_project ON extracted_entities(project_id);
-CREATE INDEX IF NOT EXISTS idx_extracted_entities_session ON extracted_entities(session_id);
-CREATE INDEX IF NOT EXISTS idx_extracted_entities_session_type ON extracted_entities(session_id, type);
-CREATE INDEX IF NOT EXISTS idx_extracted_entities_confirmed ON extracted_entities(confirmed);
-
--- ============================================
--- Writing & Versioning (Interface 3)
--- ============================================
-
-CREATE TABLE IF NOT EXISTS draft_versions (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    project_id INTEGER,
-    chapter_id INTEGER NOT NULL,
-    content TEXT NOT NULL,
-    content_storage_id TEXT,
-    version_number INTEGER NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE CASCADE,
-    FOREIGN KEY (chapter_id) REFERENCES chapters(id) ON DELETE CASCADE
+CREATE INDEX ix_index_debt_records_created_at ON index_debt_records (created_at);
+CREATE INDEX ix_index_debt_records_debt_type ON index_debt_records (debt_type);
+CREATE INDEX ix_index_debt_records_severity ON index_debt_records (severity);
+CREATE INDEX ix_index_debt_records_project_id ON index_debt_records (project_id);
+CREATE INDEX ix_index_debt_records_entity_id ON index_debt_records (entity_id);
+CREATE INDEX ix_index_debt_records_status ON index_debt_records (status);
+CREATE INDEX ix_index_debt_records_entity_type ON index_debt_records (entity_type);
+CREATE TABLE constraint_rule_records (
+	id INTEGER NOT NULL, 
+	project_id INTEGER, 
+	rule_id VARCHAR(128) NOT NULL, 
+	law_type VARCHAR(64) NOT NULL, 
+	name VARCHAR(255) NOT NULL, 
+	description TEXT NOT NULL, 
+	pattern VARCHAR(512), 
+	severity VARCHAR(16), 
+	status VARCHAR(16), 
+	metadata_json TEXT, 
+	created_at DATETIME, 
+	updated_at DATETIME, 
+	PRIMARY KEY (id), 
+	FOREIGN KEY(project_id) REFERENCES projects (id) ON DELETE CASCADE
 );
-
-CREATE INDEX IF NOT EXISTS idx_draft_versions_project ON draft_versions(project_id);
-CREATE INDEX IF NOT EXISTS idx_draft_versions_chapter ON draft_versions(chapter_id);
-CREATE INDEX IF NOT EXISTS idx_draft_versions_chapter_version ON draft_versions(chapter_id, version_number DESC);
-
-CREATE TABLE IF NOT EXISTS plot_threads (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    project_id INTEGER,
-    title TEXT NOT NULL,
-    description TEXT,
-    status TEXT DEFAULT 'active',
-    created_chapter_id INTEGER,
-    reveal_chapter_id INTEGER,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE CASCADE,
-    FOREIGN KEY (created_chapter_id) REFERENCES chapters(id) ON DELETE SET NULL,
-    FOREIGN KEY (reveal_chapter_id) REFERENCES chapters(id) ON DELETE SET NULL
+CREATE INDEX ix_constraint_rule_records_rule_id ON constraint_rule_records (rule_id);
+CREATE INDEX ix_constraint_rule_records_severity ON constraint_rule_records (severity);
+CREATE INDEX ix_constraint_rule_records_project_id ON constraint_rule_records (project_id);
+CREATE INDEX ix_constraint_rule_records_law_type ON constraint_rule_records (law_type);
+CREATE INDEX ix_constraint_rule_records_status ON constraint_rule_records (status);
+CREATE TABLE graph_relationships (
+	id INTEGER NOT NULL, 
+	project_id INTEGER, 
+	source_type VARCHAR(32) NOT NULL, 
+	source_id INTEGER NOT NULL, 
+	target_type VARCHAR(32) NOT NULL, 
+	target_id INTEGER NOT NULL, 
+	relation_type VARCHAR(64) NOT NULL, 
+	label VARCHAR(255), 
+	description TEXT, 
+	properties_json TEXT, 
+	directed INTEGER, 
+	weight FLOAT, 
+	created_at DATETIME, 
+	updated_at DATETIME, 
+	PRIMARY KEY (id), 
+	FOREIGN KEY(project_id) REFERENCES projects (id) ON DELETE CASCADE
 );
-
-CREATE INDEX IF NOT EXISTS idx_plot_threads_project ON plot_threads(project_id);
-CREATE INDEX IF NOT EXISTS idx_plot_threads_status ON plot_threads(status);
-CREATE INDEX IF NOT EXISTS idx_plot_threads_created_chapter ON plot_threads(created_chapter_id);
-CREATE INDEX IF NOT EXISTS idx_plot_threads_reveal_chapter ON plot_threads(reveal_chapter_id);
-CREATE INDEX IF NOT EXISTS idx_plot_threads_status_created ON plot_threads(status, created_chapter_id);
-
-CREATE TABLE IF NOT EXISTS ai_inspection_results (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    project_id INTEGER,
-    chapter_id INTEGER NOT NULL,
-    inspection_type TEXT NOT NULL,
-    issues_json TEXT,
-    suggestions_json TEXT,
-    auto_fixed INTEGER DEFAULT 0,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE CASCADE,
-    FOREIGN KEY (chapter_id) REFERENCES chapters(id) ON DELETE CASCADE
+CREATE INDEX ix_graph_relationships_source_id ON graph_relationships (source_id);
+CREATE INDEX ix_graph_relationships_relation_type ON graph_relationships (relation_type);
+CREATE INDEX ix_graph_relationships_target_type ON graph_relationships (target_type);
+CREATE INDEX ix_graph_relationships_source_type ON graph_relationships (source_type);
+CREATE INDEX ix_graph_relationships_target_id ON graph_relationships (target_id);
+CREATE INDEX ix_graph_relationships_project_id ON graph_relationships (project_id);
+CREATE TABLE system_metric_points (
+	id INTEGER NOT NULL, 
+	project_id INTEGER, 
+	metric_type VARCHAR(64) NOT NULL, 
+	metric_name VARCHAR(128) NOT NULL, 
+	value FLOAT, 
+	unit VARCHAR(32), 
+	tags_json TEXT, 
+	created_at DATETIME, 
+	PRIMARY KEY (id), 
+	FOREIGN KEY(project_id) REFERENCES projects (id) ON DELETE CASCADE
 );
-
-CREATE INDEX IF NOT EXISTS idx_ai_inspection_project ON ai_inspection_results(project_id);
-CREATE INDEX IF NOT EXISTS idx_ai_inspection_chapter ON ai_inspection_results(chapter_id);
-CREATE INDEX IF NOT EXISTS idx_ai_inspection_chapter_type ON ai_inspection_results(chapter_id, inspection_type);
-
-CREATE TABLE IF NOT EXISTS writing_settings (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    project_id INTEGER,
-    human_ai_ratio REAL DEFAULT 0.5,
-    writing_style TEXT DEFAULT 'default',
-    target_word_count INTEGER DEFAULT 3000,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE CASCADE
+CREATE INDEX ix_system_metric_points_metric_type ON system_metric_points (metric_type);
+CREATE INDEX ix_system_metric_points_created_at ON system_metric_points (created_at);
+CREATE INDEX ix_system_metric_points_metric_name ON system_metric_points (metric_name);
+CREATE INDEX ix_system_metric_points_project_id ON system_metric_points (project_id);
+CREATE TABLE character_relationships (
+	id INTEGER NOT NULL, 
+	project_id INTEGER, 
+	character_id INTEGER NOT NULL, 
+	target_id INTEGER NOT NULL, 
+	type VARCHAR NOT NULL, 
+	description TEXT, 
+	PRIMARY KEY (id), 
+	FOREIGN KEY(project_id) REFERENCES projects (id), 
+	FOREIGN KEY(character_id) REFERENCES characters (id) ON DELETE CASCADE, 
+	FOREIGN KEY(target_id) REFERENCES characters (id) ON DELETE CASCADE
 );
-
-CREATE INDEX IF NOT EXISTS idx_writing_settings_project ON writing_settings(project_id);
-CREATE INDEX IF NOT EXISTS idx_writing_settings_updated ON writing_settings(updated_at DESC);
-
--- Insert default writing settings (global, no project_id)
-INSERT INTO writing_settings (human_ai_ratio, writing_style, target_word_count) VALUES (0.5, 'default', 3000);
-
--- ============================================
--- RAG Context & Chunk Storage
--- ============================================
-
-CREATE TABLE IF NOT EXISTS context_chunks (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    chunk_id TEXT NOT NULL UNIQUE,
-    chapter_id INTEGER NOT NULL,
-    scene_index INTEGER DEFAULT 0,
-    content TEXT NOT NULL,
-    chunk_type TEXT DEFAULT 'scene',
-    parent_chunk_id TEXT,
-    source_file TEXT,
-    metadata_json TEXT,
-    embedding_blob TEXT,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (chapter_id) REFERENCES chapters(id) ON DELETE CASCADE
+CREATE INDEX ix_character_relationships_project_id ON character_relationships (project_id);
+CREATE TABLE character_storylines (
+	id INTEGER NOT NULL, 
+	project_id INTEGER, 
+	character_id INTEGER NOT NULL, 
+	title VARCHAR NOT NULL, 
+	arc TEXT, 
+	progress INTEGER, 
+	PRIMARY KEY (id), 
+	FOREIGN KEY(project_id) REFERENCES projects (id), 
+	FOREIGN KEY(character_id) REFERENCES characters (id) ON DELETE CASCADE
 );
-
-CREATE INDEX IF NOT EXISTS idx_context_chunks_chunk_id ON context_chunks(chunk_id);
-CREATE INDEX IF NOT EXISTS idx_context_chunks_chapter ON context_chunks(chapter_id);
-CREATE INDEX IF NOT EXISTS idx_context_chunks_type ON context_chunks(chunk_type);
-CREATE INDEX IF NOT EXISTS idx_context_chunks_parent ON context_chunks(parent_chunk_id);
-
-CREATE TABLE IF NOT EXISTS query_logs (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    query TEXT NOT NULL,
-    query_type TEXT NOT NULL,
-    results_count INTEGER DEFAULT 0,
-    hit_sources_json TEXT,
-    latency_ms INTEGER DEFAULT 0,
-    chapter_id INTEGER,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (chapter_id) REFERENCES chapters(id) ON DELETE SET NULL
+CREATE INDEX ix_character_storylines_project_id ON character_storylines (project_id);
+CREATE TABLE chapters (
+	id INTEGER NOT NULL, 
+	project_id INTEGER, 
+	outline_id INTEGER, 
+	title VARCHAR, 
+	summary TEXT, 
+	status VARCHAR, 
+	word_count INTEGER, 
+	chapter_order INTEGER, 
+	content_storage_id VARCHAR(64), 
+	created_at DATETIME, 
+	updated_at DATETIME, 
+	PRIMARY KEY (id), 
+	FOREIGN KEY(project_id) REFERENCES projects (id), 
+	FOREIGN KEY(outline_id) REFERENCES outlines (id) ON DELETE SET NULL
 );
-
-CREATE INDEX IF NOT EXISTS idx_query_logs_type ON query_logs(query_type);
-CREATE INDEX IF NOT EXISTS idx_query_logs_chapter ON query_logs(chapter_id);
-CREATE INDEX IF NOT EXISTS idx_query_logs_created ON query_logs(created_at);
-
--- ============================================
--- Engagement & Hook Analysis
--- ============================================
-
-CREATE TABLE IF NOT EXISTS engagement_scores (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    project_id INTEGER,
-    chapter_id INTEGER NOT NULL,
-    word_count INTEGER DEFAULT 0,
-    cool_point_count INTEGER DEFAULT 0,
-    cool_point_density REAL DEFAULT 0.0,
-    cool_point_score REAL DEFAULT 0.0,
-    fulfillment_count INTEGER DEFAULT 0,
-    fulfillment_score REAL DEFAULT 0.0,
-    predicted_retention REAL DEFAULT 0.0,
-    retention_factors_json TEXT,
-    overall_engagement_score REAL DEFAULT 0.0,
-    pacing_analysis_json TEXT,
-    suggestions_json TEXT,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE CASCADE,
-    FOREIGN KEY (chapter_id) REFERENCES chapters(id) ON DELETE CASCADE
+CREATE INDEX ix_chapters_project_id ON chapters (project_id);
+CREATE TABLE if_lines (
+	id INTEGER NOT NULL, 
+	project_id INTEGER, 
+	title VARCHAR NOT NULL, 
+	linked_character_id INTEGER, 
+	description TEXT, 
+	sync_mode VARCHAR, 
+	created_at DATETIME, 
+	updated_at DATETIME, 
+	PRIMARY KEY (id), 
+	FOREIGN KEY(project_id) REFERENCES projects (id), 
+	FOREIGN KEY(linked_character_id) REFERENCES characters (id) ON DELETE SET NULL
 );
-
-CREATE INDEX IF NOT EXISTS idx_engagement_project ON engagement_scores(project_id);
-CREATE INDEX IF NOT EXISTS idx_engagement_chapter ON engagement_scores(chapter_id);
-
-CREATE TABLE IF NOT EXISTS hook_analyses (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    project_id INTEGER,
-    chapter_id INTEGER NOT NULL,
-    total_hooks INTEGER DEFAULT 0,
-    hooks_by_type_json TEXT,
-    hooks_by_position_json TEXT,
-    hooks_detail_json TEXT,
-    opening_hook_strength REAL DEFAULT 0.0,
-    ending_hook_strength REAL DEFAULT 0.0,
-    overall_hook_score REAL DEFAULT 0.0,
-    suggestions_json TEXT,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE CASCADE,
-    FOREIGN KEY (chapter_id) REFERENCES chapters(id) ON DELETE CASCADE
+CREATE INDEX ix_if_lines_project_id ON if_lines (project_id);
+CREATE TABLE chat_messages (
+	id INTEGER NOT NULL, 
+	project_id INTEGER, 
+	session_id INTEGER NOT NULL, 
+	role VARCHAR NOT NULL, 
+	content TEXT NOT NULL, 
+	created_at DATETIME, 
+	PRIMARY KEY (id), 
+	FOREIGN KEY(project_id) REFERENCES projects (id), 
+	FOREIGN KEY(session_id) REFERENCES chat_sessions (id) ON DELETE CASCADE
 );
-
-CREATE INDEX IF NOT EXISTS idx_hook_analysis_project ON hook_analyses(project_id);
-CREATE INDEX IF NOT EXISTS idx_hook_analysis_chapter ON hook_analyses(chapter_id);
-
--- ============================================
--- Strand & Pacing Analysis
--- ============================================
-
-CREATE TABLE IF NOT EXISTS strand_analyses (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    project_id INTEGER,
-    chapter_id INTEGER NOT NULL,
-    outline_id INTEGER,
-    quest_ratio REAL DEFAULT 0.0,
-    fire_ratio REAL DEFAULT 0.0,
-    constellation_ratio REAL DEFAULT 0.0,
-    dominant_strand TEXT DEFAULT 'quest',
-    confidence REAL DEFAULT 0.0,
-    method TEXT DEFAULT 'heuristic',
-    keywords_found_json TEXT,
-    red_line_violations_json TEXT,
-    health_score INTEGER DEFAULT 100,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE CASCADE,
-    FOREIGN KEY (chapter_id) REFERENCES chapters(id) ON DELETE CASCADE,
-    FOREIGN KEY (outline_id) REFERENCES outlines(id) ON DELETE SET NULL
+CREATE INDEX ix_chat_messages_project_id ON chat_messages (project_id);
+CREATE TABLE extracted_entities (
+	id INTEGER NOT NULL, 
+	project_id INTEGER, 
+	session_id INTEGER NOT NULL, 
+	type VARCHAR NOT NULL, 
+	name VARCHAR NOT NULL, 
+	description TEXT, 
+	confirmed INTEGER, 
+	created_at DATETIME, 
+	PRIMARY KEY (id), 
+	FOREIGN KEY(project_id) REFERENCES projects (id), 
+	FOREIGN KEY(session_id) REFERENCES chat_sessions (id) ON DELETE CASCADE
 );
-
-CREATE INDEX IF NOT EXISTS idx_strand_analysis_project ON strand_analyses(project_id);
-CREATE INDEX IF NOT EXISTS idx_strand_analysis_chapter ON strand_analyses(chapter_id);
-CREATE INDEX IF NOT EXISTS idx_strand_analysis_outline ON strand_analyses(outline_id);
-CREATE INDEX IF NOT EXISTS idx_strand_analysis_dominant ON strand_analyses(dominant_strand);
-
-CREATE TABLE IF NOT EXISTS pacing_red_line_logs (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    project_id INTEGER,
-    outline_id INTEGER NOT NULL,
-    strand TEXT NOT NULL,
-    violation_type TEXT NOT NULL,
-    chapters_affected_json TEXT,
-    severity TEXT DEFAULT 'warning',
-    message TEXT NOT NULL,
-    suggestion TEXT,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE CASCADE,
-    FOREIGN KEY (outline_id) REFERENCES outlines(id) ON DELETE CASCADE
+CREATE INDEX ix_extracted_entities_project_id ON extracted_entities (project_id);
+CREATE TABLE pacing_red_line_logs (
+	id INTEGER NOT NULL, 
+	project_id INTEGER, 
+	outline_id INTEGER NOT NULL, 
+	strand VARCHAR(32) NOT NULL, 
+	violation_type VARCHAR(32) NOT NULL, 
+	chapters_affected_json TEXT, 
+	severity VARCHAR(16), 
+	message TEXT NOT NULL, 
+	suggestion TEXT, 
+	created_at DATETIME, 
+	PRIMARY KEY (id), 
+	FOREIGN KEY(project_id) REFERENCES projects (id) ON DELETE CASCADE, 
+	FOREIGN KEY(outline_id) REFERENCES outlines (id) ON DELETE CASCADE
 );
-
-CREATE INDEX IF NOT EXISTS idx_pacing_red_line_project ON pacing_red_line_logs(project_id);
-CREATE INDEX IF NOT EXISTS idx_pacing_red_line_outline ON pacing_red_line_logs(outline_id);
-CREATE INDEX IF NOT EXISTS idx_pacing_red_line_strand ON pacing_red_line_logs(strand);
-CREATE INDEX IF NOT EXISTS idx_pacing_red_line_severity ON pacing_red_line_logs(severity);
-CREATE INDEX IF NOT EXISTS idx_pacing_red_line_created ON pacing_red_line_logs(created_at);
-
--- ============================================
--- Genre & Writing Guidance
--- ============================================
-
-CREATE TABLE IF NOT EXISTS genre_profiles (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    project_id INTEGER,
-    genre_name TEXT NOT NULL,
-    profile_key TEXT NOT NULL,
-    description TEXT,
-    core_tropes_json TEXT,
-    narrative_rhythm_json TEXT,
-    terminology_hints_json TEXT,
-    character_archetypes_json TEXT,
-    world_building_focus_json TEXT,
-    pressure_source TEXT,
-    release_target TEXT,
-    guidance_text TEXT,
-    composite_hints_json TEXT,
-    is_preset INTEGER DEFAULT 0,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE CASCADE
+CREATE INDEX ix_pacing_red_line_logs_project_id ON pacing_red_line_logs (project_id);
+CREATE INDEX ix_pacing_red_line_logs_strand ON pacing_red_line_logs (strand);
+CREATE INDEX ix_pacing_red_line_logs_created_at ON pacing_red_line_logs (created_at);
+CREATE INDEX ix_pacing_red_line_logs_outline_id ON pacing_red_line_logs (outline_id);
+CREATE INDEX ix_pacing_red_line_logs_severity ON pacing_red_line_logs (severity);
+CREATE TABLE draft_versions (
+	id INTEGER NOT NULL, 
+	project_id INTEGER, 
+	chapter_id INTEGER NOT NULL, 
+	content TEXT NOT NULL, 
+	content_storage_id VARCHAR(64), 
+	version_number INTEGER NOT NULL, 
+	created_at DATETIME, 
+	PRIMARY KEY (id), 
+	FOREIGN KEY(project_id) REFERENCES projects (id), 
+	FOREIGN KEY(chapter_id) REFERENCES chapters (id) ON DELETE CASCADE
 );
-
-CREATE INDEX IF NOT EXISTS idx_genre_profiles_project ON genre_profiles(project_id);
-CREATE INDEX IF NOT EXISTS idx_genre_profiles_genre ON genre_profiles(genre_name);
-CREATE INDEX IF NOT EXISTS idx_genre_profiles_key ON genre_profiles(profile_key);
-CREATE INDEX IF NOT EXISTS idx_genre_profiles_preset ON genre_profiles(is_preset);
-
-CREATE TABLE IF NOT EXISTS writing_guidance_records (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    project_id INTEGER,
-    chapter_id INTEGER NOT NULL,
-    strategy_card_json TEXT,
-    guidance_items_json TEXT,
-    methodology_items_json TEXT,
-    checklist_json TEXT,
-    checklist_completed INTEGER DEFAULT 0,
-    checklist_total INTEGER DEFAULT 0,
-    checklist_percentage REAL DEFAULT 0.0,
-    risk_flags_json TEXT,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE CASCADE,
-    FOREIGN KEY (chapter_id) REFERENCES chapters(id) ON DELETE CASCADE
+CREATE INDEX ix_draft_versions_project_id ON draft_versions (project_id);
+CREATE TABLE plot_threads (
+	id INTEGER NOT NULL, 
+	project_id INTEGER, 
+	title VARCHAR NOT NULL, 
+	description TEXT, 
+	status VARCHAR, 
+	created_chapter_id INTEGER, 
+	reveal_chapter_id INTEGER, 
+	created_at DATETIME, 
+	PRIMARY KEY (id), 
+	FOREIGN KEY(project_id) REFERENCES projects (id), 
+	FOREIGN KEY(created_chapter_id) REFERENCES chapters (id) ON DELETE SET NULL, 
+	FOREIGN KEY(reveal_chapter_id) REFERENCES chapters (id) ON DELETE SET NULL
 );
-
-CREATE INDEX IF NOT EXISTS idx_writing_guidance_project ON writing_guidance_records(project_id);
-CREATE INDEX IF NOT EXISTS idx_writing_guidance_chapter ON writing_guidance_records(chapter_id);
-
--- ============================================
--- Snapshot & Backup
--- ============================================
-
-CREATE TABLE IF NOT EXISTS snapshot_records (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    project_id INTEGER,
-    snapshot_id TEXT NOT NULL UNIQUE,
-    name TEXT NOT NULL,
-    description TEXT,
-    triggered_by TEXT DEFAULT 'manual',
-    version TEXT DEFAULT '1.0',
-    file_path TEXT,
-    size_bytes INTEGER DEFAULT 0,
-    entities_count INTEGER DEFAULT 0,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE CASCADE
+CREATE INDEX ix_plot_threads_project_id ON plot_threads (project_id);
+CREATE TABLE ai_inspection_results (
+	id INTEGER NOT NULL, 
+	project_id INTEGER, 
+	chapter_id INTEGER NOT NULL, 
+	inspection_type VARCHAR NOT NULL, 
+	issues_json TEXT, 
+	suggestions_json TEXT, 
+	auto_fixed INTEGER, 
+	created_at DATETIME, 
+	PRIMARY KEY (id), 
+	FOREIGN KEY(project_id) REFERENCES projects (id), 
+	FOREIGN KEY(chapter_id) REFERENCES chapters (id) ON DELETE CASCADE
 );
-
-CREATE INDEX IF NOT EXISTS idx_snapshots_project ON snapshot_records(project_id);
-CREATE INDEX IF NOT EXISTS idx_snapshots_snapshot_id ON snapshot_records(snapshot_id);
-CREATE INDEX IF NOT EXISTS idx_snapshots_triggered ON snapshot_records(triggered_by);
-CREATE INDEX IF NOT EXISTS idx_snapshots_created ON snapshot_records(created_at);
-
-CREATE TABLE IF NOT EXISTS backup_schedule_records (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    project_id INTEGER,
-    enabled INTEGER DEFAULT 1,
-    interval_minutes INTEGER DEFAULT 30,
-    max_snapshots INTEGER DEFAULT 20,
-    backup_on_shutdown INTEGER DEFAULT 1,
-    backup_on_chapter_save INTEGER DEFAULT 1,
-    backup_on_settings_change INTEGER DEFAULT 0,
-    last_backup_at TIMESTAMP,
-    last_backup_id TEXT,
-    total_backups INTEGER DEFAULT 0,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE CASCADE
+CREATE INDEX ix_ai_inspection_results_project_id ON ai_inspection_results (project_id);
+CREATE TABLE context_chunks (
+	id INTEGER NOT NULL, 
+	chunk_id VARCHAR(64) NOT NULL, 
+	chapter_id INTEGER NOT NULL, 
+	scene_index INTEGER, 
+	content TEXT NOT NULL, 
+	chunk_type VARCHAR(32), 
+	parent_chunk_id VARCHAR(64), 
+	source_file VARCHAR(255), 
+	metadata_json TEXT, 
+	embedding_blob TEXT, 
+	created_at DATETIME, 
+	updated_at DATETIME, 
+	PRIMARY KEY (id), 
+	FOREIGN KEY(chapter_id) REFERENCES chapters (id) ON DELETE CASCADE
 );
-
-CREATE INDEX IF NOT EXISTS idx_backup_schedule_project ON backup_schedule_records(project_id);
-
-CREATE TABLE IF NOT EXISTS archive_records (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    project_id INTEGER,
-    filename TEXT NOT NULL,
-    file_path TEXT,
-    format TEXT DEFAULT 'zip',
-    size_bytes INTEGER DEFAULT 0,
-    snapshot_id TEXT,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE CASCADE
+CREATE UNIQUE INDEX ix_context_chunks_chunk_id ON context_chunks (chunk_id);
+CREATE INDEX ix_context_chunks_parent_chunk_id ON context_chunks (parent_chunk_id);
+CREATE INDEX ix_context_chunks_chapter_id ON context_chunks (chapter_id);
+CREATE INDEX ix_context_chunks_chunk_type ON context_chunks (chunk_type);
+CREATE TABLE query_logs (
+	id INTEGER NOT NULL, 
+	"query" TEXT NOT NULL, 
+	query_type VARCHAR(32) NOT NULL, 
+	results_count INTEGER, 
+	hit_sources_json TEXT, 
+	latency_ms INTEGER, 
+	chapter_id INTEGER, 
+	created_at DATETIME, 
+	PRIMARY KEY (id), 
+	FOREIGN KEY(chapter_id) REFERENCES chapters (id) ON DELETE SET NULL
 );
-
-CREATE INDEX IF NOT EXISTS idx_archives_project ON archive_records(project_id);
-CREATE INDEX IF NOT EXISTS idx_archives_snapshot ON archive_records(snapshot_id);
-CREATE INDEX IF NOT EXISTS idx_archives_created ON archive_records(created_at);
-
--- ============================================
--- Index Debt & Quality Tracking
--- ============================================
-
-CREATE TABLE IF NOT EXISTS index_debt_records (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    project_id INTEGER,
-    debt_type TEXT NOT NULL,
-    severity TEXT DEFAULT 'medium',
-    status TEXT DEFAULT 'pending',
-    entity_type TEXT,
+CREATE INDEX ix_query_logs_chapter_id ON query_logs (chapter_id);
+CREATE INDEX ix_query_logs_query_type ON query_logs (query_type);
+CREATE INDEX ix_query_logs_created_at ON query_logs (created_at);
+CREATE TABLE engagement_scores (
+	id INTEGER NOT NULL, 
+	project_id INTEGER, 
+	chapter_id INTEGER NOT NULL, 
+	word_count INTEGER, 
+	cool_point_count INTEGER, 
+	cool_point_density FLOAT, 
+	cool_point_score FLOAT, 
+	fulfillment_count INTEGER, 
+	fulfillment_score FLOAT, 
+	predicted_retention FLOAT, 
+	retention_factors_json TEXT, 
+	overall_engagement_score FLOAT, 
+	pacing_analysis_json TEXT, 
+	suggestions_json TEXT, 
+	created_at DATETIME, 
+	updated_at DATETIME, 
+	PRIMARY KEY (id), 
+	FOREIGN KEY(project_id) REFERENCES projects (id) ON DELETE CASCADE, 
+	FOREIGN KEY(chapter_id) REFERENCES chapters (id) ON DELETE CASCADE
+);
+CREATE INDEX ix_engagement_scores_project_id ON engagement_scores (project_id);
+CREATE INDEX ix_engagement_scores_chapter_id ON engagement_scores (chapter_id);
+CREATE TABLE hook_analyses (
+	id INTEGER NOT NULL, 
+	project_id INTEGER, 
+	chapter_id INTEGER NOT NULL, 
+	total_hooks INTEGER, 
+	hooks_by_type_json TEXT, 
+	hooks_by_position_json TEXT, 
+	hooks_detail_json TEXT, 
+	opening_hook_strength FLOAT, 
+	ending_hook_strength FLOAT, 
+	overall_hook_score FLOAT, 
+	suggestions_json TEXT, 
+	created_at DATETIME, 
+	updated_at DATETIME, 
+	PRIMARY KEY (id), 
+	FOREIGN KEY(project_id) REFERENCES projects (id) ON DELETE CASCADE, 
+	FOREIGN KEY(chapter_id) REFERENCES chapters (id) ON DELETE CASCADE
+);
+CREATE INDEX ix_hook_analyses_project_id ON hook_analyses (project_id);
+CREATE INDEX ix_hook_analyses_chapter_id ON hook_analyses (chapter_id);
+CREATE TABLE strand_analyses (
+	id INTEGER NOT NULL, 
+	project_id INTEGER, 
+	chapter_id INTEGER NOT NULL, 
+	outline_id INTEGER, 
+	quest_ratio FLOAT, 
+	fire_ratio FLOAT, 
+	constellation_ratio FLOAT, 
+	dominant_strand VARCHAR(32), 
+	confidence FLOAT, 
+	method VARCHAR(32), 
+	keywords_found_json TEXT, 
+	red_line_violations_json TEXT, 
+	health_score INTEGER, 
+	created_at DATETIME, 
+	updated_at DATETIME, 
+	PRIMARY KEY (id), 
+	FOREIGN KEY(project_id) REFERENCES projects (id) ON DELETE CASCADE, 
+	FOREIGN KEY(chapter_id) REFERENCES chapters (id) ON DELETE CASCADE, 
+	FOREIGN KEY(outline_id) REFERENCES outlines (id) ON DELETE SET NULL
+);
+CREATE INDEX ix_strand_analyses_chapter_id ON strand_analyses (chapter_id);
+CREATE INDEX ix_strand_analyses_outline_id ON strand_analyses (outline_id);
+CREATE INDEX ix_strand_analyses_dominant_strand ON strand_analyses (dominant_strand);
+CREATE INDEX ix_strand_analyses_project_id ON strand_analyses (project_id);
+CREATE TABLE writing_guidance_records (
+	id INTEGER NOT NULL, 
+	project_id INTEGER, 
+	chapter_id INTEGER NOT NULL, 
+	strategy_card_json TEXT, 
+	guidance_items_json TEXT, 
+	methodology_items_json TEXT, 
+	checklist_json TEXT, 
+	checklist_completed INTEGER, 
+	checklist_total INTEGER, 
+	checklist_percentage FLOAT, 
+	risk_flags_json TEXT, 
+	created_at DATETIME, 
+	updated_at DATETIME, 
+	PRIMARY KEY (id), 
+	FOREIGN KEY(project_id) REFERENCES projects (id) ON DELETE CASCADE, 
+	FOREIGN KEY(chapter_id) REFERENCES chapters (id) ON DELETE CASCADE
+);
+CREATE INDEX ix_writing_guidance_records_project_id ON writing_guidance_records (project_id);
+CREATE INDEX ix_writing_guidance_records_chapter_id ON writing_guidance_records (chapter_id);
+CREATE TABLE constraint_violation_records (
+	id INTEGER NOT NULL, 
+	project_id INTEGER, 
+	chapter_id INTEGER NOT NULL, 
+	rule_id VARCHAR(128) NOT NULL, 
+	law_type VARCHAR(64) NOT NULL, 
+	severity VARCHAR(16), 
+	message TEXT NOT NULL, 
+	evidence TEXT, 
+	location VARCHAR(255), 
+	suggestion TEXT, 
+	metadata_json TEXT, 
+	created_at DATETIME, 
+	PRIMARY KEY (id), 
+	FOREIGN KEY(project_id) REFERENCES projects (id) ON DELETE CASCADE, 
+	FOREIGN KEY(chapter_id) REFERENCES chapters (id) ON DELETE CASCADE
+);
+CREATE INDEX ix_constraint_violation_records_chapter_id ON constraint_violation_records (chapter_id);
+CREATE INDEX ix_constraint_violation_records_law_type ON constraint_violation_records (law_type);
+CREATE INDEX ix_constraint_violation_records_created_at ON constraint_violation_records (created_at);
+CREATE INDEX ix_constraint_violation_records_project_id ON constraint_violation_records (project_id);
+CREATE INDEX ix_constraint_violation_records_severity ON constraint_violation_records (severity);
+CREATE INDEX ix_constraint_violation_records_rule_id ON constraint_violation_records (rule_id);
+CREATE TABLE narrative_debt_records (
+	id INTEGER NOT NULL, 
+	project_id INTEGER, 
+	debt_type VARCHAR(64) NOT NULL, 
+	status VARCHAR(16), 
+	priority VARCHAR(16), 
+	title VARCHAR(255) NOT NULL, 
+	description TEXT, 
+	created_chapter_id INTEGER, 
+	expected_chapter_id INTEGER, 
+	resolved_chapter_id INTEGER, 
+	keywords_json TEXT, 
+	related_character_ids_json TEXT, 
+	overdue_chapters INTEGER, 
+	resolved_at DATETIME, 
+	created_at DATETIME, 
+	updated_at DATETIME, 
+	PRIMARY KEY (id), 
+	FOREIGN KEY(project_id) REFERENCES projects (id) ON DELETE CASCADE, 
+	FOREIGN KEY(created_chapter_id) REFERENCES chapters (id) ON DELETE SET NULL, 
+	FOREIGN KEY(expected_chapter_id) REFERENCES chapters (id) ON DELETE SET NULL, 
+	FOREIGN KEY(resolved_chapter_id) REFERENCES chapters (id) ON DELETE SET NULL
+);
+CREATE INDEX ix_narrative_debt_records_debt_type ON narrative_debt_records (debt_type);
+CREATE INDEX ix_narrative_debt_records_project_id ON narrative_debt_records (project_id);
+CREATE INDEX ix_narrative_debt_records_status ON narrative_debt_records (status);
+CREATE INDEX ix_narrative_debt_records_priority ON narrative_debt_records (priority);
+CREATE TABLE quality_trend_points (
+	id INTEGER NOT NULL, 
+	project_id INTEGER, 
+	chapter_id INTEGER NOT NULL, 
+	inspection_id INTEGER, 
+	overall_score FLOAT, 
+	dimension_scores_json TEXT, 
+	severity_counts_json TEXT, 
+	risk_flags_json TEXT, 
+	created_at DATETIME, 
+	PRIMARY KEY (id), 
+	FOREIGN KEY(project_id) REFERENCES projects (id) ON DELETE CASCADE, 
+	FOREIGN KEY(chapter_id) REFERENCES chapters (id) ON DELETE CASCADE, 
+	FOREIGN KEY(inspection_id) REFERENCES ai_inspection_results (id) ON DELETE CASCADE
+);
+CREATE INDEX ix_quality_trend_points_project_id ON quality_trend_points (project_id);
+CREATE INDEX ix_quality_trend_points_inspection_id ON quality_trend_points (inspection_id);
+CREATE INDEX ix_quality_trend_points_created_at ON quality_trend_points (created_at);
+CREATE INDEX ix_quality_trend_points_chapter_id ON quality_trend_points (chapter_id);
+CREATE TABLE alembic_version (
+	version_num VARCHAR(32) NOT NULL, 
+	CONSTRAINT alembic_version_pkc PRIMARY KEY (version_num)
+);
+CREATE TABLE wiki_pages (
+    id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    project_id INTEGER REFERENCES projects(id),
+    entity_type VARCHAR(50),
     entity_id INTEGER,
-    entity_name TEXT,
-    description TEXT NOT NULL,
-    meta_json TEXT,
-    resolved_at TIMESTAMP,
-    ignore_reason TEXT,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE CASCADE
+    title VARCHAR(255) NOT NULL,
+    content TEXT NOT NULL DEFAULT '',
+    version INTEGER DEFAULT 1,
+    is_draft INTEGER DEFAULT 0,
+    created_at DATETIME,
+    updated_at DATETIME
 );
-
-CREATE INDEX IF NOT EXISTS idx_index_debt_project ON index_debt_records(project_id);
-CREATE INDEX IF NOT EXISTS idx_index_debt_type ON index_debt_records(debt_type);
-CREATE INDEX IF NOT EXISTS idx_index_debt_severity ON index_debt_records(severity);
-CREATE INDEX IF NOT EXISTS idx_index_debt_status ON index_debt_records(status);
-CREATE INDEX IF NOT EXISTS idx_index_debt_entity_type ON index_debt_records(entity_type);
-CREATE INDEX IF NOT EXISTS idx_index_debt_entity_id ON index_debt_records(entity_id);
-CREATE INDEX IF NOT EXISTS idx_index_debt_created ON index_debt_records(created_at);
-
-CREATE TABLE IF NOT EXISTS quality_trend_points (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    project_id INTEGER,
-    chapter_id INTEGER NOT NULL,
-    inspection_id INTEGER,
-    overall_score REAL,
-    dimension_scores_json TEXT,
-    severity_counts_json TEXT,
-    risk_flags_json TEXT,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE CASCADE,
-    FOREIGN KEY (chapter_id) REFERENCES chapters(id) ON DELETE CASCADE,
-    FOREIGN KEY (inspection_id) REFERENCES ai_inspection_results(id) ON DELETE CASCADE
+CREATE TABLE sqlite_sequence(name,seq);
+CREATE INDEX idx_wiki_pages_project_id ON wiki_pages(project_id);
+CREATE INDEX idx_wiki_pages_entity ON wiki_pages(entity_type, entity_id);
+CREATE TABLE wiki_versions (
+    id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    page_id INTEGER NOT NULL REFERENCES wiki_pages(id) ON DELETE CASCADE,
+    version INTEGER NOT NULL,
+    content TEXT NOT NULL,
+    change_summary TEXT,
+    created_at DATETIME
 );
-
-CREATE INDEX IF NOT EXISTS idx_quality_trend_project ON quality_trend_points(project_id);
-CREATE INDEX IF NOT EXISTS idx_quality_trend_chapter ON quality_trend_points(chapter_id);
-CREATE INDEX IF NOT EXISTS idx_quality_trend_inspection ON quality_trend_points(inspection_id);
-CREATE INDEX IF NOT EXISTS idx_quality_trend_created ON quality_trend_points(created_at);
-
--- ============================================
--- Constraint Rules
--- ============================================
-
-CREATE TABLE IF NOT EXISTS constraint_rule_records (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    project_id INTEGER,
-    rule_id TEXT NOT NULL,
-    law_type TEXT NOT NULL,
-    name TEXT NOT NULL,
-    description TEXT NOT NULL,
-    pattern TEXT,
-    severity TEXT DEFAULT 'high',
-    status TEXT DEFAULT 'active',
-    metadata_json TEXT,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE CASCADE
+CREATE TABLE wiki_entity_links (
+    id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    wiki_page_id INTEGER NOT NULL REFERENCES wiki_pages(id) ON DELETE CASCADE,
+    linked_entity_type VARCHAR(50) NOT NULL,
+    linked_entity_id INTEGER NOT NULL,
+    link_type VARCHAR(50) NOT NULL
 );
-
-CREATE INDEX IF NOT EXISTS idx_constraint_rules_project ON constraint_rule_records(project_id);
-CREATE INDEX IF NOT EXISTS idx_constraint_rules_rule_id ON constraint_rule_records(rule_id);
-CREATE INDEX IF NOT EXISTS idx_constraint_rules_law_type ON constraint_rule_records(law_type);
-CREATE INDEX IF NOT EXISTS idx_constraint_rules_severity ON constraint_rule_records(severity);
-CREATE INDEX IF NOT EXISTS idx_constraint_rules_status ON constraint_rule_records(status);
-
-CREATE TABLE IF NOT EXISTS constraint_violation_records (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    project_id INTEGER,
-    chapter_id INTEGER NOT NULL,
-    rule_id TEXT NOT NULL,
-    law_type TEXT NOT NULL,
-    severity TEXT DEFAULT 'medium',
-    message TEXT NOT NULL,
-    evidence TEXT,
-    location TEXT,
-    suggestion TEXT,
-    metadata_json TEXT,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE CASCADE,
-    FOREIGN KEY (chapter_id) REFERENCES chapters(id) ON DELETE CASCADE
-);
-
-CREATE INDEX IF NOT EXISTS idx_constraint_violations_project ON constraint_violation_records(project_id);
-CREATE INDEX IF NOT EXISTS idx_constraint_violations_chapter ON constraint_violation_records(chapter_id);
-CREATE INDEX IF NOT EXISTS idx_constraint_violations_rule ON constraint_violation_records(rule_id);
-CREATE INDEX IF NOT EXISTS idx_constraint_violations_law_type ON constraint_violation_records(law_type);
-CREATE INDEX IF NOT EXISTS idx_constraint_violations_severity ON constraint_violation_records(severity);
-CREATE INDEX IF NOT EXISTS idx_constraint_violations_created ON constraint_violation_records(created_at);
-
--- ============================================
--- Graph Relationships (Extended)
--- ============================================
-
-CREATE TABLE IF NOT EXISTS graph_relationships (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    project_id INTEGER,
-    source_type TEXT NOT NULL,
-    source_id INTEGER NOT NULL,
-    target_type TEXT NOT NULL,
-    target_id INTEGER NOT NULL,
-    relation_type TEXT NOT NULL,
-    label TEXT,
-    description TEXT,
-    properties_json TEXT,
-    directed INTEGER DEFAULT 1,
-    weight REAL DEFAULT 1.0,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE CASCADE
-);
-
-CREATE INDEX IF NOT EXISTS idx_graph_rel_project ON graph_relationships(project_id);
-CREATE INDEX IF NOT EXISTS idx_graph_rel_source ON graph_relationships(source_type, source_id);
-CREATE INDEX IF NOT EXISTS idx_graph_rel_target ON graph_relationships(target_type, target_id);
-CREATE INDEX IF NOT EXISTS idx_graph_rel_type ON graph_relationships(relation_type);
-
--- ============================================
--- Observability & Metrics
--- ============================================
-
-CREATE TABLE IF NOT EXISTS system_metric_points (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    project_id INTEGER,
-    metric_type TEXT NOT NULL,
-    metric_name TEXT NOT NULL,
-    value REAL DEFAULT 0.0,
-    unit TEXT,
-    tags_json TEXT,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE CASCADE
-);
-
-CREATE INDEX IF NOT EXISTS idx_system_metrics_project ON system_metric_points(project_id);
-CREATE INDEX IF NOT EXISTS idx_system_metrics_type ON system_metric_points(metric_type);
-CREATE INDEX IF NOT EXISTS idx_system_metrics_name ON system_metric_points(metric_name);
-CREATE INDEX IF NOT EXISTS idx_system_metrics_created ON system_metric_points(created_at);
-
-CREATE TABLE IF NOT EXISTS narrative_debt_records (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    project_id INTEGER,
-    debt_type TEXT NOT NULL,
-    status TEXT DEFAULT 'active',
-    priority TEXT DEFAULT 'medium',
-    title TEXT NOT NULL,
-    description TEXT,
-    created_chapter_id INTEGER,
-    expected_chapter_id INTEGER,
-    resolved_chapter_id INTEGER,
-    keywords_json TEXT,
-    related_character_ids_json TEXT,
-    overdue_chapters INTEGER DEFAULT 0,
-    resolved_at TIMESTAMP,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE CASCADE,
-    FOREIGN KEY (created_chapter_id) REFERENCES chapters(id) ON DELETE SET NULL,
-    FOREIGN KEY (expected_chapter_id) REFERENCES chapters(id) ON DELETE SET NULL,
-    FOREIGN KEY (resolved_chapter_id) REFERENCES chapters(id) ON DELETE SET NULL
-);
-
-CREATE INDEX IF NOT EXISTS idx_narrative_debt_project ON narrative_debt_records(project_id);
-CREATE INDEX IF NOT EXISTS idx_narrative_debt_type ON narrative_debt_records(debt_type);
-CREATE INDEX IF NOT EXISTS idx_narrative_debt_status ON narrative_debt_records(status);
-CREATE INDEX IF NOT EXISTS idx_narrative_debt_priority ON narrative_debt_records(priority);

@@ -342,7 +342,7 @@ class TestRouteRegistration:
     @pytest.mark.asyncio
     async def test_api_router_has_all_routers(self):
         """Test api_router includes all expected sub-routers."""
-        from backend.routes import api_router
+        from backend.api.v1.router import api_router
         routes = api_router.routes
         route_paths = set()
         for route in routes:
@@ -386,7 +386,7 @@ class TestRouteRegistration:
     @pytest.mark.asyncio
     async def test_no_duplicate_route_prefixes(self):
         """Test there are no conflicting duplicate route prefixes."""
-        from backend.routes import api_router
+        from backend.api.v1.router import api_router
         prefixes = []
         for route in api_router.routes:
             if hasattr(route, "path"):

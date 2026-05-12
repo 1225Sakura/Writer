@@ -16,6 +16,7 @@ from typing import Any, Callable, TypeVar
 
 import httpx
 
+from backend.config import settings
 from backend.core.services.ai.ai_service import AIService
 
 logger = logging.getLogger(__name__)
@@ -236,7 +237,7 @@ class BaseAgent:
 class MiniMaxAPIClient:
     """Reusable MiniMax API client with built-in retry logic."""
 
-    DEFAULT_MODEL = "MiniMax-Text-01"
+    DEFAULT_MODEL = settings.minimax_model
     DEFAULT_TIMEOUT = 60.0
     DEFAULT_MAX_CONTENT_LENGTH = 8000
 

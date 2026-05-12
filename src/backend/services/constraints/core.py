@@ -8,7 +8,7 @@ throughout the constraint subsystem.
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import datetime, timezone
 from enum import Enum
 from typing import Any, Optional
 
@@ -56,7 +56,7 @@ class ConstraintRule:
     severity: Severity = Severity.HIGH
     status: RuleStatus = RuleStatus.ACTIVE
     metadata: dict[str, Any] = field(default_factory=dict)
-    created_at: str = field(default_factory=lambda: datetime.utcnow().isoformat())
+    created_at: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -82,7 +82,7 @@ class ConstraintRule:
             severity=Severity(data.get("severity", "high")),
             status=RuleStatus(data.get("status", "active")),
             metadata=data.get("metadata", {}),
-            created_at=data.get("created_at", datetime.utcnow().isoformat()),
+            created_at=data.get("created_at", datetime.now(timezone.utc).isoformat()),
         )
 
 

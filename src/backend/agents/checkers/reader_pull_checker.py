@@ -2,18 +2,18 @@
 
 quick_scan: Heuristic check for obvious hook patterns.
 deep_analyze: AI-powered analysis for reader engagement effectiveness.
-
-Note: This checker is currently a placeholder. Full implementation requires
-defining what constitutes effective hooks in the context of this novel's
-genre and target audience.
 """
 
 from __future__ import annotations
 
+import json
+import re
 from typing import Any
 
 from .base import BaseChecker, CheckerResult
 from backend.core.services.ai.ai_service import AIService
+from backend.config import settings
+from ..utils import MiniMaxAPIClient
 
 
 class ReaderPullChecker(BaseChecker):
@@ -25,6 +25,7 @@ class ReaderPullChecker(BaseChecker):
             description="检查读者吸引力/钩子效果（开篇钩子、结尾悬念、冲突设置等）",
         )
         self._ai_service = ai_service
+        self._api_client = MiniMaxAPIClient(ai_service) if ai_service else None
 
     async def quick_scan(self, content: str) -> CheckerResult:
         """Heuristic scan for obvious hook patterns.
@@ -33,12 +34,110 @@ class ReaderPullChecker(BaseChecker):
         - Opening hook patterns
         - Ending cliffhanger signals
         - Conflict setup markers
+        - Mystery/suspense elements
         """
-        # TODO: implement heuristic hook detection
-        raise NotImplementedError(
-            "ReaderPullChecker.quick_scan() 尚未实现。"
-            "需要定义钩子检测的启发式规则（如结尾悬念信号、冲突关键词等）。"
-        )
+        issues: list[dict[str, Any]] = []
+        suggestions: list[str] = []
+        score = 100
+
+        text = content or ""
+        if not text:
+            return CheckerResult(score=100, issues=[], suggestions=[])
+
+        char_count = len(text)
+
+        # 1. Opening hook check (first 300 chars)
+        opening = text[:300] if len(text) > 300 else text
+        hook_patterns = [
+            r"(?:突然|忽然|骤然|猛然)",  # Sudden event
+            r"(?:死|杀|血|危险|恐惧)",  # Danger/thrill
+            r"(?:秘密|真相|谎言|隐瞒)",  # Mystery
+            r'(?:[“”「」][^“”「」]{5,30}[“”「」])',  # Dialogue opening
+            r"(?:一声|一道|一阵|一个)",  # Dramatic entry
+            r"(?:如果|假设|倘若|假如)",  # Hypothetical hook
+            r"(?:多年后|多年以前|那一天|那一刻)",  # Time jump
+        ]
+        has_opening_hook = any(re.search(p, opening) for p in hook_patterns)
+        if not has_opening_hook and char_count > 500:
+            issues.append({
+                "type": "weak_opening_hook",
+                "severity": "high",
+                "message": "开篇缺乏吸引读者的钩子",
+            })
+            suggestions.append("在章节开头设置悬念、冲突或引人注目的场景")
+            score -= 15
+
+        # 2. Ending cliffhanger check (last 300 chars)
+        ending = text[-300:] if len(text) > 300 else text
+        cliffhanger_patterns = [
+            r"(?:突然|忽然|骤然|猛然)",
+            r"(?:……|…|\.{3})",  # Ellipsis
+            r"(?:难道|莫非|难道说)",  # Suspicion
+            r"(?:没想到|始料未及|出乎意料)",  # Surprise
+            r"(?:竟然|居然|竟是|竟是)",  # Unexpected
+            r"(?:目光一凝|瞳孔一缩|脸色一变|身体一僵)",  # Physical reaction
+            r"(?:下一刻|下一秒|就在这时|就在此时)",  # Transition hook
+            r"(?:惊恐|震惊|大惊失色|面无人色)",  # Shock
+        ]
+        has_ending_hook = any(re.search(p, ending) for p in cliffhanger_patterns)
+        if not has_ending_hook and char_count > 500:
+            issues.append({
+                "type": "weak_ending_hook",
+                "severity": "high",
+                "message": "章节结尾缺乏悬念钩子",
+            })
+            suggestions.append("在章节结尾设置悬念或认知差，激发读者继续阅读")
+            score -= 15
+
+        # 3. Mystery/suspense elements check
+        mystery_keywords = [
+            "秘密", "真相", "谜", "未知", "隐藏", "隐瞒", "欺骗",
+            "假象", "伪装", "幕后", "阴谋", "陷阱", "圈套",
+        ]
+        mystery_count = sum(1 for kw in mystery_keywords if kw in text)
+        if mystery_count == 0 and char_count > 2000:
+            issues.append({
+                "type": "no_mystery_elements",
+                "severity": "medium",
+                "message": "章节缺乏悬念或谜团元素",
+            })
+            suggestions.append("适当设置悬念或认知差，保持读者好奇心")
+            score -= 8
+
+        # 4. Conflict presence check
+        conflict_keywords = [
+            "冲突", "矛盾", "争执", "争论", "对峙", "对抗",
+            "威胁", "危险", "危机", "困境", "绝境", "险境",
+        ]
+        conflict_count = sum(1 for kw in conflict_keywords if kw in text)
+        if conflict_count == 0 and char_count > 2000:
+            issues.append({
+                "type": "no_conflict",
+                "severity": "medium",
+                "message": "章节缺乏冲突或对抗元素",
+            })
+            suggestions.append("增加角色冲突或外部威胁，提升读者紧张感")
+            score -= 8
+
+        # 5. Cognitive gap / information asymmetry check
+        cognitive_gap_patterns = [
+            r"(?:只有|唯有|仅仅).{0,10}(?:知道|明白|清楚|了解)",
+            r"(?:不知道|不清楚|不明白|不了解).{0,15}(?:其实|实际上|事实上)",
+            r"(?:背后|暗中|私下|偷偷)",
+            r"(?:瞒着|欺骗|隐瞒|蒙在鼓里)",
+        ]
+        has_cognitive_gap = any(re.search(p, text) for p in cognitive_gap_patterns)
+        if not has_cognitive_gap and char_count > 2000:
+            issues.append({
+                "type": "no_cognitive_gap",
+                "severity": "low",
+                "message": "缺乏信息不对称或认知差元素",
+            })
+            suggestions.append("适当设置角色间的信息差，增加读者的优越感或好奇心")
+            score -= 5
+
+        score = max(0, score)
+        return CheckerResult(score=score, issues=issues, suggestions=suggestions)
 
     async def deep_analyze(
         self, content: str, context: dict[str, Any]
@@ -49,8 +148,100 @@ class ReaderPullChecker(BaseChecker):
             content: Chapter text to analyze.
             context: Optional context including genre, target_audience, next_chapter_preview.
         """
-        # TODO: implement AI-powered reader engagement analysis
-        raise NotImplementedError(
-            "ReaderPullChecker.deep_analyze() 尚未实现。"
-            "需要分析开篇钩子是否足够吸引人、结尾悬念是否足够、是否有足够的认知差激发好奇心。"
+        if not self._api_client:
+            return CheckerResult(
+                score=0,
+                issues=[{
+                    "type": "configuration_error",
+                    "message": "ReaderPullChecker 未配置 AI 服务",
+                }],
+                suggestions=["请在初始化时传入 ai_service 参数"],
+            )
+
+        genre = context.get("genre", "")
+        next_chapter_preview = context.get("next_chapter_preview", "")
+        previous_chapters = context.get("previous_chapters", [])
+        prev_text = (
+            previous_chapters if isinstance(previous_chapters, str)
+            else json.dumps(previous_chapters, ensure_ascii=False, indent=2)
         )
+
+        prompt = f"""请深度分析以下章节的读者吸引力和钩子效果。
+
+【章节内容】
+{content}
+
+【类型/风格】
+{genre}
+
+【前文摘要】
+{prev_text}
+
+【下章预览】
+{next_chapter_preview or "无"}
+
+请从以下维度分析读者吸引力：
+1. **开篇钩子**：开头是否能立即抓住读者注意力（前200字）
+2. **悬念设置**：章节中是否有足够的悬念和谜团
+3. **认知差**：是否有读者知道但角色不知道的信息（或反之）
+4. **冲突张力**：是否有足够的对抗和矛盾推动阅读
+5. **情感共鸣**：是否能引发读者的情感投入
+6. **结尾钩子**：结尾是否有足够的悬念让读者想看下一章
+7. **信息释放节奏**：是否适时揭示信息保持好奇心
+
+请以JSON格式返回：
+{{
+    "score": 0-100的评分,
+    "issues": [
+        {{
+            "type": "问题类型",
+            "severity": "critical|high|medium|low",
+            "message": "问题描述",
+            "evidence": "正文中的证据片段"
+        }}
+    ],
+    "suggestions": ["改进建议列表"]
+}}"""
+
+        system_prompt = (
+            "你是一位专业的网文读者体验分析专家。你的任务是评估小说章节是否能有效吸引读者继续阅读。"
+            "好的章节应该有清晰的钩子、足够的悬念、恰当的认知差和情感共鸣。"
+            "评分标准：100=极具吸引力，80=吸引力良好，60=吸引力一般，40=吸引力较差，"
+            "20=难以吸引读者，0=完全无法吸引读者。"
+        )
+
+        try:
+            ai_result = await self._api_client.call(
+                system_prompt=system_prompt,
+                user_content=prompt,
+                temperature=settings.ai_temperature,
+            )
+
+            try:
+                parsed = json.loads(ai_result)
+                return CheckerResult(
+                    score=parsed.get("score", 70),
+                    issues=parsed.get("issues", []),
+                    suggestions=parsed.get("suggestions", []),
+                )
+            except json.JSONDecodeError:
+                return CheckerResult(
+                    score=70,
+                    issues=[{
+                        "type": "parse_error",
+                        "severity": "low",
+                        "message": f"AI返回格式错误，原始响应: {ai_result[:200]}",
+                    }],
+                    suggestions=["请重试深度分析"],
+                )
+
+        except Exception as e:
+            return CheckerResult(
+                score=0,
+                issues=[{
+                    "type": "analysis_error",
+                    "severity": "critical",
+                    "message": f"读者吸引力检查分析失败: {str(e)}",
+                }],
+                suggestions=["请检查AI服务配置或稍后重试"],
+            )

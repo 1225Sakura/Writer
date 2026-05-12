@@ -1,44 +1,15 @@
 # Auto Novel Writer - Chapter Repository Interface
 # Abstract interface for Chapter persistence operations
 
-from abc import ABC, abstractmethod
+from abc import abstractmethod
 from typing import Optional, List
 
+from backend.core.repositories.base import BaseRepositoryInterface
 from backend.core.domain.entities import Chapter, DraftVersion
 
 
-class ChapterRepositoryInterface(ABC):
+class ChapterRepositoryInterface(BaseRepositoryInterface[Chapter]):
     """Abstract interface for Chapter repository operations."""
-
-    @abstractmethod
-    async def get_by_id(self, id: int) -> Optional[Chapter]:
-        """Fetch a chapter by primary key."""
-        ...
-
-    @abstractmethod
-    async def get_by_project(self, project_id: int) -> List[Chapter]:
-        """Fetch all chapters belonging to a project."""
-        ...
-
-    @abstractmethod
-    async def create(self, data: dict) -> Chapter:
-        """Create and persist a new chapter."""
-        ...
-
-    @abstractmethod
-    async def update(self, id: int, data: dict) -> Optional[Chapter]:
-        """Update a chapter by primary key."""
-        ...
-
-    @abstractmethod
-    async def delete(self, id: int) -> bool:
-        """Delete a chapter by primary key. Returns True if deleted."""
-        ...
-
-    @abstractmethod
-    async def list(self, skip: int = 0, limit: int = 100, **filters) -> List[Chapter]:
-        """List chapters with optional pagination and filters."""
-        ...
 
     @abstractmethod
     async def get_by_outline(self, outline_id: int, skip: int = 0, limit: int = 100) -> List[Chapter]:
