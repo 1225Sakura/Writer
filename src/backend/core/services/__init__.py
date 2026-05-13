@@ -29,7 +29,7 @@ def __getattr__(name: str):
         from .outline.outline_service import OutlineService
         return OutlineService
     if name in ("StyleConstraintEnforcer", "StyleConstraint"):
-        from .style.style_constraint_service import StyleConstraintEnforcer, StyleConstraint
+        from .style.style_constraint import StyleConstraintEnforcer, StyleConstraint
         return StyleConstraintEnforcer if name == "StyleConstraintEnforcer" else StyleConstraint
     if name == "AIService":
         from .ai.ai_service import AIService

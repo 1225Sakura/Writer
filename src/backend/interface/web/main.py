@@ -34,7 +34,7 @@ async def verify_websocket_auth(api_key: Optional[str]) -> bool:
         return True
     if not api_key:
         return False
-    from middleware.auth import get_or_create_api_key
+    from backend.middleware.auth import get_or_create_api_key
     valid_key = await get_or_create_api_key()
     import secrets
     return secrets.compare_digest(api_key, valid_key)
@@ -395,9 +395,19 @@ async def lifespan(app: FastAPI):
     # Startup
     logger.info("Application starting up...")
 
+    # Register event handlers for cache invalidation and stats
+    try:
+        from backend.events.handlers import register_handlers
+        from backend.api.v1.dependencies import get_event_bus
+        event_bus = get_event_bus()
+        register_handlers(event_bus)
+        logger.info("Event handlers registered")
+    except Exception as e:
+        logger.warning(f"Failed to register event handlers: {e}")
+
     # Check database migrations are current
     try:
-        from utils.migrations import check_migrations_current
+        from backend.utils.migrations import check_migrations_current
         migrations_ok = await check_migrations_current()
         if migrations_ok:
             logger.info("Database migrations are current")
@@ -410,7 +420,7 @@ async def lifespan(app: FastAPI):
 
     # Start background task queue if available
     try:
-        from services.task_queue import task_queue
+        from backend.services.task_queue import task_queue
         await task_queue.start()
         logger.info("Background task queue started")
     except ImportError:
@@ -420,7 +430,7 @@ async def lifespan(app: FastAPI):
 
     # Preload hot data into cache
     try:
-        from services.preload_service import preload_service
+        from backend.services.preload_service import preload_service
         preload_start = time.time()
         preload_summary = await preload_service.preload_all()
         preload_elapsed = (time.time() - preload_start) * 1000
@@ -442,7 +452,7 @@ async def lifespan(app: FastAPI):
 
     # Initialize AI ProviderRouter and wire to AIService
     try:
-        from services.ai import ProviderRouter, MiniMaxProvider, OpenAICompatibleProvider
+        from backend.services.ai import ProviderRouter, MiniMaxProvider, OpenAICompatibleProvider
         from backend.core.services.ai.ai_service import ai_service
 
         providers = []
@@ -488,9 +498,9 @@ async def lifespan(app: FastAPI):
 
     # Initialize workflow orchestrator and register core workflows
     try:
-        from agents.orchestrator import AgentOrchestrator, StageConfig
-        from agents.workflows import WORKFLOW_REGISTRY
-        from routes.workflows import set_orchestrator
+        from backend.agents.orchestrator import AgentOrchestrator, StageConfig
+        from backend.agents.workflows import WORKFLOW_REGISTRY
+        from backend.api.v1.endpoints.workflows import set_orchestrator
         from backend.api.v1.dependencies import get_event_bus
 
         orchestrator = AgentOrchestrator(get_event_bus())
@@ -539,7 +549,7 @@ async def lifespan(app: FastAPI):
 
     # Stop background task queue
     try:
-        from services.task_queue import task_queue
+        from backend.services.task_queue import task_queue
         await task_queue.stop()
         logger.info("Background task queue stopped")
     except ImportError:

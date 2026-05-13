@@ -6,6 +6,7 @@ from datetime import datetime, timezone
 
 from backend.core.services.base import BaseService
 from backend.core.domain.entities import Chapter, DraftVersion
+from backend.core.repositories.chapter.sqlalchemy_repository import SQLAlchemyChapterRepository
 
 
 class ChapterService(BaseService[Chapter]):
@@ -16,6 +17,7 @@ class ChapterService(BaseService[Chapter]):
 
     def __init__(self, db, event_bus, cache):
         super().__init__(db, event_bus, cache, Chapter)
+        self.repo = SQLAlchemyChapterRepository(db)
 
     async def update(self, id: int, data: dict) -> Optional[Chapter]:
         """Update a chapter, automatically setting updated_at."""

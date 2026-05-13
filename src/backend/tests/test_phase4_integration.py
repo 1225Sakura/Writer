@@ -204,7 +204,7 @@ class TestPreloadService:
     @pytest.mark.asyncio
     async def test_workflow_orchestrator_initialized(self):
         """Test workflow orchestrator is initialized during startup."""
-        from routes.workflows import get_orchestrator
+        from backend.api.v1.endpoints.workflows import get_orchestrator
         # This should not raise if orchestrator was set during startup
         # Note: In test context, orchestrator may not be initialized
         # so we check the function exists

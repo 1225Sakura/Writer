@@ -46,6 +46,16 @@ class AIService:
     # Provider router lifecycle
     # ------------------------------------------------------------------
 
+    @property
+    def base_url(self) -> str:
+        """Get the base URL for the AI provider."""
+        return self._base_url
+
+    @property
+    def api_key(self) -> str:
+        """Get the API key for the AI provider."""
+        return self._api_key
+
     def set_router(self, router: ProviderRouter) -> None:
         """Set the provider router (called from app lifespan)."""
         self._router = router

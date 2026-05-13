@@ -159,7 +159,7 @@ class DraftVersionResponse(BaseModel):
     chapter_id: int
     content: str
     version_number: int
-    created_at: datetime
+    created_at: Optional[datetime] = None
 
 
 class PlotThreadResponse(BaseModel):
