@@ -2,18 +2,14 @@ import { useUIStore } from '@/store'
 import { memo } from 'react'
 import { motion } from 'framer-motion'
 import {
-  Pen,
   List,
   MessageCircle,
   Users,
-  ArrowLeft,
 } from 'lucide-react'
 import { Icon } from '@/components/ui/Icon'
 
 export function ToolbarButtons() {
   const {
-    currentInterface,
-    setCurrentInterface,
     outlineDrawerOpen,
     toggleOutlineDrawer,
     aiDrawerOpen,
@@ -24,13 +20,6 @@ export function ToolbarButtons() {
 
   return (
     <div className="flex items-center gap-0.5 flex-shrink-0">
-      <ToolbarButton
-        icon={<Icon icon={Pen} size="sm" />}
-        label="写作"
-        shortcut="Ctrl+1"
-        isActive={currentInterface === 'writing'}
-        onClick={() => setCurrentInterface('writing')}
-      />
       <ToolbarButton
         icon={<Icon icon={List} size="sm" />}
         label="大纲"
@@ -54,27 +43,6 @@ export function ToolbarButtons() {
         onClick={toggleCollaborationDrawer}
       />
     </div>
-  )
-}
-
-export function NavButtons() {
-  const { setCurrentInterface } = useUIStore()
-
-  return (
-    <>
-      <NavButton
-        onClick={() => setCurrentInterface('chat')}
-        icon={<Icon icon={MessageCircle} size="sm" />}
-        label="返回聊天"
-        mobileLabel="聊天"
-      />
-      <NavButton
-        onClick={() => setCurrentInterface('settings')}
-        icon={<Icon icon={ArrowLeft} size="sm" />}
-        label="返回设定"
-        mobileLabel="设定"
-      />
-    </>
   )
 }
 
@@ -153,46 +121,6 @@ const ToolbarButton = memo(function ToolbarButton({
           style={{ backgroundColor: 'var(--color-vermillion)' }}
         />
       )}
-    </motion.button>
-  )
-})
-
-const NavButton = memo(function NavButton({
-  onClick,
-  icon,
-  label,
-  mobileLabel,
-}: {
-  onClick: () => void
-  icon: React.ReactNode
-  label: string
-  mobileLabel?: string
-}) {
-  return (
-    <motion.button
-      whileHover={{ scale: 1.03 }}
-      whileTap={{ scale: 0.97 }}
-      onClick={onClick}
-      className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-colors duration-150 flex-shrink-0 touch-target-min"
-      style={{
-        color: 'var(--text-secondary)',
-        background: 'transparent',
-        border: '1px solid transparent',
-      }}
-      onMouseEnter={(e) => {
-        e.currentTarget.style.background = 'var(--color-surface-raised)'
-        e.currentTarget.style.borderColor = 'var(--border-default)'
-        e.currentTarget.style.color = 'var(--text-primary)'
-      }}
-      onMouseLeave={(e) => {
-        e.currentTarget.style.background = 'transparent'
-        e.currentTarget.style.borderColor = 'transparent'
-        e.currentTarget.style.color = 'var(--text-secondary)'
-      }}
-    >
-      {icon}
-      <span className="hidden sm:inline">{label}</span>
-      {mobileLabel && <span className="sm:hidden">{mobileLabel}</span>}
     </motion.button>
   )
 })

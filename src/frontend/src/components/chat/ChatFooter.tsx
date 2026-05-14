@@ -1,7 +1,3 @@
-import { useUIStore } from '@/store'
-import { Button } from '@/components/ui/Button'
-import { ArrowRight, Settings, PenTool } from 'lucide-react'
-import { Icon } from '@/components/ui/Icon'
 import { motion } from 'framer-motion'
 import { DURATION, EASE } from '@/components/shared/AnimationConfig'
 import { usePrefersReducedMotion } from '@/hooks/usePrefersReducedMotion'
@@ -35,7 +31,6 @@ function TopGradientDivider() {
    ============================================================ */
 
 export function ChatFooter() {
-  const { setCurrentInterface } = useUIStore()
   const prefersReducedMotion = usePrefersReducedMotion()
 
   return (
@@ -71,63 +66,8 @@ export function ChatFooter() {
         </motion.div>
       </div>
 
-      {/* Right: Action buttons */}
-      <div className="flex items-center gap-1 sm:gap-2">
-        {/* Settings button */}
-        <motion.div
-          whileHover={{ scale: 1.04 }}
-          whileTap={{ scale: 0.96 }}
-        >
-          <Button
-            onClick={() => setCurrentInterface('settings')}
-            variant="secondary"
-            size="sm"
-            className="touch-target-min"
-          >
-            <Icon icon={Settings} size="sm" />
-            <span className="hidden sm:inline">设定编辑</span>
-          </Button>
-        </motion.div>
-
-        {/* Primary action - Start Writing */}
-        <motion.div
-          whileHover={{ scale: 1.04 }}
-          whileTap={{ scale: 0.96 }}
-          className="relative"
-        >
-          {/* Pulsing ambient glow ring */}
-          {!prefersReducedMotion && (
-            <motion.div
-              className="absolute inset-[-6px] rounded-xl pointer-events-none"
-              style={{
-                background: 'radial-gradient(circle, color-mix(in srgb, var(--accent-100) 30%, transparent) 0%, transparent 70%)',
-                filter: 'blur(6px)',
-              }}
-              animate={{
-                opacity: [0.1, 0.25, 0.1],
-                scale: [1, 1.06, 1],
-              }}
-              transition={{ duration: 2.5, repeat: Infinity, ease: 'easeInOut' }}
-            />
-          )}
-          <Button
-            onClick={() => setCurrentInterface('writing')}
-            variant="glow"
-            size="sm"
-            className="touch-target-min relative z-10"
-            glowColor="var(--accent-primary)"
-            style={{
-              background: 'linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-90) 50%, var(--accent-primary) 100%)',
-              backgroundSize: '200% 200%',
-              boxShadow: '0 0 16px color-mix(in srgb, var(--accent-100) 30%, transparent), 0 4px 12px color-mix(in srgb, var(--accent-100) 15%, transparent)',
-            }}
-          >
-            <Icon icon={PenTool} size="sm" />
-            <span className="hidden sm:inline">开始写作</span>
-            <Icon icon={ArrowRight} size="xs" />
-          </Button>
-        </motion.div>
-      </div>
+      {/* Right: reserved for future page-specific actions */}
+      <div className="flex items-center gap-1 sm:gap-2" />
     </motion.footer>
   )
 }

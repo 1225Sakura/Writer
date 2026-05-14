@@ -1,11 +1,9 @@
 import { useEffect, useState } from 'react'
 import { useChatStore } from '@/store/chatStore'
 import type { ExtractedEntityLocal } from '@/store/chatStore'
-import { useUIStore } from '@/store/uiStore'
 
 // Type alias for backward compatibility
 type ExtractedEntity = ExtractedEntityLocal
-import { ChatHeader } from './ChatHeader'
 import { ChatArea } from './ChatArea'
 import { ChatSidebar } from './ChatSidebar'
 import { ChatFooter } from './ChatFooter'
@@ -13,7 +11,7 @@ import { UserInputPanel } from './UserInputPanel'
 import { LeftSidebar } from '@/components/shared/LeftSidebar'
 import { motion, AnimatePresence } from 'framer-motion'
 import { usePrefersReducedMotion } from '@/hooks/usePrefersReducedMotion'
-import { X, CheckCircle, Circle, PenTool, Settings, BookOpen, Users, MapPin, Swords, ScrollText } from 'lucide-react'
+import { X, CheckCircle, Circle, BookOpen, Users, MapPin, Swords, ScrollText, Settings, PenTool } from 'lucide-react'
 import { GlassCard } from '@/components/ui/GlassCard'
 import { typeColors } from '@/lib/entityColors'
 import { EASE, DURATION, SPRING } from '@/components/shared/AnimationConfig'
@@ -160,8 +158,6 @@ const typeIcons: Record<string, React.ElementType> = {
 }
 
 function ChatLeftSidebarContent({ entities }: { entities: ExtractedEntity[] }) {
-  const { setCurrentInterface } = useUIStore()
-
   const groupedEntities = entities.reduce(
     (acc, entity) => {
       const key = entity.type
@@ -231,27 +227,6 @@ function ChatLeftSidebarContent({ entities }: { entities: ExtractedEntity[] }) {
         )}
       </div>
 
-      {/* Quick navigation links */}
-      <div className="p-3 border-t border-[var(--border-subtle)] space-y-1">
-        <motion.button
-          onClick={() => setCurrentInterface('settings')}
-          className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-sm text-[var(--text-secondary)] hover:text-[var(--accent-primary)] hover:bg-[var(--color-surface-hover)] transition-colors"
-          whileHover={{ x: 2 }}
-          whileTap={{ scale: 0.98 }}
-        >
-          <Settings className="w-4 h-4" />
-          <span>设定编辑</span>
-        </motion.button>
-        <motion.button
-          onClick={() => setCurrentInterface('writing')}
-          className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-sm text-[var(--text-secondary)] hover:text-[var(--accent-primary)] hover:bg-[var(--color-surface-hover)] transition-colors"
-          whileHover={{ x: 2 }}
-          whileTap={{ scale: 0.98 }}
-        >
-          <PenTool className="w-4 h-4" />
-          <span>开始写作</span>
-        </motion.button>
-      </div>
     </div>
   )
 }
@@ -288,9 +263,6 @@ export function ChatInitPage() {
       animate={{ opacity: 1 }}
       transition={{ duration: DURATION.SLOW, ease: EASE.OUT }}
     >
-      {/* === Header Layer === */}
-      <ChatHeader onMobileMenuClick={() => setMobileInfoOpen(true)} />
-
       {/* === Content Layer - Left/Right Split === */}
       <div className="flex flex-1 overflow-hidden relative z-10">
         {/* Left sidebar: entity overview + navigation */}

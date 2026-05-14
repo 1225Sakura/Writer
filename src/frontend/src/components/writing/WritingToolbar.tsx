@@ -3,7 +3,6 @@ import { motion } from 'framer-motion'
 import { ChevronDown } from 'lucide-react'
 import { SPRING } from '@/components/shared/AnimationConfig'
 import {
-  NavButtons,
   ToolbarButtons,
   RatioSliderSection,
   QuickAIOperations,
@@ -20,10 +19,6 @@ export function WritingToolbar() {
       className={`flex items-center px-3 sm:px-4 gap-1.5 sm:gap-2 layout-topbar overflow-x-auto writing-toolbar ${toolbarCollapsed ? 'h-0 opacity-0 overflow-hidden' : 'h-[var(--layout-topbar-height)]'}`}
       style={{ background: 'var(--color-surface-raised)', borderBottom: '1px solid var(--border-default)' }}
     >
-      <NavButtons />
-
-      <div className="w-px h-5 flex-shrink-0 mx-0.5" style={{ background: 'linear-gradient(to bottom, transparent, var(--border-default) 20%, var(--border-default) 80%, transparent)' }} />
-
       <ToolbarButtons />
 
       <div className="hidden lg:flex items-center gap-2 ml-2 flex-shrink-0">

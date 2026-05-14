@@ -10,7 +10,7 @@ import { Button } from '@/components/ui/Button'
 import { LeftSidebar } from '@/components/shared/LeftSidebar'
 import { CanvasView } from './CanvasView'
 import {
-  Settings, RefreshCw, PenTool, ArrowLeft, Check, AlertCircle,
+  Settings, RefreshCw, Check, AlertCircle,
   Keyboard, Sparkles, BarChart3, Zap, Menu, Network, List,
 } from 'lucide-react'
 import { Icon } from '@/components/ui/Icon'
@@ -154,7 +154,7 @@ function StatusBar() {
 }
 
 export function SettingEditorPage() {
-  const { settingsCategory, setCurrentInterface, setSettingsCategory } = useUIStore()
+  const { settingsCategory, setSettingsCategory } = useUIStore()
   const generateRelations = useSettingsStore((state) => state.generateRelations)
   const generate = useSettingsStore((state) => state.generate)
   const loadAll = useSettingsStore((state) => state.loadAll)
@@ -240,15 +240,6 @@ export function SettingEditorPage() {
                 {viewMode === 'edit' ? '画布' : '编辑'}
               </Button>
               <Button
-                onClick={() => setCurrentInterface('chat')}
-                variant="ghost"
-                size="sm"
-                className="gap-1"
-              >
-                <Icon icon={ArrowLeft} size="xs" color="inherit" />
-                返回
-              </Button>
-              <Button
                 onClick={() => {
                   if (settingsCategory !== 'outline' && settingsCategory !== 'ifline') {
                     generate(settingsCategory as 'character' | 'item' | 'location' | 'faction' | 'world' | 'rule')
@@ -260,15 +251,6 @@ export function SettingEditorPage() {
               >
                 <Icon icon={Sparkles} size="xs" color="accent" />
                 生成
-              </Button>
-              <Button
-                onClick={() => setCurrentInterface('writing')}
-                variant="accent"
-                size="sm"
-                className="gap-1"
-              >
-                <Icon icon={PenTool} size="xs" color="inherit" />
-                写作
               </Button>
             </div>
           </div>

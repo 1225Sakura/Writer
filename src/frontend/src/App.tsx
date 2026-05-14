@@ -8,6 +8,7 @@ import { ShortcutsHelp } from '@/components/shared/ShortcutsHelp'
 import { PageTransition } from '@/components/shared/PageTransition'
 import { ToastContainer } from '@/components/ui/Toast'
 import { LoadingOverlay } from '@/components/shared/LoadingOverlay'
+import { AppHeader } from '@/components/shared/AppHeader'
 import {
   UnifiedBackground,
   getBackgroundModeForInterface,
@@ -152,7 +153,7 @@ function AppContent() {
 
   return (
     <div
-      className={`h-screen w-screen overflow-hidden relative bg-layered ${bgClass} ${transitioning ? 'bg-transitioning' : ''}`}
+      className={`h-screen w-screen overflow-hidden relative bg-layered flex flex-col ${bgClass} ${transitioning ? 'bg-transitioning' : ''}`}
     >
       {/* Layer 0: Unified Background - single component for all effects */}
       {prefersReducedMotion ? (
@@ -176,8 +177,11 @@ function AppContent() {
         </Suspense>
       )}
 
-      {/* Layer 1: Page Content */}
-      <div className="bg-layered__content relative z-10">
+      {/* Layer 1: Shared Header */}
+      <AppHeader />
+
+      {/* Layer 2: Page Content */}
+      <div className="bg-layered__content relative z-10 flex-1 overflow-hidden">
         <PageTransition interfaceType={currentInterface}>
           {renderInterface()}
         </PageTransition>

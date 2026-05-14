@@ -1,11 +1,10 @@
 import { useState, useRef } from 'react'
-import { ExtractedEntity, useUIStore } from '@/store'
+import { ExtractedEntity } from '@/store'
 import { EntityTag } from './EntityTag'
 import {
   CheckCircle,
   Circle,
   ChevronRight,
-  ArrowRight,
   Sparkles,
   BookOpen,
   Feather,
@@ -463,49 +462,6 @@ export function CollectedInfoPanel({ entities, onConfirmEntity, onClose }: Colle
             </motion.div>
           )}
         </AnimatePresence>
-      </div>
-
-      {/* Footer actions */}
-      <div className="p-4 border-t border-default">
-        <div className="flex gap-2 mb-2">
-          <motion.button
-            className="flex-1 px-3 py-2 text-xs rounded-lg border border-default
-                       text-secondary hover:bg-surface-base hover:text-primary"
-            onClick={() => useUIStore.getState().setCurrentInterface('chat')}
-            whileHover={{ y: -1 }}
-            whileTap={{ scale: 0.97 }}
-          >
-            继续完善
-          </motion.button>
-          <motion.button
-            className="flex-1 px-3 py-2 text-xs rounded-lg border border-default
-                       text-secondary hover:bg-surface-base hover:text-primary"
-            onClick={() => useUIStore.getState().setCurrentInterface('settings')}
-            whileHover={{ y: -1 }}
-            whileTap={{ scale: 0.97 }}
-          >
-            查看完整设定
-          </motion.button>
-        </div>
-        <motion.button
-          className="w-full px-4 py-2.5 text-sm rounded-lg
-                     text-white flex items-center justify-center gap-2 font-medium
-                     bg-accent-primary hover:bg-accent-hover"
-          onClick={() => useUIStore.getState().setCurrentInterface('settings')}
-          whileHover={{
-            y: -1,
-            boxShadow: '0 0 20px color-mix(in srgb, var(--accent-primary) 30%, transparent)',
-          }}
-          whileTap={{ scale: 0.97 }}
-        >
-          <span>进入设定界面</span>
-          <motion.span
-            animate={{ x: [0, 3, 0] }}
-            transition={{ duration: 1.5, repeat: Infinity, ease: 'easeInOut' }}
-          >
-            <ArrowRight className="w-4 h-4" />
-          </motion.span>
-        </motion.button>
       </div>
     </div>
   )
