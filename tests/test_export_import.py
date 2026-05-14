@@ -198,7 +198,8 @@ class TestExportImportService:
 
         assert result["version"] == "1.0"
 
-    def test_import_version_check(self):
+    @pytest.mark.asyncio
+    async def test_import_version_check(self):
         """Test import rejects unsupported versions."""
         from backend.services.export_import import import_project
 
@@ -208,7 +209,7 @@ class TestExportImportService:
         }
 
         with pytest.raises(ValueError, match="Unsupported export version"):
-            import_project(data, mode="merge")
+            await import_project(data, mode="merge")
 
 
 class TestImportValidation:

@@ -8,7 +8,7 @@ that return SQLAlchemy model instances ready to be added to a session.
 from datetime import datetime
 from typing import Optional
 
-from backend.models.entities import (
+from backend.core.domain.entities import (
     Character,
     CharacterRelationship,
     CharacterStoryline,

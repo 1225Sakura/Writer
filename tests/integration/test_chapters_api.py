@@ -289,7 +289,7 @@ class TestDraftVersionCRUD:
             json=payload,
             headers=auth_headers,
         )
-        assert response.status_code == 400
+        assert response.status_code == 422
 
     async def test_get_nonexistent_draft_returns_404(self, client, auth_headers, db_session):
         """GET /api/v1/chapters/{id}/drafts/999 returns 404 for missing draft."""

@@ -8,7 +8,7 @@ import pytest
 from sqlalchemy import Column, Integer, String, Text, Float, DateTime, ForeignKey, Index
 from sqlalchemy.orm import relationship
 
-from backend.models.entities import (
+from backend.core.domain.entities import (
     Character,
     CharacterRelationship,
     CharacterStoryline,

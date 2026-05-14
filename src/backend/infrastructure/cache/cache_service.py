@@ -163,7 +163,10 @@ class CacheService:
 
         # Disk cache for persistent/large data
         if DISKCACHE_AVAILABLE:
-            self._disk_cache: Optional[Cache] = Cache(str(self._cache_dir))
+            try:
+                self._disk_cache: Optional[Cache] = Cache(str(self._cache_dir))
+            except (OSError, EnvironmentError):
+                self._disk_cache = None
         else:
             self._disk_cache = None
 

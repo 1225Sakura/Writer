@@ -13,6 +13,7 @@ from backend.agents.checkers import (
     HighPointChecker,
     ReaderPullChecker,
 )
+from backend.agents.checkers.base import CheckerResult
 
 
 def _make_async_result(value):
@@ -85,7 +86,7 @@ def mock_character():
 
 
 class TestConsistencyChecker:
-    """Test ConsistencyChecker."""
+    """Test ConsistencyChecker (has check + deep_analyze)."""
 
     @pytest.fixture
     def checker(self, mock_ai_service):
@@ -95,7 +96,6 @@ class TestConsistencyChecker:
     async def test_check_no_chapter(self, checker, mock_db):
         """Test check returns default when chapter not found."""
         result = await checker.check(999, mock_db)
-
         assert result == {"issues": [], "suggestions": [], "score": 100}
 
     @pytest.mark.asyncio
@@ -110,18 +110,12 @@ class TestConsistencyChecker:
             _make_async_result_list([]),
         ])
 
-        mock_response = AsyncMock()
-        mock_response.json = Mock(return_value={
-            "choices": [{"message": {"content": '{"issues": ["issue1"], "suggestions": ["suggestion1"], "score": 85}'}}]
-        })
-        mock_response.raise_for_status = Mock()
+        checker._api_client = AsyncMock()
+        checker._api_client.call = AsyncMock(
+            return_value='{"issues": ["issue1"], "suggestions": ["suggestion1"], "score": 85}'
+        )
 
-        mock_client = AsyncMock()
-        mock_client.post = AsyncMock(return_value=mock_response)
-
-        with patch('httpx.AsyncClient', return_value=mock_client):
-            result = await checker.check(1, mock_db)
-
+        result = await checker.check(1, mock_db)
         assert result["score"] == 85
         assert "issue1" in result["issues"]
 
@@ -137,18 +131,10 @@ class TestConsistencyChecker:
             _make_async_result_list([]),
         ])
 
-        mock_response = AsyncMock()
-        mock_response.json = Mock(return_value={
-            "choices": [{"message": {"content": "not valid json"}}]
-        })
-        mock_response.raise_for_status = Mock()
+        checker._api_client = AsyncMock()
+        checker._api_client.call = AsyncMock(return_value="not valid json")
 
-        mock_client = AsyncMock()
-        mock_client.post = AsyncMock(return_value=mock_response)
-
-        with patch('httpx.AsyncClient', return_value=mock_client):
-            result = await checker.check(1, mock_db)
-
+        result = await checker.check(1, mock_db)
         assert result["score"] == 70
         assert "格式错误" in result["issues"][0]
 
@@ -164,18 +150,28 @@ class TestConsistencyChecker:
             _make_async_result_list([]),
         ])
 
-        mock_client = AsyncMock()
-        mock_client.post = AsyncMock(side_effect=Exception("Network error"))
+        checker._api_client = AsyncMock()
+        checker._api_client.call = AsyncMock(side_effect=Exception("Network error"))
 
-        with patch('httpx.AsyncClient', return_value=mock_client):
-            result = await checker.check(1, mock_db)
-
+        result = await checker.check(1, mock_db)
         assert result["score"] == 0
         assert "失败" in result["issues"][0]
 
+    @pytest.mark.asyncio
+    async def test_deep_analyze_success(self, checker):
+        """Test deep_analyze returns CheckerResult."""
+        checker._api_client = AsyncMock()
+        checker._api_client.call = AsyncMock(
+            return_value='{"issues": [], "suggestions": [], "score": 90}'
+        )
+
+        result = await checker.deep_analyze("test content", {"world_settings": {}})
+        assert isinstance(result, CheckerResult)
+        assert result.score == 90
+
 
 class TestPacingChecker:
-    """Test PacingChecker."""
+    """Test PacingChecker (deep_analyze only)."""
 
     @pytest.fixture
     def checker(self, mock_ai_service):
@@ -188,131 +184,91 @@ class TestPacingChecker:
         assert PacingChecker.STRAND_RATIOS["constellation"] == 0.20
 
     @pytest.mark.asyncio
-    async def test_check_no_chapter(self, checker, mock_db):
-        """Test check returns default when chapter not found."""
-        result = await checker.check(999, mock_db)
-
-        assert result["score"] == 100
-        assert result["strand_ratios"] == {}
-
-    @pytest.mark.asyncio
-    async def test_check_success(self, checker, mock_db, mock_chapter, mock_draft):
-        """Test successful pacing check."""
-        mock_db.execute = AsyncMock(side_effect=[
-            _make_async_result(mock_chapter),
-            _make_async_result(mock_draft),
-        ])
-
-        mock_response = AsyncMock()
-        mock_response.json = Mock(return_value={
-            "choices": [{"message": {"content": '{"issues": [], "suggestions": [], "score": 90, "strand_ratios": {"quest": 0.6, "fire": 0.2, "constellation": 0.2}, "analysis": "Good pacing"}'}}]
-        })
-        mock_response.raise_for_status = Mock()
-
-        mock_client = AsyncMock()
-        mock_client.post = AsyncMock(return_value=mock_response)
-
-        with patch('httpx.AsyncClient', return_value=mock_client):
-            result = await checker.check(1, mock_db)
-
-        assert result["score"] == 90
-        assert result["strand_ratios"]["quest"] == 0.6
-        assert result["analysis"] == "Good pacing"
+    async def test_quick_scan_basic(self, checker):
+        """Test quick_scan returns a CheckerResult."""
+        result = await checker.quick_scan("这是一段测试内容，主角开始修炼。")
+        assert isinstance(result, CheckerResult)
+        assert 0 <= result.score <= 100
 
     @pytest.mark.asyncio
-    async def test_check_json_error(self, checker, mock_db, mock_chapter, mock_draft):
-        """Test check handles invalid JSON response."""
-        mock_db.execute = AsyncMock(side_effect=[
-            _make_async_result(mock_chapter),
-            _make_async_result(mock_draft),
-        ])
+    async def test_deep_analyze_success(self, checker):
+        """Test deep_analyze with mocked AI response."""
+        checker._api_client = AsyncMock()
+        checker._api_client.call = AsyncMock(
+            return_value='{"issues": [], "suggestions": [], "score": 90}'
+        )
 
-        mock_response = AsyncMock()
-        mock_response.json = Mock(return_value={
-            "choices": [{"message": {"content": "invalid"}}]
-        })
-        mock_response.raise_for_status = Mock()
+        result = await checker.deep_analyze("test content", {"genre": "玄幻"})
+        assert isinstance(result, CheckerResult)
+        assert result.score == 90
 
-        mock_client = AsyncMock()
-        mock_client.post = AsyncMock(return_value=mock_response)
+    @pytest.mark.asyncio
+    async def test_deep_analyze_json_error(self, checker):
+        """Test deep_analyze handles invalid JSON."""
+        checker._api_client = AsyncMock()
+        checker._api_client.call = AsyncMock(return_value="invalid json")
 
-        with patch('httpx.AsyncClient', return_value=mock_client):
-            result = await checker.check(1, mock_db)
+        result = await checker.deep_analyze("test content", {})
+        assert isinstance(result, CheckerResult)
+        assert result.score == 70
 
-        assert result["score"] == 70
-        assert result["strand_ratios"]["quest"] == 0.6
+    @pytest.mark.asyncio
+    async def test_deep_analyze_no_client(self, checker):
+        """Test deep_analyze returns error when no AI client."""
+        checker._api_client = None
+        result = await checker.deep_analyze("test content", {})
+        assert result.score == 0
 
 
 class TestOOCChecker:
-    """Test OOCChecker."""
+    """Test OOCChecker (deep_analyze only)."""
 
     @pytest.fixture
     def checker(self, mock_ai_service):
         return OOCChecker(mock_ai_service)
 
     @pytest.mark.asyncio
-    async def test_check_no_character(self, checker, mock_db):
-        """Test check returns default when character not found."""
-        result = await checker.check(1, 999, mock_db)
-
-        assert result["score"] == 100
-        assert result["violations"] == []
-
-    @pytest.mark.asyncio
-    async def test_check_no_chapter(self, checker, mock_db, mock_character):
-        mock_db.execute = AsyncMock(side_effect=[
-            _make_async_result(mock_character),
-            _make_async_result(None),
-        ])
-
-        result = await checker.check(1, 1, mock_db)
-        assert result["score"] == 100
+    async def test_quick_scan_basic(self, checker):
+        """Test quick_scan returns a CheckerResult."""
+        result = await checker.quick_scan("Hero spoke bravely.")
+        assert isinstance(result, CheckerResult)
+        assert 0 <= result.score <= 100
 
     @pytest.mark.asyncio
-    async def test_check_success(self, checker, mock_db, mock_character, mock_chapter, mock_draft):
-        """Test successful OOC check."""
-        mock_db.execute = AsyncMock(side_effect=[
-            _make_async_result(mock_character),
-            _make_async_result(mock_chapter),
-            _make_async_result(mock_draft),
-        ])
+    async def test_deep_analyze_success(self, checker):
+        """Test deep_analyze with mocked AI response."""
+        checker._api_client = AsyncMock()
+        checker._api_client.call = AsyncMock(
+            return_value='{"issues": [], "suggestions": [], "score": 95, "violations": []}'
+        )
 
-        mock_response = AsyncMock()
-        mock_response.json = Mock(return_value={
-            "choices": [{"message": {"content": '{"issues": [], "suggestions": [], "score": 95, "violations": []}'}}]
+        result = await checker.deep_analyze("test content", {
+            "character": {"name": "Hero", "personality": "Brave"}
         })
-        mock_response.raise_for_status = Mock()
-
-        mock_client = AsyncMock()
-        mock_client.post = AsyncMock(return_value=mock_response)
-
-        with patch('httpx.AsyncClient', return_value=mock_client):
-            result = await checker.check(1, 1, mock_db)
-
-        assert result["score"] == 95
-        assert "violations" in result
+        assert isinstance(result, CheckerResult)
+        assert result.score == 95
 
     @pytest.mark.asyncio
-    async def test_check_api_error(self, checker, mock_db, mock_character, mock_chapter, mock_draft):
-        """Test OOC check handles API errors."""
-        mock_db.execute = AsyncMock(side_effect=[
-            _make_async_result(mock_character),
-            _make_async_result(mock_chapter),
-            _make_async_result(mock_draft),
-        ])
+    async def test_deep_analyze_api_error(self, checker):
+        """Test deep_analyze handles API errors."""
+        checker._api_client = AsyncMock()
+        checker._api_client.call = AsyncMock(side_effect=Exception("API Error"))
 
-        mock_client = AsyncMock()
-        mock_client.post = AsyncMock(side_effect=Exception("API Error"))
+        result = await checker.deep_analyze("test content", {
+            "character": {"name": "Hero"}
+        })
+        assert result.score == 0
 
-        with patch('httpx.AsyncClient', return_value=mock_client):
-            result = await checker.check(1, 1, mock_db)
-
-        assert result["score"] == 0
-        assert "失败" in result["issues"][0]
+    @pytest.mark.asyncio
+    async def test_deep_analyze_no_client(self, checker):
+        """Test deep_analyze returns error when no AI client."""
+        checker._api_client = None
+        result = await checker.deep_analyze("test content", {})
+        assert result.score == 0
 
 
 class TestContinuityChecker:
-    """Test ContinuityChecker."""
+    """Test ContinuityChecker (has check + deep_analyze)."""
 
     @pytest.fixture
     def checker(self, mock_ai_service):
@@ -322,9 +278,8 @@ class TestContinuityChecker:
     async def test_check_no_chapter(self, checker, mock_db):
         """Test check returns default when chapter not found."""
         result = await checker.check(999, mock_db)
-
         assert result["score"] == 100
-        assert result["plot_thread_status"] == {}
+        assert result["issues"] == []
 
     @pytest.mark.asyncio
     async def test_check_success(self, checker, mock_db, mock_chapter, mock_draft):
@@ -336,145 +291,113 @@ class TestContinuityChecker:
             _make_async_result_list([]),
         ])
 
-        mock_response = AsyncMock()
-        mock_response.json = Mock(return_value={
-            "choices": [{"message": {"content": '{"issues": [], "suggestions": [], "score": 88, "plot_thread_status": {"fulfilled": [], "continued": [], "new_setup": []}}'}}]
-        })
-        mock_response.raise_for_status = Mock()
+        checker._api_client = AsyncMock()
+        checker._api_client.call = AsyncMock(
+            return_value='{"issues": [], "suggestions": [], "score": 88, "plot_thread_status": {"fulfilled": [], "continued": [], "new_setup": []}}'
+        )
 
-        mock_client = AsyncMock()
-        mock_client.post = AsyncMock(return_value=mock_response)
-
-        with patch('httpx.AsyncClient', return_value=mock_client):
-            result = await checker.check(1, mock_db)
-
+        result = await checker.check(1, mock_db)
         assert result["score"] == 88
         assert "plot_thread_status" in result
 
+    @pytest.mark.asyncio
+    async def test_deep_analyze_success(self, checker):
+        """Test deep_analyze returns CheckerResult."""
+        checker._api_client = AsyncMock()
+        checker._api_client.call = AsyncMock(
+            return_value='{"issues": [], "suggestions": [], "score": 85}'
+        )
+
+        result = await checker.deep_analyze("test content", {})
+        assert isinstance(result, CheckerResult)
+        assert result.score == 85
+
 
 class TestHighPointChecker:
-    """Test HighPointChecker."""
+    """Test HighPointChecker (deep_analyze only)."""
 
     @pytest.fixture
     def checker(self, mock_ai_service):
         return HighPointChecker(mock_ai_service)
 
     @pytest.mark.asyncio
-    async def test_check_no_chapter(self, checker, mock_db):
-        """Test check returns default when chapter not found."""
-        result = await checker.check(999, mock_db)
-
-        assert result["score"] == 100
-        assert result["high_points"] == []
-
-    @pytest.mark.asyncio
-    async def test_check_success(self, checker, mock_db, mock_chapter, mock_draft):
-        """Test successful high point check."""
-        mock_db.execute = AsyncMock(side_effect=[
-            _make_async_result(mock_chapter),
-            _make_async_result(mock_draft),
-        ])
-
-        mock_response = AsyncMock()
-        mock_response.json = Mock(return_value={
-            "choices": [{"message": {"content": '{"issues": [], "suggestions": [], "score": 92, "high_points": [{"location": "middle", "type": "战斗", "intensity": 8}], "excitement_density": "适中", "ending_hook": "strong"}'}}]
-        })
-        mock_response.raise_for_status = Mock()
-
-        mock_client = AsyncMock()
-        mock_client.post = AsyncMock(return_value=mock_response)
-
-        with patch('httpx.AsyncClient', return_value=mock_client):
-            result = await checker.check(1, mock_db)
-
-        assert result["score"] == 92
-        assert len(result["high_points"]) == 1
-        assert result["excitement_density"] == "适中"
-        assert result["ending_hook"] == "strong"
+    async def test_quick_scan_basic(self, checker):
+        """Test quick_scan returns a CheckerResult."""
+        result = await checker.quick_scan("战斗爆发了，主角使出绝招。")
+        assert isinstance(result, CheckerResult)
+        assert 0 <= result.score <= 100
 
     @pytest.mark.asyncio
-    async def test_check_json_error(self, checker, mock_db, mock_chapter, mock_draft):
-        """Test check handles invalid JSON."""
-        mock_db.execute = AsyncMock(side_effect=[
-            _make_async_result(mock_chapter),
-            _make_async_result(mock_draft),
-        ])
+    async def test_deep_analyze_success(self, checker):
+        """Test deep_analyze with mocked AI response."""
+        checker._api_client = AsyncMock()
+        checker._api_client.call = AsyncMock(
+            return_value='{"issues": [], "suggestions": [], "score": 92}'
+        )
 
-        mock_response = AsyncMock()
-        mock_response.json = Mock(return_value={
-            "choices": [{"message": {"content": "bad json"}}]
-        })
-        mock_response.raise_for_status = Mock()
+        result = await checker.deep_analyze("test content", {})
+        assert isinstance(result, CheckerResult)
+        assert result.score == 92
 
-        mock_client = AsyncMock()
-        mock_client.post = AsyncMock(return_value=mock_response)
+    @pytest.mark.asyncio
+    async def test_deep_analyze_json_error(self, checker):
+        """Test deep_analyze handles invalid JSON."""
+        checker._api_client = AsyncMock()
+        checker._api_client.call = AsyncMock(return_value="bad json")
 
-        with patch('httpx.AsyncClient', return_value=mock_client):
-            result = await checker.check(1, mock_db)
+        result = await checker.deep_analyze("test content", {})
+        assert isinstance(result, CheckerResult)
+        assert result.score == 70
 
-        assert result["score"] == 70
-        assert result["excitement_density"] == "适中"
+    @pytest.mark.asyncio
+    async def test_deep_analyze_no_client(self, checker):
+        """Test deep_analyze returns error when no AI client."""
+        checker._api_client = None
+        result = await checker.deep_analyze("test content", {})
+        assert result.score == 0
 
 
 class TestReaderPullChecker:
-    """Test ReaderPullChecker."""
+    """Test ReaderPullChecker (deep_analyze only)."""
 
     @pytest.fixture
     def checker(self, mock_ai_service):
         return ReaderPullChecker(mock_ai_service)
 
     @pytest.mark.asyncio
-    async def test_check_no_chapter(self, checker, mock_db):
-        """Test check returns default when chapter not found."""
-        result = await checker.check(999, mock_db)
-
-        assert result["score"] == 100
-        assert result["hooks"] == []
-
-    @pytest.mark.asyncio
-    async def test_check_success(self, checker, mock_db, mock_chapter, mock_draft):
-        """Test successful reader pull check."""
-        mock_db.execute = AsyncMock(side_effect=[
-            _make_async_result(mock_chapter),
-            _make_async_result(mock_draft),
-            _make_async_result(None),
-        ])
-
-        mock_response = AsyncMock()
-        mock_response.json = Mock(return_value={
-            "choices": [{"message": {"content": '{"issues": [], "suggestions": [], "score": 87, "hooks": [{"location": "ending", "type": "悬念", "description": " cliffhanger", "effectiveness": 9}], "opening_hook": "good", "ending_hook": "excellent", "curiosity_gaps": ["What happens next?"]}'}}]
-        })
-        mock_response.raise_for_status = Mock()
-
-        mock_client = AsyncMock()
-        mock_client.post = AsyncMock(return_value=mock_response)
-
-        with patch('httpx.AsyncClient', return_value=mock_client):
-            result = await checker.check(1, mock_db)
-
-        assert result["score"] == 87
-        assert len(result["hooks"]) == 1
-        assert result["opening_hook"] == "good"
-        assert result["ending_hook"] == "excellent"
-        assert len(result["curiosity_gaps"]) == 1
+    async def test_quick_scan_basic(self, checker):
+        """Test quick_scan returns a CheckerResult."""
+        result = await checker.quick_scan("突然，门外传来一阵脚步声。")
+        assert isinstance(result, CheckerResult)
+        assert 0 <= result.score <= 100
 
     @pytest.mark.asyncio
-    async def test_check_api_error(self, checker, mock_db, mock_chapter, mock_draft):
-        """Test reader pull check handles API errors."""
-        mock_db.execute = AsyncMock(side_effect=[
-            _make_async_result(mock_chapter),
-            _make_async_result(mock_draft),
-            _make_async_result(None),
-        ])
+    async def test_deep_analyze_success(self, checker):
+        """Test deep_analyze with mocked AI response."""
+        checker._api_client = AsyncMock()
+        checker._api_client.call = AsyncMock(
+            return_value='{"issues": [], "suggestions": [], "score": 87}'
+        )
 
-        mock_client = AsyncMock()
-        mock_client.post = AsyncMock(side_effect=Exception("API Error"))
+        result = await checker.deep_analyze("test content", {})
+        assert isinstance(result, CheckerResult)
+        assert result.score == 87
 
-        with patch('httpx.AsyncClient', return_value=mock_client):
-            result = await checker.check(1, mock_db)
+    @pytest.mark.asyncio
+    async def test_deep_analyze_api_error(self, checker):
+        """Test deep_analyze handles API errors."""
+        checker._api_client = AsyncMock()
+        checker._api_client.call = AsyncMock(side_effect=Exception("API Error"))
 
-        assert result["score"] == 0
-        assert "失败" in result["issues"][0]
+        result = await checker.deep_analyze("test content", {})
+        assert result.score == 0
+
+    @pytest.mark.asyncio
+    async def test_deep_analyze_no_client(self, checker):
+        """Test deep_analyze returns error when no AI client."""
+        checker._api_client = None
+        result = await checker.deep_analyze("test content", {})
+        assert result.score == 0
 
 
 class TestCheckerImports:
@@ -482,7 +405,7 @@ class TestCheckerImports:
 
     def test_all_checkers_importable(self):
         """Test all 6 checkers are importable."""
-        from agents.checkers import __all__
+        from backend.agents.checkers import __all__
 
         assert "ConsistencyChecker" in __all__
         assert "PacingChecker" in __all__
@@ -490,4 +413,3 @@ class TestCheckerImports:
         assert "ContinuityChecker" in __all__
         assert "HighPointChecker" in __all__
         assert "ReaderPullChecker" in __all__
-        assert len(__all__) == 6

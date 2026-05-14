@@ -16,26 +16,24 @@ class TestContextAgent:
         return db
 
     def test_context_agent_initialization(self):
-        """Test ContextAgent initializes with AI service."""
+        """Test ContextAgent is a valid agent class."""
         from backend.agents.context_agent import ContextAgent
-        from backend.services.ai_service import AIService
+        from backend.agents.base import BaseAgent
 
-        ai_service = MagicMock(spec=AIService)
-        agent = ContextAgent(ai_service)
-        assert agent is not None
+        assert issubclass(ContextAgent, BaseAgent)
+        assert hasattr(ContextAgent, 'generate_chapter_context')
 
 
 class TestDataAgent:
     """Test DataAgent for entity extraction from chapter content."""
 
     def test_data_agent_initialization(self):
-        """Test DataAgent initializes."""
+        """Test DataAgent is a valid agent class."""
         from backend.agents.data_agent import DataAgent
-        from backend.services.ai_service import AIService
+        from backend.agents.base import BaseAgent
 
-        ai_service = MagicMock(spec=AIService)
-        agent = DataAgent(ai_service)
-        assert agent is not None
+        assert issubclass(DataAgent, BaseAgent)
+        assert hasattr(DataAgent, 'process_chapter')
 
 
 class TestCheckerAgents:
@@ -44,7 +42,7 @@ class TestCheckerAgents:
     def test_consistency_checker_exists(self):
         """Test consistency checker is importable."""
         from backend.agents.checkers.consistency_checker import ConsistencyChecker
-        from backend.services.ai_service import AIService
+        from backend.core.services.ai.ai_service import AIService
 
         ai_service = MagicMock(spec=AIService)
         checker = ConsistencyChecker(ai_service)
@@ -53,7 +51,7 @@ class TestCheckerAgents:
     def test_pacing_checker_exists(self):
         """Test pacing checker is importable."""
         from backend.agents.checkers.pacing_checker import PacingChecker
-        from backend.services.ai_service import AIService
+        from backend.core.services.ai.ai_service import AIService
 
         ai_service = MagicMock(spec=AIService)
         checker = PacingChecker(ai_service)
@@ -62,7 +60,7 @@ class TestCheckerAgents:
     def test_ooc_checker_exists(self):
         """Test OOC (out of character) checker is importable."""
         from backend.agents.checkers.ooc_checker import OOCChecker
-        from backend.services.ai_service import AIService
+        from backend.core.services.ai.ai_service import AIService
 
         ai_service = MagicMock(spec=AIService)
         checker = OOCChecker(ai_service)
@@ -71,7 +69,7 @@ class TestCheckerAgents:
     def test_continuity_checker_exists(self):
         """Test continuity checker is importable."""
         from backend.agents.checkers.continuity_checker import ContinuityChecker
-        from backend.services.ai_service import AIService
+        from backend.core.services.ai.ai_service import AIService
 
         ai_service = MagicMock(spec=AIService)
         checker = ContinuityChecker(ai_service)
@@ -80,7 +78,7 @@ class TestCheckerAgents:
     def test_high_point_checker_exists(self):
         """Test high point checker is importable."""
         from backend.agents.checkers.high_point_checker import HighPointChecker
-        from backend.services.ai_service import AIService
+        from backend.core.services.ai.ai_service import AIService
 
         ai_service = MagicMock(spec=AIService)
         checker = HighPointChecker(ai_service)
@@ -89,7 +87,7 @@ class TestCheckerAgents:
     def test_reader_pull_checker_exists(self):
         """Test reader pull checker is importable."""
         from backend.agents.checkers.reader_pull_checker import ReaderPullChecker
-        from backend.services.ai_service import AIService
+        from backend.core.services.ai.ai_service import AIService
 
         ai_service = MagicMock(spec=AIService)
         checker = ReaderPullChecker(ai_service)

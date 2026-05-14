@@ -274,7 +274,7 @@ class ContinuityChecker(BaseChecker):
         Returns:
             Dict with continuity issues and suggestions
         """
-        from ...models.entities import Chapter, DraftVersion, PlotThread
+        from ...core.domain.entities import Chapter, DraftVersion, PlotThread
 
         result = await db.execute(select(Chapter).where(Chapter.id == chapter_id))
         chapter = result.scalar_one_or_none()

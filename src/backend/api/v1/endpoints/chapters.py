@@ -437,7 +437,7 @@ async def create_draft_version(
 ):
     """Create a new draft version for a chapter."""
     if draft.chapter_id != chapter_id:
-        raise ValidationError(code="CHAPTER_ID_MISMATCH", message="Chapter ID mismatch")
+        raise ValidationError(message="Chapter ID mismatch", error_code="CHAPTER_ID_MISMATCH")
     return await service.create_draft_version(draft.model_dump())
 
 

@@ -255,8 +255,12 @@ class TestImportProject:
         }
 
         mock_session = AsyncMock()
+        # Mock execute to return result with scalars().all() chain
+        mock_result = MagicMock()
+        mock_result.scalars.return_value.all.return_value = []
+        mock_session.execute = AsyncMock(return_value=mock_result)
 
-        with patch('services.export_import.async_session_maker') as mock_maker:
+        with patch('backend.services.export_import.async_session_maker') as mock_maker:
             mock_maker.return_value.__aenter__ = AsyncMock(return_value=mock_session)
             mock_maker.return_value.__aexit__ = AsyncMock(return_value=False)
 
@@ -287,7 +291,7 @@ class TestImportProject:
 
         mock_session = AsyncMock()
 
-        with patch('services.export_import.async_session_maker') as mock_maker:
+        with patch('backend.services.export_import.async_session_maker') as mock_maker:
             mock_maker.return_value.__aenter__ = AsyncMock(return_value=mock_session)
             mock_maker.return_value.__aexit__ = AsyncMock(return_value=False)
 

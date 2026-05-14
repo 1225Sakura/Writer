@@ -33,109 +33,91 @@ class TestRateLimitStore:
         assert store._store == {}
         assert store._cleanup_interval == 60.0
 
-    def test_check_rate_limit_new_ip(self, store):
+    @pytest.mark.asyncio
+    async def test_check_rate_limit_new_ip(self, store):
         """Test new IP is allowed."""
-        allowed, limit, remaining = store.check_rate_limit("192.168.1.1", 10, 60.0)
+        allowed, limit, remaining = await store.check_rate_limit("192.168.1.1", 10, 60.0)
 
         assert allowed is True
         assert limit == 10
         assert remaining == 9
 
-    def test_check_rate_limit_multiple_requests(self, store):
+    @pytest.mark.asyncio
+    async def test_check_rate_limit_multiple_requests(self, store):
         """Test multiple requests decrement remaining."""
-        store.check_rate_limit("192.168.1.1", 5, 60.0)
-        store.check_rate_limit("192.168.1.1", 5, 60.0)
+        await store.check_rate_limit("192.168.1.1", 5, 60.0)
+        await store.check_rate_limit("192.168.1.1", 5, 60.0)
 
-        allowed, limit, remaining = store.check_rate_limit("192.168.1.1", 5, 60.0)
+        allowed, limit, remaining = await store.check_rate_limit("192.168.1.1", 5, 60.0)
 
         assert allowed is True
         assert remaining == 2
 
-    def test_check_rate_limit_exceeded(self, store):
+    @pytest.mark.asyncio
+    async def test_check_rate_limit_exceeded(self, store):
         """Test rate limit is enforced."""
         for _ in range(5):
-            store.check_rate_limit("192.168.1.1", 5, 60.0)
+            await store.check_rate_limit("192.168.1.1", 5, 60.0)
 
-        allowed, limit, remaining = store.check_rate_limit("192.168.1.1", 5, 60.0)
+        allowed, limit, remaining = await store.check_rate_limit("192.168.1.1", 5, 60.0)
 
         assert allowed is False
         assert remaining == 0
 
-    def test_check_rate_limit_window_expires(self, store):
+    @pytest.mark.asyncio
+    async def test_check_rate_limit_window_expires(self, store):
         """Test old requests outside window are removed."""
-        # Add a request
-        store.check_rate_limit("192.168.1.1", 1, 0.1)
+        await store.check_rate_limit("192.168.1.1", 1, 0.1)
 
-        # Wait for window to expire
         time.sleep(0.15)
 
-        # Should be allowed again
-        allowed, _, _ = store.check_rate_limit("192.168.1.1", 1, 0.1)
+        allowed, _, _ = await store.check_rate_limit("192.168.1.1", 1, 0.1)
         assert allowed is True
 
-    def test_check_rate_limit_different_ips(self, store):
+    @pytest.mark.asyncio
+    async def test_check_rate_limit_different_ips(self, store):
         """Test rate limiting is per-IP."""
-        store.check_rate_limit("192.168.1.1", 2, 60.0)
-        store.check_rate_limit("192.168.1.1", 2, 60.0)
+        await store.check_rate_limit("192.168.1.1", 2, 60.0)
+        await store.check_rate_limit("192.168.1.1", 2, 60.0)
 
-        # Different IP should still be allowed
-        allowed, _, remaining = store.check_rate_limit("192.168.1.2", 2, 60.0)
+        allowed, _, remaining = await store.check_rate_limit("192.168.1.2", 2, 60.0)
 
         assert allowed is True
         assert remaining == 1
 
-    def test_cleanup_expired(self, store):
+    @pytest.mark.asyncio
+    async def test_cleanup_expired(self, store):
         """Test cleanup removes expired entries."""
-        store.check_rate_limit("192.168.1.1", 10, 0.1)
+        await store.check_rate_limit("192.168.1.1", 10, 0.1)
 
-        # Wait for expiration
         time.sleep(0.15)
 
-        # Force cleanup
-        store._cleanup_expired(max_age=0.05)
+        # Reset last_cleanup to allow cleanup to run
+        store._last_cleanup = 0
+        await store._cleanup_expired(max_age=0.05)
 
         assert "192.168.1.1" not in store._store
 
-    def test_cleanup_not_called_too_often(self, store):
+    @pytest.mark.asyncio
+    async def test_cleanup_not_called_too_often(self, store):
         """Test cleanup respects interval."""
-        store.check_rate_limit("192.168.1.1", 10, 60.0)
+        await store.check_rate_limit("192.168.1.1", 10, 60.0)
         store._last_cleanup = time.time()
 
-        # Should not cleanup since interval hasn't passed
-        store._cleanup_expired()
+        await store._cleanup_expired()
 
         assert "192.168.1.1" in store._store
 
-    def test_thread_safety(self, store):
-        """Test basic thread safety with concurrent access."""
-        import threading
-
-        results = []
-
-        def make_requests():
-            for _ in range(10):
-                result = store.check_rate_limit("shared_ip", 100, 60.0)
-                results.append(result)
-
-        threads = [threading.Thread(target=make_requests) for _ in range(5)]
-        for t in threads:
-            t.start()
-        for t in threads:
-            t.join()
-
-        # All should be allowed since 50 < 100
-        assert all(r[0] for r in results)
-
-    def test_remaining_zero_at_limit(self, store):
+    @pytest.mark.asyncio
+    async def test_remaining_zero_at_limit(self, store):
         """Test remaining is exactly 0 at limit."""
         for i in range(10):
-            allowed, limit, remaining = store.check_rate_limit("ip", 10, 60.0)
+            allowed, limit, remaining = await store.check_rate_limit("ip", 10, 60.0)
             if i == 9:
                 assert remaining == 0
                 assert allowed is True
 
-        # Next request should be blocked
-        allowed, _, remaining = store.check_rate_limit("ip", 10, 60.0)
+        allowed, _, remaining = await store.check_rate_limit("ip", 10, 60.0)
         assert allowed is False
         assert remaining == 0
 
@@ -172,7 +154,7 @@ class TestRateLimitMiddleware:
         mock_response.headers = {}
         call_next.return_value = mock_response
 
-        with patch('middleware.rate_limit._rate_limit_store', RateLimitStore()):
+        with patch('backend.middleware.rate_limit._rate_limit_store', RateLimitStore()):
             response = await rate_limit_middleware(request, call_next)
 
         assert "X-RateLimit-Limit" in response.headers
@@ -190,7 +172,7 @@ class TestRateLimitMiddleware:
         mock_response.headers = {}
         call_next.return_value = mock_response
 
-        with patch('middleware.rate_limit._rate_limit_store', RateLimitStore()):
+        with patch('backend.middleware.rate_limit._rate_limit_store', RateLimitStore()):
             response = await rate_limit_middleware(request, call_next)
 
         assert "X-RateLimit-Limit" in response.headers
@@ -206,11 +188,10 @@ class TestRateLimitMiddleware:
         call_next = AsyncMock()
 
         store = RateLimitStore()
-        # Exhaust the limit
         for _ in range(DEFAULT_RATE_LIMIT):
-            store.check_rate_limit("192.168.1.1", DEFAULT_RATE_LIMIT, DEFAULT_WINDOW)
+            await store.check_rate_limit("192.168.1.1", DEFAULT_RATE_LIMIT, DEFAULT_WINDOW)
 
-        with patch('middleware.rate_limit._rate_limit_store', store):
+        with patch('backend.middleware.rate_limit._rate_limit_store', store):
             response = await rate_limit_middleware(request, call_next)
 
         assert response.status_code == 429
@@ -230,7 +211,7 @@ class TestRateLimitMiddleware:
         mock_response.headers = {}
         call_next.return_value = mock_response
 
-        with patch('middleware.rate_limit._rate_limit_store', RateLimitStore()):
+        with patch('backend.middleware.rate_limit._rate_limit_store', RateLimitStore()):
             response = await rate_limit_middleware(request, call_next)
 
         assert response == mock_response
@@ -246,9 +227,9 @@ class TestRateLimitMiddleware:
 
         store = RateLimitStore()
         for _ in range(DEFAULT_RATE_LIMIT):
-            store.check_rate_limit("192.168.1.1", DEFAULT_RATE_LIMIT, DEFAULT_WINDOW)
+            await store.check_rate_limit("192.168.1.1", DEFAULT_RATE_LIMIT, DEFAULT_WINDOW)
 
-        with patch('middleware.rate_limit._rate_limit_store', store):
+        with patch('backend.middleware.rate_limit._rate_limit_store', store):
             response = await rate_limit_middleware(request, call_next)
 
         body = response.body

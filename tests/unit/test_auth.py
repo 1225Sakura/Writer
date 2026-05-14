@@ -79,7 +79,7 @@ class TestGetOrCreateApiKey:
     @pytest.mark.asyncio
     async def test_generates_new_key_when_no_cache(self):
         """Generates new key when cache is empty."""
-        with patch("middleware.auth.settings") as mock_settings:
+        with patch("backend.middleware.auth.settings") as mock_settings:
             mock_settings.api_key = None
             mock_settings.auth_skip_localhost = True
             clear_api_key_cache()
@@ -89,7 +89,7 @@ class TestGetOrCreateApiKey:
     @pytest.mark.asyncio
     async def test_uses_settings_api_key(self):
         """Uses API key from settings when available."""
-        with patch("middleware.auth.settings") as mock_settings:
+        with patch("backend.middleware.auth.settings") as mock_settings:
             mock_settings.api_key = "writer_from_settings"
             mock_settings.auth_skip_localhost = True
             clear_api_key_cache()
@@ -226,7 +226,7 @@ class TestVerifyApiKey:
     @pytest.mark.asyncio
     async def test_localhost_skip_disabled(self):
         """Requires auth when localhost skip is disabled."""
-        with patch("middleware.auth.settings") as mock_settings:
+        with patch("backend.middleware.auth.settings") as mock_settings:
             mock_settings.auth_skip_localhost = False
             mock_settings.api_key = "writer_valid_key"
             clear_api_key_cache()
@@ -241,7 +241,7 @@ class TestVerifyApiKey:
         key = generate_api_key()
         set_api_key(key)
         req = Request(scope={"type": "http", "client": ("192.168.1.1", 12345)})
-        with patch("middleware.auth.secrets.compare_digest") as mock_compare:
+        with patch("backend.middleware.auth.secrets.compare_digest") as mock_compare:
             mock_compare.return_value = True
             result = await verify_api_key(req, key)
             assert result is True

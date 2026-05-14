@@ -255,7 +255,7 @@ class ConsistencyChecker(BaseChecker):
         Returns:
             Dict with issues, suggestions, and score
         """
-        from ...models.entities import Chapter, DraftVersion, Location, Item, Character, Faction
+        from ...core.domain.entities import Chapter, DraftVersion, Location, Item, Character, Faction
 
         result = await db.execute(select(Chapter).where(Chapter.id == chapter_id))
         chapter = result.scalar_one_or_none()

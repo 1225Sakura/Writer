@@ -12,7 +12,7 @@ Provides:
 import asyncio
 import os
 import sys
-from typing import AsyncGenerator, Generator
+from typing import AsyncGenerator
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
@@ -29,18 +29,8 @@ from sqlalchemy.orm import sessionmaker
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "src", "backend"))
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "src"))
 
-# Pre-import database and entities to prevent SQLAlchemy "Table already defined"
-# errors when backend code imports both `database` and `backend.database`.
-import backend.infrastructure.database as _database_module
-import core.domain.entities as _entities_module
-
-sys.modules["backend.database"] = _database_module
-sys.modules["database"] = _database_module
-sys.modules["backend.models.entities"] = _entities_module
-sys.modules["backend.core.domain.entities"] = _entities_module
-
-import core.domain.extensions as _extensions_module
-sys.modules["backend.core.domain.extensions"] = _extensions_module
+# Pre-import database module to ensure SQLAlchemy Base singleton is initialized
+import backend.infrastructure.database as _database_module  # noqa: F401
 
 # ---------------------------------------------------------------------------
 # Database fixtures
@@ -49,15 +39,7 @@ sys.modules["backend.core.domain.extensions"] = _extensions_module
 TEST_DATABASE_URL = "sqlite+aiosqlite:///:memory:"
 
 
-@pytest.fixture(scope="session")
-def event_loop() -> Generator[asyncio.AbstractEventLoop, None, None]:
-    """Create an instance of the default event loop for the test session."""
-    loop = asyncio.get_event_loop_policy().new_event_loop()
-    yield loop
-    loop.close()
-
-
-@pytest_asyncio.fixture(scope="session")
+@pytest_asyncio.fixture(scope="session", loop_scope="session")
 async def db_engine():
     """Create a shared async engine pointing to an in-memory SQLite database."""
     from backend.infrastructure.database import Base
@@ -105,8 +87,8 @@ async def client(db_session) -> AsyncGenerator[AsyncClient, None]:
 
     Database dependency is overridden to use the test session.
     """
-    from backend.database import get_db
-    from backend.main import app
+    from backend.infrastructure.database import get_db
+    from backend.interface.web.main import app
 
     async def override_get_db():
         yield db_session
@@ -185,7 +167,7 @@ def ai_stream_mock():
 @pytest.fixture
 def cache_mock():
     """Mock the cache service to avoid disk I/O in tests."""
-    from backend.services import cache_service
+    from backend.infrastructure.cache.cache_service import cache_service
 
     with patch.object(cache_service, "get_cached_ai_result", return_value=None):
         with patch.object(cache_service, "set_cached_ai_result", new_callable=AsyncMock):
