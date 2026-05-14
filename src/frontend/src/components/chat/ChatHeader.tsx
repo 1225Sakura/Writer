@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from 'react'
 import { useChatStore } from '@/store/chatStore'
 import { useUIStore } from '@/store'
 import { Button } from '@/components/ui/Button'
+import { Icon } from '@/components/ui/Icon'
 import {
   ArrowRight, Settings, PenTool, Sun, Moon, Eye,
   Palette, Coffee, TreePine, Save, History, Wifi,
@@ -16,12 +17,12 @@ import { DURATION, EASE } from '@/components/shared/AnimationConfig'
 
 
 const themeMeta: Record<Theme, { label: string; icon: React.ReactNode; color: string }> = {
-  dark:            { label: '深色',   icon: <Moon className="w-3.5 h-3.5" />,     color: '#c9a96e' },
-  light:           { label: '浅色',   icon: <Sun className="w-3.5 h-3.5" />,      color: '#e8b87d' },
-  'eye-care':      { label: '护眼',   icon: <Eye className="w-3.5 h-3.5" />,      color: '#7eb87a' },
-  'deep-blue': { label: '深夜蓝', icon: <Palette className="w-3.5 h-3.5" />,  color: '#60a5fa' },
-  'sepia':     { label: '暖纸',   icon: <Coffee className="w-3.5 h-3.5" />,   color: '#b46e3c' },
-  'forest':    { label: '森林',   icon: <TreePine className="w-3.5 h-3.5" />, color: '#5aaf72' },
+  dark:            { label: '深色',   icon: <Icon icon={Moon} size="xs" />,     color: 'var(--accent-primary)' },
+  light:           { label: '浅色',   icon: <Icon icon={Sun} size="xs" />,      color: 'var(--color-warning)' },
+  'eye-care':      { label: '护眼',   icon: <Icon icon={Eye} size="xs" />,      color: 'var(--color-success)' },
+  'deep-blue': { label: '深夜蓝', icon: <Icon icon={Palette} size="xs" />,  color: 'var(--accent-100)' },
+  'sepia':     { label: '暖纸',   icon: <Icon icon={Coffee} size="xs" />,   color: 'var(--accent-90)' },
+  'forest':    { label: '森林',   icon: <Icon icon={TreePine} size="xs" />, color: 'var(--accent-100)' },
 }
 
 /* ============================================================
@@ -76,7 +77,7 @@ function ThemeSelector() {
           animate={{ rotate: open ? 180 : 0 }}
           transition={{ duration: DURATION.FAST, ease: EASE.OUT }}
         >
-          <ChevronDown className="w-3 h-3" />
+          <Icon icon={ChevronDown} size="xs" />
         </motion.span>
       </motion.button>
 
@@ -120,7 +121,7 @@ function ThemeSelector() {
                   >
                     <span style={{ color: meta.color }}>{meta.icon}</span>
                     <span className="flex-1 text-left">{meta.label}</span>
-                    {isActive && <Check className="w-3 h-3" style={{ color: meta.color }} />}
+                    {isActive && <Icon icon={Check} size="xs" style={{ color: meta.color }} />}
                   </button>
                 )
               })}
@@ -137,7 +138,7 @@ function ThemeSelector() {
                 style={{ color: followSystem ? 'var(--accent-100)' : 'var(--text-tertiary)' }}
               >
                 <span className="flex-1 text-left">跟随系统</span>
-                {followSystem && <Check className="w-3 h-3" style={{ color: 'var(--accent-100)' }} />}
+                {followSystem && <Icon icon={Check} size="xs" style={{ color: 'var(--accent-100)' }} />}
               </button>
             </div>
           </motion.div>
@@ -181,7 +182,7 @@ function BreathingLogo() {
       }}
       whileTap={{ scale: 0.92 }}
     >
-      <PenTool className="w-4 h-4 text-white drop-shadow-lg" />
+      <Icon icon={PenTool} size="sm" className="text-white drop-shadow-lg" />
       {/* Single subtle glow ring */}
       {!prefersReducedMotion && (
         <motion.span
@@ -240,17 +241,17 @@ function WebSocketStatusBadge({
       )}
       {status === 'reconnecting' ? (
         <>
-          <WifiOff className="w-2.5 h-2.5 relative z-10" />
+          <Icon icon={WifiOff} size="xs" className="relative z-10" />
           <span className="relative z-10">重连中{reconnectAttempt > 0 ? `(${reconnectAttempt})` : ''}</span>
         </>
       ) : status === 'connecting' ? (
         <>
-          <Wifi className="w-2.5 h-2.5 animate-pulse relative z-10" />
+          <Icon icon={Wifi} size="xs" className="animate-pulse relative z-10" />
           <span className="relative z-10">连接中</span>
         </>
       ) : (
         <>
-          <WifiOff className="w-2.5 h-2.5 relative z-10" />
+          <Icon icon={WifiOff} size="xs" className="relative z-10" />
           <span className="relative z-10">已断开</span>
         </>
       )}
@@ -396,15 +397,15 @@ export function ChatHeader({ onMobileMenuClick }: { onMobileMenuClick?: () => vo
             whileTap={{ scale: 0.95 }}
             aria-label="查看已收集信息"
           >
-            <Menu className="w-4 h-4" />
+            <Icon icon={Menu} size="sm" />
           </motion.button>
         )}
         <IconButton
-          icon={<Save className="w-4 h-4" />}
+          icon={<Icon icon={Save} size="sm" />}
           title="保存会话"
         />
         <IconButton
-          icon={<History className="w-4 h-4" />}
+          icon={<Icon icon={History} size="sm" />}
           title="历史记录"
         />
         <ThemeSelector />
@@ -414,9 +415,9 @@ export function ChatHeader({ onMobileMenuClick }: { onMobileMenuClick?: () => vo
           size="sm"
           className="touch-target-min"
         >
-          <Settings className="w-4 h-4" />
+          <Icon icon={Settings} size="sm" />
           <span className="hidden sm:inline">进入设定</span>
-          <ArrowRight className="w-3 h-3" />
+          <Icon icon={ArrowRight} size="xs" />
         </Button>
       </motion.div>
     </motion.header>

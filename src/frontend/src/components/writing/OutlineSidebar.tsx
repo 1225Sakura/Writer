@@ -16,7 +16,7 @@ import {
   Layers,
   Sparkles,
 } from 'lucide-react'
-import { PlotThreadIcon, EntityIcon } from '@/components/ui/Icon'
+import { PlotThreadIcon, EntityIcon, Icon } from '@/components/ui/Icon'
 import { DURATION, EASE } from '@/components/shared/AnimationConfig'
 
 
@@ -133,7 +133,7 @@ function TreeNode({
 
         {/* Drag handle */}
         <div className="opacity-0 group-hover:opacity-60 transition-opacity cursor-grab active:cursor-grabbing">
-          <GripVertical className="w-3 h-3 text-[var(--text-tertiary)]" />
+          <Icon icon={GripVertical} size="xs" color="muted" />
         </div>
 
         {/* Expand/collapse */}
@@ -152,12 +152,12 @@ function TreeNode({
         >
           {hasChildren ? (
             isExpanded ? (
-              <ChevronDown className="w-3.5 h-3.5" />
+              <Icon icon={ChevronDown} size="xs" />
             ) : (
-              <ChevronRight className="w-3.5 h-3.5" />
+              <Icon icon={ChevronRight} size="xs" />
             )
           ) : (
-            <FileText className="w-3 h-3 opacity-50" />
+            <Icon icon={FileText} size="xs" className="opacity-50" />
           )}
         </button>
 
@@ -226,7 +226,7 @@ function TreeNode({
             className="w-6 h-6 flex items-center justify-center rounded-md text-[var(--text-tertiary)] hover:bg-[var(--color-surface-hover)] hover:text-[var(--text-secondary)] transition-colors"
             title="更多操作"
           >
-            <MoreHorizontal className="w-3.5 h-3.5" />
+            <Icon icon={MoreHorizontal} size="xs" />
           </button>
         </div>
       </div>
@@ -349,7 +349,7 @@ function PlotThreadItem({
         "
         title="标记为已揭示"
       >
-        <Check className="w-4 h-4 text-[var(--icon-success)]" />
+        <Icon icon={Check} size="sm" color="success" />
       </button>
     </motion.div>
   )
@@ -490,7 +490,7 @@ export function OutlineSidebar() {
               border: '1px solid color-mix(in srgb, var(--color-outline) 15%, transparent)',
             }}
           >
-            <BookOpen className="w-3.5 h-3.5 text-[var(--color-outline)]" />
+            <Icon icon={BookOpen} size="xs" style={{ color: 'var(--color-outline)' }} />
           </div>
           <div>
             <span className="font-semibold text-sm text-[var(--text-primary)] tracking-tight">大纲</span>
@@ -528,7 +528,7 @@ export function OutlineSidebar() {
                   transition={{ type: 'spring', stiffness: 500, damping: 35 }}
                 />
               )}
-              <TabIcon className="w-3.5 h-3.5" />
+              <Icon icon={TabIcon} size="xs" />
               <span>{tab.label}</span>
               {tab.badge > 0 && (
                 <span
@@ -565,7 +565,7 @@ export function OutlineSidebar() {
                   description="从添加第一个章节开始，构建你的故事结构"
                   action={
                     <button className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium text-[var(--accent-primary)] bg-[var(--accent-primary)]/10 hover:bg-[var(--accent-primary)]/15 transition-colors">
-                      <Plus className="w-3.5 h-3.5" />
+                      <Icon icon={Plus} size="xs" />
                       添加章节
                     </button>
                   }
@@ -596,7 +596,7 @@ export function OutlineSidebar() {
                         group
                       "
                     >
-                      <Plus className="w-3.5 h-3.5 transition-transform duration-200 group-hover:scale-110" />
+                      <Icon icon={Plus} size="xs" className="transition-transform duration-200 group-hover:scale-110" />
                       <span>添加章节</span>
                     </motion.button>
                   </div>

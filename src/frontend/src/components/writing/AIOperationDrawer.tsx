@@ -22,6 +22,7 @@ import {
   RotateCcw,
   Bot,
 } from 'lucide-react'
+import { Icon } from '@/components/ui/Icon'
 import {
   DrawerHeader,
   AILoadingSkeleton,
@@ -45,12 +46,12 @@ interface AIOperation {
 }
 
 const aiOperations: AIOperation[] = [
-  { key: 'optimize', label: '优化', shortcut: 'Ctrl+Shift+O', icon: <Zap className="w-5 h-5" />, activeIcon: <Loader2 className="w-5 h-5 animate-spin motion-reduce:animate-none" />, description: '提升表达质量', color: 'var(--accent-primary)' },
-  { key: 'expand', label: '扩写', shortcut: 'Ctrl+Shift+E', icon: <Expand className="w-5 h-5" />, activeIcon: <Loader2 className="w-5 h-5 animate-spin motion-reduce:animate-none" />, description: '丰富细节描写', color: 'var(--color-ifline)' },
-  { key: 'condense', label: '缩写', shortcut: 'Ctrl+Shift+S', icon: <Shrink className="w-5 h-5" />, activeIcon: <Loader2 className="w-5 h-5 animate-spin motion-reduce:animate-none" />, description: '精简冗余内容', color: 'var(--color-character)' },
-  { key: 'rewrite', label: '改写', shortcut: 'Ctrl+Shift+R', icon: <RefreshCw className="w-5 h-5" />, activeIcon: <Loader2 className="w-5 h-5 animate-spin motion-reduce:animate-none" />, description: '换一种表达方式', color: 'var(--color-item)' },
-  { key: 'continue', label: '续写', shortcut: 'Ctrl+Shift+W', icon: <ArrowRight className="w-5 h-5" />, activeIcon: <Loader2 className="w-5 h-5 animate-spin motion-reduce:animate-none" />, description: '延续当前情节', color: 'var(--color-location)' },
-  { key: 'polish', label: '润色', shortcut: 'Ctrl+Shift+P', icon: <Paintbrush className="w-5 h-5" />, activeIcon: <Loader2 className="w-5 h-5 animate-spin motion-reduce:animate-none" />, description: '打磨文笔风格', color: 'var(--color-vermillion)' },
+  { key: 'optimize', label: '优化', shortcut: 'Ctrl+Shift+O', icon: <Icon icon={Zap} size="md" />, activeIcon: <Icon icon={Loader2} size="md" className="animate-spin motion-reduce:animate-none" />, description: '提升表达质量', color: 'var(--accent-primary)' },
+  { key: 'expand', label: '扩写', shortcut: 'Ctrl+Shift+E', icon: <Icon icon={Expand} size="md" />, activeIcon: <Icon icon={Loader2} size="md" className="animate-spin motion-reduce:animate-none" />, description: '丰富细节描写', color: 'var(--color-ifline)' },
+  { key: 'condense', label: '缩写', shortcut: 'Ctrl+Shift+S', icon: <Icon icon={Shrink} size="md" />, activeIcon: <Icon icon={Loader2} size="md" className="animate-spin motion-reduce:animate-none" />, description: '精简冗余内容', color: 'var(--color-character)' },
+  { key: 'rewrite', label: '改写', shortcut: 'Ctrl+Shift+R', icon: <Icon icon={RefreshCw} size="md" />, activeIcon: <Icon icon={Loader2} size="md" className="animate-spin motion-reduce:animate-none" />, description: '换一种表达方式', color: 'var(--color-item)' },
+  { key: 'continue', label: '续写', shortcut: 'Ctrl+Shift+W', icon: <Icon icon={ArrowRight} size="md" />, activeIcon: <Icon icon={Loader2} size="md" className="animate-spin motion-reduce:animate-none" />, description: '延续当前情节', color: 'var(--color-location)' },
+  { key: 'polish', label: '润色', shortcut: 'Ctrl+Shift+P', icon: <Icon icon={Paintbrush} size="md" />, activeIcon: <Icon icon={Loader2} size="md" className="animate-spin motion-reduce:animate-none" />, description: '打磨文笔风格', color: 'var(--color-vermillion)' },
 ]
 
 function getOperationLabel(op: string): string {
@@ -130,22 +131,22 @@ export function AIOperationDrawer() {
         {!isMinimized ? (
           <motion.div key="expanded" initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} transition={{ duration: DURATION.NORMAL, ease: EASE.SMOOTH }} className="space-y-3">
             {/* 全文操作 */}
-            <Section title="全文操作" icon={<FileText className="w-4 h-4" />} isExpanded={expandedSections.has('global')} onToggle={() => toggleSection('global')}>
+            <Section title="全文操作" icon={<Icon icon={FileText} size="sm" />} isExpanded={expandedSections.has('global')} onToggle={() => toggleSection('global')}>
               <GenerationOptions onGenerateNextChapter={() => showToast('正在生成下一章...', 'info')} onOptimizeAll={() => showToast('正在优化全文...', 'info')} onRemoldStyle={() => showToast('正在重塑文笔...', 'info')} />
             </Section>
 
             {/* 人机比例 */}
-            <Section title="人机协作比例" icon={<Gauge className="w-4 h-4" />} isExpanded={expandedSections.has('ratio')} onToggle={() => toggleSection('ratio')}>
+            <Section title="人机协作比例" icon={<Icon icon={Gauge} size="sm" />} isExpanded={expandedSections.has('ratio')} onToggle={() => toggleSection('ratio')}>
               <RatioSliderSection humanAIRatio={humanAIRatio} setHumanAIRatio={setHumanAIRatio} />
             </Section>
 
             {/* 文笔风格 */}
-            <Section title="文笔风格" icon={<Edit3 className="w-4 h-4" />} isExpanded={expandedSections.has('style')} onToggle={() => toggleSection('style')}>
+            <Section title="文笔风格" icon={<Icon icon={Edit3} size="sm" />} isExpanded={expandedSections.has('style')} onToggle={() => toggleSection('style')}>
               <StyleSelector writingStyle={writingStyle} onStyleChange={setWritingStyle} />
             </Section>
 
             {/* AI写作操作 */}
-            <Section title="AI写作操作" icon={<Sparkles className="w-4 h-4" />} isExpanded={expandedSections.has('selection')} onToggle={() => toggleSection('selection')}>
+            <Section title="AI写作操作" icon={<Icon icon={Sparkles} size="sm" />} isExpanded={expandedSections.has('selection')} onToggle={() => toggleSection('selection')}>
               {isLoading && !previewResult ? (
                 <AILoadingSkeleton />
               ) : (
@@ -179,7 +180,7 @@ export function AIOperationDrawer() {
                         <div className="h-1.5 rounded-full overflow-hidden" style={{ background: 'var(--border-subtle)' }}>
                           <motion.div className="h-full rounded-full" style={{ background: 'var(--accent-primary)' }} initial={{ width: 0 }} animate={{ width: `${currentJob.progress}%` }} transition={{ duration: DURATION.SLOW, ease: EASE.SMOOTH }} />
                         </div>
-                        <Button variant="ghost" size="sm" className="w-full text-xs" onClick={handleCancel}><X className="w-3 h-3 mr-1" />取消生成</Button>
+                        <Button variant="ghost" size="sm" className="w-full text-xs" onClick={handleCancel}><Icon icon={X} size="xs" className="mr-1" />取消生成</Button>
                       </motion.div>
                     )}
                   </AnimatePresence>
@@ -188,12 +189,12 @@ export function AIOperationDrawer() {
                   <AnimatePresence>
                     {aiJobQueue.map((job) => job.status === 'failed' && job.id === currentJobId ? (
                       <motion.div key={job.id} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 8 }} className="mt-4 p-3 rounded-xl flex items-center gap-3" style={{ background: 'color-mix(in srgb, var(--color-vermillion) 8%, transparent)', border: '1px solid color-mix(in srgb, var(--color-vermillion) 15%, transparent)' }}>
-                        <AlertCircle className="w-4 h-4 flex-shrink-0 text-[var(--icon-danger)]" />
+                        <Icon icon={AlertCircle} size="sm" color="danger" />
                         <div className="flex-1 min-w-0">
                           <div className="text-xs font-semibold" style={{ color: 'var(--text-primary)' }}>{getOperationLabel(job.type)}失败</div>
                           <div className="text-[10px] truncate" style={{ color: 'var(--text-secondary)' }}>{job.error || '未知错误'}</div>
                         </div>
-                        <Button variant="ghost" size="sm" className="text-xs flex-shrink-0" onClick={() => handleRetry(job.id)}><RotateCcw className="w-3 h-3 mr-1" />重试</Button>
+                        <Button variant="ghost" size="sm" className="text-xs flex-shrink-0" onClick={() => handleRetry(job.id)}><Icon icon={RotateCcw} size="xs" className="mr-1" />重试</Button>
                       </motion.div>
                     ) : null)}
                   </AnimatePresence>
@@ -210,7 +211,7 @@ export function AIOperationDrawer() {
         ) : (
           <motion.div key="minimized" initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.9 }} transition={{ duration: DURATION.FAST, ease: EASE.SMOOTH }} className="flex flex-col items-center gap-3 py-4">
             <div className="w-12 h-12 rounded-2xl flex items-center justify-center" style={{ background: 'linear-gradient(135deg, color-mix(in srgb, var(--accent-primary) 20%, transparent) 0%, color-mix(in srgb, var(--accent-primary) 8%, transparent) 100%)', border: '1px solid color-mix(in srgb, var(--accent-primary) 25%, transparent)', boxShadow: '0 0 20px color-mix(in srgb, var(--accent-primary) 15%, transparent)' }}>
-              <Bot className="w-6 h-6" style={{ color: 'var(--accent-primary)' }} />
+              <Icon icon={Bot} size="lg" style={{ color: 'var(--accent-primary)' }} />
             </div>
             <span className="text-xs font-medium" style={{ color: 'var(--text-tertiary)' }}>已最小化</span>
           </motion.div>

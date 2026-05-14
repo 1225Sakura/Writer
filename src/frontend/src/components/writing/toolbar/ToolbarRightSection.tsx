@@ -14,18 +14,19 @@ import {
   Minimize2,
   EyeOff,
 } from 'lucide-react'
+import { Icon } from '@/components/ui/Icon'
 import { showToast } from '@/components/ui/Toast'
 import { useThemeContext } from '@/components/shared/ThemeProvider'
 import type { Theme } from '@/hooks/useTheme'
 import { DURATION, EASE } from '@/components/shared/AnimationConfig'
 
 const themeIconMap: Record<Theme, React.ReactNode> = {
-  dark: <Moon className="w-4 h-4" />,
-  light: <Sun className="w-4 h-4" />,
-  'eye-care': <Eye className="w-4 h-4" />,
-  'deep-blue': <Palette className="w-4 h-4" />,
-  'sepia': <Coffee className="w-4 h-4" />,
-  'forest': <TreePine className="w-4 h-4" />,
+  dark: <Icon icon={Moon} size="sm" />,
+  light: <Icon icon={Sun} size="sm" />,
+  'eye-care': <Icon icon={Eye} size="sm" />,
+  'deep-blue': <Icon icon={Palette} size="sm" />,
+  'sepia': <Icon icon={Coffee} size="sm" />,
+  'forest': <Icon icon={TreePine} size="sm" />,
 }
 
 export function ToolbarRightSection() {
@@ -78,7 +79,7 @@ export function ToolbarRightSection() {
           }}
           title={`OOC: ${oocWarnings.length}, 战力: ${powerImbalanceWarnings.length}`}
         >
-          <AlertTriangle className="w-3.5 h-3.5" />
+          <Icon icon={AlertTriangle} size="xs" />
           <span className="hidden sm:inline">{oocWarnings.length + powerImbalanceWarnings.length}</span>
         </motion.button>
       )}
@@ -91,7 +92,7 @@ export function ToolbarRightSection() {
 
       <IconButton
         onClick={toggleImmersiveMode}
-        icon={immersiveMode ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
+        icon={immersiveMode ? <Icon icon={Minimize2} size="sm" /> : <Icon icon={Maximize2} size="sm" />}
         title={immersiveMode ? '退出沉浸模式' : '进入沉浸模式'}
         isActive={immersiveMode}
         glowColor="var(--color-character)"
@@ -99,7 +100,7 @@ export function ToolbarRightSection() {
 
       <IconButton
         onClick={toggleFocusMode}
-        icon={focusModeEnabled ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+        icon={focusModeEnabled ? <Icon icon={EyeOff} size="sm" /> : <Icon icon={Eye} size="sm" />}
         title={focusModeEnabled ? '退出专注模式' : '进入专注模式'}
         isActive={focusModeEnabled}
       />
@@ -151,7 +152,7 @@ function TodayProgress() {
       }}
       title="今日写作进度"
     >
-      <BarChart3 className="w-3.5 h-3.5" style={{ color: 'var(--accent-primary)' }} />
+      <Icon icon={BarChart3} size="xs" color="accent" />
       <div className="w-14 h-1 bg-[var(--border-subtle)] rounded-full overflow-hidden">
         <motion.div
           className="h-full rounded-full"
@@ -200,7 +201,7 @@ const IconButton = memo(function IconButton({
       whileTap={{ scale: 0.92 }}
       onClick={onClick}
       title={title}
-      className="relative flex items-center justify-center w-8 h-8 rounded-full transition-all duration-200 flex-shrink-0 touch-target-min"
+      className="relative flex items-center justify-center w-10 h-10 rounded-full transition-all duration-200 flex-shrink-0 touch-target-min"
       style={{
         color: isActive ? 'var(--text-primary)' : 'var(--text-secondary)',
         background: isActive

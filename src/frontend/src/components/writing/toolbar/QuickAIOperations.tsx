@@ -108,7 +108,7 @@ export function QuickAIOperations() {
             style={{
               background: 'var(--color-surface-raised)',
               border: '1px solid var(--border-default)',
-              boxShadow: '0 8px 32px rgba(0,0,0,0.35), 0 0 0 1px var(--border-subtle)',
+              boxShadow: 'var(--shadow-float)',
             }}
           >
             <div

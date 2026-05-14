@@ -22,7 +22,7 @@ import {
 import { EASE, DURATION, SPRING } from '@/components/shared/AnimationConfig'
 
 /** Unified subtle shadow for drawer edges - ink wash aesthetic */
-const DRAWER_EDGE_SHADOW = '0 0 32px rgba(0,0,0,0.14), 0 0 8px rgba(0,0,0,0.06), inset 0 0 0 1px rgba(255,255,255,0.02)'
+const DRAWER_EDGE_SHADOW = 'var(--shadow-drawer)'
 
 function WritingEditorPageContent() {
   const {
@@ -81,7 +81,7 @@ function WritingEditorPageContent() {
       {/* Main content area */}
       <div className={`flex-1 flex overflow-hidden relative ${immersiveMode ? 'z-10' : ''}`}>
         {/* Writing area - textured paper background for immersion */}
-        <div className="flex-1 overflow-hidden relative textured-paper writing-texture-bg">
+        <div className="flex-1 overflow-hidden relative textured-paper writing-texture-bg min-w-[var(--canvas-min-width)]">
           <SectionLoadingOverlay
             visible={loading.chapters || loading.outlines}
             message="加载章节数据..."
@@ -103,7 +103,7 @@ function WritingEditorPageContent() {
         <LeftSidebar
           isOpen={outlineDrawerOpen && (!immersiveMode || chromeVisible)}
           onToggle={toggleOutlineDrawer}
-          width={280}
+          width="var(--sidebar-outline-width)"
           visible={!immersiveMode || chromeVisible || outlineDrawerOpen}
         >
           <OutlineSidebar />
@@ -115,7 +115,7 @@ function WritingEditorPageContent() {
             <motion.div
               key="ai-drawer"
               initial={{ width: 0, opacity: 0, x: 48 }}
-              animate={{ width: 320, opacity: 1, x: 0 }}
+              animate={{ width: 'var(--sidebar-ai-drawer-width)', opacity: 1, x: 0 }}
               exit={{ width: 0, opacity: 0, x: 48 }}
               transition={{
                 width: SPRING.DRAWER,
@@ -124,7 +124,7 @@ function WritingEditorPageContent() {
               }}
               className="drawer-responsive drawer-right border-l border-[var(--border-default)] bg-[var(--color-surface-raised)] flex flex-col overflow-hidden relative z-20
                          max-md:fixed max-md:inset-0 max-md:w-full max-md:h-full max-md:z-50 max-md:border-none max-md:rounded-none
-                         md:w-[320px] lg:w-[360px]"
+                         md:w-[var(--sidebar-ai-drawer-width)] lg:w-[var(--sidebar-ai-drawer-width-expanded)]"
               style={{ boxShadow: DRAWER_EDGE_SHADOW }}
             >
               <AIOperationDrawer />
@@ -138,7 +138,7 @@ function WritingEditorPageContent() {
             <motion.div
               key="collab-drawer"
               initial={{ width: 0, opacity: 0, x: 36 }}
-              animate={{ width: 300, opacity: 1, x: 0 }}
+              animate={{ width: 280, opacity: 1, x: 0 }}
               exit={{ width: 0, opacity: 0, x: 36 }}
               transition={{
                 width: SPRING.DRAWER,

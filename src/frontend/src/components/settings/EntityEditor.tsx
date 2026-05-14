@@ -2,7 +2,8 @@ import { useSettingsStore } from '@/store/settingsStore'
 import type { CharacterLocal } from '@/store/settingsStore'
 import type { UIState } from '@/store/uiStore'
 import type { Chapter } from '@/shared/types'
-import { Trash2, Edit2, Users, Plus, FileText, X, Sparkles, Check, AlertCircle, Loader2, Save, MapPin, Swords, Globe, BookOpen, GitBranch } from 'lucide-react'
+import { Trash2, Edit2, Users, Plus, FileText, X, Sparkles, Check, AlertCircle, Loader2, Save, MapPin, Swords, Globe, BookOpen, GitBranch, type LucideIcon } from 'lucide-react'
+import { Icon } from '@/components/ui/Icon'
 import { useState, useCallback } from 'react'
 import { TagInput } from './TagInput'
 import { EntityCard, entityColors, cardStyle } from './EntityCard'
@@ -142,7 +143,7 @@ function FloatingLabelInput({
         return 'var(--vermillion-muted)'
       case 'valid':
       case 'saved':
-        return 'rgba(94, 181, 166, 0.15)'
+        return 'color-mix(in srgb, var(--color-success) 15%, transparent)'
       default:
         return undefined
     }
@@ -192,13 +193,13 @@ function FloatingLabelInput({
             transition={SPRING.BADGE}
           >
             {validation.state === 'saving' && (
-              <Loader2 className="w-4 h-4 animate-spin motion-reduce:animate-none" style={{ color: 'var(--accent-primary)' }} />
+              <Icon icon={Loader2} size="sm" color="accent" className="animate-spin motion-reduce:animate-none" />
             )}
             {validation.state === 'saved' && (
-              <Check className="w-4 h-4" style={{ color: 'var(--color-success)' }} />
+              <Icon icon={Check} size="sm" color="success" />
             )}
             {(validation.state === 'invalid' || validation.state === 'error') && (
-              <AlertCircle className="w-4 h-4" style={{ color: 'var(--color-danger)' }} />
+              <Icon icon={AlertCircle} size="sm" color="danger" />
             )}
           </motion.div>
         )}
@@ -213,7 +214,7 @@ function FloatingLabelInput({
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -4 }}
           >
-            <AlertCircle className="w-3 h-3" />
+            <Icon icon={AlertCircle} size="xs" color="danger" />
             {validation.message}
           </motion.p>
         )}
@@ -274,7 +275,7 @@ function FloatingLabelTextarea({
         return 'var(--vermillion-muted)'
       case 'valid':
       case 'saved':
-        return 'rgba(94, 181, 166, 0.15)'
+        return 'color-mix(in srgb, var(--color-success) 15%, transparent)'
       default:
         return undefined
     }
@@ -351,7 +352,7 @@ function SaveStateIndicator({ state, message }: { state: ValidationState; messag
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: -5 }}
         >
-          <Loader2 className="w-3.5 h-3.5 animate-spin motion-reduce:animate-none" style={{ color: 'var(--accent-primary)' }} />
+          <Icon icon={Loader2} size="xs" color="accent" className="animate-spin motion-reduce:animate-none" />
           <span className="text-xs" style={{ color: 'var(--accent-primary)' }}>保存中...</span>
         </motion.div>
       )}
@@ -369,7 +370,7 @@ function SaveStateIndicator({ state, message }: { state: ValidationState; messag
             animate={{ scale: 1 }}
             transition={SPRING.BADGE}
           >
-            <Check className="w-3.5 h-3.5 text-[var(--icon-success)]" />
+            <Icon icon={Check} size="xs" color="success" />
           </motion.div>
           <span className="text-xs" style={{ color: 'var(--color-success)' }}>{message || '已保存'}</span>
         </motion.div>
@@ -382,7 +383,7 @@ function SaveStateIndicator({ state, message }: { state: ValidationState; messag
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: -5 }}
         >
-          <AlertCircle className="w-3.5 h-3.5 text-[var(--icon-danger)]" />
+          <Icon icon={AlertCircle} size="xs" color="danger" />
           <span className="text-xs" style={{ color: 'var(--color-danger)' }}>{message || '保存失败'}</span>
         </motion.div>
       )}
@@ -438,7 +439,7 @@ function SectionHeader({
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
           >
-            <Sparkles className="w-3.5 h-3.5" />
+            <Icon icon={Sparkles} size="xs" color="accent" />
             AI生成
           </motion.button>
         )}
@@ -459,7 +460,7 @@ function SectionHeader({
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.98 }}
         >
-          <Plus className="w-3.5 h-3.5" />
+          <Icon icon={Plus} size="xs" color="secondary" />
           新增
         </motion.button>
       </div>
@@ -664,12 +665,12 @@ function EntityForm<T extends { name?: string; title?: string; description?: str
             )}
             {saveState === 'saving' ? (
               <>
-                <Loader2 className="w-4 h-4 animate-spin motion-reduce:animate-none" />
+                <Icon icon={Loader2} size="sm" color="inherit" className="animate-spin motion-reduce:animate-none" />
                 保存中...
               </>
             ) : (
               <>
-                <Save className="w-4 h-4" />
+                <Icon icon={Save} size="sm" color="inherit" />
                 保存
               </>
             )}
@@ -744,7 +745,7 @@ function CharacterCard({ character }: { character: CharacterLocal }) {
             }}
             whileTap={{ scale: 0.9 }}
           >
-            <Edit2 className="w-4 h-4" />
+            <Icon icon={Edit2} size="sm" color="inherit" />
           </motion.button>
           <motion.button
             onClick={() => deleteCharacter(character.id)}
@@ -757,7 +758,7 @@ function CharacterCard({ character }: { character: CharacterLocal }) {
             }}
             whileTap={{ scale: 0.9 }}
           >
-            <Trash2 className="w-4 h-4" />
+            <Icon icon={Trash2} size="sm" color="inherit" />
           </motion.button>
         </div>
       </div>
@@ -830,7 +831,7 @@ function NewCharacterForm() {
       whileHover={{ scale: 1.005 }}
       whileTap={{ scale: 0.99 }}
     >
-      <Plus className="w-4 h-4" style={{ color: 'var(--accent-primary)' }} />
+      <Icon icon={Plus} size="sm" color="accent" />
       <span className="text-sm" style={{ color: 'var(--accent-primary)' }}>
         添加角色
       </span>
@@ -932,9 +933,9 @@ function AddEntityForm({
             whileTap={{ scale: 0.97 }}
           >
             {saveState === 'saving' ? (
-              <Loader2 className="w-4 h-4 animate-spin motion-reduce:animate-none" />
+              <Icon icon={Loader2} size="sm" color="inherit" className="animate-spin motion-reduce:animate-none" />
             ) : (
-              <Plus className="w-4 h-4" />
+              <Icon icon={Plus} size="sm" color="inherit" />
             )}
             添加
           </motion.button>
@@ -1025,7 +1026,7 @@ function OutlineEditor() {
           大纲管理
         </h2>
         <div className="rounded-lg p-8 text-center" style={cardStyle}>
-          <FileText className="w-10 h-10 mx-auto mb-3" style={{ color: 'var(--text-tertiary)' }} />
+          <Icon icon={FileText} size="lg" color="muted" className="mx-auto mb-3" />
           <p className="text-sm mb-4" style={{ color: 'var(--text-tertiary)' }}>
             尚未创建故事大纲
           </p>
@@ -1066,7 +1067,7 @@ function OutlineEditor() {
                   style={{ backgroundColor: 'var(--accent-primary)', color: 'var(--paper-100)' }}
                   whileTap={{ scale: 0.97 }}
                 >
-                  <Plus className="w-4 h-4" />
+                  <Icon icon={Plus} size="sm" color="inherit" />
                   创建
                 </motion.button>
               </div>
@@ -1107,7 +1108,7 @@ function OutlineEditor() {
           <motion.span
             key={chapters.length}
             className="text-xs px-2 py-0.5 rounded"
-            style={{ backgroundColor: 'rgba(91,142,232,0.15)', color: 'var(--color-outline)' }}
+            style={{ backgroundColor: 'color-mix(in srgb, var(--color-outline) 15%, transparent)', color: 'var(--color-outline)' }}
             initial={{ scale: 0.8, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             transition={{ type: 'spring', stiffness: 500 }}
@@ -1132,7 +1133,7 @@ function OutlineEditor() {
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.98 }}
         >
-          <Plus className="w-3.5 h-3.5" />
+          <Icon icon={Plus} size="xs" color="secondary" />
           新增章节
         </motion.button>
       </div>
@@ -1251,7 +1252,7 @@ function OutlineEditor() {
                     whileTap={{ scale: 0.9 }}
                     title="编辑标题"
                   >
-                    <Edit2 className="w-4 h-4" />
+                    <Icon icon={Edit2} size="sm" color="inherit" />
                   </motion.button>
                   <motion.button
                     onClick={() => setSummaryModalChapterId(chapter.id)}
@@ -1264,7 +1265,7 @@ function OutlineEditor() {
                     whileTap={{ scale: 0.9 }}
                     title="编辑摘要"
                   >
-                    <FileText className="w-4 h-4" />
+                    <Icon icon={FileText} size="sm" color="inherit" />
                   </motion.button>
                   <motion.button
                     onClick={() => deleteChapter(chapter.id)}
@@ -1277,7 +1278,7 @@ function OutlineEditor() {
                     whileTap={{ scale: 0.9 }}
                     title="删除章节"
                   >
-                    <Trash2 className="w-4 h-4" />
+                    <Icon icon={Trash2} size="sm" color="inherit" />
                   </motion.button>
                 </div>
               </div>
@@ -1338,7 +1339,7 @@ function OutlineEditor() {
                 style={{ backgroundColor: 'var(--color-outline)', color: 'var(--paper-100)' }}
                 whileTap={{ scale: 0.97 }}
               >
-                <Plus className="w-3.5 h-3.5" />
+                <Icon icon={Plus} size="xs" color="inherit" />
                 添加
               </motion.button>
             </div>
@@ -1414,7 +1415,7 @@ function ChapterSummaryModal({
             }}
             whileTap={{ scale: 0.9 }}
           >
-            <X className="w-4 h-4" />
+            <Icon icon={X} size="sm" color="inherit" />
           </motion.button>
         </div>
         <p className="text-xs mb-3" style={{ color: 'var(--text-tertiary)' }}>
@@ -1449,7 +1450,7 @@ function ChapterSummaryModal({
               style={{ backgroundColor: 'var(--color-outline)', color: 'var(--text-primary)' }}
               whileTap={{ scale: 0.97 }}
             >
-              <Save className="w-4 h-4" />
+              <Icon icon={Save} size="sm" color="inherit" />
               保存
             </motion.button>
           </div>
@@ -1495,12 +1496,12 @@ const entityItemVariants = {
 
 // Empty state component with refined visuals
 function EmptyState({
-  icon: Icon,
+  icon: IconComponent,
   title,
   subtitle,
   color = 'var(--text-tertiary)',
 }: {
-  icon: typeof Users
+  icon: LucideIcon
   title: string
   subtitle?: string
   color?: string
@@ -1522,7 +1523,7 @@ function EmptyState({
         animate={{ scale: 1 }}
         transition={{ type: 'spring', stiffness: 400, damping: 25 }}
       >
-        <Icon className="w-6 h-6" style={{ color, opacity: 0.6 }} />
+        <Icon icon={IconComponent} size="lg" color="inherit" style={{ color, opacity: 0.6 }} />
       </motion.div>
       <p className="text-sm font-medium" style={{ color: 'var(--text-secondary)' }}>
         {title}

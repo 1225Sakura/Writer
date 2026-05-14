@@ -17,9 +17,10 @@ import {
 	Wand2,
 	ThumbsUp,
 } from "lucide-react";
+import { Icon } from "@/components/ui/Icon";
 import { useSettingsStore } from "@/store/settingsStore";
 import { useUIStore } from "@/store/uiStore";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import type { EntityType } from "@/shared/types";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { DURATION, EASE, SPRING } from '@/components/shared/AnimationConfig'
@@ -87,43 +88,43 @@ const SEVERITY_CONFIG: Record<
 		label: "错误",
 		icon: AlertCircle,
 		colors: {
-			bg: "rgba(196,92,92,0.12)",
+			bg: "color-mix(in srgb, var(--color-danger) 12%, transparent)",
 			text: "var(--color-danger)",
-			border: "rgba(196,92,92,0.25)",
+			border: "color-mix(in srgb, var(--color-danger) 25%, transparent)",
 			badge: "var(--color-vermillion)",
-			glow: "rgba(196, 92, 92, 0.3)",
+			glow: "color-mix(in srgb, var(--color-danger) 30%, transparent)",
 		},
 		priority: 1,
 		gradient:
-			"linear-gradient(135deg, rgba(196,92,92,0.08) 0%, rgba(196,92,92,0.02) 100%)",
+			"linear-gradient(135deg, color-mix(in srgb, var(--color-danger) 8%, transparent) 0%, color-mix(in srgb, var(--color-danger) 2%, transparent) 100%)",
 	},
 	warning: {
 		label: "警告",
 		icon: AlertTriangle,
 		colors: {
-			bg: "rgba(232,184,125,0.12)",
+			bg: "color-mix(in srgb, var(--color-character) 12%, transparent)",
 			text: "var(--color-character)",
-			border: "rgba(232,184,125,0.25)",
+			border: "color-mix(in srgb, var(--color-character) 25%, transparent)",
 			badge: "var(--color-character)",
-			glow: "rgba(232, 184, 125, 0.3)",
+			glow: "color-mix(in srgb, var(--color-character) 30%, transparent)",
 		},
 		priority: 2,
 		gradient:
-			"linear-gradient(135deg, rgba(232,184,125,0.08) 0%, rgba(232,184,125,0.02) 100%)",
+			"linear-gradient(135deg, color-mix(in srgb, var(--color-character) 8%, transparent) 0%, color-mix(in srgb, var(--color-character) 2%, transparent) 100%)",
 	},
 	suggestion: {
 		label: "建议",
 		icon: Lightbulb,
 		colors: {
-			bg: "rgba(91,142,232,0.12)",
+			bg: "color-mix(in srgb, var(--color-outline) 12%, transparent)",
 			text: "var(--color-outline)",
-			border: "rgba(91,142,232,0.25)",
+			border: "color-mix(in srgb, var(--color-outline) 25%, transparent)",
 			badge: "var(--color-outline)",
-			glow: "rgba(91, 142, 232, 0.3)",
+			glow: "color-mix(in srgb, var(--color-outline) 30%, transparent)",
 		},
 		priority: 3,
 		gradient:
-			"linear-gradient(135deg, rgba(91,142,232,0.08) 0%, rgba(91,142,232,0.02) 100%)",
+			"linear-gradient(135deg, color-mix(in srgb, var(--color-outline) 8%, transparent) 0%, color-mix(in srgb, var(--color-outline) 2%, transparent) 100%)",
 	},
 };
 
@@ -369,11 +370,11 @@ function ReviewHistoryDrawer({
 						animate={{ x: 0 }}
 						exit={{ x: "100%" }}
 						transition={{ duration: DURATION.NORMAL, ease: EASE.SMOOTH }}
-						className="absolute right-0 top-0 bottom-0 z-40 w-[280px] flex flex-col bg-[var(--color-surface-base)] border-l border-[var(--border-subtle)]"
+						className="absolute right-0 top-0 bottom-0 z-40 w-[var(--sidebar-outline-width)] flex flex-col bg-[var(--color-surface-base)] border-l border-[var(--border-subtle)]"
 					>
 						<div className="flex items-center justify-between px-4 py-3 border-b border-[var(--border-subtle)]">
 							<div className="flex items-center gap-2">
-								<History className="w-4 h-4 text-[var(--text-tertiary)]" />
+								<Icon icon={History} size="sm" color="muted" />
 								<span className="text-sm font-medium text-[var(--text-primary)]">
 									审查历史
 								</span>
@@ -382,14 +383,14 @@ function ReviewHistoryDrawer({
 								onClick={onClose}
 								className="p-1 rounded hover:bg-white/10 transition-colors"
 							>
-								<X className="w-4 h-4 text-[var(--text-tertiary)]" />
+								<Icon icon={X} size="sm" color="muted" />
 							</button>
 						</div>
 
 						<div className="flex-1 overflow-y-auto p-3 space-y-2">
 							{history.length === 0 ? (
 								<div className="text-center py-8">
-									<Clock className="w-8 h-8 mx-auto mb-2 text-[var(--text-disabled)]" />
+									<Icon icon={Clock} size="lg" color="muted" className="mx-auto mb-2" />
 									<p className="text-xs text-[var(--text-tertiary)]">
 										暂无审查记录
 									</p>
@@ -518,7 +519,7 @@ function IterationComparisonView({
 			{/* Header */}
 			<div className="flex items-center justify-between px-4 py-3 border-b border-[var(--border-subtle)]">
 				<div className="flex items-center gap-2">
-					<ArrowRight className="w-4 h-4 text-[var(--accent-primary)]" />
+					<Icon icon={ArrowRight} size="sm" color="accent" />
 					<span className="text-sm font-medium text-[var(--text-primary)]">
 						审查对比
 					</span>
@@ -527,7 +528,7 @@ function IterationComparisonView({
 					onClick={onClose}
 					className="p-1 rounded hover:bg-white/10 transition-colors"
 				>
-					<X className="w-4 h-4 text-[var(--text-tertiary)]" />
+					<Icon icon={X} size="sm" color="muted" />
 				</button>
 			</div>
 
@@ -543,7 +544,7 @@ function IterationComparisonView({
 							disabled={leftIndex === 0}
 							className="p-0.5 rounded hover:bg-white/10 disabled:opacity-30 transition-opacity"
 						>
-							<ChevronLeft className="w-3 h-3 text-[var(--text-tertiary)]" />
+							<Icon icon={ChevronLeft} size="xs" color="muted" />
 						</button>
 						<span className="text-xs font-medium text-[var(--text-primary)]">
 							第 {leftIndex + 1} 次
@@ -555,11 +556,11 @@ function IterationComparisonView({
 							disabled={leftIndex >= rightIndex - 1}
 							className="p-0.5 rounded hover:bg-white/10 disabled:opacity-30 transition-opacity"
 						>
-							<ChevronRightIcon className="w-3 h-3 text-[var(--text-tertiary)]" />
+							<Icon icon={ChevronRightIcon} size="xs" color="muted" />
 						</button>
 					</div>
 				</div>
-				<ArrowRight className="w-4 h-4 flex-shrink-0 text-[var(--text-disabled)]" />
+				<Icon icon={ArrowRight} size="sm" color="muted" className="flex-shrink-0" />
 				<div className="flex-1">
 					<span className="text-[10px] text-[var(--text-tertiary)]">
 						较晚版本
@@ -572,7 +573,7 @@ function IterationComparisonView({
 							disabled={rightIndex <= leftIndex + 1}
 							className="p-0.5 rounded hover:bg-white/10 disabled:opacity-30 transition-opacity"
 						>
-							<ChevronLeft className="w-3 h-3 text-[var(--text-tertiary)]" />
+							<Icon icon={ChevronLeft} size="xs" color="muted" />
 						</button>
 						<span className="text-xs font-medium text-[var(--text-primary)]">
 							第 {rightIndex + 1} 次
@@ -584,7 +585,7 @@ function IterationComparisonView({
 							disabled={rightIndex >= iterations.length - 1}
 							className="p-0.5 rounded hover:bg-white/10 disabled:opacity-30 transition-opacity"
 						>
-							<ChevronRightIcon className="w-3 h-3 text-[var(--text-tertiary)]" />
+							<Icon icon={ChevronRightIcon} size="xs" color="muted" />
 						</button>
 					</div>
 				</div>
@@ -683,7 +684,7 @@ function IterationComparisonView({
 									}}
 								>
 									<div className="flex items-center gap-2">
-										<Check className="w-3 h-3 text-[var(--color-success)]" />
+										<Icon icon={Check} size="xs" color="success" />
 										<span className="text-xs line-through text-[var(--text-tertiary)]">
 											{suggestion.title}
 										</span>
@@ -716,7 +717,7 @@ function SuggestionCard({
 	onClickLocate: () => void;
 }) {
 	const config = SEVERITY_CONFIG[suggestion.severity];
-	const Icon = config.icon;
+	const SeverityIcon = config.icon;
 	const [isExpanded, setIsExpanded] = useState(false);
 
 	const accentBorderColor = config.colors.badge;
@@ -780,7 +781,7 @@ function SuggestionCard({
 									boxShadow: `0 0 8px ${config.colors.glow}20`,
 								}}
 							>
-								<Icon className="w-2.5 h-2.5" />
+								<Icon icon={SeverityIcon} size="xs" color="inherit" />
 								{config.label}
 							</span>
 							{ISSUE_TYPE_LABELS[suggestion.type] && (
@@ -794,7 +795,7 @@ function SuggestionCard({
 									className="text-[10px] px-2 py-0.5 rounded-md hover:bg-white/10 transition-colors flex items-center gap-1 bg-[var(--accent-muted)] text-[var(--accent-primary)]"
 									title="定位到相关实体"
 								>
-									<Info className="w-2.5 h-2.5" />
+									<Icon icon={Info} size="xs" color="accent" />
 									定位
 								</button>
 							)}
@@ -827,7 +828,7 @@ function SuggestionCard({
 									animate={{ rotate: isExpanded ? 180 : 0 }}
 									transition={{ duration: DURATION.FAST, ease: EASE.SMOOTH }}
 								>
-									<ChevronDown className="w-3 h-3" />
+									<Icon icon={ChevronDown} size="xs" color="accent" />
 								</motion.span>
 								{isExpanded ? "收起" : "展开"}
 							</button>
@@ -868,7 +869,7 @@ function SuggestionCard({
 								whileTap={{ scale: 0.85 }}
 								disabled={isApplied}
 							>
-								<Wand2 className="w-3.5 h-3.5" />
+								<Icon icon={Wand2} size="xs" color="inherit" />
 							</motion.button>
 						)}
 						<motion.button
@@ -886,7 +887,7 @@ function SuggestionCard({
 							title="忽略"
 							whileTap={{ scale: 0.85 }}
 						>
-							<X className="w-3.5 h-3.5" />
+							<Icon icon={X} size="xs" color="inherit" />
 						</motion.button>
 					</div>
 				</div>
@@ -913,6 +914,7 @@ export function AISuggestionPanel() {
 		currentIterationId: null,
 	});
 
+	const prefersReducedMotion = useReducedMotion();
 	const aiReviewResult = useSettingsStore((state) => state.aiReviewResult);
 	const reviewWithAI = useSettingsStore((state) => state.reviewWithAI);
 	const settingsCategory = useUIStore((state) => state.settingsCategory);
@@ -1152,7 +1154,7 @@ export function AISuggestionPanel() {
 								ease: "easeInOut",
 							} : {}}
 						>
-							<Sparkles className="w-4 h-4 text-[var(--accent-primary)]" />
+							<Icon icon={Sparkles} size="sm" color="accent" />
 						</motion.div>
 						{isReviewing && (
 							<motion.div
@@ -1235,7 +1237,7 @@ export function AISuggestionPanel() {
 							className="p-1.5 rounded hover:bg-white/10 transition-colors"
 							title="审查历史"
 						>
-							<History className="w-3.5 h-3.5 text-[var(--text-tertiary)]" />
+							<Icon icon={History} size="xs" color="muted" />
 						</button>
 					)}
 					{/* Comparison button */}
@@ -1248,14 +1250,14 @@ export function AISuggestionPanel() {
 							className="p-1.5 rounded hover:bg-white/10 transition-colors"
 							title="审查对比"
 						>
-							<ArrowRight className="w-3.5 h-3.5 text-[var(--text-tertiary)]" />
+							<Icon icon={ArrowRight} size="xs" color="muted" />
 						</button>
 					)}
 					<motion.div
 						animate={{ rotate: isExpanded ? 0 : 180 }}
 						transition={{ duration: DURATION.FAST, ease: EASE.SMOOTH }}
 					>
-						<ChevronDown className="w-4 h-4 text-[var(--text-tertiary)]" />
+						<Icon icon={ChevronDown} size="sm" color="muted" />
 					</motion.div>
 				</div>
 			</motion.button>
@@ -1310,7 +1312,7 @@ export function AISuggestionPanel() {
 										transition={{ ...SPRING.SNAPPY, delay: 0.1 }}
 									>
 										<div className="absolute inset-0 rounded-full bg-[var(--color-success)] opacity-10 blur-xl" />
-										<ThumbsUp className="w-8 h-8 mx-auto mb-3 text-[var(--color-success)] relative z-10" />
+										<Icon icon={ThumbsUp} size="lg" color="success" className="mx-auto mb-3 relative z-10" />
 									</motion.div>
 									<p className="text-sm font-medium text-[var(--text-secondary)]">
 										{severityFilter !== "all"
@@ -1385,7 +1387,7 @@ export function AISuggestionPanel() {
 											}}
 											whileTap={{ scale: 0.98 }}
 										>
-											<Wand2 className="w-3.5 h-3.5 inline-block mr-1 -mt-0.5" />
+											<Icon icon={Wand2} size="xs" color="success" className="inline-block mr-1 -mt-0.5" />
 											应用所有修复
 										</motion.button>
 										<motion.button
@@ -1429,7 +1431,7 @@ export function AISuggestionPanel() {
 									whileTap={!isReviewing ? { scale: 0.98 } : {}}
 								>
 									{/* Shimmer effect when reviewing */}
-									{isReviewing && (
+									{isReviewing && !prefersReducedMotion && (
 										<motion.div
 											className="absolute inset-0"
 											style={{
@@ -1451,7 +1453,7 @@ export function AISuggestionPanel() {
 												: {}
 										}
 									>
-										<RotateCw className="w-3.5 h-3.5" />
+										<Icon icon={RotateCw} size="xs" color="accent" />
 									</motion.div>
 									<span className="relative z-10">
 										{isReviewing ? "审查中..." : "重新审查"}

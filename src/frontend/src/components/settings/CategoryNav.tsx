@@ -2,7 +2,7 @@ import { useUIStore, type UIState } from '@/store/uiStore'
 import { useSettingsStore } from '@/store/settingsStore'
 import { useShallow } from 'zustand/react/shallow'
 import { Feather, Sparkles } from 'lucide-react'
-import { EntityIcon } from '@/components/ui/Icon'
+import { EntityIcon, Icon } from '@/components/ui/Icon'
 import { motion, AnimatePresence } from 'framer-motion'
 import { GlassCard } from '@/components/ui/GlassCard'
 import { EASE, DURATION, SPRING } from '@/components/shared/AnimationConfig'
@@ -236,7 +236,7 @@ export function CategoryNav() {
                   whileHover={{ x: 2 }}
                   whileTap={{ scale: 0.98 }}
                 >
-                  <Feather className="w-3.5 h-3.5" />
+                  <Icon icon={Feather} size="xs" />
                   <span>AI审查</span>
                 </motion.button>
               </motion.div>
@@ -253,7 +253,7 @@ export function CategoryNav() {
             whileHover={{ x: 2 }}
             whileTap={{ scale: 0.98 }}
           >
-            <Sparkles className="w-3.5 h-3.5" />
+            <Icon icon={Sparkles} size="xs" />
             <span>智能生成</span>
           </motion.button>
         </GlassCard>

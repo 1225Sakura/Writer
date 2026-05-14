@@ -1,5 +1,6 @@
 import { motion, AnimatePresence } from 'framer-motion'
 import { ChevronLeft } from 'lucide-react'
+import { Icon } from '@/components/ui/Icon'
 import { EASE, DURATION, SPRING } from '@/components/shared/AnimationConfig'
 import type { ReactNode } from 'react'
 
@@ -20,7 +21,7 @@ export interface LeftSidebarProps {
   header?: ReactNode
   /** Optional footer rendered below the content */
   footer?: ReactNode
-  /** Custom width override (default: var(--layout-sidebar-width, 240px)) */
+  /** Custom width override (default: var(--sidebar-left-width)) */
   width?: string | number
   /** Whether to show on mobile (default: false — hide on < md breakpoint) */
   showOnMobile?: boolean
@@ -40,7 +41,7 @@ export function LeftSidebar({
   children,
   header,
   footer,
-  width = 'var(--layout-sidebar-width, 240px)',
+  width = 'var(--sidebar-left-width)',
   showOnMobile = false,
   mobileOpen = false,
   onMobileClose,
@@ -112,7 +113,7 @@ export function LeftSidebar({
           animate={{ rotate: isOpen ? 0 : 180 }}
           transition={{ duration: DURATION.FAST, ease: EASE.SMOOTH }}
         >
-          <ChevronLeft className="w-3 h-3" />
+          <Icon icon={ChevronLeft} size="xs" />
         </motion.div>
       </motion.button>
 
@@ -137,7 +138,7 @@ export function LeftSidebar({
                 transition={SPRING.DRAWER}
                 className={`
                   fixed top-0 left-0 bottom-0 z-50 md:hidden
-                  w-[280px] max-w-[80vw]
+                  w-[var(--sidebar-outline-width)] max-w-[80vw]
                   bg-[var(--color-surface-raised)] border-r border-[var(--border-default)]
                   flex flex-col overflow-hidden
                   ${className}

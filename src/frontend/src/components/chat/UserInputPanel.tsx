@@ -1,6 +1,7 @@
 import { useState, useRef, useCallback, useEffect } from 'react'
 import { useChatStore } from '@/store/chatStore'
 import { Send, RefreshCw, Loader2, FileText, Zap, Wand2, Lightbulb } from 'lucide-react'
+import { Icon } from '@/components/ui/Icon'
 import { ChatTemplates } from './ChatTemplates'
 import { motion, AnimatePresence } from 'framer-motion'
 import { getWebSocketClient } from '@/api/websocket'
@@ -12,9 +13,9 @@ import { DURATION, EASE } from '@/components/shared/AnimationConfig'
 const MAX_INPUT_LENGTH = 500
 
 const quickReplies = [
-  { label: '继续', icon: <Zap className="w-3.5 h-3.5" />, message: '继续' },
-  { label: '详细点', icon: <Wand2 className="w-3.5 h-3.5" />, message: '请说得更详细一些' },
-  { label: '换个思路', icon: <Lightbulb className="w-3.5 h-3.5" />, message: '换个思路' },
+  { label: '继续', icon: <Icon icon={Zap} size="xs" />, message: '继续' },
+  { label: '详细点', icon: <Icon icon={Wand2} size="xs" />, message: '请说得更详细一些' },
+  { label: '换个思路', icon: <Icon icon={Lightbulb} size="xs" />, message: '换个思路' },
 ]
 
 export function UserInputPanel() {
@@ -132,7 +133,7 @@ export function UserInputPanel() {
             whileHover={prefersReducedMotion ? {} : { y: -1, boxShadow: 'var(--shadow-card)' }}
             whileTap={prefersReducedMotion ? {} : { scale: 0.97 }}
           >
-            <FileText className="w-4 h-4" />
+            <Icon icon={FileText} size="sm" />
             <span>生成大纲</span>
           </motion.button>
         )}
@@ -147,7 +148,7 @@ export function UserInputPanel() {
             exit={{ opacity: 0, y: -10, scale: 0.95 }}
             transition={{ duration: DURATION.NORMAL, ease: EASE.SMOOTH }}
             className="flex items-center gap-2 text-xs px-3 py-2 rounded-lg
-                       bg-[rgba(126,184,74,0.1)] text-[var(--color-ifline)] border border-[rgba(126,184,74,0.2)]"
+                       bg-[color-mix(in_srgb,var(--color-ifline)_10%,transparent)] text-[var(--color-ifline)] border border-[color-mix(in_srgb,var(--color-ifline)_20%,transparent)]"
           >
             <motion.div
               initial={{ scale: 0 }}
@@ -206,7 +207,7 @@ export function UserInputPanel() {
           whileTap={prefersReducedMotion ? {} : { scale: 0.92 }}
           transition={{ duration: DURATION.FAST, ease: EASE.SMOOTH }}
         >
-          <RefreshCw className="w-5 h-5" />
+          <Icon icon={RefreshCw} size="md" />
         </motion.button>
 
         {/* Input area with enhanced focus effects */}
@@ -236,7 +237,7 @@ export function UserInputPanel() {
               placeholder="输入你的回答... (Enter 发送，Shift+Enter 换行)"
               className="w-full resize-none min-h-[48px] max-h-32 py-3 px-4 pr-16 text-sm
                          bg-surface-input text-primary font-sans rounded-xl
-                         border-2 outline-none transition-all duration-200
+                         border-2 outline-none transition-all duration-150
                          placeholder:text-tertiary"
               style={{
                 borderColor: isFocused ? 'var(--accent-primary)' : 'var(--border-default)',
@@ -278,7 +279,7 @@ export function UserInputPanel() {
           disabled={!canSend}
           className="px-5 py-2.5 flex items-center gap-2 text-sm font-medium flex-shrink-0
                      rounded-xl text-primary disabled:opacity-40 disabled:cursor-not-allowed
-                     transition-all duration-200 relative overflow-hidden touch-target-min"
+                     transition-all duration-150 relative overflow-hidden touch-target-min"
           style={{
             backgroundColor: canSend ? 'var(--accent-primary)' : 'var(--color-surface-input)',
             border: canSend ? '1px solid transparent' : '1px solid var(--border-default)',
@@ -296,10 +297,10 @@ export function UserInputPanel() {
               animate={{ rotate: 360 }}
               transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
             >
-              <Loader2 className="w-4 h-4" />
+              <Icon icon={Loader2} size="sm" />
             </motion.div>
           ) : (
-            <Send className="w-4 h-4" />
+            <Icon icon={Send} size="sm" />
           )}
           <span>{isLoading || isStreaming ? '发送中...' : '发送'}</span>
         </motion.button>
@@ -310,7 +311,7 @@ export function UserInputPanel() {
         {error && (
           <motion.div
             className="text-sm px-3 py-2 rounded-lg flex items-center gap-2
-                       text-[var(--color-danger)] bg-[rgba(196,92,92,0.08)] border border-[rgba(196,92,92,0.15)]"
+                       text-[var(--color-danger)] bg-[color-mix(in_srgb,var(--color-danger)_8%,transparent)] border border-[color-mix(in_srgb,var(--color-danger)_15%,transparent)]"
             initial={{ opacity: 0, y: -8, scale: 0.97 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -4, scale: 0.97 }}

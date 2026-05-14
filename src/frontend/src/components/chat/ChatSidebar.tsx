@@ -23,7 +23,7 @@ export function ChatSidebar({ entities, onConfirmEntity }: ChatSidebarProps) {
       {/* Desktop sidebar */}
       <div className="hidden md:block h-full">
         <motion.div
-          className="w-[280px] xl:w-[40%] xl:max-w-[480px] xl:min-w-[280px] h-full shrink-0 overflow-hidden"
+          className="w-[var(--sidebar-left-width)] xl:w-[35%] xl:max-w-[var(--sidebar-ai-drawer-width-expanded)] xl:min-w-[var(--sidebar-left-width)] h-full shrink-0 overflow-hidden"
           style={{
             background: 'var(--color-surface-raised)',
             borderLeft: '1px solid var(--border-default)',

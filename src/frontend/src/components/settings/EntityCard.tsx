@@ -1,19 +1,20 @@
 import { useState } from 'react'
 import { motion } from 'framer-motion'
 import { Trash2, Edit2 } from 'lucide-react'
+import { Icon } from '@/components/ui/Icon'
 import { TagInput, TagChips } from './TagInput'
 import { GlassCard } from '@/components/ui/GlassCard'
 import { EASE, DURATION } from '@/components/shared/AnimationConfig'
 
 export const entityColors: Record<string, { bg: string; text: string; border: string; glow: string }> = {
-  character: { bg: 'rgba(232,184,125,0.12)', text: 'var(--color-character)', border: 'rgba(232,184,125,0.20)', glow: 'rgba(232,184,125,0.08)' },
-  item: { bg: 'rgba(155,126,217,0.12)', text: 'var(--color-item)', border: 'rgba(155,126,217,0.20)', glow: 'rgba(155,126,217,0.08)' },
-  location: { bg: 'rgba(94,181,166,0.12)', text: 'var(--color-location)', border: 'rgba(94,181,166,0.20)', glow: 'rgba(94,181,166,0.08)' },
-  faction: { bg: 'rgba(212,93,93,0.12)', text: 'var(--color-faction)', border: 'rgba(212,93,93,0.20)', glow: 'rgba(212,93,93,0.08)' },
-  world: { bg: 'rgba(201,169,110,0.12)', text: 'var(--color-world)', border: 'rgba(201,169,110,0.20)', glow: 'rgba(201,169,110,0.08)' },
-  rule: { bg: 'rgba(126,184,74,0.12)', text: 'var(--color-rule)', border: 'rgba(126,184,74,0.20)', glow: 'rgba(126,184,74,0.08)' },
-  outline: { bg: 'rgba(91,142,232,0.12)', text: 'var(--color-outline)', border: 'rgba(91,142,232,0.20)', glow: 'rgba(91,142,232,0.08)' },
-  ifline: { bg: 'rgba(126,184,74,0.12)', text: 'var(--color-ifline)', border: 'rgba(126,184,74,0.20)', glow: 'rgba(126,184,74,0.08)' },
+  character: { bg: 'color-mix(in srgb, var(--color-character) 12%, transparent)', text: 'var(--color-character)', border: 'color-mix(in srgb, var(--color-character) 20%, transparent)', glow: 'color-mix(in srgb, var(--color-character) 8%, transparent)' },
+  item: { bg: 'color-mix(in srgb, var(--color-item) 12%, transparent)', text: 'var(--color-item)', border: 'color-mix(in srgb, var(--color-item) 20%, transparent)', glow: 'color-mix(in srgb, var(--color-item) 8%, transparent)' },
+  location: { bg: 'color-mix(in srgb, var(--color-location) 12%, transparent)', text: 'var(--color-location)', border: 'color-mix(in srgb, var(--color-location) 20%, transparent)', glow: 'color-mix(in srgb, var(--color-location) 8%, transparent)' },
+  faction: { bg: 'color-mix(in srgb, var(--color-faction) 12%, transparent)', text: 'var(--color-faction)', border: 'color-mix(in srgb, var(--color-faction) 20%, transparent)', glow: 'color-mix(in srgb, var(--color-faction) 8%, transparent)' },
+  world: { bg: 'color-mix(in srgb, var(--accent-primary) 12%, transparent)', text: 'var(--color-world)', border: 'color-mix(in srgb, var(--accent-primary) 20%, transparent)', glow: 'color-mix(in srgb, var(--accent-primary) 8%, transparent)' },
+  rule: { bg: 'color-mix(in srgb, var(--color-faction) 12%, transparent)', text: 'var(--color-rule)', border: 'color-mix(in srgb, var(--color-faction) 20%, transparent)', glow: 'color-mix(in srgb, var(--color-faction) 8%, transparent)' },
+  outline: { bg: 'color-mix(in srgb, var(--color-outline) 12%, transparent)', text: 'var(--color-outline)', border: 'color-mix(in srgb, var(--color-outline) 20%, transparent)', glow: 'color-mix(in srgb, var(--color-outline) 8%, transparent)' },
+  ifline: { bg: 'color-mix(in srgb, var(--color-ifline) 12%, transparent)', text: 'var(--color-ifline)', border: 'color-mix(in srgb, var(--color-ifline) 20%, transparent)', glow: 'color-mix(in srgb, var(--color-ifline) 8%, transparent)' },
 }
 
 export const cardStyle = {
@@ -130,7 +131,7 @@ export function EntityCard({
               whileHover={{ scale: 1.1 }}
               whileTap={{ scale: 0.9 }}
             >
-              <Edit2 className="w-3.5 h-3.5" />
+              <Icon icon={Edit2} size="xs" color="inherit" />
             </motion.button>
           )}
           <motion.button
@@ -142,7 +143,7 @@ export function EntityCard({
             whileHover={{ scale: 1.1 }}
             whileTap={{ scale: 0.9 }}
           >
-            <Trash2 className="w-3.5 h-3.5" />
+            <Icon icon={Trash2} size="xs" color="inherit" />
           </motion.button>
         </div>
       </div>
@@ -231,7 +232,7 @@ export function EntityListItem({
           whileHover={{ scale: 1.1 }}
           whileTap={{ scale: 0.9 }}
         >
-          <Trash2 className="w-3.5 h-3.5" />
+          <Icon icon={Trash2} size="xs" color="inherit" />
         </motion.button>
       )}
     </motion.div>

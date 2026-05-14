@@ -156,17 +156,17 @@ export function WritingStatsOverlay({
                        rounded-xl overflow-hidden
                        ${expanded ? 'min-w-[200px]' : 'min-w-[160px]'}`}
             style={{
-              background: 'linear-gradient(180deg, rgba(22, 23, 24, 0.95) 0%, rgba(16, 17, 18, 0.98) 100%)',
-              border: '1px solid rgba(255, 255, 255, 0.05)',
-              boxShadow: '0 4px 20px rgba(0,0,0,0.25), 0 8px 40px rgba(0,0,0,0.15), inset 0 1px 0 rgba(255,255,255,0.04)',
+              background: `linear-gradient(180deg, color-mix(in srgb, var(--ink-100) 95%, transparent) 0%, color-mix(in srgb, var(--ink-100) 98%, transparent) 100%)`,
+              border: '1px solid color-mix(in srgb, var(--paper-100) 5%, transparent)',
+              boxShadow: '0 4px 20px color-mix(in srgb, var(--ink-100) 25%, transparent), 0 8px 40px color-mix(in srgb, var(--ink-100) 15%, transparent), inset 0 1px 0 color-mix(in srgb, var(--paper-100) 4%, transparent)',
             }}
           >
             {/* Header */}
             <div
               className="flex items-center justify-between px-3 py-2 cursor-pointer"
               style={{
-                borderBottom: '1px solid rgba(255, 255, 255, 0.04)',
-                background: 'linear-gradient(180deg, rgba(255,255,255,0.02) 0%, transparent 100%)',
+                borderBottom: '1px solid color-mix(in srgb, var(--paper-100) 4%, transparent)',
+                background: `linear-gradient(180deg, color-mix(in srgb, var(--paper-100) 2%, transparent) 0%, transparent 100%)`,
               }}
               onClick={toggleExpanded}
             >
@@ -188,7 +188,7 @@ export function WritingStatsOverlay({
                   className="ml-1 w-5 h-5 flex items-center justify-center rounded transition-colors"
                   style={{ color: 'var(--text-muted)' }}
                   onMouseEnter={(e) => {
-                    (e.target as HTMLElement).style.background = 'rgba(255,255,255,0.06)'
+                    (e.target as HTMLElement).style.background = 'color-mix(in srgb, var(--paper-100) 6%, transparent)'
                   }}
                   onMouseLeave={(e) => {
                     (e.target as HTMLElement).style.background = 'transparent'
@@ -299,8 +299,8 @@ export function WritingStatsOverlay({
                       <div
                         className="h-1.5 rounded-full overflow-hidden"
                         style={{
-                          background: 'rgba(255,255,255,0.03)',
-                          boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.15)',
+                          background: 'color-mix(in srgb, var(--paper-100) 3%, transparent)',
+                          boxShadow: 'inset 0 1px 2px color-mix(in srgb, var(--ink-100) 15%, transparent)',
                         }}
                       >
                         <motion.div

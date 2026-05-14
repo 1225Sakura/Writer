@@ -727,10 +727,10 @@ function KbdPill({ shortcut }: { shortcut: string }) {
     <span
       className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[10px] font-mono font-medium"
       style={{
-        background: 'rgba(255, 255, 255, 0.06)',
-        border: '1px solid rgba(255, 255, 255, 0.1)',
+        background: 'color-mix(in srgb, var(--paper-100) 6%, transparent)',
+        border: '1px solid color-mix(in srgb, var(--paper-100) 10%, transparent)',
         color: 'var(--text-tertiary)',
-        boxShadow: 'inset 0 1px 0 rgba(255, 255, 255, 0.04)',
+        boxShadow: 'inset 0 1px 0 color-mix(in srgb, var(--paper-100) 4%, transparent)',
       }}
     >
       {shortcut}
@@ -777,7 +777,7 @@ export function CommandPalette() {
       <div
         className="absolute inset-0 transition-opacity"
         style={{
-          background: 'rgba(0, 0, 0, 0.65)',
+          background: 'color-mix(in srgb, var(--ink-100) 65%, transparent)',
           backdropFilter: 'blur(8px)',
           WebkitBackdropFilter: 'blur(8px)',
         }}
@@ -791,9 +791,9 @@ export function CommandPalette() {
         transition={{ duration: DURATION.NORMAL, ease: EASE.SMOOTH }}
         className="relative w-full max-w-xl rounded-2xl border overflow-hidden"
         style={{
-          background: 'rgba(22, 22, 28, 0.95)',
-          borderColor: 'rgba(255, 255, 255, 0.1)',
-          boxShadow: '0 24px 64px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.04)',
+          background: 'color-mix(in srgb, var(--ink-90) 95%, transparent)',
+          borderColor: 'color-mix(in srgb, var(--paper-100) 10%, transparent)',
+          boxShadow: '0 24px 64px color-mix(in srgb, var(--ink-100) 40%, transparent), 0 0 0 1px color-mix(in srgb, var(--paper-100) 4%, transparent)',
         }}
         onClick={(e) => e.stopPropagation()}
         onKeyDown={handleKeyDown}
@@ -802,8 +802,8 @@ export function CommandPalette() {
         <div
           className="flex items-center gap-3 px-4 py-3.5 border-b"
           style={{
-            borderColor: 'rgba(255, 255, 255, 0.08)',
-            background: 'rgba(0, 0, 0, 0.25)',
+            borderColor: 'color-mix(in srgb, var(--paper-100) 8%, transparent)',
+            background: 'color-mix(in srgb, var(--ink-100) 25%, transparent)',
           }}
         >
           <Search className="w-4 h-4 flex-shrink-0" style={{ color: 'var(--text-tertiary)' }} />
@@ -876,7 +876,7 @@ export function CommandPalette() {
                           opacity: cmd.disabled ? 0.4 : 1,
                           cursor: cmd.disabled ? 'not-allowed' : 'pointer',
                           background: isSelected
-                            ? 'linear-gradient(90deg, rgba(201, 169, 110, 0.12) 0%, rgba(201, 169, 110, 0.04) 100%)'
+                            ? 'linear-gradient(90deg, color-mix(in srgb, var(--accent-100) 12%, transparent) 0%, color-mix(in srgb, var(--accent-100) 4%, transparent) 100%)'
                             : 'transparent',
                           borderLeft: isSelected
                             ? '3px solid var(--accent-primary)'
@@ -887,7 +887,7 @@ export function CommandPalette() {
                         <div
                           className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-150 pointer-events-none"
                           style={{
-                            background: 'linear-gradient(90deg, rgba(255, 255, 255, 0.03) 0%, transparent 100%)',
+                            background: 'linear-gradient(90deg, color-mix(in srgb, var(--paper-100) 3%, transparent) 0%, transparent 100%)',
                           }}
                         />
 
@@ -923,8 +923,8 @@ export function CommandPalette() {
         <div
           className="px-4 py-2.5 border-t flex items-center justify-between text-[11px]"
           style={{
-            borderColor: 'rgba(255, 255, 255, 0.08)',
-            background: 'rgba(0, 0, 0, 0.2)',
+            borderColor: 'color-mix(in srgb, var(--paper-100) 8%, transparent)',
+            background: 'color-mix(in srgb, var(--ink-100) 20%, transparent)',
             color: 'var(--text-tertiary)',
           }}
         >
@@ -946,8 +946,8 @@ export function CommandPalette() {
           <div
             className="flex items-center gap-1.5 px-2 py-1 rounded-md"
             style={{
-              background: 'rgba(255, 255, 255, 0.05)',
-              border: '1px solid rgba(255, 255, 255, 0.08)',
+              background: 'color-mix(in srgb, var(--paper-100) 5%, transparent)',
+              border: '1px solid color-mix(in srgb, var(--paper-100) 8%, transparent)',
             }}
           >
             <Command className="w-3 h-3" />

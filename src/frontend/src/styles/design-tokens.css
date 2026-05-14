@@ -96,6 +96,14 @@
   --color-success: var(--color-location);
   --color-info:    var(--accent-100);
 
+  /* === Icon Tokens (used by Icon.tsx wrapper) === */
+  --icon-primary:   var(--paper-100);
+  --icon-secondary: var(--paper-85);
+  --icon-muted:     var(--paper-70);
+  --icon-danger:    var(--vermillion-100);
+  --icon-success:   var(--color-location);
+  --icon-warning:   var(--color-character);
+
   /* shadcn/ui bridge variables are now defined in styles/shadcn.css */
 
   /* === Glass Surface (parchment/leather tones) === */
@@ -155,23 +163,20 @@
   --texture-wood-grain: repeating-linear-gradient(90deg, transparent 0px, transparent 4px, rgba(120, 80, 40, 0.03) 4px, rgba(120, 80, 40, 0.03) 5px);
 
   /* === Spacing (4px base) === */
+  /* --space-unit through --space-16 are defined in responsive.css (calc-based) */
   --space-unit: 4px;
   --space-0:   0px;
   --space-px:  1px;
   --space-0-5: 2px;
-  --space-1:   4px;
-  --space-1-5: 6px;
-  --space-2:   8px;
-  --space-3:   12px;
-  --space-4:   16px;
-  --space-5:   20px;
-  --space-6:   24px;
-  --space-8:   32px;
-  --space-10:  40px;
-  --space-12:  48px;
-  --space-16:  64px;
   --space-20:  80px;
   --space-24:  96px;
+
+  /* === Layout: Sidebar & Canvas Widths === */
+  --sidebar-left-width: 240px;
+  --sidebar-outline-width: 280px;
+  --sidebar-ai-drawer-width: 320px;
+  --sidebar-ai-drawer-width-expanded: 360px;
+  --canvas-min-width: 680px;
 
   /* === Border Radius === */
   --radius-sm:   4px;

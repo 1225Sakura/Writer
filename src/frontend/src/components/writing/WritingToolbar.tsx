@@ -40,7 +40,7 @@ export function WritingToolbar() {
         className="hidden md:flex items-center justify-center w-6 h-6 rounded-md text-[var(--text-tertiary)] hover:text-[var(--text-secondary)] transition-colors flex-shrink-0"
         title={toolbarCollapsed ? '展开工具栏' : '收起工具栏'}
       >
-        <ChevronDown className={`w-4 h-4 transition-transform duration-300 ${toolbarCollapsed ? 'rotate-180' : ''}`} />
+        <ChevronDown className={`w-4 h-4 transition-transform duration-250 ${toolbarCollapsed ? 'rotate-180' : ''}`} />
       </motion.button>
 
       <ToolbarRightSection />

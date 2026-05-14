@@ -1,6 +1,7 @@
 import { motion } from 'framer-motion'
 import { EntityType } from '@/store'
 import { User, Package, MapPin, Shield, Globe, Scale, FileText, GitBranch, Check } from 'lucide-react'
+import { Icon } from '@/components/ui/Icon'
 import { SPRING } from '@/components/shared/AnimationConfig'
 
 
@@ -21,7 +22,7 @@ const typeConfig: Record<EntityTypeExtended, { label: string; bgColor: string; t
     textColor: 'var(--color-character)',
     borderColor: 'color-mix(in srgb, var(--color-character) 30%, transparent)',
     glowColor: 'color-mix(in srgb, var(--color-character) 35%, transparent)',
-    icon: <User className="w-3 h-3" />,
+    icon: <Icon icon={User} size="xs" />,
   },
   item: {
     label: '物品',
@@ -29,7 +30,7 @@ const typeConfig: Record<EntityTypeExtended, { label: string; bgColor: string; t
     textColor: 'var(--color-item)',
     borderColor: 'color-mix(in srgb, var(--color-item) 30%, transparent)',
     glowColor: 'color-mix(in srgb, var(--color-item) 35%, transparent)',
-    icon: <Package className="w-3 h-3" />,
+    icon: <Icon icon={Package} size="xs" />,
   },
   location: {
     label: '地点',
@@ -37,7 +38,7 @@ const typeConfig: Record<EntityTypeExtended, { label: string; bgColor: string; t
     textColor: 'var(--color-location)',
     borderColor: 'color-mix(in srgb, var(--color-location) 30%, transparent)',
     glowColor: 'color-mix(in srgb, var(--color-location) 35%, transparent)',
-    icon: <MapPin className="w-3 h-3" />,
+    icon: <Icon icon={MapPin} size="xs" />,
   },
   faction: {
     label: '势力',
@@ -45,7 +46,7 @@ const typeConfig: Record<EntityTypeExtended, { label: string; bgColor: string; t
     textColor: 'var(--color-faction)',
     borderColor: 'color-mix(in srgb, var(--color-faction) 30%, transparent)',
     glowColor: 'color-mix(in srgb, var(--color-faction) 35%, transparent)',
-    icon: <Shield className="w-3 h-3" />,
+    icon: <Icon icon={Shield} size="xs" />,
   },
   world: {
     label: '世界观',
@@ -53,7 +54,7 @@ const typeConfig: Record<EntityTypeExtended, { label: string; bgColor: string; t
     textColor: 'var(--color-world)',
     borderColor: 'color-mix(in srgb, var(--color-world) 30%, transparent)',
     glowColor: 'color-mix(in srgb, var(--color-world) 35%, transparent)',
-    icon: <Globe className="w-3 h-3" />,
+    icon: <Icon icon={Globe} size="xs" />,
   },
   rule: {
     label: '规则',
@@ -61,7 +62,7 @@ const typeConfig: Record<EntityTypeExtended, { label: string; bgColor: string; t
     textColor: 'var(--color-rule)',
     borderColor: 'color-mix(in srgb, var(--color-rule) 30%, transparent)',
     glowColor: 'color-mix(in srgb, var(--color-rule) 35%, transparent)',
-    icon: <Scale className="w-3 h-3" />,
+    icon: <Icon icon={Scale} size="xs" />,
   },
   outline: {
     label: '大纲',
@@ -69,7 +70,7 @@ const typeConfig: Record<EntityTypeExtended, { label: string; bgColor: string; t
     textColor: 'var(--color-outline)',
     borderColor: 'color-mix(in srgb, var(--color-outline) 30%, transparent)',
     glowColor: 'color-mix(in srgb, var(--color-outline) 35%, transparent)',
-    icon: <FileText className="w-3 h-3" />,
+    icon: <Icon icon={FileText} size="xs" />,
   },
   ifline: {
     label: 'IF线',
@@ -77,7 +78,7 @@ const typeConfig: Record<EntityTypeExtended, { label: string; bgColor: string; t
     textColor: 'var(--color-ifline)',
     borderColor: 'color-mix(in srgb, var(--color-ifline) 30%, transparent)',
     glowColor: 'color-mix(in srgb, var(--color-ifline) 35%, transparent)',
-    icon: <GitBranch className="w-3 h-3" />,
+    icon: <Icon icon={GitBranch} size="xs" />,
   },
   chapter: {
     label: '章节',
@@ -85,7 +86,7 @@ const typeConfig: Record<EntityTypeExtended, { label: string; bgColor: string; t
     textColor: 'var(--color-outline)',
     borderColor: 'color-mix(in srgb, var(--color-outline) 25%, transparent)',
     glowColor: 'color-mix(in srgb, var(--color-outline) 30%, transparent)',
-    icon: <FileText className="w-3 h-3" />,
+    icon: <Icon icon={FileText} size="xs" />,
   },
   plot_thread: {
     label: '剧情线',
@@ -93,7 +94,7 @@ const typeConfig: Record<EntityTypeExtended, { label: string; bgColor: string; t
     textColor: 'var(--accent-100)',
     borderColor: 'color-mix(in srgb, var(--accent-100) 35%, transparent)',
     glowColor: 'color-mix(in srgb, var(--accent-100) 40%, transparent)',
-    icon: <GitBranch className="w-3 h-3" />,
+    icon: <Icon icon={GitBranch} size="xs" />,
   },
 }
 

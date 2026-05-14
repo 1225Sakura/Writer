@@ -297,7 +297,7 @@ export function ChatInitPage() {
         <LeftSidebar
           isOpen={sidebarOpen}
           onToggle={() => setSidebarOpen(!sidebarOpen)}
-          width="var(--layout-sidebar-width, 240px)"
+          width="var(--sidebar-left-width)"
         >
           <ChatLeftSidebarContent entities={extractedEntities} />
         </LeftSidebar>
@@ -343,7 +343,7 @@ export function ChatInitPage() {
               }
               className="fixed right-0 left-0 bottom-0 z-50 md:hidden"
               style={{
-                borderRadius: '24px 24px 0 0',
+                borderRadius: 'var(--radius-xl) var(--radius-xl) 0 0',
                 maxHeight: '85vh',
                 background: 'var(--color-surface-raised)',
                 boxShadow: `0 -12px 48px color-mix(in srgb, var(--ink-100) 35%, transparent), 0 -4px 16px color-mix(in srgb, var(--ink-100) 15%, transparent)`,

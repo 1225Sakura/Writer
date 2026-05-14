@@ -1,6 +1,7 @@
 import { useUIStore } from '@/store'
 import { Button } from '@/components/ui/Button'
 import { ArrowRight, Settings, PenTool } from 'lucide-react'
+import { Icon } from '@/components/ui/Icon'
 import { motion } from 'framer-motion'
 import { DURATION, EASE } from '@/components/shared/AnimationConfig'
 import { usePrefersReducedMotion } from '@/hooks/usePrefersReducedMotion'
@@ -83,7 +84,7 @@ export function ChatFooter() {
             size="sm"
             className="touch-target-min"
           >
-            <Settings className="w-4 h-4" />
+            <Icon icon={Settings} size="sm" />
             <span className="hidden sm:inline">设定编辑</span>
           </Button>
         </motion.div>
@@ -121,9 +122,9 @@ export function ChatFooter() {
               boxShadow: '0 0 16px color-mix(in srgb, var(--accent-100) 30%, transparent), 0 4px 12px color-mix(in srgb, var(--accent-100) 15%, transparent)',
             }}
           >
-            <PenTool className="w-4 h-4" />
+            <Icon icon={PenTool} size="sm" />
             <span className="hidden sm:inline">开始写作</span>
-            <ArrowRight className="w-3 h-3" />
+            <Icon icon={ArrowRight} size="xs" />
           </Button>
         </motion.div>
       </div>

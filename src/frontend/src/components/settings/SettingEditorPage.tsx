@@ -11,8 +11,9 @@ import { LeftSidebar } from '@/components/shared/LeftSidebar'
 import { CanvasView } from './CanvasView'
 import {
   Settings, RefreshCw, PenTool, ArrowLeft, Check, AlertCircle,
-  Keyboard, Sparkles, BarChart3, Zap, Menu, Network, List
+  Keyboard, Sparkles, BarChart3, Zap, Menu, Network, List,
 } from 'lucide-react'
+import { Icon } from '@/components/ui/Icon'
 import { motion, AnimatePresence } from 'framer-motion'
 import { EntityListSkeletonPreset, SmartSkeleton } from '@/components/shared/SmartSkeleton'
 import { SectionLoadingOverlay } from '@/components/shared/LoadingOverlay'
@@ -81,7 +82,7 @@ function StatusBar() {
           animate={{ opacity: 1 }}
           transition={{ delay: 0.5, duration: DURATION.NORMAL, ease: EASE.SMOOTH }}
         >
-          <BarChart3 className="w-3 h-3 text-[var(--text-tertiary)]" />
+          <Icon icon={BarChart3} size="xs" color="muted" />
           <span className="text-[var(--text-tertiary)]">
             共 <span className="font-medium text-[var(--text-secondary)]">{totalEntities}</span> 个实体
           </span>
@@ -120,7 +121,7 @@ function StatusBar() {
                 animate={{ scale: 1 }}
                 transition={SPRING.BADGE}
               >
-                <Check className="w-3 h-3" />
+                <Icon icon={Check} size="xs" color="success" />
               </motion.div>
               <span>已保存 {formatTime(lastSaved)}</span>
             </motion.div>
@@ -133,7 +134,7 @@ function StatusBar() {
               transition={{ duration: DURATION.FAST, ease: EASE.SMOOTH }}
               className="flex items-center gap-1.5 text-[var(--text-tertiary)]"
             >
-              <AlertCircle className="w-3 h-3" />
+              <Icon icon={AlertCircle} size="xs" color="muted" />
               <span>未保存</span>
             </motion.div>
           )}
@@ -141,7 +142,7 @@ function StatusBar() {
       </div>
 
       <div className="flex items-center gap-2 text-[var(--text-tertiary)]">
-        <Keyboard className="w-3 h-3" />
+        <Icon icon={Keyboard} size="xs" color="muted" />
         <span className="hidden sm:inline">
           <kbd className="px-1 py-0.5 rounded text-[10px] bg-[var(--color-surface-raised)] border border-[var(--border-subtle)]">Ctrl</kbd>
           {' + '}
@@ -183,7 +184,7 @@ export function SettingEditorPage() {
         showOnMobile
         mobileOpen={mobileNavOpen}
         onMobileClose={() => setMobileNavOpen(false)}
-        width="var(--layout-sidebar-width, 200px)"
+        width="var(--sidebar-left-width)"
       >
         <CategoryNav />
       </LeftSidebar>
@@ -207,13 +208,13 @@ export function SettingEditorPage() {
               className="md:hidden mobile-menu-btn mr-1 btn-active-scale"
               aria-label="打开分类菜单"
             >
-              <Menu className="w-4 h-4" />
+              <Icon icon={Menu} size="sm" color="inherit" />
             </button>
             <motion.div
               whileHover={{ rotate: 15 }}
               transition={SPRING.SNAPPY}
             >
-              <Settings className="w-4 h-4 text-[var(--accent-primary)]" />
+              <Icon icon={Settings} size="sm" color="accent" />
             </motion.div>
             <span className="font-medium text-sm text-[var(--text-primary)]">
               {viewMode === 'canvas' ? '画布视图' : '设定编辑器'}
@@ -235,7 +236,7 @@ export function SettingEditorPage() {
                 className="gap-1"
                 title={viewMode === 'edit' ? '切换到画布视图' : '切换到编辑视图'}
               >
-                {viewMode === 'edit' ? <Network className="w-3.5 h-3.5" /> : <List className="w-3.5 h-3.5" />}
+                {viewMode === 'edit' ? <Icon icon={Network} size="xs" color="inherit" /> : <Icon icon={List} size="xs" color="inherit" />}
                 {viewMode === 'edit' ? '画布' : '编辑'}
               </Button>
               <Button
@@ -244,7 +245,7 @@ export function SettingEditorPage() {
                 size="sm"
                 className="gap-1"
               >
-                <ArrowLeft className="w-3.5 h-3.5" />
+                <Icon icon={ArrowLeft} size="xs" color="inherit" />
                 返回
               </Button>
               <Button
@@ -257,7 +258,7 @@ export function SettingEditorPage() {
                 size="sm"
                 className="gap-1"
               >
-                <Sparkles className="w-3.5 h-3.5" />
+                <Icon icon={Sparkles} size="xs" color="accent" />
                 生成
               </Button>
               <Button
@@ -266,7 +267,7 @@ export function SettingEditorPage() {
                 size="sm"
                 className="gap-1"
               >
-                <PenTool className="w-3.5 h-3.5" />
+                <Icon icon={PenTool} size="xs" color="inherit" />
                 写作
               </Button>
             </div>
@@ -308,9 +309,9 @@ export function SettingEditorPage() {
         className="flex-shrink-0 h-full flex flex-col overflow-hidden relative bg-[var(--color-surface-raised)] border-l border-[var(--border-subtle)]
                    hidden xl:flex"
         style={{
-          width: 'var(--layout-rightpanel-width, 320px)',
-          minWidth: '280px',
-          maxWidth: '400px',
+          width: 'var(--sidebar-ai-drawer-width)',
+          minWidth: 'var(--sidebar-outline-width)',
+          maxWidth: 'var(--sidebar-ai-drawer-width-expanded)',
           zIndex: 1,
         }}
         initial={{ x: 20, opacity: 0 }}
@@ -322,7 +323,7 @@ export function SettingEditorPage() {
           className="flex items-center justify-between px-4 py-2 border-b border-[var(--border-subtle)] relative z-10"
         >
           <div className="flex items-center gap-2">
-            <Zap className="w-3.5 h-3.5 text-[var(--accent-primary)]" />
+            <Icon icon={Zap} size="xs" color="accent" />
             <span className="text-xs font-medium uppercase tracking-wider text-[var(--text-secondary)]">
               关系图谱
             </span>
@@ -333,7 +334,7 @@ export function SettingEditorPage() {
             size="icon"
             title="生成关系"
           >
-            <RefreshCw className="w-4 h-4" />
+            <Icon icon={RefreshCw} size="sm" color="inherit" />
           </Button>
         </div>
         <div className="flex-1 overflow-hidden">

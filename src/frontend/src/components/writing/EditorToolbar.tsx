@@ -19,6 +19,7 @@ import {
   Type,
   ChevronDown,
 } from 'lucide-react'
+import { Icon } from '@/components/ui/Icon'
 import type { Editor } from '@tiptap/react'
 
 interface EditorToolbarProps {
@@ -92,28 +93,28 @@ export function EditorToolbar({ editor }: EditorToolbarProps) {
 
   const formatButtons: ToolbarButton[] = [
     {
-      icon: <Bold className="w-3.5 h-3.5" />,
+      icon: <Icon icon={Bold} size="xs" />,
       action: () => editor.chain().focus().toggleBold().run(),
       isActive: () => editor.isActive('bold'),
       title: '加粗',
       shortcut: 'Ctrl+B',
     },
     {
-      icon: <Italic className="w-3.5 h-3.5" />,
+      icon: <Icon icon={Italic} size="xs" />,
       action: () => editor.chain().focus().toggleItalic().run(),
       isActive: () => editor.isActive('italic'),
       title: '斜体',
       shortcut: 'Ctrl+I',
     },
     {
-      icon: <Underline className="w-3.5 h-3.5" />,
+      icon: <Icon icon={Underline} size="xs" />,
       action: () => editor.chain().focus().toggleUnderline().run(),
       isActive: () => editor.isActive('underline'),
       title: '下划线',
       shortcut: 'Ctrl+U',
     },
     {
-      icon: <Highlighter className="w-3.5 h-3.5" />,
+      icon: <Icon icon={Highlighter} size="xs" />,
       action: () => editor.chain().focus().toggleHighlight().run(),
       isActive: () => editor.isActive('highlight'),
       title: '高亮',
@@ -123,19 +124,19 @@ export function EditorToolbar({ editor }: EditorToolbarProps) {
 
   const alignButtons: ToolbarButton[] = [
     {
-      icon: <AlignLeft className="w-3.5 h-3.5" />,
+      icon: <Icon icon={AlignLeft} size="xs" />,
       action: () => editor.chain().focus().setTextAlign('left').run(),
       isActive: () => editor.isActive({ textAlign: 'left' }) || !editor.isActive({ textAlign: 'center' }) && !editor.isActive({ textAlign: 'right' }),
       title: '左对齐',
     },
     {
-      icon: <AlignCenter className="w-3.5 h-3.5" />,
+      icon: <Icon icon={AlignCenter} size="xs" />,
       action: () => editor.chain().focus().setTextAlign('center').run(),
       isActive: () => editor.isActive({ textAlign: 'center' }),
       title: '居中',
     },
     {
-      icon: <AlignRight className="w-3.5 h-3.5" />,
+      icon: <Icon icon={AlignRight} size="xs" />,
       action: () => editor.chain().focus().setTextAlign('right').run(),
       isActive: () => editor.isActive({ textAlign: 'right' }),
       title: '右对齐',
@@ -145,25 +146,25 @@ export function EditorToolbar({ editor }: EditorToolbarProps) {
   const paragraphStyles: ParagraphStyle[] = [
     {
       label: '正文',
-      icon: <Type className="w-3.5 h-3.5" />,
+      icon: <Icon icon={Type} size="xs" />,
       action: () => editor.chain().focus().setParagraph().run(),
       isActive: () => editor.isActive('paragraph') && !editor.isActive('heading'),
     },
     {
       label: '标题 1',
-      icon: <Heading1 className="w-3.5 h-3.5" />,
+      icon: <Icon icon={Heading1} size="xs" />,
       action: () => editor.chain().focus().toggleHeading({ level: 1 }).run(),
       isActive: () => editor.isActive('heading', { level: 1 }),
     },
     {
       label: '标题 2',
-      icon: <Heading2 className="w-3.5 h-3.5" />,
+      icon: <Icon icon={Heading2} size="xs" />,
       action: () => editor.chain().focus().toggleHeading({ level: 2 }).run(),
       isActive: () => editor.isActive('heading', { level: 2 }),
     },
     {
       label: '标题 3',
-      icon: <Heading3 className="w-3.5 h-3.5" />,
+      icon: <Icon icon={Heading3} size="xs" />,
       action: () => editor.chain().focus().toggleHeading({ level: 3 }).run(),
       isActive: () => editor.isActive('heading', { level: 3 }),
     },
@@ -171,25 +172,25 @@ export function EditorToolbar({ editor }: EditorToolbarProps) {
 
   const quickFormatButtons: ToolbarButton[] = [
     {
-      icon: <List className="w-3.5 h-3.5" />,
+      icon: <Icon icon={List} size="xs" />,
       action: () => editor.chain().focus().toggleBulletList().run(),
       isActive: () => editor.isActive('bulletList'),
       title: '无序列表',
     },
     {
-      icon: <ListOrdered className="w-3.5 h-3.5" />,
+      icon: <Icon icon={ListOrdered} size="xs" />,
       action: () => editor.chain().focus().toggleOrderedList().run(),
       isActive: () => editor.isActive('orderedList'),
       title: '有序列表',
     },
     {
-      icon: <Quote className="w-3.5 h-3.5" />,
+      icon: <Icon icon={Quote} size="xs" />,
       action: () => editor.chain().focus().toggleBlockquote().run(),
       isActive: () => editor.isActive('blockquote'),
       title: '引用',
     },
     {
-      icon: <Minus className="w-3.5 h-3.5" />,
+      icon: <Icon icon={Minus} size="xs" />,
       action: () => editor.chain().focus().setHorizontalRule().run(),
       isActive: () => false,
       title: '分隔线',
@@ -356,9 +357,9 @@ export function EditorToolbar({ editor }: EditorToolbarProps) {
               aria-expanded={styleMenuOpen}
               aria-haspopup="listbox"
             >
-              <Type className="w-3.5 h-3.5" />
+              <Icon icon={Type} size="xs" />
               <span className="text-[11px] font-medium">{getActiveStyleLabel()}</span>
-              <ChevronDown className={`w-3 h-3 transition-transform duration-200 ${styleMenuOpen ? 'rotate-180' : ''}`} />
+              <Icon icon={ChevronDown} size="xs" className={`transition-transform duration-200 ${styleMenuOpen ? 'rotate-180' : ''}`} />
             </motion.button>
 
             <AnimatePresence>

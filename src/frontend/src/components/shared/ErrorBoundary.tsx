@@ -68,8 +68,8 @@ export class ErrorBoundary extends Component<Props, State> {
             className="max-w-md w-full rounded-2xl p-8 border"
             style={{
               backgroundColor: 'var(--ink-85)',
-              borderColor: 'rgba(255, 255, 255, 0.08)',
-              boxShadow: '0 24px 64px rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(255, 255, 255, 0.04)',
+              borderColor: 'var(--border-default)',
+              boxShadow: 'var(--shadow-elevated-lg)',
             }}
           >
             {/* Icon with glow */}
@@ -77,9 +77,9 @@ export class ErrorBoundary extends Component<Props, State> {
               <div
                 className="w-16 h-16 rounded-2xl flex items-center justify-center"
                 style={{
-                  background: 'linear-gradient(135deg, rgba(196, 92, 92, 0.15) 0%, rgba(196, 92, 92, 0.05) 100%)',
-                  border: '1px solid rgba(196, 92, 92, 0.2)',
-                  boxShadow: '0 0 30px rgba(196, 92, 92, 0.15)',
+                  background: `linear-gradient(135deg, color-mix(in srgb, var(--color-danger) 15%, transparent) 0%, color-mix(in srgb, var(--color-danger) 5%, transparent) 100%)`,
+                  border: '1px solid color-mix(in srgb, var(--color-danger) 20%, transparent)',
+                  boxShadow: '0 0 30px color-mix(in srgb, var(--color-danger) 15%, transparent)',
                 }}
               >
                 <AlertTriangle className="w-8 h-8" style={{ color: 'var(--vermillion-100)' }} />
@@ -113,8 +113,8 @@ export class ErrorBoundary extends Component<Props, State> {
                   className="flex items-center gap-2 cursor-pointer text-xs py-2 px-3 rounded-lg border transition-colors duration-200"
                   style={{
                     color: 'var(--text-tertiary)',
-                    borderColor: 'rgba(255, 255, 255, 0.08)',
-                    backgroundColor: 'rgba(255, 255, 255, 0.02)',
+                    borderColor: 'var(--border-default)',
+                    backgroundColor: 'color-mix(in srgb, var(--paper-100) 2%, transparent)',
                   }}
                 >
                   <Bug className="w-3.5 h-3.5" />
@@ -127,7 +127,7 @@ export class ErrorBoundary extends Component<Props, State> {
                   style={{
                     backgroundColor: 'var(--ink-100)',
                     color: 'var(--text-tertiary)',
-                    border: '1px solid rgba(255, 255, 255, 0.06)',
+                    border: '1px solid var(--border-subtle)',
                   }}
                 >
                   <pre className="whitespace-pre-wrap break-all">{this.state.error.message}</pre>
@@ -145,7 +145,7 @@ export class ErrorBoundary extends Component<Props, State> {
                 className="w-full justify-center"
                 style={{
                   background: 'linear-gradient(135deg, var(--accent-100) 0%, var(--accent-85) 100%)',
-                  boxShadow: '0 4px 16px rgba(201, 169, 110, 0.25)',
+                  boxShadow: '0 4px 16px color-mix(in srgb, var(--accent-100) 25%, transparent)',
                 }}
               >
                 <RefreshCw className="w-4 h-4 mr-2" />

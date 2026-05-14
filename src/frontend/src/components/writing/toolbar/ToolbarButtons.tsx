@@ -8,6 +8,7 @@ import {
   Users,
   ArrowLeft,
 } from 'lucide-react'
+import { Icon } from '@/components/ui/Icon'
 
 export function ToolbarButtons() {
   const {
@@ -24,21 +25,21 @@ export function ToolbarButtons() {
   return (
     <div className="flex items-center gap-0.5 flex-shrink-0">
       <ToolbarButton
-        icon={<Pen className="w-4 h-4" />}
+        icon={<Icon icon={Pen} size="sm" />}
         label="写作"
         shortcut="Ctrl+1"
         isActive={currentInterface === 'writing'}
         onClick={() => setCurrentInterface('writing')}
       />
       <ToolbarButton
-        icon={<List className="w-4 h-4" />}
+        icon={<Icon icon={List} size="sm" />}
         label="大纲"
         shortcut="Ctrl+2"
         isActive={outlineDrawerOpen}
         onClick={toggleOutlineDrawer}
       />
       <ToolbarButton
-        icon={<MessageCircle className="w-4 h-4" />}
+        icon={<Icon icon={MessageCircle} size="sm" />}
         label="AI操作"
         shortcut="Ctrl+3"
         isActive={aiDrawerOpen}
@@ -46,7 +47,7 @@ export function ToolbarButtons() {
         badge={aiDrawerOpen ? undefined : ' '}
       />
       <ToolbarButton
-        icon={<Users className="w-4 h-4" />}
+        icon={<Icon icon={Users} size="sm" />}
         label="协作"
         shortcut="Ctrl+4"
         isActive={collaborationDrawerOpen}
@@ -63,13 +64,13 @@ export function NavButtons() {
     <>
       <NavButton
         onClick={() => setCurrentInterface('chat')}
-        icon={<MessageCircle className="w-4 h-4" />}
+        icon={<Icon icon={MessageCircle} size="sm" />}
         label="返回聊天"
         mobileLabel="聊天"
       />
       <NavButton
         onClick={() => setCurrentInterface('settings')}
-        icon={<ArrowLeft className="w-4 h-4" />}
+        icon={<Icon icon={ArrowLeft} size="sm" />}
         label="返回设定"
         mobileLabel="设定"
       />
@@ -102,14 +103,14 @@ const ToolbarButton = memo(function ToolbarButton({
         color: isActive ? 'var(--text-primary)' : 'var(--text-secondary)',
         background: isActive ? 'var(--accent-primary)' : 'transparent',
         border: isActive ? '1px solid color-mix(in srgb, var(--accent-primary) 60%, transparent)' : '1px solid transparent',
-        boxShadow: isActive ? '0 0 16px color-mix(in srgb, var(--accent-primary) 30%, transparent), inset 0 1px 0 rgba(255,255,255,0.08)' : 'none',
+        boxShadow: isActive ? '0 0 16px color-mix(in srgb, var(--accent-primary) 30%, transparent), inset 0 1px 0 color-mix(in srgb, var(--paper-100) 8%, transparent)' : 'none',
       }}
       onMouseEnter={(e) => {
         if (!isActive) {
           e.currentTarget.style.background = 'var(--color-surface-raised)'
           e.currentTarget.style.borderColor = 'var(--border-default)'
           e.currentTarget.style.color = 'var(--text-primary)'
-          e.currentTarget.style.boxShadow = '0 0 12px color-mix(in srgb, var(--accent-primary) 12%, transparent), inset 0 1px 0 rgba(255,255,255,0.05)'
+          e.currentTarget.style.boxShadow = '0 0 12px color-mix(in srgb, var(--accent-primary) 12%, transparent), inset 0 1px 0 color-mix(in srgb, var(--paper-100) 5%, transparent)'
         }
       }}
       onMouseLeave={(e) => {
@@ -136,7 +137,7 @@ const ToolbarButton = memo(function ToolbarButton({
       {shortcut && (
         <span className="hidden xl:inline-flex text-[9px] px-1 py-px rounded font-mono opacity-0 group-hover:opacity-60 transition-opacity duration-200"
           style={{
-            background: isActive ? 'rgba(255,255,255,0.15)' : 'var(--color-surface-hover)',
+            background: isActive ? 'color-mix(in srgb, var(--paper-100) 15%, transparent)' : 'var(--color-surface-hover)',
             color: isActive ? 'var(--text-primary)' : 'var(--text-tertiary)',
           }}
         >

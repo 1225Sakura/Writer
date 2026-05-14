@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react'
 import { useChatStore } from '@/store/chatStore'
 import type { ChatMessage, ExtractedEntity } from '@/store'
 import { Bot, User, Pencil, Trash2, Check, X, Sparkles, MessageSquareText, Wand2 } from 'lucide-react'
+import { Icon } from '@/components/ui/Icon'
 import { motion, AnimatePresence } from 'framer-motion'
 import { TypingIndicator } from './TypingIndicator'
 import { EntityTag } from './EntityTag'
@@ -204,7 +205,7 @@ function AIAvatar({ isThinking = false }: { isThinking?: boolean }) {
             : '0 0 10px color-mix(in srgb, var(--accent-primary) 25%, transparent), inset 0 1px 2px rgba(255,255,255,0.05)',
         }}
       >
-        <Bot className="w-5 h-5 text-accent-primary" />
+        <Icon icon={Bot} size="md" color="accent" />
       </div>
     </motion.div>
   )
@@ -248,7 +249,7 @@ function MessageStatus({ status, timestamp }: { status?: 'sending' | 'sent' | 'e
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: DURATION.FAST, ease: EASE.SMOOTH }}
         >
-          <Check className="w-3 h-3" />
+          <Icon icon={Check} size="xs" color="success" />
         </motion.span>
       )}
       {status === 'error' && (
@@ -257,7 +258,7 @@ function MessageStatus({ status, timestamp }: { status?: 'sending' | 'sent' | 'e
           initial={{ opacity: 0, x: -4 }}
           animate={{ opacity: 1, x: 0 }}
         >
-          <X className="w-3 h-3" />
+          <Icon icon={X} size="xs" color="danger" />
           <span>发送失败</span>
         </motion.span>
       )}
@@ -346,7 +347,7 @@ function ChatBubble({ message, onEdit, onDelete, onConfirmEntity, index, isGroup
               whileHover={prefersReducedMotion ? {} : { scale: 1.06 }}
               whileTap={prefersReducedMotion ? {} : { scale: 0.94 }}
             >
-              <User className="w-4 h-4 text-white" />
+              <Icon icon={User} size="sm" className="text-white" />
             </motion.div>
           )}
         </motion.div>
@@ -367,7 +368,7 @@ function ChatBubble({ message, onEdit, onDelete, onConfirmEntity, index, isGroup
                 : 'linear-gradient(135deg, var(--accent-primary), color-mix(in srgb, var(--accent-primary) 85%, var(--accent-hover)))',
               color: isAssistant ? 'var(--text-primary)' : 'white',
               boxShadow: isAssistant
-                ? '0 4px 20px rgba(0,0,0,0.08), 0 1px 4px rgba(0,0,0,0.04), inset 0 1px 0 rgba(255,255,255,0.03)'
+                ? 'var(--shadow-card)'
                 : '0 4px 20px color-mix(in srgb, var(--accent-primary) 25%, transparent), 0 2px 8px rgba(0,0,0,0.1)',
             }}
           >
@@ -401,7 +402,7 @@ function ChatBubble({ message, onEdit, onDelete, onConfirmEntity, index, isGroup
                     whileHover={prefersReducedMotion ? {} : { y: -1 }}
                     whileTap={prefersReducedMotion ? {} : { scale: 0.9 }}
                   >
-                    <Pencil className="w-3.5 h-3.5" />
+                    <Icon icon={Pencil} size="xs" />
                   </motion.button>
                   <motion.button
                     onClick={() => onDelete?.(message.id)}
@@ -410,7 +411,7 @@ function ChatBubble({ message, onEdit, onDelete, onConfirmEntity, index, isGroup
                     whileHover={prefersReducedMotion ? {} : { y: -1 }}
                     whileTap={prefersReducedMotion ? {} : { scale: 0.9 }}
                   >
-                    <Trash2 className="w-3.5 h-3.5" />
+                    <Icon icon={Trash2} size="xs" />
                   </motion.button>
                 </motion.div>
               )}
@@ -438,7 +439,7 @@ function ChatBubble({ message, onEdit, onDelete, onConfirmEntity, index, isGroup
                       whileHover={prefersReducedMotion ? {} : { scale: 1.1 }}
                       whileTap={prefersReducedMotion ? {} : { scale: 0.9 }}
                     >
-                      <X className="w-3.5 h-3.5" />
+                      <Icon icon={X} size="xs" />
                     </motion.button>
                     <motion.button
                       onClick={handleSave}
@@ -446,7 +447,7 @@ function ChatBubble({ message, onEdit, onDelete, onConfirmEntity, index, isGroup
                       whileHover={prefersReducedMotion ? {} : { scale: 1.1 }}
                       whileTap={prefersReducedMotion ? {} : { scale: 0.9 }}
                     >
-                      <Check className="w-3.5 h-3.5" />
+                      <Icon icon={Check} size="xs" />
                     </motion.button>
                   </div>
                 </motion.div>
@@ -514,7 +515,7 @@ function StreamingBubble({ content }: { content: string }) {
       transition={prefersReducedMotion ? { duration: DURATION.FAST } : { duration: DURATION.NORMAL, ease: EASE.OUT }}
       className="flex justify-start mb-6"
     >
-      <div className="flex gap-3 max-w-[82%]">
+      <div className="flex gap-3 max-w-[85%]">
         <motion.div
           className="flex-shrink-0 mt-1"
           animate={prefersReducedMotion ? {} : { scale: [1, 1.03, 1] }}
@@ -532,7 +533,7 @@ function StreamingBubble({ content }: { content: string }) {
             hover={false}
             className="relative rounded-tl-sm overflow-hidden"
             style={{
-              boxShadow: '0 4px 20px rgba(0,0,0,0.08), 0 1px 4px rgba(0,0,0,0.04)',
+              boxShadow: 'var(--shadow-card)',
             }}
           >
             {/* Animated left accent */}
@@ -606,7 +607,7 @@ function EmptyState() {
           padding="none"
           className="w-full h-full flex items-center justify-center"
         >
-          <Sparkles className="w-9 h-9 text-accent-primary" />
+          <Icon icon={Sparkles} size="lg" color="accent" className="scale-150" />
         </GlassCard>
         {!prefersReducedMotion && (
           <motion.div
@@ -639,7 +640,7 @@ function EmptyState() {
       >
         <div className="h-px flex-1 bg-gradient-to-r from-transparent via-border-strong to-transparent" />
         <span className="inline-flex items-center gap-1.5 text-xs text-tertiary">
-          <span className="flex-shrink-0"><Wand2 className="w-3 h-3" /></span>
+          <span className="flex-shrink-0"><Icon icon={Wand2} size="xs" /></span>
           <span>选择下方标签快速开始，或直接输入你的想法</span>
         </span>
         <div className="h-px flex-1 bg-gradient-to-l from-transparent via-border-strong to-transparent" />
@@ -663,7 +664,7 @@ function EmptyState() {
             className="inline-flex items-center gap-1.5 text-sm cursor-pointer text-secondary hover:text-primary"
             style={{ whiteSpace: 'nowrap' }}
           >
-            <span className="flex-shrink-0 opacity-60"><MessageSquareText className="w-3.5 h-3.5" /></span>
+            <span className="flex-shrink-0 opacity-60"><Icon icon={MessageSquareText} size="xs" /></span>
             <span>{tag}</span>
           </GlassCard>
         ))}

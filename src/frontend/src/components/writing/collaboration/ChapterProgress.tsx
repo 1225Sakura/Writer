@@ -31,7 +31,7 @@ export function ChapterProgress() {
             <span className="font-medium tabular-nums">{Math.round(progress)}%</span>
           </div>
           <div className="h-2 rounded-full overflow-hidden relative" style={{ background: 'var(--border-subtle)' }}>
-            <motion.div className="h-full rounded-full relative" style={{ background: 'linear-gradient(90deg, var(--accent-100) 0%, var(--color-ifline) 60%, #9ed95a 100%)', boxShadow: '0 0 8px color-mix(in srgb, var(--accent-100) 30%, transparent)' }} initial={{ width: 0 }} animate={{ width: `${progress}%` }} transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }} />
+            <motion.div className="h-full rounded-full relative" style={{ background: 'linear-gradient(90deg, var(--accent-100) 0%, var(--color-ifline) 60%, var(--color-ifline) 100%)', boxShadow: '0 0 8px color-mix(in srgb, var(--accent-100) 30%, transparent)' }} initial={{ width: 0 }} animate={{ width: `${progress}%` }} transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }} />
           </div>
         </div>
         <div className="pt-2 border-t space-y-1.5" style={{ borderColor: 'var(--border-subtle)' }}>
