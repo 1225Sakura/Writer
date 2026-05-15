@@ -324,10 +324,10 @@ async def handle_ai_generate(task: Task) -> Dict[str, Any]:
     if not settings.minimax_api_key:
         raise RuntimeError("MiniMax API key not configured")
 
-    ai_service = AIService(
-        api_key=settings.minimax_api_key,
-        base_url=settings.minimax_api_url
-    )
+    from backend.services.ai import ProviderRouter, MiniMaxProvider
+    provider = MiniMaxProvider(api_key=settings.minimax_api_key, base_url=settings.minimax_api_url)
+    router = ProviderRouter(providers=[provider])
+    ai_service = AIService(router=router)
 
     chunks = []
     async for chunk in ai_service.generate(

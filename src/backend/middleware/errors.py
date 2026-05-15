@@ -1045,6 +1045,7 @@ async def app_exception_handler(request: Request, exc: AppException) -> JSONResp
             request_id=request_id,
             timestamp=exc.timestamp,
         ),
+        headers={"X-Request-ID": request_id} if request_id else None,
     )
 
 

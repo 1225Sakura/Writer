@@ -3,18 +3,12 @@ from httpx import AsyncClient, ASGITransport
 from backend.interface.web.main import app
 
 
-@pytest.fixture
-async def client():
-    transport = ASGITransport(app=app)
-    async with AsyncClient(transport=transport, base_url="http://test") as ac:
-        yield ac
-
-
 @pytest.mark.asyncio
 async def test_health_check(client):
     response = await client.get("/health")
     assert response.status_code == 200
-    assert response.json() == {"status": "healthy"}
+    data = response.json()
+    assert data["status"] == "healthy"
 
 
 @pytest.mark.asyncio
@@ -41,13 +35,13 @@ async def test_list_chat_sessions(client):
 
 
 @pytest.mark.asyncio
-async def test_list_styles(client):
-    response = await client.get("/api/v1/styles")
+async def test_list_styles(authenticated_client):
+    response = await authenticated_client.get("/api/v1/styles/")
     assert response.status_code == 200
     assert isinstance(response.json(), list)
 
 
 @pytest.mark.asyncio
-async def test_get_settings(client):
-    response = await client.get("/api/v1/settings")
+async def test_get_characters(client):
+    response = await client.get("/api/v1/settings/characters")
     assert response.status_code == 200

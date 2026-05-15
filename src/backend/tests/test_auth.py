@@ -48,13 +48,16 @@ class TestAuthHelpers:
     @pytest.mark.asyncio
     async def test_clear_api_key_cache(self):
         """Test clearing the API key cache."""
+        from unittest.mock import patch
         set_api_key("test_key")
         clear_api_key_cache()
 
-        # Should generate a new key after clearing
-        new_key = await get_or_create_api_key()
-        assert new_key != "test_key"
-        assert new_key.startswith("writer_")
+        # Patch settings.api_key to None so get_or_create generates a new key
+        with patch("backend.middleware.auth.settings") as mock_settings:
+            mock_settings.api_key = None
+            new_key = await get_or_create_api_key()
+            assert new_key != "test_key"
+            assert new_key.startswith("writer_")
 
 
 class TestLocalhostDetection:
@@ -127,12 +130,12 @@ class TestAuthModuleImports:
 
     def test_require_auth_export(self):
         """Test that require_auth is exported."""
-        from middleware.auth import require_auth
+        from backend.middleware.auth import require_auth
         assert require_auth is not None
 
     def test_auth_response_model(self):
         """Test AuthResponse model."""
-        from middleware.auth import AuthResponse
+        from backend.middleware.auth import AuthResponse
         resp = AuthResponse(api_key="writer_test", message="ok")
         assert resp.api_key == "writer_test"
         assert resp.message == "ok"

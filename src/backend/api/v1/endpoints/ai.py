@@ -1,7 +1,7 @@
 # Auto Novel Writer - AI Routes
 # AI generation and review endpoints
 
-from fastapi import APIRouter, HTTPException, Depends, status
+from fastapi import APIRouter, Body, HTTPException, Depends, Request, status
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field, field_validator
 from typing import Optional, AsyncIterator, List
@@ -70,10 +70,10 @@ def get_writing_settings_service(db: AsyncSession = Depends(get_db)) -> WritingS
     return WritingSettingsService(db, get_event_bus(), get_cache_service())
 
 
-def require_checker_rate_limit(request) -> None:
+async def require_checker_rate_limit(request: Request) -> None:
     """Dependency to enforce stricter rate limits on AI checker endpoints."""
     client_ip = request.client.host if request.client else "unknown"
-    allowed, limit, remaining = check_checker_rate_limit(client_ip)
+    allowed, limit, remaining = await check_checker_rate_limit(client_ip)
     if not allowed:
         raise HTTPException(
             status_code=status.HTTP_429_TOO_MANY_REQUESTS,
@@ -660,7 +660,7 @@ async def extract_structured_entities(
     description="验证章节的地点、时间线、实力等级、物品归属和势力关系是否符合已建立的世界设定。",
 )
 async def check_consistency(
-    request: CheckerBaseRequest,
+    body: CheckerBaseRequest = Body(...),
     db: AsyncSession = Depends(get_db),
     chapter_service: ChapterService = Depends(get_chapter_service),
     _rate_limit=Depends(require_checker_rate_limit)
@@ -674,17 +674,17 @@ async def check_consistency(
     checker = ConsistencyChecker(ai_service)
 
     # Verify chapter exists
-    chapter = await chapter_service.get_chapter(request.chapter_id)
+    chapter = await chapter_service.get_chapter(body.chapter_id)
     if not chapter:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Chapter {request.chapter_id} not found"
+            detail=f"Chapter {body.chapter_id} not found"
         )
 
     try:
-        result = await checker.check(request.chapter_id, db)
+        result = await checker.check(body.chapter_id, db)
         return ConsistencyCheckResponse(
-            chapter_id=request.chapter_id,
+            chapter_id=body.chapter_id,
             score=result.get("score", 0),
             issues=result.get("issues", []),
             suggestions=result.get("suggestions", []),
@@ -703,7 +703,7 @@ async def check_consistency(
     description="验证场景转换、事件连贯性、角色状态连续性、伏笔呼应和与前章细节的一致性。",
 )
 async def check_continuity(
-    request: CheckerBaseRequest,
+    body: CheckerBaseRequest = Body(...),
     db: AsyncSession = Depends(get_db),
     chapter_service: ChapterService = Depends(get_chapter_service),
     _rate_limit=Depends(require_checker_rate_limit)
@@ -716,17 +716,17 @@ async def check_continuity(
     ai_service = get_ai_service()
     checker = ContinuityChecker(ai_service)
 
-    chapter = await chapter_service.get_chapter(request.chapter_id)
+    chapter = await chapter_service.get_chapter(body.chapter_id)
     if not chapter:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Chapter {request.chapter_id} not found"
+            detail=f"Chapter {body.chapter_id} not found"
         )
 
     try:
-        result = await checker.check(request.chapter_id, db)
+        result = await checker.check(body.chapter_id, db)
         return ContinuityCheckResponse(
-            chapter_id=request.chapter_id,
+            chapter_id=body.chapter_id,
             score=result.get("score", 0),
             issues=result.get("issues", []),
             suggestions=result.get("suggestions", []),
@@ -746,7 +746,7 @@ async def check_continuity(
     description="分析章节的任务线/燃情线/星座线比例是否符合目标60%/20%/20%分布。",
 )
 async def check_pacing(
-    request: CheckerBaseRequest,
+    body: CheckerBaseRequest = Body(...),
     db: AsyncSession = Depends(get_db),
     chapter_service: ChapterService = Depends(get_chapter_service),
     _rate_limit=Depends(require_checker_rate_limit)
@@ -759,17 +759,17 @@ async def check_pacing(
     ai_service = get_ai_service()
     checker = PacingChecker(ai_service)
 
-    chapter = await chapter_service.get_chapter(request.chapter_id)
+    chapter = await chapter_service.get_chapter(body.chapter_id)
     if not chapter:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Chapter {request.chapter_id} not found"
+            detail=f"Chapter {body.chapter_id} not found"
         )
 
     try:
-        result = await checker.check(request.chapter_id, db)
+        result = await checker.check(body.chapter_id, db)
         return PacingCheckResponse(
-            chapter_id=request.chapter_id,
+            chapter_id=body.chapter_id,
             score=result.get("score", 0),
             issues=result.get("issues", []),
             suggestions=result.get("suggestions", []),
@@ -790,7 +790,7 @@ async def check_pacing(
     description="验证章节中角色的行为是否符合其已建立的性格、欲望和缺陷设定。",
 )
 async def check_ooc(
-    request: OOCCheckerRequest,
+    body: OOCCheckerRequest = Body(...),
     db: AsyncSession = Depends(get_db),
     chapter_service: ChapterService = Depends(get_chapter_service),
     _rate_limit=Depends(require_checker_rate_limit)
@@ -803,15 +803,15 @@ async def check_ooc(
     ai_service = get_ai_service()
     checker = OOCChecker(ai_service)
 
-    chapter = await chapter_service.get_chapter(request.chapter_id)
+    chapter = await chapter_service.get_chapter(body.chapter_id)
     if not chapter:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Chapter {request.chapter_id} not found"
+            detail=f"Chapter {body.chapter_id} not found"
         )
 
     try:
-        result = await checker.check(request.chapter_id, request.character_id, db)
+        result = await checker.check(body.chapter_id, body.character_id, db)
         violations_raw = result.get("violations", [])
         violations = [
             OOCViolation(
@@ -823,8 +823,8 @@ async def check_ooc(
             for v in violations_raw
         ]
         return OOCCheckResponse(
-            chapter_id=request.chapter_id,
-            character_id=request.character_id,
+            chapter_id=body.chapter_id,
+            character_id=body.character_id,
             score=result.get("score", 0),
             issues=result.get("issues", []),
             suggestions=result.get("suggestions", []),
@@ -844,7 +844,7 @@ async def check_ooc(
     description="分析章节的高潮分布、情感节奏、铺垫充分性和结尾钩子强度。",
 )
 async def check_high_point(
-    request: CheckerBaseRequest,
+    body: CheckerBaseRequest = Body(...),
     db: AsyncSession = Depends(get_db),
     chapter_service: ChapterService = Depends(get_chapter_service),
     _rate_limit=Depends(require_checker_rate_limit)
@@ -857,15 +857,15 @@ async def check_high_point(
     ai_service = get_ai_service()
     checker = HighPointChecker(ai_service)
 
-    chapter = await chapter_service.get_chapter(request.chapter_id)
+    chapter = await chapter_service.get_chapter(body.chapter_id)
     if not chapter:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Chapter {request.chapter_id} not found"
+            detail=f"Chapter {body.chapter_id} not found"
         )
 
     try:
-        result = await checker.check(request.chapter_id, db)
+        result = await checker.check(body.chapter_id, db)
         high_points_raw = result.get("high_points", [])
         high_points = [
             HighPoint(
@@ -877,7 +877,7 @@ async def check_high_point(
             for hp in high_points_raw
         ]
         return HighPointCheckResponse(
-            chapter_id=request.chapter_id,
+            chapter_id=body.chapter_id,
             score=result.get("score", 0),
             issues=result.get("issues", []),
             suggestions=result.get("suggestions", []),
@@ -899,7 +899,7 @@ async def check_high_point(
     description="分析开头钩子、结尾悬念、冲突驱动力、好奇心缺口和情感共鸣点。",
 )
 async def check_reader_pull(
-    request: CheckerBaseRequest,
+    body: CheckerBaseRequest = Body(...),
     db: AsyncSession = Depends(get_db),
     chapter_service: ChapterService = Depends(get_chapter_service),
     _rate_limit=Depends(require_checker_rate_limit)
@@ -912,15 +912,15 @@ async def check_reader_pull(
     ai_service = get_ai_service()
     checker = ReaderPullChecker(ai_service)
 
-    chapter = await chapter_service.get_chapter(request.chapter_id)
+    chapter = await chapter_service.get_chapter(body.chapter_id)
     if not chapter:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Chapter {request.chapter_id} not found"
+            detail=f"Chapter {body.chapter_id} not found"
         )
 
     try:
-        result = await checker.check(request.chapter_id, db)
+        result = await checker.check(body.chapter_id, db)
         hooks_raw = result.get("hooks", [])
         hooks = [
             Hook(
@@ -932,7 +932,7 @@ async def check_reader_pull(
             for h in hooks_raw
         ]
         return ReaderPullCheckResponse(
-            chapter_id=request.chapter_id,
+            chapter_id=body.chapter_id,
             score=result.get("score", 0),
             issues=result.get("issues", []),
             suggestions=result.get("suggestions", []),

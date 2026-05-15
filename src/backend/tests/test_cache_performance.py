@@ -27,6 +27,7 @@ from backend.middleware.performance import (
     PerformanceMiddleware,
     QueryTimer,
     SLOW_QUERY_THRESHOLD_MS,
+    setup_performance_middleware,
 )
 
 

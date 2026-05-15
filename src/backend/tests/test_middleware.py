@@ -16,6 +16,8 @@ from backend.middleware.rate_limit import (
     rate_limit_middleware,
     get_rate_limit_store,
     check_checker_rate_limit,
+    reset_rate_limit_store,
+    reset_checker_rate_limit_store,
     DEFAULT_RATE_LIMIT,
     DEFAULT_WINDOW,
 )
@@ -50,58 +52,61 @@ from backend.middleware.auth import (
 class TestRateLimitStore:
     """Test the in-memory rate limit store."""
 
-    def test_check_rate_limit_allows_first_request(self):
+    @pytest.mark.asyncio
+    async def test_check_rate_limit_allows_first_request(self):
         """First request is always allowed."""
         store = RateLimitStore()
-        allowed, limit, remaining = store.check_rate_limit("127.0.0.1", 10, 60.0)
+        allowed, limit, remaining = await store.check_rate_limit("127.0.0.1", 10, 60.0)
         assert allowed is True
         assert limit == 10
         assert remaining == 9
 
-    def test_check_rate_limit_blocks_exceeded_requests(self):
+    @pytest.mark.asyncio
+    async def test_check_rate_limit_blocks_exceeded_requests(self):
         """Requests beyond limit are blocked."""
         store = RateLimitStore()
         for _ in range(5):
-            store.check_rate_limit("127.0.0.1", 5, 60.0)
+            await store.check_rate_limit("127.0.0.1", 5, 60.0)
 
-        allowed, limit, remaining = store.check_rate_limit("127.0.0.1", 5, 60.0)
+        allowed, limit, remaining = await store.check_rate_limit("127.0.0.1", 5, 60.0)
         assert allowed is False
         assert remaining == 0
 
-    def test_check_rate_limit_tracks_per_ip(self):
+    @pytest.mark.asyncio
+    async def test_check_rate_limit_tracks_per_ip(self):
         """Rate limits are tracked per IP address."""
         store = RateLimitStore()
-        # Exhaust limit for IP1
         for _ in range(5):
-            store.check_rate_limit("1.1.1.1", 5, 60.0)
+            await store.check_rate_limit("1.1.1.1", 5, 60.0)
 
-        # IP2 should still be allowed
-        allowed, _, _ = store.check_rate_limit("2.2.2.2", 5, 60.0)
+        allowed, _, _ = await store.check_rate_limit("2.2.2.2", 5, 60.0)
         assert allowed is True
 
-    def test_check_rate_limit_window_expires(self):
+    @pytest.mark.asyncio
+    async def test_check_rate_limit_window_expires(self):
         """Old requests fall outside the window."""
         store = RateLimitStore()
-        # Add a very old request
         store._store["1.1.1.1"] = [time.time() - 120.0]
 
-        allowed, _, _ = store.check_rate_limit("1.1.1.1", 5, 60.0)
+        allowed, _, _ = await store.check_rate_limit("1.1.1.1", 5, 60.0)
         assert allowed is True
 
-    def test_cleanup_removes_expired_entries(self):
+    @pytest.mark.asyncio
+    async def test_cleanup_removes_expired_entries(self):
         """Cleanup removes fully expired IP entries."""
         store = RateLimitStore()
         store._store["1.1.1.1"] = [time.time() - 1000.0]
-        store._last_cleanup = time.time() - 100.0  # Force cleanup
+        store._last_cleanup = time.time() - 100.0
 
-        store._cleanup_expired(max_age=300.0)
+        await store._cleanup_expired(max_age=300.0)
         assert "1.1.1.1" not in store._store
 
-    def test_rate_limit_remaining_decreases(self):
+    @pytest.mark.asyncio
+    async def test_rate_limit_remaining_decreases(self):
         """Remaining count decreases with each request."""
         store = RateLimitStore()
-        _, _, remaining1 = store.check_rate_limit("127.0.0.1", 10, 60.0)
-        _, _, remaining2 = store.check_rate_limit("127.0.0.1", 10, 60.0)
+        _, _, remaining1 = await store.check_rate_limit("127.0.0.1", 10, 60.0)
+        _, _, remaining2 = await store.check_rate_limit("127.0.0.1", 10, 60.0)
         assert remaining2 == remaining1 - 1
 
 
@@ -111,6 +116,13 @@ class TestRateLimitStore:
 
 class TestRateLimitMiddleware:
     """Test rate limiting middleware integration."""
+
+    @pytest.fixture(autouse=True)
+    def reset_store(self):
+        """Reset rate limit store before each test."""
+        reset_rate_limit_store()
+        yield
+        reset_rate_limit_store()
 
     @pytest.fixture
     def app(self):
@@ -187,22 +199,29 @@ class TestRateLimitMiddleware:
 class TestCheckerRateLimit:
     """Test stricter rate limits for AI checker endpoints."""
 
-    def test_checker_rate_limit_is_stricter(self):
+    @pytest.fixture(autouse=True)
+    def reset_checker_store(self):
+        """Reset checker rate limit store before each test."""
+        reset_checker_rate_limit_store()
+        yield
+        reset_checker_rate_limit_store()
+
+    @pytest.mark.asyncio
+    async def test_checker_rate_limit_is_stricter(self):
         """Checker endpoints have lower rate limits."""
         store = RateLimitStore()
         for _ in range(10):
-            allowed, _, _ = store.check_rate_limit("127.0.0.1", 10, 60.0)
+            allowed, _, _ = await store.check_rate_limit("127.0.0.1", 10, 60.0)
 
-        # 11th request should be blocked
-        allowed, _, _ = store.check_rate_limit("127.0.0.1", 10, 60.0)
+        allowed, _, _ = await store.check_rate_limit("127.0.0.1", 10, 60.0)
         assert allowed is False
 
-    def test_check_checker_rate_limit_function(self):
+    @pytest.mark.asyncio
+    async def test_check_checker_rate_limit_function(self):
         """check_checker_rate_limit function works correctly."""
-        # Reset store by creating a fresh check
-        allowed, limit, remaining = check_checker_rate_limit("127.0.0.1")
+        allowed, limit, remaining = await check_checker_rate_limit("127.0.0.1")
         assert allowed is True
-        assert limit == 10  # CHECKER_RATE_LIMIT
+        assert limit == 10
 
 
 # =============================================================================
@@ -320,7 +339,7 @@ class TestExceptionHandlers:
     @pytest.fixture
     def client(self, test_app):
         """Create test client."""
-        return TestClient(test_app)
+        return TestClient(test_app, raise_server_exceptions=False)
 
     def test_not_found_handler(self, client):
         """NotFoundError returns 404 with correct structure."""
@@ -376,9 +395,12 @@ class TestAuthMiddleware:
     @pytest.mark.asyncio
     async def test_get_or_create_api_key_creates_new(self):
         """get_or_create_api_key generates a new key if none exists."""
+        from unittest.mock import patch
         clear_api_key_cache()
-        key = await get_or_create_api_key()
-        assert key.startswith("writer_")
+        with patch("backend.middleware.auth.settings") as mock_settings:
+            mock_settings.api_key = None
+            key = await get_or_create_api_key()
+            assert key.startswith("writer_")
 
     @pytest.mark.asyncio
     async def test_get_or_create_api_key_returns_cached(self):

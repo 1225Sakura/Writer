@@ -141,12 +141,54 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
         self.window_seconds = window_seconds
 
     async def dispatch(self, request: Request, call_next):
-        return await rate_limit_middleware(request, call_next)
+        path = request.url.path
+
+        if not (path.startswith("/api/v1/chat") or
+                path.startswith("/api/v1/ai") or
+                path.startswith("/ws")):
+            return await call_next(request)
+
+        client_ip = request.client.host if request.client else "unknown"
+        allowed, limit, remaining = await _rate_limit_store.check_rate_limit(
+            client_ip,
+            max_requests=self.rate_limit,
+            window_seconds=self.window_seconds
+        )
+
+        if not allowed:
+            logger.warning(f"Rate limit exceeded for IP: {client_ip}, path: {path}")
+            return JSONResponse(
+                status_code=429,
+                content={
+                    "detail": "Too many requests. Please try again later.",
+                    "error_code": "RATE_LIMIT_EXCEEDED"
+                },
+                headers={
+                    "X-RateLimit-Limit": str(limit),
+                    "X-RateLimit-Remaining": str(remaining),
+                    "Retry-After": str(int(self.window_seconds))
+                }
+            )
+
+        response = await call_next(request)
+        response.headers["X-RateLimit-Limit"] = str(limit)
+        response.headers["X-RateLimit-Remaining"] = str(remaining)
+        return response
 
 
 def get_rate_limit_store() -> RateLimitStore:
     """Get the global rate limit store instance."""
     return _rate_limit_store
+
+
+def reset_rate_limit_store():
+    """Reset the global rate limit store (for testing)."""
+    _rate_limit_store._store.clear()
+
+
+def reset_checker_rate_limit_store():
+    """Reset the checker rate limit store (for testing)."""
+    _checker_rate_limit_store._store.clear()
 
 
 # Stricter rate limit store for AI checker endpoints (they call external APIs)

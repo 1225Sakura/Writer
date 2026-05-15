@@ -49,7 +49,7 @@ from backend.core.domain.entities import (
     AgentExecutionLog,
 )
 # Wiki models (moved to domain layer)
-from backend.core.domain.extensions import WikiPage, WikiVersion, WikiEntityLink
+from backend.core.domain.extensions import WikiPage, WikiVersion, WikiEntityLink, CacheEntry
 
 from backend.core.domain.extensions import (
     ContextChunk,
@@ -131,9 +131,9 @@ def reset_database(db_path: Path | None = None) -> None:
     conn = sqlite3.connect(str(db_path))
     cursor = conn.cursor()
     cursor.execute("SELECT name FROM sqlite_master WHERE type='table'")
-    tables = [r[0] for r in cursor.fetchall()]
+    tables = [r[0] for r in cursor.fetchall() if r[0] != 'sqlite_sequence']
     for table in tables:
-        cursor.execute(f"DROP TABLE IF EXISTS {table}")
+        cursor.execute(f"DROP TABLE IF EXISTS [{table}]")
     conn.commit()
     conn.close()
     print(f"Dropped {len(tables)} tables")

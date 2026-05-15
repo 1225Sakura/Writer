@@ -13,6 +13,22 @@ from backend.infrastructure.database import Base
 
 
 # ============================================
+# Cache Entries (L3 tiered cache)
+# ============================================
+
+class CacheEntry(Base):
+    """L3 persistent cache storage for TieredCache."""
+
+    __tablename__ = "cache_entries"
+
+    key = Column(String(255), primary_key=True)
+    value = Column(Text, nullable=False)
+    expire_at = Column(Float, nullable=True, index=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+
+# ============================================
 # RAG Context & Chunk Storage
 # ============================================
 

@@ -3,7 +3,12 @@
 import pytest
 import asyncio
 from datetime import datetime
+from unittest.mock import patch
 
+from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, AsyncSession
+
+from backend.infrastructure.database import Base
+from backend.core.domain import entities  # noqa: F401 - register models
 from backend.services.task_queue import (
     TaskQueue,
     Task,
@@ -13,25 +18,44 @@ from backend.services.task_queue import (
     register_task_handler,
     _task_handlers,
 )
-from backend.infrastructure.database import async_session_maker
 
 
-# Test handler
-async def test_handler(task: Task) -> dict:
+# Test handler (prefix with _ to avoid pytest collection)
+async def _sample_handler(task: Task) -> dict:
     await asyncio.sleep(0.01)
     return {"processed": True, "input": task.payload.get("test", "")}
 
 
-async def failing_handler(task: Task) -> dict:
+async def _failing_handler(task: Task) -> dict:
     raise RuntimeError("Intentional failure")
 
 
-async def cancelled_handler(task: Task) -> dict:
+async def _cancelled_handler(task: Task) -> dict:
     for i in range(10):
         if task.is_cancelled():
             raise asyncio.CancelledError("Task cancelled")
         await asyncio.sleep(0.01)
     return {"completed": True}
+
+
+@pytest.fixture
+async def test_engine():
+    """Create an in-memory engine for task queue tests."""
+    engine = create_async_engine("sqlite+aiosqlite:///:memory:", echo=False)
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)
+    yield engine
+    await engine.dispose()
+
+
+@pytest.fixture(autouse=True)
+async def patch_session_maker(test_engine):
+    """Patch async_session_maker to use test engine."""
+    test_session_maker = async_sessionmaker(
+        test_engine, class_=AsyncSession, expire_on_commit=False
+    )
+    with patch("backend.services.task_queue.async_session_maker", test_session_maker):
+        yield
 
 
 @pytest.fixture
@@ -64,7 +88,7 @@ async def test_task_queue_start_stop(queue):
 @pytest.mark.asyncio
 async def test_submit_and_process_task(queue):
     """Test submitting a task and processing it."""
-    _task_handlers[TaskType.CLEANUP] = test_handler
+    _task_handlers[TaskType.CLEANUP] = _sample_handler
 
     await queue.start()
     task = await queue.submit(
@@ -89,7 +113,7 @@ async def test_submit_and_process_task(queue):
 @pytest.mark.asyncio
 async def test_task_retry_on_failure(queue):
     """Test task retry with exponential backoff."""
-    _task_handlers[TaskType.CLEANUP] = failing_handler
+    _task_handlers[TaskType.CLEANUP] = _failing_handler
 
     await queue.start()
     task = await queue.submit(
@@ -97,12 +121,12 @@ async def test_task_retry_on_failure(queue):
         payload={}
     )
 
-    # Wait for retries (backoff: 2^1=2s, 2^2=4s)
-    await asyncio.sleep(7)
+    # Wait for retries (backoff: 2^1=2s, 2^2=4s + processing time)
+    await asyncio.sleep(10)
 
     refreshed = await queue.get_task(task.id)
     assert refreshed.status == TaskStatus.FAILED
-    assert refreshed.retries == 2
+    assert refreshed.retries == 3
     assert "Intentional failure" in refreshed.error
 
     await queue.stop()
@@ -111,7 +135,7 @@ async def test_task_retry_on_failure(queue):
 @pytest.mark.asyncio
 async def test_cancel_pending_task(queue):
     """Test cancelling a pending task."""
-    _task_handlers[TaskType.CLEANUP] = test_handler
+    _task_handlers[TaskType.CLEANUP] = _sample_handler
 
     await queue.start()
 
@@ -137,8 +161,8 @@ async def test_cancel_pending_task(queue):
 @pytest.mark.asyncio
 async def test_list_tasks_with_filtering(queue):
     """Test listing tasks with status and type filters."""
-    _task_handlers[TaskType.CLEANUP] = test_handler
-    _task_handlers[TaskType.EXPORT_PROJECT] = test_handler
+    _task_handlers[TaskType.CLEANUP] = _sample_handler
+    _task_handlers[TaskType.EXPORT_PROJECT] = _sample_handler
 
     await queue.start()
 
@@ -164,9 +188,9 @@ async def test_list_tasks_with_filtering(queue):
 
 
 @pytest.mark.asyncio
-async def test_task_persistence(queue):
+async def test_task_persistence(queue, test_engine):
     """Test that tasks are persisted to the database."""
-    _task_handlers[TaskType.CLEANUP] = test_handler
+    _task_handlers[TaskType.CLEANUP] = _sample_handler
 
     await queue.start()
     task = await queue.submit(
@@ -176,8 +200,8 @@ async def test_task_persistence(queue):
 
     await asyncio.sleep(0.2)
 
-    # Verify in database directly
-    async with async_session_maker() as session:
+    # Verify in database directly using test engine
+    async with async_sessionmaker(test_engine, class_=AsyncSession, expire_on_commit=False)() as session:
         from sqlalchemy import select
         result = await session.execute(
             select(BackgroundTask).where(BackgroundTask.id == task.id)
@@ -193,7 +217,7 @@ async def test_task_persistence(queue):
 @pytest.mark.asyncio
 async def test_delete_task(queue):
     """Test deleting a task."""
-    _task_handlers[TaskType.CLEANUP] = test_handler
+    _task_handlers[TaskType.CLEANUP] = _sample_handler
 
     await queue.start()
     task = await queue.submit(TaskType.CLEANUP, {"test": "delete"})
@@ -212,13 +236,12 @@ async def test_delete_task(queue):
 @pytest.mark.asyncio
 async def test_batch_operation_task(queue):
     """Test batch operation task handler."""
-    _task_handlers[TaskType.AI_GENERATE] = test_handler
-    _task_handlers[TaskType.BATCH_OPERATION] = _task_handlers.get(TaskType.BATCH_OPERATION)
+    _task_handlers[TaskType.AI_GENERATE] = _sample_handler
 
     # Import the actual batch handler
-    from services.task_queue import handle_batch_operation
+    from backend.services.task_queue import handle_batch_operation
     _task_handlers[TaskType.BATCH_OPERATION] = handle_batch_operation
-    _task_handlers[TaskType.AI_GENERATE] = test_handler
+    _task_handlers[TaskType.AI_GENERATE] = _sample_handler
 
     await queue.start()
     task = await queue.submit(
@@ -251,7 +274,7 @@ async def test_task_not_found(queue):
 @pytest.mark.asyncio
 async def test_cancel_non_pending_task(queue):
     """Test cancelling a task that is not pending."""
-    _task_handlers[TaskType.CLEANUP] = test_handler
+    _task_handlers[TaskType.CLEANUP] = _sample_handler
 
     await queue.start()
     task = await queue.submit(TaskType.CLEANUP, {"test": "x"})

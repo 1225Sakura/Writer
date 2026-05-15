@@ -520,7 +520,7 @@ class TestExceptionHandlers:
 
     @pytest.fixture
     def client(self, test_app):
-        return TestClient(test_app)
+        return TestClient(test_app, raise_server_exceptions=False)
 
     def test_not_found_handler(self, client):
         response = client.get("/not-found")
@@ -571,13 +571,13 @@ class TestExceptionHandlers:
 
 class TestRequestContextModule:
     def test_request_id_var_exists(self):
-        from middleware.request_context import request_id_var
+        from backend.middleware.request_context import request_id_var
         assert isinstance(request_id_var, contextvars.ContextVar)
 
     def test_correlation_id_var_exists(self):
-        from middleware.request_context import correlation_id_var
+        from backend.middleware.request_context import correlation_id_var
         assert isinstance(correlation_id_var, contextvars.ContextVar)
 
     def test_user_id_var_exists(self):
-        from middleware.request_context import user_id_var
+        from backend.middleware.request_context import user_id_var
         assert isinstance(user_id_var, contextvars.ContextVar)

@@ -26,6 +26,10 @@ from backend.interface.web.main import app
 from backend.middleware.auth import set_api_key, clear_api_key_cache
 from backend.infrastructure.cache.cache_service import cache_service
 
+# Import all models so they register with Base.metadata
+from backend.core.domain import entities  # noqa: F401
+from backend.core.domain import extensions  # noqa: F401
+
 
 # =============================================================================
 # Database Fixtures

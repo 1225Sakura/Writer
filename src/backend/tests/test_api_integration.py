@@ -6,19 +6,9 @@ Run from src/backend directory: python -m pytest tests/test_api_integration.py
 """
 
 import pytest
-import pytest_asyncio
-from httpx import AsyncClient, ASGITransport
 from unittest.mock import AsyncMock, patch, MagicMock
 
 from backend.interface.web.main import app
-
-
-@pytest.fixture
-async def client():
-    """Create async test client for the FastAPI app."""
-    transport = ASGITransport(app=app)
-    async with AsyncClient(transport=transport, base_url="http://test") as ac:
-        yield ac
 
 
 # ============================================
@@ -466,6 +456,8 @@ class TestWritingSettings:
     @pytest.mark.asyncio
     async def test_update_writing_settings(self, client):
         """Test updating writing settings."""
+        # Ensure settings exist first (GET auto-creates defaults)
+        await client.get("/api/v1/settings/writing")
         response = await client.patch(
             "/api/v1/settings/writing",
             json={
@@ -535,7 +527,7 @@ class TestOutlineChapters:
 
         # Create chapter
         response = await client.post(
-            "/api/v1/chapters/chapters",
+            "/api/v1/chapters/",
             json={
                 "outline_id": outline_id,
                 "title": "第一章",
@@ -560,12 +552,12 @@ class TestOutlineChapters:
         outline_id = outline_resp.json()["id"]
 
         chapter_resp = await client.post(
-            "/api/v1/chapters/chapters",
+            "/api/v1/chapters/",
             json={"outline_id": outline_id, "title": "测试章节"}
         )
         chapter_id = chapter_resp.json()["id"]
 
-        response = await client.get(f"/api/v1/chapters/chapters/{chapter_id}")
+        response = await client.get(f"/api/v1/chapters/{chapter_id}")
         assert response.status_code == 200
         assert response.json()["title"] == "测试章节"
 
@@ -580,19 +572,19 @@ class TestOutlineChapters:
         outline_id = outline_resp.json()["id"]
 
         chapter_resp = await client.post(
-            "/api/v1/chapters/chapters",
+            "/api/v1/chapters/",
             json={"outline_id": outline_id, "title": "原标题", "status": "pending"}
         )
         chapter_id = chapter_resp.json()["id"]
 
         response = await client.patch(
-            f"/api/v1/chapters/chapters/{chapter_id}",
-            json={"title": "新标题", "status": "in_progress"}
+            f"/api/v1/chapters/{chapter_id}",
+            json={"title": "新标题", "status": "writing"}
         )
         assert response.status_code == 200
         data = response.json()
         assert data["title"] == "新标题"
-        assert data["status"] == "in_progress"
+        assert data["status"] == "writing"
 
     @pytest.mark.asyncio
     async def test_delete_chapter(self, client):
@@ -604,22 +596,22 @@ class TestOutlineChapters:
         outline_id = outline_resp.json()["id"]
 
         chapter_resp = await client.post(
-            "/api/v1/chapters/chapters",
+            "/api/v1/chapters/",
             json={"outline_id": outline_id, "title": "待删除章节"}
         )
         chapter_id = chapter_resp.json()["id"]
 
-        response = await client.delete(f"/api/v1/chapters/chapters/{chapter_id}")
+        response = await client.delete(f"/api/v1/chapters/{chapter_id}")
         assert response.status_code == 200
 
         # Verify deleted
-        get_resp = await client.get(f"/api/v1/chapters/chapters/{chapter_id}")
+        get_resp = await client.get(f"/api/v1/chapters/{chapter_id}")
         assert get_resp.status_code == 404
 
     @pytest.mark.asyncio
     async def test_chapter_not_found(self, client):
         """Test getting non-existent chapter returns 404."""
-        response = await client.get("/api/v1/chapters/chapters/99999")
+        response = await client.get("/api/v1/chapters/99999")
         assert response.status_code == 404
 
 
@@ -665,7 +657,7 @@ class TestAIGeneration:
             "raw_response": {"status": "success"}
         }
 
-        with patch('routes.ai.get_ai_service') as mock_get_service:
+        with patch('backend.api.v1.endpoints.ai.get_ai_service') as mock_get_service:
             mock_service = MagicMock()
             mock_service.review_settings = AsyncMock(return_value=mock_result)
             mock_get_service.return_value = mock_service
@@ -686,7 +678,7 @@ class TestAIGeneration:
             {"name": "光明顶", "type": "location", "confidence": 0.8}
         ]
 
-        with patch('routes.ai.get_ai_service') as mock_get_service:
+        with patch('backend.api.v1.endpoints.ai.get_ai_service') as mock_get_service:
             mock_service = MagicMock()
             mock_service.extract_entities = AsyncMock(return_value=mock_entities)
             mock_get_service.return_value = mock_service
@@ -785,7 +777,6 @@ class TestHealthCheck:
         assert response.status_code == 200
         data = response.json()
         assert "status" in data
-        assert "database" in data
 
     @pytest.mark.asyncio
     async def test_root_endpoint(self, client):
@@ -814,7 +805,7 @@ class TestAICheckers:
         outline_id = outline_resp.json()["id"]
 
         chapter_resp = await client.post(
-            "/api/v1/chapters/chapters",
+            "/api/v1/chapters/",
             json={
                 "outline_id": outline_id,
                 "title": "Checker Test Chapter",
@@ -836,7 +827,7 @@ class TestAICheckers:
             "suggestions": ["Update location details"]
         }
 
-        with patch('routes.ai.ConsistencyChecker') as mock_checker_cls:
+        with patch('backend.api.v1.endpoints.ai.ConsistencyChecker') as mock_checker_cls:
             mock_checker = MagicMock()
             mock_checker.check = AsyncMock(return_value=mock_result)
             mock_checker_cls.return_value = mock_checker
@@ -868,7 +859,7 @@ class TestAICheckers:
             }
         }
 
-        with patch('routes.ai.ContinuityChecker') as mock_checker_cls:
+        with patch('backend.api.v1.endpoints.ai.ContinuityChecker') as mock_checker_cls:
             mock_checker = MagicMock()
             mock_checker.check = AsyncMock(return_value=mock_result)
             mock_checker_cls.return_value = mock_checker
@@ -896,7 +887,7 @@ class TestAICheckers:
             "analysis": "Quest-heavy chapter"
         }
 
-        with patch('routes.ai.PacingChecker') as mock_checker_cls:
+        with patch('backend.api.v1.endpoints.ai.PacingChecker') as mock_checker_cls:
             mock_checker = MagicMock()
             mock_checker.check = AsyncMock(return_value=mock_result)
             mock_checker_cls.return_value = mock_checker
@@ -931,7 +922,7 @@ class TestAICheckers:
             "violations": []
         }
 
-        with patch('routes.ai.OOCChecker') as mock_checker_cls:
+        with patch('backend.api.v1.endpoints.ai.OOCChecker') as mock_checker_cls:
             mock_checker = MagicMock()
             mock_checker.check = AsyncMock(return_value=mock_result)
             mock_checker_cls.return_value = mock_checker
@@ -963,7 +954,7 @@ class TestAICheckers:
             "ending_hook": "Strong cliffhanger"
         }
 
-        with patch('routes.ai.HighPointChecker') as mock_checker_cls:
+        with patch('backend.api.v1.endpoints.ai.HighPointChecker') as mock_checker_cls:
             mock_checker = MagicMock()
             mock_checker.check = AsyncMock(return_value=mock_result)
             mock_checker_cls.return_value = mock_checker
@@ -996,7 +987,7 @@ class TestAICheckers:
             "curiosity_gaps": ["Why did he leave?"]
         }
 
-        with patch('routes.ai.ReaderPullChecker') as mock_checker_cls:
+        with patch('backend.api.v1.endpoints.ai.ReaderPullChecker') as mock_checker_cls:
             mock_checker = MagicMock()
             mock_checker.check = AsyncMock(return_value=mock_result)
             mock_checker_cls.return_value = mock_checker

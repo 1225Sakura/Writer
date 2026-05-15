@@ -8,6 +8,7 @@ from fastapi import FastAPI, WebSocket
 from starlette.testclient import TestClient
 from starlette.websockets import WebSocketDisconnect
 
+from starlette.websockets import WebSocketState
 from backend.interface.web.main import ConnectionManager, manager
 
 
@@ -31,6 +32,7 @@ class TestConnectionManager:
         ws.send_json = AsyncMock()
         ws.receive_text = AsyncMock()
         ws.close = AsyncMock()
+        ws.client_state = WebSocketState.CONNECTED
         return ws
 
     @pytest.mark.asyncio
@@ -113,6 +115,8 @@ class TestConnectionManager:
         """Broadcast sends message to all connections across sessions."""
         ws2 = MagicMock(spec=WebSocket)
         ws2.accept = AsyncMock()
+        ws2.send_json = AsyncMock()
+        ws2.client_state = WebSocketState.CONNECTED
 
         await conn_manager.connect(mock_websocket, session_id=1)
         await conn_manager.connect(ws2, session_id=2)
@@ -158,6 +162,7 @@ class TestConnectionManager:
         ws2 = MagicMock(spec=WebSocket)
         ws2.accept = AsyncMock()
         ws2.close = AsyncMock()
+        ws2.client_state = WebSocketState.CONNECTED
 
         await conn_manager.connect(mock_websocket, session_id=1)
         await conn_manager.connect(ws2, session_id=2)

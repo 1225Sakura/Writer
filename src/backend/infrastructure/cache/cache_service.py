@@ -460,8 +460,9 @@ def invalidate_character_cache(character_id: Optional[int] = None) -> None:
     if character_id is not None:
         key = cache.make_key("char", character_id)
         cache.delete("character", key)
-    cache.delete_pattern("character", "char_list")
-    cache.delete_pattern("character", "char")
+        cache.delete_pattern("character", "char_list")
+    else:
+        cache.clear_entity_cache("character")
 
 
 def get_cached_character_list() -> Optional[list]:

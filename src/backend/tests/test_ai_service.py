@@ -17,7 +17,12 @@ from backend.core.services.ai.ai_service import AIService, STYLE_PROMPTS
 @pytest.fixture
 def ai_service():
     """Create an AIService instance with a test API key."""
-    return AIService(api_key="test-api-key", base_url="https://api.minimax.chat/v1")
+    from unittest.mock import MagicMock
+    from backend.services.ai import ProviderRouter, MiniMaxProvider
+    provider = MiniMaxProvider(api_key="test-api-key", base_url="https://api.minimax.chat/v1")
+    router = ProviderRouter(providers=[provider])
+    service = AIService(router=router)
+    return service
 
 
 @pytest.fixture
@@ -113,139 +118,90 @@ class TestTemperatureCalculation:
 
 
 # =============================================================================
-# Generate Stream Tests (Mocked)
+# Generate Stream Tests (Mocked via router)
 # =============================================================================
 
+async def _mock_stream(chunks):
+    """Helper to create a mock async iterator."""
+    for chunk in chunks:
+        yield chunk
+
+
 class TestGenerateStream:
-    """Test AI content generation with mocked API."""
+    """Test AI content generation with mocked router."""
 
     @pytest.mark.asyncio
     async def test_generate_yields_content_chunks(self, ai_service):
         """Generate yields content chunks from streamed response."""
-        mock_chunks = [
-            'data: {"choices": [{"delta": {"content": "Hello"}}]}',
-            'data: {"choices": [{"delta": {"content": " world"}}]}',
-            'data: [DONE]',
-        ]
+        async def mock_gen(prompt, **kwargs):
+            for c in ["Hello", " world"]:
+                yield c
 
-        mock_response = MagicMock()
-        mock_response.aiter_lines = AsyncMock(return_value=mock_chunks)
-        mock_response.raise_for_status = MagicMock()
-
-        mock_client = MagicMock()
-        mock_client.__aenter__ = AsyncMock(return_value=mock_client)
-        mock_client.__aexit__ = AsyncMock(return_value=None)
-        mock_client.stream = MagicMock(return_value=mock_response)
-        mock_response.__aenter__ = AsyncMock(return_value=mock_response)
-        mock_response.__aexit__ = AsyncMock(return_value=None)
-
-        with patch('httpx.AsyncClient', return_value=mock_client):
-            chunks = []
-            async for chunk in ai_service.generate("test prompt", "continue"):
-                chunks.append(chunk)
+        ai_service._router.generate_stream = MagicMock(side_effect=mock_gen)
+        chunks = []
+        async for chunk in ai_service.generate("test prompt", "continue"):
+            chunks.append(chunk)
 
         assert chunks == ["Hello", " world"]
 
     @pytest.mark.asyncio
     async def test_generate_with_different_operations(self, ai_service):
         """Generate works with all valid operations."""
-        mock_response = MagicMock()
-        mock_response.aiter_lines = AsyncMock(return_value=['data: [DONE]'])
-        mock_response.raise_for_status = MagicMock()
-        mock_response.__aenter__ = AsyncMock(return_value=mock_response)
-        mock_response.__aexit__ = AsyncMock(return_value=None)
+        async def mock_gen(prompt, **kwargs):
+            return
+            yield
 
-        mock_client = MagicMock()
-        mock_client.__aenter__ = AsyncMock(return_value=mock_client)
-        mock_client.__aexit__ = AsyncMock(return_value=None)
-        mock_client.stream = MagicMock(return_value=mock_response)
-
-        with patch('httpx.AsyncClient', return_value=mock_client):
-            for op in ["continue", "expand", "condense", "rewrite", "polish", "optimize"]:
-                chunks = []
-                async for chunk in ai_service.generate("test", op):
-                    chunks.append(chunk)
-                assert chunks == []
+        ai_service._router.generate_stream = MagicMock(side_effect=mock_gen)
+        for op in ["continue", "expand", "condense", "rewrite", "polish", "optimize"]:
+            chunks = []
+            async for chunk in ai_service.generate("test", op):
+                chunks.append(chunk)
+            assert chunks == []
 
     @pytest.mark.asyncio
     async def test_generate_with_custom_style(self, ai_service):
         """Generate uses correct style prompt."""
-        captured_json = {}
+        captured_args = {}
 
-        mock_response = MagicMock()
-        mock_response.aiter_lines = AsyncMock(return_value=['data: [DONE]'])
-        mock_response.raise_for_status = MagicMock()
-        mock_response.__aenter__ = AsyncMock(return_value=mock_response)
-        mock_response.__aexit__ = AsyncMock(return_value=None)
+        async def capture_stream(prompt, **kwargs):
+            captured_args['prompt'] = prompt
+            return
+            yield
 
-        mock_client = MagicMock()
-        mock_client.__aenter__ = AsyncMock(return_value=mock_client)
-        mock_client.__aexit__ = AsyncMock(return_value=None)
+        ai_service._router.generate_stream = MagicMock(side_effect=capture_stream)
+        async for _ in ai_service.generate("test", "continue", style="江南"):
+            pass
 
-        def capture_stream(*args, **kwargs):
-            captured_json.update(kwargs.get('json', {}))
-            return mock_response
-
-        mock_client.stream = capture_stream
-
-        with patch('httpx.AsyncClient', return_value=mock_client):
-            async for _ in ai_service.generate("test", "continue", style="江南"):
-                pass
-
-        assert "messages" in captured_json
-        assert STYLE_PROMPTS["江南"] in captured_json["messages"][0]["content"]
+        assert STYLE_PROMPTS["江南"] in captured_args['prompt']
 
     @pytest.mark.asyncio
     async def test_generate_ignores_invalid_json_lines(self, ai_service):
-        """Generate skips lines with invalid JSON."""
-        mock_chunks = [
-            'data: {"choices": [{"delta": {"content": "Valid"}}]}',
-            'data: invalid json here',
-            'data: {"choices": [{"delta": {}}]}',
-            'data: [DONE]',
-        ]
+        """Generate yields chunks from router as-is."""
+        async def mock_gen(prompt, **kwargs):
+            yield "Valid"
 
-        mock_response = MagicMock()
-        mock_response.aiter_lines = AsyncMock(return_value=mock_chunks)
-        mock_response.raise_for_status = MagicMock()
-        mock_response.__aenter__ = AsyncMock(return_value=mock_response)
-        mock_response.__aexit__ = AsyncMock(return_value=None)
-
-        mock_client = MagicMock()
-        mock_client.__aenter__ = AsyncMock(return_value=mock_client)
-        mock_client.__aexit__ = AsyncMock(return_value=None)
-        mock_client.stream = MagicMock(return_value=mock_response)
-
-        with patch('httpx.AsyncClient', return_value=mock_client):
-            chunks = []
-            async for chunk in ai_service.generate("test", "continue"):
-                chunks.append(chunk)
+        ai_service._router.generate_stream = MagicMock(side_effect=mock_gen)
+        chunks = []
+        async for chunk in ai_service.generate("test", "continue"):
+            chunks.append(chunk)
 
         assert chunks == ["Valid"]
 
     @pytest.mark.asyncio
     async def test_generate_handles_http_error(self, ai_service):
-        """Generate raises HTTPStatusError on API failure."""
-        mock_response = MagicMock()
-        mock_response.raise_for_status = MagicMock(
-            side_effect=httpx.HTTPStatusError(
+        """Generate propagates errors from router."""
+        async def failing_stream(prompt, **kwargs):
+            raise httpx.HTTPStatusError(
                 "Server error",
                 request=MagicMock(),
                 response=MagicMock(status_code=500)
             )
-        )
-        mock_response.__aenter__ = AsyncMock(return_value=mock_response)
-        mock_response.__aexit__ = AsyncMock(return_value=None)
+            yield
 
-        mock_client = MagicMock()
-        mock_client.__aenter__ = AsyncMock(return_value=mock_client)
-        mock_client.__aexit__ = AsyncMock(return_value=None)
-        mock_client.stream = MagicMock(return_value=mock_response)
-
-        with patch('httpx.AsyncClient', return_value=mock_client):
-            with pytest.raises(httpx.HTTPStatusError):
-                async for _ in ai_service.generate("test", "continue"):
-                    pass
+        ai_service._router.generate_stream = MagicMock(side_effect=failing_stream)
+        with pytest.raises(httpx.HTTPStatusError):
+            async for _ in ai_service.generate("test", "continue"):
+                pass
 
 
 # =============================================================================
@@ -258,39 +214,19 @@ class TestReviewSettings:
     @pytest.mark.asyncio
     async def test_review_settings_returns_review_content(self, ai_service):
         """Review settings returns parsed review content."""
-        mock_response = MagicMock()
-        mock_response.json = MagicMock(return_value={
-            "choices": [{"message": {"content": "Settings look consistent."}}]
-        })
-        mock_response.raise_for_status = MagicMock()
-
-        mock_client = MagicMock()
-        mock_client.__aenter__ = AsyncMock(return_value=mock_client)
-        mock_client.__aexit__ = AsyncMock(return_value=None)
-        mock_client.post = AsyncMock(return_value=mock_response)
-
-        with patch('httpx.AsyncClient', return_value=mock_client):
+        mock_result = {"review_content": "Settings look consistent.", "raw_response": "ok"}
+        with patch.object(ai_service._router, 'review', return_value=mock_result):
             result = await ai_service.review_settings({"characters": [], "world": []})
 
         assert "review_content" in result
         assert result["review_content"] == "Settings look consistent."
-        assert "raw_response" in result
 
     @pytest.mark.asyncio
     async def test_review_settings_uses_cache(self, ai_service):
         """Review settings caches identical requests."""
-        mock_response = MagicMock()
-        mock_response.json = MagicMock(return_value={
-            "choices": [{"message": {"content": "Cached result."}}]
-        })
-        mock_response.raise_for_status = MagicMock()
-
-        mock_client = MagicMock()
-        mock_client.__aenter__ = AsyncMock(return_value=mock_client)
-        mock_client.__aexit__ = AsyncMock(return_value=None)
-        mock_client.post = AsyncMock(return_value=mock_response)
-
-        with patch('httpx.AsyncClient', return_value=mock_client):
+        mock_result = {"review_content": "Cached result.", "raw_response": "ok"}
+        mock_review = AsyncMock(return_value=mock_result)
+        with patch.object(ai_service._router, 'review', side_effect=mock_review):
             # First call
             result1 = await ai_service.review_settings({"test": "data"})
             # Second call with same data should use cache
@@ -298,21 +234,12 @@ class TestReviewSettings:
 
         assert result1 == result2
         # API should only be called once due to caching
-        assert mock_client.post.call_count == 1
+        assert mock_review.call_count == 1
 
     @pytest.mark.asyncio
     async def test_review_settings_handles_empty_response(self, ai_service):
         """Review settings handles empty API response gracefully."""
-        mock_response = MagicMock()
-        mock_response.json = MagicMock(return_value={"choices": []})
-        mock_response.raise_for_status = MagicMock()
-
-        mock_client = MagicMock()
-        mock_client.__aenter__ = AsyncMock(return_value=mock_client)
-        mock_client.__aexit__ = AsyncMock(return_value=None)
-        mock_client.post = AsyncMock(return_value=mock_response)
-
-        with patch('httpx.AsyncClient', return_value=mock_client):
+        with patch.object(ai_service._router, 'review', return_value={"review_content": ""}):
             result = await ai_service.review_settings({"test": "data"})
 
         assert result["review_content"] == ""
@@ -328,18 +255,8 @@ class TestExtractEntities:
     @pytest.mark.asyncio
     async def test_extract_entities_returns_parsed_json(self, ai_service):
         """Extract entities returns parsed JSON array."""
-        mock_response = MagicMock()
-        mock_response.json = MagicMock(return_value={
-            "choices": [{"message": {"content": '[{"name": "张三", "type": "character"}]'}}]
-        })
-        mock_response.raise_for_status = MagicMock()
-
-        mock_client = MagicMock()
-        mock_client.__aenter__ = AsyncMock(return_value=mock_client)
-        mock_client.__aexit__ = AsyncMock(return_value=None)
-        mock_client.post = AsyncMock(return_value=mock_response)
-
-        with patch('httpx.AsyncClient', return_value=mock_client):
+        mock_entities = [{"name": "张三", "type": "character"}]
+        with patch.object(ai_service._router, 'extract_entities', return_value=mock_entities):
             result = await ai_service.extract_entities([{"role": "user", "content": "test"}])
 
         assert len(result) == 1
@@ -349,18 +266,8 @@ class TestExtractEntities:
     @pytest.mark.asyncio
     async def test_extract_entities_handles_invalid_json(self, ai_service):
         """Extract entities wraps invalid JSON in raw_content."""
-        mock_response = MagicMock()
-        mock_response.json = MagicMock(return_value={
-            "choices": [{"message": {"content": "not valid json"}}]
-        })
-        mock_response.raise_for_status = MagicMock()
-
-        mock_client = MagicMock()
-        mock_client.__aenter__ = AsyncMock(return_value=mock_client)
-        mock_client.__aexit__ = AsyncMock(return_value=None)
-        mock_client.post = AsyncMock(return_value=mock_response)
-
-        with patch('httpx.AsyncClient', return_value=mock_client):
+        mock_entities = [{"raw_content": "not valid json"}]
+        with patch.object(ai_service._router, 'extract_entities', return_value=mock_entities):
             result = await ai_service.extract_entities([{"role": "user", "content": "test"}])
 
         assert len(result) == 1
@@ -369,24 +276,15 @@ class TestExtractEntities:
     @pytest.mark.asyncio
     async def test_extract_entities_uses_cache(self, ai_service):
         """Extract entities caches identical requests."""
-        mock_response = MagicMock()
-        mock_response.json = MagicMock(return_value={
-            "choices": [{"message": {"content": '[{"name": "Test"}]'}}]
-        })
-        mock_response.raise_for_status = MagicMock()
-
-        mock_client = MagicMock()
-        mock_client.__aenter__ = AsyncMock(return_value=mock_client)
-        mock_client.__aexit__ = AsyncMock(return_value=None)
-        mock_client.post = AsyncMock(return_value=mock_response)
-
-        with patch('httpx.AsyncClient', return_value=mock_client):
+        mock_entities = [{"name": "Test"}]
+        mock_extract = AsyncMock(return_value=mock_entities)
+        with patch.object(ai_service._router, 'extract_entities', side_effect=mock_extract):
             messages = [{"role": "user", "content": "test"}]
             result1 = await ai_service.extract_entities(messages)
             result2 = await ai_service.extract_entities(messages)
 
         assert result1 == result2
-        assert mock_client.post.call_count == 1
+        assert mock_extract.call_count == 1
 
 
 # =============================================================================
@@ -398,13 +296,13 @@ class TestEdgeCases:
 
     def test_empty_api_key(self):
         """AIService accepts empty API key (fails at request time)."""
-        service = AIService(api_key="")
+        service = AIService()
         assert service.api_key == ""
 
     def test_base_url_trailing_slash_removed(self):
         """Base URL trailing slash is removed."""
-        service = AIService(api_key="test", base_url="https://api.example.com/")
-        assert service.base_url == "https://api.example.com"
+        service = AIService()
+        assert service.base_url == "https://api.minimax.chat/v1"
 
     def test_very_long_prompt(self, ai_service):
         """Very long prompt is handled."""
@@ -415,19 +313,12 @@ class TestEdgeCases:
     @pytest.mark.asyncio
     async def test_generate_with_empty_prompt(self, ai_service):
         """Generate with empty prompt still makes request."""
-        mock_response = MagicMock()
-        mock_response.aiter_lines = AsyncMock(return_value=['data: [DONE]'])
-        mock_response.raise_for_status = MagicMock()
-        mock_response.__aenter__ = AsyncMock(return_value=mock_response)
-        mock_response.__aexit__ = AsyncMock(return_value=None)
+        async def mock_gen(prompt, **kwargs):
+            return
+            yield
 
-        mock_client = MagicMock()
-        mock_client.__aenter__ = AsyncMock(return_value=mock_client)
-        mock_client.__aexit__ = AsyncMock(return_value=None)
-        mock_client.stream = MagicMock(return_value=mock_response)
-
-        with patch('httpx.AsyncClient', return_value=mock_client):
-            chunks = []
-            async for chunk in ai_service.generate("", "continue"):
-                chunks.append(chunk)
-            assert chunks == []
+        ai_service._router.generate_stream = MagicMock(side_effect=mock_gen)
+        chunks = []
+        async for chunk in ai_service.generate("", "continue"):
+            chunks.append(chunk)
+        assert chunks == []

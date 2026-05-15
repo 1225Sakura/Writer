@@ -14,7 +14,7 @@ from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Any
 
 from backend.services.ai.provider import AIProvider
-from ..utils.event_bus import AsyncEventBus
+from backend.utils.event_bus import AsyncEventBus
 
 if TYPE_CHECKING:
     from backend.core.services.ai.ai_service import AIService

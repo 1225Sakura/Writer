@@ -37,7 +37,7 @@ def ensure_database():
 
     if not db_path.exists():
         print("Database not found, initializing...")
-        from init_db import init_database
+        from backend.init_db import init_database
         init_database()
         print("Database initialized successfully")
 
