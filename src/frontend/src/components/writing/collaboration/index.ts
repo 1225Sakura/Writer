@@ -1,7 +1,7 @@
 export { PanelHeader } from './PanelHeader'
 export { CollaborationStatus, PanelCard, ActivityItem } from './CollaborationStatus'
 export { CollaboratorAvatars } from './CollaboratorAvatars'
-export { RatioSliderSection } from './RatioSliderSection'
+export { RatioSliderSection } from '@/components/shared/RatioSliderSection'
 export { CollapsibleSection } from './CollapsibleSection'
 export { BattleStation } from './BattleStation'
 export { IFLinesSection } from './IFLinesSection'

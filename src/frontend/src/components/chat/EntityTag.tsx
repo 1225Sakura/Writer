@@ -123,6 +123,11 @@ export function EntityTag({ type, size = 'medium', showIcon = true, selected = f
         color: config.textColor,
         border: `1px solid ${selected ? config.textColor + '50' : config.borderColor}`,
       }}
+      role={isInteractive ? 'button' : undefined}
+      tabIndex={isInteractive ? 0 : undefined}
+      aria-label={isInteractive ? `${config.label} ${type}` : undefined}
+      aria-pressed={isInteractive ? selected : undefined}
+      onKeyDown={isInteractive ? (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onClick?.() } } : undefined}
       animate={selected ? {
         scale: [1, 1.03, 1],
         boxShadow: [`0 0 0 0 ${config.glowColor}00`, `0 0 12px 3px ${config.glowColor}`, `0 0 0 0 ${config.glowColor}00`],

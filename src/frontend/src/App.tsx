@@ -110,7 +110,7 @@ function AppContent() {
   // Render current interface with per-component Suspense boundaries
   const renderInterface = () => {
     const loadingFallback = (
-      <div className="h-screen w-screen overflow-hidden bg-[var(--color-black)] flex items-center justify-center">
+      <div className="h-screen w-screen overflow-hidden bg-[var(--ink-100)] flex items-center justify-center">
         <LoadingOverlay visible={true} message="正在加载..." fullscreen={false} />
       </div>
     )

@@ -1,9 +1,5 @@
 import { useEffect, useState } from 'react'
 import { useChatStore } from '@/store/chatStore'
-import type { ExtractedEntityLocal } from '@/store/chatStore'
-
-// Type alias for backward compatibility
-type ExtractedEntity = ExtractedEntityLocal
 import { ChatArea } from './ChatArea'
 import { ChatSidebar } from './ChatSidebar'
 import { ChatFooter } from './ChatFooter'
@@ -11,225 +7,10 @@ import { UserInputPanel } from './UserInputPanel'
 import { LeftSidebar } from '@/components/shared/LeftSidebar'
 import { motion, AnimatePresence } from 'framer-motion'
 import { usePrefersReducedMotion } from '@/hooks/usePrefersReducedMotion'
-import { X, CheckCircle, Circle, BookOpen, Users, MapPin, Swords, ScrollText, Settings, PenTool } from 'lucide-react'
-import { GlassCard } from '@/components/ui/GlassCard'
-import { typeColors } from '@/lib/entityColors'
+import { X } from 'lucide-react'
 import { EASE, DURATION, SPRING } from '@/components/shared/AnimationConfig'
-
-/* ============================================================
-   MOBILE SIDEBAR CONTENT - Uses GlassCard for entity items
-   ============================================================ */
-
-function ChatSidebarMobile({ entities, onConfirmEntity }: {
-  entities: ExtractedEntity[]
-  onConfirmEntity?: (id: string) => void
-}) {
-  const groupedEntities = entities.reduce(
-    (acc, entity) => {
-      const key = entity.type
-      if (!acc[key]) acc[key] = []
-      acc[key].push(entity)
-      return acc
-    },
-    {} as Record<string, ExtractedEntity[]>
-  )
-
-  const confirmedCount = entities.filter((e) => e.confirmed).length
-  const progressPercent = entities.length > 0 ? (confirmedCount / entities.length) * 100 : 0
-
-  return (
-    <div className="h-full flex flex-col">
-      {/* Progress Header */}
-      <div className="mb-4 px-1">
-        <div className="flex items-center justify-between mb-2">
-          <span className="text-xs text-secondary">
-            {confirmedCount}/{entities.length} 项已确认
-          </span>
-          {progressPercent === 100 && entities.length > 0 && (
-            <span className="text-[10px] px-2 py-0.5 rounded-full bg-[var(--color-ifline)]/10 text-[var(--color-ifline)] border border-[var(--color-ifline)]/20">
-              全部确认
-            </span>
-          )}
-        </div>
-        <div className="h-1.5 rounded-full overflow-hidden bg-surface-base">
-          <motion.div
-            className="h-full rounded-full"
-            style={{
-              background: progressPercent === 100
-                ? 'linear-gradient(90deg, var(--color-ifline), color-mix(in srgb, var(--color-ifline) 70%, var(--accent-primary)))'
-                : 'linear-gradient(90deg, var(--accent-primary), var(--accent-hover))',
-            }}
-            initial={{ width: 0 }}
-            animate={{ width: `${progressPercent}%` }}
-            transition={{ duration: 0.8, ease: EASE.SMOOTH }}
-          />
-        </div>
-      </div>
-
-      {/* Content */}
-      <div className="flex-1 overflow-y-auto">
-        {entities.length === 0 ? (
-          <div className="text-center py-8 text-secondary text-sm">
-            开始对话后，这里将显示收集到的设定信息
-          </div>
-        ) : (
-          <div className="space-y-4">
-            {Object.entries(groupedEntities).map(([type, typeEntities]) => (
-              <div key={type}>
-                <div className="flex items-center gap-2 mb-2 px-1">
-                  <div
-                    className="w-2 h-2 rounded-full"
-                    style={{ backgroundColor: typeColors[type] || 'var(--color-character)' }}
-                  />
-                  <span className="text-xs font-medium text-secondary">
-                    {type === 'world' ? '世界观' :
-                     type === 'character' ? '角色' :
-                     type === 'item' ? '物品' :
-                     type === 'location' ? '地点' :
-                     type === 'faction' ? '势力' :
-                     type === 'rule' ? '规则' :
-                     type === 'ifline' ? 'IF线' : type}
-                  </span>
-                  <span className="text-[10px] text-tertiary ml-auto">({typeEntities.length})</span>
-                </div>
-                <div className="space-y-1.5">
-                  {typeEntities.map((entity) => (
-                    <GlassCard
-                      key={entity.id}
-                      intensity="light"
-                      border="subtle"
-                      variant="default"
-                      rounded="md"
-                      padding="sm"
-                      hover={false}
-                      className="flex items-center gap-2"
-                    >
-                      <div
-                        className="w-1.5 h-1.5 rounded-full flex-shrink-0"
-                        style={{
-                          backgroundColor: typeColors[entity.type] || 'var(--color-character)'
-                        }}
-                      />
-                      <span className="text-sm text-primary flex-1 truncate">{entity.name}</span>
-                      {entity.confirmed ? (
-                        <CheckCircle className="w-4 h-4 text-[var(--color-ifline)]" />
-                      ) : (
-                        <button
-                          onClick={() => onConfirmEntity?.(entity.id)}
-                          className="text-secondary hover:text-primary transition-colors"
-                        >
-                          <Circle className="w-4 h-4" />
-                        </button>
-                      )}
-                    </GlassCard>
-                  ))}
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
-    </div>
-  )
-}
-
-/* ============================================================
-   LEFT SIDEBAR CONTENT — Entity overview + quick navigation
-   ============================================================ */
-
-const typeLabels: Record<string, string> = {
-  world: '世界观',
-  character: '角色',
-  item: '物品',
-  location: '地点',
-  faction: '势力',
-  rule: '规则',
-  ifline: 'IF线',
-}
-
-const typeIcons: Record<string, React.ElementType> = {
-  world: BookOpen,
-  character: Users,
-  item: ScrollText,
-  location: MapPin,
-  faction: Swords,
-  rule: Settings,
-  ifline: PenTool,
-}
-
-function ChatLeftSidebarContent({ entities }: { entities: ExtractedEntity[] }) {
-  const groupedEntities = entities.reduce(
-    (acc, entity) => {
-      const key = entity.type
-      if (!acc[key]) acc[key] = []
-      acc[key].push(entity)
-      return acc
-    },
-    {} as Record<string, ExtractedEntity[]>
-  )
-
-  const confirmedCount = entities.filter((e) => e.confirmed).length
-
-  return (
-    <div className="flex flex-col h-full">
-      {/* Header */}
-      <div className="px-4 py-4 border-b border-[var(--border-subtle)]">
-        <h2 className="font-semibold text-sm text-[var(--text-primary)]">
-          已收集信息
-        </h2>
-        <p className="text-[11px] mt-1 text-[var(--text-tertiary)]">
-          {confirmedCount}/{entities.length} 项已确认
-        </p>
-      </div>
-
-      {/* Entity summary */}
-      <div className="flex-1 overflow-y-auto py-2">
-        {entities.length === 0 ? (
-          <div className="text-center py-8 px-4">
-            <p className="text-xs text-[var(--text-tertiary)]">
-              开始对话后，这里将显示收集到的设定信息
-            </p>
-          </div>
-        ) : (
-          <div className="space-y-1 px-2">
-            {Object.entries(groupedEntities).map(([type, typeEntities]) => {
-              const Icon = typeIcons[type] || BookOpen
-              const color = typeColors[type] || 'var(--color-character)'
-              const confirmed = typeEntities.filter((e) => e.confirmed).length
-              return (
-                <motion.div
-                  key={type}
-                  initial={{ opacity: 0, x: -8 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  className="flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-[var(--color-surface-hover)] transition-colors"
-                >
-                  <div
-                    className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0"
-                    style={{
-                      backgroundColor: `${color}15`,
-                      border: `1px solid ${color}25`,
-                    }}
-                  >
-                    <Icon className="w-3.5 h-3.5" style={{ color }} />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <span className="text-sm text-[var(--text-primary)]">
-                      {typeLabels[type] || type}
-                    </span>
-                  </div>
-                  <span className="text-[10px] text-[var(--text-tertiary)] tabular-nums">
-                    {confirmed}/{typeEntities.length}
-                  </span>
-                </motion.div>
-              )
-            })}
-          </div>
-        )}
-      </div>
-
-    </div>
-  )
-}
+import { WelcomePanel } from './WelcomePanel'
+import { PreviewPanel } from './PreviewPanel'
 
 /* ============================================================
    CHAT INIT PAGE - Composed from sub-components
@@ -271,7 +52,7 @@ export function ChatInitPage() {
           onToggle={() => setSidebarOpen(!sidebarOpen)}
           width="var(--sidebar-left-width)"
         >
-          <ChatLeftSidebarContent entities={extractedEntities} />
+          <WelcomePanel entities={extractedEntities} />
         </LeftSidebar>
 
         {/* Center: AI chat area */}
@@ -343,7 +124,7 @@ export function ChatInitPage() {
                 </motion.button>
               </div>
               <div className="overflow-y-auto px-4 py-3" style={{ maxHeight: 'calc(85vh - 120px)' }}>
-                <ChatSidebarMobile
+                <PreviewPanel
                   entities={extractedEntities}
                   onConfirmEntity={confirmEntity}
                 />

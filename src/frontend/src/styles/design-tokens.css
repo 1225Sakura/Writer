@@ -238,6 +238,12 @@
   /* === Paper Texture === */
   --paper-texture-opacity: 0.035;
 
+  /* === Shimmer Tones (skeleton loading) === */
+  --shimmer-warm:    color-mix(in srgb, var(--color-character) 8%, transparent);
+  --shimmer-cool:    color-mix(in srgb, var(--color-location) 8%, transparent);
+  --shimmer-accent:  color-mix(in srgb, var(--accent-primary) 8%, transparent);
+  --shimmer-neutral: color-mix(in srgb, white 6%, transparent);
+
   /* === Ambient Glow === */
   --ambient-glow-primary:   0.12;
   --ambient-glow-secondary: 0.10;
@@ -271,28 +277,6 @@
   --progress-color: var(--accent-100);
   --indent-color:   var(--border-subtle);
 
-  /* === Legacy aliases (for backward compat) === */
-  --color-bg-surface:     var(--color-surface-base);
-  --color-text-writing:   var(--paper-100);
-  --color-writing-dark:   var(--ink-90);
-  --color-text-secondary: var(--text-secondary);
-  --color-text-muted:     var(--text-tertiary);
-  --color-bg-card:        var(--color-surface-base);
-  --color-toolbar:        var(--color-surface-base);
-  --color-drawer:         var(--color-surface-raised);
-  --color-border:         var(--border-default);
-  --color-border-subtle:  var(--border-subtle);
-  --color-border-strong:  var(--border-strong);
-  --accent-purple:        var(--accent-100);
-  --color-vermillion:     var(--vermillion-100);
-  --color-error:          var(--vermillion-100);
-  --color-black:          var(--ink-100);
-  --color-primary:        var(--accent-100);
-  /* --ink-black removed: use --ink-100 directly */
-  --charcoal:             var(--ink-90);
-  --paper-white:          var(--paper-100);
-  --paper-frost:          var(--paper-90);
-  --smoke:                var(--ink-70);
 }
 
 /* ============================================================

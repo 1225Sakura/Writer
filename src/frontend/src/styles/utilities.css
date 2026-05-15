@@ -1,0 +1,42 @@
+/**
+ * Auto Novel Writer — Utility Classes
+ * ============================================================
+ * Reusable utility classes for text, backgrounds, borders,
+ * shadows, and border-radius.
+ * Decomposed from original monolithic stylesheet.
+ * ============================================================
+ */
+
+/* ============================================================
+   UTILITY CLASSES
+   ============================================================ */
+
+.text-primary   { color: var(--text-primary); }
+.text-secondary { color: var(--text-secondary); }
+.text-tertiary  { color: var(--text-tertiary); }
+.text-disabled  { color: var(--text-disabled); }
+
+.bg-surface-base   { background-color: var(--color-surface-base); }
+.bg-surface-raised { background-color: var(--color-surface-raised); }
+.bg-surface-input  { background-color: var(--color-surface-input); }
+.bg-surface-hover  { background-color: var(--color-surface-hover); }
+.bg-accent-muted   { background-color: var(--accent-muted); }
+
+.text-accent-primary { color: var(--accent-primary); }
+.text-accent-hover   { color: var(--accent-hover); }
+
+.border-default { border: 1px solid var(--border-default); }
+.border-subtle  { border: 1px solid var(--border-subtle); }
+.border-strong  { border: 1px solid var(--border-strong); }
+.border-focus   { border-color: var(--border-focus); }
+
+.shadow-glow-sm { box-shadow: var(--shadow-glow-sm); }
+.shadow-glow    { box-shadow: var(--shadow-glow); }
+
+.rounded-sm   { border-radius: var(--radius-sm); }
+.rounded-md   { border-radius: var(--radius-md); }
+.rounded-lg   { border-radius: var(--radius-lg); }
+.rounded-xl   { border-radius: var(--radius-xl); }
+.rounded-2xl  { border-radius: var(--radius-2xl); }
+.rounded-pill { border-radius: var(--radius-pill); }
+.rounded-full { border-radius: var(--radius-full); }

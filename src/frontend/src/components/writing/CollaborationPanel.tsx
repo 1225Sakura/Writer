@@ -15,7 +15,7 @@ export function CollaborationPanel() {
       <div className="relative z-10 space-y-3 px-3 py-2 md:px-4 md:py-3">
         <PanelHeader />
         <CollaborationStatus />
-        <RatioSliderSection />
+        <RatioSliderSection collapsible />
         <BattleStation />
         <PlotTracker />
         <IFLinesSection />

@@ -1,7 +1,10 @@
-import { useState, useEffect, useCallback, useRef } from 'react'
-import { motion, AnimatePresence, useSpring } from 'framer-motion'
-import { Type, Clock, BookOpen, ChevronUp, ChevronDown, Zap } from 'lucide-react'
+import { useState, useEffect, useCallback } from 'react'
+import { motion, AnimatePresence } from 'framer-motion'
+import { Zap } from 'lucide-react'
 import { DURATION, EASE } from '@/components/shared/AnimationConfig'
+import { StatsHeader } from './StatsHeader'
+import { StatsGrid } from './StatsGrid'
+import { StatsChart } from './StatsChart'
 
 
 interface WritingStatsOverlayProps {
@@ -10,34 +13,6 @@ interface WritingStatsOverlayProps {
   sessionDuration: number
   todayWordCount: number
   targetWordCount: number
-}
-
-function formatDuration(seconds: number): string {
-  if (seconds < 60) return `${seconds}秒`
-  const mins = Math.floor(seconds / 60)
-  const secs = seconds % 60
-  if (mins < 60) return `${mins}分${secs > 0 ? `${secs}秒` : ''}`
-  const hours = Math.floor(mins / 60)
-  const remainingMins = mins % 60
-  return `${hours}时${remainingMins > 0 ? `${remainingMins}分` : ''}`
-}
-
-function estimateReadTime(wordCount: number): string {
-  // Average Chinese reading speed: 300-500 characters per minute
-  const minutes = Math.ceil(wordCount / 400)
-  if (minutes < 1) return '< 1分钟'
-  if (minutes < 60) return `${minutes}分钟`
-  const hours = Math.floor(minutes / 60)
-  const remainingMins = minutes % 60
-  return `${hours}时${remainingMins > 0 ? `${remainingMins}分` : ''}`
-}
-
-function getProgressColor(percentage: number): string {
-  if (percentage >= 100) return 'var(--color-ifline)'
-  if (percentage >= 75) return 'var(--color-location)'
-  if (percentage >= 50) return 'var(--color-character)'
-  if (percentage >= 25) return 'var(--color-outline)'
-  return 'var(--color-vermillion)'
 }
 
 export function WritingStatsOverlay({
@@ -51,66 +26,24 @@ export function WritingStatsOverlay({
   const [visible, setVisible] = useState(true)
   const [lastWordCount, setLastWordCount] = useState(wordCount)
   const [burstWPM, setBurstWPM] = useState(0)
-  const [wordCountDelta, setWordCountDelta] = useState(0)
-  const [showDelta, setShowDelta] = useState(false)
-  const deltaTimeoutRef = useRef<NodeJS.Timeout | null>(null)
-
-  // Animated word count with spring physics
-  const animatedWordCount = useSpring(wordCount, {
-    stiffness: 100,
-    damping: 30,
-    mass: 1,
-  })
-
-  // Animated today word count
-  const animatedTodayWordCount = useSpring(todayWordCount, {
-    stiffness: 80,
-    damping: 25,
-    mass: 1,
-  })
-
-  // Update spring value when wordCount changes
-  useEffect(() => {
-    animatedWordCount.set(wordCount)
-  }, [wordCount, animatedWordCount])
-
-  useEffect(() => {
-    animatedTodayWordCount.set(todayWordCount)
-  }, [todayWordCount, animatedTodayWordCount])
 
   // Track burst writing speed (words per minute over last 10 seconds)
   useEffect(() => {
     const delta = wordCount - lastWordCount
     if (delta > 0) {
-      setWordCountDelta(delta)
-      setShowDelta(true)
-      // Calculate WPM based on 5-second sampling
       setBurstWPM(Math.round(delta * 12))
-
-      // Clear previous timeout
-      if (deltaTimeoutRef.current) {
-        clearTimeout(deltaTimeoutRef.current)
-      }
-      // Hide delta after 2 seconds
-      deltaTimeoutRef.current = setTimeout(() => {
-        setShowDelta(false)
-      }, 2000)
     }
     setLastWordCount(wordCount)
   }, [wordCount])
 
   // Reset burst WPM after inactivity
   useEffect(() => {
-    if (wordCountDelta === 0) return
+    if (burstWPM === 0) return
     const timeout = setTimeout(() => {
       setBurstWPM(0)
-      setWordCountDelta(0)
     }, 6000)
     return () => clearTimeout(timeout)
-  }, [wordCountDelta])
-
-  const progressPercentage = Math.min(100, Math.round((todayWordCount / targetWordCount) * 100))
-  const progressColor = getProgressColor(progressPercentage)
+  }, [burstWPM])
 
   const toggleExpanded = useCallback(() => {
     setExpanded((prev) => !prev)
@@ -161,81 +94,13 @@ export function WritingStatsOverlay({
               boxShadow: '0 4px 20px color-mix(in srgb, var(--ink-100) 25%, transparent), 0 8px 40px color-mix(in srgb, var(--ink-100) 15%, transparent), inset 0 1px 0 color-mix(in srgb, var(--paper-100) 4%, transparent)',
             }}
           >
-            {/* Header */}
-            <div
-              className="flex items-center justify-between px-3 py-2 cursor-pointer"
-              style={{
-                borderBottom: '1px solid color-mix(in srgb, var(--paper-100) 4%, transparent)',
-                background: `linear-gradient(180deg, color-mix(in srgb, var(--paper-100) 2%, transparent) 0%, transparent 100%)`,
-              }}
-              onClick={toggleExpanded}
-            >
-              <div className="flex items-center gap-1.5">
-                <Zap className="w-3 h-3" style={{ color: 'var(--color-character)' }} />
-                <span className="text-[11px] font-medium" style={{ color: 'var(--text-muted)' }}>写作统计</span>
-              </div>
-              <div className="flex items-center gap-0.5">
-                {expanded ? (
-                  <ChevronDown className="w-3 h-3" style={{ color: 'var(--text-muted)' }} />
-                ) : (
-                  <ChevronUp className="w-3 h-3" style={{ color: 'var(--text-muted)' }} />
-                )}
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation()
-                    toggleVisible()
-                  }}
-                  className="ml-1 w-5 h-5 flex items-center justify-center rounded transition-colors"
-                  style={{ color: 'var(--text-muted)' }}
-                  onMouseEnter={(e) => {
-                    (e.target as HTMLElement).style.background = 'color-mix(in srgb, var(--paper-100) 6%, transparent)'
-                  }}
-                  onMouseLeave={(e) => {
-                    (e.target as HTMLElement).style.background = 'transparent'
-                  }}
-                >
-                  <span className="text-[10px]">×</span>
-                </button>
-              </div>
-            </div>
+            <StatsHeader
+              expanded={expanded}
+              onToggleExpanded={toggleExpanded}
+              onToggleVisible={toggleVisible}
+            />
 
-            {/* Compact stats row */}
-            <div className="flex items-center gap-3 px-3 py-2.5">
-              <div className="flex items-center gap-1.5">
-                <Type className="w-3 h-3" style={{ color: 'var(--icon-secondary)' }} />
-                <motion.span
-                  className="text-xs font-semibold"
-                  style={{ color: 'var(--text-primary)' }}
-                  key={wordCount}
-                  initial={{ scale: 1.1 }}
-                  animate={{ scale: 1 }}
-                  transition={{ duration: DURATION.SLOW, ease: EASE.SMOOTH }}
-                >
-                  {Math.round(animatedWordCount.get())}
-                </motion.span>
-                <span className="text-[10px]" style={{ color: 'var(--text-muted)' }}>字</span>
-                {/* Delta indicator */}
-                <AnimatePresence>
-                  {showDelta && wordCountDelta > 0 && (
-                    <motion.span
-                      initial={{ opacity: 0, y: 4, scale: 0.8 }}
-                      animate={{ opacity: 1, y: 0, scale: 1 }}
-                      exit={{ opacity: 0, y: -4, scale: 0.8 }}
-                      className="text-[10px] font-semibold ml-0.5"
-                      style={{ color: 'var(--color-ifline)' }}
-                    >
-                      +{wordCountDelta}
-                    </motion.span>
-                  )}
-                </AnimatePresence>
-              </div>
-              <div className="w-px h-3" style={{ background: 'var(--border-default)' }} />
-              <div className="flex items-center gap-1.5">
-                <Clock className="w-3 h-3" style={{ color: 'var(--icon-secondary)' }} />
-                <span className="text-xs font-medium" style={{ color: 'var(--text-primary)' }}>{sessionWPM}</span>
-                <span className="text-[10px]" style={{ color: 'var(--text-muted)' }}>字/分</span>
-              </div>
-            </div>
+            <StatsGrid wordCount={wordCount} sessionWPM={sessionWPM} />
 
             {/* Expanded content */}
             <AnimatePresence>
@@ -247,78 +112,13 @@ export function WritingStatsOverlay({
                   transition={{ duration: DURATION.FAST, ease: EASE.SMOOTH }}
                   className="overflow-hidden"
                 >
-                  <div className="px-3 pb-3 space-y-2.5">
-                    {/* Burst speed indicator */}
-                    {burstWPM > 0 && (
-                      <motion.div
-                        initial={{ opacity: 0, x: -8 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        className="flex items-center gap-2"
-                      >
-                        <div className="w-1.5 h-1.5 rounded-full animate-pulse motion-reduce:animate-none bg-[var(--color-ifline)]" />
-                        <span className="text-[11px] text-[var(--color-ifline)]">
-                          当前速度: {burstWPM} 字/分
-                        </span>
-                      </motion.div>
-                    )}
-
-                    {/* Reading time */}
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-1.5">
-                        <BookOpen className="w-3 h-3" style={{ color: 'var(--icon-secondary)' }} />
-                        <span className="text-[11px]" style={{ color: 'var(--text-muted)' }}>预计阅读</span>
-                      </div>
-                      <span className="text-[11px] font-medium" style={{ color: 'var(--text-secondary)' }}>
-                        {estimateReadTime(wordCount)}
-                      </span>
-                    </div>
-
-                    {/* Session duration */}
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-1.5">
-                        <Clock className="w-3 h-3" style={{ color: 'var(--icon-secondary)' }} />
-                        <span className="text-[11px]" style={{ color: 'var(--text-muted)' }}>本次时长</span>
-                      </div>
-                      <span className="text-[11px] font-medium" style={{ color: 'var(--text-secondary)' }}>
-                        {formatDuration(sessionDuration)}
-                      </span>
-                    </div>
-
-                    {/* Today's progress */}
-                    <div className="pt-1">
-                      <div className="flex items-center justify-between mb-1.5">
-                        <span className="text-[11px]" style={{ color: 'var(--text-muted)' }}>今日进度</span>
-                        <motion.span
-                          className="text-[11px] font-semibold"
-                          style={{ color: progressColor }}
-                          key={todayWordCount}
-                        >
-                          {Math.round(animatedTodayWordCount.get())} / {targetWordCount}
-                        </motion.span>
-                      </div>
-                      <div
-                        className="h-1.5 rounded-full overflow-hidden"
-                        style={{
-                          background: 'color-mix(in srgb, var(--paper-100) 3%, transparent)',
-                          boxShadow: 'inset 0 1px 2px color-mix(in srgb, var(--ink-100) 15%, transparent)',
-                        }}
-                      >
-                        <motion.div
-                          className="h-full rounded-full"
-                          style={{
-                            background: `linear-gradient(90deg, ${progressColor}cc, ${progressColor})`,
-                            boxShadow: `0 0 8px ${progressColor}50`,
-                          }}
-                          initial={{ width: 0 }}
-                          animate={{ width: `${progressPercentage}%` }}
-                          transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-                        />
-                      </div>
-                      <div className="flex justify-end mt-1">
-                        <span className="text-[10px]" style={{ color: 'var(--text-muted)' }}>{progressPercentage}%</span>
-                      </div>
-                    </div>
-                  </div>
+                  <StatsChart
+                    wordCount={wordCount}
+                    todayWordCount={todayWordCount}
+                    targetWordCount={targetWordCount}
+                    sessionDuration={sessionDuration}
+                    burstWPM={burstWPM}
+                  />
                 </motion.div>
               )}
             </AnimatePresence>

@@ -27,8 +27,14 @@ export default defineConfig({
             output: {
                 manualChunks: function (id) {
                     if (id.includes('node_modules')) {
-                        if (id.includes('react')) {
+                        if (id.includes('react-dom') || (id.includes('/react/') && !id.includes('react-'))) {
                             return 'vendor-react';
+                        }
+                        if (id.includes('framer-motion')) {
+                            return 'vendor-motion';
+                        }
+                        if (id.includes('lucide-react')) {
+                            return 'vendor-icons';
                         }
                         if (id.includes('@radix-ui')) {
                             return 'vendor-ui';
@@ -36,14 +42,14 @@ export default defineConfig({
                         if (id.includes('@tiptap')) {
                             return 'vendor-tiptap';
                         }
-                        if (id.includes('react-force-graph')) {
+                        if (id.includes('react-force-graph') || id.includes('3d-force-graph') || id.includes('three')) {
                             return 'vendor-force-graph';
-                        }
-                        if (id.includes('framer-motion')) {
-                            return 'vendor-motion';
                         }
                         if (id.includes('zustand') || id.includes('immer')) {
                             return 'vendor-zustand';
+                        }
+                        if (id.includes('recharts') || id.includes('d3')) {
+                            return 'vendor-charts';
                         }
                     }
                 },

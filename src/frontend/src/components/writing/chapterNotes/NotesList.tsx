@@ -44,7 +44,8 @@ export function NotesList({
         <>
           <AnimatePresence>
             {notes.map((note) => (
-              <div key={note.id} onClick={() => onEdit(note)}>
+              <div key={note.id} role="button" tabIndex={0} onClick={() => onEdit(note)}
+                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onEdit(note) } }}>
                 <NoteCard
                   note={note}
                   onDelete={onDelete}
@@ -139,6 +140,7 @@ function NoteCard({
               onTogglePin(note.id)
             }}
             className="w-6 h-6 flex items-center justify-center rounded-md hover:bg-[var(--color-surface-hover)] transition-colors"
+            aria-label={note.pinned ? '取消置顶' : '置顶'}
             title={note.pinned ? '取消置顶' : '置顶'}
           >
             <Pin className={`w-3 h-3 ${note.pinned ? 'text-[var(--color-warning)]' : 'text-[var(--text-tertiary)]'}`} />
@@ -149,6 +151,7 @@ function NoteCard({
               onDelete(note.id)
             }}
             className="w-6 h-6 flex items-center justify-center rounded-md hover:bg-[color-mix(in_srgb,var(--color-vermillion)_10%,transparent)] transition-colors"
+            aria-label="删除笔记"
             title="删除"
           >
             <Trash2 className="w-3 h-3 text-[var(--icon-danger)]" />

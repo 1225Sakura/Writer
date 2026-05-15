@@ -4,28 +4,19 @@
  * Unified CSS export file that imports all style modules in correct order.
  * Import this single file to get all styles.
  *
- * Order matters: design-tokens must come first (defines CSS variables),
- * then base styles, then component-specific styles.
- *
- * ============================================================
- * FILE ORGANIZATION
- * ============================================================
- *
- * design-tokens.css  — CSS custom properties (variables) only
- * globals.css        — Base/reset styles and common components
- * animations.css     — Keyframe animations
- * typography.css     — Font and text styles
- * enhancements.css   — Visual enhancements (shadows, glows, textures)
- * responsive.css     — Media queries and responsive utilities
- * shadcn.css         — shadcn/ui component overrides
- *
- * ============================================================
+ * Order matters: Tailwind directives first, then design-tokens (CSS variables),
+ * then shadcn bridge, then typography, then base styles, then components.
  */
 
+@import './tailwind-directives.css';
 @import './design-tokens.css';
-@import './globals.css';
-@import './animations.css';
-@import './typography.css';
-@import './enhancements.css';
-@import './responsive.css';
 @import './shadcn.css';
+@import './typography.css';
+@import './base.css';
+@import './components.css';
+@import './writing.css';
+@import './effects.css';
+@import './backgrounds.css';
+@import './utilities.css';
+@import './animations.css';
+@import './responsive.css';

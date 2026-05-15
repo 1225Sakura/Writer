@@ -63,9 +63,9 @@ export function PlotTracker() {
         {isCreating ? (
           <div className="space-y-2 p-2.5 rounded-lg bg-[var(--color-surface-base)] border border-[var(--border-default)]">
             <label htmlFor="plot-title-input" className="sr-only">伏笔标题</label>
-            <input id="plot-title-input" type="text" value={newTitle} onChange={(e) => setNewTitle(e.target.value)} placeholder="伏笔标题" className="w-full px-2.5 py-1.5 text-sm rounded-lg border border-[var(--border-default)] bg-[var(--color-black)] text-[var(--text-primary)] placeholder-[var(--text-tertiary)] focus:outline-none focus:ring-1 focus:ring-[var(--accent-primary)]" autoFocus />
+            <input id="plot-title-input" type="text" value={newTitle} onChange={(e) => setNewTitle(e.target.value)} placeholder="伏笔标题" className="w-full px-2.5 py-1.5 text-sm rounded-lg border border-[var(--border-default)] bg-[var(--ink-100)] text-[var(--text-primary)] placeholder-[var(--text-tertiary)] focus:outline-none focus:ring-1 focus:ring-[var(--accent-primary)]" autoFocus />
             <label htmlFor="plot-desc-input" className="sr-only">描述</label>
-            <input id="plot-desc-input" type="text" value={newDesc} onChange={(e) => setNewDesc(e.target.value)} placeholder="描述（可选）" className="w-full px-2.5 py-1.5 text-sm rounded-lg border border-[var(--border-default)] bg-[var(--color-black)] text-[var(--text-primary)] placeholder-[var(--text-tertiary)] focus:outline-none focus:ring-1 focus:ring-[var(--accent-primary)]" />
+            <input id="plot-desc-input" type="text" value={newDesc} onChange={(e) => setNewDesc(e.target.value)} placeholder="描述（可选）" className="w-full px-2.5 py-1.5 text-sm rounded-lg border border-[var(--border-default)] bg-[var(--ink-100)] text-[var(--text-primary)] placeholder-[var(--text-tertiary)] focus:outline-none focus:ring-1 focus:ring-[var(--accent-primary)]" />
             <div className="flex gap-2">
               <Button onClick={handleCreate} size="sm" variant="default">确认</Button>
               <Button onClick={() => setIsCreating(false)} size="sm" variant="ghost">取消</Button>

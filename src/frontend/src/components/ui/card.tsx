@@ -1,12 +1,52 @@
 import * as React from 'react'
+import { cva, type VariantProps } from 'class-variance-authority'
 import { cn } from '@/lib/utils'
 import { motion, useReducedMotion } from 'framer-motion'
 
-// Hook to detect user's motion preference
+// ============================================================
+// CARD VARIANTS (cva)
+// Glow: none, subtle, medium, strong
+// ============================================================
+
+const cardVariants = cva(
+  [
+    'rounded-xl border border-[var(--border-default)] bg-[var(--color-surface-raised)] text-[var(--text-primary)]',
+    'hover:shadow-[var(--shadow-drawer)]',
+    'transition-all duration-[var(--transition-base)] ease-out',
+  ],
+  {
+    variants: {
+      glow: {
+        none: 'shadow-[var(--shadow-card)]',
+        subtle: 'shadow-[var(--shadow-glow-sm)]',
+        medium: 'shadow-[var(--shadow-glow)]',
+        strong: 'shadow-[var(--shadow-glow-lg)]',
+      },
+    },
+    defaultVariants: {
+      glow: 'none',
+    },
+  }
+)
+
+// ============================================================
+// TYPES
+// ============================================================
+
+export type CardVariants = VariantProps<typeof cardVariants>
+
+// ============================================================
+// HOOK
+// ============================================================
+
 function usePrefersReducedMotion() {
   const shouldReduceMotion = useReducedMotion()
   return shouldReduceMotion
 }
+
+// ============================================================
+// CARD COMPONENT
+// ============================================================
 
 const Card = React.forwardRef<
   HTMLDivElement,
@@ -25,16 +65,7 @@ const Card = React.forwardRef<
       whileHover={hoverable && !shouldReduceMotion ? { scale: 1.02, y: -4 } : undefined}
       whileTap={pressed && !shouldReduceMotion ? { scale: 0.98 } : undefined}
       transition={{ duration: shouldReduceMotion ? 0 : 0.2, ease: [0.16, 1, 0.3, 1] }}
-      className={cn(
-        'rounded-xl border border-[var(--border-default)] bg-[var(--color-surface-raised)] text-[var(--text-primary)]',
-        'shadow-[var(--shadow-card)]',
-        'hover:shadow-[var(--shadow-drawer)]',
-        'transition-all duration-[var(--transition-base)] ease-out',
-        glowIntensity === 'subtle' && 'shadow-[var(--shadow-glow-sm)]',
-        glowIntensity === 'medium' && 'shadow-[var(--shadow-glow)]',
-        glowIntensity === 'strong' && 'shadow-[var(--shadow-glow-lg)]',
-        className
-      )}
+      className={cn(cardVariants({ glow: glowIntensity }), className)}
       {...props as any}
     />
   )

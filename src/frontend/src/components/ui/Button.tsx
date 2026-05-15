@@ -1,179 +1,18 @@
 import * as React from 'react'
 import { Slot } from '@radix-ui/react-slot'
-import { Loader2 } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { cva, type VariantProps } from 'class-variance-authority'
 import { cn } from '@/lib/utils'
 import { usePrefersReducedMotion } from '@/hooks'
 import { DURATION, EASE } from '@/components/shared/AnimationConfig'
-
-
-// ============================================================
-// BUTTON VARIANTS (cva)
-// Unified variant system: default, ghost, subtle, accent, danger, glass
-// Sizes: sm, md, lg, icon
-// ============================================================
-
-const buttonVariants = cva(
-  'relative inline-flex items-center justify-center font-[510] cursor-pointer overflow-hidden',
-  {
-    variants: {
-      variant: {
-        default:
-          'bg-[var(--accent-primary)] text-[var(--text-primary)] hover:brightness-110 active:brightness-90',
-        ghost:
-          'bg-transparent text-[var(--text-secondary)] hover:bg-[var(--color-surface-hover)] active:bg-[var(--color-surface-active)] border border-transparent',
-        subtle:
-          'bg-[var(--color-surface-overlay)] text-[var(--text-secondary)] hover:bg-[var(--color-surface-hover)] active:bg-[var(--color-surface-pressed)] border border-[var(--border-subtle)]',
-        accent:
-          'bg-[var(--accent-primary)] text-[var(--text-primary)] hover:brightness-110 active:brightness-90',
-        danger:
-          'bg-[var(--color-danger)] text-white hover:brightness-110 active:brightness-90',
-        glass:
-          'bg-[var(--color-surface-raised)] text-[var(--text-primary)] border border-[var(--border-default)] hover:bg-[var(--color-surface-hover)] active:bg-[var(--color-surface-pressed)]',
-        outline:
-          'bg-transparent text-[var(--text-primary)] border border-[var(--border-default)] hover:bg-[var(--hover-bg)] active:bg-[var(--active-bg)]',
-        secondary:
-          'bg-[var(--color-surface-overlay)] text-[var(--text-primary)] border border-[var(--border-default)] hover:bg-[var(--color-surface-hover)] active:bg-[var(--color-surface-pressed)]',
-        ink:
-          'bg-[var(--ink-90)] text-[var(--paper-100)] border border-[var(--ink-70)] hover:bg-[var(--ink-85)] active:bg-[var(--ink-80)]',
-        paper:
-          'bg-[var(--paper-100)] text-[var(--ink-90)] border border-[var(--paper-80)] hover:bg-[var(--paper-95)] active:bg-[var(--paper-90)]',
-        gradient:
-          'bg-transparent text-[var(--text-primary)] hover:brightness-110 active:brightness-90',
-        premium:
-          'bg-[var(--color-surface-raised)] text-[var(--text-primary)] border border-[var(--border-default)]',
-        glow:
-          'bg-[var(--accent-primary)] text-[var(--ink-100)] hover:brightness-110 active:brightness-90',
-        primary:
-          'bg-[var(--accent-primary)] text-[var(--text-primary)] hover:brightness-110 active:brightness-90',
-      },
-      size: {
-        sm: 'h-8 px-3 py-1.5 text-sm rounded-[var(--radius-button)] gap-1.5',
-        md: 'h-10 px-4 py-2 text-sm rounded-[var(--radius-md)] gap-2',
-        lg: 'h-12 px-6 py-3 text-base rounded-[var(--radius-lg)] gap-2.5',
-        icon: 'h-10 w-10 rounded-full',
-      },
-    },
-    defaultVariants: {
-      variant: 'default',
-      size: 'md',
-    },
-  }
-)
-
-// ============================================================
-// TYPES
-// ============================================================
-
-export interface ButtonProps
-  extends React.ButtonHTMLAttributes<HTMLButtonElement>,
-    VariantProps<typeof buttonVariants> {
-  asChild?: boolean
-  loading?: boolean
-  glowColor?: string
-  leftIcon?: React.ReactNode
-  rightIcon?: React.ReactNode
-}
-
-// ============================================================
-// SUB-COMPONENTS
-// ============================================================
-
-/** Loading spinner with Framer Motion */
-function LoadingSpinner({ size }: { size: ButtonProps['size'] }) {
-  const sizeMap = { sm: 'w-3.5 h-3.5', md: 'w-4 h-4', lg: 'w-5 h-5', icon: 'w-4 h-4' }
-  const cls = sizeMap[size || 'md']
-  return (
-    <motion.span
-      className={cn('inline-flex items-center justify-center', cls)}
-      animate={{ rotate: 360 }}
-      transition={{ duration: 0.8, repeat: Infinity, ease: 'linear' }}
-    >
-      <Loader2 className={cn('text-current', cls)} />
-    </motion.span>
-  )
-}
-
-/** Ripple effect */
-function Ripple({ x, y, onComplete }: { x: number; y: number; onComplete: () => void }) {
-  return (
-    <motion.span
-      className="absolute rounded-full pointer-events-none"
-      style={{
-        left: x,
-        top: y,
-        background: 'radial-gradient(circle, rgba(201, 169, 110, 0.2) 0%, rgba(201, 169, 110, 0.08) 40%, transparent 70%)',
-      }}
-      initial={{ width: 0, height: 0, x: 0, y: 0, opacity: 0.6 }}
-      animate={{ width: 240, height: 240, x: -120, y: -120, opacity: 0 }}
-      transition={{ duration: 0.55, ease: [0.16, 1, 0.3, 1] }}
-      onAnimationComplete={onComplete}
-    />
-  )
-}
-
-/** Premium variant gradient background */
-function PremiumBackground({ isHovered, isPressed }: { isHovered: boolean; isPressed: boolean }) {
-  return (
-    <motion.span
-      className="absolute inset-0 rounded-inherit pointer-events-none"
-      style={{
-        background: 'linear-gradient(135deg, rgba(201, 169, 110, 0.15) 0%, rgba(139, 115, 85, 0.08) 50%, rgba(201, 160, 110, 0.1) 100%)',
-      }}
-      animate={{ opacity: isHovered ? 1 : 0.6, scale: isPressed ? 0.98 : 1 }}
-      transition={{ duration: DURATION.NORMAL, ease: EASE.SMOOTH }}
-    />
-  )
-}
-
-/** Premium variant animated glow border */
-function PremiumGlowBorder({ isHovered }: { isHovered: boolean }) {
-  return (
-    <motion.span
-      className="absolute inset-0 rounded-inherit pointer-events-none"
-      style={{
-        padding: '1px',
-        background: 'linear-gradient(135deg, rgba(201, 169, 110, 0.5), rgba(139, 115, 85, 0.3), rgba(201, 160, 110, 0.4))',
-        WebkitMask: 'linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)',
-        WebkitMaskComposite: 'xor',
-        maskComposite: 'exclude',
-        borderRadius: 'inherit',
-      }}
-      animate={{ opacity: isHovered ? 1 : 0 }}
-      transition={{ duration: DURATION.SLOW, ease: EASE.SMOOTH }}
-    />
-  )
-}
-
-/** Ink variant inner glow */
-function InkInnerGlow({ isHovered }: { isHovered: boolean }) {
-  return (
-    <motion.span
-      className="absolute inset-0 rounded-inherit pointer-events-none"
-      style={{
-        background: 'radial-gradient(ellipse at 50% 0%, rgba(245, 240, 230, 0.04) 0%, transparent 60%)',
-      }}
-      animate={{ opacity: isHovered ? 1 : 0.5 }}
-      transition={{ duration: DURATION.FAST, ease: EASE.SMOOTH }}
-    />
-  )
-}
-
-/** Paper variant shadow */
-function PaperShadow({ isHovered }: { isHovered: boolean }) {
-  return (
-    <motion.span
-      className="absolute inset-0 rounded-inherit pointer-events-none"
-      animate={{
-        boxShadow: isHovered
-          ? '0 2px 8px rgba(0, 0, 0, 0.08), 0 1px 3px rgba(0, 0, 0, 0.06)'
-          : '0 1px 3px rgba(0, 0, 0, 0.04)',
-      }}
-      transition={{ duration: DURATION.FAST, ease: EASE.SMOOTH }}
-    />
-  )
-}
+import { buttonVariants, type ButtonProps } from './ButtonVariants'
+import {
+  LoadingSpinner,
+  Ripple,
+  PremiumBackground,
+  PremiumGlowBorder,
+  InkInnerGlow,
+  PaperShadow,
+} from './ButtonEffects'
 
 // ============================================================
 // MAIN BUTTON COMPONENT
@@ -251,7 +90,7 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
           cursor: isDisabled ? 'not-allowed' : 'pointer',
           ...(isGlass || isGlow
             ? {
-                boxShadow: `0 0 16px ${glowColor}40, 0 0 32px ${glowColor}20, inset 0 1px 0 rgba(201,169,110,0.08)`,
+                boxShadow: `0 0 16px ${glowColor}40, 0 0 32px ${glowColor}20, inset 0 1px 0 color-mix(in srgb, var(--accent-100) 8%, transparent)`,
               }
             : {}),
           ...(isPremium
@@ -364,3 +203,4 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
 Button.displayName = 'Button'
 
 export { buttonVariants }
+export type { ButtonProps }

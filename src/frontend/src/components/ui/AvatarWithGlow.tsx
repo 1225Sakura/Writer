@@ -240,7 +240,7 @@ export const AvatarWithGlow = React.forwardRef<HTMLDivElement, AvatarWithGlowPro
               width: sizeConfig.statusDot,
               height: sizeConfig.statusDot,
               backgroundColor: statusColorMap[status],
-              borderColor: 'var(--color-surface-base, #0d0d12)',
+              borderColor: 'var(--color-surface-base)',
               transform: `translate(${sizeConfig.statusOffset}px, ${sizeConfig.statusOffset}px)`,
             }}
           />

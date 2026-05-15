@@ -1,426 +1,37 @@
+/**
+ * OutlineSidebar - Outline sidebar for the writing editor
+ *
+ * Thin wrapper that composes TreeNode, PlotThreadItem, IFLineItem, and EmptyState.
+ * Sub-modules:
+ * - OutlineTreeNode: Recursive tree node component
+ * - OutlineItems: EmptyState, PlotThreadItem, IFLineItem
+ */
+
 import { useState, useEffect, useCallback } from 'react'
 import { useWritingStore } from '@/store'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
-  ChevronRight,
-  ChevronDown,
-  FileText,
-  AlertCircle,
   List,
-  Check,
-  MoreHorizontal,
   Plus,
-  GripVertical,
   BookOpen,
   GitBranch,
   Layers,
   Sparkles,
+  AlertCircle,
 } from 'lucide-react'
-import { PlotThreadIcon, EntityIcon, Icon } from '@/components/ui/Icon'
+import { Icon } from '@/components/ui/Icon'
 import { DURATION, EASE } from '@/components/shared/AnimationConfig'
 
+// Re-export sub-components
+export { TreeNode } from './OutlineTreeNode'
+export type { OutlineItem } from './OutlineTreeNode'
+export { EmptyState, PlotThreadItem, IFLineItem } from './OutlineItems'
 
-interface OutlineItem {
-  id: string
-  title: string
-  level: number
-  children: OutlineItem[]
-  isExpanded?: boolean
-  status?: 'draft' | 'writing' | 'review' | 'completed'
-  wordCount?: number
-}
+import { TreeNode, type OutlineItem } from './OutlineTreeNode'
+import { EmptyState, PlotThreadItem, IFLineItem } from './OutlineItems'
 
 /* ============================================================
-   TreeNode — Optimized outline chapter tree node
-   ============================================================ */
-
-const depthColorMap = [
-  'var(--color-outline)',       // depth 0 - chapters
-  'var(--color-character)',     // depth 1 - scenes
-  'var(--color-item)',          // depth 2
-  'var(--color-location)',      // depth 3
-  'var(--color-ifline)',        // depth 4
-]
-
-const statusConfig = {
-  draft: { label: '草稿', color: 'var(--text-tertiary)', bg: 'color-mix(in srgb, var(--text-tertiary) 12%, transparent)' },
-  writing: { label: '写作中', color: 'var(--accent-primary)', bg: 'color-mix(in srgb, var(--accent-primary) 12%, transparent)' },
-  review: { label: '审阅', color: 'var(--color-warning)', bg: 'color-mix(in srgb, var(--color-warning) 12%, transparent)' },
-  completed: { label: '完成', color: 'var(--color-success)', bg: 'color-mix(in srgb, var(--color-success) 12%, transparent)' },
-}
-
-function TreeNode({
-  item,
-  depth = 0,
-  onSelect,
-  selectedId,
-  isDragging,
-  isDragOver,
-  dragOverPosition,
-}: {
-  item: OutlineItem
-  depth?: number
-  onSelect: (id: string) => void
-  selectedId: string | null
-  isDragging?: boolean
-  isDragOver?: boolean
-  dragOverPosition?: 'before' | 'after' | 'inside'
-}) {
-  const [isExpanded, setIsExpanded] = useState(item.isExpanded ?? depth < 2)
-  const hasChildren = item.children.length > 0
-  const isSelected = selectedId === item.id
-
-  const indentColor = depthColorMap[Math.min(depth, depthColorMap.length - 1)]
-  const status = item.status || 'draft'
-  const statusInfo = statusConfig[status]
-
-  return (
-    <div className="select-none relative">
-      {/* Drag drop indicator - before */}
-      {isDragOver && dragOverPosition === 'before' && (
-        <div className="drag-over-indicator" style={{ top: '-1px' }} />
-      )}
-
-      {/* Drag drop indicator - after */}
-      {isDragOver && dragOverPosition === 'after' && (
-        <div className="drag-over-indicator" style={{ bottom: '-1px' }} />
-      )}
-
-      <div
-        className={`
-          flex items-center gap-1.5 rounded-lg cursor-pointer transition-all duration-200 group relative
-          ${isSelected
-            ? 'text-[var(--accent-primary)]'
-            : 'hover:bg-[var(--color-surface-hover)] text-[var(--text-secondary)]'
-          }
-          ${isDragging ? 'dragging-item' : 'opacity-100'}
-        `}
-        style={{
-          paddingLeft: `${depth * 18 + 10}px`,
-          paddingRight: '8px',
-          paddingTop: '6px',
-          paddingBottom: '6px',
-          background: isSelected
-            ? 'linear-gradient(90deg, color-mix(in srgb, var(--accent-primary) 10%, transparent) 0%, color-mix(in srgb, var(--accent-primary) 5%, transparent) 50%, transparent 100%)'
-            : undefined,
-        }}
-        onClick={() => onSelect(item.id)}
-      >
-        {/* Active chapter left indicator with glow */}
-        {isSelected && (
-          <motion.div
-            layoutId="outline-selected-indicator"
-            className="outline-active-glow"
-            style={{
-              '--active-color': indentColor,
-            } as React.CSSProperties}
-            transition={{ type: 'spring', stiffness: 500, damping: 35 }}
-          />
-        )}
-
-        {/* Indent guide line */}
-        {depth > 0 && (
-          <div
-            className="outline-indent-guide"
-            style={{
-              left: `${(depth - 1) * 18 + 18}px`,
-              top: '0',
-              bottom: '0',
-              '--indent-color': indentColor,
-            } as React.CSSProperties}
-          />
-        )}
-
-        {/* Drag handle */}
-        <div className="opacity-0 group-hover:opacity-60 transition-opacity cursor-grab active:cursor-grabbing">
-          <Icon icon={GripVertical} size="xs" color="muted" />
-        </div>
-
-        {/* Expand/collapse */}
-        <button
-          onClick={(e) => {
-            e.stopPropagation()
-            setIsExpanded(!isExpanded)
-          }}
-          className={`
-            w-5 h-5 flex items-center justify-center rounded-md transition-all duration-150
-            ${hasChildren
-              ? 'text-[var(--text-tertiary)] hover:bg-[var(--color-surface-hover)] hover:text-[var(--text-secondary)]'
-              : 'text-[var(--text-tertiary)]/40'
-            }
-          `}
-        >
-          {hasChildren ? (
-            isExpanded ? (
-              <Icon icon={ChevronDown} size="xs" />
-            ) : (
-              <Icon icon={ChevronRight} size="xs" />
-            )
-          ) : (
-            <Icon icon={FileText} size="xs" className="opacity-50" />
-          )}
-        </button>
-
-        {/* Title */}
-        <span className={`
-          flex-1 text-sm truncate transition-colors duration-150
-          ${isSelected ? 'font-medium' : 'font-normal'}
-        `}
-          style={{
-            color: isSelected ? indentColor : undefined,
-            paddingLeft: depth > 0 ? '2px' : undefined,
-          }}
-        >
-          {item.title}
-        </span>
-
-        {/* Status badge with progress ring for completed chapters */}
-        {depth === 0 && (
-          <div className="flex items-center gap-1.5 flex-shrink-0">
-            {status === 'completed' && (
-              <svg className="progress-ring w-3.5 h-3.5" viewBox="0 0 16 16">
-                <circle className="progress-ring__track" cx="8" cy="8" r="6" />
-                <circle
-                  className="progress-ring__fill"
-                  cx="8" cy="8" r="6"
-                  strokeDasharray={`${2 * Math.PI * 6}`}
-                  strokeDashoffset={0}
-                  style={{ '--progress-color': 'var(--color-success)' } as React.CSSProperties}
-                />
-              </svg>
-            )}
-            {status === 'writing' && (
-              <svg className="progress-ring w-3.5 h-3.5" viewBox="0 0 16 16">
-                <circle className="progress-ring__track" cx="8" cy="8" r="6" />
-                <circle
-                  className="progress-ring__fill"
-                  cx="8" cy="8" r="6"
-                  strokeDasharray={`${2 * Math.PI * 6}`}
-                  strokeDashoffset={`${2 * Math.PI * 6 * 0.3}`}
-                  style={{ '--progress-color': 'var(--accent-primary)' } as React.CSSProperties}
-                />
-              </svg>
-            )}
-            <span
-              className="text-[9px] px-1.5 py-0.5 rounded-full font-medium"
-              style={{
-                background: statusInfo.bg,
-                color: statusInfo.color,
-              }}
-            >
-              {statusInfo.label}
-            </span>
-          </div>
-        )}
-
-        {/* Word count */}
-        {item.wordCount && item.wordCount > 0 && (
-          <span className="text-[10px] text-[var(--text-tertiary)] flex-shrink-0 tabular-nums">
-            {item.wordCount.toLocaleString()}
-          </span>
-        )}
-
-        {/* Hover actions */}
-        <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-150 flex items-center gap-0.5">
-          <button
-            className="w-6 h-6 flex items-center justify-center rounded-md text-[var(--text-tertiary)] hover:bg-[var(--color-surface-hover)] hover:text-[var(--text-secondary)] transition-colors"
-            title="更多操作"
-          >
-            <Icon icon={MoreHorizontal} size="xs" />
-          </button>
-        </div>
-      </div>
-
-      {/* Children */}
-      <AnimatePresence initial={false}>
-        {isExpanded && hasChildren && (
-          <motion.div
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: 'auto', opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: DURATION.FAST, ease: EASE.SMOOTH }}
-            className="overflow-hidden relative"
-          >
-            <div
-              className="outline-indent-guide"
-              style={{
-                left: `${depth * 18 + 18}px`,
-                top: '0',
-                bottom: '4px',
-                '--indent-color': indentColor,
-              } as React.CSSProperties}
-            />
-            {item.children.map((child) => (
-              <TreeNode
-                key={child.id}
-                item={child}
-                depth={depth + 1}
-                onSelect={onSelect}
-                selectedId={selectedId}
-              />
-            ))}
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </div>
-  )
-}
-
-/* ============================================================
-   Empty State — Helpful illustration with action
-   ============================================================ */
-
-function EmptyState({
-  icon: Icon,
-  title,
-  description,
-  action,
-}: {
-  icon: React.ElementType
-  title: string
-  description: string
-  action?: React.ReactNode
-}) {
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 8 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: DURATION.SLOW, ease: EASE.SMOOTH }}
-      className="flex flex-col items-center justify-center py-12 px-6 text-center"
-    >
-      <div
-        className="w-14 h-14 rounded-2xl flex items-center justify-center mb-4"
-        style={{
-          background: 'linear-gradient(135deg, color-mix(in srgb, var(--color-outline) 8%, transparent) 0%, color-mix(in srgb, var(--accent-primary) 5%, transparent) 100%)',
-          border: '1px solid color-mix(in srgb, var(--color-outline) 12%, transparent)',
-        }}
-      >
-        <Icon className="w-6 h-6 text-[var(--color-outline)] opacity-50" />
-      </div>
-      <p className="text-sm font-medium text-[var(--text-secondary)] mb-1">{title}</p>
-      <p className="text-xs text-[var(--text-tertiary)] mb-4 max-w-[200px]">{description}</p>
-      {action}
-    </motion.div>
-  )
-}
-
-/* ============================================================
-   Plot Thread Item
-   ============================================================ */
-
-function PlotThreadItem({
-  thread,
-  onReveal,
-}: {
-  thread: { id: number; title: string; description?: string }
-  onReveal: (id: number) => void
-}) {
-  return (
-    <motion.div
-      whileHover={{ y: -1 }}
-      className="
-        flex items-start gap-2.5 p-3 rounded-xl
-        bg-[var(--color-surface-base)] border border-[var(--border-default)]
-        hover:border-[var(--border-strong)] hover:bg-[var(--color-surface-hover)]/50
-        group transition-all duration-200
-      "
-    >
-      <div
-        className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5"
-        style={{
-          background: 'color-mix(in srgb, var(--color-ifline) 10%, transparent)',
-        }}
-      >
-        <PlotThreadIcon size="sm" className="text-[var(--color-ifline)]" />
-      </div>
-      <div className="flex-1 min-w-0">
-        <div className="font-medium text-sm text-[var(--text-primary)] truncate">{thread.title}</div>
-        {thread.description && (
-          <div className="text-xs text-[var(--text-tertiary)] truncate mt-0.5">{thread.description}</div>
-        )}
-      </div>
-      <button
-        onClick={() => onReveal(thread.id)}
-        className="
-          opacity-0 group-hover:opacity-100
-          w-7 h-7 flex items-center justify-center rounded-lg
-          hover:bg-[var(--color-ifline)]/10
-          transition-all duration-150
-        "
-        title="标记为已揭示"
-      >
-        <Icon icon={Check} size="sm" color="success" />
-      </button>
-    </motion.div>
-  )
-}
-
-/* ============================================================
-   IF Line Item
-   ============================================================ */
-
-function IFLineItem({
-  line,
-}: {
-  line: { id: number; title: string; description?: string; progress?: number; sync_mode: string }
-}) {
-  return (
-    <motion.div
-      whileHover={{ y: -1 }}
-      className="
-        p-3 rounded-xl
-        bg-[var(--color-surface-base)] border border-[var(--border-default)]
-        hover:border-[var(--border-strong)] hover:bg-[var(--color-surface-hover)]/50
-        transition-all duration-200
-      "
-    >
-      <div className="flex items-center gap-2 mb-1.5">
-        <div
-          className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0"
-          style={{
-            background: 'color-mix(in srgb, var(--color-ifline) 10%, transparent)',
-          }}
-        >
-          <EntityIcon type="ifline" size="xs" className="text-[var(--color-ifline)]" />
-        </div>
-        <div className="flex-1 min-w-0">
-          <div className="text-sm font-medium text-[var(--text-primary)] truncate">{line.title}</div>
-        </div>
-        <span
-          className="text-[10px] px-2 py-0.5 rounded-full font-medium"
-          style={{
-            backgroundColor: line.sync_mode === 'auto' ? 'color-mix(in srgb, var(--color-ifline) 12%, transparent)' : 'color-mix(in srgb, var(--color-character) 12%, transparent)',
-            color: line.sync_mode === 'auto' ? 'var(--color-ifline)' : 'var(--color-character)',
-          }}
-        >
-          {line.sync_mode === 'auto' ? '自动' : '手动'}
-        </span>
-      </div>
-      {line.description && (
-        <div className="text-xs text-[var(--text-tertiary)] truncate mb-2 pl-9">{line.description}</div>
-      )}
-      {/* Progress */}
-      <div className="pl-9 space-y-1">
-        <div className="flex justify-between text-[10px] text-[var(--text-tertiary)]">
-          <span>进度</span>
-          <span className="font-medium tabular-nums">{line.progress || 0}%</span>
-        </div>
-        <div className="h-1.5 bg-[var(--border-subtle)] rounded-full overflow-hidden">
-          <motion.div
-            className="h-full rounded-full"
-            style={{ background: 'var(--color-ifline)' }}
-            initial={{ width: 0 }}
-            animate={{ width: `${line.progress || 0}%` }}
-            transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-          />
-        </div>
-      </div>
-    </motion.div>
-  )
-}
-
-/* ============================================================
-   OutlineSidebar — Main Component
+   OutlineSidebar -- Main Component
    ============================================================ */
 
 export function OutlineSidebar() {
@@ -480,7 +91,7 @@ export function OutlineSidebar() {
 
   return (
     <div className="flex flex-col h-full bg-[var(--color-surface-raised)] relative">
-      {/* Header - minimal */}
+      {/* Header */}
       <div className="flex items-center justify-between px-4 py-3 border-b border-[var(--border-default)] relative z-10">
         <div className="flex items-center gap-2.5">
           <div

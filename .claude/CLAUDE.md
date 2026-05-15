@@ -63,6 +63,15 @@
 - **界面字体：** 思源黑体 / Inter，13-14px，行高 1.5em
 - **基础单位：** 4px
 
+### 组件命名规范
+
+- **组件文件：** PascalCase（`MaterialCard.tsx`、`GlassCard.tsx`）
+- **shadcn/ui 原语：** 小写单词（`accordion.tsx`、`badge.tsx`）或 kebab-case（`scroll-area.tsx`），保持 shadcn 生成的约定
+- **工具文件：** camelCase（`utils.ts`、`entityColors.ts`）
+- **Hook 文件：** camelCase + `use` 前缀（`useTheme.ts`、`useImmersiveMode.ts`）
+- **CSS 文件：** kebab-case（`design-tokens.css`、`globals.css`）
+- **索引文件：** 小写（`index.ts`）
+
 ---
 
 ## 关键实体 (Ontology)

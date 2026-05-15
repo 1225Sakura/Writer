@@ -2,14 +2,59 @@
 
 import * as React from "react"
 import * as SelectPrimitive from "@radix-ui/react-select"
+import { cva, type VariantProps } from "class-variance-authority"
 import { motion, AnimatePresence } from "framer-motion"
 import { Check, ChevronDown, ChevronUp } from "lucide-react"
 
 import { cn } from "@/lib/utils"
 import { DURATION, EASE, SPRING } from '@/components/shared/AnimationConfig'
 
+// ============================================================
+// SELECT TRIGGER VARIANTS (cva)
+// Status: default, focus, error, disabled
+// ============================================================
+
+const selectTriggerVariants = cva(
+  [
+    "flex h-10 w-full items-center justify-between whitespace-nowrap rounded-[var(--radius-input)] border bg-[var(--color-surface-input)] px-4 py-2 text-sm shadow-sm",
+    "text-[var(--text-primary)]",
+    "ring-offset-background",
+    "data-[placeholder]:text-[var(--text-secondary)]",
+    "hover:border-[var(--border-strong)]/60",
+    "disabled:cursor-not-allowed disabled:opacity-50",
+    "[&>span]:line-clamp-1",
+    "transition-all duration-200 ease-out",
+  ],
+  {
+    variants: {
+      status: {
+        default:
+          "border-[var(--border-default)] shadow-none",
+        focus:
+          "border-[var(--accent-100)] shadow-[0_0_0_3px_rgba(201,169,110,0.25)]",
+        error:
+          "border-[var(--vermillion-100)] shadow-[0_0_0_3px_rgba(196,92,92,0.25)]",
+        disabled:
+          "border-[var(--border-subtle)] shadow-none",
+      },
+    },
+    defaultVariants: {
+      status: "default",
+    },
+  }
+)
+
+// ============================================================
+// TYPES
+// ============================================================
+
+export type SelectTriggerVariants = VariantProps<typeof selectTriggerVariants>
 
 export type SelectStatus = 'default' | 'focus' | 'error' | 'disabled'
+
+// ============================================================
+// COMPONENTS
+// ============================================================
 
 const Select = SelectPrimitive.Root
 
@@ -23,51 +68,17 @@ const SelectTrigger = React.forwardRef<
 >(({ className, children, status = 'default', ...props }, ref) => {
   const [isFocused, setIsFocused] = React.useState(false)
 
-  const statusColors = {
-    default: {
-      border: 'var(--border-default)',
-      ring: 'transparent',
-      labelColor: 'var(--text-secondary)',
-    },
-    focus: {
-      border: 'var(--accent-100)',
-      ring: 'rgba(201, 169, 110, 0.25)',
-      labelColor: 'var(--accent-100)',
-    },
-    error: {
-      border: 'var(--vermillion-100)',
-      ring: 'rgba(196, 92, 92, 0.25)',
-      labelColor: 'var(--vermillion-100)',
-    },
-    disabled: {
-      border: 'var(--border-subtle)',
-      ring: 'transparent',
-      labelColor: 'var(--text-disabled)',
-    },
-  }
-
-  const currentStatus = props.disabled ? 'disabled' : isFocused ? 'focus' : status
-  const colors = statusColors[currentStatus]
+  const currentStatus: SelectStatus = props.disabled
+    ? 'disabled'
+    : isFocused
+      ? 'focus'
+      : status
 
   return (
     <div className="relative">
       <SelectPrimitive.Trigger
         ref={ref}
-        className={cn(
-          "flex h-10 w-full items-center justify-between whitespace-nowrap rounded-[var(--radius-input)] border bg-[var(--color-surface-input)] px-4 py-2 text-sm shadow-sm",
-          "text-[var(--text-primary)]",
-          "ring-offset-background",
-          "data-[placeholder]:text-[var(--text-secondary)]",
-          "hover:border-[var(--border-strong)]/60",
-          "disabled:cursor-not-allowed disabled:opacity-50",
-          "[&>span]:line-clamp-1",
-          "transition-all duration-200 ease-out",
-          className
-        )}
-        style={{
-          borderColor: colors.border,
-          boxShadow: colors.ring !== 'transparent' ? `0 0 0 3px ${colors.ring}` : 'none',
-        }}
+        className={cn(selectTriggerVariants({ status: currentStatus }), className)}
         onFocus={() => setIsFocused(true)}
         onBlur={() => setIsFocused(false)}
         {...props}

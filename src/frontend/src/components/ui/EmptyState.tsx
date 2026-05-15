@@ -89,24 +89,29 @@ function DecorativeIllustration({
   icon: EmptyStateIcon
   size: 'sm' | 'md' | 'lg'
 }) {
+  const prefersReducedMotion = usePrefersReducedMotion()
   const config = sizeConfig[size]
   const containerSize = config.icon * 2.5
   const s = config.icon * 0.5
   const iconColor = 'var(--text-tertiary)'
   const accentColor = 'var(--accent-primary)'
 
+  const float = (values: number[]) => values
+  const floatTransition = (duration: number, delay = 0) =>
+    prefersReducedMotion ? { duration: 0 } : { duration, repeat: Infinity, ease: 'easeInOut' as const, delay }
+
   const getIllustration = () => {
     switch (icon) {
       case 'search':
         return (
           <>
-            <motion.div className="absolute" style={{ top: '15%', left: '20%' }} animate={{ y: [0, -4, 0], rotate: [0, 5, 0] }} transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}>
+            <motion.div className="absolute" style={{ top: '15%', left: '20%' }} animate={{ y: float([0, -4, 0]), rotate: float([0, 5, 0]) }} transition={floatTransition(3)}>
               <Search size={s * 1.2} style={{ color: accentColor, opacity: 0.7 }} strokeWidth={1.5} />
             </motion.div>
-            <motion.div className="absolute" style={{ bottom: '20%', right: '18%' }} animate={{ y: [0, 3, 0] }} transition={{ duration: 2.5, repeat: Infinity, ease: 'easeInOut', delay: 0.5 }}>
+            <motion.div className="absolute" style={{ bottom: '20%', right: '18%' }} animate={{ y: float([0, 3, 0]) }} transition={floatTransition(2.5, 0.5)}>
               <Compass size={s * 0.7} style={{ color: iconColor, opacity: 0.5 }} strokeWidth={1.5} />
             </motion.div>
-            <motion.div className="absolute" style={{ top: '25%', right: '22%' }} animate={{ scale: [1, 1.1, 1], opacity: [0.3, 0.6, 0.3] }} transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut', delay: 1 }}>
+            <motion.div className="absolute" style={{ top: '25%', right: '22%' }} animate={{ scale: float([1, 1.1, 1]), opacity: float([0.3, 0.6, 0.3]) }} transition={floatTransition(2, 1)}>
               <Sparkles size={s * 0.6} style={{ color: accentColor, opacity: 0.4 }} strokeWidth={1.5} />
             </motion.div>
           </>
@@ -115,13 +120,13 @@ function DecorativeIllustration({
       case 'ai':
         return (
           <>
-            <motion.div className="absolute" style={{ top: '18%', left: '22%' }} animate={{ y: [0, -3, 0], rotate: [-5, 5, -5] }} transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}>
+            <motion.div className="absolute" style={{ top: '18%', left: '22%' }} animate={{ y: float([0, -3, 0]), rotate: float([-5, 5, -5]) }} transition={floatTransition(4)}>
               <BookOpen size={s * 1.1} style={{ color: accentColor, opacity: 0.7 }} strokeWidth={1.5} />
             </motion.div>
-            <motion.div className="absolute" style={{ bottom: '22%', right: '20%' }} animate={{ y: [0, 4, 0] }} transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut', delay: 0.3 }}>
+            <motion.div className="absolute" style={{ bottom: '22%', right: '20%' }} animate={{ y: float([0, 4, 0]) }} transition={floatTransition(3, 0.3)}>
               <Feather size={s * 0.8} style={{ color: iconColor, opacity: 0.5 }} strokeWidth={1.5} />
             </motion.div>
-            <motion.div className="absolute" style={{ top: '30%', right: '18%' }} animate={{ scale: [1, 1.15, 1], opacity: [0.3, 0.5, 0.3] }} transition={{ duration: 2.5, repeat: Infinity, ease: 'easeInOut', delay: 0.8 }}>
+            <motion.div className="absolute" style={{ top: '30%', right: '18%' }} animate={{ scale: float([1, 1.15, 1]), opacity: float([0.3, 0.5, 0.3]) }} transition={floatTransition(2.5, 0.8)}>
               <PenLine size={s * 0.6} style={{ color: accentColor, opacity: 0.4 }} strokeWidth={1.5} />
             </motion.div>
           </>
@@ -129,13 +134,13 @@ function DecorativeIllustration({
       default:
         return (
           <>
-            <motion.div className="absolute" style={{ top: '20%', left: '25%' }} animate={{ y: [0, -5, 0], rotate: [0, 8, 0] }} transition={{ duration: 3.5, repeat: Infinity, ease: 'easeInOut' }}>
+            <motion.div className="absolute" style={{ top: '20%', left: '25%' }} animate={{ y: float([0, -5, 0]), rotate: float([0, 8, 0]) }} transition={floatTransition(3.5)}>
               <FileQuestion size={s * 1.2} style={{ color: accentColor, opacity: 0.6 }} strokeWidth={1.5} />
             </motion.div>
-            <motion.div className="absolute" style={{ bottom: '25%', right: '22%' }} animate={{ y: [0, 3, 0] }} transition={{ duration: 2.8, repeat: Infinity, ease: 'easeInOut', delay: 0.4 }}>
+            <motion.div className="absolute" style={{ bottom: '25%', right: '22%' }} animate={{ y: float([0, 3, 0]) }} transition={floatTransition(2.8, 0.4)}>
               <Sparkles size={s * 0.7} style={{ color: iconColor, opacity: 0.4 }} strokeWidth={1.5} />
             </motion.div>
-            <motion.div className="absolute" style={{ top: '30%', right: '20%' }} animate={{ scale: [1, 1.2, 1], opacity: [0.2, 0.5, 0.2] }} transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut', delay: 1.2 }}>
+            <motion.div className="absolute" style={{ top: '30%', right: '20%' }} animate={{ scale: float([1, 1.2, 1]), opacity: float([0.2, 0.5, 0.2]) }} transition={floatTransition(2, 1.2)}>
               <Compass size={s * 0.5} style={{ color: accentColor, opacity: 0.3 }} strokeWidth={1.5} />
             </motion.div>
           </>
