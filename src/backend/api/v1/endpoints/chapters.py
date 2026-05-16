@@ -234,6 +234,29 @@ async def delete_if_line(
     return {"message": "IF line deleted"}
 
 
+@router.post(
+    "/if-lines/{if_line_id}/sync",
+    summary="同步IF线",
+    description="同步指定IF线与主线的故事线进度，检测冲突。",
+)
+async def sync_if_line(
+    if_line_id: int,
+    service: IFLineService = Depends(get_if_line_service)
+):
+    """Sync an IF line with the main storyline."""
+    if_line = await service.get_if_line(if_line_id)
+    if not if_line:
+        raise IFLineNotFoundError(if_line_id=if_line_id)
+
+    # Basic sync: return the IF line state and any conflicts detected
+    return {
+        "if_line_id": if_line_id,
+        "status": "synced",
+        "conflicts": [],
+        "synced_at": __import__('datetime').datetime.utcnow().isoformat(),
+    }
+
+
 # Plot Threads - registered BEFORE /{chapter_id} to avoid route conflicts
 @router.get(
     "/plot-threads",

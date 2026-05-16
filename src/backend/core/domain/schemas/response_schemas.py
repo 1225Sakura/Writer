@@ -133,6 +133,7 @@ class ChapterResponse(BaseModel):
     status: str
     word_count: int
     chapter_order: int
+    notes: Optional[str] = None
     created_at: datetime
     updated_at: datetime
 

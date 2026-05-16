@@ -200,6 +200,7 @@ class Chapter(Base):
     word_count = Column(Integer, default=0)
     chapter_order = Column(Integer, default=0)
     content_storage_id = Column(String(64), nullable=True)
+    notes = Column(Text, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 

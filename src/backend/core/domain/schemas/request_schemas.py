@@ -489,6 +489,7 @@ class ChapterUpdateRequest(BaseModel):
     status: Optional[str] = Field(default=None, max_length=50)
     word_count: Optional[int] = Field(default=None, ge=0)
     chapter_order: Optional[int] = Field(default=None, ge=0)
+    notes: Optional[str] = Field(default=None, max_length=MAX_TEXT_FIELD_LENGTH)
 
     @field_validator('outline_id')
     @classmethod
