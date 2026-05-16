@@ -99,6 +99,8 @@ export interface HistoryEntry {
   description: string
   /** 操作前的快照，用于撤销 */
   snapshot?: unknown
+  /** 操作后的快照，用于重做 */
+  forwardSnapshot?: unknown
 }
 
 /** 批量操作类型 */
@@ -271,6 +273,23 @@ interface SettingsActions {
   undo: () => void
   redo: () => void
   clearHistory: () => void
+}
+
+// ============================================
+// Helpers
+// ============================================
+
+function entityTypeToArrayName(entityType: EntityType): keyof SettingsState | null {
+  const map: Record<string, keyof SettingsState> = {
+    character: 'characters',
+    item: 'items',
+    location: 'locations',
+    faction: 'factions',
+    world: 'worldSettings',
+    rule: 'rules',
+    ifline: 'ifLines',
+  }
+  return map[entityType] ?? null
 }
 
 // ============================================
@@ -556,7 +575,8 @@ export const useSettingsStore = create<SettingsState & SettingsActions>()(
                 entityId: id,
                 action: 'update',
                 description: `更新角色: ${updates.name || char?.name}`,
-                snapshot: oldChar,
+                snapshot: oldChar ? { ...oldChar } : undefined,
+                forwardSnapshot: char ? { ...char } : undefined,
               })
               state.historyIndex = state.history.length - 1
               state.canUndo = true
@@ -644,17 +664,44 @@ export const useSettingsStore = create<SettingsState & SettingsActions>()(
           },
 
           updateItem: async (id, updates) => {
+            const oldItem = get().items.find((i) => i.id === id)
             await itemApi.update(id, updates)
             set((state) => {
               const item = state.items.find((i) => i.id === id)
               if (item) Object.assign(item, updates)
+              state.history.push({
+                id: genHistoryId(),
+                timestamp: Date.now(),
+                entityType: 'item',
+                entityId: id,
+                action: 'update',
+                description: `更新物品: ${updates.name || item?.name}`,
+                snapshot: oldItem ? { ...oldItem } : undefined,
+                forwardSnapshot: item ? { ...item } : undefined,
+              })
+              state.historyIndex = state.history.length - 1
+              state.canUndo = true
+              state.canRedo = false
             })
           },
 
           deleteItem: async (id) => {
+            const oldItem = get().items.find((i) => i.id === id)
             await itemApi.delete(id)
             set((state) => {
               state.items = state.items.filter((i) => i.id !== id)
+              state.history.push({
+                id: genHistoryId(),
+                timestamp: Date.now(),
+                entityType: 'item',
+                entityId: id,
+                action: 'delete',
+                description: `删除物品: ${oldItem?.name || String(id)}`,
+                snapshot: oldItem ? { ...oldItem } : undefined,
+              })
+              state.historyIndex = state.history.length - 1
+              state.canUndo = true
+              state.canRedo = false
             })
           },
 
@@ -669,17 +716,44 @@ export const useSettingsStore = create<SettingsState & SettingsActions>()(
           },
 
           updateLocation: async (id, updates) => {
+            const oldLoc = get().locations.find((l) => l.id === id)
             await locationApi.update(id, updates)
             set((state) => {
               const loc = state.locations.find((l) => l.id === id)
               if (loc) Object.assign(loc, updates)
+              state.history.push({
+                id: genHistoryId(),
+                timestamp: Date.now(),
+                entityType: 'location',
+                entityId: id,
+                action: 'update',
+                description: `更新地点: ${updates.name || loc?.name}`,
+                snapshot: oldLoc ? { ...oldLoc } : undefined,
+                forwardSnapshot: loc ? { ...loc } : undefined,
+              })
+              state.historyIndex = state.history.length - 1
+              state.canUndo = true
+              state.canRedo = false
             })
           },
 
           deleteLocation: async (id) => {
+            const oldLoc = get().locations.find((l) => l.id === id)
             await locationApi.delete(id)
             set((state) => {
               state.locations = state.locations.filter((l) => l.id !== id)
+              state.history.push({
+                id: genHistoryId(),
+                timestamp: Date.now(),
+                entityType: 'location',
+                entityId: id,
+                action: 'delete',
+                description: `删除地点: ${oldLoc?.name || String(id)}`,
+                snapshot: oldLoc ? { ...oldLoc } : undefined,
+              })
+              state.historyIndex = state.history.length - 1
+              state.canUndo = true
+              state.canRedo = false
             })
           },
 
@@ -694,17 +768,44 @@ export const useSettingsStore = create<SettingsState & SettingsActions>()(
           },
 
           updateFaction: async (id, updates) => {
+            const oldFac = get().factions.find((f) => f.id === id)
             await factionApi.update(id, updates)
             set((state) => {
               const fac = state.factions.find((f) => f.id === id)
               if (fac) Object.assign(fac, updates)
+              state.history.push({
+                id: genHistoryId(),
+                timestamp: Date.now(),
+                entityType: 'faction',
+                entityId: id,
+                action: 'update',
+                description: `更新势力: ${updates.name || fac?.name}`,
+                snapshot: oldFac ? { ...oldFac } : undefined,
+                forwardSnapshot: fac ? { ...fac } : undefined,
+              })
+              state.historyIndex = state.history.length - 1
+              state.canUndo = true
+              state.canRedo = false
             })
           },
 
           deleteFaction: async (id) => {
+            const oldFac = get().factions.find((f) => f.id === id)
             await factionApi.delete(id)
             set((state) => {
               state.factions = state.factions.filter((f) => f.id !== id)
+              state.history.push({
+                id: genHistoryId(),
+                timestamp: Date.now(),
+                entityType: 'faction',
+                entityId: id,
+                action: 'delete',
+                description: `删除势力: ${oldFac?.name || String(id)}`,
+                snapshot: oldFac ? { ...oldFac } : undefined,
+              })
+              state.historyIndex = state.history.length - 1
+              state.canUndo = true
+              state.canRedo = false
             })
           },
 
@@ -719,17 +820,44 @@ export const useSettingsStore = create<SettingsState & SettingsActions>()(
           },
 
           updateWorldSetting: async (id, updates) => {
+            const oldWS = get().worldSettings.find((w) => w.id === id)
             await worldSettingApi.update(id, updates)
             set((state) => {
               const ws = state.worldSettings.find((w) => w.id === id)
               if (ws) Object.assign(ws, updates)
+              state.history.push({
+                id: genHistoryId(),
+                timestamp: Date.now(),
+                entityType: 'world',
+                entityId: id,
+                action: 'update',
+                description: `更新世界观: ${updates.name || ws?.name}`,
+                snapshot: oldWS ? { ...oldWS } : undefined,
+                forwardSnapshot: ws ? { ...ws } : undefined,
+              })
+              state.historyIndex = state.history.length - 1
+              state.canUndo = true
+              state.canRedo = false
             })
           },
 
           deleteWorldSetting: async (id) => {
+            const oldWS = get().worldSettings.find((w) => w.id === id)
             await worldSettingApi.delete(id)
             set((state) => {
               state.worldSettings = state.worldSettings.filter((w) => w.id !== id)
+              state.history.push({
+                id: genHistoryId(),
+                timestamp: Date.now(),
+                entityType: 'world',
+                entityId: id,
+                action: 'delete',
+                description: `删除世界观: ${oldWS?.name || String(id)}`,
+                snapshot: oldWS ? { ...oldWS } : undefined,
+              })
+              state.historyIndex = state.history.length - 1
+              state.canUndo = true
+              state.canRedo = false
             })
           },
 
@@ -744,17 +872,44 @@ export const useSettingsStore = create<SettingsState & SettingsActions>()(
           },
 
           updateRule: async (id, updates) => {
+            const oldRule = get().rules.find((r) => r.id === id)
             await ruleApi.update(id, updates)
             set((state) => {
               const r = state.rules.find((x) => x.id === id)
               if (r) Object.assign(r, updates)
+              state.history.push({
+                id: genHistoryId(),
+                timestamp: Date.now(),
+                entityType: 'rule',
+                entityId: id,
+                action: 'update',
+                description: `更新规则: ${updates.name || r?.name}`,
+                snapshot: oldRule ? { ...oldRule } : undefined,
+                forwardSnapshot: r ? { ...r } : undefined,
+              })
+              state.historyIndex = state.history.length - 1
+              state.canUndo = true
+              state.canRedo = false
             })
           },
 
           deleteRule: async (id) => {
+            const oldRule = get().rules.find((r) => r.id === id)
             await ruleApi.delete(id)
             set((state) => {
               state.rules = state.rules.filter((r) => r.id !== id)
+              state.history.push({
+                id: genHistoryId(),
+                timestamp: Date.now(),
+                entityType: 'rule',
+                entityId: id,
+                action: 'delete',
+                description: `删除规则: ${oldRule?.name || String(id)}`,
+                snapshot: oldRule ? { ...oldRule } : undefined,
+              })
+              state.historyIndex = state.history.length - 1
+              state.canUndo = true
+              state.canRedo = false
             })
           },
 
@@ -1298,25 +1453,23 @@ export const useSettingsStore = create<SettingsState & SettingsActions>()(
               state.canRedo = true
             })
 
-            // Restore snapshot if available
             if (entry.snapshot && entry.action === 'update') {
-              switch (entry.entityType) {
-                case 'character':
-                  set((state) => {
-                    const idx = state.characters.findIndex((c) => c.id === entry.entityId)
-                    if (idx >= 0) {
-                      state.characters[idx] = { ...(entry.snapshot as CharacterLocal) }
-                    }
-                  })
-                  break
+              const arrName = entityTypeToArrayName(entry.entityType)
+              if (arrName) {
+                set((state) => {
+                  const arr = state[arrName] as Array<{ id: number }>
+                  const idx = arr.findIndex((e) => e.id === entry.entityId)
+                  if (idx >= 0) {
+                    ;(arr as unknown[])[idx] = { ...(entry.snapshot as object) }
+                  }
+                })
               }
             } else if (entry.snapshot && entry.action === 'delete') {
-              switch (entry.entityType) {
-                case 'character':
-                  set((state) => {
-                    state.characters.push({ ...(entry.snapshot as CharacterLocal) })
-                  })
-                  break
+              const arrName = entityTypeToArrayName(entry.entityType)
+              if (arrName) {
+                set((state) => {
+                  ;(state[arrName] as unknown[]).push({ ...(entry.snapshot as object) })
+                })
               }
             }
           },
@@ -1324,12 +1477,37 @@ export const useSettingsStore = create<SettingsState & SettingsActions>()(
           redo: () => {
             const { history, historyIndex } = get()
             if (historyIndex >= history.length - 1) return
-            // Redo would require storing the forward action - simplified for now
+
+            const nextEntry = history[historyIndex + 1]
             set((state) => {
               state.historyIndex++
               state.canUndo = true
               state.canRedo = state.historyIndex < state.history.length - 1
             })
+
+            if (nextEntry.forwardSnapshot && nextEntry.action === 'update') {
+              const arrName = entityTypeToArrayName(nextEntry.entityType)
+              if (arrName) {
+                set((state) => {
+                  const arr = state[arrName] as Array<{ id: number }>
+                  const idx = arr.findIndex((e) => e.id === nextEntry.entityId)
+                  if (idx >= 0) {
+                    ;(arr as unknown[])[idx] = { ...(nextEntry.forwardSnapshot as object) }
+                  }
+                })
+              }
+            } else if (nextEntry.action === 'delete') {
+              const arrName = entityTypeToArrayName(nextEntry.entityType)
+              if (arrName) {
+                set((state) => {
+                  const arr = state[arrName] as Array<{ id: number }>
+                  const idx = arr.findIndex((e) => e.id === nextEntry.entityId)
+                  if (idx >= 0) {
+                    ;(state[arrName] as unknown[]).splice(idx, 1)
+                  }
+                })
+              }
+            }
           },
 
           clearHistory: () => {

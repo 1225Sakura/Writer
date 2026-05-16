@@ -2,6 +2,7 @@ import { create } from 'zustand'
 import { persist, subscribeWithSelector } from 'zustand/middleware'
 import { immer } from 'zustand/middleware/immer'
 import { sessionApi, messageApi, entityApi } from '../api/chat'
+import { aiReviewApi } from '../api/aiReview'
 import type { ChatSession, ExtractedEntity } from '../api/types'
 import { createHybridStorage } from './utils/indexedDBStorage'
 import { showApiError, showSuccess } from '@/utils/toastHelper'
@@ -575,31 +576,27 @@ export const useChatStore = create<ChatState & ChatActions>()(
               state.extractionState = 'extracting'
               state.extractionProgress = 0
             })
-            const entityPatterns: { type: ExtractedEntityLocal['type']; regex: RegExp }[] = [
-              { type: 'character', regex: /["']([^"']+?)["'](?:\s*[，,]\s*.*?角色|.*?主角|.*?人物)/g },
-              { type: 'location', regex: /([一-龥]{2,}(?:大陆|城|国|岛|山|森林|海))/g },
-              { type: 'faction', regex: /([一-龥]{2,}(?:门|派|宗|教|盟|会|族))/g },
-              { type: 'item', regex: /([一-龥]{2,}(?:剑|刀|法宝|秘籍|丹药))/g },
-            ]
-            const foundEntities: ExtractedEntityLocal[] = []
+            const validTypes = new Set<ExtractedEntityLocal['type']>(['world', 'character', 'item', 'location', 'faction', 'rule', 'ifline'])
             const existingNames = new Set(get().extractedEntities.map((e) => e.name))
-            entityPatterns.forEach(({ type, regex }) => {
-              let match: RegExpExecArray | null
-              while ((match = regex.exec(message.content)) !== null) {
-                const name = match[1]
-                if (name && !existingNames.has(name)) {
-                  existingNames.add(name)
+            const foundEntities: ExtractedEntityLocal[] = []
+            try {
+              const { entities } = await aiReviewApi.extractEntities([{ role: message.role, content: message.content }])
+              for (const e of entities) {
+                if (e.name && !existingNames.has(e.name) && validTypes.has(e.type as ExtractedEntityLocal['type'])) {
+                  existingNames.add(e.name)
                   foundEntities.push({
                     id: genEntityId(),
-                    type,
-                    name,
-                    description: `从对话中提取的${type === 'character' ? '角色' : type === 'location' ? '地点' : type === 'faction' ? '势力' : '物品'}`,
+                    type: e.type as ExtractedEntityLocal['type'],
+                    name: e.name,
+                    description: e.description,
                     confirmed: false,
                     sourceMessageId: messageId,
                   })
                 }
               }
-            })
+            } catch {
+              // Backend unavailable — no entities extracted
+            }
             set((state) => {
               if (foundEntities.length > 0) {
                 state.extractedEntities.push(...foundEntities)

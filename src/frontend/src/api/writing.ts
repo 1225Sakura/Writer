@@ -97,6 +97,7 @@ export const chapterApi = {
       status?: string
       word_count?: number
       chapter_order?: number
+      notes?: string
     }
   ): Promise<Chapter> => {
     return api.patch<Chapter>(`/chapters/${chapterId}`, data)

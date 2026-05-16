@@ -18,6 +18,9 @@ export type SettingsCategory =
   | 'rule'
   | 'outline'
   | 'ifline'
+  | 'projectData'
+  | 'graph'
+  | 'system'
 
 /** 界面历史记录条目 */
 export interface NavigationHistoryEntry {

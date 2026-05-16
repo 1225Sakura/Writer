@@ -2,6 +2,7 @@ import { create } from 'zustand'
 import { persist, subscribeWithSelector } from 'zustand/middleware'
 import { immer } from 'zustand/middleware/immer'
 import { createHybridStorage } from './utils/indexedDBStorage'
+import { api } from '../api/request'
 
 // ============================================
 // Types
@@ -233,15 +234,15 @@ export const useSyncStore = create<SyncState & SyncActions>()(
               ifLineSyncStates.forEach((syncState, ifLineId) => {
                 if (syncState.autoSync) {
                   syncPromises.push(
-                    new Promise((resolve) => {
+                    (async () => {
                       set((state) => {
                         const ss = state.ifLineSyncStates.get(ifLineId)
                         if (ss) {
                           ss.status = 'syncing'
                         }
                       })
-                      // Simulate sync delay
-                      setTimeout(() => {
+                      try {
+                        await api.post(`/chapters/if-lines/${ifLineId}/sync`)
                         set((state) => {
                           const ss = state.ifLineSyncStates.get(ifLineId)
                           if (ss) {
@@ -249,9 +250,15 @@ export const useSyncStore = create<SyncState & SyncActions>()(
                             ss.lastSyncedAt = Date.now()
                           }
                         })
-                        resolve()
-                      }, 500)
-                    })
+                      } catch {
+                        set((state) => {
+                          const ss = state.ifLineSyncStates.get(ifLineId)
+                          if (ss) {
+                            ss.status = 'error'
+                          }
+                        })
+                      }
+                    })()
                   )
                 }
               })

@@ -98,6 +98,80 @@ export {
   cleanupSyncStore,
 } from './syncStore'
 
+// Context Store
+export {
+  useContextStore,
+  selectContextPack,
+  selectContextChunks,
+  selectContextStats,
+  selectContextWeights,
+  selectLastQuery,
+  selectContextLoading,
+  selectContextError,
+  cleanupContextStore,
+} from './contextStore'
+
+// Analytics Store
+export {
+  useAnalyticsStore,
+  selectEngagementAnalysis,
+  selectHookAnalysis,
+  selectDebtReport,
+  selectEngagementScore,
+  selectStrandDefinitions,
+  selectPacingAnalysis,
+  selectRedLines,
+  selectAdvice,
+  selectAnalyticsLoading,
+  selectAnalyticsError,
+  cleanupAnalyticsStore,
+} from './analyticsStore'
+
+// Graph Store
+export {
+  useGraphStore,
+  selectGraphEntities,
+  selectGraphVisualization,
+  selectGraphSelectedNode,
+  selectGraphLoading,
+  selectGraphError,
+  selectGraphClusters,
+  selectGraphDuplicates,
+  cleanupGraphStore,
+} from './graphStore'
+
+// System Store
+export {
+  useSystemStore,
+  selectGenres,
+  selectGenreProfile,
+  selectWorkflows,
+  selectExecutions,
+  selectMetrics,
+  selectDebts,
+  selectTrends,
+  selectProjectStatus,
+  selectQuickStatus,
+  selectConstraintRules,
+  selectLastCheckResult,
+  selectSystemLoading,
+  selectSystemError,
+  cleanupSystemStore,
+} from './systemStore'
+
+// Project Data Store
+export {
+  useProjectDataStore,
+  selectSnapshots,
+  selectSnapshotCount,
+  selectBackupStatus,
+  selectExportData,
+  selectImportResult,
+  selectProjectDataLoading,
+  selectProjectDataError,
+  cleanupProjectDataStore,
+} from './projectDataStore'
+
 // Store utilities
 export {
   shallow,

@@ -295,8 +295,8 @@ interface WritingActions {
 
   // Notes
   getChapterNote: (chapterId: number) => ChapterNote | undefined
-  setChapterNote: (chapterId: number, content: string) => void
-  deleteChapterNote: (chapterId: number) => void
+  setChapterNote: (chapterId: number, content: string) => Promise<void>
+  deleteChapterNote: (chapterId: number) => Promise<void>
 
   // Session tracking
   startWritingSession: (chapterId: number, wordCount: number) => void
@@ -1341,7 +1341,8 @@ export const useWritingStore = create<WritingState & WritingActions>()(
             return get().chapterNotes.find((n) => n.chapterId === chapterId)
           },
 
-          setChapterNote: (chapterId, content) => {
+          setChapterNote: async (chapterId, content) => {
+            await chapterApi.update(chapterId, { notes: content })
             set((state) => {
               const existing = state.chapterNotes.find((n) => n.chapterId === chapterId)
               const now = Date.now()
@@ -1360,7 +1361,8 @@ export const useWritingStore = create<WritingState & WritingActions>()(
             })
           },
 
-          deleteChapterNote: (chapterId) => {
+          deleteChapterNote: async (chapterId) => {
+            await chapterApi.update(chapterId, { notes: '' })
             set((state) => {
               state.chapterNotes = state.chapterNotes.filter((n) => n.chapterId !== chapterId)
             })
