@@ -7,6 +7,7 @@
 import { useState, useCallback } from "react";
 import { useWritingStore } from "@/store";
 import { checkerApi } from "@/api/aiReview";
+import { agentsApi } from "@/api/agents";
 import { showToast } from "@/components/ui/Toast";
 import { motion } from "framer-motion";
 import {
@@ -111,6 +112,16 @@ export function AICheckerPanel() {
           case "readerPull":
             data = await checkerApi.checkReaderPull(currentChapterId);
             break;
+          case "outlineLaw": {
+            const res = await agentsApi.runChecker({ checker_name: "outline_law", chapter_id: currentChapterId });
+            data = { score: res.score, issues: res.issues, suggestions: res.suggestions } as unknown as CheckerResult["data"];
+            break;
+          }
+          case "settingPhysics": {
+            const res = await agentsApi.runChecker({ checker_name: "setting_physics", chapter_id: currentChapterId });
+            data = { score: res.score, issues: res.issues, suggestions: res.suggestions } as unknown as CheckerResult["data"];
+            break;
+          }
           default:
             throw new Error(`Unknown checker: ${key}`);
         }
@@ -157,6 +168,16 @@ export function AICheckerPanel() {
             case "readerPull":
               data = await checkerApi.checkReaderPull(currentChapterId);
               break;
+            case "outlineLaw": {
+              const res = await agentsApi.runChecker({ checker_name: "outline_law", chapter_id: currentChapterId });
+              data = { score: res.score, issues: res.issues, suggestions: res.suggestions } as unknown as CheckerResult["data"];
+              break;
+            }
+            case "settingPhysics": {
+              const res = await agentsApi.runChecker({ checker_name: "setting_physics", chapter_id: currentChapterId });
+              data = { score: res.score, issues: res.issues, suggestions: res.suggestions } as unknown as CheckerResult["data"];
+              break;
+            }
           }
           setResult(config.key, { loading: false, data, timestamp: Date.now() });
         } catch (error) {

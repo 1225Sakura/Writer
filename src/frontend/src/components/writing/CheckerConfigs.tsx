@@ -10,6 +10,8 @@ import {
   UserCheck,
   Flame,
   Magnet,
+  BookOpen,
+  Atom,
 } from "lucide-react";
 import type {
   CheckerBaseResponse,
@@ -20,7 +22,7 @@ import type {
   ReaderPullCheckResponse,
 } from "@/api/types";
 
-export type CheckerKey = "consistency" | "continuity" | "pacing" | "ooc" | "highPoint" | "readerPull";
+export type CheckerKey = "consistency" | "continuity" | "pacing" | "ooc" | "highPoint" | "readerPull" | "outlineLaw" | "settingPhysics";
 
 export interface CheckerConfig {
   key: CheckerKey;
@@ -94,6 +96,22 @@ export const checkers: CheckerConfig[] = [
     description: "开头钩子、结尾悬念、好奇心缺口",
     icon: <Magnet className="w-4 h-4" />,
     color: "var(--color-ifline)",
+    requiresCharacter: false,
+  },
+  {
+    key: "outlineLaw",
+    label: "大纲法则",
+    description: "章节是否遵循大纲规划、情节点完成度",
+    icon: <BookOpen className="w-4 h-4" />,
+    color: "var(--color-outline)",
+    requiresCharacter: false,
+  },
+  {
+    key: "settingPhysics",
+    label: "设定物理法则",
+    description: "力量体系、空间距离、时间逻辑一致性",
+    icon: <Atom className="w-4 h-4" />,
+    color: "var(--color-rule)",
     requiresCharacter: false,
   },
 ];

@@ -7,6 +7,7 @@ import {
   IFLinesSection,
   CharacterStorylines,
   ChapterProgress,
+  AnalyticsSection,
 } from './collaboration'
 
 export function CollaborationPanel() {
@@ -21,6 +22,7 @@ export function CollaborationPanel() {
         <IFLinesSection />
         <CharacterStorylines />
         <ChapterProgress />
+        <AnalyticsSection />
       </div>
     </div>
   )

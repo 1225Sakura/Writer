@@ -18,6 +18,7 @@ import {
   Gavel,
   NotebookText,
   ArrowLeftRight,
+  Network,
   type LucideIcon,
 } from 'lucide-react'
 
@@ -103,6 +104,7 @@ export type EntityIconType =
   | 'rule'
   | 'outline'
   | 'ifline'
+  | 'graph'
 
 const entityIconMap: Record<EntityIconType, LucideIcon> = {
   world: Globe,        // 世界观 - Globe (地球/世界)
@@ -113,6 +115,7 @@ const entityIconMap: Record<EntityIconType, LucideIcon> = {
   rule: Scale,         // 规则 - Scale (天平/法则)
   outline: ListTree,   // 大纲 - ListTree (层级结构)
   ifline: GitFork,     // IF线 - GitFork (分支)
+  graph: Network,      // 关系图谱 - Network (网络/图谱)
 }
 
 export interface EntityIconProps {

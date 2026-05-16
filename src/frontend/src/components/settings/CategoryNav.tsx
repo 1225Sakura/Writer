@@ -16,6 +16,9 @@ const categories: Array<{ key: UIState['settingsCategory']; label: string; iconT
   { key: 'rule', label: '规则', iconType: 'rule' },
   { key: 'outline', label: '大纲', iconType: 'outline' },
   { key: 'ifline', label: 'IF线', iconType: 'ifline' },
+  { key: 'projectData', label: '项目数据', iconType: 'outline' },
+  { key: 'graph', label: '关系图谱', iconType: 'graph' },
+  { key: 'system', label: '系统', iconType: 'rule' },
 ]
 
 const reviewableCategories = ['world', 'character', 'item', 'location', 'faction', 'rule']
@@ -29,6 +32,9 @@ const categoryColorVars: Record<string, string> = {
   rule: 'var(--color-rule)',
   outline: 'var(--color-outline)',
   ifline: 'var(--color-ifline)',
+  projectData: 'var(--color-outline)',
+  graph: 'var(--color-outline)',
+  system: 'var(--color-rule)',
 }
 
 function CountBadge({ count, color, isActive }: { count: number; color: string; isActive: boolean }) {
@@ -71,7 +77,9 @@ export function CategoryNav() {
 
   const handleCategoryChange = (key: UIState['settingsCategory']) => {
     setSettingsCategory(key)
-    loadCategoryData(key)
+    if (key !== 'projectData' && key !== 'graph' && key !== 'system') {
+      loadCategoryData(key)
+    }
   }
 
   return (
@@ -92,7 +100,7 @@ export function CategoryNav() {
           {categories.map(({ key, label, iconType }, index) => {
             const isActive = settingsCategory === key
             const color = categoryColorVars[key]
-            const count = counts[key]
+            const count = key in counts ? counts[key as keyof typeof counts] : 0
 
             return (
               <motion.button

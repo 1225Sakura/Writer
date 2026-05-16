@@ -6,6 +6,9 @@ import { AISuggestionPanel } from './AISuggestionPanel'
 import { EntitySearch } from './EntitySearch'
 import { Button } from '@/components/ui/Button'
 import { CanvasView } from './CanvasView'
+import { ProjectDataPanel } from './ProjectDataPanel'
+import { RelationGraph } from './RelationGraph'
+import { SystemPanel } from './SystemPanel'
 import {
   Settings, Sparkles, Menu, Network, List,
 } from 'lucide-react'
@@ -59,7 +62,7 @@ export function SettingsContent({ viewMode, onToggleViewMode, onMobileNavOpen }:
         </div>
         <div className="flex items-center gap-1">
           <EntitySearch onResultClick={(type) => {
-            const valid: Array<SettingsCategory> = ['world', 'character', 'item', 'location', 'faction', 'rule', 'outline', 'ifline']
+            const valid: Array<SettingsCategory> = ['world', 'character', 'item', 'location', 'faction', 'rule', 'outline', 'ifline', 'projectData', 'graph', 'system']
             if (valid.includes(type as SettingsCategory)) {
               setSettingsCategory(type as SettingsCategory)
             }
@@ -77,7 +80,7 @@ export function SettingsContent({ viewMode, onToggleViewMode, onMobileNavOpen }:
             </Button>
             <Button
               onClick={() => {
-                if (settingsCategory !== 'outline' && settingsCategory !== 'ifline') {
+                if (!['outline', 'ifline', 'projectData', 'graph', 'system'].includes(settingsCategory)) {
                   generate(settingsCategory as 'character' | 'item' | 'location' | 'faction' | 'world' | 'rule')
                 }
               }}
@@ -93,7 +96,19 @@ export function SettingsContent({ viewMode, onToggleViewMode, onMobileNavOpen }:
       </div>
 
       {/* Editor content area */}
-      {viewMode === 'canvas' ? (
+      {settingsCategory === 'projectData' ? (
+        <div className="flex-1 overflow-y-auto p-6 relative">
+          <ProjectDataPanel />
+        </div>
+      ) : settingsCategory === 'graph' ? (
+        <div className="flex-1 relative">
+          <RelationGraph />
+        </div>
+      ) : settingsCategory === 'system' ? (
+        <div className="flex-1 overflow-y-auto p-6 relative">
+          <SystemPanel />
+        </div>
+      ) : viewMode === 'canvas' ? (
         <div className="flex-1 relative">
           <CanvasView />
         </div>

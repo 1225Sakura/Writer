@@ -1,5 +1,5 @@
-import { useState, useCallback } from 'react'
-import { useWritingStore } from '@/store'
+import { useState, useCallback, useEffect } from 'react'
+import { useWritingStore, useContextStore } from '@/store'
 import { getEditorInstance } from '@/store/editorRegistry'
 import { showToast } from '@/components/ui/Toast'
 import { Button } from '@/components/ui/Button'
@@ -21,6 +21,8 @@ import {
   AlertCircle,
   RotateCcw,
   Bot,
+  Database,
+  Check,
 } from 'lucide-react'
 import { Icon } from '@/components/ui/Icon'
 import {
@@ -66,13 +68,21 @@ function triggerHaptic() {
 }
 
 export function AIOperationDrawer() {
-  const { humanAIRatio, setHumanAIRatio, writingStyle, setWritingStyle, optimize, expand, condense: shrink, rewrite, continue: continueWriting, polish, aiJobQueue, currentJobId, cancelJob, retryJob } = useWritingStore()
+  const { humanAIRatio, setHumanAIRatio, writingStyle, setWritingStyle, optimize, expand, condense: shrink, rewrite, continue: continueWriting, polish, aiJobQueue, currentJobId, cancelJob, retryJob, currentChapterId } = useWritingStore()
+  const { contextPack, loading: contextLoading, buildContext } = useContextStore()
   const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set(['global', 'style', 'ratio', 'selection']))
   const [previewResult, setPreviewResult] = useState<{ operation: string; original: string; result: string; qualityScore: number } | null>(null)
   const [isMinimized, _setIsMinimized] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
 
   useCallback(() => { triggerHaptic() }, [])()
+
+  // Auto-build context when chapter changes
+  useEffect(() => {
+    if (currentChapterId) {
+      buildContext(currentChapterId)
+    }
+  }, [currentChapterId, buildContext])
 
   const currentJob = aiJobQueue.find((j) => j.id === currentJobId)
   const activeOperation = currentJob?.type || null
@@ -144,6 +154,16 @@ export function AIOperationDrawer() {
             <Section title="文笔风格" icon={<Icon icon={Edit3} size="sm" />} isExpanded={expandedSections.has('style')} onToggle={() => toggleSection('style')}>
               <StyleSelector writingStyle={writingStyle} onStyleChange={setWritingStyle} />
             </Section>
+
+            {/* 上下文状态 */}
+            {currentChapterId && (
+              <div className="flex items-center gap-2 px-3 py-2 rounded-lg text-xs" style={{ background: contextPack ? 'color-mix(in srgb, var(--color-ifline) 8%, transparent)' : 'var(--color-surface-overlay)', border: `1px solid ${contextPack ? 'color-mix(in srgb, var(--color-ifline) 20%, transparent)' : 'var(--border-subtle)'}` }}>
+                <Icon icon={contextLoading ? Loader2 : contextPack ? Check : Database} size="xs" className={contextLoading ? 'animate-spin' : ''} style={{ color: contextPack ? 'var(--color-ifline)' : 'var(--text-tertiary)' }} />
+                <span style={{ color: contextPack ? 'var(--color-ifline)' : 'var(--text-tertiary)' }}>
+                  {contextLoading ? '加载上下文...' : contextPack ? '上下文已就绪' : '上下文未加载'}
+                </span>
+              </div>
+            )}
 
             {/* AI写作操作 */}
             <Section title="AI写作操作" icon={<Icon icon={Sparkles} size="sm" />} isExpanded={expandedSections.has('selection')} onToggle={() => toggleSection('selection')}>
