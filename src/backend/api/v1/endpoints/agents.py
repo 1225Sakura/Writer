@@ -83,10 +83,10 @@ def get_ai_service() -> AIService:
     return ai_service
 
 
-def require_checker_rate_limit(request: Request) -> None:
+async def require_checker_rate_limit(request: Request) -> None:
     """Dependency to enforce stricter rate limits on checker endpoints."""
     client_ip = request.client.host if request.client else "unknown"
-    allowed, limit, remaining = check_checker_rate_limit(client_ip)
+    allowed, limit, remaining = await check_checker_rate_limit(client_ip)
     if not allowed:
         raise HTTPException(
             status_code=status.HTTP_429_TOO_MANY_REQUESTS,
@@ -616,37 +616,37 @@ async def list_checkers():
         CheckerInfo(
             name="consistency",
             description="检查世界设定一致性（地点、时间线、实力等级、物品归属等）",
-            supports_quick_scan=False,
+            supports_quick_scan=True,
             supports_deep_analyze=True,
         ),
         CheckerInfo(
             name="continuity",
             description="检查叙事连续性（场景转换、事件连贯、角色状态、伏笔呼应等）",
-            supports_quick_scan=False,
+            supports_quick_scan=True,
             supports_deep_analyze=True,
         ),
         CheckerInfo(
             name="pacing",
             description="检查叙事节奏和故事线比例（任务线/燃情线/星座线）",
-            supports_quick_scan=False,
+            supports_quick_scan=True,
             supports_deep_analyze=True,
         ),
         CheckerInfo(
             name="ooc",
             description="检查角色行为是否符合性格设定（OOC检测）",
-            supports_quick_scan=False,
+            supports_quick_scan=True,
             supports_deep_analyze=True,
         ),
         CheckerInfo(
             name="high_point",
             description="检查高潮分布和兴奋点密度",
-            supports_quick_scan=False,
+            supports_quick_scan=True,
             supports_deep_analyze=True,
         ),
         CheckerInfo(
             name="reader_pull",
             description="检查读者吸引力和钩子效果",
-            supports_quick_scan=False,
+            supports_quick_scan=True,
             supports_deep_analyze=True,
         ),
     ]

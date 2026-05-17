@@ -28,6 +28,7 @@ from backend.agents.checkers import (
 from backend.middleware.auth import require_auth, verify_api_key
 from backend.middleware.rate_limit import check_checker_rate_limit
 from backend.api.v1.dependencies import get_event_bus
+from backend.agents.checkers.base import CheckerResult
 
 router = APIRouter(prefix="/ai", tags=["ai"], dependencies=[require_auth])
 
@@ -63,6 +64,21 @@ def get_ai_service() -> AIService:
 def get_chapter_service(db: AsyncSession = Depends(get_db)) -> ChapterService:
     """Dependency: provide ChapterService instance."""
     return ChapterService(db, get_event_bus(), get_cache_service())
+
+
+async def _get_chapter_content(chapter_id: int, chapter_service: ChapterService) -> str:
+    """Get chapter content from latest draft or summary."""
+    chapter = await chapter_service.get_chapter(chapter_id)
+    if not chapter:
+        raise HTTPException(status_code=404, detail=f"Chapter {chapter_id} not found")
+    drafts = await chapter_service.list_draft_versions(chapter_id)
+    draft = drafts[0] if drafts else None
+    return draft.content if draft else chapter.summary or ""
+
+
+def _checker_result_to_issues(result: CheckerResult) -> list[str]:
+    """Adapter: convert CheckerResult.issues (list[dict]) to List[str] for CheckerBaseResponse."""
+    return [issue.get("message", str(issue)) for issue in result.issues]
 
 
 def get_writing_settings_service(db: AsyncSession = Depends(get_db)) -> WritingSettingsService:
@@ -673,21 +689,15 @@ async def check_consistency(
     ai_service = get_ai_service()
     checker = ConsistencyChecker(ai_service)
 
-    # Verify chapter exists
-    chapter = await chapter_service.get_chapter(body.chapter_id)
-    if not chapter:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Chapter {body.chapter_id} not found"
-        )
+    content = await _get_chapter_content(body.chapter_id, chapter_service)
 
     try:
-        result = await checker.check(body.chapter_id, db)
+        result = await checker.quick_scan(content)
         return ConsistencyCheckResponse(
             chapter_id=body.chapter_id,
-            score=result.get("score", 0),
-            issues=result.get("issues", []),
-            suggestions=result.get("suggestions", []),
+            score=result.score,
+            issues=_checker_result_to_issues(result),
+            suggestions=result.suggestions,
         )
     except Exception as e:
         raise HTTPException(
@@ -716,21 +726,15 @@ async def check_continuity(
     ai_service = get_ai_service()
     checker = ContinuityChecker(ai_service)
 
-    chapter = await chapter_service.get_chapter(body.chapter_id)
-    if not chapter:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Chapter {body.chapter_id} not found"
-        )
+    content = await _get_chapter_content(body.chapter_id, chapter_service)
 
     try:
-        result = await checker.check(body.chapter_id, db)
+        result = await checker.quick_scan(content)
         return ContinuityCheckResponse(
             chapter_id=body.chapter_id,
-            score=result.get("score", 0),
-            issues=result.get("issues", []),
-            suggestions=result.get("suggestions", []),
-            plot_thread_status=result.get("plot_thread_status", {}),
+            score=result.score,
+            issues=_checker_result_to_issues(result),
+            suggestions=result.suggestions,
         )
     except Exception as e:
         raise HTTPException(
@@ -759,22 +763,15 @@ async def check_pacing(
     ai_service = get_ai_service()
     checker = PacingChecker(ai_service)
 
-    chapter = await chapter_service.get_chapter(body.chapter_id)
-    if not chapter:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Chapter {body.chapter_id} not found"
-        )
+    content = await _get_chapter_content(body.chapter_id, chapter_service)
 
     try:
-        result = await checker.check(body.chapter_id, db)
+        result = await checker.quick_scan(content)
         return PacingCheckResponse(
             chapter_id=body.chapter_id,
-            score=result.get("score", 0),
-            issues=result.get("issues", []),
-            suggestions=result.get("suggestions", []),
-            strand_ratios=result.get("strand_ratios", {}),
-            analysis=result.get("analysis", ""),
+            score=result.score,
+            issues=_checker_result_to_issues(result),
+            suggestions=result.suggestions,
         )
     except Exception as e:
         raise HTTPException(
@@ -803,32 +800,16 @@ async def check_ooc(
     ai_service = get_ai_service()
     checker = OOCChecker(ai_service)
 
-    chapter = await chapter_service.get_chapter(body.chapter_id)
-    if not chapter:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Chapter {body.chapter_id} not found"
-        )
+    content = await _get_chapter_content(body.chapter_id, chapter_service)
 
     try:
-        result = await checker.check(body.chapter_id, body.character_id, db)
-        violations_raw = result.get("violations", [])
-        violations = [
-            OOCViolation(
-                location=v.get("location", ""),
-                expected_behavior=v.get("expected_behavior", ""),
-                actual_behavior=v.get("actual_behavior", ""),
-                reason=v.get("reason", ""),
-            )
-            for v in violations_raw
-        ]
+        result = await checker.quick_scan(content)
         return OOCCheckResponse(
             chapter_id=body.chapter_id,
             character_id=body.character_id,
-            score=result.get("score", 0),
-            issues=result.get("issues", []),
-            suggestions=result.get("suggestions", []),
-            violations=violations,
+            score=result.score,
+            issues=_checker_result_to_issues(result),
+            suggestions=result.suggestions,
         )
     except Exception as e:
         raise HTTPException(
@@ -857,33 +838,15 @@ async def check_high_point(
     ai_service = get_ai_service()
     checker = HighPointChecker(ai_service)
 
-    chapter = await chapter_service.get_chapter(body.chapter_id)
-    if not chapter:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Chapter {body.chapter_id} not found"
-        )
+    content = await _get_chapter_content(body.chapter_id, chapter_service)
 
     try:
-        result = await checker.check(body.chapter_id, db)
-        high_points_raw = result.get("high_points", [])
-        high_points = [
-            HighPoint(
-                location=hp.get("location", ""),
-                type=hp.get("type", ""),
-                intensity=hp.get("intensity", 5),
-                pacing=hp.get("pacing", ""),
-            )
-            for hp in high_points_raw
-        ]
+        result = await checker.quick_scan(content)
         return HighPointCheckResponse(
             chapter_id=body.chapter_id,
-            score=result.get("score", 0),
-            issues=result.get("issues", []),
-            suggestions=result.get("suggestions", []),
-            high_points=high_points,
-            excitement_density=result.get("excitement_density", ""),
-            ending_hook=result.get("ending_hook", ""),
+            score=result.score,
+            issues=_checker_result_to_issues(result),
+            suggestions=result.suggestions,
         )
     except Exception as e:
         raise HTTPException(
@@ -912,34 +875,15 @@ async def check_reader_pull(
     ai_service = get_ai_service()
     checker = ReaderPullChecker(ai_service)
 
-    chapter = await chapter_service.get_chapter(body.chapter_id)
-    if not chapter:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Chapter {body.chapter_id} not found"
-        )
+    content = await _get_chapter_content(body.chapter_id, chapter_service)
 
     try:
-        result = await checker.check(body.chapter_id, db)
-        hooks_raw = result.get("hooks", [])
-        hooks = [
-            Hook(
-                location=h.get("location", ""),
-                type=h.get("type", ""),
-                description=h.get("description", ""),
-                effectiveness=h.get("effectiveness", 5),
-            )
-            for h in hooks_raw
-        ]
+        result = await checker.quick_scan(content)
         return ReaderPullCheckResponse(
             chapter_id=body.chapter_id,
-            score=result.get("score", 0),
-            issues=result.get("issues", []),
-            suggestions=result.get("suggestions", []),
-            hooks=hooks,
-            opening_hook=result.get("opening_hook", ""),
-            ending_hook=result.get("ending_hook", ""),
-            curiosity_gaps=result.get("curiosity_gaps", []),
+            score=result.score,
+            issues=_checker_result_to_issues(result),
+            suggestions=result.suggestions,
         )
     except Exception as e:
         raise HTTPException(

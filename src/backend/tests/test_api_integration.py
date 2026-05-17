@@ -8,7 +8,7 @@ Run from src/backend directory: python -m pytest tests/test_api_integration.py
 import pytest
 from unittest.mock import AsyncMock, patch, MagicMock
 
-from backend.interface.web.main import app
+from backend.agents.checkers.base import CheckerResult
 
 
 # ============================================
@@ -821,15 +821,16 @@ class TestAICheckers:
         """Test consistency checker endpoint."""
         _, chapter_id = outline_and_chapter
 
-        mock_result = {
-            "score": 85,
-            "issues": ["Location description mismatch"],
-            "suggestions": ["Update location details"]
-        }
+        mock_result = CheckerResult(
+            score=85,
+            issues=[{"type": "mismatch", "message": "Location description mismatch"}],
+            suggestions=["Update location details"]
+        )
 
-        with patch('backend.api.v1.endpoints.ai.ConsistencyChecker') as mock_checker_cls:
+        with patch('backend.api.v1.endpoints.ai.ConsistencyChecker') as mock_checker_cls, \
+             patch('backend.api.v1.endpoints.ai._get_chapter_content', new_callable=AsyncMock, return_value="Test chapter content"):
             mock_checker = MagicMock()
-            mock_checker.check = AsyncMock(return_value=mock_result)
+            mock_checker.quick_scan = AsyncMock(return_value=mock_result)
             mock_checker_cls.return_value = mock_checker
 
             response = await client.post(
@@ -848,20 +849,16 @@ class TestAICheckers:
         """Test continuity checker endpoint."""
         _, chapter_id = outline_and_chapter
 
-        mock_result = {
-            "score": 90,
-            "issues": [],
-            "suggestions": ["Add transition scene"],
-            "plot_thread_status": {
-                "fulfilled": ["Thread A"],
-                "continued": ["Thread B"],
-                "new_setup": ["Thread C"]
-            }
-        }
+        mock_result = CheckerResult(
+            score=90,
+            issues=[],
+            suggestions=["Add transition scene"]
+        )
 
-        with patch('backend.api.v1.endpoints.ai.ContinuityChecker') as mock_checker_cls:
+        with patch('backend.api.v1.endpoints.ai.ContinuityChecker') as mock_checker_cls, \
+             patch('backend.api.v1.endpoints.ai._get_chapter_content', new_callable=AsyncMock, return_value="Test chapter content"):
             mock_checker = MagicMock()
-            mock_checker.check = AsyncMock(return_value=mock_result)
+            mock_checker.quick_scan = AsyncMock(return_value=mock_result)
             mock_checker_cls.return_value = mock_checker
 
             response = await client.post(
@@ -879,17 +876,16 @@ class TestAICheckers:
         """Test pacing checker endpoint."""
         _, chapter_id = outline_and_chapter
 
-        mock_result = {
-            "score": 75,
-            "issues": ["Quest strand too dominant"],
-            "suggestions": ["Add more character moments"],
-            "strand_ratios": {"quest": 0.7, "fire": 0.15, "constellation": 0.15},
-            "analysis": "Quest-heavy chapter"
-        }
+        mock_result = CheckerResult(
+            score=75,
+            issues=[{"type": "strand", "message": "Quest strand too dominant"}],
+            suggestions=["Add more character moments"]
+        )
 
-        with patch('backend.api.v1.endpoints.ai.PacingChecker') as mock_checker_cls:
+        with patch('backend.api.v1.endpoints.ai.PacingChecker') as mock_checker_cls, \
+             patch('backend.api.v1.endpoints.ai._get_chapter_content', new_callable=AsyncMock, return_value="Test chapter content"):
             mock_checker = MagicMock()
-            mock_checker.check = AsyncMock(return_value=mock_result)
+            mock_checker.quick_scan = AsyncMock(return_value=mock_result)
             mock_checker_cls.return_value = mock_checker
 
             response = await client.post(
@@ -915,16 +911,16 @@ class TestAICheckers:
         )
         character_id = char_resp.json()["id"]
 
-        mock_result = {
-            "score": 95,
-            "issues": [],
-            "suggestions": [],
-            "violations": []
-        }
+        mock_result = CheckerResult(
+            score=95,
+            issues=[],
+            suggestions=[]
+        )
 
-        with patch('backend.api.v1.endpoints.ai.OOCChecker') as mock_checker_cls:
+        with patch('backend.api.v1.endpoints.ai.OOCChecker') as mock_checker_cls, \
+             patch('backend.api.v1.endpoints.ai._get_chapter_content', new_callable=AsyncMock, return_value="Test chapter content"):
             mock_checker = MagicMock()
-            mock_checker.check = AsyncMock(return_value=mock_result)
+            mock_checker.quick_scan = AsyncMock(return_value=mock_result)
             mock_checker_cls.return_value = mock_checker
 
             response = await client.post(
@@ -943,20 +939,16 @@ class TestAICheckers:
         """Test high point checker endpoint."""
         _, chapter_id = outline_and_chapter
 
-        mock_result = {
-            "score": 80,
-            "issues": ["Climax too early"],
-            "suggestions": ["Delay climax"],
-            "high_points": [
-                {"location": "Middle", "type": "battle", "intensity": 8, "pacing": "fast"}
-            ],
-            "excitement_density": "moderate",
-            "ending_hook": "Strong cliffhanger"
-        }
+        mock_result = CheckerResult(
+            score=80,
+            issues=[{"type": "pacing", "message": "Climax too early"}],
+            suggestions=["Delay climax"]
+        )
 
-        with patch('backend.api.v1.endpoints.ai.HighPointChecker') as mock_checker_cls:
+        with patch('backend.api.v1.endpoints.ai.HighPointChecker') as mock_checker_cls, \
+             patch('backend.api.v1.endpoints.ai._get_chapter_content', new_callable=AsyncMock, return_value="Test chapter content"):
             mock_checker = MagicMock()
-            mock_checker.check = AsyncMock(return_value=mock_result)
+            mock_checker.quick_scan = AsyncMock(return_value=mock_result)
             mock_checker_cls.return_value = mock_checker
 
             response = await client.post(
@@ -975,21 +967,16 @@ class TestAICheckers:
         """Test reader pull checker endpoint."""
         _, chapter_id = outline_and_chapter
 
-        mock_result = {
-            "score": 88,
-            "issues": ["Weak opening hook"],
-            "suggestions": ["Start with action"],
-            "hooks": [
-                {"location": "end", "type": "suspense", "description": "Cliffhanger", "effectiveness": 9}
-            ],
-            "opening_hook": "Weak",
-            "ending_hook": "Strong",
-            "curiosity_gaps": ["Why did he leave?"]
-        }
+        mock_result = CheckerResult(
+            score=88,
+            issues=[{"type": "hook", "message": "Weak opening hook"}],
+            suggestions=["Start with action"]
+        )
 
-        with patch('backend.api.v1.endpoints.ai.ReaderPullChecker') as mock_checker_cls:
+        with patch('backend.api.v1.endpoints.ai.ReaderPullChecker') as mock_checker_cls, \
+             patch('backend.api.v1.endpoints.ai._get_chapter_content', new_callable=AsyncMock, return_value="Test chapter content"):
             mock_checker = MagicMock()
-            mock_checker.check = AsyncMock(return_value=mock_result)
+            mock_checker.quick_scan = AsyncMock(return_value=mock_result)
             mock_checker_cls.return_value = mock_checker
 
             response = await client.post(

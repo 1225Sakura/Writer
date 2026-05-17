@@ -484,6 +484,13 @@ async def lifespan(app: FastAPI):
         if providers:
             router = ProviderRouter(providers=providers, primary_index=0)
             ai_service.set_router(router)
+
+            # Wire provider to endpoint modules so AI endpoints return 200 instead of 503
+            from backend.api.v1.endpoints.ai import set_ai_provider
+            from backend.api.v1.endpoints.agents import set_ai_provider as set_agent_ai_provider
+            set_ai_provider(providers[0])
+            set_agent_ai_provider(providers[0])
+
             logger.info(
                 "ProviderRouter initialized with %d provider(s), primary=%s",
                 len(providers),

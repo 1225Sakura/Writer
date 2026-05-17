@@ -3,17 +3,11 @@
 
 from fastapi import APIRouter, HTTPException, Depends
 from typing import List, Optional
-from datetime import datetime, timezone
 import json
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.infrastructure.database import get_db
-from backend.core.domain import (
-    Character, CharacterRelationship, CharacterStoryline,
-    Item, Location, Faction, WorldSetting, Rule,
-    WritingSettings
-)
 from backend.infrastructure.cache.cache_service import get_cache_service
 from backend.core.services.character.character_service import CharacterService
 from backend.api.v1.dependencies import get_event_bus
@@ -34,7 +28,6 @@ from backend.core.domain.schemas.request_schemas import (
     RuleCreateRequest,
     RuleUpdateRequest,
     WritingSettingsUpdateRequest,
-    ExportDataRequest,
 )
 from backend.core.domain.schemas.response_schemas import (
     CharacterResponse,
@@ -46,7 +39,6 @@ from backend.core.domain.schemas.response_schemas import (
     WorldSettingResponse,
     RuleResponse,
     WritingSettingsResponse,
-    ExportDataResponse,
 )
 from backend.core.domain.schemas.common_schemas import MessageResponse
 from backend.core.services.item.item_service import ItemService
@@ -864,165 +856,3 @@ async def update_writing_settings(
     if db_settings:
         get_cache_service().clear_entity_cache("writing_settings")
     return db_settings or settings
-
-
-# ---------------------------------------------------------------------------
-# Export/Import for backup and migration
-# ---------------------------------------------------------------------------
-
-@router.get(
-    "/export",
-    response_model=ExportDataResponse,
-    summary="导出项目数据",
-    description="将所有项目数据导出为JSON格式，用于备份和迁移。",
-)
-async def export_data(
-    character_service: CharacterService = Depends(get_character_service),
-    item_service: ItemService = Depends(get_item_service),
-    location_service: LocationService = Depends(get_location_service),
-    faction_service: FactionService = Depends(get_faction_service),
-    world_service: WorldSettingService = Depends(get_world_setting_service),
-    rule_service: RuleService = Depends(get_rule_service),
-    writing_service: WritingSettingsService = Depends(get_writing_settings_service),
-):
-    """Export all project data as JSON."""
-    characters = await character_service.list_all_characters()
-    relationships = await character_service.list_all_relationships()
-    storylines = await character_service.list_all_storylines()
-    items = await item_service.list_items(limit=10000)
-    locations = await location_service.list_locations(limit=10000)
-    factions = await faction_service.list_factions(limit=10000)
-    world_settings = await world_service.list_world_settings(limit=10000)
-    rules = await rule_service.list_rules(limit=10000)
-    writing_settings = await writing_service.get_writing_settings()
-
-    def _clean_dict(obj):
-        """Remove SQLAlchemy internal state from dict."""
-        return {k: v for k, v in obj.__dict__.items() if not k.startswith('_')}
-
-    return ExportDataResponse(
-        version="1.0",
-        exported_at=datetime.now(timezone.utc).isoformat(),
-        characters=[{**_clean_dict(c), '_type': 'character'} for c in characters],
-        character_relationships=[{**_clean_dict(r), '_type': 'relationship'} for r in relationships],
-        character_storylines=[{**_clean_dict(s), '_type': 'storyline'} for s in storylines],
-        items=[{**_clean_dict(i), '_type': 'item'} for i in items],
-        locations=[{**_clean_dict(l), '_type': 'location'} for l in locations],
-        factions=[{**_clean_dict(f), '_type': 'faction'} for f in factions],
-        world_settings=[{**_clean_dict(w), '_type': 'world_setting'} for w in world_settings],
-        rules=[{**_clean_dict(r), '_type': 'rule'} for r in rules],
-        writing_settings=_clean_dict(writing_settings) if writing_settings else None,
-    )
-
-
-@router.post(
-    "/import",
-    summary="导入项目数据",
-    description="从JSON格式导入项目数据，支持关系映射和循环引用处理。",
-)
-async def import_data(
-    data: ExportDataRequest,
-    character_service: CharacterService = Depends(get_character_service),
-    item_service: ItemService = Depends(get_item_service),
-    location_service: LocationService = Depends(get_location_service),
-    faction_service: FactionService = Depends(get_faction_service),
-    world_service: WorldSettingService = Depends(get_world_setting_service),
-    rule_service: RuleService = Depends(get_rule_service),
-):
-    """Import project data from JSON with relationship support."""
-    imported_count = {
-        'characters': 0,
-        'character_relationships': 0,
-        'character_storylines': 0,
-        'items': 0,
-        'locations': 0,
-        'factions': 0,
-        'world_settings': 0,
-        'rules': 0,
-    }
-
-    if data.version != "1.0":
-        raise HTTPException(status_code=400, detail=f"Unsupported export version: {data.version}")
-
-    id_mapping: dict[int, int] = {}
-
-    # Import characters first and build ID mapping
-    for char_data in data.characters:
-        char_data_clean = {k: v for k, v in char_data.items()
-                          if k not in ('_type', 'id', 'created_at', 'updated_at')}
-        char = await character_service.create_character(char_data_clean)
-        old_id = char_data.get('id')
-        if old_id is not None:
-            id_mapping[old_id] = char.id
-        imported_count['characters'] += 1
-
-    # Import character relationships (with circular reference handling)
-    remaining_relationships = list(data.character_relationships)
-    max_passes = len(data.characters) + 1
-    for _ in range(max_passes):
-        if not remaining_relationships:
-            break
-        unresolved = []
-        for rel_data in remaining_relationships:
-            old_char_id = rel_data.get('character_id')
-            old_target_id = rel_data.get('target_id')
-            if old_char_id in id_mapping and old_target_id in id_mapping:
-                rel_clean = {k: v for k, v in rel_data.items()
-                            if k not in ('_type', 'id', 'created_at', 'updated_at')}
-                rel_clean['character_id'] = id_mapping[old_char_id]
-                rel_clean['target_id'] = id_mapping[old_target_id]
-                await character_service.create_relationship(rel_clean)
-                imported_count['character_relationships'] += 1
-            else:
-                unresolved.append(rel_data)
-        remaining_relationships = unresolved
-
-    # Import character storylines
-    for story_data in data.character_storylines:
-        old_char_id = story_data.get('character_id')
-        if old_char_id in id_mapping:
-            story_clean = {k: v for k, v in story_data.items()
-                          if k not in ('_type', 'id', 'created_at', 'updated_at')}
-            story_clean['character_id'] = id_mapping[old_char_id]
-            await character_service.create_storyline(story_clean)
-            imported_count['character_storylines'] += 1
-
-    # Import items
-    for item_data in data.items:
-        item_clean = {k: v for k, v in item_data.items()
-                     if k not in ('_type', 'id', 'created_at', 'updated_at')}
-        await item_service.create_item(item_clean)
-        imported_count['items'] += 1
-
-    # Import locations
-    for loc_data in data.locations:
-        loc_clean = {k: v for k, v in loc_data.items()
-                    if k not in ('_type', 'id', 'created_at', 'updated_at')}
-        await location_service.create_location(loc_clean)
-        imported_count['locations'] += 1
-
-    # Import factions
-    for fac_data in data.factions:
-        fac_clean = {k: v for k, v in fac_data.items()
-                    if k not in ('_type', 'id', 'created_at', 'updated_at')}
-        await faction_service.create_faction(fac_clean)
-        imported_count['factions'] += 1
-
-    # Import world settings
-    for ws_data in data.world_settings:
-        ws_clean = {k: v for k, v in ws_data.items()
-                   if k not in ('_type', 'id', 'created_at', 'updated_at')}
-        await world_service.create_world_setting(ws_clean)
-        imported_count['world_settings'] += 1
-
-    # Import rules
-    for rule_data in data.rules:
-        rule_clean = {k: v for k, v in rule_data.items()
-                     if k not in ('_type', 'id', 'created_at', 'updated_at')}
-        await rule_service.create_rule(rule_clean)
-        imported_count['rules'] += 1
-
-    return {
-        "message": "Import successful",
-        "imported": imported_count
-    }
