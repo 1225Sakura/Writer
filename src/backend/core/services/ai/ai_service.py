@@ -38,9 +38,12 @@ class AIService:
     """
 
     def __init__(self, router: Optional[ProviderRouter] = None):
+        from backend.config import get_settings
+        _settings = get_settings()
         self._router = router
-        self._api_key: str = ""
-        self._base_url: str = "https://api.minimax.chat/v1"
+        self._api_key: str = _settings.minimax_api_key or ""
+        self._base_url: str = (_settings.minimax_api_url or "https://api.minimax.chat/v1").rstrip("/")
+        self._endpoint_path: str = "/chat/completions"
 
     # ------------------------------------------------------------------
     # Provider router lifecycle
@@ -51,14 +54,53 @@ class AIService:
         """Get the base URL for the AI provider."""
         return self._base_url
 
+    @base_url.setter
+    def base_url(self, value: str) -> None:
+        self._base_url = value
+
     @property
     def api_key(self) -> str:
         """Get the API key for the AI provider."""
         return self._api_key
 
+    @api_key.setter
+    def api_key(self, value: str) -> None:
+        self._api_key = value
+
+    @property
+    def endpoint_path(self) -> str:
+        return self._endpoint_path
+
+    @endpoint_path.setter
+    def endpoint_path(self, value: str) -> None:
+        self._endpoint_path = value
+
     def set_router(self, router: ProviderRouter) -> None:
         """Set the provider router (called from app lifespan)."""
         self._router = router
+
+    async def reload_from_config(self, config) -> None:
+        """Rebuild ProviderRouter from database config and update all references."""
+        provider = OpenAICompatibleProvider(
+            api_key=config.api_key,
+            base_url=config.base_url,
+            model=config.model_name,
+        )
+        new_router = ProviderRouter(providers=[provider], primary_index=0)
+        self.set_router(new_router)
+
+        self.base_url = config.base_url
+        self.api_key = config.api_key
+        if "minimax" in config.base_url.lower():
+            self.endpoint_path = "/text/chatcompletion_v2"
+        else:
+            self.endpoint_path = "/chat/completions"
+
+        # Sync Path B references
+        from backend.api.v1.endpoints.ai import set_ai_provider
+        from backend.api.v1.endpoints.agents import set_ai_provider as set_agent_ai_provider
+        set_ai_provider(provider)
+        set_agent_ai_provider(provider)
 
     @property
     def router(self) -> Optional[ProviderRouter]:

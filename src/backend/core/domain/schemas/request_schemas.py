@@ -593,22 +593,10 @@ class DraftVersionCreateRequest(BaseModel):
     content: str = Field(..., min_length=1, max_length=MAX_CONTENT_LENGTH)
     version_number: int = Field(..., gt=0)
 
-    @field_validator('chapter_id')
-    @classmethod
-    def validate_chapter_id(cls, v: int) -> int:
-        return validate_positive_id(v)
-
     @field_validator('content')
     @classmethod
     def validate_content(cls, v: str) -> str:
         return validate_non_empty(v, field_name='Content', max_length=MAX_CONTENT_LENGTH)
-
-    @field_validator('version_number')
-    @classmethod
-    def validate_version_number(cls, v: int) -> int:
-        if v <= 0:
-            raise ValueError('Version number must be a positive integer')
-        return v
 
 
 class PlotThreadCreateRequest(BaseModel):
@@ -783,8 +771,6 @@ class ReviewRequest(BaseModel):
     def validate_settings_data(cls, v: dict) -> dict:
         if not v:
             raise ValueError('settings_data cannot be empty')
-        if not isinstance(v, dict):
-            raise ValueError('settings_data must be a dictionary')
         return v
 
 
@@ -799,8 +785,6 @@ class ExtractEntitiesRequest(BaseModel):
     def validate_chat_messages(cls, v: list) -> list:
         if not v:
             raise ValueError('chat_messages cannot be empty')
-        if not isinstance(v, list):
-            raise ValueError('chat_messages must be a list')
         return v
 
 
@@ -813,11 +797,6 @@ class ContextRequest(BaseModel):
     model_config = ConfigDict(str_strip_whitespace=True)
 
     chapter_id: int = Field(..., gt=0)
-
-    @field_validator('chapter_id')
-    @classmethod
-    def validate_chapter_id(cls, v: int) -> int:
-        return validate_positive_id(v)
 
 
 class ExtractRequest(BaseModel):
@@ -849,21 +828,6 @@ class WritingSettingsUpdateRequest(BaseModel):
     human_ai_ratio: Optional[float] = Field(default=None, ge=0.0, le=1.0)
     writing_style: Optional[str] = Field(default=None, max_length=50)
     target_word_count: Optional[int] = Field(default=None, gt=0)
-
-    @field_validator('human_ai_ratio')
-    @classmethod
-    def validate_human_ai_ratio(cls, v: Optional[float]) -> Optional[float]:
-        if v is not None:
-            if v < 0.0 or v > 1.0:
-                raise ValueError('human_ai_ratio must be between 0.0 and 1.0')
-        return v
-
-    @field_validator('target_word_count')
-    @classmethod
-    def validate_target_word_count(cls, v: Optional[int]) -> Optional[int]:
-        if v is not None and v <= 0:
-            raise ValueError('target_word_count must be a positive integer')
-        return v
 
     @field_validator('writing_style')
     @classmethod
@@ -931,3 +895,54 @@ class ExportDataRequest(BaseModel):
         if v != "1.0":
             raise ValueError("Unsupported export version. Only '1.0' is supported")
         return v
+
+
+# ============================================
+# AI Provider Config Request Schemas
+# ============================================
+
+class AIProviderConfigCreateRequest(BaseModel):
+    model_config = ConfigDict(str_strip_whitespace=True)
+
+    name: str = Field(..., min_length=1, max_length=100)
+    api_key: str = Field(..., min_length=1, max_length=500)
+    base_url: str = Field(..., min_length=1, max_length=500)
+    model_name: str = Field(..., min_length=1, max_length=100)
+    max_tokens: int = Field(default=4096, ge=1, le=1000000)
+    temperature: float = Field(default=0.7, ge=0.0, le=2.0)
+    project_id: Optional[int] = None
+
+    @field_validator("base_url")
+    @classmethod
+    def validate_base_url(cls, v: str) -> str:
+        if not v.startswith(("http://", "https://")):
+            raise ValueError("Base URL must start with http:// or https://")
+        return v.rstrip("/")
+
+
+class AIProviderConfigUpdateRequest(BaseModel):
+    model_config = ConfigDict(str_strip_whitespace=True)
+
+    name: Optional[str] = Field(None, min_length=1, max_length=100)
+    api_key: Optional[str] = Field(None, min_length=1, max_length=500)
+    base_url: Optional[str] = Field(None, min_length=1, max_length=500)
+    model_name: Optional[str] = Field(None, min_length=1, max_length=100)
+    max_tokens: Optional[int] = Field(None, ge=1, le=1000000)
+    temperature: Optional[float] = Field(None, ge=0.0, le=2.0)
+
+    @field_validator("base_url")
+    @classmethod
+    def validate_base_url(cls, v: Optional[str]) -> Optional[str]:
+        if v is not None and not v.startswith(("http://", "https://")):
+            raise ValueError("Base URL must start with http:// or https://")
+        return v.rstrip("/") if v else v
+
+
+class AIProviderConfigTestRequest(BaseModel):
+    model_config = ConfigDict(str_strip_whitespace=True)
+
+    api_key: str = Field(..., min_length=1)
+    base_url: str = Field(..., min_length=1)
+    model_name: str = Field(..., min_length=1)
+    max_tokens: int = Field(default=4096, ge=1, le=1000000)
+    temperature: float = Field(default=0.7, ge=0.0, le=2.0)

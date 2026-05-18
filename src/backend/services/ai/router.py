@@ -365,6 +365,15 @@ class ProviderRouter:
             for name, h in self._health.items()
         }
 
+    def replace_providers(self, providers: list[AIProvider], primary_index: int = 0) -> None:
+        """Atomically replace provider list, resetting health and metrics."""
+        if not providers:
+            raise ValueError("At least one provider is required")
+        self._providers = providers
+        self._primary_index = primary_index
+        self._health = {p.name: _ProviderHealth() for p in providers}
+        self._metrics = {p.name: _ProviderMetrics() for p in providers}
+
     def reset_health(self, provider_name: str | None = None) -> None:
         """Reset health tracking for one or all providers."""
         if provider_name is None:

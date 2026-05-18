@@ -4,7 +4,7 @@
 from datetime import datetime
 from typing import Optional
 from sqlalchemy import (
-    Column, Integer, String, Text, Float, DateTime, ForeignKey, Index
+    Column, Integer, String, Text, Float, Boolean, DateTime, ForeignKey, Index
 )
 from sqlalchemy.orm import relationship
 
@@ -365,3 +365,19 @@ class AgentExecutionLog(Base):
     completed_at = Column(DateTime, nullable=True)
 
     workflow_execution = relationship("WorkflowExecution", back_populates="agent_logs")
+
+
+class AIProviderConfig(Base):
+    __tablename__ = "ai_provider_configs"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    project_id = Column(Integer, ForeignKey("projects.id"), nullable=True, index=True)
+    name = Column(String(100), nullable=False)
+    api_key = Column(String(500), nullable=False)
+    base_url = Column(String(500), nullable=False)
+    model_name = Column(String(100), nullable=False)
+    max_tokens = Column(Integer, default=4096)
+    temperature = Column(Float, default=0.7)
+    is_active = Column(Boolean, default=False, index=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)

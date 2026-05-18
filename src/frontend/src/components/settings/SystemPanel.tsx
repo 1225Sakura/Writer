@@ -7,10 +7,11 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { EASE, DURATION } from '@/components/shared/AnimationConfig'
 import {
   BookOpen, Workflow, Activity, Shield, ChevronRight,
-  Play, RefreshCw, AlertCircle, TrendingUp,
+  Play, RefreshCw, AlertCircle, TrendingUp, Cpu,
 } from 'lucide-react'
+import { AIProviderPanel } from './AIProviderPanel'
 
-type Tab = 'genres' | 'workflows' | 'observability' | 'constraints'
+type Tab = 'genres' | 'workflows' | 'observability' | 'constraints' | 'aiProvider'
 
 export function SystemPanel() {
   const [activeTab, setActiveTab] = useState<Tab>('genres')
@@ -36,6 +37,7 @@ export function SystemPanel() {
     { key: 'workflows', label: '工作流', icon: Workflow },
     { key: 'observability', label: '可观测性', icon: Activity },
     { key: 'constraints', label: '约束规则', icon: Shield },
+    { key: 'aiProvider', label: 'AI 配置', icon: Cpu },
   ]
 
   return (
@@ -295,6 +297,12 @@ export function SystemPanel() {
                 )}
               </GlassCard>
             )}
+          </motion.div>
+        )}
+
+        {activeTab === 'aiProvider' && (
+          <motion.div key="aiProvider" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: DURATION.FAST, ease: EASE.SMOOTH }} className="space-y-3">
+            <AIProviderPanel />
           </motion.div>
         )}
 

@@ -10,7 +10,7 @@ Provides endpoints for running specialized AI agents:
 from __future__ import annotations
 
 import json
-from typing import Any, Optional, Dict
+from typing import Any, Optional
 
 from fastapi import APIRouter, HTTPException, Depends, status, Request
 from pydantic import BaseModel, Field, field_validator
@@ -71,15 +71,8 @@ def get_ai_provider() -> AIProvider:
 
 def get_ai_service() -> AIService:
     """Get AI service singleton instance."""
-    if not settings.minimax_api_key:
-        raise HTTPException(
-            status_code=500,
-            detail="MiniMax API key not configured. Set MINIMAX_API_KEY in environment."
-        )
-    if ai_service.api_key != settings.minimax_api_key:
-        ai_service.api_key = settings.minimax_api_key
-    if ai_service.base_url != settings.minimax_api_url.rstrip("/"):
-        ai_service.base_url = settings.minimax_api_url.rstrip("/")
+    if ai_service.router is None:
+        raise HTTPException(status_code=503, detail="AI service not configured")
     return ai_service
 
 
@@ -262,13 +255,6 @@ class CheckerRunRequest(BaseModel):
             raise ValueError(f'checker_name must be one of: {", ".join(sorted(valid_names))}')
         return v
 
-    @field_validator('chapter_id')
-    @classmethod
-    def validate_chapter_id(cls, v: int) -> int:
-        if v <= 0:
-            raise ValueError('chapter_id must be a positive integer')
-        return v
-
     @field_validator('mode')
     @classmethod
     def validate_mode(cls, v: str) -> str:
@@ -297,13 +283,6 @@ class PipelineRequest(BaseModel):
 
     chapter_id: int = Field(..., description="Chapter ID to check", gt=0)
     mode: str = Field("quick", description="Run mode: 'quick' or 'deep'")
-
-    @field_validator('chapter_id')
-    @classmethod
-    def validate_chapter_id(cls, v: int) -> int:
-        if v <= 0:
-            raise ValueError('chapter_id must be a positive integer')
-        return v
 
     @field_validator('mode')
     @classmethod
@@ -338,7 +317,7 @@ class PipelineResponse(BaseModel):
 # Checker Registry
 # ------------------------------------------------------------------
 
-_CHECKER_REGISTRY: Dict[str, Any] = {
+_CHECKER_REGISTRY: dict[str, Any] = {
     "outline_law": OutlineLawEnforcer,
     "setting_physics": SettingPhysicsEnforcer,
     "consistency": ConsistencyChecker,
@@ -358,9 +337,9 @@ async def _build_checker_context(
     world_setting_service: WorldSettingService,
     rule_service: RuleService,
     character_service: CharacterService,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Build context dict for deep analysis from services."""
-    context: Dict[str, Any] = {}
+    context: dict[str, Any] = {}
 
     chapter = await chapter_service.get_chapter(chapter_id)
     if not chapter:

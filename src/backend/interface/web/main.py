@@ -455,49 +455,76 @@ async def lifespan(app: FastAPI):
         from backend.services.ai import ProviderRouter, MiniMaxProvider, OpenAICompatibleProvider
         from backend.core.services.ai.ai_service import ai_service
 
-        providers = []
+        # Try loading active config from database first
+        db_config = None
+        try:
+            from sqlalchemy import select
+            from backend.core.domain.entities import AIProviderConfig
+            from backend.infrastructure.database import async_session_maker
 
-        # MiniMax provider (primary)
-        if settings.minimax_api_key:
-            providers.append(
-                MiniMaxProvider(
-                    api_key=settings.minimax_api_key,
-                    base_url=settings.minimax_api_url,
+            async with async_session_maker() as session:
+                result = await session.execute(
+                    select(AIProviderConfig).where(
+                        AIProviderConfig.is_active == True,
+                        AIProviderConfig.project_id.is_(None),
+                    )
                 )
-            )
-            logger.info("MiniMax provider registered")
+                db_config = result.scalar_one_or_none()
+        except Exception:
+            # Table doesn't exist (pre-migration) or DB error — fall back to .env
+            pass
 
-        # OpenAI-compatible fallback (optional)
-        openai_key = getattr(settings, 'openai_api_key', None)
-        openai_url = getattr(settings, 'openai_api_url', 'https://api.openai.com/v1')
-        openai_model = getattr(settings, 'openai_model', 'gpt-4o')
-        if openai_key:
-            providers.append(
-                OpenAICompatibleProvider(
-                    api_key=openai_key,
-                    base_url=openai_url,
-                    model=openai_model,
-                )
-            )
-            logger.info("OpenAI-compatible provider registered")
-
-        if providers:
-            router = ProviderRouter(providers=providers, primary_index=0)
-            ai_service.set_router(router)
-
-            # Wire provider to endpoint modules so AI endpoints return 200 instead of 503
-            from backend.api.v1.endpoints.ai import set_ai_provider
-            from backend.api.v1.endpoints.agents import set_ai_provider as set_agent_ai_provider
-            set_ai_provider(providers[0])
-            set_agent_ai_provider(providers[0])
-
+        if db_config:
+            await ai_service.reload_from_config(db_config)
             logger.info(
-                "ProviderRouter initialized with %d provider(s), primary=%s",
-                len(providers),
-                providers[0].name,
+                "AI provider loaded from database: %s (%s @ %s)",
+                db_config.name, db_config.model_name, db_config.base_url,
             )
         else:
-            logger.warning("No AI providers configured. AI features will not work.")
+            providers = []
+
+            # MiniMax provider (primary)
+            if settings.minimax_api_key:
+                providers.append(
+                    MiniMaxProvider(
+                        api_key=settings.minimax_api_key,
+                        base_url=settings.minimax_api_url,
+                    )
+                )
+                ai_service.endpoint_path = "/text/chatcompletion_v2"
+                logger.info("MiniMax provider registered")
+
+            # OpenAI-compatible fallback (optional)
+            openai_key = getattr(settings, 'openai_api_key', None)
+            openai_url = getattr(settings, 'openai_api_url', 'https://api.openai.com/v1')
+            openai_model = getattr(settings, 'openai_model', 'gpt-4o')
+            if openai_key:
+                providers.append(
+                    OpenAICompatibleProvider(
+                        api_key=openai_key,
+                        base_url=openai_url,
+                        model=openai_model,
+                    )
+                )
+                logger.info("OpenAI-compatible provider registered")
+
+            if providers:
+                router = ProviderRouter(providers=providers, primary_index=0)
+                ai_service.set_router(router)
+
+                # Wire provider to endpoint modules
+                from backend.api.v1.endpoints.ai import set_ai_provider
+                from backend.api.v1.endpoints.agents import set_ai_provider as set_agent_ai_provider
+                set_ai_provider(providers[0])
+                set_agent_ai_provider(providers[0])
+
+                logger.info(
+                    "ProviderRouter initialized with %d provider(s), primary=%s",
+                    len(providers),
+                    providers[0].name,
+                )
+            else:
+                logger.warning("No AI providers configured. AI features will not work.")
     except ImportError as e:
         logger.debug("ProviderRouter not available: %s", e)
     except Exception as e:

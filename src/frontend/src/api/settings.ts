@@ -18,6 +18,11 @@ import type {
   RuleFilters,
   ExportDataResponse,
   ImportSummaryResponse,
+  AIProviderConfig,
+  AIProviderConfigCreate,
+  AIProviderConfigUpdate,
+  AIProviderConfigTest,
+  ConnectionTestResult,
 } from "./types"
 
 // ============================================
@@ -310,4 +315,28 @@ export default {
   rule: ruleApi,
   writingSettings: writingSettingsApi,
   backup: backupApi,
+}
+
+
+// ============================================
+// AI Provider Config
+// ============================================
+
+export const aiProviderConfigApi = {
+  list: (projectId?: number) =>
+    api.get<AIProviderConfig[]>("/settings/ai-provider", { project_id: projectId }),
+  get: (id: number) =>
+    api.get<AIProviderConfig>(`/settings/ai-provider/${id}`),
+  create: (data: AIProviderConfigCreate) =>
+    api.post<AIProviderConfig>("/settings/ai-provider", data),
+  update: (id: number, data: AIProviderConfigUpdate) =>
+    api.patch<AIProviderConfig>(`/settings/ai-provider/${id}`, data),
+  delete: (id: number) =>
+    api.delete(`/settings/ai-provider/${id}`),
+  activate: (id: number) =>
+    api.post<AIProviderConfig>(`/settings/ai-provider/${id}/activate`),
+  testConnection: (id: number) =>
+    api.post<ConnectionTestResult>(`/settings/ai-provider/${id}/test`),
+  testConnectionParams: (data: AIProviderConfigTest) =>
+    api.post<ConnectionTestResult>("/settings/ai-provider/test", data),
 }

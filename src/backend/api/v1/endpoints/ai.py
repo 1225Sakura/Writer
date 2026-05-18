@@ -1,7 +1,7 @@
 # Auto Novel Writer - AI Routes
 # AI generation and review endpoints
 
-from fastapi import APIRouter, Body, HTTPException, Depends, Request, status
+from fastapi import APIRouter, HTTPException, Depends, Request, status
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field, field_validator
 from typing import Optional, AsyncIterator, List
@@ -13,7 +13,6 @@ from backend.core.services.chapter.chapter_service import ChapterService
 from backend.core.services.writing_settings.writing_settings_service import WritingSettingsService
 from backend.infrastructure.cache.cache_service import get_cache_service
 from backend.core.services.ai.ai_service import AIService, ai_service
-from backend.config import settings
 from backend.agents.context_agent import ContextAgent
 from backend.agents.data_agent import DataAgent
 from backend.agents.checkers import (
@@ -25,7 +24,7 @@ from backend.agents.checkers import (
     ReaderPullChecker,
 )
 
-from backend.middleware.auth import require_auth, verify_api_key
+from backend.middleware.auth import require_auth
 from backend.middleware.rate_limit import check_checker_rate_limit
 from backend.api.v1.dependencies import get_event_bus
 from backend.agents.checkers.base import CheckerResult
@@ -53,11 +52,8 @@ def get_ai_provider():
 
 def get_ai_service() -> AIService:
     """Get AI service singleton instance."""
-    if not settings.minimax_api_key:
-        raise HTTPException(
-            status_code=500,
-            detail="MiniMax API key not configured. Set MINIMAX_API_KEY in environment."
-        )
+    if ai_service.router is None:
+        raise HTTPException(status_code=503, detail="AI service not configured")
     return ai_service
 
 
@@ -136,21 +132,6 @@ class GenerateRequest(BaseModel):
             raise ValueError(f'Operation must be one of: {", ".join(sorted(VALID_OPERATIONS))}')
         return v
 
-    @field_validator('human_ai_ratio')
-    @classmethod
-    def validate_human_ai_ratio(cls, v: Optional[int]) -> Optional[int]:
-        if v is not None:
-            if v < 0 or v > 100:
-                raise ValueError('human_ai_ratio must be between 0 and 100')
-        return v
-
-    @field_validator('chapter_id')
-    @classmethod
-    def validate_chapter_id(cls, v: Optional[int]) -> Optional[int]:
-        if v is not None and v <= 0:
-            raise ValueError('chapter_id must be a positive integer')
-        return v
-
 
 class ReviewRequest(BaseModel):
     """Request for AI setting review."""
@@ -211,13 +192,6 @@ class CheckerBaseRequest(BaseModel):
 
     chapter_id: int = Field(..., description="Chapter ID to check", gt=0)
 
-    @field_validator('chapter_id')
-    @classmethod
-    def validate_chapter_id(cls, v: int) -> int:
-        if v <= 0:
-            raise ValueError('chapter_id must be a positive integer')
-        return v
-
 
 class OOCCheckerRequest(BaseModel):
     """Request for OOC (Out-Of-Character) check."""
@@ -225,20 +199,6 @@ class OOCCheckerRequest(BaseModel):
 
     chapter_id: int = Field(..., description="Chapter ID to check", gt=0)
     character_id: int = Field(..., description="Character ID to verify", gt=0)
-
-    @field_validator('chapter_id')
-    @classmethod
-    def validate_chapter_id(cls, v: int) -> int:
-        if v <= 0:
-            raise ValueError('chapter_id must be a positive integer')
-        return v
-
-    @field_validator('character_id')
-    @classmethod
-    def validate_character_id(cls, v: int) -> int:
-        if v <= 0:
-            raise ValueError('character_id must be a positive integer')
-        return v
 
 
 class CheckerBaseResponse(BaseModel):
@@ -508,13 +468,6 @@ class ContextRequest(BaseModel):
 
     chapter_id: int = Field(..., description="Chapter ID", gt=0)
 
-    @field_validator('chapter_id')
-    @classmethod
-    def validate_chapter_id(cls, v: int) -> int:
-        if v <= 0:
-            raise ValueError('chapter_id must be a positive integer')
-        return v
-
 
 class ExtractRequest(BaseModel):
     """Request for extracting structured entities."""
@@ -533,13 +486,6 @@ class ExtractRequest(BaseModel):
         if len(v) > MAX_CONTENT_LENGTH:
             raise ValueError(f'Content exceeds maximum length of {MAX_CONTENT_LENGTH} characters')
         return v.strip()
-
-    @field_validator('chapter_id')
-    @classmethod
-    def validate_chapter_id(cls, v: Optional[int]) -> Optional[int]:
-        if v is not None and v <= 0:
-            raise ValueError('chapter_id must be a positive integer')
-        return v
 
 
 class ContextResponse(BaseModel):

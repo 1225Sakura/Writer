@@ -291,7 +291,7 @@ class MiniMaxAPIClient:
         async def _make_request() -> str:
             async with httpx.AsyncClient(timeout=self.timeout) as client:
                 response = await client.post(
-                    f"{self.ai_service.base_url}/text/chatcompletion_v2",
+                    f"{self.ai_service.base_url}{self.ai_service.endpoint_path}",
                     headers={
                         "Authorization": f"Bearer {self.ai_service.api_key}",
                         "Content-Type": "application/json",

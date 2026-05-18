@@ -344,3 +344,34 @@ class HealthCheckResponse(BaseModel):
     dependencies: dict
     database: dict
     system: dict
+
+
+# ============================================
+# AI Provider Config Response Schemas
+# ============================================
+
+class AIProviderConfigResponse(BaseModel):
+    """AI provider configuration response."""
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    project_id: Optional[int]
+    name: str
+    api_key: str
+    base_url: str
+    model_name: str
+    max_tokens: int
+    temperature: float
+    is_active: bool
+    created_at: datetime
+    updated_at: datetime
+
+
+class ConnectionTestResponse(BaseModel):
+    """Connection test result response."""
+    model_config = ConfigDict(populate_by_name=True)
+
+    success: bool
+    latency_ms: float
+    message: str
+    error_detail: Optional[str] = None

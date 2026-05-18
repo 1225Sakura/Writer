@@ -425,3 +425,55 @@ export interface EntityFilters {
   entity_type?: string
   confirmed?: boolean
 }
+
+// ============================================
+// AI Provider Config Types
+// ============================================
+
+export interface AIProviderConfig {
+  id: number
+  project_id: number | null
+  name: string
+  api_key: string
+  base_url: string
+  model_name: string
+  max_tokens: number
+  temperature: number
+  is_active: boolean
+  created_at: string
+  updated_at: string
+}
+
+export interface AIProviderConfigCreate {
+  name: string
+  api_key: string
+  base_url: string
+  model_name: string
+  max_tokens?: number
+  temperature?: number
+  project_id?: number | null
+}
+
+export interface AIProviderConfigUpdate {
+  name?: string
+  api_key?: string
+  base_url?: string
+  model_name?: string
+  max_tokens?: number
+  temperature?: number
+}
+
+export interface AIProviderConfigTest {
+  api_key: string
+  base_url: string
+  model_name: string
+  max_tokens?: number
+  temperature?: number
+}
+
+export interface ConnectionTestResult {
+  success: boolean
+  latency_ms: number
+  message: string
+  error_detail?: string | null
+}
