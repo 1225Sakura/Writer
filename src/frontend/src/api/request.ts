@@ -363,7 +363,7 @@ const setupInterceptors = (client: AxiosInstance): void => {
     },
     (error: AxiosError) => {
       if (isDev() && error.response) {
-        console.error(`[API Error] ${error.config?.method?.toUpperCase()} ${error.config?.url} -> ${error.response.status}`, error.response.data)
+        console.error('[API Error] %s %s -> %d', error.config?.method?.toUpperCase(), error.config?.url, error.response.status)
       }
       return Promise.reject(transformError(error))
     }

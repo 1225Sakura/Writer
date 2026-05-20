@@ -1,8 +1,8 @@
-import { useWritingStore } from '@/store'
+import { useAIStore } from '@/store'
 import { Users } from 'lucide-react'
 
 export function PanelHeader() {
-  const { loading } = useWritingStore()
+  const { loading } = useAIStore()
   const isOnline = !loading.ai
 
   return (

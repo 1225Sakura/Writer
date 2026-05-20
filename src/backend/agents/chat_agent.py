@@ -310,7 +310,7 @@ class ChatAgent(BaseAgent):
             try:
                 return json.loads(match.group(1))
             except json.JSONDecodeError:
-                pass
+                logger.debug("Failed to parse JSON from AI response markdown block, trying next pattern")
 
         # Look for raw JSON object
         match = re.search(r"(\{.*\})", text, re.DOTALL)
@@ -318,7 +318,7 @@ class ChatAgent(BaseAgent):
             try:
                 return json.loads(match.group(1))
             except json.JSONDecodeError:
-                pass
+                logger.debug("Failed to parse JSON from AI response raw object, trying next pattern")
 
         return None
 

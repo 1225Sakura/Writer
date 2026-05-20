@@ -1,4 +1,4 @@
-import { useWritingStore } from '@/store'
+import { useAIStore } from '@/store'
 import { memo, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
@@ -32,7 +32,7 @@ const QUICK_OPERATIONS: QuickOpDef[] = [
 ] as const
 
 export function QuickAIOperations() {
-  const { loading, optimize, expand, condense: shrink, rewrite, continue: continueWriting, polish } = useWritingStore()
+  const { loading, optimize, expand, condense: shrink, rewrite, continue: continueWriting, polish } = useAIStore()
   const [showQuickAIOps, setShowQuickAIOps] = useState(false)
   const [quickOpLoading, setQuickOpLoading] = useState<string | null>(null)
 

@@ -1,7 +1,7 @@
 # Auto Novel Writer - AI Routes
 # AI generation and review endpoints
 
-from fastapi import APIRouter, HTTPException, Depends, Request, status
+from fastapi import APIRouter, HTTPException, Depends, Request, status, Body
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field, field_validator
 from typing import Optional, AsyncIterator, List

@@ -38,11 +38,9 @@ class AIService:
     """
 
     def __init__(self, router: Optional[ProviderRouter] = None):
-        from backend.config import get_settings
-        _settings = get_settings()
         self._router = router
-        self._api_key: str = _settings.minimax_api_key or ""
-        self._base_url: str = (_settings.minimax_api_url or "https://api.minimax.chat/v1").rstrip("/")
+        self._api_key: str = settings.minimax_api_key or ""
+        self._base_url: str = (settings.minimax_api_url or "https://api.minimax.chat/v1").rstrip("/")
         self._endpoint_path: str = "/chat/completions"
 
     # ------------------------------------------------------------------

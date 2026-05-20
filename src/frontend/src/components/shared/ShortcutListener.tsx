@@ -1,5 +1,5 @@
 import { useEffect, useCallback } from 'react'
-import { useUIStore, useWritingStore } from '@/store'
+import { useUIStore, useWritingStore, useContentStore } from '@/store'
 import { getEditorInstance } from '@/store/editorRegistry'
 import {
   AI_SHORTCUT_OPERATIONS,
@@ -27,7 +27,7 @@ export function useGlobalShortcuts() {
   const setCurrentInterface = useUIStore((s) => s.setCurrentInterface)
   const currentChapterId = useWritingStore((s) => s.currentChapterId)
   const saveCurrentChapter = useWritingStore((s) => s.saveCurrentChapter)
-  const createChapter = useWritingStore((s) => s.createChapter)
+  const createChapter = useContentStore((s) => s.createChapter)
   const markSaved = useWritingStore((s) => s.markSaved)
 
   const handleSave = useCallback(async () => {

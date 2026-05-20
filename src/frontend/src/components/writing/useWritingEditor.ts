@@ -11,7 +11,7 @@ import Placeholder from '@tiptap/extension-placeholder'
 import Underline from '@tiptap/extension-underline'
 import TextAlign from '@tiptap/extension-text-align'
 import Highlight from '@tiptap/extension-highlight'
-import { useWritingStore, useUIStore } from '@/store'
+import { useWritingStore, useContentStore, useAIStore, useCheckerStore, useUIStore } from '@/store'
 import { setEditorInstance } from '@/store/editorRegistry'
 import { useEffect, useRef, useCallback, useState } from 'react'
 import { showToast } from '@/components/ui/Toast'
@@ -23,12 +23,9 @@ export function useWritingEditor() {
     updateContent,
     wordCount,
     currentChapterId,
-    chapters,
     writingStyle,
     humanAIRatio,
     saveCurrentChapter,
-    saveDraftVersion,
-    loading,
     saveStatus,
     lastSavedAt,
     markSaved,
@@ -38,10 +35,10 @@ export function useWritingEditor() {
     getSessionWPM,
     getTodayWordCount,
     targetWordCount,
-    runAllChecks,
-    clearCheckerResults,
-    error: storeError,
   } = useWritingStore()
+  const { chapters, saveDraftVersion } = useContentStore()
+  const { loading: aiLoading } = useAIStore()
+  const { runAllChecks, clearCheckerResults, error: storeError, loading: checkerLoading } = useCheckerStore()
 
   const { focusModeEnabled, typewriterMode, paragraphFocusMode, paperEdgeDecoration } = useUIStore()
   const currentChapter = chapters.find((c) => c.id === currentChapterId)
@@ -236,7 +233,7 @@ export function useWritingEditor() {
       }
       markSaved()
     } catch (error) {
-      console.error('Auto-save failed:', error)
+      console.warn('Auto-save failed:', error)
       setSaveStatus('unsaved')
     } finally {
       isSavingRef.current = false
@@ -261,6 +258,12 @@ export function useWritingEditor() {
     return () => document.removeEventListener('keydown', handleKeyDown)
   }, [editor])
 
+  // Merge loading states from all stores for consumers
+  const mergedLoading = {
+    ai: aiLoading.ai,
+    checkers: checkerLoading.checkers,
+  }
+
   return {
     editor,
     editorContainerRef,
@@ -270,7 +273,7 @@ export function useWritingEditor() {
     currentChapterId,
     writingStyle,
     humanAIRatio,
-    loading,
+    loading: mergedLoading,
     saveStatus,
     lastSavedAt,
     focusModeEnabled,

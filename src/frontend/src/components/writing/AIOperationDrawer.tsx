@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect } from 'react'
-import { useWritingStore, useContextStore } from '@/store'
+import { useWritingStore, useAIStore, useContextStore } from '@/store'
 import { getEditorInstance } from '@/store/editorRegistry'
 import { showToast } from '@/components/ui/Toast'
 import { Button } from '@/components/ui/Button'
@@ -68,7 +68,8 @@ function triggerHaptic() {
 }
 
 export function AIOperationDrawer() {
-  const { humanAIRatio, setHumanAIRatio, writingStyle, setWritingStyle, optimize, expand, condense: shrink, rewrite, continue: continueWriting, polish, aiJobQueue, currentJobId, cancelJob, retryJob, currentChapterId } = useWritingStore()
+  const { humanAIRatio, setHumanAIRatio, writingStyle, setWritingStyle, currentChapterId } = useWritingStore()
+  const { optimize, expand, condense: shrink, rewrite, continue: continueWriting, polish, aiJobQueue, currentJobId, cancelJob, retryJob } = useAIStore()
   const { contextPack, loading: contextLoading, buildContext } = useContextStore()
   const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set(['global', 'style', 'ratio', 'selection']))
   const [previewResult, setPreviewResult] = useState<{ operation: string; original: string; result: string; qualityScore: number } | null>(null)

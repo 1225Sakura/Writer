@@ -17,6 +17,11 @@ from backend.core.domain.schemas.request_schemas import (
 )
 from backend.utils.event_bus import AsyncEventBus
 from backend.infrastructure.cache.cache_service import CacheService
+from backend.infrastructure.security.encryption import (
+    encrypt_value,
+    decrypt_value,
+    is_encryption_available,
+)
 
 
 class ConnectionTestResult:
@@ -35,8 +40,22 @@ class AIProviderConfigService:
         self.event_bus = event_bus
         self.cache = cache
 
+    @staticmethod
+    def _encrypt_key(plaintext: str) -> str:
+        """Encrypt an API key if encryption is available, otherwise return as-is."""
+        if is_encryption_available():
+            return encrypt_value(plaintext)
+        return plaintext
+
+    @staticmethod
+    def _decrypt_key(ciphertext: str) -> str:
+        """Decrypt an API key if encryption is available, otherwise return as-is."""
+        if is_encryption_available():
+            return decrypt_value(ciphertext)
+        return ciphertext
+
     async def list_configs(self, project_id: Optional[int] = None) -> List[AIProviderConfig]:
-        """List global configs + project-level configs."""
+        """List global configs + project-level configs.  API keys are decrypted transparently."""
         stmt = select(AIProviderConfig).order_by(AIProviderConfig.is_active.desc(), AIProviderConfig.id)
         if project_id is not None:
             stmt = stmt.where(
@@ -45,22 +64,27 @@ class AIProviderConfigService:
         else:
             stmt = stmt.where(AIProviderConfig.project_id.is_(None))
         result = await self.db.execute(stmt)
-        return list(result.scalars().all())
+        configs = list(result.scalars().all())
+        # Decrypt keys for callers
+        for cfg in configs:
+            cfg.api_key = self._decrypt_key(cfg.api_key)
+        return configs
 
     async def get_config(self, config_id: int) -> AIProviderConfig:
-        """Get a single config by ID."""
+        """Get a single config by ID.  API key is decrypted transparently."""
         stmt = select(AIProviderConfig).where(AIProviderConfig.id == config_id)
         result = await self.db.execute(stmt)
         config = result.scalar_one_or_none()
         if not config:
             raise ValueError(f"AI Provider Config {config_id} not found")
+        config.api_key = self._decrypt_key(config.api_key)
         return config
 
     async def create_config(self, data: AIProviderConfigCreateRequest) -> AIProviderConfig:
         """Create a new config. If it's the first one, auto-activate."""
         config = AIProviderConfig(
             name=data.name,
-            api_key=data.api_key,
+            api_key=self._encrypt_key(data.api_key),
             base_url=data.base_url,
             model_name=data.model_name,
             max_tokens=data.max_tokens,
@@ -81,13 +105,17 @@ class AIProviderConfigService:
         return config
 
     async def update_config(self, config_id: int, data: AIProviderConfigUpdateRequest) -> AIProviderConfig:
-        """Update an existing config."""
+        """Update an existing config.  Encrypts api_key if provided."""
         config = await self.get_config(config_id)
         update_data = data.model_dump(exclude_unset=True)
         for key, value in update_data.items():
+            if key == "api_key" and value is not None:
+                value = self._encrypt_key(value)
             setattr(config, key, value)
         await self.db.commit()
         await self.db.refresh(config)
+        # Decrypt for the caller
+        config.api_key = self._decrypt_key(config.api_key)
         return config
 
     async def delete_config(self, config_id: int) -> None:
@@ -108,6 +136,7 @@ class AIProviderConfigService:
 
     async def activate_config(self, config_id: int) -> AIProviderConfig:
         """Set as active config (deactivate others in same scope)."""
+        # get_config already decrypts
         config = await self.get_config(config_id)
 
         # Deactivate all configs in the same scope
@@ -122,10 +151,12 @@ class AIProviderConfigService:
         config.is_active = True
         await self.db.commit()
         await self.db.refresh(config)
+        # Decrypt for caller
+        config.api_key = self._decrypt_key(config.api_key)
         return config
 
     async def test_connection(self, config_id: int) -> ConnectionTestResult:
-        """Test a saved config's connection."""
+        """Test a saved config's connection.  API key is decrypted via get_config."""
         config = await self.get_config(config_id)
         return await self._do_test(config.api_key, config.base_url, config.model_name)
 

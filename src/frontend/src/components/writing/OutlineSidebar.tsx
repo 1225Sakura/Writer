@@ -8,7 +8,7 @@
  */
 
 import { useState, useEffect, useCallback } from 'react'
-import { useWritingStore } from '@/store'
+import { useWritingStore, useContentStore } from '@/store'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   List,
@@ -36,15 +36,17 @@ import { EmptyState, PlotThreadItem, IFLineItem } from './OutlineItems'
 
 export function OutlineSidebar() {
   const {
-    chapters,
     currentChapterId,
     setCurrentChapter,
+  } = useWritingStore()
+  const {
+    chapters,
     plotThreads,
     fetchPlotThreads,
     updatePlotThread,
     ifLines,
     fetchIFLines,
-  } = useWritingStore()
+  } = useContentStore()
 
   const [activeTab, setActiveTab] = useState<'outline' | 'plot' | 'ifline'>('outline')
   const [outlineData, setOutlineData] = useState<OutlineItem[]>([])

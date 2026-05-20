@@ -1,4 +1,4 @@
-import { useWritingStore } from '@/store'
+import { useWritingStore, useContentStore } from '@/store'
 import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { BarChart3, Layers, Feather, Zap } from 'lucide-react'
@@ -6,7 +6,8 @@ import { CollapsibleSection } from './CollapsibleSection'
 
 export function ChapterProgress() {
   const [isExpanded, setIsExpanded] = useState(true)
-  const { wordCount, targetWordCount, chapters, fetchChapters, currentChapterId } = useWritingStore()
+  const { wordCount, targetWordCount, currentChapterId } = useWritingStore()
+  const { chapters, fetchChapters } = useContentStore()
 
   useEffect(() => { fetchChapters() }, [fetchChapters])
 

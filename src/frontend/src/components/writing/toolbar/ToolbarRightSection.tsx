@@ -1,4 +1,4 @@
-import { useUIStore, useWritingStore } from '@/store'
+import { useUIStore, useWritingStore, useCheckerStore, useAIStore } from '@/store'
 import { memo } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
@@ -39,9 +39,11 @@ export function ToolbarRightSection() {
   } = useUIStore()
   const {
     wordCount,
+  } = useWritingStore()
+  const {
     oocWarnings,
     powerImbalanceWarnings,
-  } = useWritingStore()
+  } = useCheckerStore()
 
   const hasWarnings = oocWarnings.length > 0 || powerImbalanceWarnings.length > 0
 
@@ -109,7 +111,7 @@ export function ToolbarRightSection() {
 }
 
 function AIStatusIndicator() {
-  const { loading } = useWritingStore()
+  const { loading } = useAIStore()
   const isAIGenerating = loading.ai
 
   return (

@@ -85,7 +85,8 @@ class Settings(BaseSettings):
     agent_retry_delay: float = 1.0
 
     # Rate Limiting
-    rate_limit_storage: str = "memory"  # "memory" or "redis"
+    rate_limit_storage: str = "memory"  # "memory", "sqlite", or "redis"
+    rate_limit_db_path: str = "data/rate_limit.db"  # SQLite rate limit DB path
     redis_url: str | None = None
     rate_limit_default: int = 60  # requests per window
     rate_limit_window: float = 60.0  # window in seconds

@@ -4,7 +4,7 @@
  */
 
 import { useState, useCallback, useRef, useMemo, useEffect } from "react";
-import { useUIStore, useWritingStore, useSettingsStore, useChatStore } from "@/store";
+import { useUIStore, useWritingStore, useContentStore, useSettingsStore, useChatStore } from "@/store";
 import { showToast } from "@/components/ui/Toast";
 import type { AIOperationType } from "@/constants/shortcuts";
 import { fuzzyMatch } from "./CommandResults";
@@ -34,7 +34,8 @@ export function useCommandPalette() {
     setSettingsCategory,
   } = useUIStore();
 
-  const { currentChapterId, saveCurrentChapter, createChapter } = useWritingStore();
+  const { currentChapterId, saveCurrentChapter } = useWritingStore();
+  const { createChapter } = useContentStore();
   const { characters, locations } = useSettingsStore();
   const { createSession } = useChatStore();
 

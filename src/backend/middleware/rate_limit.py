@@ -72,8 +72,46 @@ class RateLimitStore:
             return True, max_requests, remaining - 1
 
 
+class _SQLiteRateLimitAdapter:
+    """Adapter that wraps SQLiteRateLimiter to match the RateLimitStore interface."""
+
+    def __init__(self):
+        self._limiter = None
+
+    def _get_limiter(self):
+        if self._limiter is None:
+            from backend.infrastructure.rate_limit.sqlite_limiter import SQLiteRateLimiter
+            import os
+            db_path = settings.rate_limit_db_path
+            # Ensure parent directory exists
+            parent = os.path.dirname(db_path)
+            if parent:
+                os.makedirs(parent, exist_ok=True)
+            self._limiter = SQLiteRateLimiter(db_path=db_path)
+        return self._limiter
+
+    async def check_rate_limit(
+        self,
+        client_ip: str,
+        max_requests: int,
+        window_seconds: float,
+    ) -> tuple[bool, int, int]:
+        """Check rate limit using SQLite backend. Returns (allowed, limit, remaining)."""
+        limiter = self._get_limiter()
+        return await limiter.check(client_ip, max_requests, window_seconds)
+
+
+def _create_rate_limit_store():
+    """Create the appropriate rate limit store based on settings."""
+    if settings.rate_limit_storage == "sqlite":
+        logger.info("Using SQLite-backed rate limit storage at %s", settings.rate_limit_db_path)
+        return _SQLiteRateLimitAdapter()
+    logger.info("Using in-memory rate limit storage")
+    return RateLimitStore()
+
+
 # Global rate limit store
-_rate_limit_store = RateLimitStore()
+_rate_limit_store = _create_rate_limit_store()
 
 # Default rate limit configuration from settings
 DEFAULT_RATE_LIMIT = settings.rate_limit_default

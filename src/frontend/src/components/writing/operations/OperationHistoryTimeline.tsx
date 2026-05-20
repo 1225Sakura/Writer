@@ -1,4 +1,4 @@
-import { useWritingStore } from '@/store'
+import { useAIStore } from '@/store'
 import { motion } from 'framer-motion'
 import { History } from 'lucide-react'
 
@@ -23,7 +23,7 @@ function formatTimeAgo(timestamp: number): string {
 }
 
 export function OperationHistoryTimeline() {
-  const { aiJobQueue } = useWritingStore()
+  const { aiJobQueue } = useAIStore()
   const completedJobs = aiJobQueue.filter((j) => j.status === 'completed').slice(-5).reverse()
 
   if (completedJobs.length === 0) return null

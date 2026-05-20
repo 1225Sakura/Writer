@@ -120,8 +120,12 @@ class ConnectionManager:
         self.heartbeat_timeout = heartbeat_timeout
 
         # Message queue for disconnected clients: session_id -> list of QueuedMessage
+        # (in-memory; backed by SQLite when ws_queue is set)
         self.message_queues: Dict[int, List[QueuedMessage]] = defaultdict(list)
         self.max_queue_size = max_queue_size
+
+        # SQLite-backed persistent message queue (set via set_ws_queue)
+        self.ws_queue = None  # Optional[WSMessageQueue]
 
         # Rate limiting: session_id -> list of timestamps
         self.rate_limit_tracking: Dict[int, List[float]] = defaultdict(list)
@@ -279,16 +283,22 @@ class ConnectionManager:
             return False
         return time.time() - self.connection_last_pong[ws_id] > self.heartbeat_timeout
 
+    def set_ws_queue(self, ws_queue):
+        """Attach a SQLite-backed WSMessageQueue for persistent message queuing."""
+        self.ws_queue = ws_queue
+        logger.info("ConnectionManager: SQLite-backed message queue attached")
+
     async def queue_message(self, session_id: int, message: dict):
         """
         Queue a message for a session that may be temporarily disconnected.
         Messages are stored for later delivery when client reconnects.
+        When a SQLite-backed ws_queue is attached, messages are also persisted.
         """
+        # Always queue in memory for fast access
         if session_id not in self.message_queues:
             self.message_queues[session_id] = []
 
         if len(self.message_queues[session_id]) >= self.max_queue_size:
-            # Remove oldest message if queue is full
             self.message_queues[session_id].pop(0)
 
         self.message_queues[session_id].append(QueuedMessage(
@@ -296,21 +306,58 @@ class ConnectionManager:
             timestamp=time.time(),
             retry_count=0
         ))
+
+        # Persist to SQLite if available
+        if self.ws_queue is not None:
+            try:
+                await self.ws_queue.enqueue(session_id, message)
+            except Exception as e:
+                logger.warning("Failed to persist queued message to SQLite: %s", e)
+
         logger.debug(f"Queued message for session {session_id}, queue size: {len(self.message_queues[session_id])}")
 
-    def get_queued_messages(self, session_id: int) -> List[dict]:
-        """Get all queued messages for a session and clear the queue."""
+    async def get_queued_messages(self, session_id: int) -> List[dict]:
+        """
+        Get all queued messages for a session and clear the queue.
+
+        First drains the in-memory queue, then pulls any additional
+        messages persisted in SQLite (e.g. from a previous server run).
+        """
+        # Drain in-memory queue
         messages = [q.data for q in self.message_queues.get(session_id, [])]
         self.message_queues.pop(session_id, None)
+
+        # Pull persisted messages from SQLite
+        if self.ws_queue is not None:
+            try:
+                persisted = await self.ws_queue.dequeue_all(session_id)
+                if persisted:
+                    messages.extend(persisted)
+            except Exception as e:
+                logger.warning("Failed to dequeue persisted messages: %s", e)
+
         return messages
 
-    def has_queued_messages(self, session_id: int) -> bool:
-        """Check if a session has queued messages."""
-        return session_id in self.message_queues and len(self.message_queues[session_id]) > 0
+    async def has_queued_messages(self, session_id: int) -> bool:
+        """Check if a session has queued messages (in-memory or SQLite)."""
+        if session_id in self.message_queues and len(self.message_queues[session_id]) > 0:
+            return True
+        if self.ws_queue is not None:
+            try:
+                return await self.ws_queue.has_messages(session_id)
+            except Exception:
+                pass
+        return False
 
-    def get_queue_size(self, session_id: int) -> int:
-        """Get the number of queued messages for a session."""
-        return len(self.message_queues.get(session_id, []))
+    async def get_queue_size(self, session_id: int) -> int:
+        """Get the number of queued messages for a session (in-memory + SQLite)."""
+        count = len(self.message_queues.get(session_id, []))
+        if self.ws_queue is not None:
+            try:
+                count += await self.ws_queue.queue_size(session_id)
+            except Exception:
+                pass
+        return count
 
     def validate_message_size(self, message: str) -> tuple[bool, str]:
         """Validate that a message doesn't exceed the size limit."""
@@ -319,13 +366,14 @@ class ConnectionManager:
             return False, f"Message size {size} exceeds limit of {self.max_message_size}"
         return True, ""
 
-    def get_status(self, session_id: int) -> dict:
+    async def get_status(self, session_id: int) -> dict:
         """Get connection status for a session."""
+        queue_size = await self.get_queue_size(session_id)
         return {
             "session_id": session_id,
             "status": self.connection_status.get(session_id, "unknown"),
             "connections": len(self.active_connections.get(session_id, [])),
-            "queued_messages": self.get_queue_size(session_id),
+            "queued_messages": queue_size,
             "rate_limit": {
                 "remaining": self.rate_limit_max_messages - len(self.rate_limit_tracking.get(session_id, [])),
                 "limit": self.rate_limit_max_messages,
@@ -333,23 +381,24 @@ class ConnectionManager:
             }
         }
 
-    def get_all_status(self) -> dict:
+    async def get_all_status(self) -> dict:
         """Get status of all sessions."""
+        sessions_info = {}
+        for sid in set(list(self.connection_status.keys()) + list(self.active_connections.keys())):
+            status = self.connection_status.get(sid, "unknown")
+            conns = self.active_connections.get(sid, [])
+            queue_size = await self.get_queue_size(sid)
+            sessions_info[sid] = {
+                "status": status,
+                "connections": len(conns),
+                "queued_messages": queue_size,
+                "rate_limit_remaining": self.rate_limit_max_messages - len(self.rate_limit_tracking.get(sid, []))
+            }
+
         return {
             "total_sessions": len(self.active_connections),
             "total_connections": sum(len(conns) for conns in self.active_connections.values()),
-            "sessions": {
-                sid: {
-                    "status": status,
-                    "connections": len(conns),
-                    "queued_messages": self.get_queue_size(sid),
-                    "rate_limit_remaining": self.rate_limit_max_messages - len(self.rate_limit_tracking.get(sid, []))
-                }
-                for sid, (status, conns) in [
-                    (sid, (self.connection_status.get(sid, "unknown"), self.active_connections.get(sid, [])))
-                    for sid in set(list(self.connection_status.keys()) + list(self.active_connections.keys()))
-                ]
-            }
+            "sessions": sessions_info,
         }
 
 
@@ -394,6 +443,7 @@ async def lifespan(app: FastAPI):
 
     # Startup
     logger.info("Application starting up...")
+    startup_errors: list[str] = []
 
     # Register event handlers for cache invalidation and stats
     try:
@@ -403,7 +453,20 @@ async def lifespan(app: FastAPI):
         register_handlers(event_bus)
         logger.info("Event handlers registered")
     except Exception as e:
-        logger.warning(f"Failed to register event handlers: {e}")
+        logger.error("Failed to register event handlers: %s", e)
+        startup_errors.append(f"event handlers: {e}")
+
+    # Initialize SQLite-backed WebSocket message queue for reconnection resilience
+    try:
+        import os
+        from backend.services.ws_message_queue import WSMessageQueue
+        ws_queue_db = os.path.join(os.path.dirname(settings.database_url.replace("sqlite+aiosqlite:///", "")), "ws_queue.db")
+        ws_queue = WSMessageQueue(db_path=ws_queue_db)
+        await ws_queue.initialise()
+        manager.set_ws_queue(ws_queue)
+        logger.info("WebSocket message queue initialised at %s", ws_queue_db)
+    except Exception as e:
+        logger.warning("Failed to initialise WebSocket message queue: %s", e)
 
     # Check database migrations are current
     try:
@@ -426,7 +489,8 @@ async def lifespan(app: FastAPI):
     except ImportError:
         logger.debug("Task queue not available")
     except Exception as e:
-        logger.warning(f"Failed to start task queue: {e}")
+        logger.error("Failed to start task queue: %s", e)
+        startup_errors.append(f"task queue: {e}")
 
     # Preload hot data into cache
     try:
@@ -448,7 +512,21 @@ async def lifespan(app: FastAPI):
     except ImportError:
         logger.debug("Preload service not available")
     except Exception as e:
-        logger.warning(f"Failed to preload cache data: {e}")
+        logger.error("Failed to preload cache data: %s", e)
+        startup_errors.append(f"cache preload: {e}")
+
+    # Encrypt any existing plaintext API keys in the database
+    try:
+        from backend.infrastructure.security.encryption import migrate_plaintext_keys
+        from backend.infrastructure.database import async_session_maker as _enc_session_factory
+        migrated = await migrate_plaintext_keys(_enc_session_factory)
+        if migrated:
+            logger.info("Encrypted %d plaintext API key(s) at startup", migrated)
+    except ImportError:
+        logger.debug("Encryption module not available; skipping key migration")
+    except Exception as e:
+        logger.warning("Failed to migrate plaintext API keys: %s", e)
+        startup_errors.append(f"encryption migration: {e}")
 
     # Initialize AI ProviderRouter and wire to AIService
     try:
@@ -475,6 +553,12 @@ async def lifespan(app: FastAPI):
             pass
 
         if db_config:
+            # Decrypt the API key if it was stored encrypted
+            try:
+                from backend.infrastructure.security.encryption import decrypt_value as _decrypt_key
+                db_config.api_key = _decrypt_key(db_config.api_key)
+            except Exception:
+                pass  # Already plaintext or encryption unavailable
             await ai_service.reload_from_config(db_config)
             logger.info(
                 "AI provider loaded from database: %s (%s @ %s)",
@@ -528,7 +612,8 @@ async def lifespan(app: FastAPI):
     except ImportError as e:
         logger.debug("ProviderRouter not available: %s", e)
     except Exception as e:
-        logger.warning(f"Failed to initialize ProviderRouter: {e}")
+        logger.error("Failed to initialize ProviderRouter: %s", e)
+        startup_errors.append(f"AI ProviderRouter: {e}")
 
     # Initialize workflow orchestrator and register core workflows
     try:
@@ -552,16 +637,25 @@ async def lifespan(app: FastAPI):
     except ImportError as e:
         logger.debug("Workflow orchestrator not available: %s", e)
     except Exception as e:
-        logger.warning(f"Failed to initialize workflow orchestrator: {e}")
+        logger.error("Failed to initialize workflow orchestrator: %s", e)
+        startup_errors.append(f"workflow orchestrator: {e}")
 
     # Initialize metrics service
     try:
         await metrics_service.start()
         logger.info("Metrics service started")
     except Exception as e:
-        logger.warning(f"Failed to start metrics service: {e}")
+        logger.error("Failed to start metrics service: %s", e)
+        startup_errors.append(f"metrics service: {e}")
 
-    logger.info("Application startup complete")
+    if startup_errors:
+        logger.error(
+            "Application startup completed with %d error(s): %s",
+            len(startup_errors),
+            "; ".join(startup_errors),
+        )
+    else:
+        logger.info("Application startup complete")
 
     yield
 
@@ -736,7 +830,7 @@ async def root_live():
 @app.get("/ws/status/{session_id}")
 async def websocket_status(session_id: int):
     """Get WebSocket connection status for a session."""
-    return manager.get_status(session_id)
+    return await manager.get_status(session_id)
 
 
 # WebSocket endpoint for real-time chat
@@ -810,7 +904,7 @@ async def websocket_chat(
         _pending_tasks.add(stale_task)
 
         # Deliver any queued messages on connect
-        queued = manager.get_queued_messages(session_id)
+        queued = await manager.get_queued_messages(session_id)
         for msg in queued:
             await manager.send_personal(websocket, {**msg, "type": "queued_message"})
 

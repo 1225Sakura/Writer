@@ -1,4 +1,4 @@
-import { useWritingStore } from '@/store'
+import { useWritingStore, useAIStore } from '@/store'
 import { usePrefersReducedMotion } from '@/hooks'
 import { motion } from 'framer-motion'
 import { DURATION, EASE } from '@/components/shared/AnimationConfig'
@@ -50,8 +50,9 @@ export function ActivityItem({ icon, text, time, highlight = false }: ActivityIt
 }
 
 export function CollaborationStatus() {
-  const { humanAIRatio, loading } = useWritingStore()
-  const isAIGenerating = loading.ai
+  const { humanAIRatio } = useWritingStore()
+  const { loading: aiLoading } = useAIStore()
+  const isAIGenerating = aiLoading.ai
   const prefersReducedMotion = usePrefersReducedMotion()
 
   const getModeLabel = (ratio: number) => {

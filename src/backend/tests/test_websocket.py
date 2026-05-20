@@ -140,18 +140,20 @@ class TestConnectionManager:
         # Should not raise
         await conn_manager.broadcast({"type": "test"})
 
-    def test_get_status_for_active_session(self, conn_manager, mock_websocket):
+    @pytest.mark.asyncio
+    async def test_get_status_for_active_session(self, conn_manager, mock_websocket):
         """Get status returns correct info for active session."""
-        asyncio.run(conn_manager.connect(mock_websocket, session_id=1))
+        await conn_manager.connect(mock_websocket, session_id=1)
 
-        status = conn_manager.get_status(1)
+        status = await conn_manager.get_status(1)
         assert status["session_id"] == 1
         assert status["status"] == "connected"
         assert status["connections"] == 1
 
-    def test_get_status_for_unknown_session(self, conn_manager):
+    @pytest.mark.asyncio
+    async def test_get_status_for_unknown_session(self, conn_manager):
         """Get status returns unknown for non-existent session."""
-        status = conn_manager.get_status(999)
+        status = await conn_manager.get_status(999)
         assert status["session_id"] == 999
         assert status["status"] == "unknown"
         assert status["connections"] == 0
@@ -214,7 +216,7 @@ class TestWebSocketEndpoints:
 
         @app.get("/ws/status/{session_id}")
         async def websocket_status(session_id: int):
-            return test_manager.get_status(session_id)
+            return await test_manager.get_status(session_id)
 
         return app
 

@@ -1,4 +1,4 @@
-import { useWritingStore } from '@/store'
+import { useAIStore } from '@/store'
 import { getEditorInstance } from '@/store/editorRegistry'
 import {
   AI_OPERATION_LABELS,
@@ -19,8 +19,8 @@ export async function executeAIOperation(operation: AIOperationType, selectedTex
   showToast(`正在${label}...`, 'info')
 
   try {
-    // 获取writing store中的AI操作方法
-    const store = useWritingStore.getState()
+    // 获取AI store中的操作方法
+    const store = useAIStore.getState()
     let result: string
 
     switch (operation) {

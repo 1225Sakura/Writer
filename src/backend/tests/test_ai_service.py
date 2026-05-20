@@ -296,13 +296,19 @@ class TestEdgeCases:
 
     def test_empty_api_key(self):
         """AIService accepts empty API key (fails at request time)."""
-        service = AIService()
-        assert service.api_key == ""
+        with patch("backend.core.services.ai.ai_service.settings") as mock_settings:
+            mock_settings.minimax_api_key = ""
+            mock_settings.minimax_api_url = "https://api.minimax.chat/v1"
+            service = AIService()
+            assert service.api_key == ""
 
     def test_base_url_trailing_slash_removed(self):
         """Base URL trailing slash is removed."""
-        service = AIService()
-        assert service.base_url == "https://api.minimax.chat/v1"
+        with patch("backend.core.services.ai.ai_service.settings") as mock_settings:
+            mock_settings.minimax_api_key = ""
+            mock_settings.minimax_api_url = "https://api.minimax.chat/v1"
+            service = AIService()
+            assert service.base_url == "https://api.minimax.chat/v1"
 
     def test_very_long_prompt(self, ai_service):
         """Very long prompt is handled."""

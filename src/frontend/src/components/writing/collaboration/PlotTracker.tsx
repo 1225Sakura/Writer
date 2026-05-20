@@ -1,4 +1,4 @@
-import { useWritingStore } from '@/store'
+import { useWritingStore, useContentStore } from '@/store'
 import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { AlertCircle, Plus, Check } from 'lucide-react'
@@ -7,7 +7,8 @@ import { CollapsibleSection } from './CollapsibleSection'
 
 export function PlotTracker() {
   const [isExpanded, setIsExpanded] = useState(true)
-  const { plotThreads, fetchPlotThreads, updatePlotThread, createPlotThread, currentChapterId } = useWritingStore()
+  const { currentChapterId } = useWritingStore()
+  const { plotThreads, fetchPlotThreads, updatePlotThread, createPlotThread } = useContentStore()
   const [newTitle, setNewTitle] = useState('')
   const [newDesc, setNewDesc] = useState('')
   const [isCreating, setIsCreating] = useState(false)

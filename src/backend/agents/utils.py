@@ -154,7 +154,7 @@ def extract_json_from_response(content: str) -> Any:
                             try:
                                 return json.loads(content[json_start:i + 1])
                             except json.JSONDecodeError:
-                                pass
+                                logger.debug("JSON parse fallback failed for array candidate at position %d", json_start)
                             break
             else:
                 # Object
@@ -163,7 +163,7 @@ def extract_json_from_response(content: str) -> Any:
                     try:
                         return json.loads(content[json_start:json_end])
                     except json.JSONDecodeError:
-                        pass
+                        logger.debug("JSON parse fallback failed for object candidate at position %d", json_start)
 
         raise ValueError(f"Cannot parse JSON from response: {e}") from e
 

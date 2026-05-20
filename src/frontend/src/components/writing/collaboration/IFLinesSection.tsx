@@ -1,4 +1,4 @@
-import { useWritingStore } from '@/store'
+import { useContentStore } from '@/store'
 import { motion } from 'framer-motion'
 import { useState, useEffect } from 'react'
 import { GitBranch } from 'lucide-react'
@@ -7,7 +7,7 @@ import { CollaboratorAvatars } from './CollaboratorAvatars'
 
 export function IFLinesSection() {
   const [isExpanded, setIsExpanded] = useState(true)
-  const { ifLines, fetchIFLines } = useWritingStore()
+  const { ifLines, fetchIFLines } = useContentStore()
 
   useEffect(() => { fetchIFLines() }, [fetchIFLines])
 

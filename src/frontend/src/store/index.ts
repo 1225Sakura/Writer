@@ -51,24 +51,50 @@ export {
   cleanupUIStore,
 } from './uiStore'
 
-// Writing Store
+// Writing Store (editor state, session, config)
 export {
   useWritingStore,
   type WritingStyle,
-  type AIGenerationJob,
   type AutoSaveState,
-  type DraftVersionLocal as DraftVersion,
-  type PlotThreadLocal as PlotThread,
-  type AIInspectionResultLocal as AIInspectionResult,
+  type ChapterNote,
+  type WritingSession,
+  type DailyStats,
   selectCurrentChapter,
   selectDraftVersionsForCurrentChapter,
-  selectPendingJobs,
-  selectCompletedJobs,
   selectWritingConfig,
   selectCurrentContent,
   selectLoadingState,
   cleanupWritingStore,
 } from './writingStore'
+
+// Content Store (chapters, outlines, drafts, IF lines, plot threads, inspections)
+export {
+  useContentStore,
+  type DraftVersionLocal as DraftVersion,
+  type PlotThreadLocal as PlotThread,
+  type AIInspectionResultLocal as AIInspectionResult,
+  selectChapters,
+  selectContentLoading,
+  cleanupContentStore,
+} from './contentStore'
+
+// AI Store (generation queue, streaming, styles)
+export {
+  useAIStore,
+  type AIGenerationJob,
+  selectPendingJobs,
+  selectCompletedJobs,
+  cleanupAIStore,
+} from './aiStore'
+
+// Checker Store (consistency, continuity, pacing, OOC, high-point, reader-pull)
+export {
+  useCheckerStore,
+  selectCheckerResults,
+  selectCheckerLoading,
+  selectCheckerError,
+  cleanupCheckerStore,
+} from './checkerStore'
 
 // History Store
 export {
