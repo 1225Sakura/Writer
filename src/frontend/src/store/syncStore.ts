@@ -3,6 +3,7 @@ import { persist, subscribeWithSelector } from 'zustand/middleware'
 import { immer } from 'zustand/middleware/immer'
 import { createHybridStorage } from './utils/indexedDBStorage'
 import { api } from '../api/request'
+import { showError } from '../utils/toastHelper'
 
 // ============================================
 // Types
@@ -269,7 +270,7 @@ export const useSyncStore = create<SyncState & SyncActions>()(
                 state.isSyncing = false
               })
             } catch (error) {
-              console.error('Global sync failed:', error)
+              showError('全局同步失败，请稍后重试')
               set((state) => { state.isSyncing = false })
             }
           },

@@ -1,6 +1,3 @@
-# Auto Novel Writer - Startup Preload Service
-# Preloads hot data into TieredCache at application startup
-
 import time
 import logging
 from typing import Any, Optional
@@ -299,8 +296,8 @@ class PreloadService:
         if self._tiered_cache is not None:
             try:
                 self._tiered_cache.set(key, value, ttl=ttl, tier="l1")
-            except Exception:
-                pass
+            except Exception as e:
+                logger.debug("Tiered cache set failed (non-critical): %s", e)
 
 
 # Singleton instance

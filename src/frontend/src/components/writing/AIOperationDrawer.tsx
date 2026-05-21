@@ -110,7 +110,6 @@ export function AIOperationDrawer() {
       setPreviewResult({ operation, original: selectedText, result, qualityScore })
       showToast(`${getOperationLabel(operation)}完成`, 'success')
     } catch (error) {
-      console.error(`[写作操作] ${operation} failed:`, error)
       showToast(`${getOperationLabel(operation)}失败: ${error instanceof Error ? error.message : '未知错误'}`, 'error')
     } finally {
       setIsLoading(false)

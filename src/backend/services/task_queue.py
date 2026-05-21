@@ -1,7 +1,3 @@
-# Auto Novel Writer - Background Task Queue
-# Lightweight asyncio-based task queue for local desktop app
-# Python 3.11+
-
 import asyncio
 import json
 import logging
@@ -93,7 +89,7 @@ class TaskQueue:
             asyncio.create_task(self._worker_loop(f"worker-{i}"))
             for i in range(self.max_workers)
         ]
-        logger.info(f"Task queue started with {self.max_workers} workers")
+        logger.info("Task queue started with %d workers", self.max_workers)
 
     async def stop(self):
         """Stop the worker pool gracefully."""
@@ -129,7 +125,7 @@ class TaskQueue:
             self._tasks[task.id] = task
         await self._persist_task(task)
         await self._queue.put(task)
-        logger.info(f"Task submitted: {task.id} ({task_type})")
+        logger.info("Task submitted: %s (%s)", task.id, task_type)
         return task
 
     async def get_task(self, task_id: str) -> Optional[Task]:
@@ -172,7 +168,7 @@ class TaskQueue:
                     task.cancel()
                     task.status = TaskStatus.CANCELLED
                     await self._persist_task(task)
-                    logger.info(f"Task cancelled: {task_id}")
+                    logger.info("Task cancelled: %s", task_id)
                     return True
                 return False
         # Check database for pending task
@@ -201,7 +197,8 @@ class TaskQueue:
                 task = await asyncio.wait_for(self._queue.get(), timeout=1.0)
             except asyncio.TimeoutError:
                 continue
-            except Exception:
+            except Exception as e:
+                logger.error("Worker %s encountered fatal error, stopping: %s", worker_name, e)
                 break
 
             if task.is_cancelled():
@@ -229,15 +226,15 @@ class TaskQueue:
             task.result = result
             task.status = TaskStatus.COMPLETED
             task.error = None
-            logger.info(f"Task completed: {task.id}")
+            logger.info("Task completed: %s", task.id)
         except Exception as e:
             task.retries += 1
             if task.retries <= self.max_retries:
                 # Exponential backoff: 2^retries seconds
                 backoff = 2 ** task.retries
                 logger.warning(
-                    f"Task failed (attempt {task.retries}/{self.max_retries}): "
-                    f"{task.id}, retrying in {backoff}s: {e}"
+                    "Task failed (attempt %d/%d): %s, retrying in %ds: %s",
+                    task.retries, self.max_retries, task.id, backoff, e,
                 )
                 await asyncio.sleep(backoff)
                 await self._queue.put(task)
@@ -245,7 +242,7 @@ class TaskQueue:
             else:
                 task.status = TaskStatus.FAILED
                 task.error = str(e)
-                logger.error(f"Task failed permanently: {task.id}: {e}")
+                logger.error("Task failed permanently: %s: %s", task.id, e)
 
         task.updated_at = datetime.now(timezone.utc)
         await self._persist_task(task)
@@ -276,7 +273,7 @@ class TaskQueue:
                     session.add(db_task)
                 await session.commit()
         except Exception as e:
-            logger.error(f"Failed to persist task {task.id}: {e}")
+            logger.error("Failed to persist task %s: %s", task.id, e)
 
     async def _get_task_from_db(self, task_id: str) -> Optional[Task]:
         """Load task from database."""
@@ -304,10 +301,6 @@ class TaskQueue:
 # Global task queue instance
 task_queue = TaskQueue(max_workers=3, max_retries=3)
 
-
-# ============================================================
-# Default Task Handlers
-# ============================================================
 
 @register_task_handler(TaskType.AI_GENERATE)
 async def handle_ai_generate(task: Task) -> Dict[str, Any]:

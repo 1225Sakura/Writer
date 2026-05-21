@@ -11,6 +11,7 @@ Uses existing tables + JSON fields for storage. No model modifications.
 from __future__ import annotations
 
 import json
+import logging
 import re
 from dataclasses import dataclass, field
 from typing import Optional
@@ -20,6 +21,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.core.domain import Chapter, DraftVersion
 from backend.core.services.ai.ai_service import AIService
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass
@@ -242,8 +245,8 @@ class StrandClassifier:
                     confidence=parsed.get("confidence", 0.8),
                     method="ai",
                 )
-        except Exception:
-            pass
+        except Exception as e:
+            logger.warning("AI strand classification failed, falling back to heuristic: %s", e)
 
         # Fallback to heuristic
         return self._classify_heuristic(chapter_id, content)

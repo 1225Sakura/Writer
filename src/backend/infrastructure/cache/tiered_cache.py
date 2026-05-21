@@ -1,25 +1,13 @@
-# Auto Novel Writer - Tiered Cache (L1/L2/L3)
-# L1: In-memory LRUCache | L2: Disk cache (diskcache) | L3: Database
-
 import json
 import logging
+import time
 from typing import Any, Callable, Optional
 
 from backend.infrastructure.cache.cache_service import LRUCache
 
 logger = logging.getLogger(__name__)
 
-try:
-    from diskcache import Cache
-except ImportError:
-    # Fallback to vendor stub if diskcache is not installed
-    import sys
-    from pathlib import Path
-
-    vendor_path = str(Path(__file__).parent.parent.parent / "vendor")
-    if vendor_path not in sys.path:
-        sys.path.insert(0, vendor_path)
-    from diskcache import Cache
+from diskcache import Cache
 
 
 class TieredCache:
@@ -136,7 +124,6 @@ class TieredCache:
             ).fetchone()
             if row is None:
                 return None
-            import time
 
             value_json, expire_at = row
             if expire_at is not None and time.time() > expire_at:
@@ -150,8 +137,6 @@ class TieredCache:
 
     def _l3_set(self, key: str, value: Any, ttl: int) -> None:
         try:
-            import time
-
             db = self._db_session_factory()
             expire_at = time.time() + ttl
             db.execute(

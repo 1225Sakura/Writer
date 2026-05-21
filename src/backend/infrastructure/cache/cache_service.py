@@ -1,6 +1,3 @@
-# Auto Novel Writer - Cache Service
-# Hybrid in-memory LRU + disk-backed cache for local desktop app
-
 import functools
 import hashlib
 import json
@@ -455,14 +452,19 @@ def set_cached_character(character_id: int, data: dict, ttl: Optional[int] = Non
 
 
 def invalidate_character_cache(character_id: Optional[int] = None) -> None:
-    """Invalidate character cache entries."""
+    """Invalidate character cache entries.
+
+    When character_id is given, removes that single entry plus any list caches.
+    When called without an id, only list caches are cleared so individual
+    character entries remain valid.
+    """
     cache = get_cache_service()
     if character_id is not None:
         key = cache.make_key("char", character_id)
         cache.delete("character", key)
         cache.delete_pattern("character", "char_list")
     else:
-        cache.clear_entity_cache("character")
+        cache.delete_pattern("character", "char_list")
 
 
 def get_cached_character_list() -> Optional[list]:

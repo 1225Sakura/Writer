@@ -1,6 +1,3 @@
-# Auto Novel Writer - FastAPI Main Application
-# Python 3.11+
-
 import logging
 import json
 import asyncio
@@ -26,7 +23,6 @@ from backend.middleware.request_context import set_request_context
 from backend.utils.logging import setup_logging, get_logger
 from backend.infrastructure.observability.metrics_service import metrics_service
 
-# WebSocket auth - verify API key from query param
 async def verify_websocket_auth(api_key: Optional[str]) -> bool:
     """Verify API key for WebSocket connections."""
     if getattr(settings, 'auth_skip_localhost', True):
@@ -39,11 +35,9 @@ async def verify_websocket_auth(api_key: Optional[str]) -> bool:
     import secrets
     return secrets.compare_digest(api_key, valid_key)
 
-# Setup structured logging
 setup_logging(level="INFO", json_logs=False)
 logger = get_logger('writer-api')
 
-# Allowed WebSocket origins (localhost + configured CORS origins)
 ALLOWED_WS_ORIGINS = {
     "http://localhost",
     "https://localhost",
@@ -56,7 +50,6 @@ ALLOWED_WS_ORIGINS = {
     "http://127.0.0.1:5173",
     "https://127.0.0.1:5173",
 }
-# Add configured CORS origins
 ALLOWED_WS_ORIGINS.update(settings.cors_origins)
 
 
@@ -86,12 +79,10 @@ def _is_allowed_websocket_origin(origin):
 
     return False
 
-# Graceful shutdown state
 _shutdown_event = asyncio.Event()
 _pending_tasks: set = set()
 
 
-# WebSocket connection manager
 @dataclass
 class QueuedMessage:
     """Message queued for a disconnected client."""
@@ -156,7 +147,7 @@ class ConnectionManager:
         if metadata:
             self.connection_metadata[(id(websocket), session_id)] = metadata
 
-        logger.info(f"WebSocket connected: session={session_id}, total={len(self.active_connections[session_id])}")
+        logger.info("WebSocket connected: session=%s, total=%d", session_id, len(self.active_connections[session_id]))
         # Update metrics async-safe via asyncio.create_task
         asyncio.create_task(
             metrics_service.set_active_websocket_connections(self.total_connections)
@@ -179,7 +170,7 @@ class ConnectionManager:
         self.connection_last_pong.pop(ws_id, None)
         # Clean up metadata
         self.connection_metadata.pop((ws_id, session_id), None)
-        logger.info(f"WebSocket disconnected: session={session_id}")
+        logger.info("WebSocket disconnected: session=%s", session_id)
         # Update metrics async-safe
         asyncio.create_task(
             metrics_service.set_active_websocket_connections(self.total_connections)
@@ -192,8 +183,8 @@ class ConnectionManager:
                 try:
                     if ws.client_state == WebSocketState.CONNECTED:
                         await ws.close(code=1001, reason="Server shutting down")
-                except Exception:
-                    pass
+                except Exception as e:
+                    logger.debug("Error closing WebSocket during shutdown: %s", e)
         self.active_connections.clear()
         self.connection_status.clear()
         self.connection_last_pong.clear()
@@ -214,7 +205,8 @@ class ConnectionManager:
                     await connection.send_json(message)
                 else:
                     dead_connections.append(connection)
-            except Exception:
+            except Exception as e:
+                logger.debug("WebSocket send failed, marking as dead: %s", e)
                 dead_connections.append(connection)
 
         # Clean up dead connections
@@ -226,8 +218,8 @@ class ConnectionManager:
         try:
             if websocket.client_state == WebSocketState.CONNECTED:
                 await websocket.send_json(message)
-        except Exception:
-            pass
+        except Exception as e:
+            logger.warning("Failed to send personal message: %s", e)
 
     async def broadcast(self, message: dict):
         """Broadcast message to all connected clients."""
@@ -314,7 +306,7 @@ class ConnectionManager:
             except Exception as e:
                 logger.warning("Failed to persist queued message to SQLite: %s", e)
 
-        logger.debug(f"Queued message for session {session_id}, queue size: {len(self.message_queues[session_id])}")
+        logger.debug("Queued message for session %s, queue size: %d", session_id, len(self.message_queues[session_id]))
 
     async def get_queued_messages(self, session_id: int) -> List[dict]:
         """
@@ -345,8 +337,8 @@ class ConnectionManager:
         if self.ws_queue is not None:
             try:
                 return await self.ws_queue.has_messages(session_id)
-            except Exception:
-                pass
+            except Exception as e:
+                logger.debug("SQLite has_messages check failed: %s", e)
         return False
 
     async def get_queue_size(self, session_id: int) -> int:
@@ -355,8 +347,8 @@ class ConnectionManager:
         if self.ws_queue is not None:
             try:
                 count += await self.ws_queue.queue_size(session_id)
-            except Exception:
-                pass
+            except Exception as e:
+                logger.debug("SQLite queue_size check failed: %s", e)
         return count
 
     def validate_message_size(self, message: str) -> tuple[bool, str]:
@@ -408,7 +400,7 @@ manager = ConnectionManager()
 def _handle_signal(sig: int, frame):
     """Handle OS signals for graceful shutdown."""
     sig_name = signal.Signals(sig).name
-    logger.info(f"Received signal {sig_name}, initiating graceful shutdown...")
+    logger.info("Received signal %s, initiating graceful shutdown...", sig_name)
     _shutdown_event.set()
 
 
@@ -417,7 +409,7 @@ async def _wait_for_pending_tasks(timeout: float = 30.0):
     if not _pending_tasks:
         return
 
-    logger.info(f"Waiting for {len(_pending_tasks)} pending tasks to complete...")
+    logger.info("Waiting for %d pending tasks to complete...", len(_pending_tasks))
     pending = list(_pending_tasks)
     done, not_done = await asyncio.wait(pending, timeout=timeout)
 
@@ -426,9 +418,9 @@ async def _wait_for_pending_tasks(timeout: float = 30.0):
         try:
             await task
         except asyncio.CancelledError:
-            pass
+            logger.debug("Task cancelled during shutdown")
 
-    logger.info(f"Completed {len(done)} tasks, cancelled {len(not_done)} tasks")
+    logger.info("Completed %d tasks, cancelled %d tasks", len(done), len(not_done))
 
 
 @asynccontextmanager
@@ -438,8 +430,8 @@ async def lifespan(app: FastAPI):
     try:
         signal.signal(signal.SIGTERM, _handle_signal)
         signal.signal(signal.SIGINT, _handle_signal)
-    except (ValueError, OSError):
-        pass  # May fail in some environments (e.g., Windows with certain configs)
+    except (ValueError, OSError) as e:
+        logger.debug("Signal handler registration failed (non-critical): %s", e)
 
     # Startup
     logger.info("Application starting up...")
@@ -479,7 +471,7 @@ async def lifespan(app: FastAPI):
     except ImportError:
         logger.debug("Migration check utility not available")
     except Exception as e:
-        logger.warning(f"Migration check failed: {e}")
+        logger.warning("Migration check failed: %s", e)
 
     # Start background task queue if available
     try:
@@ -548,17 +540,17 @@ async def lifespan(app: FastAPI):
                     )
                 )
                 db_config = result.scalar_one_or_none()
-        except Exception:
+        except Exception as e:
             # Table doesn't exist (pre-migration) or DB error — fall back to .env
-            pass
+            logger.warning("Could not read AI provider config from DB: %s", e)
 
         if db_config:
             # Decrypt the API key if it was stored encrypted
             try:
                 from backend.infrastructure.security.encryption import decrypt_value as _decrypt_key
                 db_config.api_key = _decrypt_key(db_config.api_key)
-            except Exception:
-                pass  # Already plaintext or encryption unavailable
+            except Exception as e:
+                logger.warning("Failed to decrypt AI provider API key: %s", e)
             await ai_service.reload_from_config(db_config)
             logger.info(
                 "AI provider loaded from database: %s (%s @ %s)",
@@ -667,7 +659,7 @@ async def lifespan(app: FastAPI):
         await metrics_service.stop()
         logger.info("Metrics service stopped")
     except Exception as e:
-        logger.warning(f"Failed to stop metrics service: {e}")
+        logger.warning("Failed to stop metrics service: %s", e)
 
     # Close all WebSocket connections
     await manager.close_all()
@@ -683,12 +675,11 @@ async def lifespan(app: FastAPI):
     except ImportError:
         pass
     except Exception as e:
-        logger.warning(f"Failed to stop task queue: {e}")
+        logger.warning("Failed to stop task queue: %s", e)
 
     logger.info("Application shutdown complete")
 
 
-# OpenAPI tag metadata for organized API documentation
 OPENAPI_TAGS = [
     {
         "name": "auth",
@@ -745,7 +736,6 @@ OPENAPI_TAGS = [
 ]
 
 
-# Create FastAPI app with lifespan
 app = FastAPI(
     title=settings.app_name,
     version=settings.app_version,
@@ -771,7 +761,6 @@ app = FastAPI(
     openapi_tags=OPENAPI_TAGS,
 )
 
-# Configure CORS
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.cors_origins,
@@ -780,20 +769,13 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Add rate limiting middleware for /api/v1/chat and /api/v1/ai routes
 app.add_middleware(RateLimitMiddleware, rate_limit=60, window_seconds=60.0)
 
-# Include API routes
 app.include_router(api_router)
 
 
-# Setup comprehensive logging middleware
 setup_logging_middleware(app)
-
-# Setup performance monitoring middleware
 setup_performance_middleware(app)
-
-# Setup error handling with custom exceptions
 register_exception_handlers(app)
 
 
@@ -826,14 +808,12 @@ async def root_live():
     return await liveness_check()
 
 
-# WebSocket status endpoint
 @app.get("/ws/status/{session_id}")
 async def websocket_status(session_id: int):
     """Get WebSocket connection status for a session."""
     return await manager.get_status(session_id)
 
 
-# WebSocket endpoint for real-time chat
 @app.websocket("/ws/chat/{session_id}")
 async def websocket_chat(
     websocket: WebSocket,
@@ -845,7 +825,7 @@ async def websocket_chat(
     origin = websocket.headers.get("origin")
     if not _is_allowed_websocket_origin(origin):
         logger.warning(
-            f"WebSocket rejected: invalid origin '{origin}' for session={session_id}"
+            "WebSocket rejected: invalid origin '%s' for session=%s", origin, session_id
         )
         await websocket.close(code=4002, reason="Invalid Origin")
         return
@@ -881,7 +861,8 @@ async def websocket_chat(
                     await websocket.send_json({"type": "ping", "timestamp": time.time()})
                 else:
                     break
-            except Exception:
+            except Exception as e:
+                logger.debug("WebSocket ping failed, stopping: %s", e)
                 break
 
     async def check_stale():
@@ -889,11 +870,11 @@ async def websocket_chat(
         while True:
             await asyncio.sleep(manager.heartbeat_interval)
             if manager.is_stale(websocket, session_id):
-                logger.warning(f"Closing stale connection: session={session_id}")
+                logger.warning("Closing stale connection: session=%s", session_id)
                 try:
                     await websocket.close(code=1002, reason="Connection stale - no pong received")
-                except Exception:
-                    pass
+                except Exception as e:
+                    logger.debug("Error closing stale connection: %s", e)
                 break
 
     try:
@@ -990,9 +971,9 @@ async def websocket_chat(
                 "original_type": msg_type
             })
     except WebSocketDisconnect:
-        logger.debug(f"WebSocket disconnected normally: session={session_id}")
+        logger.debug("WebSocket disconnected normally: session=%s", session_id)
     except Exception as e:
-        logger.error(f"WebSocket error: {e}")
+        logger.error("WebSocket error: %s", e)
     finally:
         manager.disconnect(websocket, session_id)
         if ping_task:
@@ -1013,7 +994,7 @@ async def websocket_general(
     origin = websocket.headers.get("origin")
     if not _is_allowed_websocket_origin(origin):
         logger.warning(
-            f"WebSocket rejected: invalid origin '{origin}' for general endpoint"
+            "WebSocket rejected: invalid origin '%s' for general endpoint", origin
         )
         await websocket.close(code=4002, reason="Invalid Origin")
         return
@@ -1034,7 +1015,8 @@ async def websocket_general(
                     await websocket.send_json({"type": "ping", "timestamp": time.time()})
                 else:
                     break
-            except Exception:
+            except Exception as e:
+                logger.debug("General WebSocket ping failed, stopping: %s", e)
                 break
 
     ping_task = asyncio.create_task(send_ping())
@@ -1073,7 +1055,7 @@ async def websocket_general(
     except WebSocketDisconnect:
         pass
     except Exception as e:
-        logger.error(f"WebSocket error: {e}")
+        logger.error("WebSocket error: %s", e)
     finally:
         ping_task.cancel()
         _pending_tasks.discard(ping_task)

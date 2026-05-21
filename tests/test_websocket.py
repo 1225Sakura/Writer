@@ -123,21 +123,21 @@ class TestConnectionManager:
         ws1.send_json.assert_called_once_with(message)
         ws2.send_json.assert_called_once_with(message)
 
-    def test_get_status_connected(self, connection_manager):
+    @pytest.mark.asyncio
+    async def test_get_status_connected(self, connection_manager):
         """Test get_status for connected session."""
         websocket = AsyncMock()
+        await connection_manager.connect(websocket, session_id=1)
 
-        import asyncio
-        asyncio.run(connection_manager.connect(websocket, session_id=1))
-
-        status = connection_manager.get_status(1)
+        status = await connection_manager.get_status(1)
         assert status["session_id"] == 1
         assert status["status"] == "connected"
         assert status["connections"] == 1
 
-    def test_get_status_unknown(self, connection_manager):
+    @pytest.mark.asyncio
+    async def test_get_status_unknown(self, connection_manager):
         """Test get_status for unknown session."""
-        status = connection_manager.get_status(999)
+        status = await connection_manager.get_status(999)
         assert status["session_id"] == 999
         assert status["status"] == "unknown"
         assert status["connections"] == 0
@@ -198,8 +198,8 @@ class TestWebSocketMessageQueuing:
         message = {"type": "test", "content": "hello"}
         await connection_manager.queue_message(1, message)
 
-        assert connection_manager.has_queued_messages(1)
-        assert connection_manager.get_queue_size(1) == 1
+        assert await connection_manager.has_queued_messages(1)
+        assert await connection_manager.get_queue_size(1) == 1
 
     @pytest.mark.asyncio
     async def test_get_queued_messages(self, connection_manager):
@@ -209,12 +209,12 @@ class TestWebSocketMessageQueuing:
         await connection_manager.queue_message(1, message1)
         await connection_manager.queue_message(1, message2)
 
-        messages = connection_manager.get_queued_messages(1)
+        messages = await connection_manager.get_queued_messages(1)
 
         assert len(messages) == 2
         assert messages[0]["content"] == "hello"
         assert messages[1]["content"] == "world"
-        assert not connection_manager.has_queued_messages(1)
+        assert not await connection_manager.has_queued_messages(1)
 
     @pytest.mark.asyncio
     async def test_queue_size_limit(self, connection_manager):
@@ -222,11 +222,12 @@ class TestWebSocketMessageQueuing:
         for i in range(105):
             await connection_manager.queue_message(1, {"type": "test", "content": f"msg{i}"})
 
-        assert connection_manager.get_queue_size(1) == 100
+        assert await connection_manager.get_queue_size(1) == 100
 
-    def test_has_queued_messages_false_for_unknown_session(self, connection_manager):
+    @pytest.mark.asyncio
+    async def test_has_queued_messages_false_for_unknown_session(self, connection_manager):
         """Test has_queued_messages returns False for unknown session."""
-        assert connection_manager.has_queued_messages(999) is False
+        assert await connection_manager.has_queued_messages(999) is False
 
 
 class TestWebSocketHeartbeat:
@@ -431,7 +432,7 @@ class TestWebSocketErrorHandling:
         ws1.client_state = WebSocketState.CONNECTED
         await fresh_manager.connect(ws1, session_id=1)
 
-        all_status = fresh_manager.get_all_status()
+        all_status = await fresh_manager.get_all_status()
         assert "total_sessions" in all_status
         assert "total_connections" in all_status
         assert "sessions" in all_status

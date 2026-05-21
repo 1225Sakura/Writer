@@ -198,8 +198,10 @@ class RAGService:
                         "INSERT INTO vec_items(rowid, embedding) VALUES (?, ?)",
                         [rowid, embedding.tobytes() if hasattr(embedding, 'tobytes') else emb_bytes]
                     )
-            except (ImportError, Exception):
-                pass
+            except ImportError:
+                pass  # sqlite-vec not installed; skip vector insert
+            except Exception as e:
+                logger.debug("vec_items insert failed for chunk %s: %s", chunk_id, e)
 
             # Update BM25 index
             await self._update_bm25_index(cursor, chunk_id, chunk.content)
@@ -335,7 +337,7 @@ class RAGService:
         cursor.execute("SELECT COUNT(*) FROM vec_items")
         existing = cursor.fetchone()[0]
         if existing > 0:
-            logger.info(f"vec_items already has {existing} entries, skipping migration")
+            logger.info("vec_items already has %d entries, skipping migration", existing)
             return 0
 
         # Migrate from vectors table
@@ -351,10 +353,10 @@ class RAGService:
                     )
                     count += 1
                 except Exception as e:
-                    logger.warning(f"Failed to migrate vector rowid={rowid}: {e}")
+                    logger.warning("Failed to migrate vector rowid=%s: %s", rowid, e)
 
         conn.commit()
-        logger.info(f"Migrated {count} vectors to vec_items")
+        logger.info("Migrated %d vectors to vec_items", count)
         return count
 
     def _tokenize(self, text: str) -> List[str]:
@@ -548,8 +550,8 @@ class RAGService:
                         source_file=src_file,
                     ))
                 return results
-        except (ImportError, Exception) as e:
-            logger.debug(f"sqlite-vec KNN failed, falling back to cosine: {e}")
+        except Exception as e:
+            logger.debug("sqlite-vec KNN failed, falling back to cosine: %s", e)
 
         # Fallback: cosine similarity (original implementation)
         sql = """
@@ -821,27 +823,22 @@ class RAGService:
         try:
             cursor.execute("SELECT COUNT(*) FROM vectors")
             stats["vectors"] = cursor.fetchone()[0] or 0
-        except Exception:
-            stats["vectors"] = 0
 
-        try:
             cursor.execute("SELECT COUNT(*) FROM context_chunks")
             stats["chunks"] = cursor.fetchone()[0] or 0
-        except Exception:
-            stats["chunks"] = 0
 
-        try:
             cursor.execute("SELECT COUNT(*) FROM doc_stats")
             stats["indexed_docs"] = cursor.fetchone()[0] or 0
-        except Exception:
-            stats["indexed_docs"] = 0
 
-        try:
             cursor.execute("SELECT SUM(doc_length) FROM doc_stats")
             total_len = cursor.fetchone()[0] or 0
             stats["total_tokens"] = total_len
-        except Exception:
-            stats["total_tokens"] = 0
+        except Exception as e:
+            logger.debug("RAG stats query partial failure: %s", e)
+            stats.setdefault("vectors", 0)
+            stats.setdefault("chunks", 0)
+            stats.setdefault("indexed_docs", 0)
+            stats.setdefault("total_tokens", 0)
 
         return stats
 

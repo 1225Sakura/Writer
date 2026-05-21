@@ -303,14 +303,14 @@ export const useWritingStore = create<WritingState & WritingActions>()(
           setHumanAIRatio: (ratio) => {
             set((state) => { state.humanAIRatio = ratio })
             writingSettingsApi.update({ human_ai_ratio: ratio / 100 }).catch((err) => {
-              console.warn('Failed to sync human-ai ratio to backend:', err)
+              showOperationError('同步人机比例', err)
             })
           },
 
           setWritingStyle: (style) => {
             set((state) => { state.writingStyle = style })
             writingSettingsApi.update({ writing_style: style }).catch((err) => {
-              console.warn('Failed to sync writing style to backend:', err)
+              showOperationError('同步写作风格', err)
             })
           },
 

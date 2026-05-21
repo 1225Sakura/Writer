@@ -288,7 +288,7 @@ class MetricsService:
             try:
                 await self._flush_task
             except asyncio.CancelledError:
-                pass
+                logger.debug("MetricsService flush task cancelled")
             self._flush_task = None
         await self._flush_history()
         await self._flush_to_db()
@@ -410,9 +410,9 @@ class MetricsService:
                         {"ts": ts, "name": name, "val": val}
                     )
                 await session.commit()
-            logger.debug(f"Flushed {len(samples)} metric samples to DB")
+            logger.debug("Flushed %d metric samples to DB", len(samples))
         except Exception as e:
-            logger.error(f"Failed to flush metrics to DB: {e}")
+            logger.warning("Failed to flush metrics to DB: %s", e)
 
     async def _aggregate_5min(self) -> None:
         """Roll up raw samples into 5-minute buckets."""
@@ -454,7 +454,7 @@ class MetricsService:
                 )
                 await session.commit()
         except Exception as e:
-            logger.error(f"Failed to aggregate metrics: {e}")
+            logger.warning("Failed to aggregate metrics: %s", e)
 
     async def _load_history(self) -> None:
         """Load recent aggregated history from DB into memory."""
@@ -488,9 +488,9 @@ class MetricsService:
                     )
                     self._history.append(point)
 
-                logger.info(f"Loaded {len(buckets)} historical metric buckets")
+                logger.info("Loaded %d historical metric buckets", len(buckets))
         except Exception as e:
-            logger.warning(f"Could not load metric history: {e}")
+            logger.warning("Could not load metric history: %s", e)
 
     async def get_historical_metrics(self, hours: int = 24) -> list[dict]:
         """Query aggregated historical metrics from SQLite."""
@@ -517,7 +517,7 @@ class MetricsService:
 
                 return sorted(buckets.values(), key=lambda x: x["timestamp"])
         except Exception as e:
-            logger.error(f"Failed to query historical metrics: {e}")
+            logger.warning("Failed to query historical metrics: %s", e)
             return []
 
     # ------------------------------------------------------------------

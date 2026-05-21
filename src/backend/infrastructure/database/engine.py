@@ -1,6 +1,4 @@
-# Auto Novel Writer - Database Engine & Session (Infrastructure Layer)
-# Moved from database.py to follow DDD infrastructure pattern.
-
+import logging
 import os
 
 from sqlalchemy import event
@@ -9,6 +7,8 @@ from sqlalchemy.orm import declarative_base
 from sqlalchemy.pool import NullPool
 
 from backend.config import settings
+
+logger = logging.getLogger(__name__)
 
 # Determine if running in production (adjust pool based on environment)
 is_production = os.getenv("ENVIRONMENT", "development") == "production"
@@ -47,9 +47,9 @@ def _set_sqlite_wal(dbapi_connection, connection_record):  # noqa: ARG001
     sqlite_conn = getattr(raw, "_conn", raw)
     try:
         sqlite_conn.execute("PRAGMA journal_mode=WAL")
-    except Exception:
+    except Exception as e:
         # Best-effort: WAL may not be available on all filesystems
-        pass
+        logger.warning("Could not set WAL journal mode: %s", e)
 
 
 # Create async session factory

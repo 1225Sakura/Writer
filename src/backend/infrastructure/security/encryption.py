@@ -35,8 +35,8 @@ def _load_or_generate_key() -> bytes:
             from cryptography.fernet import Fernet
             Fernet(env_key.encode() if isinstance(env_key, str) else env_key)
             return env_key.encode() if isinstance(env_key, str) else env_key
-        except Exception:
-            logger.warning("WRITER_ENCRYPTION_KEY env var is not a valid Fernet key; ignoring it")
+        except Exception as e:
+            logger.warning("WRITER_ENCRYPTION_KEY env var is not a valid Fernet key; ignoring it: %s", e)
 
     if _KEY_PATH.exists():
         key = _KEY_PATH.read_bytes().strip()
@@ -44,14 +44,18 @@ def _load_or_generate_key() -> bytes:
             from cryptography.fernet import Fernet
             Fernet(key)
             return key
-        except Exception:
-            logger.warning("Encryption key at %s is invalid; regenerating", _KEY_PATH)
+        except Exception as e:
+            logger.warning("Encryption key at %s is invalid; regenerating: %s", _KEY_PATH, e)
 
     # Generate a new key
     from cryptography.fernet import Fernet
     key = Fernet.generate_key()
     _KEY_PATH.parent.mkdir(parents=True, exist_ok=True)
     _KEY_PATH.write_bytes(key)
+    try:
+        os.chmod(str(_KEY_PATH), 0o600)
+    except OSError:
+        pass  # Windows: chmod no-op for permission bits
     logger.info("Generated new Fernet encryption key at %s", _KEY_PATH)
     return key
 

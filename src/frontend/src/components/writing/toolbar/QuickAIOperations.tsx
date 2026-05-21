@@ -82,7 +82,6 @@ export function QuickAIOperations() {
         showToast(`${operation}完成`, 'success')
       }
     } catch (error) {
-      console.error(`[快捷AI操作] ${operation} failed:`, error)
       showToast(`${operation}失败`, 'error')
     } finally {
       setQuickOpLoading(null)
