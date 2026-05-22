@@ -25,6 +25,18 @@ from backend.core.domain.entities import (
 )
 from backend.core.services.ai.ai_service import AIService
 from .base import BaseAgent, DatabaseMixin, AgentContext, AgentResult
+
+import yaml
+from pathlib import Path
+
+_PROMPTS_DIR = Path(__file__).parent / "prompts"
+
+def _load_prompts(name: str) -> dict:
+    path = _PROMPTS_DIR / f"{name}.yaml"
+    with open(path, "r", encoding="utf-8") as f:
+        return yaml.safe_load(f)
+
+_CONTEXT_PROMPTS = _load_prompts("context_agent")
 from .utils import extract_json_from_response, validate_context_response
 
 logger = logging.getLogger(__name__)
@@ -186,47 +198,7 @@ class ContextAgent(BaseAgent, DatabaseMixin):
         if_lines: list[IFLine],
     ) -> dict[str, Any]:
         """Build the structured context prompt for AI generation."""
-        system_prompt = """你是一位专业的小说创作策划专家。根据提供的信息，生成一个完整的"创作执行包"，
-包含本章写作所需的所有上下文信息。
-
-【重要】你必须而且只能返回一个有效的JSON对象，不要包含任何其他文字说明。
-JSON格式要求：
-- 使用双引号包裹所有字符串
-- 字段名必须使用双引号
-- 不要使用单引号或无引号的字段名
-- 确保JSON语法完全正确，可以被标准JSON解析器解析
-
-返回格式如下：
-{
-    "core_task": {
-        "goal": "本章主角的核心目标（简洁描述，20字以内）",
-        "obstacle": "实现目标的主要阻力（简洁描述，30字以内）",
-        "cost": "达成目标需要付出的代价（简洁描述，30字以内）"
-    },
-    "承接上文": {
-        "hooks": ["上章留下的钩子列表，每个钩子简洁描述"],
-        "reader_expectations": "读者期待的发展方向（简洁描述，30字以内）"
-    },
-    "active_characters": [
-        {
-            "name": "角色名",
-            "current_state": "当前状态（20字以内）",
-            "motivation": "本章动机（20字以内）",
-            "emotional_base": "情绪底色（如：紧张、期待、犹豫）"
-        }
-    ],
-    "scene_constraints": {
-        "locations": ["本章涉及的场景列表"],
-        "power_limits": "力量体系约束描述（50字以内）"
-    },
-    "time_constraints": "时间线约束描述（30字以内）",
-    "style_guidance": "本章风格指导建议（30字以内）",
-    "continuity": {
-        "foreshadowing": ["需要回收的伏笔列表"],
-        "ongoing_threads": ["持续进行的线索列表"]
-    },
-    "engagement_strategy": "追读力提升策略描述（50字以内）"
-}"""
+        system_prompt = _CONTEXT_PROMPTS["build_context_system_prompt"]
 
         context_data = {
             "chapter_title": chapter.title or f"第{chapter.chapter_order + 1}章",
@@ -536,9 +508,7 @@ JSON格式要求：
             }
             for f in facts
         ]
-        context["hallucination_warning"] = (
-            "以下设定为不可违背的事实，写作时必须严格遵守，不得篡改或臆造："
-        )
+        context["hallucination_warning"] = _CONTEXT_PROMPTS["hallucination_warning"]
         context["fact_count"] = len(facts)
         return context
 
@@ -678,9 +648,7 @@ JSON格式要求：
                 }
                 for f in facts
             ]
-            context["hallucination_warning"] = (
-                "以下设定为不可违背的事实，写作时必须严格遵守，不得篡改或臆造："
-            )
+            context["hallucination_warning"] = _CONTEXT_PROMPTS["hallucination_warning"]
             context["fact_count"] = len(facts)
 
         context["enhanced"] = True

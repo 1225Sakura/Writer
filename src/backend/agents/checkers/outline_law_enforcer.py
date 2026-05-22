@@ -20,6 +20,18 @@ from backend.core.services.ai.ai_service import AIService
 from backend.config import settings
 from ..utils import MiniMaxAPIClient
 
+import yaml
+from pathlib import Path
+
+_PROMPTS_DIR = Path(__file__).parent.parent / "prompts"
+
+def _load_prompts(name: str) -> dict:
+    path = _PROMPTS_DIR / f"{name}.yaml"
+    with open(path, "r", encoding="utf-8") as f:
+        return yaml.safe_load(f)
+
+_OUTLINE_LAW_PROMPTS = _load_prompts("outline_law_enforcer")
+
 
 class OutlineLawEnforcer(BaseChecker):
     """Enforces outline laws: checks that chapter content respects
@@ -185,49 +197,12 @@ class OutlineLawEnforcer(BaseChecker):
             else json.dumps(previous_chapters, ensure_ascii=False, indent=2)
         )
 
-        prompt = f"""请深度分析以下章节内容是否违反了大纲的精神和关键约束。
-
-【章节内容】
-{content}
-
-【大纲设定】
-{outline_text}
-
-【世界观设定】
-{world_text}
-
-【角色设定】
-{chars_text}
-
-【前文摘要】
-{prev_text}
-
-请从以下维度分析：
-1. **角色命运约束**：大纲中规定不能死亡/不能背叛/不能离开的角色，正文中是否有违反
-2. **剧情走向约束**：大纲规划的关键剧情节点是否被跳过、颠倒或魔改
-3. **风格基调约束**：大纲要求的整体风格（黑暗/轻松/热血/悬疑等）是否被违背
-4. **核心设定约束**：大纲中的核心设定（如金手指规则、世界规则）是否被破坏
-5. **伏笔呼应约束**：大纲中规划的伏笔是否被提前揭露或遗忘
-
-请以JSON格式返回：
-{{
-    "score": 0-100的评分,
-    "issues": [
-        {{
-            "type": "问题类型",
-            "severity": "critical|high|medium|low",
-            "message": "问题描述",
-            "evidence": "正文中的证据片段"
-        }}
-    ],
-    "suggestions": ["改进建议列表"]
-}}"""
-
-        system_prompt = (
-            "你是一位严格的大纲执法官。你的任务是确保正文内容完全符合大纲的"
-            "关键约束和精神。任何偏离大纲规划的行为都应被标记。评分标准："
-            "100=完全合规，80=轻微偏离，60=明显偏离，40=严重偏离，20=重大违规，0=完全违背大纲。"
+        prompt = _OUTLINE_LAW_PROMPTS["deep_analysis_prompt"].format(
+            content=content, outline_text=outline_text, world_text=world_text,
+            chars_text=chars_text, prev_text=prev_text
         )
+
+        system_prompt = _OUTLINE_LAW_PROMPTS["deep_analysis_system_prompt"]
 
         try:
             ai_result = await self._api_client.call(

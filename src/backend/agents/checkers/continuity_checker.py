@@ -19,6 +19,18 @@ from backend.core.services.ai.ai_service import AIService
 from backend.config import settings
 from ..utils import MiniMaxAPIClient
 
+import yaml
+from pathlib import Path
+
+_PROMPTS_DIR = Path(__file__).parent.parent / "prompts"
+
+def _load_prompts(name: str) -> dict:
+    path = _PROMPTS_DIR / f"{name}.yaml"
+    with open(path, "r", encoding="utf-8") as f:
+        return yaml.safe_load(f)
+
+_CONTINUITY_PROMPTS = _load_prompts("continuity_checker")
+
 
 class ContinuityChecker(BaseChecker):
     """Checks scene and narrative continuity."""
@@ -176,56 +188,12 @@ class ContinuityChecker(BaseChecker):
             else json.dumps(world_settings, ensure_ascii=False, indent=2)
         )
 
-        prompt = f"""请深度分析以下章节的叙事连续性问题。
-
-【章节内容】
-{content}
-
-【前文摘要】
-{prev_text}
-
-【活跃的伏笔/情节线】
-{threads_text}
-
-【角色设定】
-{chars_text}
-
-【世界观设定】
-{world_text}
-
-请从以下维度分析连续性：
-1. **场景转换连续性**：场景转换是否平滑（时间流逝、地点跳转是否有合理过渡）
-2. **角色状态连续性**：角色的情绪、服装、伤势、位置等状态是否与前文延续
-3. **事件因果连续性**：事件之间的因果关系是否合理（前因后果是否矛盾）
-4. **伏笔呼应连续性**：之前埋下的伏笔是否得到适当揭示或延续
-5. **细节一致性**：前后描述的细节是否一致（如物品外观、人物外貌等）
-6. **时间逻辑连续性**：时间流逝是否合理（对话时长、旅途时间、修炼时间等）
-
-请以JSON格式返回：
-{{
-    "score": 0-100的评分,
-    "issues": [
-        {{
-            "type": "问题类型",
-            "severity": "critical|high|medium|low",
-            "message": "问题描述",
-            "evidence": "正文中的证据片段",
-            "previous_context": "与前文矛盾的具体描述"
-        }}
-    ],
-    "suggestions": ["改进建议列表"],
-    "plot_thread_status": {{
-        "fulfilled": ["已完成的伏笔列表"],
-        "continued": ["延续中的伏笔列表"],
-        "new_setup": ["本章新埋下的伏笔列表"]
-    }}
-}}"""
-
-        system_prompt = (
-            "你是一位严格的叙事连续性审核专家。你的任务是确保正文内容与前文完全连贯，"
-            "任何场景转换突兀、状态不一致、因果矛盾、伏笔未呼应等问题都应被标记。"
-            "评分标准：100=完全连贯，80=轻微不连贯，60=明显不连贯，40=严重不连贯，20=重大矛盾，0=完全断裂。"
+        prompt = _CONTINUITY_PROMPTS["deep_analysis_prompt"].format(
+            content=content, prev_text=prev_text, threads_text=threads_text,
+            chars_text=chars_text, world_text=world_text
         )
+
+        system_prompt = _CONTINUITY_PROMPTS["deep_analysis_system_prompt"]
 
         try:
             ai_result = await self._api_client.call(
@@ -319,40 +287,16 @@ class ContinuityChecker(BaseChecker):
         result = await db.execute(select(PlotThread).where(PlotThread.status == "active"))
         plot_threads = result.scalars().all()
 
-        prompt = f"""审查以下章节的连续性问题：
-
-当前章节内容：
-{content}
-
-前几章摘要：
-{previous_contents}
-
-活跃的伏笔/情节线：
-{[{"id": t.id, "title": t.title, "description": t.description} for t in plot_threads]}
-
-请检查以下连续性问题：
-1. 场景转换是否突兀（时间、地点跳转是否平滑）
-2. 前后事件是否矛盾（之前发生的事与之后描述是否一致）
-3. 角色状态是否连贯（情绪、服装、伤势等是否延续）
-4. 伏笔是否得到呼应（之前埋下的伏笔是否被适当揭示或延续）
-5. 细节是否自相矛盾（如前面说A死了，后面又写A活着）
-
-请以JSON格式返回：
-{{
-    "issues": ["连续性问题列表"],
-    "suggestions": ["改进建议"],
-    "score": 1-100的评分,
-    "plot_thread_status": {{
-        "fulfilled": ["已完成的伏笔列表"],
-        "continued": ["延续中的伏笔列表"],
-        "new_setup": ["本章新埋下的伏笔列表"]
-    }}
-}}"""
-
-        system_prompt = (
-            "你是一位专业的叙事连续性审核专家。仔细检查章节与前后章节之间的连贯性，"
-            "识别场景转换突兀、事件矛盾、角色状态不一致、伏笔未呼应等问题。"
+        plot_threads_json = json.dumps(
+            [{"id": t.id, "title": t.title, "description": t.description} for t in plot_threads],
+            ensure_ascii=False, indent=2
         )
+        prompt = _CONTINUITY_PROMPTS["legacy_check_prompt"].format(
+            content=content, previous_contents=previous_contents,
+            plot_threads_json=plot_threads_json
+        )
+
+        system_prompt = _CONTINUITY_PROMPTS["legacy_check_system_prompt"]
 
         try:
             content_result = await self._api_client.call(

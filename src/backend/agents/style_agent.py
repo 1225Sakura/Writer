@@ -14,9 +14,19 @@ import json
 import logging
 import re
 from dataclasses import dataclass, field
+from pathlib import Path
 from typing import Any
 
+import yaml
+
 from .base import AgentContext, AgentResult, BaseAgent
+
+# ---------------------------------------------------------------------------
+# Prompt templates loaded from YAML
+# ---------------------------------------------------------------------------
+_PROMPTS_PATH = Path(__file__).parent / "prompts" / "style_agent.yaml"
+with open(_PROMPTS_PATH, "r", encoding="utf-8") as _f:
+    _PROMPTS = yaml.safe_load(_f)
 
 logger = logging.getLogger(__name__)
 
@@ -407,11 +417,7 @@ class StyleAgent(BaseAgent):
 
     async def _ai_style_summary(self, text: str) -> dict[str, Any]:
         """调用 AI 生成风格摘要."""
-        prompt = (
-            f"请分析以下文本的写作风格，用 JSON 输出：\n"
-            f'{{"summary": "一段 100 字内的风格描述", "keywords": ["关键词1", "关键词2"]}}\n\n'
-            f"文本：\n{text[:1500]}"
-        )
+        prompt = _PROMPTS["style_summary_prompt"].format(text=text[:1500])
         try:
             raw = await self._provider.generate(prompt, style="default", operation="review")
             # 尝试提取 JSON
@@ -432,31 +438,7 @@ class StyleAgent(BaseAgent):
         - 情感基调：情感类型（压抑/昂扬/中性/复杂）
         - 叙事视角：人称和视角类型
         """
-        prompt = f"""分析以下文本的深层写作风格特征，返回 JSON：
-
-{{
-    "sentence_patterns": {{
-        "avg_length": 平均句子长度(数字),
-        "variance": "high/medium/low 句子长度波动",
-        "parataxis_ratio": 0.0-1.0 并叙句(短句并列)比例,
-        "complex_sentence_ratio": 0.0-1.0 复合句(从句/修饰)比例,
-        "fragment_ratio": 0.0-1.0 句子片段比例
-    }},
-    "vocabulary_features": {{
-        "classical_ratio": 0.0-1.0 文言词汇比例,
-        "visual_imagery": "high/medium/low 视觉意象密度",
-        "sensory_detail": "high/medium/low 感官描写密度",
-        "abstract_concrete_ratio": 0.0-1.0 抽象/具体词汇比例
-    }},
-    "rhetoric_preferences": ["metaphor", "simile", "personification", "synaesthesia", "alliteration", "oxymoron"],
-    "emotion_tone": "restrained_melancholy/expansive_joy/cold_detachment/intense_conflict/neutral",
-    "narrative_voice": "omniscient_third_person/first_person_limited/first_person_observer/second_person",
-    "notable_traits": ["trait1", "trait2"]
-}}
-
-文本：{text[:2000]}
-
-只返回 JSON，不要包含其他文字。"""
+        prompt = _PROMPTS["deep_analysis_prompt"].format(text=text[:2000])
         try:
             raw = await self._provider.generate(prompt, style="default", operation="review")
             match = re.search(r"\{[\s\S]*\}", raw)
@@ -538,21 +520,27 @@ class StyleAgent(BaseAgent):
         """
         preset = PRESET_STYLES.get(target_style, PRESET_STYLES["default"])
 
-        # 构建 prompt
+        # 构建 prompt from YAML template
+        adjust_tpl = _PROMPTS["adjust_style_prompt"]
         prompt_parts = [
-            f"请将以下文本改写为「{preset['name']}」风格。",
-            f"风格特征：{preset['traits']}",
+            adjust_tpl["main"].format(
+                style_name=preset["name"], style_traits=preset["traits"]
+            ),
             "",
             "要求：",
-            "1. 保持原文的情节和核心信息不变",
-            "2. 仅调整文笔风格，不改变内容",
-            "3. 直接输出改写后的文本，不要添加解释",
-            "",
-            f"原文：\n{text}",
         ]
+        for i, req in enumerate(adjust_tpl["requirements"], 1):
+            prompt_parts.append(f"{i}. {req}")
+        prompt_parts.append("")
 
         if context and context.constraints:
-            prompt_parts.insert(3, "额外约束：" + "; ".join(context.constraints))
+            prompt_parts.append(
+                adjust_tpl["constraints_prefix"] + "; ".join(context.constraints)
+            )
+
+        prompt_parts.append(
+            f"{adjust_tpl['original_text_prefix']}\n{text}"
+        )
 
         prompt = "\n".join(prompt_parts)
         result = await self._provider.generate(prompt, style=target_style, operation="rewrite")
@@ -641,12 +629,8 @@ class StyleAgent(BaseAgent):
         self, text: str, target_style: str, preset: dict[str, str]
     ) -> list[StyleMigrationSuggestion]:
         """调用 AI 获取补充迁移建议."""
-        prompt = (
-            f"请分析以下文本与「{preset['name']}」风格的差距，"
-            f"给出 2-3 条具体的改写建议。用 JSON 数组输出：\n"
-            f'[{{"aspect": "方面", "current_state": "现状", "target_state": "目标", '
-            f'"suggestion": "具体建议", "priority": "high/medium/low"}}]\n\n'
-            f"文本：\n{text[:1200]}"
+        prompt = _PROMPTS["migration_suggestions_prompt"].format(
+            style_name=preset["name"], text=text[:1200]
         )
         try:
             raw = await self._provider.generate(prompt, style="default", operation="review")

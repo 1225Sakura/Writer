@@ -15,6 +15,18 @@ from backend.core.services.ai.ai_service import AIService
 from backend.config import settings
 from ..utils import MiniMaxAPIClient
 
+import yaml
+from pathlib import Path
+
+_PROMPTS_DIR = Path(__file__).parent.parent / "prompts"
+
+def _load_prompts(name: str) -> dict:
+    path = _PROMPTS_DIR / f"{name}.yaml"
+    with open(path, "r", encoding="utf-8") as f:
+        return yaml.safe_load(f)
+
+_PACING_PROMPTS = _load_prompts("pacing_checker")
+
 
 class PacingChecker(BaseChecker):
     """Checks narrative pacing and strand ratios."""
@@ -184,54 +196,11 @@ class PacingChecker(BaseChecker):
             else json.dumps(previous_chapters, ensure_ascii=False, indent=2)
         )
 
-        prompt = f"""请深度分析以下章节的叙事节奏和故事线比例。
-
-【章节内容】
-{content}
-
-【类型/风格】
-{genre}
-
-【前文摘要】
-{prev_text}
-
-故事线理想比例：
-- 任务线（Quest）: 60% — 主线任务推进、修炼突破、冒险挑战
-- 燃情线（Fire）: 20% — 感情戏、人际关系、情感发展
-- 星座线（Constellation）: 20% — 宿命、伏笔、世界观揭示
-
-请从以下维度分析：
-1. **故事线比例**：三种故事线的实际比例是否接近理想值
-2. **节奏张弛**：紧张与舒缓交替是否合理，是否有节奏单调的问题
-3. **信息密度**：每段落的信息量是否适中，是否有信息过载或过稀
-4. **场景转换**：场景切换是否自然流畅
-5. **章节结尾**：结尾是否有足够的悬念或钩子引导读者继续阅读
-6. **阅读体验**：整体阅读节奏是否流畅，是否有拖沓或仓促感
-
-请以JSON格式返回：
-{{
-    "score": 0-100的评分,
-    "strand_ratios": {{
-        "quest": 实际比例,
-        "fire": 实际比例,
-        "constellation": 实际比例
-    }},
-    "issues": [
-        {{
-            "type": "问题类型",
-            "severity": "critical|high|medium|low",
-            "message": "问题描述",
-            "evidence": "正文中的证据片段"
-        }}
-    ],
-    "suggestions": ["改进建议列表"]
-}}"""
-
-        system_prompt = (
-            "你是一位专业的叙事节奏分析专家。你的任务是评估小说章节的节奏感和故事线比例。"
-            "理想的任务线/燃情线/星座线比例为60%/20%/20%。"
-            "评分标准：100=节奏完美，80=节奏良好，60=节奏一般，40=节奏较差，20=节奏失衡，0=完全无节奏感。"
+        prompt = _PACING_PROMPTS["deep_analysis_prompt"].format(
+            content=content, genre=genre, prev_text=prev_text
         )
+
+        system_prompt = _PACING_PROMPTS["deep_analysis_system_prompt"]
 
         try:
             ai_result = await self._api_client.call(

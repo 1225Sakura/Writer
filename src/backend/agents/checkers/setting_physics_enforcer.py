@@ -16,6 +16,18 @@ from backend.core.services.ai.ai_service import AIService
 from backend.config import settings
 from ..utils import MiniMaxAPIClient
 
+import yaml
+from pathlib import Path
+
+_PROMPTS_DIR = Path(__file__).parent.parent / "prompts"
+
+def _load_prompts(name: str) -> dict:
+    path = _PROMPTS_DIR / f"{name}.yaml"
+    with open(path, "r", encoding="utf-8") as f:
+        return yaml.safe_load(f)
+
+_SETTING_PHYSICS_PROMPTS = _load_prompts("setting_physics_enforcer")
+
 
 class SettingPhysicsEnforcer(BaseChecker):
     """Enforces world physics and hard rules.
@@ -227,55 +239,12 @@ class SettingPhysicsEnforcer(BaseChecker):
             else json.dumps(previous_chapters, ensure_ascii=False, indent=2)
         )
 
-        prompt = f"""请深度分析以下章节内容是否违反了世界观的物理规则和逻辑一致性。
-
-【章节内容】
-{content}
-
-【世界观设定】
-{world_text}
-
-【世界规则】
-{rules_text}
-
-【力量体系】
-{power_text}
-
-【角色当前状态】
-{chars_text}
-
-【前文摘要】
-{prev_text}
-
-请从以下维度分析：
-1. **力量体系一致性**：角色使用的力量/技能是否与其当前境界/等级匹配
-2. **规则约束遵守**：世界规则（如魔法限制、天道法则、物理定律）是否被无解释地打破
-3. **因果逻辑**：事件因果关系是否合理（如付出与收获是否匹配，代价与收益是否平衡）
-4. **资源守恒**：能量、资源、物品的消耗与获取是否符合守恒原则
-5. **空间/时间逻辑**：场景转换、时间流逝、距离移动是否符合物理逻辑
-6. **群体行为逻辑**：群体反应、势力行为是否符合其设定立场和利益
-
-请以JSON格式返回：
-{{
-    "score": 0-100的评分,
-    "issues": [
-        {{
-            "type": "问题类型",
-            "severity": "critical|high|medium|low",
-            "message": "问题描述",
-            "evidence": "正文中的证据片段",
-            "rule_violated": "违反的具体规则"
-        }}
-    ],
-    "suggestions": ["改进建议列表"]
-}}"""
-
-        system_prompt = (
-            "你是一位严格的世界观物理执法官。你的任务是确保正文内容完全符合"
-            "已建立的世界规则、力量体系和物理逻辑。任何无合理解释的破格行为"
-            "都应被标记。评分标准：100=完全合规，80=轻微偏离，60=明显偏离，"
-            "40=严重偏离，20=重大违规，0=完全崩坏。"
+        prompt = _SETTING_PHYSICS_PROMPTS["deep_analysis_prompt"].format(
+            content=content, world_text=world_text, rules_text=rules_text,
+            power_text=power_text, chars_text=chars_text, prev_text=prev_text
         )
+
+        system_prompt = _SETTING_PHYSICS_PROMPTS["deep_analysis_system_prompt"]
 
         try:
             ai_result = await self._api_client.call(

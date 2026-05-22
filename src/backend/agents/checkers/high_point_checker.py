@@ -15,6 +15,18 @@ from backend.core.services.ai.ai_service import AIService
 from backend.config import settings
 from ..utils import MiniMaxAPIClient
 
+import yaml
+from pathlib import Path
+
+_PROMPTS_DIR = Path(__file__).parent.parent / "prompts"
+
+def _load_prompts(name: str) -> dict:
+    path = _PROMPTS_DIR / f"{name}.yaml"
+    with open(path, "r", encoding="utf-8") as f:
+        return yaml.safe_load(f)
+
+_HIGH_POINT_PROMPTS = _load_prompts("high_point_checker")
+
 
 class HighPointChecker(BaseChecker):
     """Checks excitement/excitement density in chapters."""
@@ -169,44 +181,11 @@ class HighPointChecker(BaseChecker):
             else json.dumps(previous_chapters, ensure_ascii=False, indent=2)
         )
 
-        prompt = f"""请深度分析以下章节的高潮点设置和兴奋点密度。
-
-【章节内容】
-{content}
-
-【类型/风格】
-{genre}
-
-【前文摘要】
-{prev_text}
-
-请从以下维度分析：
-1. **高潮点数量**：本章是否有足够的高潮/兴奋点
-2. **高潮点位置**：高潮点分布是否合理（应有前中后分布，结尾应有钩子）
-3. **高潮强度**：每个高潮点的冲击力是否足够
-4. **铺垫质量**：高潮前的铺垫是否充分，是否有伏笔呼应
-5. **情绪曲线**：整体情绪曲线是否有起伏，是否有张弛
-6. **结尾钩子**：章节结尾是否有足够的悬念或认知差
-
-请以JSON格式返回：
-{{
-    "score": 0-100的评分,
-    "issues": [
-        {{
-            "type": "问题类型",
-            "severity": "critical|high|medium|low",
-            "message": "问题描述",
-            "evidence": "正文中的证据片段"
-        }}
-    ],
-    "suggestions": ["改进建议列表"]
-}}"""
-
-        system_prompt = (
-            "你是一位专业的叙事高潮分析专家。你的任务是评估小说章节的高潮设置是否合理。"
-            "好的章节应该有2-3个不同强度的高潮点，结尾应有悬念钩子。"
-            "评分标准：100=高潮完美，80=高潮良好，60=高潮一般，40=高潮不足，20=缺乏高潮，0=完全平淡。"
+        prompt = _HIGH_POINT_PROMPTS["deep_analysis_prompt"].format(
+            content=content, genre=genre, prev_text=prev_text
         )
+
+        system_prompt = _HIGH_POINT_PROMPTS["deep_analysis_system_prompt"]
 
         try:
             ai_result = await self._api_client.call(

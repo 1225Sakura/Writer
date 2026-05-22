@@ -227,13 +227,6 @@ def validate_list_response(
     return validated
 
 
-class BaseAgent:
-    """Base class for AI agents with common functionality."""
-
-    def __init__(self, ai_service: AIService):
-        self.ai_service = ai_service
-
-
 class MiniMaxAPIClient:
     """Reusable MiniMax API client with built-in retry logic."""
 

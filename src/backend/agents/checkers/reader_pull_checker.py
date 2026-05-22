@@ -15,6 +15,18 @@ from backend.core.services.ai.ai_service import AIService
 from backend.config import settings
 from ..utils import MiniMaxAPIClient
 
+import yaml
+from pathlib import Path
+
+_PROMPTS_DIR = Path(__file__).parent.parent / "prompts"
+
+def _load_prompts(name: str) -> dict:
+    path = _PROMPTS_DIR / f"{name}.yaml"
+    with open(path, "r", encoding="utf-8") as f:
+        return yaml.safe_load(f)
+
+_READER_PULL_PROMPTS = _load_prompts("reader_pull_checker")
+
 
 class ReaderPullChecker(BaseChecker):
     """Checks hooks and reader engagement."""
@@ -166,49 +178,12 @@ class ReaderPullChecker(BaseChecker):
             else json.dumps(previous_chapters, ensure_ascii=False, indent=2)
         )
 
-        prompt = f"""请深度分析以下章节的读者吸引力和钩子效果。
-
-【章节内容】
-{content}
-
-【类型/风格】
-{genre}
-
-【前文摘要】
-{prev_text}
-
-【下章预览】
-{next_chapter_preview or "无"}
-
-请从以下维度分析读者吸引力：
-1. **开篇钩子**：开头是否能立即抓住读者注意力（前200字）
-2. **悬念设置**：章节中是否有足够的悬念和谜团
-3. **认知差**：是否有读者知道但角色不知道的信息（或反之）
-4. **冲突张力**：是否有足够的对抗和矛盾推动阅读
-5. **情感共鸣**：是否能引发读者的情感投入
-6. **结尾钩子**：结尾是否有足够的悬念让读者想看下一章
-7. **信息释放节奏**：是否适时揭示信息保持好奇心
-
-请以JSON格式返回：
-{{
-    "score": 0-100的评分,
-    "issues": [
-        {{
-            "type": "问题类型",
-            "severity": "critical|high|medium|low",
-            "message": "问题描述",
-            "evidence": "正文中的证据片段"
-        }}
-    ],
-    "suggestions": ["改进建议列表"]
-}}"""
-
-        system_prompt = (
-            "你是一位专业的网文读者体验分析专家。你的任务是评估小说章节是否能有效吸引读者继续阅读。"
-            "好的章节应该有清晰的钩子、足够的悬念、恰当的认知差和情感共鸣。"
-            "评分标准：100=极具吸引力，80=吸引力良好，60=吸引力一般，40=吸引力较差，"
-            "20=难以吸引读者，0=完全无法吸引读者。"
+        prompt = _READER_PULL_PROMPTS["deep_analysis_prompt"].format(
+            content=content, genre=genre, prev_text=prev_text,
+            next_chapter_preview=next_chapter_preview or "无"
         )
+
+        system_prompt = _READER_PULL_PROMPTS["deep_analysis_system_prompt"]
 
         try:
             ai_result = await self._api_client.call(

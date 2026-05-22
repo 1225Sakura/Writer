@@ -31,8 +31,13 @@ export {
 // Types from chatStore
 export type { ChatMessageLocal as ChatMessage, ExtractedEntityLocal as ExtractedEntity, EntityExtractionState, MessageCache } from './chatStore'
 
+// Settings sub-stores (typed facades over settingsStore)
+export { useSettingsDataStore, getDataState } from './settingsDataStore'
+export { useSettingsUIStore, getUIState } from './settingsUIStore'
+export { useSettingsValidationStore, getValidationState, validateEntity } from './settingsValidationStore'
+
 // Types from settingsStore
-export type { Relationship, CharacterLocal, Tag, FilterCriteria, HistoryEntry, BatchOperation, CharacterStorylineLocal } from './settingsStore'
+export type { Relationship, CharacterLocal, Tag, FilterCriteria, HistoryEntry, BatchOperation, CharacterStorylineLocal, ValidationError, SettingsDataState, SettingsUIState, SettingsValidationState } from './settingsStore'
 
 // Entity types
 export type { EntityType } from '../shared/types'

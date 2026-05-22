@@ -23,6 +23,18 @@ from backend.core.services.ai.ai_service import AIService
 from backend.services.ai.provider import AIProvider
 from ..utils.event_bus import AsyncEventBus
 from .base import BaseAgent, DatabaseMixin, AgentContext, AgentResult
+
+import yaml
+from pathlib import Path
+
+_PROMPTS_DIR = Path(__file__).parent / "prompts"
+
+def _load_prompts(name: str) -> dict:
+    path = _PROMPTS_DIR / f"{name}.yaml"
+    with open(path, "r", encoding="utf-8") as f:
+        return yaml.safe_load(f)
+
+_DATA_PROMPTS = _load_prompts("data_agent")
 from .utils import (
     extract_json_from_response,
     validate_list_response,
@@ -173,28 +185,7 @@ class DataAgent(BaseAgent, DatabaseMixin):
 
     async def _extract_entities(self, content: str) -> list[dict[str, Any]]:
         """Extract named entities from chapter content."""
-        system_prompt = """你是一位专业的小说文本分析专家。从以下小说章节文本中提取所有实体信息。
-
-【重要】你必须返回一个有效的JSON数组，不要包含任何其他文字说明。
-JSON格式要求：
-- 使用双引号包裹所有字符串
-- 字段名必须使用双引号
-- 不要使用单引号或无引号的字段名
-- 数组格式：[]
-
-每个实体对象必须包含以下字段：
-- name: 实体名称（字符串，必填）
-- type: 实体类型（字符串，必填），可选值：character/location/item/faction/concept
-- description: 实体描述或特征（字符串，可为空）
-
-示例返回格式：
-[
-    {"name": "张三", "type": "character", "description": "主角，剑客"},
-    {"name": "青云山", "type": "location", "description": "修仙门派所在地"},
-    {"name": "玄天剑", "type": "item", "description": "上古神兵"}
-]
-
-只返回确定的实体，不要臆造信息。"""
+        system_prompt = _DATA_PROMPTS["extract_entities_prompt"]
 
         try:
             parsed = await self.api_client.call_and_parse_json(
@@ -216,24 +207,7 @@ JSON格式要求：
         self, content: str, entities: list[dict[str, Any]], db: AsyncSession
     ) -> list[dict[str, Any]]:
         """Extract relationships between entities."""
-        system_prompt = """你是一位专业的小说文本分析专家。分析以下小说章节文本，提取实体之间的关系。
-
-【重要】你必须返回一个有效的JSON数组，不要包含任何其他文字说明。
-JSON格式要求：
-- 使用双引号包裹所有字符串
-- 字段名必须使用双引号
-
-每个关系对象必须包含以下字段：
-- source: 源实体名称（字符串，必填）
-- target: 目标实体名称（字符串，必填）
-- type: 关系类型（字符串，必填），可选值：enemy/ally/family/love/rival/dominates/owns/related等
-- description: 关系描述（字符串，可为空）
-
-示例返回格式：
-[
-    {"source": "张三", "target": "李四", "type": "enemy", "description": "世仇"},
-    {"source": "张三", "target": "王五", "type": "ally", "description": "结拜兄弟"}
-]"""
+        system_prompt = _DATA_PROMPTS["extract_relationships_prompt"]
 
         try:
             parsed = await self.api_client.call_and_parse_json(
@@ -255,24 +229,7 @@ JSON格式要求：
         self, content: str, entities: list[dict[str, Any]]
     ) -> list[dict[str, Any]]:
         """Track state changes for characters/items."""
-        system_prompt = """你是一位专业的小说文本分析专家。分析以下小说章节文本，提取实体状态变化。
-
-【重要】你必须返回一个有效的JSON数组，不要包含任何其他文字说明。
-JSON格式要求：
-- 使用双引号包裹所有字符串
-- 字段名必须使用双引号
-
-每个状态变化对象必须包含以下字段：
-- entity: 实体名称（字符串，必填）
-- before_state: 变化前状态（字符串，必填）
-- after_state: 变化后状态（字符串，必填）
-- trigger: 触发原因（字符串，必填）
-
-示例返回格式：
-[
-    {"entity": "张三", "before_state": "重伤", "after_state": "痊愈", "trigger": "服用九转还魂丹"},
-    {"entity": "玄天剑", "before_state": "封印中", "after_state": "已解封", "trigger": "主人滴血认主"}
-]"""
+        system_prompt = _DATA_PROMPTS["track_state_changes_prompt"]
 
         try:
             parsed = await self.api_client.call_and_parse_json(
@@ -292,25 +249,7 @@ JSON格式要求：
 
     async def _slice_scenes(self, content: str) -> list[dict[str, Any]]:
         """Divide chapter into scenes with key information."""
-        system_prompt = """你是一位专业的小说文本分析专家。将以下小说章节分割成场景。
-
-【重要】你必须返回一个有效的JSON数组，不要包含任何其他文字说明。
-JSON格式要求：
-- 使用双引号包裹所有字符串
-- 字段名必须使用双引号
-
-每个场景对象必须包含以下字段：
-- scene_number: 场景序号（数字，必填）
-- location: 场景地点（字符串，必填）
-- characters: 出场角色列表（字符串数组，必填）
-- key_events: 关键事件列表（字符串数组，必填）
-- mood: 场景基调/氛围（字符串，可为空）
-
-示例返回格式：
-[
-    {"scene_number": 1, "location": "青云山巅", "characters": ["张三", "师父"], "key_events": ["张三拜师", "传授剑法"], "mood": "肃穆"},
-    {"scene_number": 2, "location": "山脚小镇", "characters": ["张三", "小贩"], "key_events": ["购买药材", "遇到埋伏"], "mood": "紧张"}
-]"""
+        system_prompt = _DATA_PROMPTS["slice_scenes_prompt"]
 
         try:
             parsed = await self.api_client.call_and_parse_json(
@@ -346,16 +285,7 @@ JSON格式要求：
 
     async def _generate_summary(self, content: str) -> str:
         """Generate chapter summary."""
-        system_prompt = """你是一位专业的小说文本分析专家。为以下小说章节生成简洁的摘要。
-
-【重要】直接返回摘要文本，不要包含任何JSON格式或其他格式标记。
-摘要要求：
-- 200字以内
-- 包含本章主要事件
-- 包含关键转折点
-- 包含对后续剧情的铺垫
-
-直接输出摘要文本，不要用引号包裹，不要用JSON格式。"""
+        system_prompt = _DATA_PROMPTS["generate_summary_prompt"]
 
         try:
             summary = await self.api_client.call(

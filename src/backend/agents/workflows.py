@@ -78,8 +78,13 @@ WRITING_WORKFLOW = [
 # ---------------------------------------------------------------------------
 # Workflow 3: Review (Review + CheckerPipeline in parallel)
 # ---------------------------------------------------------------------------
-# Used for focused quality inspection. The review agent runs alongside
-# multiple checker agents in parallel for comprehensive analysis.
+# Used for focused quality inspection at the setting/worldbuilding level.
+# Only review_agent + consistency_checker participate here because this
+# workflow checks setting coherence, not prose quality.
+#
+# Text-quality checkers (pacing, OOC, continuity, high_point, reader_pull,
+# outline_law, setting_physics) are invoked separately via CheckerPipeline
+# in the writing workflow's quality_review stage or through /ai/checkers/*.
 
 REVIEW_WORKFLOW = [
     StageConfig(

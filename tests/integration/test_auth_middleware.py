@@ -27,8 +27,8 @@ class TestAuthMiddleware:
             response = await client.get("/api/v1/settings/characters")
         assert response.status_code == 401
         data = response.json()
-        assert "detail" in data
-        assert "API key" in data["detail"] or "Missing" in data["detail"]
+        assert "error" in data
+        assert "API key" in data["error"]["message"] or "Missing" in data["error"]["message"]
 
     async def test_request_with_correct_api_key_returns_200(self, client):
         """Request with valid X-API-Key header passes authentication."""
@@ -46,7 +46,7 @@ class TestAuthMiddleware:
                 response = await client.get("/api/v1/settings/characters", headers=headers)
         assert response.status_code == 403
         data = response.json()
-        assert "detail" in data
+        assert "error" in data
 
     async def test_localhost_skips_auth_when_configured(self, client):
         """Localhost requests skip auth when auth_skip_localhost is True."""

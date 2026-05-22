@@ -15,6 +15,18 @@ from backend.core.services.ai.ai_service import AIService
 from backend.config import settings
 from ..utils import MiniMaxAPIClient
 
+import yaml
+from pathlib import Path
+
+_PROMPTS_DIR = Path(__file__).parent.parent / "prompts"
+
+def _load_prompts(name: str) -> dict:
+    path = _PROMPTS_DIR / f"{name}.yaml"
+    with open(path, "r", encoding="utf-8") as f:
+        return yaml.safe_load(f)
+
+_OOC_PROMPTS = _load_prompts("ooc_checker")
+
 
 class OOCChecker(BaseChecker):
     """Checks if characters act consistently with their personality."""
@@ -116,43 +128,11 @@ class OOCChecker(BaseChecker):
             else json.dumps(characters, ensure_ascii=False, indent=2)
         )
 
-        prompt = f"""请深度分析以下章节内容中的角色行为一致性问题（OOC检测）。
-
-【章节内容】
-{content}
-
-【角色设定】
-{chars_text}
-
-请从以下维度分析角色行为一致性：
-1. **性格一致性**：角色行为是否符合其性格设定（如内向角色不应突然变得健谈）
-2. **动机一致性**：角色行动是否符合其动机和目标
-3. **情感一致性**：角色情绪反应是否合理，是否有突兀的情绪转变
-4. **语言风格一致性**：角色说话方式是否符合其身份和性格
-5. **关系一致性**：角色间互动是否符合已建立的关系
-6. **能力一致性**：角色展现的能力是否符合设定的等级
-
-请以JSON格式返回：
-{{
-    "score": 0-100的评分,
-    "issues": [
-        {{
-            "type": "问题类型",
-            "severity": "critical|high|medium|low",
-            "message": "问题描述",
-            "character": "涉及的角色名",
-            "evidence": "正文中的证据片段"
-        }}
-    ],
-    "suggestions": ["改进建议列表"]
-}}"""
-
-        system_prompt = (
-            "你是一位专业的角色行为一致性审核专家。你的任务是检查小说中角色的行为是否符合其设定的性格、"
-            "动机、能力和关系。任何OOC（Out Of Character）行为都应被标记。"
-            "评分标准：100=完全一致，80=轻微不一致，60=明显不一致，"
-            "40=严重不一致，20=重大OOC，0=角色完全崩坏。"
+        prompt = _OOC_PROMPTS["deep_analysis_prompt"].format(
+            content=content, chars_text=chars_text
         )
+
+        system_prompt = _OOC_PROMPTS["deep_analysis_system_prompt"]
 
         try:
             ai_result = await self._api_client.call(

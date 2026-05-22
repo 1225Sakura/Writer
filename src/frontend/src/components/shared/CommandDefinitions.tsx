@@ -158,7 +158,7 @@ export function buildCommands(d: CommandDeps): CommandItem[] {
       action: () => { d.toggleCollaborationDrawer(); d.setIsOpen(false); },
     },
     {
-      id: "toggle-outline", label: "切换大纲面板", shortcut: "Ctrl+Shift+O",
+      id: "toggle-outline", label: "切换大纲面板", shortcut: "Ctrl+Shift+D",
       icon: <List className="w-4 h-4" />, category: "view",
       keywords: ["outline", "大纲", "面板"],
       disabled: d.currentInterface !== "writing",

@@ -225,8 +225,8 @@ export function useGlobalShortcuts() {
         return
       }
 
-      // ===== 切换大纲面板: Ctrl+Shift+O (写作界面) =====
-      if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key === 'O') {
+      // ===== 切换大纲面板: Ctrl+Shift+D (写作界面) =====
+      if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key === 'D') {
         e.preventDefault()
         if (currentInterface === 'writing') {
           toggleOutlineDrawer()

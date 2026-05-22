@@ -19,6 +19,18 @@ from backend.core.services.ai.ai_service import AIService
 from backend.config import settings
 from ..utils import MiniMaxAPIClient
 
+import yaml
+from pathlib import Path
+
+_PROMPTS_DIR = Path(__file__).parent.parent / "prompts"
+
+def _load_prompts(name: str) -> dict:
+    path = _PROMPTS_DIR / f"{name}.yaml"
+    with open(path, "r", encoding="utf-8") as f:
+        return yaml.safe_load(f)
+
+_CONSISTENCY_PROMPTS = _load_prompts("consistency_checker")
+
 
 class ConsistencyChecker(BaseChecker):
     """Checks world consistency across the novel."""
@@ -163,50 +175,12 @@ class ConsistencyChecker(BaseChecker):
             else json.dumps(previous_chapters, ensure_ascii=False, indent=2)
         )
 
-        prompt = f"""请深度分析以下章节内容的世界观一致性问题。
-
-【章节内容】
-{content}
-
-【世界观设定】
-{world_text}
-
-【角色设定】
-{chars_text}
-
-【地点设定】
-{locs_text}
-
-【前文摘要】
-{prev_text}
-
-请从以下维度分析一致性：
-1. **地点一致性**：正文中的地点描述是否与已设定的地点特征一致
-2. **时间线一致性**：事件发生的先后顺序是否合理，时间流逝是否矛盾
-3. **力量等级一致性**：角色实力是否与之前描述的等级相符
-4. **物品归属一致性**：重要物品的位置和归属是否与之前描述一致
-5. **势力关系一致性**：势力间的敌友关系、领地描述是否一致
-6. **角色状态一致性**：角色的情绪、服装、伤势等状态是否延续
-
-请以JSON格式返回：
-{{
-    "score": 0-100的评分,
-    "issues": [
-        {{
-            "type": "问题类型",
-            "severity": "critical|high|medium|low",
-            "message": "问题描述",
-            "evidence": "正文中的证据片段"
-        }}
-    ],
-    "suggestions": ["改进建议列表"]
-}}"""
-
-        system_prompt = (
-            "你是一位严格的世界观一致性审核专家。你的任务是确保正文内容与已建立的世界设定完全一致。"
-            "任何细微的矛盾都应被标记。评分标准：100=完全一致，80=轻微不一致，60=明显不一致，"
-            "40=严重不一致，20=重大矛盾，0=完全崩坏。"
+        prompt = _CONSISTENCY_PROMPTS["deep_analysis_prompt"].format(
+            content=content, world_text=world_text, chars_text=chars_text,
+            locs_text=locs_text, prev_text=prev_text
         )
+
+        system_prompt = _CONSISTENCY_PROMPTS["deep_analysis_system_prompt"]
 
         try:
             ai_result = await self._api_client.call(
@@ -290,32 +264,11 @@ class ConsistencyChecker(BaseChecker):
             "factions": [{"id": f.id, "name": f.name, "type": f.type} for f in factions],
         }
 
-        prompt = f"""审查以下章节内容，检查世界观一致性：
-
-章节内容：
-{content}
-
-世界观设定：
-{world_context}
-
-请检查以下方面的一致性：
-1. 地点描述是否与已设定的地点一致
-2. 时间线是否连贯（事件顺序是否合理）
-3. 角色实力/修为等级是否与之前描述一致
-4. 物品归属和位置是否正确
-5. 势力关系和立场是否一致
-
-请以JSON格式返回：
-{{
-    "issues": ["具体问题描述列表"],
-    "suggestions": ["改进建议列表"],
-    "score": 1-100的评分
-}}"""
-
-        system_prompt = (
-            "你是一位专业的小说设定审核专家。仔细审查章节内容与世界观设定之间的一致性，"
-            "检查地点、时间线、实力等级、物品归属、势力关系等方面的逻辑矛盾。"
+        prompt = _CONSISTENCY_PROMPTS["legacy_check_prompt"].format(
+            content=content, world_context=world_context
         )
+
+        system_prompt = _CONSISTENCY_PROMPTS["legacy_check_system_prompt"]
 
         try:
             content_result = await self._api_client.call(

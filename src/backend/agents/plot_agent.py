@@ -15,6 +15,18 @@ from typing import Any
 
 from .base import BaseAgent, AgentContext, AgentResult
 
+import yaml
+from pathlib import Path
+
+_PROMPTS_DIR = Path(__file__).parent / "prompts"
+
+def _load_prompts(name: str) -> dict:
+    path = _PROMPTS_DIR / f"{name}.yaml"
+    with open(path, "r", encoding="utf-8") as f:
+        return yaml.safe_load(f)
+
+_PLOT_PROMPTS = _load_prompts("plot_agent")
+
 logger = logging.getLogger(__name__)
 
 
@@ -189,42 +201,7 @@ class PlotAgent(BaseAgent):
         Returns:
             Structured foreshadowing analysis.
         """
-        system_prompt = """你是一位专业的小说情节设计专家，专注于伏笔设计。
-
-请分析提供的章节内容，并给出结构化的伏笔建议。你必须返回一个有效的JSON对象，格式如下：
-
-{
-    "new_hooks": [
-        {
-            "description": "新伏笔的描述（30字以内）",
-            "placement": "建议放置的位置（开头/中间/结尾）",
-            "payoff_chapter": "预计回收的章节范围（如：5-10章后）",
-            "importance": "重要性（high/medium/low）",
-            "type": "伏笔类型（信息型/物品型/关系型/事件型）"
-        }
-    ],
-    "resolvable_hooks": [
-        {
-            "description": "可回收的旧伏笔描述",
-            "origin": "该伏笔最初出现的章节或位置",
-            "suggested_resolution": "建议的回收方式",
-            "urgency": "回收紧迫性（high/medium/low）"
-        }
-    ],
-    "dangling_threads": [
-        {
-            "description": "悬而未决的线索描述",
-            "risk": "长期不处理的风险",
-            "suggestion": "处理建议"
-        }
-    ],
-    "overall_assessment": "对当前章节伏笔布局的整体评价（50字以内）"
-}
-
-注意：
-- 使用双引号包裹所有字符串
-- 确保JSON格式正确
-- 如果某类结果为空，返回空数组"""
+        system_prompt = _PLOT_PROMPTS["foreshadowing_system_prompt"]
 
         user_content = self._build_foreshadowing_prompt_content(
             content, outline, chapters, active_threads
@@ -359,44 +336,7 @@ class PlotAgent(BaseAgent):
         Returns:
             Structured climax plan.
         """
-        system_prompt = """你是一位专业的小说节奏规划专家，专注于高潮设计。
-
-请根据提供的大纲和当前进度，规划高潮节奏。返回有效的JSON对象：
-
-{
-    "climax_points": [
-        {
-            "name": "高潮点名称",
-            "estimated_position": "预计位置（如：第30章/故事60%处）",
-            "type": "高潮类型（情感爆发/战斗/揭秘/抉择/牺牲）",
-            "buildup_chapters": "建议铺垫章节数",
-            "intensity": "强度评分（1-10）",
-            "prerequisites": ["触发该高潮的前提条件"],
-            "emotional_impact": "预期情感冲击描述"
-        }
-    ],
-    "current_phase": {
-        "name": "当前阶段名称（如：铺垫期/上升期/高潮期）",
-        "description": "当前阶段描述",
-        "recommended_pacing": "建议的节奏控制方式",
-        "next_milestone": "下一个里程碑"
-    },
-    "pacing_recommendations": [
-        "节奏控制建议1",
-        "节奏控制建议2"
-    ],
-    "risk_warnings": [
-        {
-            "risk": "潜在风险描述",
-            "mitigation": "规避建议"
-        }
-    ]
-}
-
-注意：
-- 使用双引号包裹所有字符串
-- 确保JSON格式正确
-- 高潮点应该有起承转合的层次感"""
+        system_prompt = _PLOT_PROMPTS["climax_system_prompt"]
 
         user_content = self._build_climax_prompt_content(
             outline, chapters, progress, active_threads
@@ -514,43 +454,7 @@ class PlotAgent(BaseAgent):
         Returns:
             Structured rhythm analysis.
         """
-        system_prompt = """你是一位专业的小说节奏分析专家，专注于情节张力曲线分析。
-
-请分析提供的章节序列，评估张力曲线。返回有效的JSON对象：
-
-{
-    "tension_curve": [
-        {
-            "chapter": "章节标识",
-            "tension_score": "张力评分（1-10）",
-            "emotional_tone": "情感基调（紧张/舒缓/悲伤/兴奋等）",
-            "pacing": "节奏评价（过快/适中/过慢）"
-        }
-    ],
-    "analysis": {
-        "overall_rhythm": "整体节奏评价",
-        "peak_distribution": "高潮分布评价",
-        "valley_distribution": "低谷/舒缓段分布评价",
-        "transition_quality": "章节间过渡质量评价"
-    },
-    "issues": [
-        {
-            "location": "问题位置",
-            "type": "问题类型（节奏断裂/张力不足/高潮堆砌/过渡生硬）",
-            "severity": "严重程度（high/medium/low）",
-            "description": "问题描述",
-            "suggestion": "改进建议"
-        }
-    ],
-    "recommendations": [
-        "节奏调整建议"
-    ]
-}
-
-注意：
-- 使用双引号包裹所有字符串
-- 确保JSON格式正确
-- 张力曲线应该有起伏，避免平铺直叙"""
+        system_prompt = _PLOT_PROMPTS["rhythm_system_prompt"]
 
         user_content = self._build_rhythm_prompt_content(chapters, current_content)
 

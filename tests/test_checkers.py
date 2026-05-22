@@ -12,6 +12,8 @@ from backend.agents.checkers import (
     ContinuityChecker,
     HighPointChecker,
     ReaderPullChecker,
+    OutlineLawEnforcer,
+    SettingPhysicsEnforcer,
 )
 from backend.agents.checkers.base import CheckerResult
 
@@ -404,7 +406,7 @@ class TestCheckerImports:
     """Test that all checkers can be imported from the package."""
 
     def test_all_checkers_importable(self):
-        """Test all 6 checkers are importable."""
+        """Test all 8 checkers are importable."""
         from backend.agents.checkers import __all__
 
         assert "ConsistencyChecker" in __all__
@@ -413,3 +415,5 @@ class TestCheckerImports:
         assert "ContinuityChecker" in __all__
         assert "HighPointChecker" in __all__
         assert "ReaderPullChecker" in __all__
+        assert "OutlineLawEnforcer" in __all__
+        assert "SettingPhysicsEnforcer" in __all__

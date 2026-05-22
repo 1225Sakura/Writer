@@ -12,6 +12,18 @@ import logging
 from typing import Any
 
 from .base import AgentContext, AgentResult, BaseAgent
+
+import yaml
+from pathlib import Path
+
+_PROMPTS_DIR = Path(__file__).parent / "prompts"
+
+def _load_prompts(name: str) -> dict:
+    path = _PROMPTS_DIR / f"{name}.yaml"
+    with open(path, "r", encoding="utf-8") as f:
+        return yaml.safe_load(f)
+
+_CHAT_PROMPTS = _load_prompts("chat_agent")
 from ..utils.event_bus import AGENT_EXECUTED
 
 logger = logging.getLogger(__name__)
@@ -86,23 +98,8 @@ QUESTION_TEMPLATES: dict[str, list[str]] = {
     ],
 }
 
-# System prompt for the chat agent
-CHAT_AGENT_SYSTEM_PROMPT = """你是一位专业的小说创作助手，擅长通过对话帮助作者完善小说设定。
-
-你的任务：
-1. 通过主动提问收集小说创作所需的世界观、角色、金手指等设定信息
-2. 每次只问1-2个问题，保持对话自然流畅
-3. 根据用户已有的回答，智能推断还缺少哪些信息
-4. 当某个类别的信息收集足够时，自然过渡到下一个类别
-5. 用中文与用户交流，语气友好专业
-
-输出格式要求：
-- 回复必须包含：next_question（下一个问题）
-- 如果收集到新的设定信息，包含：extracted_settings（结构化设定数据）
-- 如果认为某个类别已收集完成，包含：completed_categories（已完成的类别列表）
-
-设定类别顺序：类型→世界观→力量体系→主角→金手指→反派→配角→关键物品→关键地点→势力→规则→剧情方向
-"""
+# System prompt for the chat agent (loaded from YAML)
+CHAT_AGENT_SYSTEM_PROMPT = _CHAT_PROMPTS["system_prompt"]
 
 
 class ChatAgent(BaseAgent):
@@ -219,11 +216,8 @@ class ChatAgent(BaseAgent):
         Returns:
             Dictionary of extracted settings for the category.
         """
-        prompt = (
-            f"从以下用户回复中提取'{current_category}'类别的设定信息。\n\n"
-            f"用户回复：{message}\n\n"
-            "请以JSON格式输出提取结果，只输出JSON，不要其他内容。"
-            "格式：{\"field_name\": \"extracted_value\"}"
+        prompt = _CHAT_PROMPTS["extract_settings_prompt"].format(
+            current_category=current_category, message=message
         )
 
         try:
@@ -252,21 +246,22 @@ class ChatAgent(BaseAgent):
         current_category: str,
     ) -> str:
         """Build the prompt for the AI provider."""
-        lines = [CHAT_AGENT_SYSTEM_PROMPT, "", "=== 当前状态 ===", ""]
+        tpl = _CHAT_PROMPTS
+        lines = [CHAT_AGENT_SYSTEM_PROMPT, "", tpl["build_prompt_state_header"], ""]
 
         # Show collected settings
         if settings_so_far:
-            lines.append("已收集的设定：")
+            lines.append(tpl["build_prompt_collected_label"])
             for cat, data in settings_so_far.items():
                 lines.append(f"  [{cat}]: {json.dumps(data, ensure_ascii=False)}")
         else:
-            lines.append("尚未收集任何设定。")
+            lines.append(tpl["build_prompt_none_collected"])
 
-        lines.extend(["", f"当前收集类别：{current_category}", ""])
+        lines.extend(["", tpl["build_prompt_current_category"].format(current_category=current_category), ""])
 
         # Show conversation history
         if history:
-            lines.append("=== 对话历史 ===")
+            lines.append(tpl["build_prompt_history_header"])
             for msg in history[-10:]:  # Last 10 messages for context
                 role = msg.get("role", "unknown")
                 content = msg.get("content", "")
@@ -274,13 +269,7 @@ class ChatAgent(BaseAgent):
             lines.append("")
 
         lines.extend([
-            "=== 任务 ===",
-            "基于以上信息，请决定下一步动作：",
-            "1. 如果当前类别信息不足，提出下一个问题",
-            "2. 如果当前类别已收集足够，标记为完成并过渡到下一个类别",
-            "3. 从用户最新消息中提取任何新的设定信息",
-            "",
-            "请以JSON格式输出：",
+            tpl["build_prompt_task_section"],
             json.dumps({
                 "next_question": "下一个要问的问题（中文）",
                 "extracted_settings": {"类别": {"字段": "值"}},

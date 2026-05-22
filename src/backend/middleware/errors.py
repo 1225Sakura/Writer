@@ -8,13 +8,15 @@ Provides:
 - Request context propagation via contextvars
 """
 
-from fastapi import Request
+from fastapi import Request, HTTPException
 from fastapi.responses import JSONResponse
 from typing import Any, Dict, Optional
 from datetime import datetime, timezone
 import logging
 import contextvars
 import uuid
+
+from backend.api.v1.schemas.common import ErrorResponse, APIError
 
 logger = logging.getLogger("writer-api")
 
@@ -1015,7 +1017,7 @@ def set_request_context(request_id: str, correlation_id: Optional[str] = None) -
 # =============================================================================
 
 async def app_exception_handler(request: Request, exc: AppException) -> JSONResponse:
-    """Handle AppException and its subclasses."""
+    """Handle AppException and its subclasses using ErrorResponse format."""
     request_id = getattr(request.state, "request_id", None) or get_current_request_id()
 
     log_extra = {
@@ -1038,13 +1040,43 @@ async def app_exception_handler(request: Request, exc: AppException) -> JSONResp
 
     return JSONResponse(
         status_code=exc.status_code,
-        content=build_error_response(
-            message=exc.message,
-            error_code=exc.error_code,
-            details=exc.details,
+        content=ErrorResponse(
+            error=APIError(
+                code=exc.error_code,
+                message=exc.message,
+                details=exc.details or None,
+            ),
             request_id=request_id,
             timestamp=exc.timestamp,
-        ),
+        ).model_dump(),
+        headers={"X-Request-ID": request_id} if request_id else None,
+    )
+
+
+async def http_exception_handler(request: Request, exc: HTTPException) -> JSONResponse:
+    """Handle FastAPI HTTPException and format as ErrorResponse."""
+    request_id = getattr(request.state, "request_id", None) or get_current_request_id()
+
+    logger.warning(
+        f"HTTPException: {exc.status_code} - {exc.detail}",
+        extra={
+            "path": request.url.path,
+            "status_code": exc.status_code,
+            "request_id": request_id,
+        },
+    )
+
+    return JSONResponse(
+        status_code=exc.status_code,
+        content=ErrorResponse(
+            error=APIError(
+                code=str(exc.status_code),
+                message=str(exc.detail),
+                details=None,
+            ),
+            request_id=request_id,
+            timestamp=datetime.now(timezone.utc).isoformat(),
+        ).model_dump(),
         headers={"X-Request-ID": request_id} if request_id else None,
     )
 
@@ -1052,7 +1084,7 @@ async def app_exception_handler(request: Request, exc: AppException) -> JSONResp
 async def generic_exception_handler(
     request: Request, exc: Exception
 ) -> JSONResponse:
-    """Handle unhandled exceptions."""
+    """Handle unhandled exceptions using ErrorResponse format."""
     request_id = getattr(request.state, "request_id", None) or get_current_request_id()
 
     logger.error(
@@ -1067,17 +1099,26 @@ async def generic_exception_handler(
 
     return JSONResponse(
         status_code=500,
-        content=build_error_response(
-            message="Internal server error",
-            error_code=ErrorCode.INTERNAL_ERROR,
+        content=ErrorResponse(
+            error=APIError(
+                code=ErrorCode.INTERNAL_ERROR,
+                message="Internal server error",
+                details={"type": type(exc).__name__},
+            ),
             request_id=request_id,
-        ),
+            timestamp=datetime.now(timezone.utc).isoformat(),
+        ).model_dump(),
     )
 
 
 def register_exception_handlers(app) -> None:
-    """Register all exception handlers with the FastAPI app."""
-    # Register all AppException subclasses with the generic handler
+    """Register all exception handlers with the FastAPI app.
+
+    Handler priority order:
+    1. AppException (domain-specific, most specific)
+    2. HTTPException (FastAPI standard)
+    3. Exception (catch-all, least specific)
+    """
     app.add_exception_handler(AppException, app_exception_handler)
-    # Keep generic handler last
+    app.add_exception_handler(HTTPException, http_exception_handler)
     app.add_exception_handler(Exception, generic_exception_handler)

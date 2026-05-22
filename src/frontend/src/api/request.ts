@@ -196,13 +196,18 @@ const transformError = (err: unknown): ApiError => {
 
   switch (statusCode) {
     case 400: {
-      const data = error.response?.data as { detail?: string; message?: string; errors?: Record<string, string[]> }
+      const data = error.response?.data as {
+        error?: { code?: string; message?: string }
+        detail?: string
+        message?: string
+        errors?: Record<string, string[]>
+      }
       const fieldErrors = data?.errors
         ? Object.entries(data.errors).map(([k, v]) => `${k}: ${v.join(', ')}`).join('; ')
         : ''
       return {
         code: 'VALIDATION_ERROR',
-        message: fieldErrors || data?.detail || data?.message || '请求参数错误',
+        message: fieldErrors || data?.error?.message || data?.detail || data?.message || '请求参数错误',
         statusCode,
         originalError: error,
       }
@@ -245,10 +250,14 @@ const transformError = (err: unknown): ApiError => {
         originalError: error,
       }
     default: {
-      const data = error.response?.data as { detail?: string; message?: string }
+      const data = error.response?.data as {
+        error?: { code?: string; message?: string }
+        detail?: string
+        message?: string
+      }
       return {
         code: 'UNKNOWN_ERROR',
-        message: data?.detail || data?.message || '请求失败，请稍后重试',
+        message: data?.error?.message || data?.detail || data?.message || '请求失败，请稍后重试',
         statusCode,
         originalError: error,
       }

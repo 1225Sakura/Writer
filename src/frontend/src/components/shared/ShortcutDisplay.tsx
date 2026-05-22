@@ -30,7 +30,7 @@ export function getShortcutsHelpText(interfaceType: InterfaceType): string {
       'Ctrl+N: 新建章节',
       'Ctrl+\\: 切换AI面板',
       'Ctrl+/: 切换协作面板',
-      'Ctrl+Shift+O: 切换大纲面板',
+      'Ctrl+Shift+D: 切换大纲面板',
       'F11: 全屏写作',
       'Ctrl+Shift+I: 沉浸模式',
       'Ctrl+Shift+F: 专注模式',
