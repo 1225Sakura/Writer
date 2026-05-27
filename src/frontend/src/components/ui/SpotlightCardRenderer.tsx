@@ -7,7 +7,7 @@ import { useRef, useState, useCallback, type ReactNode, type CSSProperties } fro
 import { motion } from 'framer-motion'
 import { cn } from '@/lib/utils'
 import { DURATION, EASE } from '@/components/shared/AnimationConfig'
-import { spotlightColorMap, spotlightIntensityMap, roundedMap, paddingMap } from '@/components/shared/CardPrimitives'
+import { getSpotlightRGB, spotlightIntensityMap, roundedMap, paddingMap } from '@/components/shared/CardPrimitives'
 import type { SpotlightColor } from '@/components/shared/CardPrimitives'
 import type { CardBorder } from './MaterialCardVariants'
 
@@ -58,7 +58,7 @@ export function SpotlightRenderer({
     })
   }, [])
 
-  const rgbValue = spotlightCustomColor ?? spotlightColorMap[spotlightColor]
+  const rgbValue = spotlightCustomColor ?? getSpotlightRGB(spotlightColor)
   const spotlightConfig = spotlightIntensityMap[spotlightIntensity]
 
   const spotlightStyle = {

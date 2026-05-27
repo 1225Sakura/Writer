@@ -63,9 +63,7 @@ export function DefaultCardRenderer({
       onClick={onClick}
       whileHover={hover ? {
         y: -2,
-        boxShadow: isLight
-          ? '0 8px 24px rgba(0, 0, 0, 0.1), 0 2px 6px rgba(0, 0, 0, 0.06)'
-          : '0 8px 24px rgba(0, 0, 0, 0.2), 0 2px 6px rgba(0, 0, 0, 0.1)',
+        boxShadow: 'var(--shadow-elevated)',
       } : undefined}
       whileTap={press ? { scale: 0.98 } : undefined}
       transition={{ duration: DURATION.NORMAL, ease: EASE.SMOOTH }}

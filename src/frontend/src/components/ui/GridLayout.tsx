@@ -50,36 +50,36 @@ export const colorMap: Record<BentoItemColor, CSSProperties> = {
     borderColor: 'var(--border-subtle)',
   },
   accent: {
-    background: 'rgba(201, 169, 110, 0.08)',
-    borderColor: 'rgba(201, 169, 110, 0.2)',
+    background: 'rgba(var(--spotlight-accent), 0.08)',
+    borderColor: 'rgba(var(--spotlight-accent), 0.2)',
   },
   character: {
-    background: 'rgba(232, 184, 125, 0.06)',
-    borderColor: 'rgba(232, 184, 125, 0.18)',
+    background: 'rgba(var(--spotlight-character), 0.06)',
+    borderColor: 'rgba(var(--spotlight-character), 0.18)',
   },
   item: {
-    background: 'rgba(155, 126, 217, 0.06)',
-    borderColor: 'rgba(155, 126, 217, 0.18)',
+    background: 'rgba(var(--spotlight-item), 0.06)',
+    borderColor: 'rgba(var(--spotlight-item), 0.18)',
   },
   location: {
-    background: 'rgba(94, 181, 166, 0.06)',
-    borderColor: 'rgba(94, 181, 166, 0.18)',
+    background: 'rgba(var(--spotlight-location), 0.06)',
+    borderColor: 'rgba(var(--spotlight-location), 0.18)',
   },
   faction: {
-    background: 'rgba(212, 93, 93, 0.06)',
-    borderColor: 'rgba(212, 93, 93, 0.18)',
+    background: 'rgba(var(--spotlight-faction), 0.06)',
+    borderColor: 'rgba(var(--spotlight-faction), 0.18)',
   },
   outline: {
-    background: 'rgba(91, 142, 232, 0.06)',
-    borderColor: 'rgba(91, 142, 232, 0.18)',
+    background: 'rgba(var(--spotlight-outline), 0.06)',
+    borderColor: 'rgba(var(--spotlight-outline), 0.18)',
   },
   ifline: {
-    background: 'rgba(126, 183, 74, 0.06)',
-    borderColor: 'rgba(126, 183, 74, 0.18)',
+    background: 'rgba(var(--spotlight-ifline), 0.06)',
+    borderColor: 'rgba(var(--spotlight-ifline), 0.18)',
   },
   vermillion: {
-    background: 'rgba(196, 92, 92, 0.06)',
-    borderColor: 'rgba(196, 92, 92, 0.18)',
+    background: 'rgba(var(--spotlight-faction), 0.06)',
+    borderColor: 'rgba(var(--spotlight-faction), 0.18)',
   },
 }
 

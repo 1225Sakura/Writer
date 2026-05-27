@@ -52,21 +52,21 @@ interface GradientBorderProps {
 }
 
 const presetGradients: Record<GradientPreset, string[]> = {
-  accent: ['rgba(201, 169, 110, 0.6)', 'rgba(107, 158, 142, 0.5)', 'rgba(232, 184, 125, 0.4)'],
-  warm: ['rgba(232, 184, 125, 0.6)', 'rgba(196, 92, 92, 0.5)', 'rgba(212, 93, 93, 0.4)'],
-  cool: ['rgba(201, 169, 110, 0.6)', 'rgba(91, 142, 232, 0.5)', 'rgba(107, 158, 142, 0.4)'],
+  accent: ['rgba(var(--spotlight-accent), 0.6)', 'rgba(var(--spotlight-location), 0.5)', 'rgba(var(--spotlight-character), 0.4)'],
+  warm: ['rgba(var(--spotlight-character), 0.6)', 'rgba(var(--spotlight-faction), 0.5)', 'rgba(var(--spotlight-faction), 0.4)'],
+  cool: ['rgba(var(--spotlight-accent), 0.6)', 'rgba(var(--spotlight-outline), 0.5)', 'rgba(var(--spotlight-location), 0.4)'],
   rainbow: [
-    'rgba(201, 169, 110, 0.6)',
-    'rgba(91, 142, 232, 0.5)',
-    'rgba(107, 158, 142, 0.5)',
-    'rgba(126, 183, 74, 0.5)',
-    'rgba(232, 184, 125, 0.5)',
-    'rgba(196, 92, 92, 0.5)',
+    'rgba(var(--spotlight-accent), 0.6)',
+    'rgba(var(--spotlight-outline), 0.5)',
+    'rgba(var(--spotlight-location), 0.5)',
+    'rgba(var(--spotlight-ifline), 0.5)',
+    'rgba(var(--spotlight-character), 0.5)',
+    'rgba(var(--spotlight-faction), 0.5)',
   ],
-  sunset: ['rgba(232, 184, 125, 0.7)', 'rgba(196, 92, 92, 0.6)', 'rgba(155, 126, 217, 0.5)'],
-  ocean: ['rgba(91, 142, 232, 0.6)', 'rgba(107, 158, 142, 0.5)', 'rgba(201, 169, 110, 0.4)'],
-  forest: ['rgba(126, 183, 74, 0.6)', 'rgba(107, 158, 142, 0.5)', 'rgba(201, 169, 110, 0.4)'],
-  custom: ['rgba(201, 169, 110, 0.6)', 'rgba(107, 158, 142, 0.5)'],
+  sunset: ['rgba(var(--spotlight-character), 0.7)', 'rgba(var(--spotlight-faction), 0.6)', 'rgba(var(--spotlight-item), 0.5)'],
+  ocean: ['rgba(var(--spotlight-outline), 0.6)', 'rgba(var(--spotlight-location), 0.5)', 'rgba(var(--spotlight-accent), 0.4)'],
+  forest: ['rgba(var(--spotlight-ifline), 0.6)', 'rgba(var(--spotlight-location), 0.5)', 'rgba(var(--spotlight-accent), 0.4)'],
+  custom: ['rgba(var(--spotlight-accent), 0.6)', 'rgba(var(--spotlight-location), 0.5)'],
 }
 
 const directionStyles: Record<GradientDirection, string> = {

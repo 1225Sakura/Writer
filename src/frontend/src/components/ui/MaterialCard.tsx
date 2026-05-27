@@ -49,10 +49,10 @@ export { GlassCardHeader, GlassCardContent, GlassCardFooter }
 const variantStyles: Record<CardVariant, CSSProperties> = {
   default: {},
   elevated: {
-    boxShadow: '0 2px 8px rgba(0, 0, 0, 0.12), 0 8px 24px rgba(0, 0, 0, 0.08), inset 0 1px 0 var(--border-subtle)',
+    boxShadow: 'var(--shadow-elevated), inset 0 1px 0 var(--border-subtle)',
   },
   floating: {
-    boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15), 0 16px 40px rgba(0, 0, 0, 0.12), inset 0 1px 0 var(--border-subtle)',
+    boxShadow: 'var(--shadow-float), inset 0 1px 0 var(--border-subtle)',
     transform: 'translateY(0)',
   },
   glow: { position: 'relative' as const, overflow: 'hidden' },
@@ -63,10 +63,10 @@ const variantStyles: Record<CardVariant, CSSProperties> = {
 const lightVariantStyles: Record<CardVariant, CSSProperties> = {
   default: {},
   elevated: {
-    boxShadow: '0 2px 8px rgba(0, 0, 0, 0.06), 0 8px 24px rgba(0, 0, 0, 0.04), inset 0 1px 0 var(--border-subtle)',
+    boxShadow: 'var(--shadow-elevated), inset 0 1px 0 var(--border-subtle)',
   },
   floating: {
-    boxShadow: '0 4px 12px rgba(0, 0, 0, 0.08), 0 16px 40px rgba(0, 0, 0, 0.06), inset 0 1px 0 var(--border-subtle)',
+    boxShadow: 'var(--shadow-float), inset 0 1px 0 var(--border-subtle)',
     transform: 'translateY(0)',
   },
   glow: { position: 'relative' as const, overflow: 'hidden' },
@@ -89,7 +89,7 @@ export function MaterialCard({
   spotlightIntensity = 'soft',
   gradientFrom = 'rgba(201, 169, 110, 0.6)',
   gradientVia = 'rgba(94, 181, 166, 0.4)',
-  gradientTo = 'rgba(232, 184, 125, 0.5)',
+  gradientTo = 'rgba(var(--spotlight-character), 0.5)',
   gradientGlowColor = '201, 169, 110',
   gradientGlowIntensity = 'medium',
   borderWidth = 1.5,
