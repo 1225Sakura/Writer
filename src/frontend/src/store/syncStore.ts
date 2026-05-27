@@ -251,13 +251,14 @@ export const useSyncStore = create<SyncState & SyncActions>()(
                             ss.lastSyncedAt = Date.now()
                           }
                         })
-                      } catch {
+                      } catch (syncError) {
                         set((state) => {
                           const ss = state.ifLineSyncStates.get(ifLineId)
                           if (ss) {
                             ss.status = 'error'
                           }
                         })
+                        showError(`IF线 ${ifLineId} 同步失败`)
                       }
                     })()
                   )

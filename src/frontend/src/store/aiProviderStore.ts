@@ -1,4 +1,5 @@
 import { create } from 'zustand'
+import { showOperationError } from '../utils/toastHelper'
 import { aiProviderConfigApi } from '../api/settings'
 import type {
   AIProviderConfig,
@@ -43,6 +44,7 @@ export const useAiProviderStore = create<AIProviderState & AIProviderActions>((s
       set({ configs, activeConfig, isLoading: false })
     } catch (err: any) {
       set({ error: err?.message || 'Failed to fetch configs', isLoading: false })
+      showOperationError('获取配置列表', err)
     }
   },
 
@@ -54,6 +56,7 @@ export const useAiProviderStore = create<AIProviderState & AIProviderActions>((s
       return created.id
     } catch (err: any) {
       set({ error: err?.message || 'Failed to create config', isLoading: false })
+      showOperationError('创建配置', err)
       return null
     }
   },
@@ -65,6 +68,7 @@ export const useAiProviderStore = create<AIProviderState & AIProviderActions>((s
       await get().fetchConfigs()
     } catch (err: any) {
       set({ error: err?.message || 'Failed to update config', isLoading: false })
+      showOperationError('更新配置', err)
     }
   },
 
@@ -75,6 +79,7 @@ export const useAiProviderStore = create<AIProviderState & AIProviderActions>((s
       await get().fetchConfigs()
     } catch (err: any) {
       set({ error: err?.message || 'Failed to delete config', isLoading: false })
+      showOperationError('删除配置', err)
     }
   },
 
@@ -85,6 +90,7 @@ export const useAiProviderStore = create<AIProviderState & AIProviderActions>((s
       await get().fetchConfigs()
     } catch (err: any) {
       set({ error: err?.message || 'Failed to activate config', isLoading: false })
+      showOperationError('激活配置', err)
     }
   },
 
@@ -95,6 +101,7 @@ export const useAiProviderStore = create<AIProviderState & AIProviderActions>((s
       set({ testResult: result })
     } catch (err: any) {
       set({ error: err?.message || 'Connection test failed' })
+      showOperationError('连接测试', err)
     }
   },
 
@@ -105,6 +112,7 @@ export const useAiProviderStore = create<AIProviderState & AIProviderActions>((s
       set({ testResult: result })
     } catch (err: any) {
       set({ error: err?.message || 'Connection test failed' })
+      showOperationError('连接测试', err)
     }
   },
 

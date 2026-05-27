@@ -167,28 +167,41 @@ export const useContentStore = create<ContentState & ContentActions>()(
       },
 
       createChapter: async (data) => {
-        const chapter = await chapterApi.create({
-          ...data,
-          status: data.status || 'planning',
-          word_count: data.word_count || 0,
-        })
-        set((state) => { state.chapters.push(chapter) })
-        return chapter
+        try {
+          const chapter = await chapterApi.create({
+            ...data,
+            status: data.status || 'planning',
+            word_count: data.word_count || 0,
+          })
+          set((state) => { state.chapters.push(chapter) })
+          return chapter
+        } catch (error) {
+          showOperationError('创建章节', error)
+          throw error
+        }
       },
 
       updateChapter: async (id, updates) => {
-        await chapterApi.update(id, updates)
-        set((state) => {
-          const ch = state.chapters.find((c) => c.id === id)
-          if (ch) Object.assign(ch, updates)
-        })
+        try {
+          await chapterApi.update(id, updates)
+          set((state) => {
+            const ch = state.chapters.find((c) => c.id === id)
+            if (ch) Object.assign(ch, updates)
+          })
+        } catch (error) {
+          showOperationError('更新章节', error)
+        }
       },
 
       deleteChapter: async (id) => {
-        await chapterApi.delete(id)
-        set((state) => {
-          state.chapters = state.chapters.filter((c) => c.id !== id)
-        })
+        try {
+          await chapterApi.delete(id)
+          set((state) => {
+            state.chapters = state.chapters.filter((c) => c.id !== id)
+          })
+        } catch (error) {
+          showOperationError('删除章节', error)
+        }
       },
 
       // ----------------------------------------
@@ -208,24 +221,37 @@ export const useContentStore = create<ContentState & ContentActions>()(
       },
 
       createOutline: async (data) => {
-        const outline = await outlineApi.create(data)
-        set((state) => { state.outlines.push(outline) })
-        return outline
+        try {
+          const outline = await outlineApi.create(data)
+          set((state) => { state.outlines.push(outline) })
+          return outline
+        } catch (error) {
+          showOperationError('创建大纲', error)
+          throw error
+        }
       },
 
       updateOutline: async (id, updates) => {
-        await outlineApi.update(id, updates)
-        set((state) => {
-          const o = state.outlines.find((x) => x.id === id)
-          if (o) Object.assign(o, updates)
-        })
+        try {
+          await outlineApi.update(id, updates)
+          set((state) => {
+            const o = state.outlines.find((x) => x.id === id)
+            if (o) Object.assign(o, updates)
+          })
+        } catch (error) {
+          showOperationError('更新大纲', error)
+        }
       },
 
       deleteOutline: async (id) => {
-        await outlineApi.delete(id)
-        set((state) => {
-          state.outlines = state.outlines.filter((o) => o.id !== id)
-        })
+        try {
+          await outlineApi.delete(id)
+          set((state) => {
+            state.outlines = state.outlines.filter((o) => o.id !== id)
+          })
+        } catch (error) {
+          showOperationError('删除大纲', error)
+        }
       },
 
       // ----------------------------------------
@@ -245,21 +271,31 @@ export const useContentStore = create<ContentState & ContentActions>()(
       },
 
       saveDraftVersion: async (chapterId, content) => {
-        const existingDrafts = get().draftVersions.filter(
-          (d) => d.chapter_id === chapterId
-        )
-        const versionNumber = existingDrafts.length + 1
-        const draft = await draftApi.create(chapterId, {
-          content,
-          version_number: versionNumber,
-        })
-        set((state) => { state.draftVersions.push(draft) })
-        return draft
+        try {
+          const existingDrafts = get().draftVersions.filter(
+            (d) => d.chapter_id === chapterId
+          )
+          const versionNumber = existingDrafts.length + 1
+          const draft = await draftApi.create(chapterId, {
+            content,
+            version_number: versionNumber,
+          })
+          set((state) => { state.draftVersions.push(draft) })
+          return draft
+        } catch (error) {
+          showOperationError('保存草稿', error)
+          throw error
+        }
       },
 
       restoreDraftVersion: async (chapterId, versionNumber) => {
-        const draft = await draftApi.getVersion(chapterId, versionNumber)
-        return draft.content
+        try {
+          const draft = await draftApi.getVersion(chapterId, versionNumber)
+          return draft.content
+        } catch (error) {
+          showOperationError('恢复草稿', error)
+          throw error
+        }
       },
 
       getDraftVersions: (chapterId) => {
@@ -269,12 +305,16 @@ export const useContentStore = create<ContentState & ContentActions>()(
       },
 
       deleteDraftVersion: async (draftId) => {
-        const draft = get().draftVersions.find((d) => d.id === draftId)
-        if (!draft) return
-        await draftApi.delete(draft.chapter_id, draft.version_number)
-        set((state) => {
-          state.draftVersions = state.draftVersions.filter((d) => d.id !== draftId)
-        })
+        try {
+          const draft = get().draftVersions.find((d) => d.id === draftId)
+          if (!draft) return
+          await draftApi.delete(draft.chapter_id, draft.version_number)
+          set((state) => {
+            state.draftVersions = state.draftVersions.filter((d) => d.id !== draftId)
+          })
+        } catch (error) {
+          showOperationError('删除草稿', error)
+        }
       },
 
       // ----------------------------------------
@@ -294,24 +334,37 @@ export const useContentStore = create<ContentState & ContentActions>()(
       },
 
       createIFLine: async (data) => {
-        const ifLine = await ifLineApi.create(data)
-        set((state) => { state.ifLines.push(ifLine) })
-        return ifLine
+        try {
+          const ifLine = await ifLineApi.create(data)
+          set((state) => { state.ifLines.push(ifLine) })
+          return ifLine
+        } catch (error) {
+          showOperationError('创建IF线', error)
+          throw error
+        }
       },
 
       updateIFLine: async (id, updates) => {
-        await ifLineApi.update(id, updates)
-        set((state) => {
-          const line = state.ifLines.find((l) => l.id === id)
-          if (line) Object.assign(line, updates)
-        })
+        try {
+          await ifLineApi.update(id, updates)
+          set((state) => {
+            const line = state.ifLines.find((l) => l.id === id)
+            if (line) Object.assign(line, updates)
+          })
+        } catch (error) {
+          showOperationError('更新IF线', error)
+        }
       },
 
       deleteIFLine: async (id) => {
-        await ifLineApi.delete(id)
-        set((state) => {
-          state.ifLines = state.ifLines.filter((l) => l.id !== id)
-        })
+        try {
+          await ifLineApi.delete(id)
+          set((state) => {
+            state.ifLines = state.ifLines.filter((l) => l.id !== id)
+          })
+        } catch (error) {
+          showOperationError('删除IF线', error)
+        }
       },
 
       // ----------------------------------------
@@ -331,24 +384,37 @@ export const useContentStore = create<ContentState & ContentActions>()(
       },
 
       createPlotThread: async (data) => {
-        const plotThread = await plotThreadApi.create(data)
-        set((state) => { state.plotThreads.push(plotThread) })
-        return plotThread
+        try {
+          const plotThread = await plotThreadApi.create(data)
+          set((state) => { state.plotThreads.push(plotThread) })
+          return plotThread
+        } catch (error) {
+          showOperationError('创建情节线', error)
+          throw error
+        }
       },
 
       updatePlotThread: async (id, updates) => {
-        await plotThreadApi.update(id, updates)
-        set((state) => {
-          const pt = state.plotThreads.find((p) => p.id === id)
-          if (pt) Object.assign(pt, updates)
-        })
+        try {
+          await plotThreadApi.update(id, updates)
+          set((state) => {
+            const pt = state.plotThreads.find((p) => p.id === id)
+            if (pt) Object.assign(pt, updates)
+          })
+        } catch (error) {
+          showOperationError('更新情节线', error)
+        }
       },
 
       deletePlotThread: async (id) => {
-        await plotThreadApi.delete(id)
-        set((state) => {
-          state.plotThreads = state.plotThreads.filter((p) => p.id !== id)
-        })
+        try {
+          await plotThreadApi.delete(id)
+          set((state) => {
+            state.plotThreads = state.plotThreads.filter((p) => p.id !== id)
+          })
+        } catch (error) {
+          showOperationError('删除情节线', error)
+        }
       },
 
       // ----------------------------------------
@@ -373,9 +439,14 @@ export const useContentStore = create<ContentState & ContentActions>()(
       },
 
       createInspection: async (chapterId, data) => {
-        const inspection = await inspectionApi.create(chapterId, data)
-        set((state) => { state.inspectionResults.push(inspection) })
-        return inspection
+        try {
+          const inspection = await inspectionApi.create(chapterId, data)
+          set((state) => { state.inspectionResults.push(inspection) })
+          return inspection
+        } catch (error) {
+          showOperationError('创建审查', error)
+          throw error
+        }
       },
     }))
   )

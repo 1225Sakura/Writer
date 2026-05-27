@@ -7,9 +7,13 @@ all registered checkers, plus result aggregation.
 from __future__ import annotations
 
 import asyncio
+import logging
 from typing import Any
 
+logger = logging.getLogger(__name__)
+
 from .base import BaseChecker, CheckerResult
+from ...utils.exceptions import CheckerAnalysisError
 
 
 class CheckerPipeline:
@@ -88,15 +92,19 @@ class CheckerPipeline:
     ) -> dict[str, Any]:
         """Aggregate individual checker results into a summary.
 
-        Computes overall score, severity-weighted issue counts, and
-        flattens suggestions.
+        Computes weighted overall score, severity-weighted issue counts, and
+        flattens suggestions.  Results with ``failure_mode == "analysis_failed"``
+        are excluded from the weighted average so that a broken checker does
+        not silently drag the score to zero.  Any result containing an issue
+        with ``severity == "critical"`` forces the overall score to 0.
 
         Args:
             results: Dict mapping checker name to CheckerResult.
 
         Returns:
             Aggregated report dict with overall_score, total_issues,
-            issue_breakdown, all_suggestions, and checker_scores.
+            issue_breakdown, all_suggestions, checker_scores, and
+            failed_checkers.
         """
         if not results:
             return {
@@ -105,23 +113,57 @@ class CheckerPipeline:
                 "issue_breakdown": {},
                 "all_suggestions": [],
                 "checker_scores": {},
+                "failed_checkers": [],
             }
 
         checker_scores: dict[str, int] = {}
         issue_breakdown: dict[str, int] = {}
         all_suggestions: list[str] = []
-        total_score = 0
+        failed_checkers: list[str] = []
         total_issues = 0
+        has_critical_issue = False
+
+        # Build a mapping of checker name -> weight from registered checkers
+        checker_weights: dict[str, float] = {
+            c.name: c.weight for c in self._checkers
+        }
+
+        valid_results: list[tuple[str, CheckerResult]] = []
 
         for name, result in results.items():
             checker_scores[name] = result.score
-            total_score += result.score
             issue_count = len(result.issues)
             issue_breakdown[name] = issue_count
             total_issues += issue_count
             all_suggestions.extend(result.suggestions)
 
-        overall_score = round(total_score / len(results))
+            # Check for critical issues
+            for issue in result.issues:
+                if issue.get("severity") == "critical":
+                    has_critical_issue = True
+
+            # Exclude failed checkers from weighted average
+            if result.failure_mode == "analysis_failed":
+                failed_checkers.append(name)
+            else:
+                valid_results.append((name, result))
+
+        # Compute weighted average over valid (non-failed) results
+        if valid_results:
+            weighted_sum = 0.0
+            weight_total = 0.0
+            for name, result in valid_results:
+                w = checker_weights.get(name, 1.0)
+                weighted_sum += result.score * w
+                weight_total += w
+            overall_score = round(weighted_sum / weight_total) if weight_total > 0 else 0
+        else:
+            # All checkers failed -- report 0
+            overall_score = 0
+
+        # Critical issues force score to 0
+        if has_critical_issue:
+            overall_score = 0
 
         # Severity classification based on overall score
         if overall_score >= 80:
@@ -140,6 +182,7 @@ class CheckerPipeline:
             "issue_breakdown": issue_breakdown,
             "all_suggestions": all_suggestions,
             "checker_scores": checker_scores,
+            "failed_checkers": failed_checkers,
         }
 
     # ------------------------------------------------------------------
@@ -157,15 +200,22 @@ class CheckerPipeline:
 
         Returns:
             Tuple of (checker_name, CheckerResult). On failure, returns
-            a CheckerResult with score 0 and the exception as an issue.
+            a CheckerResult with score 0 and ``failure_mode="analysis_failed"``
+            so that aggregation can exclude it from the weighted average.
+            On success, ``failure_mode`` is set to ``None`` or ``"no_issues"``
+            depending on whether issues were found.
         """
         try:
             if context is not None:
                 result = await method(content, context)
             else:
                 result = await method(content)
+            # Annotate successful results with failure_mode
+            if result.failure_mode is None and result.score == 100 and not result.issues:
+                result.failure_mode = "no_issues"
             return (checker.name, result)
-        except Exception as exc:
+        except CheckerAnalysisError as exc:
+            logger.warning("Checker '%s' analysis error: %s", checker.name, exc)
             return (
                 checker.name,
                 CheckerResult(
@@ -178,6 +228,24 @@ class CheckerPipeline:
                         }
                     ],
                     suggestions=["请检查checker实现或重试"],
+                    failure_mode="analysis_failed",
+                ),
+            )
+        except Exception as exc:
+            logger.error("Checker '%s' unexpected error: %s", checker.name, exc, exc_info=True)
+            return (
+                checker.name,
+                CheckerResult(
+                    score=0,
+                    issues=[
+                        {
+                            "type": "checker_error",
+                            "checker": checker.name,
+                            "message": str(exc),
+                        }
+                    ],
+                    suggestions=["请检查checker实现或重试"],
+                    failure_mode="analysis_failed",
                 ),
             )
 

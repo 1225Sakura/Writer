@@ -2,6 +2,7 @@ import { create } from 'zustand'
 import { persist, subscribeWithSelector } from 'zustand/middleware'
 import { immer } from 'zustand/middleware/immer'
 import { createHybridStorage } from './utils/indexedDBStorage'
+import { showOperationError } from '../utils/toastHelper'
 import { genresApi, type GenrePresetResponse, type GenreProfileResponse, type BuiltProfileResponse } from '@/api/genres'
 import { workflowsApi, type WorkflowInfo, type ExecuteWorkflowResponse, type ExecutionSummary } from '@/api/workflows'
 import { observabilityApi, type ObservabilityMetricsResponse, type DebtListResponse, type QualityTrendReport, type ProjectStatusReport, type QuickStatusResponse } from '@/api/observability'
@@ -106,6 +107,7 @@ export const useSystemStore = create<SystemState & SystemActions>()(
             } catch (err) {
               const message = err instanceof Error ? err.message : '获取类型列表失败'
               set((s) => { s.loading = false; s.error = message })
+              showOperationError('获取类型列表', err)
             }
           },
 
@@ -117,6 +119,7 @@ export const useSystemStore = create<SystemState & SystemActions>()(
             } catch (err) {
               const message = err instanceof Error ? err.message : '获取类型档案失败'
               set((s) => { s.loading = false; s.error = message })
+              showOperationError('获取类型档案', err)
             }
           },
 
@@ -128,6 +131,7 @@ export const useSystemStore = create<SystemState & SystemActions>()(
             } catch (err) {
               const message = err instanceof Error ? err.message : '应用类型失败'
               set((s) => { s.loading = false; s.error = message })
+              showOperationError('应用类型', err)
             }
           },
 
@@ -139,6 +143,7 @@ export const useSystemStore = create<SystemState & SystemActions>()(
             } catch (err) {
               const message = err instanceof Error ? err.message : '构建类型档案失败'
               set((s) => { s.loading = false; s.error = message })
+              showOperationError('构建类型档案', err)
             }
           },
 
@@ -152,6 +157,7 @@ export const useSystemStore = create<SystemState & SystemActions>()(
             } catch (err) {
               const message = err instanceof Error ? err.message : '获取工作流列表失败'
               set((s) => { s.loading = false; s.error = message })
+              showOperationError('获取工作流列表', err)
             }
           },
 
@@ -163,6 +169,7 @@ export const useSystemStore = create<SystemState & SystemActions>()(
             } catch (err) {
               const message = err instanceof Error ? err.message : '执行工作流失败'
               set((s) => { s.loading = false; s.error = message })
+              showOperationError('执行工作流', err)
             }
           },
 
@@ -174,6 +181,7 @@ export const useSystemStore = create<SystemState & SystemActions>()(
             } catch (err) {
               const message = err instanceof Error ? err.message : '获取执行历史失败'
               set((s) => { s.loading = false; s.error = message })
+              showOperationError('获取执行历史', err)
             }
           },
 
@@ -186,6 +194,7 @@ export const useSystemStore = create<SystemState & SystemActions>()(
             } catch (err) {
               const message = err instanceof Error ? err.message : '获取系统指标失败'
               set((s) => { s.error = message })
+              showOperationError('获取系统指标', err)
             }
           },
 
@@ -196,6 +205,7 @@ export const useSystemStore = create<SystemState & SystemActions>()(
             } catch (err) {
               const message = err instanceof Error ? err.message : '获取债务列表失败'
               set((s) => { s.error = message })
+              showOperationError('获取债务列表', err)
             }
           },
 
@@ -206,6 +216,7 @@ export const useSystemStore = create<SystemState & SystemActions>()(
             } catch (err) {
               const message = err instanceof Error ? err.message : '获取质量趋势失败'
               set((s) => { s.error = message })
+              showOperationError('获取质量趋势', err)
             }
           },
 
@@ -216,6 +227,7 @@ export const useSystemStore = create<SystemState & SystemActions>()(
             } catch (err) {
               const message = err instanceof Error ? err.message : '获取项目状态失败'
               set((s) => { s.error = message })
+              showOperationError('获取项目状态', err)
             }
           },
 
@@ -226,6 +238,7 @@ export const useSystemStore = create<SystemState & SystemActions>()(
             } catch (err) {
               const message = err instanceof Error ? err.message : '获取快速状态失败'
               set((s) => { s.error = message })
+              showOperationError('获取快速状态', err)
             }
           },
 
@@ -239,6 +252,7 @@ export const useSystemStore = create<SystemState & SystemActions>()(
             } catch (err) {
               const message = err instanceof Error ? err.message : '约束检查失败'
               set((s) => { s.loading = false; s.error = message })
+              showOperationError('约束检查', err)
             }
           },
 
@@ -249,6 +263,7 @@ export const useSystemStore = create<SystemState & SystemActions>()(
             } catch (err) {
               const message = err instanceof Error ? err.message : '获取约束规则失败'
               set((s) => { s.error = message })
+              showOperationError('获取约束规则', err)
             }
           },
 
@@ -263,6 +278,7 @@ export const useSystemStore = create<SystemState & SystemActions>()(
             } catch (err) {
               const message = err instanceof Error ? err.message : '添加约束规则失败'
               set((s) => { s.loading = false; s.error = message })
+              showOperationError('添加约束规则', err)
             }
           },
 
@@ -277,6 +293,7 @@ export const useSystemStore = create<SystemState & SystemActions>()(
             } catch (err) {
               const message = err instanceof Error ? err.message : '删除约束规则失败'
               set((s) => { s.loading = false; s.error = message })
+              showOperationError('删除约束规则', err)
             }
           },
 
@@ -288,6 +305,7 @@ export const useSystemStore = create<SystemState & SystemActions>()(
             } catch (err) {
               const message = err instanceof Error ? err.message : '风格约束检查失败'
               set((s) => { s.loading = false; s.error = message })
+              showOperationError('风格约束检查', err)
             }
           },
 

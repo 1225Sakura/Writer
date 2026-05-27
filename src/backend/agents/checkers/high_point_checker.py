@@ -10,6 +10,8 @@ import json
 import re
 from typing import Any
 
+import httpx
+
 from .base import BaseChecker, CheckerResult
 from backend.core.services.ai.ai_service import AIService
 from backend.config import settings
@@ -49,10 +51,11 @@ class HighPointChecker(BaseChecker):
         "竟然", "居然", "没想到", "始料未及", "出乎意料",
     ]
 
-    def __init__(self, ai_service: AIService | None = None) -> None:
+    def __init__(self, ai_service: AIService | None = None, weight: float = 1.0) -> None:
         super().__init__(
             name="high_point",
             description="检查章节兴奋点/高潮密度（战斗、冲突、揭示、逆转等）",
+            weight=weight,
         )
         self._ai_service = ai_service
         self._api_client = MiniMaxAPIClient(ai_service) if ai_service else None
@@ -212,7 +215,7 @@ class HighPointChecker(BaseChecker):
                     suggestions=["请重试深度分析"],
                 )
 
-        except Exception as e:
+        except (httpx.HTTPStatusError, httpx.ConnectError, httpx.TimeoutException, ValueError) as e:
             return CheckerResult(
                 score=0,
                 issues=[{

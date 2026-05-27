@@ -80,15 +80,6 @@ export function AIProviderPanel() {
     })
   }
 
-  const handleActivate = async (id: number) => {
-    await activateConfig(id)
-  }
-
-  const handleDelete = async (id: number) => {
-    await deleteConfig(id)
-    if (editingId === id) resetForm()
-  }
-
   const isFormValid = form.name && form.api_key && form.base_url && form.model_name
 
   return (
@@ -127,14 +118,14 @@ export function AIProviderPanel() {
                 </button>
                 <div className="flex gap-1 ml-2">
                   {!config.is_active && (
-                    <Button onClick={() => handleActivate(config.id)} variant="ghost" size="sm" title="激活">
+                    <Button onClick={() => activateConfig(config.id)} variant="ghost" size="sm" title="激活">
                       <Icon icon={Check} size="xs" />
                     </Button>
                   )}
                   <Button onClick={() => testConnection(config.id)} variant="ghost" size="sm" title="测试连接">
                     <Icon icon={TestTube} size="xs" />
                   </Button>
-                  <Button onClick={() => handleDelete(config.id)} variant="ghost" size="sm" title="删除">
+                  <Button onClick={() => { deleteConfig(config.id); if (editingId === config.id) resetForm() }} variant="ghost" size="sm" title="删除">
                     <Icon icon={Trash2} size="xs" className="text-[var(--color-error)]" />
                   </Button>
                 </div>

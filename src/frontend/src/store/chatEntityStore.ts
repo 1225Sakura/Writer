@@ -2,6 +2,7 @@ import { create } from 'zustand'
 import { subscribeWithSelector } from 'zustand/middleware'
 import { immer } from 'zustand/middleware/immer'
 import { entityApi } from '../api/chat'
+import { showOperationError } from '../utils/toastHelper'
 import type { ExtractedEntityLocal, EntityExtractionState, ChatMessageLocal } from './chatStore'
 
 // Re-export types
@@ -84,6 +85,7 @@ export const useChatEntityStore = create<ChatEntityState & ChatEntityActions>()(
               state.error = (error as Error).message
               state.isLoading = false
             })
+            showOperationError('加载提取实体', error)
           }
         },
 
@@ -119,6 +121,7 @@ export const useChatEntityStore = create<ChatEntityState & ChatEntityActions>()(
             })
           } catch (error) {
             set((state) => { state.error = (error as Error).message })
+            showOperationError('确认实体', error)
           }
         },
 
@@ -141,6 +144,7 @@ export const useChatEntityStore = create<ChatEntityState & ChatEntityActions>()(
               state.error = (error as Error).message
               state.extractionState = 'error'
             })
+            showOperationError('批量确认实体', error)
           }
         },
 

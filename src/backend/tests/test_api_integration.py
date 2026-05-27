@@ -657,7 +657,7 @@ class TestAIGeneration:
             "raw_response": {"status": "success"}
         }
 
-        with patch('backend.api.v1.endpoints.ai.get_ai_service') as mock_get_service:
+        with patch('backend.api.v1.endpoints.ai.ai_review.get_ai_service') as mock_get_service:
             mock_service = MagicMock()
             mock_service.review_settings = AsyncMock(return_value=mock_result)
             mock_get_service.return_value = mock_service
@@ -678,7 +678,7 @@ class TestAIGeneration:
             {"name": "光明顶", "type": "location", "confidence": 0.8}
         ]
 
-        with patch('backend.api.v1.endpoints.ai.get_ai_service') as mock_get_service:
+        with patch('backend.api.v1.endpoints.ai.ai_review.get_ai_service') as mock_get_service:
             mock_service = MagicMock()
             mock_service.extract_entities = AsyncMock(return_value=mock_entities)
             mock_get_service.return_value = mock_service
@@ -827,9 +827,9 @@ class TestAICheckers:
             suggestions=["Update location details"]
         )
 
-        with patch('backend.api.v1.endpoints.ai.get_ai_service') as mock_get_ai, \
-             patch('backend.api.v1.endpoints.ai.ConsistencyChecker') as mock_checker_cls, \
-             patch('backend.api.v1.endpoints.ai._get_chapter_content', new_callable=AsyncMock, return_value="Test chapter content"):
+        with patch('backend.api.v1.endpoints.ai.ai_checkers.get_ai_service') as mock_get_ai, \
+             patch('backend.api.v1.endpoints.ai.ai_checkers.ConsistencyChecker') as mock_checker_cls, \
+             patch('backend.api.v1.endpoints.ai.ai_checkers._get_chapter_content', new_callable=AsyncMock, return_value="Test chapter content"):
             mock_get_ai.return_value = MagicMock()
             mock_checker = MagicMock()
             mock_checker.quick_scan = AsyncMock(return_value=mock_result)
@@ -857,9 +857,9 @@ class TestAICheckers:
             suggestions=["Add transition scene"]
         )
 
-        with patch('backend.api.v1.endpoints.ai.get_ai_service') as mock_get_ai, \
-             patch('backend.api.v1.endpoints.ai.ContinuityChecker') as mock_checker_cls, \
-             patch('backend.api.v1.endpoints.ai._get_chapter_content', new_callable=AsyncMock, return_value="Test chapter content"):
+        with patch('backend.api.v1.endpoints.ai.ai_checkers.get_ai_service') as mock_get_ai, \
+             patch('backend.api.v1.endpoints.ai.ai_checkers.ContinuityChecker') as mock_checker_cls, \
+             patch('backend.api.v1.endpoints.ai.ai_checkers._get_chapter_content', new_callable=AsyncMock, return_value="Test chapter content"):
             mock_get_ai.return_value = MagicMock()
             mock_checker = MagicMock()
             mock_checker.quick_scan = AsyncMock(return_value=mock_result)
@@ -886,9 +886,9 @@ class TestAICheckers:
             suggestions=["Add more character moments"]
         )
 
-        with patch('backend.api.v1.endpoints.ai.get_ai_service') as mock_get_ai, \
-             patch('backend.api.v1.endpoints.ai.PacingChecker') as mock_checker_cls, \
-             patch('backend.api.v1.endpoints.ai._get_chapter_content', new_callable=AsyncMock, return_value="Test chapter content"):
+        with patch('backend.api.v1.endpoints.ai.ai_checkers.get_ai_service') as mock_get_ai, \
+             patch('backend.api.v1.endpoints.ai.ai_checkers.PacingChecker') as mock_checker_cls, \
+             patch('backend.api.v1.endpoints.ai.ai_checkers._get_chapter_content', new_callable=AsyncMock, return_value="Test chapter content"):
             mock_get_ai.return_value = MagicMock()
             mock_checker = MagicMock()
             mock_checker.quick_scan = AsyncMock(return_value=mock_result)
@@ -923,9 +923,9 @@ class TestAICheckers:
             suggestions=[]
         )
 
-        with patch('backend.api.v1.endpoints.ai.get_ai_service') as mock_get_ai, \
-             patch('backend.api.v1.endpoints.ai.OOCChecker') as mock_checker_cls, \
-             patch('backend.api.v1.endpoints.ai._get_chapter_content', new_callable=AsyncMock, return_value="Test chapter content"):
+        with patch('backend.api.v1.endpoints.ai.ai_checkers.get_ai_service') as mock_get_ai, \
+             patch('backend.api.v1.endpoints.ai.ai_checkers.OOCChecker') as mock_checker_cls, \
+             patch('backend.api.v1.endpoints.ai.ai_checkers._get_chapter_content', new_callable=AsyncMock, return_value="Test chapter content"):
             mock_get_ai.return_value = MagicMock()
             mock_checker = MagicMock()
             mock_checker.quick_scan = AsyncMock(return_value=mock_result)
@@ -953,9 +953,9 @@ class TestAICheckers:
             suggestions=["Delay climax"]
         )
 
-        with patch('backend.api.v1.endpoints.ai.get_ai_service') as mock_get_ai, \
-             patch('backend.api.v1.endpoints.ai.HighPointChecker') as mock_checker_cls, \
-             patch('backend.api.v1.endpoints.ai._get_chapter_content', new_callable=AsyncMock, return_value="Test chapter content"):
+        with patch('backend.api.v1.endpoints.ai.ai_checkers.get_ai_service') as mock_get_ai, \
+             patch('backend.api.v1.endpoints.ai.ai_checkers.HighPointChecker') as mock_checker_cls, \
+             patch('backend.api.v1.endpoints.ai.ai_checkers._get_chapter_content', new_callable=AsyncMock, return_value="Test chapter content"):
             mock_get_ai.return_value = MagicMock()
             mock_checker = MagicMock()
             mock_checker.quick_scan = AsyncMock(return_value=mock_result)
@@ -983,9 +983,9 @@ class TestAICheckers:
             suggestions=["Start with action"]
         )
 
-        with patch('backend.api.v1.endpoints.ai.get_ai_service') as mock_get_ai, \
-             patch('backend.api.v1.endpoints.ai.ReaderPullChecker') as mock_checker_cls, \
-             patch('backend.api.v1.endpoints.ai._get_chapter_content', new_callable=AsyncMock, return_value="Test chapter content"):
+        with patch('backend.api.v1.endpoints.ai.ai_checkers.get_ai_service') as mock_get_ai, \
+             patch('backend.api.v1.endpoints.ai.ai_checkers.ReaderPullChecker') as mock_checker_cls, \
+             patch('backend.api.v1.endpoints.ai.ai_checkers._get_chapter_content', new_callable=AsyncMock, return_value="Test chapter content"):
             mock_get_ai.return_value = MagicMock()
             mock_checker = MagicMock()
             mock_checker.quick_scan = AsyncMock(return_value=mock_result)

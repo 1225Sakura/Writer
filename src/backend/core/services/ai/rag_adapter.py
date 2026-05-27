@@ -14,6 +14,7 @@ Embeddings are generated via the AIService provider router.
 from __future__ import annotations
 
 import asyncio
+import itertools
 import json
 import logging
 import math
@@ -454,7 +455,7 @@ class RAGAdapter:
 
         # Apply graph priors
         seed_terms = set(seeds + expanded)
-        max_chapter = chapter_id or stats.get("max_chapter", 0)
+        max_chapter = chapter_id or self.cm.get_stats().get("max_chapter", 0)
         for r in graph_results:
             r.score = self._apply_graph_priors(r, seed_terms, max_chapter)
             r.source = "graph_hybrid"

@@ -11,6 +11,7 @@ import json
 import logging
 from typing import Any
 
+from backend.utils.exceptions import AIServiceError, AIServiceTimeoutError, AIServiceRateLimitError
 from .base import AgentContext, AgentResult, BaseAgent
 
 import yaml
@@ -115,6 +116,28 @@ class ChatAgent(BaseAgent):
         self._categories = list(SETTING_CATEGORIES)
         self._templates = QUESTION_TEMPLATES
 
+    async def pre_execute(self, context: AgentContext) -> AgentContext:
+        """Pre-execution hook: inject current collection progress into settings."""
+        collected = context.settings.get("collected_settings", {})
+        completed_count = sum(1 for cat in self._categories if cat in collected)
+        context.settings["collection_progress"] = {
+            "completed": completed_count,
+            "total": len(self._categories),
+            "remaining": len(self._categories) - completed_count,
+        }
+        return context
+
+    async def post_execute(self, context: AgentContext, result: AgentResult) -> AgentResult:
+        """Post-execution hook: annotate result with collection progress metadata."""
+        collected = context.settings.get("collected_settings", {})
+        completed_count = sum(1 for cat in self._categories if cat in collected)
+        result.metadata["collection_progress"] = {
+            "completed": completed_count,
+            "total": len(self._categories),
+            "percent": round(completed_count / len(self._categories) * 100, 1),
+        }
+        return result
+
     # ------------------------------------------------------------------
     # Public API
     # ------------------------------------------------------------------
@@ -146,7 +169,7 @@ class ChatAgent(BaseAgent):
                 style="default",
                 operation="continue",
             )
-        except Exception as exc:
+        except (AIServiceError, AIServiceTimeoutError, AIServiceRateLimitError) as exc:
             logger.exception("ChatAgent AI generation failed")
             # Fallback: use next question from templates
             next_q = self._fallback_question(current_category, settings_so_far)
@@ -230,7 +253,7 @@ class ChatAgent(BaseAgent):
             extracted = self._extract_json(raw)
             if extracted:
                 return {current_category: extracted}
-        except Exception:
+        except (AIServiceError, AIServiceTimeoutError, AIServiceRateLimitError):
             logger.exception("Setting extraction failed")
 
         return {}

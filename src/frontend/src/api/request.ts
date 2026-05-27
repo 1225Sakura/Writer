@@ -135,13 +135,8 @@ const createApiClient = (baseURL: string): AxiosInstance => {
       const status = error.response.status
       return status >= 500 || status === 408 || status === 429
     },
-    onRetry: (retryCount, error) => {
-      const axiosErr = error as AxiosError
-      if (isDev()) {
-        console.warn(
-          `[API Retry] Attempt ${retryCount}/3 - ${axiosErr.config?.method?.toUpperCase()} ${axiosErr.config?.url}`
-        )
-      }
+    onRetry: (_retryCount, _error) => {
+      // Retry handled silently
     },
   })
 
@@ -335,11 +330,6 @@ const setupInterceptors = (client: AxiosInstance): void => {
   // Request interceptor
   client.interceptors.request.use(
     async (config: InternalAxiosRequestConfig) => {
-      // Dev logging
-      if (isDev()) {
-        console.log(`[API Request] ${config.method?.toUpperCase()} ${config.url}`, config.params || config.data || '')
-      }
-
       // Local API key auth for desktop app
       const apiKey = await getApiKey()
       if (apiKey && config.headers) {
@@ -365,15 +355,9 @@ const setupInterceptors = (client: AxiosInstance): void => {
   // Response interceptor
   client.interceptors.response.use(
     (response: AxiosResponse) => {
-      if (isDev()) {
-        console.log(`[API Response] ${response.config.method?.toUpperCase()} ${response.config.url} -> ${response.status}`)
-      }
       return response
     },
     (error: AxiosError) => {
-      if (isDev() && error.response) {
-        console.error('[API Error] %s %s -> %d', error.config?.method?.toUpperCase(), error.config?.url, error.response.status)
-      }
       return Promise.reject(transformError(error))
     }
   )
@@ -506,9 +490,6 @@ const request = async <T>(
   if (!options.skipDedup && method === 'get') {
     const existing = pendingRequests.get(dedupKey)
     if (existing) {
-      if (isDev()) {
-        console.log(`[API Dedup] Reusing pending request: ${method.toUpperCase()} ${url}`)
-      }
       return existing as Promise<T>
     }
   }

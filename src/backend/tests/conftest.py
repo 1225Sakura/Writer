@@ -24,6 +24,7 @@ os.environ.setdefault("API_KEY", "test_api_key_for_tests")
 from backend.infrastructure.database import Base, get_db
 from backend.interface.web.main import app
 from backend.middleware.auth import set_api_key, clear_api_key_cache
+from backend.middleware.rate_limit import reset_rate_limit_store, reset_checker_rate_limit_store
 from backend.infrastructure.cache.cache_service import cache_service
 
 # Import all models so they register with Base.metadata
@@ -119,6 +120,16 @@ def reset_auth():
     clear_api_key_cache()
     yield
     clear_api_key_cache()
+
+
+@pytest.fixture(autouse=True)
+def reset_rate_limits():
+    """Reset rate limit stores before each test to prevent cross-test contamination."""
+    reset_rate_limit_store()
+    reset_checker_rate_limit_store()
+    yield
+    reset_rate_limit_store()
+    reset_checker_rate_limit_store()
 
 
 # =============================================================================

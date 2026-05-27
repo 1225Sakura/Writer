@@ -2,6 +2,7 @@ import { create } from 'zustand'
 import { persist, subscribeWithSelector } from 'zustand/middleware'
 import { immer } from 'zustand/middleware/immer'
 import { createHybridStorage } from './utils/indexedDBStorage'
+import { showOperationError } from '../utils/toastHelper'
 import { snapshotsApi, type SnapshotInfo, type SnapshotCreateResponse, type SnapshotRestoreResponse, type BackupStatusResponse } from '@/api/snapshots'
 import { exportImportApi, type ImportProjectResponse } from '@/api/exportImport'
 import type { ExportDataResponse } from '@/api/types'
@@ -84,6 +85,7 @@ export const useProjectDataStore = create<ProjectDataState & ProjectDataActions>
             } catch (err) {
               const message = err instanceof Error ? err.message : '创建快照失败'
               set((s) => { s.loading = false; s.error = message })
+              showOperationError('创建快照', err)
               throw err
             }
           },
@@ -96,6 +98,7 @@ export const useProjectDataStore = create<ProjectDataState & ProjectDataActions>
             } catch (err) {
               const message = err instanceof Error ? err.message : '获取快照列表失败'
               set((s) => { s.loading = false; s.error = message })
+              showOperationError('获取快照列表', err)
             }
           },
 
@@ -108,6 +111,7 @@ export const useProjectDataStore = create<ProjectDataState & ProjectDataActions>
             } catch (err) {
               const message = err instanceof Error ? err.message : '恢复快照失败'
               set((s) => { s.loading = false; s.error = message })
+              showOperationError('恢复快照', err)
               throw err
             }
           },
@@ -123,6 +127,7 @@ export const useProjectDataStore = create<ProjectDataState & ProjectDataActions>
             } catch (err) {
               const message = err instanceof Error ? err.message : '删除快照失败'
               set((s) => { s.loading = false; s.error = message })
+              showOperationError('删除快照', err)
             }
           },
 
@@ -135,6 +140,7 @@ export const useProjectDataStore = create<ProjectDataState & ProjectDataActions>
             } catch (err) {
               const message = err instanceof Error ? err.message : '触发备份失败'
               set((s) => { s.loading = false; s.error = message })
+              showOperationError('触发备份', err)
             }
           },
 
@@ -145,6 +151,7 @@ export const useProjectDataStore = create<ProjectDataState & ProjectDataActions>
             } catch (err) {
               const message = err instanceof Error ? err.message : '获取备份状态失败'
               set((s) => { s.error = message })
+              showOperationError('获取备份状态', err)
             }
           },
 
@@ -158,6 +165,7 @@ export const useProjectDataStore = create<ProjectDataState & ProjectDataActions>
             } catch (err) {
               const message = err instanceof Error ? err.message : '导出JSON失败'
               set((s) => { s.loading = false; s.error = message })
+              showOperationError('导出JSON', err)
             }
           },
 
@@ -169,6 +177,7 @@ export const useProjectDataStore = create<ProjectDataState & ProjectDataActions>
             } catch (err) {
               const message = err instanceof Error ? err.message : '导出YAML失败'
               set((s) => { s.loading = false; s.error = message })
+              showOperationError('导出YAML', err)
             }
           },
 
@@ -180,6 +189,7 @@ export const useProjectDataStore = create<ProjectDataState & ProjectDataActions>
             } catch (err) {
               const message = err instanceof Error ? err.message : '导出ZIP失败'
               set((s) => { s.loading = false; s.error = message })
+              showOperationError('导出ZIP', err)
             }
           },
 
@@ -193,6 +203,7 @@ export const useProjectDataStore = create<ProjectDataState & ProjectDataActions>
             } catch (err) {
               const message = err instanceof Error ? err.message : '导入JSON失败'
               set((s) => { s.loading = false; s.error = message })
+              showOperationError('导入JSON', err)
             }
           },
 
@@ -204,6 +215,7 @@ export const useProjectDataStore = create<ProjectDataState & ProjectDataActions>
             } catch (err) {
               const message = err instanceof Error ? err.message : '导入YAML失败'
               set((s) => { s.loading = false; s.error = message })
+              showOperationError('导入YAML', err)
             }
           },
 
@@ -215,6 +227,7 @@ export const useProjectDataStore = create<ProjectDataState & ProjectDataActions>
             } catch (err) {
               const message = err instanceof Error ? err.message : '导入ZIP失败'
               set((s) => { s.loading = false; s.error = message })
+              showOperationError('导入ZIP', err)
             }
           },
 

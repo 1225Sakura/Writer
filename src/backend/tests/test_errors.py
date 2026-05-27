@@ -526,30 +526,30 @@ class TestExceptionHandlers:
         response = client.get("/not-found")
         assert response.status_code == 404
         data = response.json()
-        assert data["error_code"] == "NOT_FOUND"
-        assert data["message"] == "Resource missing"
+        assert data["error"]["code"] == "NOT_FOUND"
+        assert data["error"]["message"] == "Resource missing"
         assert "timestamp" in data
 
     def test_validation_handler(self, client):
         response = client.get("/validation")
         assert response.status_code == 422
         data = response.json()
-        assert data["error_code"] == "VALIDATION_ERROR"
-        assert data["details"] == {"field": "email"}
+        assert data["error"]["code"] == "VALIDATION_ERROR"
+        assert data["error"]["details"] == {"field": "email"}
 
     def test_generic_handler(self, client):
         response = client.get("/generic")
         assert response.status_code == 500
         data = response.json()
-        assert data["error_code"] == "INTERNAL_ERROR"
-        assert data["message"] == "Internal server error"
+        assert data["error"]["code"] == "INTERNAL_ERROR"
+        assert data["error"]["message"] == "Internal server error"
 
     def test_character_not_found_handler(self, client):
         response = client.get("/character/42")
         assert response.status_code == 404
         data = response.json()
-        assert data["error_code"] == "CHARACTER_NOT_FOUND"
-        assert data["details"]["character_id"] == 42
+        assert data["error"]["code"] == "CHARACTER_NOT_FOUND"
+        assert data["error"]["details"]["character_id"] == 42
 
     def test_response_has_request_id_header(self, client):
         response = client.get("/not-found")
@@ -559,10 +559,11 @@ class TestExceptionHandlers:
     def test_error_response_structure(self, client):
         response = client.get("/validation")
         data = response.json()
-        assert "error_code" in data
-        assert "message" in data
+        assert "error" in data
+        assert "code" in data["error"]
+        assert "message" in data["error"]
         assert "timestamp" in data
-        assert "details" in data
+        assert "details" in data["error"]
 
 
 # =============================================================================

@@ -27,8 +27,7 @@ export function showToast(message: string, options: ToastOptions = {}) {
       duration,
     })
   } catch {
-    // Fallback if store isn't initialized yet
-    console.log(`[Toast ${type}] ${message}`)
+    // Store not initialized yet — toast silently dropped
   }
 }
 

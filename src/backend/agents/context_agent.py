@@ -124,6 +124,37 @@ class ContextAgent(BaseAgent, DatabaseMixin):
         BaseAgent.__init__(self, provider, event_bus)
         DatabaseMixin.__init__(self, ai_service)
 
+    async def pre_execute(self, context: AgentContext) -> AgentContext:
+        """Pre-execution hook: inject chapter metadata and active entity counts."""
+        chapter_id = context.get_chapter_id()
+        if chapter_id:
+            context.settings["target_chapter_id"] = chapter_id
+        world_ctx = context.get_world_context()
+        if world_ctx:
+            context.settings["world_context_available"] = True
+        return context
+
+    async def post_execute(self, context: AgentContext, result: AgentResult) -> AgentResult:
+        """Post-execution hook: validate context completeness and add warnings."""
+        if not isinstance(result.content, dict):
+            return result
+        completeness_warnings: list[str] = []
+        core_task = result.content.get("core_task")
+        if isinstance(core_task, dict):
+            for field_name in ("goal", "obstacle", "cost"):
+                val = core_task.get(field_name, "")
+                if not val or val == "待确定":
+                    completeness_warnings.append(f"core_task.{field_name} is unresolved")
+        active_chars = result.content.get("active_characters")
+        if isinstance(active_chars, list) and len(active_chars) == 0:
+            completeness_warnings.append("No active characters in context package")
+        if completeness_warnings:
+            result.warnings = list(result.warnings) + completeness_warnings
+            logger.warning(
+                "ContextAgent post_execute: %d completeness warnings", len(completeness_warnings)
+            )
+        return result
+
     # ------------------------------------------------------------------
     # Existing public API (backward compatible)
     # ------------------------------------------------------------------

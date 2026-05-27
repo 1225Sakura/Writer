@@ -2,6 +2,7 @@ import { create } from 'zustand'
 import { subscribeWithSelector } from 'zustand/middleware'
 import { immer } from 'zustand/middleware/immer'
 import { messageApi } from '../api/chat'
+import { showOperationError } from '../utils/toastHelper'
 import type { ChatMessageLocal, MessageCache } from './chatStore'
 import { createHybridStorage } from './utils/indexedDBStorage'
 
@@ -68,8 +69,7 @@ async function saveCacheToStorage(cache: MessageCache) {
   if (typeof window === 'undefined') return
   try {
     await cacheStorage.setItem(CACHE_KEY, { state: cache, version: 0 })
-  } catch (e) {
-    console.warn('Chat cache storage full, clearing old entries')
+  } catch {
     const entries = Object.entries(cache.cachedAt).sort((a, b) => a[1] - b[1])
     const toRemove = entries.slice(0, Math.floor(entries.length / 2))
     toRemove.forEach(([sid]) => {
@@ -148,6 +148,7 @@ export const useMessageStore = create<MessageState & MessageActions>()(
               state.currentStreamContent = ''
               state.streamAbortController = null
             })
+            showOperationError('发送消息', error)
           }
         },
 
@@ -173,6 +174,7 @@ export const useMessageStore = create<MessageState & MessageActions>()(
               state.error = (error as Error).message
               state.isLoading = false
             })
+            showOperationError('加载消息列表', error)
           }
         },
 

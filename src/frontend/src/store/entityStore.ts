@@ -1,6 +1,7 @@
 import { create } from 'zustand'
 import { persist, subscribeWithSelector } from 'zustand/middleware'
 import { immer } from 'zustand/middleware/immer'
+import { showOperationError } from '../utils/toastHelper'
 import {
   characterApi,
   itemApi,
@@ -170,47 +171,61 @@ export const useEntityStore = create<EntityState & EntityActions>()(
                 state.error = (error as Error).message
                 state.isLoading = false
               })
+              showOperationError('加载角色列表', error)
             }
           },
 
           addCharacter: async (character) => {
-            const apiChar = await characterApi.create({
-              name: character.name,
-              gender: character.gender,
-              personality: character.personality,
-              desires: character.desires,
-              flaws: character.flaws,
-              description: character.description,
-              tier: character.tier,
-              cultivation_realm: character.cultivationRealm,
-            })
-            const newCharacter = { ...toLocalCharacter(apiChar), relationships: [], storylines: [] }
-            set((state) => { state.characters.push(newCharacter) })
-            return String(apiChar.id)
+            try {
+              const apiChar = await characterApi.create({
+                name: character.name,
+                gender: character.gender,
+                personality: character.personality,
+                desires: character.desires,
+                flaws: character.flaws,
+                description: character.description,
+                tier: character.tier,
+                cultivation_realm: character.cultivationRealm,
+              })
+              const newCharacter = { ...toLocalCharacter(apiChar), relationships: [], storylines: [] }
+              set((state) => { state.characters.push(newCharacter) })
+              return String(apiChar.id)
+            } catch (error) {
+              showOperationError('创建角色', error)
+              return ''
+            }
           },
 
           updateCharacter: async (id, updates) => {
-            await characterApi.update(id, {
-              name: updates.name,
-              gender: updates.gender,
-              personality: updates.personality,
-              desires: updates.desires,
-              flaws: updates.flaws,
-              description: updates.description,
-              tier: updates.tier,
-              cultivation_realm: updates.cultivationRealm,
-            })
-            set((state) => {
-              const char = state.characters.find((c) => c.id === id)
-              if (char) Object.assign(char, updates)
-            })
+            try {
+              await characterApi.update(id, {
+                name: updates.name,
+                gender: updates.gender,
+                personality: updates.personality,
+                desires: updates.desires,
+                flaws: updates.flaws,
+                description: updates.description,
+                tier: updates.tier,
+                cultivation_realm: updates.cultivationRealm,
+              })
+              set((state) => {
+                const char = state.characters.find((c) => c.id === id)
+                if (char) Object.assign(char, updates)
+              })
+            } catch (error) {
+              showOperationError('更新角色', error)
+            }
           },
 
           deleteCharacter: async (id) => {
-            await characterApi.delete(id)
-            set((state) => {
-              state.characters = state.characters.filter((c) => c.id !== id)
-            })
+            try {
+              await characterApi.delete(id)
+              set((state) => {
+                state.characters = state.characters.filter((c) => c.id !== id)
+              })
+            } catch (error) {
+              showOperationError('删除角色', error)
+            }
           },
 
           // Item CRUD
@@ -221,26 +236,40 @@ export const useEntityStore = create<EntityState & EntityActions>()(
               set((state) => { state.items = items, state.isLoading = false })
             } catch (error) {
               set((state) => { state.error = (error as Error).message, state.isLoading = false })
+              showOperationError('加载物品列表', error)
             }
           },
 
           addItem: async (item) => {
-            const apiItem = await itemApi.create(item)
-            set((state) => { state.items.push(apiItem) })
-            return String(apiItem.id)
+            try {
+              const apiItem = await itemApi.create(item)
+              set((state) => { state.items.push(apiItem) })
+              return String(apiItem.id)
+            } catch (error) {
+              showOperationError('创建物品', error)
+              return ''
+            }
           },
 
           updateItem: async (id, updates) => {
-            await itemApi.update(id, updates)
-            set((state) => {
-              const item = state.items.find((i) => i.id === id)
-              if (item) Object.assign(item, updates)
-            })
+            try {
+              await itemApi.update(id, updates)
+              set((state) => {
+                const item = state.items.find((i) => i.id === id)
+                if (item) Object.assign(item, updates)
+              })
+            } catch (error) {
+              showOperationError('更新物品', error)
+            }
           },
 
           deleteItem: async (id) => {
-            await itemApi.delete(id)
-            set((state) => { state.items = state.items.filter((i) => i.id !== id) })
+            try {
+              await itemApi.delete(id)
+              set((state) => { state.items = state.items.filter((i) => i.id !== id) })
+            } catch (error) {
+              showOperationError('删除物品', error)
+            }
           },
 
           // Location CRUD
@@ -251,26 +280,40 @@ export const useEntityStore = create<EntityState & EntityActions>()(
               set((state) => { state.locations = locations, state.isLoading = false })
             } catch (error) {
               set((state) => { state.error = (error as Error).message, state.isLoading = false })
+              showOperationError('加载地点列表', error)
             }
           },
 
           addLocation: async (location) => {
-            const apiLoc = await locationApi.create(location)
-            set((state) => { state.locations.push(apiLoc) })
-            return String(apiLoc.id)
+            try {
+              const apiLoc = await locationApi.create(location)
+              set((state) => { state.locations.push(apiLoc) })
+              return String(apiLoc.id)
+            } catch (error) {
+              showOperationError('创建地点', error)
+              return ''
+            }
           },
 
           updateLocation: async (id, updates) => {
-            await locationApi.update(id, updates)
-            set((state) => {
-              const loc = state.locations.find((l) => l.id === id)
-              if (loc) Object.assign(loc, updates)
-            })
+            try {
+              await locationApi.update(id, updates)
+              set((state) => {
+                const loc = state.locations.find((l) => l.id === id)
+                if (loc) Object.assign(loc, updates)
+              })
+            } catch (error) {
+              showOperationError('更新地点', error)
+            }
           },
 
           deleteLocation: async (id) => {
-            await locationApi.delete(id)
-            set((state) => { state.locations = state.locations.filter((l) => l.id !== id) })
+            try {
+              await locationApi.delete(id)
+              set((state) => { state.locations = state.locations.filter((l) => l.id !== id) })
+            } catch (error) {
+              showOperationError('删除地点', error)
+            }
           },
 
           // Faction CRUD
@@ -281,26 +324,40 @@ export const useEntityStore = create<EntityState & EntityActions>()(
               set((state) => { state.factions = factions, state.isLoading = false })
             } catch (error) {
               set((state) => { state.error = (error as Error).message, state.isLoading = false })
+              showOperationError('加载势力列表', error)
             }
           },
 
           addFaction: async (faction) => {
-            const apiFac = await factionApi.create(faction)
-            set((state) => { state.factions.push(apiFac) })
-            return String(apiFac.id)
+            try {
+              const apiFac = await factionApi.create(faction)
+              set((state) => { state.factions.push(apiFac) })
+              return String(apiFac.id)
+            } catch (error) {
+              showOperationError('创建势力', error)
+              return ''
+            }
           },
 
           updateFaction: async (id, updates) => {
-            await factionApi.update(id, updates)
-            set((state) => {
-              const fac = state.factions.find((f) => f.id === id)
-              if (fac) Object.assign(fac, updates)
-            })
+            try {
+              await factionApi.update(id, updates)
+              set((state) => {
+                const fac = state.factions.find((f) => f.id === id)
+                if (fac) Object.assign(fac, updates)
+              })
+            } catch (error) {
+              showOperationError('更新势力', error)
+            }
           },
 
           deleteFaction: async (id) => {
-            await factionApi.delete(id)
-            set((state) => { state.factions = state.factions.filter((f) => f.id !== id) })
+            try {
+              await factionApi.delete(id)
+              set((state) => { state.factions = state.factions.filter((f) => f.id !== id) })
+            } catch (error) {
+              showOperationError('删除势力', error)
+            }
           },
 
           // WorldSetting CRUD
@@ -311,26 +368,40 @@ export const useEntityStore = create<EntityState & EntityActions>()(
               set((state) => { state.worldSettings = worldSettings, state.isLoading = false })
             } catch (error) {
               set((state) => { state.error = (error as Error).message, state.isLoading = false })
+              showOperationError('加载世界观列表', error)
             }
           },
 
           addWorldSetting: async (setting) => {
-            const apiWS = await worldSettingApi.create(setting)
-            set((state) => { state.worldSettings.push(apiWS) })
-            return String(apiWS.id)
+            try {
+              const apiWS = await worldSettingApi.create(setting)
+              set((state) => { state.worldSettings.push(apiWS) })
+              return String(apiWS.id)
+            } catch (error) {
+              showOperationError('创建世界观', error)
+              return ''
+            }
           },
 
           updateWorldSetting: async (id, updates) => {
-            await worldSettingApi.update(id, updates)
-            set((state) => {
-              const ws = state.worldSettings.find((w) => w.id === id)
-              if (ws) Object.assign(ws, updates)
-            })
+            try {
+              await worldSettingApi.update(id, updates)
+              set((state) => {
+                const ws = state.worldSettings.find((w) => w.id === id)
+                if (ws) Object.assign(ws, updates)
+              })
+            } catch (error) {
+              showOperationError('更新世界观', error)
+            }
           },
 
           deleteWorldSetting: async (id) => {
-            await worldSettingApi.delete(id)
-            set((state) => { state.worldSettings = state.worldSettings.filter((w) => w.id !== id) })
+            try {
+              await worldSettingApi.delete(id)
+              set((state) => { state.worldSettings = state.worldSettings.filter((w) => w.id !== id) })
+            } catch (error) {
+              showOperationError('删除世界观', error)
+            }
           },
 
           // Rule CRUD
@@ -341,26 +412,40 @@ export const useEntityStore = create<EntityState & EntityActions>()(
               set((state) => { state.rules = rules, state.isLoading = false })
             } catch (error) {
               set((state) => { state.error = (error as Error).message, state.isLoading = false })
+              showOperationError('加载规则列表', error)
             }
           },
 
           addRule: async (rule) => {
-            const apiRule = await ruleApi.create(rule)
-            set((state) => { state.rules.push(apiRule) })
-            return String(apiRule.id)
+            try {
+              const apiRule = await ruleApi.create(rule)
+              set((state) => { state.rules.push(apiRule) })
+              return String(apiRule.id)
+            } catch (error) {
+              showOperationError('创建规则', error)
+              return ''
+            }
           },
 
           updateRule: async (id, updates) => {
-            await ruleApi.update(id, updates)
-            set((state) => {
-              const r = state.rules.find((x) => x.id === id)
-              if (r) Object.assign(r, updates)
-            })
+            try {
+              await ruleApi.update(id, updates)
+              set((state) => {
+                const r = state.rules.find((x) => x.id === id)
+                if (r) Object.assign(r, updates)
+              })
+            } catch (error) {
+              showOperationError('更新规则', error)
+            }
           },
 
           deleteRule: async (id) => {
-            await ruleApi.delete(id)
-            set((state) => { state.rules = state.rules.filter((r) => r.id !== id) })
+            try {
+              await ruleApi.delete(id)
+              set((state) => { state.rules = state.rules.filter((r) => r.id !== id) })
+            } catch (error) {
+              showOperationError('删除规则', error)
+            }
           },
 
           // IFLine CRUD
@@ -371,25 +456,38 @@ export const useEntityStore = create<EntityState & EntityActions>()(
               set((state) => { state.ifLines = ifLines, state.isLoading = false })
             } catch (error) {
               set((state) => { state.error = (error as Error).message, state.isLoading = false })
+              showOperationError('加载IF线列表', error)
             }
           },
 
           addIFLine: async (ifLine) => {
-            const apiIF = await ifLineApi.create(ifLine)
-            set((state) => { state.ifLines.push(apiIF) })
+            try {
+              const apiIF = await ifLineApi.create(ifLine)
+              set((state) => { state.ifLines.push(apiIF) })
+            } catch (error) {
+              showOperationError('创建IF线', error)
+            }
           },
 
           updateIFLine: async (id, updates) => {
-            await ifLineApi.update(id, updates)
-            set((state) => {
-              const line = state.ifLines.find((i) => i.id === id)
-              if (line) Object.assign(line, updates)
-            })
+            try {
+              await ifLineApi.update(id, updates)
+              set((state) => {
+                const line = state.ifLines.find((i) => i.id === id)
+                if (line) Object.assign(line, updates)
+              })
+            } catch (error) {
+              showOperationError('更新IF线', error)
+            }
           },
 
           deleteIFLine: async (id) => {
-            await ifLineApi.delete(id)
-            set((state) => { state.ifLines = state.ifLines.filter((i) => i.id !== id) })
+            try {
+              await ifLineApi.delete(id)
+              set((state) => { state.ifLines = state.ifLines.filter((i) => i.id !== id) })
+            } catch (error) {
+              showOperationError('删除IF线', error)
+            }
           },
 
           // Batch operations
@@ -428,6 +526,7 @@ export const useEntityStore = create<EntityState & EntityActions>()(
               }
             } catch (error) {
               set((state) => { state.error = (error as Error).message })
+              showOperationError('批量删除', error)
             } finally {
               set((state) => { state.isLoading = false })
             }
@@ -461,6 +560,7 @@ export const useEntityStore = create<EntityState & EntityActions>()(
                 state.error = (error as Error).message
                 state.isLoading = false
               })
+              showOperationError('加载全部实体', error)
             }
           },
         }),

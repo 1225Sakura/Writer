@@ -5,7 +5,7 @@ import { sessionApi, messageApi, entityApi } from '../api/chat'
 import { aiReviewApi } from '../api/aiReview'
 import type { ChatSession, ExtractedEntity } from '../api/types'
 import { createHybridStorage } from './utils/indexedDBStorage'
-import { showApiError, showSuccess } from '@/utils/toastHelper'
+import { showApiError, showOperationError, showSuccess } from '@/utils/toastHelper'
 import type { ApiError } from '@/api/request'
 
 // ============================================
@@ -131,8 +131,7 @@ async function saveCacheToStorage(cache: MessageCache) {
   if (typeof window === 'undefined') return
   try {
     await cacheStorage.setItem(CACHE_KEY, { state: cache, version: 0 })
-  } catch (e) {
-    console.warn('Chat cache storage full, clearing old entries')
+  } catch {
     const entries = Object.entries(cache.cachedAt).sort((a, b) => a[1] - b[1])
     const toRemove = entries.slice(0, Math.floor(entries.length / 2))
     toRemove.forEach(([sid]) => {
@@ -594,8 +593,8 @@ export const useChatStore = create<ChatState & ChatActions>()(
                   })
                 }
               }
-            } catch {
-              // Backend unavailable — no entities extracted
+            } catch (extractError) {
+              showOperationError('实体提取', extractError)
             }
             set((state) => {
               if (foundEntities.length > 0) {

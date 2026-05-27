@@ -346,8 +346,8 @@ class TestExceptionHandlers:
         response = client.get("/not-found")
         assert response.status_code == 404
         data = response.json()
-        assert data["error_code"] == "NOT_FOUND"
-        assert data["message"] == "Resource missing"
+        assert data["error"]["code"] == "NOT_FOUND"
+        assert data["error"]["message"] == "Resource missing"
         assert "timestamp" in data
 
     def test_validation_handler(self, client):
@@ -355,15 +355,15 @@ class TestExceptionHandlers:
         response = client.get("/validation")
         assert response.status_code == 422
         data = response.json()
-        assert data["error_code"] == "VALIDATION_ERROR"
-        assert data["details"] == {"field": "email"}
+        assert data["error"]["code"] == "VALIDATION_ERROR"
+        assert data["error"]["details"] == {"field": "email"}
 
     def test_generic_handler(self, client):
         """Unhandled exceptions return 500."""
         response = client.get("/generic")
         assert response.status_code == 500
         data = response.json()
-        assert data["error_code"] == "INTERNAL_ERROR"
+        assert data["error"]["code"] == "INTERNAL_ERROR"
 
 
 # =============================================================================

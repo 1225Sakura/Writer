@@ -10,6 +10,8 @@ import json
 import re
 from typing import Any
 
+import httpx
+
 from .base import BaseChecker, CheckerResult
 from backend.core.services.ai.ai_service import AIService
 from backend.config import settings
@@ -51,10 +53,11 @@ class PacingChecker(BaseChecker):
         "缘", "劫", "造化", "天道", "气运", "命数", "注定", "命格",
     ]
 
-    def __init__(self, ai_service: AIService | None = None) -> None:
+    def __init__(self, ai_service: AIService | None = None, weight: float = 1.0) -> None:
         super().__init__(
             name="pacing",
             description="检查叙事节奏和故事线比例（任务线60%/燃情线20%/星座线20%）",
+            weight=weight,
         )
         self._ai_service = ai_service
         self._api_client = MiniMaxAPIClient(ai_service) if ai_service else None
@@ -227,7 +230,7 @@ class PacingChecker(BaseChecker):
                     suggestions=["请重试深度分析"],
                 )
 
-        except Exception as e:
+        except (httpx.HTTPStatusError, httpx.ConnectError, httpx.TimeoutException, ValueError) as e:
             return CheckerResult(
                 score=0,
                 issues=[{

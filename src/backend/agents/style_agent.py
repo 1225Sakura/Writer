@@ -19,6 +19,7 @@ from typing import Any
 
 import yaml
 
+from backend.utils.exceptions import AIServiceError, AIServiceTimeoutError, AIServiceRateLimitError
 from .base import AgentContext, AgentResult, BaseAgent
 
 # ---------------------------------------------------------------------------
@@ -225,6 +226,18 @@ class StyleAgent(BaseAgent):
         re.compile(r"(?:风|雨|云|山|水|树|花|月|夜|时光|岁月)(?:叹息|微笑|哭泣|沉默|低语|凝视)"),
     ]
 
+    async def pre_execute(self, context: AgentContext) -> AgentContext:
+        """Pre-execution hook: inject available style presets into context settings.
+
+        This allows downstream logic (or the AI prompt) to reference all
+        available preset styles without the agent needing to look them up.
+        """
+        context.settings["available_styles"] = {
+            key: {"name": val["name"], "description": val["description"]}
+            for key, val in PRESET_STYLES.items()
+        }
+        return context
+
     async def execute(self, context: AgentContext) -> AgentResult:
         """执行风格分析或调节任务.
 
@@ -315,7 +328,7 @@ class StyleAgent(BaseAgent):
         try:
             ai_deep = await self._ai_deep_analysis(text)
             fingerprint.ai_deep_analysis = ai_deep
-        except Exception as e:
+        except (AIServiceError, AIServiceTimeoutError, AIServiceRateLimitError) as e:
             logger.warning("AI deep analysis failed: %s", e)
 
         # 风格匹配
@@ -424,7 +437,9 @@ class StyleAgent(BaseAgent):
             match = re.search(r"\{.*\}", raw, re.DOTALL)
             if match:
                 return json.loads(match.group())
-        except Exception:
+        except (AIServiceError, AIServiceTimeoutError, AIServiceRateLimitError):
+            pass
+        except json.JSONDecodeError:
             pass
         return {"summary": "", "keywords": []}
 
@@ -446,7 +461,7 @@ class StyleAgent(BaseAgent):
                 return json.loads(match.group())
         except json.JSONDecodeError as e:
             logger.warning("Failed to parse AI deep analysis: %s", e)
-        except Exception as e:
+        except (AIServiceError, AIServiceTimeoutError, AIServiceRateLimitError) as e:
             logger.warning("AI deep analysis failed: %s", e)
         return {}
 
@@ -638,7 +653,9 @@ class StyleAgent(BaseAgent):
             if match:
                 data = json.loads(match.group())
                 return [StyleMigrationSuggestion(**item) for item in data if isinstance(item, dict)]
-        except Exception:
+        except (AIServiceError, AIServiceTimeoutError, AIServiceRateLimitError):
+            pass
+        except json.JSONDecodeError:
             pass
         return []
 

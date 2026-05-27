@@ -9,7 +9,7 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
-from typing import Any
+from typing import Any, Optional
 
 
 @dataclass
@@ -20,11 +20,16 @@ class CheckerResult:
         score: Quality score in range 0-100.
         issues: List of detected issues, each as a dict with details.
         suggestions: List of improvement suggestions.
+        failure_mode: Indicates how the checker produced this result.
+            ``"analysis_failed"`` -- the checker hit an exception.
+            ``"no_issues"`` -- checker completed successfully with no issues.
+            ``None`` -- normal result (may or may not have issues).
     """
 
     score: int = 100
     issues: list[dict[str, Any]] = field(default_factory=list)
     suggestions: list[str] = field(default_factory=list)
+    failure_mode: Optional[str] = None
 
     def __post_init__(self) -> None:
         """Validate score is within valid range."""
@@ -42,15 +47,17 @@ class BaseChecker(ABC):
     dimension of novel writing.
     """
 
-    def __init__(self, name: str, description: str) -> None:
+    def __init__(self, name: str, description: str, weight: float = 1.0) -> None:
         """Initialize the checker.
 
         Args:
             name: Short identifier for the checker.
             description: Human-readable description of what this checker does.
+            weight: Relative importance weight for aggregation (default 1.0).
         """
         self._name = name
         self._description = description
+        self._weight = weight
 
     @property
     def name(self) -> str:
@@ -61,6 +68,11 @@ class BaseChecker(ABC):
     def description(self) -> str:
         """Checker description."""
         return self._description
+
+    @property
+    def weight(self) -> float:
+        """Checker weight for aggregation."""
+        return self._weight
 
     @abstractmethod
     async def quick_scan(self, content: str) -> CheckerResult:

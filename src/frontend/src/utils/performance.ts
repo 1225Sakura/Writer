@@ -156,9 +156,6 @@ class PerformanceMonitor {
     const metrics = this.getMetrics()
     if (metrics.length === 0) return
 
-    const report = metrics.map((m) => `${m.name}: ${m.value.toFixed(2)}ms (${m.rating})`).join(', ')
-    console.log(`[Performance] ${report}`)
-
     // Send to analytics if configured
     if (import.meta.env.VITE_ANALYTICS_ID) {
       this.sendToAnalytics(metrics)

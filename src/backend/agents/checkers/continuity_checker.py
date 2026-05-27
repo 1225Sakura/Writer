@@ -11,6 +11,7 @@ import json
 import re
 from typing import Any
 
+import httpx
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -35,10 +36,11 @@ _CONTINUITY_PROMPTS = _load_prompts("continuity_checker")
 class ContinuityChecker(BaseChecker):
     """Checks scene and narrative continuity."""
 
-    def __init__(self, ai_service: AIService | None = None) -> None:
+    def __init__(self, ai_service: AIService | None = None, weight: float = 1.0) -> None:
         super().__init__(
             name="continuity",
             description="检查叙事连续性（场景转换、角色状态、伏笔呼应、时间线等）",
+            weight=weight,
         )
         self._ai_service = ai_service
         self._api_client = MiniMaxAPIClient(ai_service) if ai_service else None
@@ -220,7 +222,7 @@ class ContinuityChecker(BaseChecker):
                     suggestions=["请重试深度分析"],
                 )
 
-        except Exception as e:
+        except (httpx.HTTPStatusError, httpx.ConnectError, httpx.TimeoutException, ValueError) as e:
             return CheckerResult(
                 score=0,
                 issues=[{
@@ -324,7 +326,7 @@ class ContinuityChecker(BaseChecker):
                     "score": 70,
                     "plot_thread_status": {},
                 }
-        except Exception as e:
+        except (httpx.HTTPStatusError, httpx.ConnectError, httpx.TimeoutException, ValueError) as e:
             return {
                 "issues": [f"连续性检查失败: {str(e)}"],
                 "suggestions": [],

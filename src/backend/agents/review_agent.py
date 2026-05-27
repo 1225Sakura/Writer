@@ -11,6 +11,7 @@ from __future__ import annotations
 import logging
 from typing import Any
 
+from backend.utils.exceptions import CheckerAnalysisError
 from .base import BaseAgent, AgentContext, AgentResult
 from .checkers.pipeline import CheckerPipeline
 from .checkers.base import CheckerResult
@@ -172,7 +173,7 @@ class ReviewAgent(BaseAgent):
 
         try:
             return await self._pipeline.run_quick_scan(content)
-        except Exception as exc:
+        except CheckerAnalysisError as exc:
             logger.exception("Quick scan failed: %s", exc)
             return {}
 
@@ -194,7 +195,7 @@ class ReviewAgent(BaseAgent):
 
         try:
             return await self._pipeline.run_deep_analysis(content, context)
-        except Exception as exc:
+        except CheckerAnalysisError as exc:
             logger.exception("Deep analysis failed: %s", exc)
             return {}
 

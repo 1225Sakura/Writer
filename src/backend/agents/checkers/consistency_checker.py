@@ -11,6 +11,7 @@ import json
 import re
 from typing import Any
 
+import httpx
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -35,10 +36,11 @@ _CONSISTENCY_PROMPTS = _load_prompts("consistency_checker")
 class ConsistencyChecker(BaseChecker):
     """Checks world consistency across the novel."""
 
-    def __init__(self, ai_service: AIService | None = None) -> None:
+    def __init__(self, ai_service: AIService | None = None, weight: float = 1.0) -> None:
         super().__init__(
             name="consistency",
             description="检查世界观一致性（地点、时间线、力量等级、物品归属、势力关系等）",
+            weight=weight,
         )
         self._ai_service = ai_service
         self._api_client = MiniMaxAPIClient(ai_service) if ai_service else None
@@ -207,7 +209,7 @@ class ConsistencyChecker(BaseChecker):
                     suggestions=["请重试深度分析"],
                 )
 
-        except Exception as e:
+        except (httpx.HTTPStatusError, httpx.ConnectError, httpx.TimeoutException, ValueError) as e:
             return CheckerResult(
                 score=0,
                 issues=[{
@@ -290,7 +292,7 @@ class ConsistencyChecker(BaseChecker):
                     "suggestions": [],
                     "score": 70,
                 }
-        except Exception as e:
+        except (httpx.HTTPStatusError, httpx.ConnectError, httpx.TimeoutException, ValueError) as e:
             return {
                 "issues": [f"一致性检查失败: {str(e)}"],
                 "suggestions": [],

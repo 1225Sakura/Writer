@@ -127,8 +127,8 @@ export function createCleanupRegistry(): CleanupRegistry {
       cleanups.forEach((fn) => {
         try {
           fn()
-        } catch (e) {
-          console.error('Cleanup error:', e)
+        } catch {
+          // Cleanup error swallowed
         }
       })
       cleanups.clear()

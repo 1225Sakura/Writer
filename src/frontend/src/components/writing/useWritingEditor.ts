@@ -74,8 +74,8 @@ export function useWritingEditor() {
   useEffect(() => {
     if (currentChapterId) {
       clearCheckerResults()
-      runAllChecks(currentChapterId).catch((err) => {
-        console.warn('Background checks failed:', err)
+      runAllChecks(currentChapterId).catch(() => {
+        // Background check failure handled by store
       })
     }
   }, [currentChapterId, runAllChecks, clearCheckerResults])
@@ -232,8 +232,7 @@ export function useWritingEditor() {
         await saveDraftVersion(currentChapterId, currentContent)
       }
       markSaved()
-    } catch (error) {
-      console.warn('Auto-save failed:', error)
+    } catch {
       setSaveStatus('unsaved')
     } finally {
       isSavingRef.current = false

@@ -2,6 +2,7 @@ import { create } from 'zustand'
 import { persist, subscribeWithSelector } from 'zustand/middleware'
 import { immer } from 'zustand/middleware/immer'
 import { sessionApi } from '../api/chat'
+import { showOperationError } from '../utils/toastHelper'
 import type { ChatSession } from '../api/types'
 import { createHybridStorage } from './utils/indexedDBStorage'
 
@@ -59,6 +60,7 @@ export const useSessionStore = create<SessionState & SessionActions>()(
                 state.error = (error as Error).message
                 state.isLoading = false
               })
+              showOperationError('创建会话', error)
             }
           },
 
@@ -75,6 +77,7 @@ export const useSessionStore = create<SessionState & SessionActions>()(
                 state.error = (error as Error).message
                 state.isLoading = false
               })
+              showOperationError('加载会话列表', error)
             }
           },
 
@@ -102,6 +105,7 @@ export const useSessionStore = create<SessionState & SessionActions>()(
               })
             } catch (error) {
               set((state) => { state.error = (error as Error).message })
+              showOperationError('删除会话', error)
             }
           },
 

@@ -13,6 +13,7 @@ import json
 import logging
 from typing import Any
 
+from backend.utils.exceptions import AIServiceError, AIServiceTimeoutError, AIServiceRateLimitError
 from .base import BaseAgent, AgentContext, AgentResult
 
 import yaml
@@ -94,7 +95,7 @@ class PlotAgent(BaseAgent):
                     active_threads=active_threads,
                 )
                 analyses_run += 1
-            except Exception as exc:
+            except (AIServiceError, AIServiceTimeoutError, AIServiceRateLimitError) as exc:
                 logger.exception("Foreshadowing analysis failed: %s", exc)
                 results["foreshadowing"] = {"error": str(exc)}
                 analyses_failed += 1
@@ -108,7 +109,7 @@ class PlotAgent(BaseAgent):
                     active_threads=active_threads,
                 )
                 analyses_run += 1
-            except Exception as exc:
+            except (AIServiceError, AIServiceTimeoutError, AIServiceRateLimitError) as exc:
                 logger.exception("Climax planning failed: %s", exc)
                 results["climax"] = {"error": str(exc)}
                 analyses_failed += 1
@@ -120,7 +121,7 @@ class PlotAgent(BaseAgent):
                     current_content=content,
                 )
                 analyses_run += 1
-            except Exception as exc:
+            except (AIServiceError, AIServiceTimeoutError, AIServiceRateLimitError) as exc:
                 logger.exception("Rhythm analysis failed: %s", exc)
                 results["rhythm"] = {"error": str(exc)}
                 analyses_failed += 1

@@ -2,6 +2,7 @@ import { create } from 'zustand'
 import { subscribeWithSelector } from 'zustand/middleware'
 import { immer } from 'zustand/middleware/immer'
 import { relationshipApi, storylineApi } from '../api/settings'
+import { showOperationError } from '../utils/toastHelper'
 import type { CharacterLocal, Relationship, CharacterStorylineLocal } from './entityStore'
 
 // Re-export types
@@ -52,6 +53,7 @@ export const useRelationStore = create<RelationState & RelationActions>()(
             return newRel
           } catch (error) {
             set((state) => { state.error = (error as Error).message })
+            showOperationError('添加关系', error)
             throw error
           }
         },
@@ -62,6 +64,7 @@ export const useRelationStore = create<RelationState & RelationActions>()(
             set((state) => { state.error = null })
           } catch (error) {
             set((state) => { state.error = (error as Error).message })
+            showOperationError('删除关系', error)
             throw error
           }
         },
@@ -82,6 +85,7 @@ export const useRelationStore = create<RelationState & RelationActions>()(
               state.error = (error as Error).message
               state.isLoading = false
             })
+            showOperationError('加载关系列表', error)
             return []
           }
         },
@@ -92,6 +96,7 @@ export const useRelationStore = create<RelationState & RelationActions>()(
             set((state) => { state.error = null })
           } catch (error) {
             set((state) => { state.error = (error as Error).message })
+            showOperationError('更新故事线进度', error)
             throw error
           }
         },
@@ -124,6 +129,7 @@ export const useRelationStore = create<RelationState & RelationActions>()(
               state.error = (error as Error).message
               state.isLoading = false
             })
+            showOperationError('加载角色关系', error)
             return character
           }
         },

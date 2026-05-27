@@ -140,6 +140,42 @@ class DataAgent(BaseAgent, DatabaseMixin):
         BaseAgent.__init__(self, provider, event_bus)
         DatabaseMixin.__init__(self, ai_service)
 
+    async def post_execute(self, context: AgentContext, result: AgentResult) -> AgentResult:
+        """Post-execution hook: validate entities in the result.
+
+        If the result content is a dict containing an 'entities' list,
+        validates that each entity has required fields (name, type).
+        Adds warnings for any malformed entities.
+        """
+        if not isinstance(result.content, dict):
+            return result
+
+        entities = result.content.get("entities")
+        if not isinstance(entities, list):
+            return result
+
+        validation_warnings: list[str] = []
+        for i, entity in enumerate(entities):
+            if not isinstance(entity, dict):
+                validation_warnings.append(f"Entity at index {i} is not a dict")
+                continue
+            if not entity.get("name"):
+                validation_warnings.append(
+                    f"Entity at index {i} missing required field 'name'"
+                )
+            if not entity.get("type"):
+                validation_warnings.append(
+                    f"Entity '{entity.get('name', f'index {i}')}' missing required field 'type'"
+                )
+
+        if validation_warnings:
+            result.warnings = list(result.warnings) + validation_warnings
+            logger.warning(
+                "DataAgent post_execute found %d validation issues", len(validation_warnings)
+            )
+
+        return result
+
     # ------------------------------------------------------------------
     # Existing public API (backward compatible)
     # ------------------------------------------------------------------

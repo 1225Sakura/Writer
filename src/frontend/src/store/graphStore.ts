@@ -2,6 +2,7 @@ import { create } from 'zustand'
 import { persist, subscribeWithSelector } from 'zustand/middleware'
 import { immer } from 'zustand/middleware/immer'
 import { graphApi } from '../api/graph'
+import { showOperationError } from '../utils/toastHelper'
 import type {
   EntityNode,
   GraphVisualizationResponse,
@@ -108,6 +109,7 @@ export const useGraphStore = create<GraphState & GraphActions>()(
               s.error = err instanceof Error ? err.message : '获取实体列表失败'
               s.loading = false
             })
+            showOperationError('获取实体列表', err)
           }
         },
 
@@ -124,6 +126,7 @@ export const useGraphStore = create<GraphState & GraphActions>()(
               s.error = err instanceof Error ? err.message : '获取关系数据失败'
               s.loading = false
             })
+            showOperationError('获取关系数据', err)
           }
         },
 
@@ -140,6 +143,7 @@ export const useGraphStore = create<GraphState & GraphActions>()(
               s.error = err instanceof Error ? err.message : '获取图谱可视化数据失败'
               s.loading = false
             })
+            showOperationError('获取图谱可视化', err)
           }
         },
 
@@ -156,6 +160,7 @@ export const useGraphStore = create<GraphState & GraphActions>()(
               s.error = err instanceof Error ? err.message : '多跳查询失败'
               s.loading = false
             })
+            showOperationError('多跳查询', err)
           }
         },
 
@@ -172,6 +177,7 @@ export const useGraphStore = create<GraphState & GraphActions>()(
               s.error = err instanceof Error ? err.message : '最短路径查询失败'
               s.loading = false
             })
+            showOperationError('最短路径查询', err)
           }
         },
 
@@ -188,6 +194,7 @@ export const useGraphStore = create<GraphState & GraphActions>()(
               s.error = err instanceof Error ? err.message : '中心性分析失败'
               s.loading = false
             })
+            showOperationError('中心性分析', err)
           }
         },
 
@@ -204,6 +211,7 @@ export const useGraphStore = create<GraphState & GraphActions>()(
               s.error = err instanceof Error ? err.message : '聚类检测失败'
               s.loading = false
             })
+            showOperationError('聚类检测', err)
           }
         },
 
@@ -220,6 +228,7 @@ export const useGraphStore = create<GraphState & GraphActions>()(
               s.error = err instanceof Error ? err.message : '重复检测失败'
               s.loading = false
             })
+            showOperationError('重复检测', err)
           }
         },
 

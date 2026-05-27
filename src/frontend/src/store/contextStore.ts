@@ -2,6 +2,7 @@ import { create } from 'zustand'
 import { persist, subscribeWithSelector } from 'zustand/middleware'
 import { immer } from 'zustand/middleware/immer'
 import { contextApi } from '../api/context'
+import { showOperationError } from '../utils/toastHelper'
 import { contextRankApi } from '../api/contextRank'
 import type {
   ContextBuildResponse,
@@ -92,6 +93,7 @@ export const useContextStore = create<ContextState & ContextActions>()(
               s.error = err instanceof Error ? err.message : '构建上下文包失败'
               s.loading = false
             })
+            showOperationError('构建上下文包', err)
           }
         },
 
@@ -105,6 +107,7 @@ export const useContextStore = create<ContextState & ContextActions>()(
               s.error = err instanceof Error ? err.message : '索引章节失败'
               s.loading = false
             })
+            showOperationError('索引章节', err)
           }
         },
 
@@ -121,6 +124,7 @@ export const useContextStore = create<ContextState & ContextActions>()(
               s.error = err instanceof Error ? err.message : '查询上下文失败'
               s.loading = false
             })
+            showOperationError('查询上下文', err)
           }
         },
 
@@ -137,6 +141,7 @@ export const useContextStore = create<ContextState & ContextActions>()(
               s.error = err instanceof Error ? err.message : '获取索引块失败'
               s.loading = false
             })
+            showOperationError('获取索引块', err)
           }
         },
 
@@ -153,6 +158,7 @@ export const useContextStore = create<ContextState & ContextActions>()(
               s.error = err instanceof Error ? err.message : '删除索引块失败'
               s.loading = false
             })
+            showOperationError('删除索引块', err)
           }
         },
 
@@ -169,6 +175,7 @@ export const useContextStore = create<ContextState & ContextActions>()(
               s.error = err instanceof Error ? err.message : '获取索引统计失败'
               s.loading = false
             })
+            showOperationError('获取索引统计', err)
           }
         },
 
@@ -187,6 +194,7 @@ export const useContextStore = create<ContextState & ContextActions>()(
               s.error = err instanceof Error ? err.message : '排名上下文失败'
               s.loading = false
             })
+            showOperationError('排名上下文', err)
           }
         },
 
@@ -203,6 +211,7 @@ export const useContextStore = create<ContextState & ContextActions>()(
               s.error = err instanceof Error ? err.message : '获取权重失败'
               s.loading = false
             })
+            showOperationError('获取权重', err)
           }
         },
 
@@ -219,6 +228,7 @@ export const useContextStore = create<ContextState & ContextActions>()(
               s.error = err instanceof Error ? err.message : '更新权重失败'
               s.loading = false
             })
+            showOperationError('更新权重', err)
           }
         },
 
@@ -235,6 +245,7 @@ export const useContextStore = create<ContextState & ContextActions>()(
               s.error = err instanceof Error ? err.message : '意图检测失败'
               s.loading = false
             })
+            showOperationError('意图检测', err)
           }
         },
 

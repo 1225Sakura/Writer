@@ -12,6 +12,7 @@ import json
 import re
 from typing import Any
 
+import httpx
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -39,10 +40,11 @@ class OutlineLawEnforcer(BaseChecker):
     direction, and tonal requirements.
     """
 
-    def __init__(self, ai_service: AIService | None = None) -> None:
+    def __init__(self, ai_service: AIService | None = None, weight: float = 1.0) -> None:
         super().__init__(
             name="outline_law",
             description="检查正文是否违反大纲关键设定（角色生死、剧情走向、风格基调等）",
+            weight=weight,
         )
         self._ai_service = ai_service
         self._api_client = MiniMaxAPIClient(ai_service) if ai_service else None
@@ -230,7 +232,7 @@ class OutlineLawEnforcer(BaseChecker):
                     suggestions=["请重试深度分析"],
                 )
 
-        except Exception as e:
+        except (httpx.HTTPStatusError, httpx.ConnectError, httpx.TimeoutException, ValueError) as e:
             return CheckerResult(
                 score=0,
                 issues=[{

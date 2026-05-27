@@ -290,8 +290,6 @@ export const useAIStore = create<AIState & AIActions>()(
             break
           } catch (error) {
             lastError = error instanceof Error ? error : new Error(String(error))
-            console.warn(`[AI Job] Attempt ${attempt + 1}/${MAX_RETRIES + 1} failed for ${nextJob.type}:`, lastError.message)
-
             // Don't retry on cancellation
             const checkJob = get().aiJobQueue.find((j) => j.id === nextJob.id)
             if (checkJob?.error === '取消中...') {

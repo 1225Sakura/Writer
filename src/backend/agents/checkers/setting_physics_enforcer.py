@@ -11,6 +11,8 @@ import json
 import re
 from typing import Any
 
+import httpx
+
 from .base import BaseChecker, CheckerResult
 from backend.core.services.ai.ai_service import AIService
 from backend.config import settings
@@ -51,10 +53,11 @@ class SettingPhysicsEnforcer(BaseChecker):
         "突破", "晋升", "进阶", "升级", "跨越",
     ]
 
-    def __init__(self, ai_service: AIService | None = None) -> None:
+    def __init__(self, ai_service: AIService | None = None, weight: float = 1.0) -> None:
         super().__init__(
             name="setting_physics",
             description="检查正文是否违反世界观的物理/规则一致性（修仙体系、魔法规则、力量层级等）",
+            weight=weight,
         )
         self._ai_service = ai_service
         self._api_client = MiniMaxAPIClient(ai_service) if ai_service else None
@@ -271,7 +274,7 @@ class SettingPhysicsEnforcer(BaseChecker):
                     suggestions=["请重试深度分析"],
                 )
 
-        except Exception as e:
+        except (httpx.HTTPStatusError, httpx.ConnectError, httpx.TimeoutException, ValueError) as e:
             return CheckerResult(
                 score=0,
                 issues=[{

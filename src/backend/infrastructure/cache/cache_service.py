@@ -454,17 +454,12 @@ def set_cached_character(character_id: int, data: dict, ttl: Optional[int] = Non
 def invalidate_character_cache(character_id: Optional[int] = None) -> None:
     """Invalidate character cache entries.
 
-    When character_id is given, removes that single entry plus any list caches.
-    When called without an id, only list caches are cleared so individual
-    character entries remain valid.
+    Clears the entire character cache to ensure both individual entries
+    and list caches are invalidated.  MD5-hashed keys make substring
+    pattern matching unreliable, so a full clear is the safest approach.
     """
     cache = get_cache_service()
-    if character_id is not None:
-        key = cache.make_key("char", character_id)
-        cache.delete("character", key)
-        cache.delete_pattern("character", "char_list")
-    else:
-        cache.delete_pattern("character", "char_list")
+    cache.clear_entity_cache("character")
 
 
 def get_cached_character_list() -> Optional[list]:

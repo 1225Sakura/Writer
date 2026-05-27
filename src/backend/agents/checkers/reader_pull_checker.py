@@ -10,6 +10,8 @@ import json
 import re
 from typing import Any
 
+import httpx
+
 from .base import BaseChecker, CheckerResult
 from backend.core.services.ai.ai_service import AIService
 from backend.config import settings
@@ -31,10 +33,11 @@ _READER_PULL_PROMPTS = _load_prompts("reader_pull_checker")
 class ReaderPullChecker(BaseChecker):
     """Checks hooks and reader engagement."""
 
-    def __init__(self, ai_service: AIService | None = None) -> None:
+    def __init__(self, ai_service: AIService | None = None, weight: float = 1.0) -> None:
         super().__init__(
             name="reader_pull",
             description="检查读者吸引力/钩子效果（开篇钩子、结尾悬念、冲突设置等）",
+            weight=weight,
         )
         self._ai_service = ai_service
         self._api_client = MiniMaxAPIClient(ai_service) if ai_service else None
@@ -210,7 +213,7 @@ class ReaderPullChecker(BaseChecker):
                     suggestions=["请重试深度分析"],
                 )
 
-        except Exception as e:
+        except (httpx.HTTPStatusError, httpx.ConnectError, httpx.TimeoutException, ValueError) as e:
             return CheckerResult(
                 score=0,
                 issues=[{

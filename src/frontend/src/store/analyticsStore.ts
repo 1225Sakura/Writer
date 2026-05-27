@@ -2,6 +2,7 @@ import { create } from 'zustand'
 import { persist, subscribeWithSelector } from 'zustand/middleware'
 import { immer } from 'zustand/middleware/immer'
 import { engagementApi } from '../api/engagement'
+import { showOperationError } from '../utils/toastHelper'
 import { pacingApi } from '../api/pacing'
 import type {
   EngagementAnalysisResponse,
@@ -98,6 +99,7 @@ export const useAnalyticsStore = create<AnalyticsState & AnalyticsActions>()(
               s.error = err instanceof Error ? err.message : '参与度分析失败'
               s.loading = false
             })
+            showOperationError('参与度分析', err)
           }
         },
 
@@ -114,6 +116,7 @@ export const useAnalyticsStore = create<AnalyticsState & AnalyticsActions>()(
               s.error = err instanceof Error ? err.message : '钩子检测失败'
               s.loading = false
             })
+            showOperationError('钩子检测', err)
           }
         },
 
@@ -130,6 +133,7 @@ export const useAnalyticsStore = create<AnalyticsState & AnalyticsActions>()(
               s.error = err instanceof Error ? err.message : '获取叙事债务失败'
               s.loading = false
             })
+            showOperationError('获取叙事债务', err)
           }
         },
 
@@ -146,6 +150,7 @@ export const useAnalyticsStore = create<AnalyticsState & AnalyticsActions>()(
               s.error = err instanceof Error ? err.message : '获取参与度分数失败'
               s.loading = false
             })
+            showOperationError('获取参与度分数', err)
           }
         },
 
@@ -165,6 +170,7 @@ export const useAnalyticsStore = create<AnalyticsState & AnalyticsActions>()(
               s.error = err instanceof Error ? err.message : '检测叙事债务失败'
               s.loading = false
             })
+            showOperationError('检测叙事债务', err)
           }
         },
 
@@ -184,6 +190,7 @@ export const useAnalyticsStore = create<AnalyticsState & AnalyticsActions>()(
               s.error = err instanceof Error ? err.message : '解决债务失败'
               s.loading = false
             })
+            showOperationError('解决债务', err)
           }
         },
 
@@ -200,6 +207,7 @@ export const useAnalyticsStore = create<AnalyticsState & AnalyticsActions>()(
               s.error = err instanceof Error ? err.message : '获取叙事线定义失败'
               s.loading = false
             })
+            showOperationError('获取叙事线定义', err)
           }
         },
 
@@ -216,6 +224,7 @@ export const useAnalyticsStore = create<AnalyticsState & AnalyticsActions>()(
               s.error = err instanceof Error ? err.message : '节奏分析失败'
               s.loading = false
             })
+            showOperationError('节奏分析', err)
           }
         },
 
@@ -232,6 +241,7 @@ export const useAnalyticsStore = create<AnalyticsState & AnalyticsActions>()(
               s.error = err instanceof Error ? err.message : '获取红线状态失败'
               s.loading = false
             })
+            showOperationError('获取红线状态', err)
           }
         },
 
@@ -248,6 +258,7 @@ export const useAnalyticsStore = create<AnalyticsState & AnalyticsActions>()(
               s.error = err instanceof Error ? err.message : '获取叙事线建议失败'
               s.loading = false
             })
+            showOperationError('获取叙事线建议', err)
           }
         },
 

@@ -9,6 +9,7 @@ from __future__ import annotations
 import asyncio
 import json
 import logging
+import time
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from enum import Enum
@@ -17,13 +18,25 @@ from typing import Any, Awaitable, Callable, Dict, List, Optional
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from ..utils.event_bus import AsyncEventBus
-from .base import AgentContext, AgentResult, BaseAgent
+from ..utils.exceptions import (
+    AgentError,
+    AgentTimeoutError,
+    AIServiceError,
+    DatabaseError,
+)
+from .base import AgentContext, AgentResult, BaseAgent, CheckerFeedback
 
 # Optional workflow persistence service
 try:
     from backend.services.workflow_service import WorkflowExecutionService
 except ImportError:
     WorkflowExecutionService = None  # type: ignore[misc, assignment]
+
+# Optional checker pipeline for checker-agent integration
+try:
+    from .checkers.pipeline import CheckerPipeline
+except ImportError:
+    CheckerPipeline = None  # type: ignore[misc, assignment]
 
 logger = logging.getLogger(__name__)
 
@@ -93,6 +106,29 @@ class WorkflowConfig:
 
 
 @dataclass
+class AgentTimingRecord:
+    """Timing record for a single agent execution.
+
+    Attributes:
+        agent_name: Name of the agent
+        stage_name: Name of the stage
+        started_at: ISO timestamp when execution started
+        completed_at: ISO timestamp when execution completed
+        duration_ms: Execution duration in milliseconds
+        status: Execution status (completed/failed)
+        error: Error message if execution failed
+    """
+
+    agent_name: str
+    stage_name: str
+    started_at: str = ""
+    completed_at: str = ""
+    duration_ms: float = 0.0
+    status: str = ""
+    error: Optional[str] = None
+
+
+@dataclass
 class WorkflowContext:
     """Runtime context for workflow execution.
 
@@ -102,6 +138,9 @@ class WorkflowContext:
         input_data: Initial input data for the workflow
         stage_results: Accumulated results from completed stages
         metadata: Additional execution metadata
+        agent_timings: Per-agent execution timing records
+        error_history: History of errors encountered during execution
+        cancelled: Flag indicating whether the workflow has been cancelled
     """
 
     execution_id: str
@@ -109,6 +148,9 @@ class WorkflowContext:
     input_data: dict[str, Any] = field(default_factory=dict)
     stage_results: dict[str, Any] = field(default_factory=dict)
     metadata: dict[str, Any] = field(default_factory=dict)
+    agent_timings: list[AgentTimingRecord] = field(default_factory=list)
+    error_history: list[dict[str, Any]] = field(default_factory=list)
+    cancelled: bool = False
 
 
 class AgentOrchestrator:
@@ -126,15 +168,27 @@ class AgentOrchestrator:
         self,
         event_bus: AsyncEventBus,
         workflow_service: Optional[Any] = None,
+        checker_pipeline: Optional[Any] = None,
+        checker_threshold: float = 70.0,
+        max_checker_retries: int = 2,
+        agent_timeout: float = 120.0,
     ) -> None:
         """Initialize the orchestrator.
 
         Args:
             event_bus: Async event bus for publishing workflow events
             workflow_service: Optional WorkflowExecutionService for persistence
+            checker_pipeline: Optional CheckerPipeline for post-execution quality checks
+            checker_threshold: Minimum overall_score to pass (default 70)
+            max_checker_retries: Max re-execution attempts when score < threshold (default 2)
+            agent_timeout: Default per-agent timeout in seconds (default 120)
         """
         self._event_bus = event_bus
         self._workflow_service = workflow_service
+        self._checker_pipeline = checker_pipeline
+        self._checker_threshold = checker_threshold
+        self._max_checker_retries = max_checker_retries
+        self._agent_timeout = agent_timeout
         self._workflows: dict[str, WorkflowConfig] = {}
         self._agent_registry: dict[str, BaseAgent] = {}
         self._executions: dict[str, WorkflowContext] = {}
@@ -242,6 +296,32 @@ class AgentOrchestrator:
         ]
 
     # ------------------------------------------------------------------
+    # Cancellation
+    # ------------------------------------------------------------------
+
+    async def cancel_execution(self, execution_id: str) -> bool:
+        """Request cancellation of a running workflow execution.
+
+        Sets the cancelled flag on the WorkflowContext. The orchestrator
+        checks this flag between stage/agent executions and will stop
+        gracefully when it is set.
+
+        Args:
+            execution_id: The execution to cancel.
+
+        Returns:
+            True if the execution was found and marked for cancellation.
+        """
+        async with self._lock:
+            wf_context = self._executions.get(execution_id)
+            if wf_context is None:
+                return False
+            wf_context.cancelled = True
+            self._execution_status[execution_id] = WorkflowStatus.CANCELLED
+        logger.info("Cancellation requested for execution '%s'", execution_id)
+        return True
+
+    # ------------------------------------------------------------------
     # Execution
     # ------------------------------------------------------------------
 
@@ -284,7 +364,7 @@ class AgentOrchestrator:
         if self._workflow_service is not None:
             try:
                 db_execution = await self._workflow_service.create_execution(name)
-            except Exception as persist_exc:
+            except DatabaseError as persist_exc:
                 logger.warning("Failed to persist workflow start: %s", persist_exc)
 
         logger.info("Starting workflow '%s' (execution_id=%s)", name, execution_id)
@@ -305,10 +385,24 @@ class AgentOrchestrator:
             completed_stages: set[str] = set()
 
             for stage in stage_order:
+                # Check cancellation between stages
+                if wf_context.cancelled:
+                    logger.info(
+                        "Workflow '%s' cancelled before stage '%s'",
+                        name,
+                        stage.name,
+                    )
+                    return {
+                        "execution_id": execution_id,
+                        "workflow_name": name,
+                        "status": WorkflowStatus.CANCELLED.value,
+                        "stage_results": wf_context.stage_results,
+                    }
+
                 # Wait for dependencies
                 for dep in stage.depends_on:
                     if dep not in completed_stages:
-                        raise RuntimeError(
+                        raise ValueError(
                             f"Dependency '{dep}' not completed for stage '{stage.name}'"
                         )
 
@@ -347,7 +441,7 @@ class AgentOrchestrator:
                         db_execution.id,
                         results=wf_context.stage_results,
                     )
-                except Exception as persist_exc:
+                except DatabaseError as persist_exc:
                     logger.warning("Failed to persist workflow completion: %s", persist_exc)
 
             # Publish workflow completed event
@@ -370,7 +464,7 @@ class AgentOrchestrator:
                 "stage_results": wf_context.stage_results,
             }
 
-        except Exception as exc:
+        except (AgentError, DatabaseError, AIServiceError) as exc:
             logger.exception("Workflow '%s' failed (execution_id=%s)", name, execution_id)
 
             async with self._lock:
@@ -384,7 +478,7 @@ class AgentOrchestrator:
                         results=wf_context.stage_results,
                         error=str(exc),
                     )
-                except Exception as persist_exc:
+                except DatabaseError as persist_exc:
                     logger.warning("Failed to persist workflow failure: %s", persist_exc)
 
             # Publish workflow failed event
@@ -433,6 +527,11 @@ class AgentOrchestrator:
             stage.agents,
         )
 
+        # Validate all agents are registered before executing (fail-fast)
+        for agent_name in stage.agents:
+            if agent_name not in self._agent_registry:
+                raise ValueError(f"Agent '{agent_name}' not registered")
+
         agent_results: dict[str, Any] = {}
 
         if stage.mode == "parallel":
@@ -468,6 +567,19 @@ class AgentOrchestrator:
         else:
             # Execute agents sequentially
             for agent_name in stage.agents:
+                # Check cancellation between sequential agent executions
+                if wf_context.cancelled:
+                    logger.info(
+                        "Stage '%s' cancelled before agent '%s'",
+                        stage.name,
+                        agent_name,
+                    )
+                    agent_results[agent_name] = {
+                        "status": AgentExecutionStatus.SKIPPED.value,
+                        "error": "Workflow cancelled",
+                    }
+                    continue
+
                 try:
                     result = await self._execute_agent(
                         workflow_name=workflow_name,
@@ -478,7 +590,7 @@ class AgentOrchestrator:
                         db_execution_id=db_execution_id,
                     )
                     agent_results[agent_name] = result
-                except Exception as exc:
+                except (AgentError, DatabaseError, AIServiceError) as exc:
                     agent_results[agent_name] = {
                         "status": AgentExecutionStatus.FAILED.value,
                         "error": str(exc),
@@ -508,6 +620,14 @@ class AgentOrchestrator:
     ) -> dict[str, Any]:
         """Execute a single agent within a workflow stage.
 
+        Uses execute_with_hooks (lifecycle hooks) and optionally runs the
+        checker pipeline after execution. If the checker overall_score falls
+        below the configured threshold, the agent is re-executed with checker
+        feedback injected into AgentContext.checker_results (up to max retries).
+
+        Enforces a per-agent timeout via asyncio.wait_for. Tracks execution
+        timing and records errors in the WorkflowContext.
+
         Args:
             workflow_name: Parent workflow name
             stage_name: Current stage name
@@ -518,30 +638,55 @@ class AgentOrchestrator:
 
         Returns:
             Agent execution result dict
+
+        Raises:
+            AgentTimeoutError: If the agent exceeds the configured timeout
+            AgentError: If the agent execution fails
         """
         agent = self._agent_registry.get(agent_name)
         if not agent:
-            raise ValueError(f"Agent '{agent_name}' not registered")
+            raise AgentError(
+                message=f"Agent '{agent_name}' not registered",
+                agent_name=agent_name,
+            )
 
         # Build agent context from workflow context
-        agent_context = AgentContext(
-            task=wf_context.input_data.get("task", ""),
-            settings=wf_context.input_data.get("settings", {}),
-            history=wf_context.input_data.get("history", []),
-            constraints=wf_context.input_data.get("constraints", []),
-        )
-
-        # Merge stage results into settings for downstream agents
-        agent_context.settings["stage_results"] = wf_context.stage_results
-        agent_context.settings["workflow_name"] = workflow_name
-        agent_context.settings["stage_name"] = stage_name
+        agent_context = self._build_agent_context(wf_context, workflow_name, stage_name)
 
         started_at = datetime.now(timezone.utc)
+        monotonic_start = time.monotonic()
 
         try:
-            result: AgentResult = await agent.execute(agent_context)
+            # Use execute_with_hooks for lifecycle hook support (US-021)
+            result: AgentResult = await asyncio.wait_for(
+                agent.execute_with_hooks(agent_context),
+                timeout=self._agent_timeout,
+            )
+
+            # Checker-Agent Integration (US-020)
+            result = await self._run_checker_feedback_loop(
+                agent=agent,
+                agent_context=agent_context,
+                result=result,
+                workflow_name=workflow_name,
+                stage_name=stage_name,
+                agent_name=agent_name,
+                wf_context=wf_context,
+            )
 
             completed_at = datetime.now(timezone.utc)
+            duration_ms = (time.monotonic() - monotonic_start) * 1000
+
+            # Record timing
+            timing = AgentTimingRecord(
+                agent_name=agent_name,
+                stage_name=stage_name,
+                started_at=started_at.isoformat(),
+                completed_at=completed_at.isoformat(),
+                duration_ms=duration_ms,
+                status=AgentExecutionStatus.COMPLETED.value,
+            )
+            wf_context.agent_timings.append(timing)
 
             result_dict = {
                 "status": AgentExecutionStatus.COMPLETED.value,
@@ -551,6 +696,7 @@ class AgentOrchestrator:
                 "warnings": result.warnings if hasattr(result, "warnings") else [],
                 "started_at": started_at.isoformat(),
                 "completed_at": completed_at.isoformat(),
+                "duration_ms": duration_ms,
             }
 
             # Persist agent execution log
@@ -562,7 +708,7 @@ class AgentOrchestrator:
                         stage_name=stage_name,
                         result=result_dict,
                     )
-                except Exception as persist_exc:
+                except DatabaseError as persist_exc:
                     logger.warning("Failed to persist agent execution log: %s", persist_exc)
 
             # Publish agent executed event
@@ -580,8 +726,119 @@ class AgentOrchestrator:
 
             return result_dict
 
-        except Exception as exc:
+        except asyncio.TimeoutError:
             completed_at = datetime.now(timezone.utc)
+            duration_ms = (time.monotonic() - monotonic_start) * 1000
+
+            timeout_exc = AgentTimeoutError(
+                message=f"Agent '{agent_name}' timed out after {self._agent_timeout}s",
+                agent_name=agent_name,
+            )
+
+            # Record timing and error
+            timing = AgentTimingRecord(
+                agent_name=agent_name,
+                stage_name=stage_name,
+                started_at=started_at.isoformat(),
+                completed_at=completed_at.isoformat(),
+                duration_ms=duration_ms,
+                status=AgentExecutionStatus.FAILED.value,
+                error=str(timeout_exc),
+            )
+            wf_context.agent_timings.append(timing)
+            wf_context.error_history.append({
+                "agent_name": agent_name,
+                "stage_name": stage_name,
+                "error_type": "AgentTimeoutError",
+                "message": str(timeout_exc),
+                "timestamp": completed_at.isoformat(),
+            })
+
+            # Persist failed agent execution log
+            if db_execution_id is not None and self._workflow_service is not None:
+                try:
+                    await self._workflow_service.log_agent_execution(
+                        workflow_execution_id=db_execution_id,
+                        agent_name=agent_name,
+                        stage_name=stage_name,
+                        result={
+                            "status": AgentExecutionStatus.FAILED.value,
+                            "error": str(timeout_exc),
+                            "started_at": started_at.isoformat(),
+                            "completed_at": completed_at.isoformat(),
+                        },
+                    )
+                except DatabaseError as persist_exc:
+                    logger.warning("Failed to persist agent execution log: %s", persist_exc)
+
+            # Publish agent failed event
+            await self._event_bus.publish(
+                AGENT_EXECUTED,
+                {
+                    "execution_id": wf_context.execution_id,
+                    "workflow_name": workflow_name,
+                    "stage_name": stage_name,
+                    "agent_name": agent_name,
+                    "status": AgentExecutionStatus.FAILED.value,
+                    "error": str(timeout_exc),
+                    "timestamp": completed_at.isoformat(),
+                },
+            )
+
+            raise timeout_exc from None
+
+        except asyncio.CancelledError:
+            completed_at = datetime.now(timezone.utc)
+            duration_ms = (time.monotonic() - monotonic_start) * 1000
+
+            cancel_exc = AgentError(
+                message=f"Agent '{agent_name}' execution was cancelled",
+                agent_name=agent_name,
+            )
+
+            # Record timing and error
+            timing = AgentTimingRecord(
+                agent_name=agent_name,
+                stage_name=stage_name,
+                started_at=started_at.isoformat(),
+                completed_at=completed_at.isoformat(),
+                duration_ms=duration_ms,
+                status=AgentExecutionStatus.FAILED.value,
+                error=str(cancel_exc),
+            )
+            wf_context.agent_timings.append(timing)
+            wf_context.error_history.append({
+                "agent_name": agent_name,
+                "stage_name": stage_name,
+                "error_type": "CancelledError",
+                "message": str(cancel_exc),
+                "timestamp": completed_at.isoformat(),
+            })
+
+            raise cancel_exc from None
+
+        except (AgentError, AIServiceError) as exc:
+            completed_at = datetime.now(timezone.utc)
+            duration_ms = (time.monotonic() - monotonic_start) * 1000
+
+            # Record timing and error
+            timing = AgentTimingRecord(
+                agent_name=agent_name,
+                stage_name=stage_name,
+                started_at=started_at.isoformat(),
+                completed_at=completed_at.isoformat(),
+                duration_ms=duration_ms,
+                status=AgentExecutionStatus.FAILED.value,
+                error=str(exc),
+            )
+            wf_context.agent_timings.append(timing)
+            wf_context.error_history.append({
+                "agent_name": agent_name,
+                "stage_name": stage_name,
+                "error_type": type(exc).__name__,
+                "message": str(exc),
+                "timestamp": completed_at.isoformat(),
+            })
 
             # Persist failed agent execution log
             if db_execution_id is not None and self._workflow_service is not None:
@@ -597,7 +854,7 @@ class AgentOrchestrator:
                             "completed_at": completed_at.isoformat(),
                         },
                     )
-                except Exception as persist_exc:
+                except DatabaseError as persist_exc:
                     logger.warning("Failed to persist agent execution log: %s", persist_exc)
 
             # Publish agent failed event
@@ -615,6 +872,179 @@ class AgentOrchestrator:
             )
 
             raise
+
+    @staticmethod
+    def _build_agent_context(
+        wf_context: WorkflowContext,
+        workflow_name: str,
+        stage_name: str,
+    ) -> AgentContext:
+        """Build an AgentContext from workflow context data.
+
+        Args:
+            wf_context: The workflow execution context.
+            workflow_name: Parent workflow name.
+            stage_name: Current stage name.
+
+        Returns:
+            Populated AgentContext.
+        """
+        agent_context = AgentContext(
+            task=wf_context.input_data.get("task", ""),
+            settings=wf_context.input_data.get("settings", {}),
+            history=wf_context.input_data.get("history", []),
+            constraints=wf_context.input_data.get("constraints", []),
+        )
+        agent_context.settings["stage_results"] = wf_context.stage_results
+        agent_context.settings["workflow_name"] = workflow_name
+        agent_context.settings["stage_name"] = stage_name
+        return agent_context
+
+    async def _run_checker_feedback_loop(
+        self,
+        agent: BaseAgent,
+        agent_context: AgentContext,
+        result: AgentResult,
+        workflow_name: str,
+        stage_name: str,
+        agent_name: str,
+        wf_context: WorkflowContext,
+    ) -> AgentResult:
+        """Run checker pipeline and re-execute agent if score is below threshold.
+
+        After each agent execution, runs the checker pipeline on the result
+        content. If overall_score < threshold, re-calls the agent with
+        checker feedback in AgentContext.checker_results. Skips re-call for
+        checkers that failed with failure_mode == "analysis_failed".
+
+        Args:
+            agent: The agent that was executed.
+            agent_context: The context used for execution.
+            result: The agent's result.
+            workflow_name: Parent workflow name.
+            stage_name: Current stage name.
+            agent_name: Agent name.
+            wf_context: Workflow execution context.
+
+        Returns:
+            The final AgentResult (possibly from a re-execution).
+        """
+        if self._checker_pipeline is None:
+            return result
+
+        for attempt in range(self._max_checker_retries):
+            # Extract text content for checking
+            content = self._extract_checkable_content(result)
+            if not content:
+                return result
+
+            # Run checker pipeline
+            try:
+                checker_results = await self._checker_pipeline.run_quick_scan(content)
+                aggregated = self._checker_pipeline.aggregate_results(checker_results)
+            except Exception as exc:
+                logger.warning(
+                    "Checker pipeline failed for agent '%s' (attempt %d), skipping feedback loop: %s",
+                    agent_name,
+                    attempt + 1,
+                    exc,
+                )
+                return result
+
+            overall_score = aggregated.get("overall_score", 100)
+
+            if overall_score >= self._checker_threshold:
+                logger.info(
+                    "Agent '%s' passed checker threshold (%.1f >= %.1f)",
+                    agent_name,
+                    overall_score,
+                    self._checker_threshold,
+                )
+                return result
+
+            # Below threshold -- prepare feedback for re-execution
+            failed_checkers = aggregated.get("failed_checkers", [])
+
+            # Filter out issues from failed checkers (failure_mode == "analysis_failed")
+            filtered_suggestions = [
+                s for s in aggregated.get("all_suggestions", [])
+                if not self._is_suggestion_from_failed_checker(s, failed_checkers)
+            ]
+
+            feedback = CheckerFeedback(
+                overall_score=overall_score,
+                issues=[
+                    {"checker": name, "score": score}
+                    for name, score in aggregated.get("checker_scores", {}).items()
+                ],
+                suggestions=filtered_suggestions,
+                failed_checkers=failed_checkers,
+            )
+
+            logger.info(
+                "Agent '%s' scored %.1f < %.1f threshold (attempt %d/%d), re-executing with feedback",
+                agent_name,
+                overall_score,
+                self._checker_threshold,
+                attempt + 1,
+                self._max_checker_retries,
+            )
+
+            # Inject checker feedback into context and re-execute
+            retry_context = self._build_agent_context(
+                wf_context, workflow_name, stage_name
+            )
+            retry_context.checker_results = feedback.to_dict()
+            # Preserve original constraints and add checker guidance
+            retry_context.constraints = list(agent_context.constraints)
+            retry_context.constraints.append(
+                f"Previous attempt scored {overall_score:.0f}/100 on quality checks. "
+                f"Issues: {', '.join(filtered_suggestions[:5])}"
+            )
+
+            result = await agent.execute_with_hooks(retry_context)
+
+        return result
+
+    @staticmethod
+    def _extract_checkable_content(result: AgentResult) -> str:
+        """Extract text content from an AgentResult for checker consumption.
+
+        Args:
+            result: The agent result.
+
+        Returns:
+            Text content suitable for checker pipeline, or empty string.
+        """
+        content = result.content
+        if isinstance(content, str):
+            return content
+        if isinstance(content, dict):
+            # Try common content keys
+            for key in ("text", "content", "adjusted_text", "summary", "output"):
+                if key in content and isinstance(content[key], str):
+                    return content[key]
+            return json.dumps(content, ensure_ascii=False)
+        if isinstance(content, list):
+            return json.dumps(content, ensure_ascii=False)
+        return str(content) if content else ""
+
+    @staticmethod
+    def _is_suggestion_from_failed_checker(
+        suggestion: str, failed_checkers: list[str]
+    ) -> bool:
+        """Check if a suggestion string references a failed checker.
+
+        Args:
+            suggestion: A suggestion string.
+            failed_checkers: List of checker names that failed.
+
+        Returns:
+            True if the suggestion is from a failed checker.
+        """
+        if not failed_checkers:
+            return False
+        return any(name in suggestion for name in failed_checkers)
 
     # ------------------------------------------------------------------
     # DAG / Topological Sort
