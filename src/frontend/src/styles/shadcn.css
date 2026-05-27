@@ -1,27 +1,138 @@
 /* shadcn/ui variables mapped to vintage study design token system */
 @layer base {
   :root {
-    /* shadcn HSL variables — vintage study palette */
-    --background: 240 15% 8%;
-    --foreground: 36 35% 90%;
-    --card: 240 12% 10%;
-    --card-foreground: 36 35% 90%;
-    --popover: 240 12% 10%;
-    --popover-foreground: 36 35% 90%;
-    --primary: 30 60% 62%;
-    --primary-foreground: 240 15% 8%;
-    --secondary: 240 8% 14%;
-    --secondary-foreground: 36 35% 90%;
-    --muted: 240 8% 14%;
-    --muted-foreground: 36 15% 60%;
-    --accent: 30 50% 55%;
-    --accent-foreground: 36 35% 90%;
-    --destructive: 0 55% 50%;
-    --destructive-foreground: 0 0% 100%;
-    --border: 240 8% 16%;
-    --input: 240 8% 14%;
-    --ring: 30 60% 62%;
+    /* shadcn HSL variables — mapped from design-tokens.css */
+    --background: 30 24% 8%;              /* ink-100: #1a1510 */
+    --foreground: 46 61% 90%;             /* paper-100: #f5eed6 */
+    --card: 27 22% 10%;                   /* ink-95: #1e1813 */
+    --card-foreground: 46 61% 90%;        /* paper-100: #f5eed6 */
+    --popover: 27 22% 10%;                /* ink-95: #1e1813 */
+    --popover-foreground: 46 61% 90%;     /* paper-100: #f5eed6 */
+    --primary: 39 46% 61%;                /* accent-100: #c9a96e */
+    --primary-foreground: 30 24% 8%;      /* ink-100: #1a1510 */
+    --secondary: 23 21% 20%;              /* ink-80: #3d3028 */
+    --secondary-foreground: 46 61% 90%;   /* paper-100: #f5eed6 */
+    --muted: 23 21% 20%;                  /* ink-80: #3d3028 */
+    --muted-foreground: 38 18% 53%;       /* paper-70: #9c8c70 */
+    --accent: 33 24% 44%;                 /* accent-80: #8b7355 */
+    --accent-foreground: 46 61% 90%;      /* paper-100: #f5eed6 */
+    --destructive: 0 41% 39%;             /* vermillion-100: #8b3a3a */
+    --destructive-foreground: 46 61% 90%; /* paper-100: #f5eed6 */
+    --border: 25 23% 16%;                 /* ink-85: #332820 */
+    --input: 23 21% 20%;                  /* ink-80: #3d3028 */
+    --ring: 39 46% 61%;                   /* accent-100: #c9a96e */
     --radius: 0.5rem;
+  }
+
+  [data-theme="light"],
+  .light {
+    --background: 40 44% 89%;              /* ink-100: #f0e8d8 */
+    --foreground: 30 35% 12%;             /* paper-100: #2a1f14 */
+    --card: 40 40% 87%;                   /* ink-95: #ebe2d0 */
+    --card-foreground: 30 35% 12%;        /* paper-100: #2a1f14 */
+    --popover: 40 40% 87%;                /* ink-95: #ebe2d0 */
+    --popover-foreground: 30 35% 12%;     /* paper-100: #2a1f14 */
+    --primary: 37 49% 37%;                /* accent-100: #8b6830 */
+    --primary-foreground: 40 44% 89%;     /* ink-100: #f0e8d8 */
+    --secondary: 40 34% 76%;              /* ink-80: #d6c8ac */
+    --secondary-foreground: 30 35% 12%;   /* paper-100: #2a1f14 */
+    --muted: 40 34% 76%;                  /* ink-80: #d6c8ac */
+    --muted-foreground: 35 18% 40%;       /* paper-70: #7a6a54 */
+    --accent: 36 54% 27%;                 /* accent-80: #6a4c20 */
+    --accent-foreground: 30 35% 12%;      /* paper-100: #2a1f14 */
+    --destructive: 0 41% 39%;             /* vermillion-100: #8b3a3a */
+    --destructive-foreground: 30 35% 12%; /* paper-100: #2a1f14 */
+    --border: 41 34% 80%;                 /* ink-85: #ddd2ba */
+    --input: 40 34% 76%;                  /* ink-80: #d6c8ac */
+    --ring: 37 49% 37%;                   /* accent-100: #8b6830 */
+  }
+
+  [data-theme="eye-care"] {
+    --background: 105 14% 11%;            /* ink-100: #1a2018 */
+    --foreground: 80 34% 86%;             /* paper-100: #e0e8d0 */
+    --card: 105 12% 13%;                  /* ink-95: #1e241c */
+    --card-foreground: 80 34% 86%;        /* paper-100: #e0e8d0 */
+    --popover: 105 12% 13%;               /* ink-95: #1e241c */
+    --popover-foreground: 80 34% 86%;     /* paper-100: #e0e8d0 */
+    --primary: 77 25% 55%;                /* accent-100: #9aaa70 */
+    --primary-foreground: 105 14% 11%;    /* ink-100: #1a2018 */
+    --secondary: 100 11% 21%;             /* ink-80: #343c30 */
+    --secondary-foreground: 80 34% 86%;   /* paper-100: #e0e8d0 */
+    --muted: 100 11% 21%;                 /* ink-80: #343c30 */
+    --muted-foreground: 75 13% 50%;       /* paper-70: #889070 */
+    --accent: 75 26% 42%;                 /* accent-80: #7a8850 */
+    --accent-foreground: 80 34% 86%;      /* paper-100: #e0e8d0 */
+    --destructive: 0 41% 39%;             /* vermillion-100: #8b3a3a */
+    --destructive-foreground: 80 34% 86%; /* paper-100: #e0e8d0 */
+    --border: 100 13% 18%;                /* ink-85: #2c3428 */
+    --input: 100 11% 21%;                 /* ink-80: #343c30 */
+    --ring: 77 25% 55%;                   /* accent-100: #9aaa70 */
+  }
+
+  [data-theme="sepia"] {
+    --background: 34 30% 9%;              /* ink-100: #1e1810 */
+    --foreground: 44 69% 94%;             /* paper-100: #faf4e4 */
+    --card: 38 29% 11%;                   /* ink-95: #241e14 */
+    --card-foreground: 44 69% 94%;        /* paper-100: #faf4e4 */
+    --popover: 38 29% 11%;                /* ink-95: #241e14 */
+    --popover-foreground: 44 69% 94%;     /* paper-100: #faf4e4 */
+    --primary: 39 59% 45%;                /* accent-100: #b88830 */
+    --primary-foreground: 34 30% 9%;      /* ink-100: #1e1810 */
+    --secondary: 30 31% 20%;              /* ink-80: #443424 */
+    --secondary-foreground: 44 69% 94%;   /* paper-100: #faf4e4 */
+    --muted: 30 31% 20%;                  /* ink-80: #443424 */
+    --muted-foreground: 43 37% 45%;       /* paper-70: #9c8448 */
+    --accent: 36 65% 36%;                 /* accent-80: #986820 */
+    --accent-foreground: 44 69% 94%;      /* paper-100: #faf4e4 */
+    --destructive: 0 41% 39%;             /* vermillion-100: #8b3a3a */
+    --destructive-foreground: 44 69% 94%; /* paper-100: #faf4e4 */
+    --border: 30 32% 17%;                 /* ink-85: #3a2c1e */
+    --input: 30 31% 20%;                  /* ink-80: #443424 */
+    --ring: 39 59% 45%;                   /* accent-100: #b88830 */
+  }
+
+  [data-theme="deep-blue"] {
+    --background: 204 26% 7%;             /* ink-100: #0e1418 */
+    --foreground: 210 30% 89%;            /* paper-100: #dce4ec */
+    --card: 206 28% 10%;                  /* ink-95: #121a20 */
+    --card-foreground: 210 30% 89%;       /* paper-100: #dce4ec */
+    --popover: 206 28% 10%;               /* ink-95: #121a20 */
+    --popover-foreground: 210 30% 89%;    /* paper-100: #dce4ec */
+    --primary: 216 30% 65%;               /* accent-100: #8aa0c0 */
+    --primary-foreground: 204 26% 7%;     /* ink-100: #0e1418 */
+    --secondary: 210 24% 23%;             /* ink-80: #2c3a48 */
+    --secondary-foreground: 210 30% 89%;  /* paper-100: #dce4ec */
+    --muted: 210 24% 23%;                 /* ink-80: #2c3a48 */
+    --muted-foreground: 216 8% 48%;       /* paper-70: #707884 */
+    --accent: 216 22% 52%;                /* accent-80: #6a80a0 */
+    --accent-foreground: 210 30% 89%;     /* paper-100: #dce4ec */
+    --destructive: 0 41% 39%;             /* vermillion-100: #8b3a3a */
+    --destructive-foreground: 210 30% 89%;/* paper-100: #dce4ec */
+    --border: 212 28% 18%;                /* ink-85: #222e3c */
+    --input: 210 24% 23%;                 /* ink-80: #2c3a48 */
+    --ring: 216 30% 65%;                  /* accent-100: #8aa0c0 */
+  }
+
+  [data-theme="forest"] {
+    --background: 120 20% 8%;             /* ink-100: #101810 */
+    --foreground: 81 27% 85%;             /* paper-100: #dde4d0 */
+    --card: 120 20% 10%;                  /* ink-95: #141e14 */
+    --card-foreground: 81 27% 85%;        /* paper-100: #dde4d0 */
+    --popover: 120 20% 10%;               /* ink-95: #141e14 */
+    --popover-foreground: 81 27% 85%;     /* paper-100: #dde4d0 */
+    --primary: 83 33% 51%;                /* accent-100: #8aaa58 */
+    --primary-foreground: 120 20% 8%;     /* ink-100: #101810 */
+    --secondary: 102 20% 20%;             /* ink-80: #2e3c28 */
+    --secondary-foreground: 81 27% 85%;   /* paper-100: #dde4d0 */
+    --muted: 102 20% 20%;                 /* ink-80: #2e3c28 */
+    --muted-foreground: 72 17% 45%;       /* paper-70: #808860 */
+    --accent: 83 42% 38%;                 /* accent-80: #6a8a38 */
+    --accent-foreground: 81 27% 85%;      /* paper-100: #dde4d0 */
+    --destructive: 0 41% 39%;             /* vermillion-100: #8b3a3a */
+    --destructive-foreground: 81 27% 85%; /* paper-100: #dde4d0 */
+    --border: 107 22% 16%;                /* ink-85: #243220 */
+    --input: 102 20% 20%;                 /* ink-80: #2e3c28 */
+    --ring: 83 33% 51%;                   /* accent-100: #8aaa58 */
   }
 }
 

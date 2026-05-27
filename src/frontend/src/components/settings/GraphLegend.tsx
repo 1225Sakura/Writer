@@ -107,7 +107,7 @@ export function Legend({
                         backgroundColor:
                           RELATION_TYPE_COLORS[type] ||
                           RELATION_TYPE_COLORS.other,
-                        boxShadow: `0 0 6px ${RELATION_TYPE_COLORS[type] || RELATION_TYPE_COLORS.other}50`,
+                        boxShadow: `0 0 6px color-mix(in srgb, ${RELATION_TYPE_COLORS[type] || RELATION_TYPE_COLORS.other} 31%, transparent)`,
                       }}
                     />
                     <span className="text-[10px]" style={{ color: 'var(--ink-90)', opacity: 0.75 }}>

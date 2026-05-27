@@ -90,7 +90,7 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
           cursor: isDisabled ? 'not-allowed' : 'pointer',
           ...(isGlass || isGlow
             ? {
-                boxShadow: `0 0 16px ${glowColor}40, 0 0 32px ${glowColor}20, inset 0 1px 0 color-mix(in srgb, var(--accent-100) 8%, transparent)`,
+                boxShadow: `0 0 16px color-mix(in srgb, ${glowColor} 25%, transparent), 0 0 32px color-mix(in srgb, ${glowColor} 13%, transparent), inset 0 1px 0 color-mix(in srgb, var(--accent-100) 8%, transparent)`,
               }
             : {}),
           ...(isPremium
@@ -111,7 +111,7 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
           <motion.span
             className="absolute inset-0 rounded-inherit pointer-events-none"
             style={{
-              background: `radial-gradient(circle at 50% 50%, ${glowColor}40 0%, transparent 70%)`,
+              background: `radial-gradient(circle at 50% 50%, color-mix(in srgb, ${glowColor} 25%, transparent) 0%, transparent 70%)`,
             }}
             initial={{ opacity: 0 }}
             animate={{ opacity: isHovered ? 1 : 0 }}
@@ -124,7 +124,7 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
           <motion.span
             className="absolute inset-0 pointer-events-none"
             style={{
-              background: `radial-gradient(circle at 50% 50%, ${glowColor}20 0%, transparent 60%)`,
+              background: `radial-gradient(circle at 50% 50%, color-mix(in srgb, ${glowColor} 13%, transparent) 0%, transparent 60%)`,
             }}
             animate={
               prefersReducedMotion

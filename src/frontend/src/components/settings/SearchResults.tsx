@@ -144,9 +144,9 @@ export function SearchResults({
             onMouseEnter={() => onHoverIndex(index)}
             className="w-full flex items-center gap-3 px-4 py-2.5 text-left transition-colors group relative overflow-hidden"
             style={{
-              backgroundColor: isSelected ? `${config.color}12` : 'transparent',
+              backgroundColor: isSelected ? `color-mix(in srgb, ${config.color} 7%, transparent)` : 'transparent',
             }}
-            whileHover={{ x: 2, backgroundColor: `${config.color}08` }}
+            whileHover={{ x: 2, backgroundColor: `color-mix(in srgb, ${config.color} 3%, transparent)` }}
           >
             {isSelected && (
               <motion.div
@@ -158,7 +158,7 @@ export function SearchResults({
             )}
             <motion.div
               className="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0 shadow-sm"
-              style={{ backgroundColor: `${config.color}18` }}
+              style={{ backgroundColor: `color-mix(in srgb, ${config.color} 9%, transparent)` }}
               whileHover={{ scale: 1.1, rotate: 3 }}
               transition={{ type: 'spring', stiffness: 400 }}
             >
@@ -181,9 +181,9 @@ export function SearchResults({
             <motion.span
               className="text-[10px] px-2 py-1 rounded-md flex-shrink-0 font-medium"
               style={{
-                backgroundColor: `${config.color}15`,
+                backgroundColor: `color-mix(in srgb, ${config.color} 8%, transparent)`,
                 color: config.color,
-                border: `1px solid ${config.color}25`,
+                border: `1px solid color-mix(in srgb, ${config.color} 15%, transparent)`,
               }}
               whileHover={{ scale: 1.05 }}
             >

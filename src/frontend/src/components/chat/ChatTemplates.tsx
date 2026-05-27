@@ -177,8 +177,8 @@ export function ChatTemplates({ onSelect, disabled }: ChatTemplatesProps) {
                       <motion.div
                         className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0"
                         style={{
-                          backgroundColor: `${template.color}15`,
-                          border: `1px solid ${template.color}25`,
+                          backgroundColor: `color-mix(in srgb, ${template.color} 8%, transparent)`,
+                          border: `1px solid color-mix(in srgb, ${template.color} 15%, transparent)`,
                         }}
                         whileHover={{ scale: 1.1, rotate: 5 }}
                         transition={{ duration: DURATION.FAST, ease: EASE.SMOOTH }}

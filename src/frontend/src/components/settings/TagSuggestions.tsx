@@ -43,7 +43,7 @@ export function TagSuggestions({
                   onClick={() => onSelect(suggestion)}
                   className="w-full flex items-center gap-2 px-3 py-2 text-left text-xs transition-colors text-[var(--text-secondary)] hover:translate-x-1"
                   style={{
-                    backgroundColor: isHighlighted ? `${color}15` : 'transparent',
+                    backgroundColor: isHighlighted ? `color-mix(in srgb, ${color} 8%, transparent)` : 'transparent',
                   }}
                   onMouseEnter={() => onHighlight(index)}
                   initial={{ opacity: 0, x: -8 }}

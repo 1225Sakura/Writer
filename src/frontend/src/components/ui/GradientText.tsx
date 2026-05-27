@@ -185,7 +185,7 @@ export function ShimmerText({
       <motion.span
         className="absolute inset-0 pointer-events-none"
         style={{
-          background: `linear-gradient(90deg, transparent, ${primaryColor}30, transparent)`,
+          background: `linear-gradient(90deg, transparent, color-mix(in srgb, ${primaryColor} 19%, transparent), transparent)`,
           backgroundSize: '200% 100%',
         }}
         animate={{ backgroundPosition: ['200% 0', '-200% 0'] }}

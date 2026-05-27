@@ -106,7 +106,7 @@ export function SuggestionCard({
           e.currentTarget.style.background =
             "linear-gradient(135deg, rgba(201,169,110,0.06) 0%, var(--color-surface-overlay) 100%)";
           e.currentTarget.style.borderColor = `${config.colors.border}`;
-          e.currentTarget.style.boxShadow = `0 4px 20px rgba(0,0,0,0.25), 0 0 0 1px ${config.colors.glow}50, 0 0 24px ${config.colors.glow}30`;
+          e.currentTarget.style.boxShadow = `0 4px 20px rgba(0,0,0,0.25), 0 0 0 1px color-mix(in srgb, ${config.colors.glow} 31%, transparent), 0 0 24px color-mix(in srgb, ${config.colors.glow} 19%, transparent)`;
         }
       }}
       onMouseLeave={(e) => {
@@ -125,10 +125,10 @@ export function SuggestionCard({
         style={{
           background: isApplied
             ? "var(--color-success)"
-            : `linear-gradient(180deg, ${accentBorderColor}90, ${accentBorderColor}, ${accentBorderColor}90)`,
+            : `linear-gradient(180deg, color-mix(in srgb, ${accentBorderColor} 56%, transparent), ${accentBorderColor}, color-mix(in srgb, ${accentBorderColor} 56%, transparent))`,
           boxShadow: isApplied
-            ? "0 0 10px var(--color-success)50"
-            : `0 0 10px ${accentBorderColor}50`,
+            ? "0 0 10px color-mix(in srgb, var(--color-success) 31%, transparent)"
+            : `0 0 10px color-mix(in srgb, ${accentBorderColor} 31%, transparent)`,
         }}
       />
 
@@ -142,7 +142,7 @@ export function SuggestionCard({
                 style={{
                   backgroundColor: config.colors.bg,
                   color: config.colors.text,
-                  boxShadow: `0 0 8px ${config.colors.glow}20`,
+                  boxShadow: `0 0 8px color-mix(in srgb, ${config.colors.glow} 13%, transparent)`,
                 }}
               >
                 <Icon icon={SeverityIcon} size="xs" color="inherit" />

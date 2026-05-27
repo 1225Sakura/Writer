@@ -71,9 +71,9 @@ export function EditorToolbar({ editor }: EditorToolbarProps) {
           transition={{ duration: 0.18, ease: [0.16, 1, 0.3, 1] }}
           className="absolute top-3 left-1/2 -translate-x-1/2 z-50 flex items-center gap-0.5 px-2.5 py-1.5 rounded-xl"
           style={{
-            background: 'linear-gradient(180deg, rgba(25, 26, 27, 0.92) 0%, rgba(20, 21, 22, 0.96) 100%)',
-            border: '1px solid rgba(255, 255, 255, 0.08)',
-            boxShadow: '0 8px 32px rgba(0,0,0,0.28), 0 4px 12px rgba(0,0,0,0.16), inset 0 1px 0 rgba(255,255,255,0.06)',
+            background: `linear-gradient(180deg, color-mix(in srgb, var(--ink-100) 92%, transparent) 0%, color-mix(in srgb, var(--ink-100) 96%, transparent) 100%)`,
+            border: `1px solid color-mix(in srgb, var(--paper-100) 8%, transparent)`,
+            boxShadow: `0 8px 32px color-mix(in srgb, var(--ink-100) 28%, transparent), 0 4px 12px color-mix(in srgb, var(--ink-100) 16%, transparent), inset 0 1px 0 color-mix(in srgb, var(--paper-100) 6%, transparent)`,
           }}
           role="toolbar"
           aria-label="文本编辑工具栏"

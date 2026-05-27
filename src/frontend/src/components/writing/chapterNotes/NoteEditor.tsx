@@ -74,7 +74,7 @@ export function NoteEditor({
                     ? `1px solid ${category.borderColor}`
                     : '1px solid transparent',
                 boxShadow: selectedCategory === category.id
-                  ? `0 0 8px ${category.color}20`
+                  ? `0 0 8px color-mix(in srgb, ${category.color} 13%, transparent)`
                   : 'none',
               }}
               title={`插入${category.label}标签`}

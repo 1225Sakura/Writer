@@ -105,8 +105,8 @@ export function TagInputField({
                 aria-label="添加标签"
                 className="w-full pl-8 pr-3 py-1.5 rounded-md text-xs transition-all outline-none bg-white/5 text-[var(--text-primary)] border border-white/10 focus:border-[var(--border-focus)] focus:ring-1 focus:ring-[var(--accent-muted)]"
                 style={{
-                  borderColor: inputValue ? `${entityColor}50` : 'rgba(255,255,255,0.1)',
-                  boxShadow: inputValue ? `0 0 0 2px ${entityColor}15` : 'none',
+                  borderColor: inputValue ? `color-mix(in srgb, ${entityColor} 31%, transparent)` : 'rgba(255,255,255,0.1)',
+                  boxShadow: inputValue ? `0 0 0 2px color-mix(in srgb, ${entityColor} 8%, transparent)` : 'none',
                 }}
               />
             </div>
@@ -147,8 +147,8 @@ export function TagInputField({
           animate={{ opacity: 1, scale: 1 }}
           exit={{ opacity: 0, scale: 0.9 }}
           whileHover={{
-            backgroundColor: `${entityColor}10`,
-            borderColor: `${entityColor}40`,
+            backgroundColor: `color-mix(in srgb, ${entityColor} 6%, transparent)`,
+            borderColor: `color-mix(in srgb, ${entityColor} 25%, transparent)`,
             color: entityColor,
           }}
           whileTap={{ scale: 0.95 }}

@@ -139,8 +139,8 @@ export const StatusBadge = React.forwardRef<HTMLDivElement, StatusBadgeProps>(
         style={{
           padding: sizeConfig.padding,
           gap: sizeConfig.gap,
-          backgroundColor: `${color}1f`, // 12% opacity hex
-          borderColor: `${color}33`, // 20% opacity hex
+          backgroundColor: `color-mix(in srgb, ${color} 12%, transparent)`,
+          borderColor: `color-mix(in srgb, ${color} 20%, transparent)`,
           fontSize: sizeConfig.fontSize,
         }}
         {...props}

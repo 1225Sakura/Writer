@@ -119,9 +119,9 @@ export function StyleSelector({ editor, isOpen, onToggle, onClose }: StyleSelect
             className="absolute top-full left-0 mt-1.5 py-1.5 rounded-xl z-50"
             style={{
               minWidth: '150px',
-              background: 'linear-gradient(180deg, rgba(28, 29, 30, 0.96) 0%, rgba(22, 23, 24, 0.98) 100%)',
-              boxShadow: '0 8px 24px rgba(0,0,0,0.24), 0 2px 8px rgba(0,0,0,0.12), inset 0 1px 0 rgba(255,255,255,0.04)',
-              border: '1px solid rgba(255, 255, 255, 0.08)',
+              background: `linear-gradient(180deg, color-mix(in srgb, var(--ink-100) 96%, transparent) 0%, color-mix(in srgb, var(--ink-100) 98%, transparent) 100%)`,
+              boxShadow: `0 8px 24px color-mix(in srgb, var(--ink-100) 24%, transparent), 0 2px 8px color-mix(in srgb, var(--ink-100) 12%, transparent), inset 0 1px 0 color-mix(in srgb, var(--paper-100) 4%, transparent)`,
+              border: `1px solid color-mix(in srgb, var(--paper-100) 8%, transparent)`,
             }}
             role="listbox"
             aria-label="段落样式"
@@ -139,7 +139,7 @@ export function StyleSelector({ editor, isOpen, onToggle, onClose }: StyleSelect
                 }}
                 onMouseDown={(e) => e.preventDefault()}
                 className={`flex items-center gap-2.5 w-full px-3 py-2 text-left transition-all duration-150
-                           hover:bg-[rgba(255,255,255,0.04)] ${
+                           hover:bg-[color-mix(in_srgb,var(--paper-100)_4%,transparent)] ${
                   style.isActive()
                     ? 'text-[var(--accent-primary)]'
                     : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'

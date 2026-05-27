@@ -127,8 +127,8 @@ function FullRatioSlider({ value, onChange }: { value: number; onChange: (v: num
       <motion.div
         className="p-2.5 rounded-lg border transition-all duration-200"
         style={{
-          backgroundColor: `${modeInfo.color}10`,
-          borderColor: `${modeInfo.color}25`,
+          backgroundColor: `color-mix(in srgb, ${modeInfo.color} 6%, transparent)`,
+          borderColor: `color-mix(in srgb, ${modeInfo.color} 15%, transparent)`,
         }}
         key={modeInfo.label}
         initial={{ opacity: 0, y: 4 }}

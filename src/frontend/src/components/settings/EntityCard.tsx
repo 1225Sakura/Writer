@@ -193,7 +193,7 @@ export function EntityListItem({
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           style={{
-            boxShadow: `inset 0 0 16px ${typeColor}12, inset 2px 0 0 ${typeColor}40`,
+            boxShadow: `inset 0 0 16px color-mix(in srgb, ${typeColor} 7%, transparent), inset 2px 0 0 color-mix(in srgb, ${typeColor} 25%, transparent)`,
           }}
         />
       )}
@@ -216,7 +216,7 @@ export function EntityListItem({
       <span
         className="text-[10px] px-1.5 py-0.5 rounded flex-shrink-0"
         style={{
-          backgroundColor: `${typeColor}15`,
+          backgroundColor: `color-mix(in srgb, ${typeColor} 8%, transparent)`,
           color: typeColor,
         }}
       >

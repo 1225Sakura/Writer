@@ -78,7 +78,7 @@ export function CategorySection({
 
         {/* Color indicator with icon */}
         <div className="relative flex items-center justify-center w-6 h-6 rounded-md"
-          style={{ backgroundColor: `${color}18` }}
+          style={{ backgroundColor: `color-mix(in srgb, ${color} 9%, transparent)` }}
         >
           <span style={{ color }}>
             {categoryIcons[type] || <Sparkles className="w-3.5 h-3.5" />}
@@ -93,7 +93,7 @@ export function CategorySection({
         <span
           className="text-xs px-2 py-0.5 rounded-full flex items-center gap-1"
           style={{
-            backgroundColor: confirmedCount === entities.length ? `${color}20` : 'var(--color-surface-base)',
+            backgroundColor: confirmedCount === entities.length ? `color-mix(in srgb, ${color} 13%, transparent)` : 'var(--color-surface-base)',
             color: confirmedCount === entities.length ? color : 'var(--text-secondary)',
             border: `1px solid ${confirmedCount === entities.length ? color : 'var(--border-subtle)'}`,
           }}

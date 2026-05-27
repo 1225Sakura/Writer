@@ -71,15 +71,15 @@ export function TagList({ tags, onRemove, entityType }: TagListProps) {
               transition={{ type: 'spring', stiffness: 500, damping: 30 }}
               className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-medium transition-all cursor-default group/tag"
               style={{
-                backgroundColor: `${color}12`,
+                backgroundColor: `color-mix(in srgb, ${color} 7%, transparent)`,
                 color: color,
-                border: `1px solid ${color}25`,
+                border: `1px solid color-mix(in srgb, ${color} 15%, transparent)`,
                 boxShadow: `0 1px 3px rgba(0,0,0,0.1), inset 0 1px 0 rgba(255,255,255,0.03)`,
               }}
               whileHover={{
-                backgroundColor: `${color}18`,
-                borderColor: `${color}45`,
-                boxShadow: `0 4px 14px ${color}30, 0 1px 4px rgba(0,0,0,0.15)`,
+                backgroundColor: `color-mix(in srgb, ${color} 9%, transparent)`,
+                borderColor: `color-mix(in srgb, ${color} 27%, transparent)`,
+                boxShadow: `0 4px 14px color-mix(in srgb, ${color} 19%, transparent), 0 1px 4px rgba(0,0,0,0.15)`,
                 y: -2,
               }}
             >
@@ -92,7 +92,7 @@ export function TagList({ tags, onRemove, entityType }: TagListProps) {
                     onRemove(tag)
                   }}
                   className="p-0.5 rounded-full opacity-0 group-hover/tag:opacity-100 transition-all"
-                  whileHover={{ scale: 1.3, backgroundColor: `${color}30` }}
+                  whileHover={{ scale: 1.3, backgroundColor: `color-mix(in srgb, ${color} 19%, transparent)` }}
                   whileTap={{ scale: 0.85, rotate: 90 }}
                   style={{ color }}
                   aria-label={`删除标签: ${tag}`}

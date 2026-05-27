@@ -47,9 +47,9 @@ function CountBadge({ count, color, isActive }: { count: number; color: string; 
       transition={SPRING.BADGE}
       className="ml-auto text-[10px] px-1.5 py-0.5 rounded-full font-medium min-w-[20px] text-center"
       style={{
-        backgroundColor: isActive ? `${color}20` : 'var(--color-surface-overlay)',
+        backgroundColor: isActive ? `color-mix(in srgb, ${color} 13%, transparent)` : 'var(--color-surface-overlay)',
         color: isActive ? color : 'var(--text-tertiary)',
-        border: `1px solid ${isActive ? `${color}30` : 'transparent'}`,
+        border: `1px solid ${isActive ? `color-mix(in srgb, ${color} 19%, transparent)` : 'transparent'}`,
       }}
     >
       {count}
@@ -129,7 +129,7 @@ export function CategoryNav() {
                 whileHover={isActive ? {} : { x: 2 }}
                 whileTap={{ scale: 0.98 }}
                 style={isActive ? {
-                  backgroundColor: `${color}12`,
+                  backgroundColor: `color-mix(in srgb, ${color} 7%, transparent)`,
                 } : undefined}
                 role="tab"
                 aria-pressed={isActive}
@@ -148,7 +148,7 @@ export function CategoryNav() {
                   transition={SPRING.SNAPPY}
                   style={{
                     background: isActive ? color : 'transparent',
-                    boxShadow: isActive ? `0 0 8px ${color}60` : 'none',
+                    boxShadow: isActive ? `0 0 8px color-mix(in srgb, ${color} 38%, transparent)` : 'none',
                   }}
                 />
 
@@ -159,7 +159,7 @@ export function CategoryNav() {
                     initial={{ height: 0, opacity: 0 }}
                     whileHover={{ height: 12, opacity: 1 }}
                     transition={{ duration: DURATION.FAST, ease: EASE.SMOOTH }}
-                    style={{ backgroundColor: `${color}50` }}
+                    style={{ backgroundColor: `color-mix(in srgb, ${color} 31%, transparent)` }}
                   />
                 )}
 
@@ -167,12 +167,12 @@ export function CategoryNav() {
                 <motion.div
                   className="w-8 h-8 flex items-center justify-center flex-shrink-0 rounded-lg transition-all duration-200"
                   style={{
-                    backgroundColor: isActive ? `${color}15` : 'transparent',
-                    border: isActive ? `1px solid ${color}25` : '1px solid transparent',
+                    backgroundColor: isActive ? `color-mix(in srgb, ${color} 8%, transparent)` : 'transparent',
+                    border: isActive ? `1px solid color-mix(in srgb, ${color} 15%, transparent)` : '1px solid transparent',
                   }}
                   whileHover={!isActive ? {
-                    backgroundColor: `${color}10`,
-                    borderColor: `${color}20`,
+                    backgroundColor: `color-mix(in srgb, ${color} 6%, transparent)`,
+                    borderColor: `color-mix(in srgb, ${color} 13%, transparent)`,
                   } : {}}
                 >
                   <EntityIcon
@@ -209,7 +209,7 @@ export function CategoryNav() {
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     style={{
-                      background: `radial-gradient(ellipse at 30% 50%, ${color}08 0%, transparent 70%)`,
+                      background: `radial-gradient(ellipse at 30% 50%, color-mix(in srgb, ${color} 3%, transparent) 0%, transparent 70%)`,
                     }}
                   />
                 )}

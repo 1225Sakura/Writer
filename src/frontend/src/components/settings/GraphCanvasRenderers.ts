@@ -8,6 +8,79 @@ import { ENTITY_TYPE_CONFIG } from './graphTypes'
 import type { EntityNodeType } from './graphTypes'
 
 // ============================================
+// Canvas color resolver — reads CSS variables on theme change
+// ============================================
+
+let canvasColors: Record<string, string> = {}
+
+export function updateCanvasColors() {
+  const style = getComputedStyle(document.documentElement)
+  canvasColors = {
+    accent: style.getPropertyValue('--accent-100').trim() || '#c9a96e',
+    accent80: style.getPropertyValue('--accent-80').trim() || '#8b7355',
+    ink100: style.getPropertyValue('--ink-100').trim() || '#1a1510',
+    ink90: style.getPropertyValue('--ink-90').trim() || '#2a1f14',
+    ink85: style.getPropertyValue('--ink-85').trim() || '#332820',
+    ink80: style.getPropertyValue('--ink-80').trim() || '#3d3028',
+    ink70: style.getPropertyValue('--ink-70').trim() || '#554538',
+    paper100: style.getPropertyValue('--paper-100').trim() || '#f5eed6',
+    paper90: style.getPropertyValue('--paper-90').trim() || '#e8dcc4',
+    paper85: style.getPropertyValue('--paper-85').trim() || '#ddd0b5',
+    paper70: style.getPropertyValue('--paper-70').trim() || '#9c8c70',
+    vermillion: style.getPropertyValue('--vermillion-100').trim() || '#8b3a3a',
+    location: style.getPropertyValue('--color-location').trim() || '#6b9e8e',
+    borderDefault: style.getPropertyValue('--border-default').trim() || 'rgba(201, 169, 110, 0.12)',
+    // Entity type colors for Canvas resolution
+    colorCharacter: style.getPropertyValue('--color-character').trim() || '#c9a06e',
+    colorItem: style.getPropertyValue('--color-item').trim() || '#8b7aaa',
+    colorLocation: style.getPropertyValue('--color-location').trim() || '#6b9e8e',
+    colorFaction: style.getPropertyValue('--color-faction').trim() || '#a04848',
+    colorWorld: style.getPropertyValue('--color-world').trim() || '#7088a8',
+    colorRule: style.getPropertyValue('--color-rule').trim() || '#7088a8',
+    colorOutline: style.getPropertyValue('--color-outline').trim() || '#7088a8',
+    colorIfline: style.getPropertyValue('--color-ifline').trim() || '#7a9e58',
+  }
+}
+
+/** Helper to add alpha to a hex color */
+function hexAlpha(hex: string, alpha: number): string {
+  hex = hex.replace('#', '')
+  if (hex.length === 3) hex = hex[0] + hex[0] + hex[1] + hex[1] + hex[2] + hex[2]
+  const r = parseInt(hex.substring(0, 2), 16)
+  const g = parseInt(hex.substring(2, 4), 16)
+  const b = parseInt(hex.substring(4, 6), 16)
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`
+}
+
+/** Resolve a CSS var() expression to its computed hex value */
+function resolveCssVar(cssVar: string): string {
+  const match = cssVar.match(/var\((--[^)]+)\)/)
+  if (!match) return cssVar
+  const style = getComputedStyle(document.documentElement)
+  return style.getPropertyValue(match[1]).trim() || cssVar
+}
+
+/** Resolve an ENTITY_TYPE_CONFIG color (may be CSS var) to a concrete hex for Canvas */
+function resolveEntityColor(configColor: string | undefined, type: EntityNodeType): string {
+  if (!configColor) return canvasColors.accent
+  // Map entity type to resolved color
+  const typeColorMap: Record<EntityNodeType, string> = {
+    character: canvasColors.colorCharacter,
+    item: canvasColors.colorItem,
+    location: canvasColors.colorLocation,
+    faction: canvasColors.colorFaction,
+    world: canvasColors.colorWorld,
+    rule: canvasColors.colorRule,
+    outline: canvasColors.colorOutline,
+    ifline: canvasColors.colorIfline,
+  }
+  return typeColorMap[type] || canvasColors.accent
+}
+
+// Initialize on load
+updateCanvasColors()
+
+// ============================================
 // Canvas Renderer: nodeCanvasObject
 // ============================================
 
@@ -24,7 +97,9 @@ export function renderNodeCanvas(
     animationOrbit: number
   },
 ) {
-  const config = ENTITY_TYPE_CONFIG[node.type as EntityNodeType]
+  const nodeType = node.type as EntityNodeType
+  const config = ENTITY_TYPE_CONFIG[nodeType]
+  const entityColor = resolveEntityColor(config?.color, nodeType)
   const isHovered = node.id === state.hoveredNodeId
   const isSelected = state.selectedNodeId === node.id || state.activeHighlightId === node.id
   const baseSize = config?.size || 6
@@ -39,8 +114,8 @@ export function renderNodeCanvas(
     for (let i = 5; i > 0; i--) {
       const glowRadius = finalRadius + i * 10
       const glowGradient = ctx.createRadialGradient(x, y, finalRadius, x, y, glowRadius)
-      glowGradient.addColorStop(0, config?.glowStrong || 'rgba(201, 169, 110, 0.5)')
-      glowGradient.addColorStop(0.4, config?.glowColor || 'rgba(201, 169, 110, 0.2)')
+      glowGradient.addColorStop(0, hexAlpha(entityColor, 0.5))
+      glowGradient.addColorStop(0.4, hexAlpha(entityColor, 0.2))
       glowGradient.addColorStop(1, 'transparent')
       ctx.fillStyle = glowGradient
       ctx.beginPath()
@@ -53,7 +128,7 @@ export function renderNodeCanvas(
     const ringRadius = finalRadius + 14
     ctx.beginPath()
     ctx.arc(x, y, ringRadius, state.animationOrbit, state.animationOrbit + Math.PI * 1.5)
-    ctx.strokeStyle = config?.ringColor || 'rgba(201, 169, 110, 0.3)'
+    ctx.strokeStyle = hexAlpha(entityColor, 0.2)
     ctx.lineWidth = 1.5
     ctx.setLineDash([4, 4])
     ctx.stroke()
@@ -63,7 +138,7 @@ export function renderNodeCanvas(
   if (state.renderMode === 'full') {
     const innerGlowRadius = finalRadius + 4
     const innerGlow = ctx.createRadialGradient(x, y, finalRadius, x, y, innerGlowRadius)
-    innerGlow.addColorStop(0, `${config?.color || '#c9a96e'}30`)
+    innerGlow.addColorStop(0, hexAlpha(entityColor, 0.19))
     innerGlow.addColorStop(1, 'transparent')
     ctx.fillStyle = innerGlow
     ctx.beginPath()
@@ -71,15 +146,15 @@ export function renderNodeCanvas(
     ctx.fill()
   }
 
-  ctx.shadowColor = isHovered ? config?.color || '#c9a96e' : 'rgba(0,0,0,0.5)'
+  ctx.shadowColor = isHovered ? entityColor : 'rgba(0,0,0,0.5)'
   ctx.shadowBlur = isHovered ? 25 : 8
   ctx.shadowOffsetX = 0
   ctx.shadowOffsetY = isHovered ? 0 : 4
 
   const nodeGradient = ctx.createRadialGradient(x - finalRadius * 0.35, y - finalRadius * 0.35, 0, x, y, finalRadius)
-  nodeGradient.addColorStop(0, '#3d3225')
-  nodeGradient.addColorStop(0.5, '#2a2118')
-  nodeGradient.addColorStop(1, '#1e1812')
+  nodeGradient.addColorStop(0, canvasColors.ink80)
+  nodeGradient.addColorStop(0.5, canvasColors.ink90)
+  nodeGradient.addColorStop(1, canvasColors.ink100)
 
   ctx.beginPath()
   ctx.arc(x, y, finalRadius, 0, 2 * Math.PI)
@@ -90,10 +165,10 @@ export function renderNodeCanvas(
   ctx.beginPath()
   ctx.arc(x, y, strokeRingRadius, 0, 2 * Math.PI)
   ctx.strokeStyle = isHovered
-    ? `${config?.color || '#c9a96e'}cc`
+    ? hexAlpha(entityColor, 0.8)
     : isSelected
-      ? `${config?.color || '#c9a96e'}99`
-      : `${config?.color || '#c9a96e'}55`
+      ? hexAlpha(entityColor, 0.6)
+      : hexAlpha(entityColor, 0.33)
   ctx.lineWidth = isHovered ? 2.5 : isSelected ? 2 : 1.5
   ctx.stroke()
 
@@ -101,8 +176,8 @@ export function renderNodeCanvas(
   ctx.shadowOffsetY = 0
 
   const highlightGradient = ctx.createRadialGradient(x - finalRadius * 0.3, y - finalRadius * 0.3, 0, x, y, finalRadius * 0.7)
-  highlightGradient.addColorStop(0, 'rgba(201, 169, 110, 0.15)')
-  highlightGradient.addColorStop(0.5, 'rgba(201, 169, 110, 0.04)')
+  highlightGradient.addColorStop(0, hexAlpha(canvasColors.accent, 0.15))
+  highlightGradient.addColorStop(0.5, hexAlpha(canvasColors.accent, 0.04))
   highlightGradient.addColorStop(1, 'transparent')
   ctx.beginPath()
   ctx.arc(x, y, finalRadius * 0.7, 0, 2 * Math.PI)
@@ -113,7 +188,7 @@ export function renderNodeCanvas(
   if (borderWidth > 0) {
     ctx.beginPath()
     ctx.arc(x, y, finalRadius + 4, 0, 2 * Math.PI)
-    ctx.strokeStyle = isHovered ? 'rgba(201, 169, 110, 0.7)' : 'rgba(201, 169, 110, 0.5)'
+    ctx.strokeStyle = isHovered ? hexAlpha(canvasColors.accent, 0.7) : hexAlpha(canvasColors.accent, 0.5)
     ctx.lineWidth = borderWidth
     ctx.stroke()
   }
@@ -121,7 +196,7 @@ export function renderNodeCanvas(
   if (node.val > 3) {
     ctx.beginPath()
     ctx.arc(x, y, finalRadius + 7, 0, 2 * Math.PI)
-    ctx.strokeStyle = 'rgba(201, 169, 110, 0.2)'
+    ctx.strokeStyle = hexAlpha(canvasColors.accent, 0.2)
     ctx.lineWidth = 1
     ctx.setLineDash([6, 3])
     ctx.stroke()
@@ -144,12 +219,12 @@ export function renderNodeCanvas(
   ctx.roundRect(x - textWidth / 2 - padding, y + yOffset - fontSize / 2 - padding / 2 + 1, textWidth + padding * 2, fontSize + padding, 4)
   ctx.fill()
 
-  ctx.fillStyle = 'rgba(26, 21, 16, 0.88)'
+  ctx.fillStyle = hexAlpha(canvasColors.ink100, 0.88)
   ctx.beginPath()
   ctx.roundRect(x - textWidth / 2 - padding, y + yOffset - fontSize / 2 - padding / 2, textWidth + padding * 2, fontSize + padding, 4)
   ctx.fill()
 
-  ctx.fillStyle = isHovered ? '#f5eed6' : 'rgba(245, 238, 214, 0.78)'
+  ctx.fillStyle = isHovered ? canvasColors.paper100 : hexAlpha(canvasColors.paper100, 0.78)
   ctx.fillText(displayLabel, x, y + yOffset)
 
   if (isHovered) {
@@ -157,8 +232,8 @@ export function renderNodeCanvas(
     const dotY = y + yOffset
     ctx.beginPath()
     ctx.arc(dotX, dotY, 4, 0, 2 * Math.PI)
-    ctx.fillStyle = config?.color || node.color
-    ctx.shadowColor = config?.color || node.color
+    ctx.fillStyle = entityColor
+    ctx.shadowColor = entityColor
     ctx.shadowBlur = 8
     ctx.fill()
     ctx.shadowBlur = 0
@@ -206,14 +281,15 @@ export function renderLinkCanvas(
 
   const opacity = isDimmed ? 0.05 : isHighlighted ? 1 : 0.45
   const lineWidth = isHighlighted ? 3 : isDimmed ? 0.5 : 1.5
-  const color = link.color || '#c9a96e'
+  // Resolve link color — may be a CSS var from RELATION_TYPE_COLORS
+  const rawColor = link.color || canvasColors.accent
+  const color = rawColor.startsWith('var(')
+    ? resolveCssVar(rawColor)
+    : rawColor
 
   const parseColor = (c: string, a: number) => {
     if (c.startsWith('#')) {
-      const r = parseInt(c.slice(1, 3), 16)
-      const g = parseInt(c.slice(3, 5), 16)
-      const b = parseInt(c.slice(5, 7), 16)
-      return `rgba(${r},${g},${b},${a})`
+      return hexAlpha(c, a)
     }
     return c
   }

@@ -80,8 +80,8 @@ export function WelcomePanel({ entities }: { entities: ExtractedEntityLocal[] })
                   <div
                     className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0"
                     style={{
-                      backgroundColor: `${color}15`,
-                      border: `1px solid ${color}25`,
+                      backgroundColor: `color-mix(in srgb, ${color} 8%, transparent)`,
+                      border: `1px solid color-mix(in srgb, ${color} 15%, transparent)`,
                     }}
                   >
                     <Icon className="w-3.5 h-3.5" style={{ color }} />

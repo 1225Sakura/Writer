@@ -155,9 +155,9 @@ export function EntityList({
                 onClick={() => setFilterType(type)}
                 className="px-2.5 py-1 rounded-md text-xs font-medium transition-all"
                 style={{
-                  backgroundColor: filterType === type ? `${color}20` : 'transparent',
+                  backgroundColor: filterType === type ? `color-mix(in srgb, ${color} 13%, transparent)` : 'transparent',
                   color: filterType === type ? color : 'var(--text-tertiary)',
-                  border: `1px solid ${filterType === type ? `${color}40` : 'var(--border-default)'}`,
+                  border: `1px solid ${filterType === type ? `color-mix(in srgb, ${color} 25%, transparent)` : 'var(--border-default)'}`,
                 }}
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
@@ -184,7 +184,7 @@ export function EntityList({
               <span
                 className="text-[10px] px-1.5 py-0.5 rounded-full"
                 style={{
-                  backgroundColor: `${typeEntities[0]?.typeColor || 'var(--text-tertiary)'}15`,
+                  backgroundColor: `color-mix(in srgb, ${typeEntities[0]?.typeColor || 'var(--text-tertiary)'} 8%, transparent)`,
                   color: typeEntities[0]?.typeColor || 'var(--text-tertiary)',
                 }}
               >

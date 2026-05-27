@@ -119,9 +119,9 @@ export function EntityTag({ type, size = 'medium', showIcon = true, selected = f
     <motion.span
       className={`inline-flex items-center gap-1.5 rounded-md font-medium ${sizeClasses[size]} ${isInteractive ? 'cursor-pointer' : ''}`}
       style={{
-        backgroundColor: selected ? config.textColor + '20' : config.bgColor,
+        backgroundColor: selected ? `color-mix(in srgb, ${config.textColor} 13%, transparent)` : config.bgColor,
         color: config.textColor,
-        border: `1px solid ${selected ? config.textColor + '50' : config.borderColor}`,
+        border: `1px solid ${selected ? `color-mix(in srgb, ${config.textColor} 31%, transparent)` : config.borderColor}`,
       }}
       role={isInteractive ? 'button' : undefined}
       tabIndex={isInteractive ? 0 : undefined}
@@ -130,14 +130,14 @@ export function EntityTag({ type, size = 'medium', showIcon = true, selected = f
       onKeyDown={isInteractive ? (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onClick?.() } } : undefined}
       animate={selected ? {
         scale: [1, 1.03, 1],
-        boxShadow: [`0 0 0 0 ${config.glowColor}00`, `0 0 12px 3px ${config.glowColor}`, `0 0 0 0 ${config.glowColor}00`],
+        boxShadow: [`0 0 0 0 color-mix(in srgb, ${config.glowColor} 0%, transparent)`, `0 0 12px 3px ${config.glowColor}`, `0 0 0 0 color-mix(in srgb, ${config.glowColor} 0%, transparent)`],
       } : {}}
       transition={{ duration: 0.8, repeat: selected ? Infinity : 0, repeatDelay: 2.5 }}
       whileHover={isInteractive ? {
         scale: 1.06,
         y: -1,
         boxShadow: `0 6px 16px ${config.glowColor}`,
-        borderColor: config.textColor + '90',
+        borderColor: `color-mix(in srgb, ${config.textColor} 56%, transparent)`,
       } : {}}
       whileTap={isInteractive ? { scale: 0.95 } : {}}
       onClick={onClick}

@@ -44,7 +44,7 @@ export function StyleSelector({ writingStyle, onStyleChange }: StyleSelectorProp
             className="w-3 h-3 rounded-full flex-shrink-0"
             style={{
               backgroundColor: style.color,
-              boxShadow: `0 0 8px ${style.color}40`,
+              boxShadow: `0 0 8px color-mix(in srgb, ${style.color} 25%, transparent)`,
             }}
           />
           <div className="flex-1 min-w-0">

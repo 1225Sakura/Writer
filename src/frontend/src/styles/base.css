@@ -93,25 +93,25 @@ code, pre {
 }
 
 ::-webkit-scrollbar-track {
-  background: color-mix(in srgb, var(--leather-track, #2a1f14) 20%, var(--color-surface-base));
+  background: color-mix(in srgb, var(--ink-80) 20%, var(--color-surface-base));
 }
 
 ::-webkit-scrollbar-thumb {
-  background: linear-gradient(180deg, var(--brass-400, #b8860b) 0%, var(--brass-600, #8b6914) 100%);
+  background: linear-gradient(180deg, var(--accent-100) 0%, var(--accent-80) 100%);
   border-radius: var(--radius-full);
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: linear-gradient(180deg, var(--brass-300, #d4a017) 0%, var(--brass-400, #b8860b) 100%);
+  background: linear-gradient(180deg, var(--accent-95) 0%, var(--accent-100) 100%);
 }
 
 ::-webkit-scrollbar-corner {
-  background: color-mix(in srgb, var(--leather-track, #2a1f14) 20%, var(--color-surface-base));
+  background: color-mix(in srgb, var(--ink-80) 20%, var(--color-surface-base));
 }
 
 * {
   scrollbar-width: thin;
-  scrollbar-color: var(--brass-600, #8b6914) color-mix(in srgb, var(--leather-track, #2a1f14) 15%, var(--color-surface-base));
+  scrollbar-color: var(--accent-80) color-mix(in srgb, var(--ink-80) 15%, var(--color-surface-base));
 }
 
 /* CategoryNav: narrower scrollbar */
@@ -138,12 +138,12 @@ code, pre {
 }
 
 ::selection {
-  background: var(--selection-bg, color-mix(in srgb, var(--brass-400, #b8860b) 30%, transparent));
+  background: var(--selection-bg, color-mix(in srgb, var(--accent-100) 30%, transparent));
   color: var(--selection-color, var(--paper-100));
 }
 
 ::-moz-selection {
-  background: var(--selection-bg, color-mix(in srgb, var(--brass-400, #b8860b) 30%, transparent));
+  background: var(--selection-bg, color-mix(in srgb, var(--accent-100) 30%, transparent));
   color: var(--selection-color, var(--paper-100));
 }
 

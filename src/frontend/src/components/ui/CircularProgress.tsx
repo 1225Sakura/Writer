@@ -60,7 +60,7 @@ export function CircularProgress({
         className="-rotate-90"
         style={
           glowIntensity && glowIntensity > 0
-            ? { filter: `drop-shadow(0 0 ${glowIntensity}px ${color}50)` }
+            ? { filter: `drop-shadow(0 0 ${glowIntensity}px color-mix(in srgb, ${color} 31%, transparent))` }
             : undefined
         }
       >

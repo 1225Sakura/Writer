@@ -56,17 +56,17 @@ export function AISuggestionPanel() {
             <div className="flex items-center gap-1">
               {s.severityCounts.error > 0 && (
                 <motion.span className="text-[10px] px-1.5 py-0.5 rounded font-medium"
-                  style={{ backgroundColor: "var(--color-danger)15", color: "var(--color-danger)" }}
+                  style={{ backgroundColor: "color-mix(in srgb, var(--color-danger) 8%, transparent)", color: "var(--color-danger)" }}
                   initial={{ scale: 0 }} animate={{ scale: 1 }} transition={SPRING.BADGE}>{s.severityCounts.error}</motion.span>
               )}
               {s.severityCounts.warning > 0 && (
                 <motion.span className="text-[10px] px-1.5 py-0.5 rounded font-medium"
-                  style={{ backgroundColor: "var(--color-character)15", color: "var(--color-character)" }}
+                  style={{ backgroundColor: "color-mix(in srgb, var(--color-character) 8%, transparent)", color: "var(--color-character)" }}
                   initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ ...SPRING.BADGE, delay: 0.05 }}>{s.severityCounts.warning}</motion.span>
               )}
               {s.severityCounts.suggestion > 0 && (
                 <motion.span className="text-[10px] px-1.5 py-0.5 rounded font-medium"
-                  style={{ backgroundColor: "var(--color-outline)15", color: "var(--color-outline)" }}
+                  style={{ backgroundColor: "color-mix(in srgb, var(--color-outline) 8%, transparent)", color: "var(--color-outline)" }}
                   initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ ...SPRING.BADGE, delay: 0.05 }}>{s.severityCounts.suggestion}</motion.span>
               )}
             </div>

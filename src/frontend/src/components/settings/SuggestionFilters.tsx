@@ -46,7 +46,7 @@ export function SeverityFilterTabs({
             onClick={() => onFilterChange(tab.key)}
             className="flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-medium transition-all"
             style={{
-              backgroundColor: isActive ? `${tab.color}18` : "transparent",
+              backgroundColor: isActive ? `color-mix(in srgb, ${tab.color} 9%, transparent)` : "transparent",
               color: isActive ? tab.color : "var(--text-tertiary)",
             }}
             whileHover={{ scale: 1.02 }}
@@ -67,7 +67,7 @@ export function SeverityFilterTabs({
                 className="text-[10px] px-1.5 py-0 rounded-full font-medium"
                 style={{
                   backgroundColor: isActive
-                    ? `${tab.color}25`
+                    ? `color-mix(in srgb, ${tab.color} 15%, transparent)`
                     : "var(--color-surface-overlay)",
                   color: isActive ? tab.color : "var(--text-disabled)",
                 }}

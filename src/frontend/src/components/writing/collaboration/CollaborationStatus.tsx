@@ -17,7 +17,7 @@ export function PanelCard({ children, className = '', glowColor }: PanelCardProp
                   transition-all duration-200 hover:border-[var(--border-strong)]
                   ${className}`}
       style={{
-        boxShadow: glowColor ? `inset 0 1px 0 ${glowColor}06` : undefined,
+        boxShadow: glowColor ? `inset 0 1px 0 color-mix(in srgb, ${glowColor} 2%, transparent)` : undefined,
       }}
     >
       {children}
@@ -76,9 +76,9 @@ export function CollaborationStatus() {
           <motion.div
             className="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium"
             style={{
-              backgroundColor: `${mode.color}18`,
+              backgroundColor: `color-mix(in srgb, ${mode.color} 9%, transparent)`,
               color: mode.color,
-              boxShadow: isAIGenerating ? `0 0 8px ${mode.color}30` : 'none',
+              boxShadow: isAIGenerating ? `0 0 8px color-mix(in srgb, ${mode.color} 19%, transparent)` : 'none',
             }}
             animate={isAIGenerating && !prefersReducedMotion ? { scale: [1, 1.05, 1] } : {}}
             transition={prefersReducedMotion ? {} : { duration: 1.5, repeat: Infinity }}

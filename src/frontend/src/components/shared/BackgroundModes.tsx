@@ -22,13 +22,13 @@ export function CSSOnlyBackground({
     const accentColor = 'var(--accent-100)'
     switch (interfaceType) {
       case 'chat':
-        return `radial-gradient(ellipse at 20% 80%, ${accentColor}08 0%, transparent 50%), radial-gradient(ellipse at 80% 20%, ${baseColor} 0%, transparent 50%)`
+        return `radial-gradient(ellipse at 20% 80%, color-mix(in srgb, ${accentColor} 3%, transparent) 0%, transparent 50%), radial-gradient(ellipse at 80% 20%, ${baseColor} 0%, transparent 50%)`
       case 'settings':
-        return `linear-gradient(135deg, ${baseColor} 0%, ${accentColor}05 100%)`
+        return `linear-gradient(135deg, ${baseColor} 0%, color-mix(in srgb, ${accentColor} 2%, transparent) 100%)`
       case 'writing':
-        return `radial-gradient(ellipse at center, ${baseColor}40 0%, transparent 70%)`
+        return `radial-gradient(ellipse at center, color-mix(in srgb, ${baseColor} 25%, transparent) 0%, transparent 70%)`
       default:
-        return `radial-gradient(ellipse at center, ${baseColor}40 0%, transparent 70%)`
+        return `radial-gradient(ellipse at center, color-mix(in srgb, ${baseColor} 25%, transparent) 0%, transparent 70%)`
     }
   }, [interfaceType])
 

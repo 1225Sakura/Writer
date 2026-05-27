@@ -179,7 +179,7 @@ export function renderButton(btn: ToolbarButton, index: number, groupIndex: numb
       }}
       onMouseEnter={(e) => {
         if (!btn.isActive()) {
-          (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.06)'
+          (e.currentTarget as HTMLElement).style.background = 'color-mix(in srgb, var(--paper-100) 6%, transparent)'
         }
       }}
       onMouseLeave={(e) => {
@@ -209,7 +209,7 @@ export function renderButton(btn: ToolbarButton, index: number, groupIndex: numb
                      before:-translate-y-full before:border-[5px] before:border-transparent"
         style={{
           background: 'var(--color-surface-overlay)',
-          boxShadow: '0 4px 12px rgba(0,0,0,0.2), 0 2px 4px rgba(0,0,0,0.1), inset 0 1px 0 rgba(255,255,255,0.06)',
+          boxShadow: `0 4px 12px color-mix(in srgb, var(--ink-100) 20%, transparent), 0 2px 4px color-mix(in srgb, var(--ink-100) 10%, transparent), inset 0 1px 0 color-mix(in srgb, var(--paper-100) 6%, transparent)`,
           border: '1px solid var(--border-default)',
         }}
       >

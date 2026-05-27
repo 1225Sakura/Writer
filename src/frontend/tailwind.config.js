@@ -13,9 +13,13 @@ export default {
         /* === Ink Scale (Backgrounds) === */
         ink: {
           100: 'var(--ink-100)',
+          95:  'var(--ink-95)',
           90:  'var(--ink-90)',
+          85:  'var(--ink-85)',
           80:  'var(--ink-80)',
+          75:  'var(--ink-75)',
           70:  'var(--ink-70)',
+          65:  'var(--ink-65)',
           60:  'var(--ink-60)',
           DEFAULT: 'var(--ink-100)',
         },
@@ -23,9 +27,13 @@ export default {
         /* === Paper Scale (Foregrounds) === */
         paper: {
           100: 'var(--paper-100)',
+          95:  'var(--paper-95)',
           90:  'var(--paper-90)',
+          85:  'var(--paper-85)',
           80:  'var(--paper-80)',
+          75:  'var(--paper-75)',
           70:  'var(--paper-70)',
+          65:  'var(--paper-65)',
           60:  'var(--paper-60)',
           DEFAULT: 'var(--paper-100)',
         },
@@ -33,7 +41,9 @@ export default {
         /* === Accent Scale (Brand / Interactive) === */
         accent: {
           100: 'var(--accent-100)',
+          95:  'var(--accent-95)',
           90:  'var(--accent-90)',
+          85:  'var(--accent-85)',
           80:  'var(--accent-80)',
           muted: 'var(--accent-muted)',
           DEFAULT: 'var(--accent-100)',
@@ -203,14 +213,14 @@ export default {
       },
 
       fontSize: {
-        'xs': ['12px', { lineHeight: '1.4' }],
-        'sm': ['14px', { lineHeight: '1.5' }],
-        'base': ['16px', { lineHeight: '1.75' }],
-        'lg': ['18px', { lineHeight: '1.875' }],
-        'xl': ['20px', { lineHeight: '2' }],
-        '2xl': ['24px', { lineHeight: '2.2' }],
-        '3xl': ['30px', { lineHeight: '2.4' }],
-        '4xl': ['36px', { lineHeight: '2.5' }],
+        'xs': ['var(--text-xs)', { lineHeight: '1.4' }],
+        'sm': ['var(--text-sm)', { lineHeight: '1.5' }],
+        'base': ['var(--text-base)', { lineHeight: '1.75' }],
+        'lg': ['var(--text-lg)', { lineHeight: '1.875' }],
+        'xl': ['var(--text-xl)', { lineHeight: '2' }],
+        '2xl': ['var(--text-2xl)', { lineHeight: '2.2' }],
+        '3xl': ['var(--text-3xl)', { lineHeight: '2.4' }],
+        '4xl': ['var(--text-4xl)', { lineHeight: '2.5' }],
         '5xl': ['48px', { lineHeight: '2.6' }],
         /* Writing-specific sizes */
         'writing-sm': ['16px', { lineHeight: '2', letterSpacing: '0.01em' }],
@@ -245,12 +255,12 @@ export default {
       },
 
       borderRadius: {
-        'sm': '6px',
-        'md': '8px',
-        'lg': '12px',
-        'xl': '16px',
-        '2xl': '20px',
-        'full': '9999px',
+        'sm': 'var(--radius-sm)',
+        'md': 'var(--radius-md)',
+        'lg': 'var(--radius-lg)',
+        'xl': 'var(--radius-xl)',
+        '2xl': 'var(--radius-2xl)',
+        'full': 'var(--radius-full)',
       },
 
       borderWidth: {

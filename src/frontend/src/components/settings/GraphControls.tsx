@@ -217,7 +217,7 @@ export function FilterControls({
                       className="flex items-center gap-2 px-2 py-1.5 rounded-lg w-full transition-all duration-200"
                       style={{
                         backgroundColor: isActive
-                          ? `${config.color}18`
+                          ? `color-mix(in srgb, ${config.color} 9%, transparent)`
                           : "transparent",
                       }}
                       onMouseEnter={(e) => {

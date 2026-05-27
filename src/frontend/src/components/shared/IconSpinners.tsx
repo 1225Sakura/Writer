@@ -85,7 +85,7 @@ export function OrbitSpinner({ size = 'md', color = 'var(--accent-primary)' }: S
     <div className="relative" style={{ width: iconSize, height: iconSize }}>
       <motion.div
         className="absolute inset-0 border-2 border-dashed rounded-full"
-        style={{ borderColor: `${color}40` }}
+        style={{ borderColor: `color-mix(in srgb, ${color} 25%, transparent)` }}
         animate={{ rotate: 360 }}
         transition={{ duration: 2, repeat: Infinity, ease: 'linear' }}
       />
@@ -172,7 +172,7 @@ export function PulseRingSpinner({ size = 'md', color = 'var(--accent-primary)' 
           width: containerSize * 0.12,
           height: containerSize * 0.12,
           backgroundColor: color,
-          boxShadow: `0 0 ${containerSize * 0.15}px ${color}60`,
+          boxShadow: `0 0 ${containerSize * 0.15}px color-mix(in srgb, ${color} 38%, transparent)`,
         }}
         animate={{ scale: [1, 1.2, 1] }}
         transition={{ duration: 1.5, repeat: Infinity, ease: 'easeInOut' }}
@@ -195,7 +195,7 @@ export function GradientSpinner({ size = 'md', color = 'var(--accent-primary)' }
         style={{
           width: spinnerSize,
           height: spinnerSize,
-          background: `conic-gradient(from 0deg, ${color}, ${color}40, ${color}10, ${color}40, ${color})`,
+          background: `conic-gradient(from 0deg, ${color}, color-mix(in srgb, ${color} 25%, transparent), color-mix(in srgb, ${color} 6%, transparent), color-mix(in srgb, ${color} 25%, transparent), ${color})`,
           mask: `radial-gradient(circle, transparent ${spinnerSize / 2 - borderWidth}px, black ${spinnerSize / 2 - borderWidth + 0.5}px)`,
           WebkitMask: `radial-gradient(circle, transparent ${spinnerSize / 2 - borderWidth}px, black ${spinnerSize / 2 - borderWidth + 0.5}px)`,
         }}
@@ -208,7 +208,7 @@ export function GradientSpinner({ size = 'md', color = 'var(--accent-primary)' }
         style={{
           width: spinnerSize * 0.6,
           height: spinnerSize * 0.6,
-          background: `radial-gradient(circle, ${color}20 0%, transparent 70%)`,
+          background: `radial-gradient(circle, color-mix(in srgb, ${color} 13%, transparent) 0%, transparent 70%)`,
         }}
         animate={{ scale: [1, 1.15, 1], opacity: [0.5, 0.8, 0.5] }}
         transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
@@ -220,7 +220,7 @@ export function GradientSpinner({ size = 'md', color = 'var(--accent-primary)' }
           width: spinnerSize * 0.1,
           height: spinnerSize * 0.1,
           backgroundColor: color,
-          boxShadow: `0 0 ${spinnerSize * 0.12}px ${color}50`,
+          boxShadow: `0 0 ${spinnerSize * 0.12}px color-mix(in srgb, ${color} 31%, transparent)`,
         }}
       />
     </div>
@@ -242,7 +242,7 @@ export function TextSkeletonSpinner({ size = 'md', color = 'var(--accent-primary
             <div
               className="absolute inset-0"
               style={{
-                background: `linear-gradient(90deg, ${color}10, ${color}25, ${color}10)`,
+                background: `linear-gradient(90deg, color-mix(in srgb, ${color} 6%, transparent), color-mix(in srgb, ${color} 15%, transparent), color-mix(in srgb, ${color} 6%, transparent))`,
                 backgroundSize: '200% 100%',
                 animation: 'shimmer-skeleton 1.5s ease-in-out infinite',
               }}

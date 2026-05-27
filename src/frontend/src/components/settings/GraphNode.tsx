@@ -100,7 +100,7 @@ export function NodeHoverTooltip({
         top: Math.max(tooltip.y - 12, 8),
         background: 'var(--paper-80)',
         border: '1px solid var(--border-default)',
-        boxShadow: `0 16px 48px rgba(0,0,0,0.6), 0 0 0 1px var(--border-subtle), 0 0 40px ${config.glowColor}30, 0 4px 12px rgba(0,0,0,0.3)`,
+        boxShadow: `0 16px 48px rgba(0,0,0,0.6), 0 0 0 1px var(--border-subtle), 0 0 40px color-mix(in srgb, ${config.glowColor} 19%, transparent), 0 4px 12px rgba(0,0,0,0.3)`,
         fontFamily: 'var(--font-sans)',
       }}
     >
@@ -114,8 +114,8 @@ export function NodeHoverTooltip({
         <div
           className="w-7 h-7 rounded-lg flex items-center justify-center"
           style={{
-            background: `linear-gradient(135deg, ${config.color}20, ${config.color}08)`,
-            boxShadow: `0 0 10px ${config.glowColor}30`,
+            background: `linear-gradient(135deg, color-mix(in srgb, ${config.color} 13%, transparent), color-mix(in srgb, ${config.color} 3%, transparent))`,
+            boxShadow: `0 0 10px color-mix(in srgb, ${config.glowColor} 19%, transparent)`,
           }}
         >
           <Icon className="w-3.5 h-3.5" style={{ color: config.color }} />
@@ -173,7 +173,7 @@ export function NodeDetailPanel({
         top: Math.max(detail.y - 16, 8),
         background: 'var(--paper-80)',
         border: '1px solid var(--border-default)',
-        boxShadow: `0 12px 40px rgba(0,0,0,0.5), 0 0 0 1px var(--border-subtle), 0 0 30px ${config.glowColor}20`,
+        boxShadow: `0 12px 40px rgba(0,0,0,0.5), 0 0 0 1px var(--border-subtle), 0 0 30px color-mix(in srgb, ${config.glowColor} 13%, transparent)`,
         fontFamily: 'var(--font-sans)',
       }}
     >
@@ -188,8 +188,8 @@ export function NodeDetailPanel({
           <div
             className="w-8 h-8 rounded-xl flex items-center justify-center relative"
             style={{
-              background: `linear-gradient(135deg, ${config.color}20, ${config.color}08)`,
-              boxShadow: `0 0 12px ${config.glowColor}30, inset 0 1px 0 var(--border-subtle)`,
+              background: `linear-gradient(135deg, color-mix(in srgb, ${config.color} 13%, transparent), color-mix(in srgb, ${config.color} 3%, transparent))`,
+              boxShadow: `0 0 12px color-mix(in srgb, ${config.glowColor} 19%, transparent), inset 0 1px 0 var(--border-subtle)`,
             }}
           >
             <Icon className="w-4 h-4" style={{ color: config.color }} />
@@ -264,7 +264,7 @@ export function ContextMenu({
       onContextMenu={(e) => e.preventDefault()}
     >
       <div className="flex items-center gap-2 px-3 py-2 border-b border-[var(--border-subtle)]">
-        <div className="w-5 h-5 rounded-md flex items-center justify-center" style={{ background: `linear-gradient(135deg, ${config.color}20, ${config.color}08)` }}>
+        <div className="w-5 h-5 rounded-md flex items-center justify-center" style={{ background: `linear-gradient(135deg, color-mix(in srgb, ${config.color} 13%, transparent), color-mix(in srgb, ${config.color} 3%, transparent))` }}>
           <Icon className="w-3 h-3" style={{ color: config.color }} />
         </div>
         <span className="text-[11px] font-semibold truncate" style={{ color: 'var(--ink-100)' }}>{menu.node.name}</span>

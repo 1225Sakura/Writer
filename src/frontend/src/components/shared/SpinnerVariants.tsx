@@ -16,7 +16,7 @@ export function RingSpinner({ size, color, className }: SpinnerVariantProps) {
       style={{
         width: size,
         height: size,
-        border: `${borderWidth}px solid ${color}20`,
+        border: `${borderWidth}px solid color-mix(in srgb, ${color} 13%, transparent)`,
         borderTopColor: color,
         borderRadius: '50%',
       }}
@@ -30,12 +30,12 @@ export function PulseSpinner({ size, color, className }: SpinnerVariantProps) {
     <div className={cn('relative', className)} style={{ width: size, height: size }}>
       <div
         className="absolute inset-0 rounded-full animate-pulse-ring motion-reduce:animate-none"
-        style={{ backgroundColor: `${color}30` }}
+        style={{ backgroundColor: `color-mix(in srgb, ${color} 19%, transparent)` }}
       />
       <div
         className="absolute inset-0 rounded-full animate-pulse-ring motion-reduce:animate-none"
         style={{
-          backgroundColor: `${color}20`,
+          backgroundColor: `color-mix(in srgb, ${color} 13%, transparent)`,
           animationDelay: '0.5s',
         }}
       />
@@ -164,14 +164,14 @@ export function ShimmerSpinner({ size, color, className }: SpinnerVariantProps) 
       <div
         className="absolute inset-0 rounded-full"
         style={{
-          backgroundColor: `${color}15`,
-          border: `2px solid ${color}30`,
+          backgroundColor: `color-mix(in srgb, ${color} 8%, transparent)`,
+          border: `2px solid color-mix(in srgb, ${color} 19%, transparent)`,
         }}
       />
       <div
         className="absolute inset-0 rounded-full animate-shimmer motion-reduce:animate-none"
         style={{
-          background: `linear-gradient(90deg, transparent, ${color}40, transparent)`,
+          background: `linear-gradient(90deg, transparent, color-mix(in srgb, ${color} 25%, transparent), transparent)`,
           backgroundSize: '200% 100%',
         }}
       />
@@ -194,7 +194,7 @@ export function BookSpinner({ size, color, className }: SpinnerVariantProps) {
         style={{
           width: 2,
           height: pageHeight,
-          backgroundColor: `${color}60`,
+          backgroundColor: `color-mix(in srgb, ${color} 38%, transparent)`,
         }}
       />
       {/* Left page */}
@@ -204,8 +204,8 @@ export function BookSpinner({ size, color, className }: SpinnerVariantProps) {
           width: pageWidth,
           height: pageHeight,
           right: '50%',
-          backgroundColor: `${color}10`,
-          border: `1px solid ${color}30`,
+          backgroundColor: `color-mix(in srgb, ${color} 6%, transparent)`,
+          border: `1px solid color-mix(in srgb, ${color} 19%, transparent)`,
           borderRight: 'none',
           borderRadius: '2px 0 0 2px',
           animation: 'book-page-left 1.5s ease-in-out infinite',
@@ -218,8 +218,8 @@ export function BookSpinner({ size, color, className }: SpinnerVariantProps) {
           width: pageWidth,
           height: pageHeight,
           left: '50%',
-          backgroundColor: `${color}10`,
-          border: `1px solid ${color}30`,
+          backgroundColor: `color-mix(in srgb, ${color} 6%, transparent)`,
+          border: `1px solid color-mix(in srgb, ${color} 19%, transparent)`,
           borderLeft: 'none',
           borderRadius: '0 2px 2px 0',
           animation: 'book-page-right 1.5s ease-in-out infinite',
@@ -242,9 +242,9 @@ export function RingsSpinner({ size, color, className }: SpinnerVariantProps) {
 
     const gradientColors = [
       color,
-      `${color}90`,
-      `${color}50`,
-      `${color}90`,
+      `color-mix(in srgb, ${color} 56%, transparent)`,
+      `color-mix(in srgb, ${color} 31%, transparent)`,
+      `color-mix(in srgb, ${color} 56%, transparent)`,
       color,
     ]
 
@@ -288,7 +288,7 @@ export function RingsSpinner({ size, color, className }: SpinnerVariantProps) {
           height: size * 0.12,
           backgroundColor: color,
           opacity: 0.8,
-          boxShadow: `0 0 ${size * 0.15}px ${color}60`,
+          boxShadow: `0 0 ${size * 0.15}px color-mix(in srgb, ${color} 38%, transparent)`,
         }}
       />
     </div>

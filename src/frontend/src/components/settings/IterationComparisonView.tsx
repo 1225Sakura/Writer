@@ -98,9 +98,9 @@ export function IterationComparisonView({
           const SuggIcon = config.icon;
 
           return (
-            <div key={suggestion.id} className="p-2.5 rounded-xl" style={{ backgroundColor: isNew ? "var(--color-character)06" : "var(--color-surface-raised)", border: `1px solid ${isNew ? "var(--color-character)15" : "var(--border-subtle)"}` }}>
+            <div key={suggestion.id} className="p-2.5 rounded-xl" style={{ backgroundColor: isNew ? "color-mix(in srgb, var(--color-character) 2%, transparent)" : "var(--color-surface-raised)", border: `1px solid ${isNew ? "color-mix(in srgb, var(--color-character) 8%, transparent)" : "var(--border-subtle)"}` }}>
               <div className="flex items-center gap-2 mb-1">
-                {isNew && <span className="text-[9px] px-1 py-0.5 rounded" style={{ backgroundColor: "var(--color-character)15", color: "var(--color-character)" }}>新增</span>}
+                {isNew && <span className="text-[9px] px-1 py-0.5 rounded" style={{ backgroundColor: "color-mix(in srgb, var(--color-character) 8%, transparent)", color: "var(--color-character)" }}>新增</span>}
                 <SuggIcon className="w-3 h-3" style={{ color: config.colors.badge }} />
                 <span className="text-xs font-medium text-[var(--text-primary)]">{suggestion.title}</span>
               </div>
@@ -116,7 +116,7 @@ export function IterationComparisonView({
               const suggestion = leftIter.suggestions.find((s) => s.id === id);
               if (!suggestion) return null;
               return (
-                <div key={id} className="p-2.5 rounded-xl opacity-50" style={{ backgroundColor: "var(--color-success)06", border: "1px solid var(--color-success)10" }}>
+                <div key={id} className="p-2.5 rounded-xl opacity-50" style={{ backgroundColor: "color-mix(in srgb, var(--color-success) 2%, transparent)", border: "1px solid color-mix(in srgb, var(--color-success) 6%, transparent)" }}>
                   <div className="flex items-center gap-2">
                     <Icon icon={Check} size="xs" color="success" />
                     <span className="text-xs line-through text-[var(--text-tertiary)]">{suggestion.title}</span>

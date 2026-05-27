@@ -30,7 +30,7 @@ export function SectionDivider() {
       <div
         className="absolute inset-0"
         style={{
-          background: 'linear-gradient(90deg, transparent 0%, var(--border-subtle) 20%, var(--accent-primary)40 50%, var(--border-subtle) 80%, transparent 100%)',
+          background: 'linear-gradient(90deg, transparent 0%, var(--border-subtle) 20%, color-mix(in srgb, var(--accent-primary) 25%, transparent) 50%, var(--border-subtle) 80%, transparent 100%)',
         }}
       />
     </div>

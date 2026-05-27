@@ -69,7 +69,7 @@ export function ReviewHistoryDrawer({
                       className="w-full text-left rounded-xl p-3 transition-all"
                       style={{
                         backgroundColor: isActive ? "var(--accent-muted)" : "var(--color-surface-raised)",
-                        border: `1px solid ${isActive ? "var(--accent-primary)25" : "var(--border-subtle)"}`,
+                        border: `1px solid ${isActive ? "color-mix(in srgb, var(--accent-primary) 15%, transparent)" : "var(--border-subtle)"}`,
                       }}
                       whileHover={{ scale: 1.01 }}
                       whileTap={{ scale: 0.99 }}
@@ -82,17 +82,17 @@ export function ReviewHistoryDrawer({
                       </div>
                       <div className="flex items-center gap-2">
                         {iteration.severityCounts.error > 0 && (
-                          <span className="text-[10px] px-1.5 py-0.5 rounded" style={{ backgroundColor: "var(--color-danger)15", color: "var(--color-danger)" }}>
+                          <span className="text-[10px] px-1.5 py-0.5 rounded" style={{ backgroundColor: "color-mix(in srgb, var(--color-danger) 8%, transparent)", color: "var(--color-danger)" }}>
                             {iteration.severityCounts.error} 错误
                           </span>
                         )}
                         {iteration.severityCounts.warning > 0 && (
-                          <span className="text-[10px] px-1.5 py-0.5 rounded" style={{ backgroundColor: "var(--color-character)15", color: "var(--color-character)" }}>
+                          <span className="text-[10px] px-1.5 py-0.5 rounded" style={{ backgroundColor: "color-mix(in srgb, var(--color-character) 8%, transparent)", color: "var(--color-character)" }}>
                             {iteration.severityCounts.warning} 警告
                           </span>
                         )}
                         {iteration.severityCounts.suggestion > 0 && (
-                          <span className="text-[10px] px-1.5 py-0.5 rounded" style={{ backgroundColor: "var(--color-outline)15", color: "var(--color-outline)" }}>
+                          <span className="text-[10px] px-1.5 py-0.5 rounded" style={{ backgroundColor: "color-mix(in srgb, var(--color-outline) 8%, transparent)", color: "var(--color-outline)" }}>
                             {iteration.severityCounts.suggestion} 建议
                           </span>
                         )}

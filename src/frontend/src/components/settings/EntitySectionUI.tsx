@@ -48,10 +48,10 @@ export function SectionHeader({
             style={{
               backgroundColor: 'var(--accent-muted)',
               color: 'var(--accent-primary)',
-              border: '1px solid var(--accent-primary)30',
+              border: '1px solid color-mix(in srgb, var(--accent-primary) 19%, transparent)',
             }}
             onMouseEnter={(e) => {
-              e.currentTarget.style.backgroundColor = 'var(--accent-primary)25'
+              e.currentTarget.style.backgroundColor = 'color-mix(in srgb, var(--accent-primary) 15%, transparent)'
             }}
             onMouseLeave={(e) => {
               e.currentTarget.style.backgroundColor = 'var(--accent-muted)'
@@ -113,8 +113,8 @@ export function EmptyState({
       <motion.div
         className="relative w-14 h-14 mx-auto mb-3 rounded-xl flex items-center justify-center"
         style={{
-          background: `linear-gradient(135deg, ${color}12, ${color}06)`,
-          border: `1px solid ${color}15`,
+          background: `linear-gradient(135deg, color-mix(in srgb, ${color} 7%, transparent), color-mix(in srgb, ${color} 2%, transparent))`,
+          border: `1px solid color-mix(in srgb, ${color} 8%, transparent)`,
         }}
         initial={{ scale: 0.9 }}
         animate={{ scale: 1 }}

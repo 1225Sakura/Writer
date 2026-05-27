@@ -96,7 +96,7 @@ export const ProgressRing = React.forwardRef<HTMLDivElement, ProgressRingProps>(
           style={
             glow
               ? {
-                  filter: `drop-shadow(0 0 8px ${color}50)`,
+                  filter: `drop-shadow(0 0 8px color-mix(in srgb, ${color} 31%, transparent))`,
                 }
               : undefined
           }

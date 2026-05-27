@@ -71,9 +71,9 @@ export function HumanAIRatioSlider({ value, onChange }: HumanAIRatioSliderProps)
         <div
           className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-semibold transition-all duration-300"
           style={{
-            backgroundColor: `${getModeColor()}15`,
+            backgroundColor: `color-mix(in srgb, ${getModeColor()} 8%, transparent)`,
             color: getModeColor(),
-            boxShadow: `0 0 12px ${getModeColor()}25`,
+            boxShadow: `0 0 12px color-mix(in srgb, ${getModeColor()} 15%, transparent)`,
           }}
         >
           {getModeIcon()}
@@ -95,7 +95,7 @@ export function HumanAIRatioSlider({ value, onChange }: HumanAIRatioSliderProps)
         <span
           className="text-xs font-medium px-2 py-0.5 rounded transition-all duration-300"
           style={{
-            backgroundColor: `${getModeColor()}12`,
+            backgroundColor: `color-mix(in srgb, ${getModeColor()} 7%, transparent)`,
             color: getModeColor(),
           }}
         >

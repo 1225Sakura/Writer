@@ -80,7 +80,7 @@ export function CheckerCard({
             <span
               className="text-xs font-bold px-2 py-0.5 rounded-full"
               style={{
-                background: `${getScoreColor(score)}18`,
+                background: `color-mix(in srgb, ${getScoreColor(score)} 9%, transparent)`,
                 color: getScoreColor(score),
               }}
             >

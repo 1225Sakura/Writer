@@ -12,6 +12,7 @@ import { createContext, useContext, ReactNode, useEffect, useCallback, useMemo }
 import { useTheme, type Theme } from '@/hooks/useTheme'
 import { themeMetaList } from './ThemeData'
 import { applyThemeVariables } from './ThemeUtils'
+import { updateCanvasColors } from '@/components/settings/GraphCanvasRenderers'
 
 // Re-export sub-components for backward compatibility
 export { ThemePreviewSwatches, ThemeSelector, ThemeSelectorCompact } from './ThemeSelector'
@@ -40,6 +41,8 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   // Apply CSS variables when theme changes
   useEffect(() => {
     applyThemeVariables(theme)
+    // Update Canvas color cache after CSS variables are applied
+    requestAnimationFrame(() => updateCanvasColors())
   }, [theme])
 
   // Handle smooth theme transitions and reduced motion

@@ -40,9 +40,9 @@ export function SearchFilters({ filterType, onFilterChange }: SearchFiltersProps
             onClick={() => onFilterChange(type)}
             className="flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs whitespace-nowrap transition-all"
             style={{
-              backgroundColor: isActive ? `${config.color}15` : 'transparent',
+              backgroundColor: isActive ? `color-mix(in srgb, ${config.color} 8%, transparent)` : 'transparent',
               color: isActive ? config.color : 'var(--text-tertiary)',
-              border: isActive ? `1px solid ${config.color}30` : '1px solid transparent',
+              border: isActive ? `1px solid color-mix(in srgb, ${config.color} 19%, transparent)` : '1px solid transparent',
             }}
             initial={{ opacity: 0, y: -8 }}
             animate={{ opacity: 1, y: 0 }}

@@ -18,7 +18,7 @@ export function CollapsibleSection({ title, icon, isExpanded, onToggle, badge, a
       className="rounded-xl overflow-hidden bg-[var(--color-surface-base)] border transition-all duration-200 hover:border-[var(--border-strong)] hover:shadow-[0_2px_12px_rgba(0,0,0,0.12)]"
       style={{
         borderColor: 'var(--border-default)',
-        boxShadow: accentColor ? `0 0 0 1px ${accentColor}08, inset 0 1px 0 ${accentColor}06` : undefined,
+        boxShadow: accentColor ? `0 0 0 1px color-mix(in srgb, ${accentColor} 3%, transparent), inset 0 1px 0 color-mix(in srgb, ${accentColor} 2%, transparent)` : undefined,
       }}
     >
       <button onClick={onToggle} aria-expanded={isExpanded} aria-controls={`section-${title.toLowerCase().replace(/\s+/g, '-')}`} className="w-full px-3 py-2.5 flex items-center gap-2.5 active:scale-[0.99] transition-all group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-primary)] focus-visible:ring-offset-2">

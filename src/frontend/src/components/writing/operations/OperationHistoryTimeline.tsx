@@ -67,7 +67,7 @@ export function OperationHistoryTimeline() {
                 style={{
                   borderColor: 'var(--color-surface-raised)',
                   background: getOperationColor(job.type),
-                  boxShadow: `0 0 6px ${getOperationColor(job.type)}50`,
+                  boxShadow: `0 0 6px color-mix(in srgb, ${getOperationColor(job.type)} 31%, transparent)`,
                 }}
               />
               <div className="flex-1 min-w-0 pl-3">

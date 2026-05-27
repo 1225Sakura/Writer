@@ -118,8 +118,8 @@ export function StatsChart({
           <motion.div
             className="h-full rounded-full"
             style={{
-              background: `linear-gradient(90deg, ${progressColor}cc, ${progressColor})`,
-              boxShadow: `0 0 8px ${progressColor}50`,
+              background: `linear-gradient(90deg, color-mix(in srgb, ${progressColor} 80%, transparent), ${progressColor})`,
+              boxShadow: `0 0 8px color-mix(in srgb, ${progressColor} 31%, transparent)`,
             }}
             initial={{ width: 0 }}
             animate={{ width: `${progressPercentage}%` }}

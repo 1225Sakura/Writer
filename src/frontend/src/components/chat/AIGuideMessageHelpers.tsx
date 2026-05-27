@@ -81,7 +81,7 @@ export function HighlightedContent({ content, entities }: { content: string; ent
               key={i}
               className="rounded px-0.5 py-px font-medium cursor-pointer transition-opacity hover:opacity-80"
               style={{
-                backgroundColor: `${typeColors[entity.type]}33`,
+                backgroundColor: `color-mix(in srgb, ${typeColors[entity.type]} 20%, transparent)`,
                 color: typeColors[entity.type],
               }}
               title={`${entity.type === 'character' ? '角色' : entity.type === 'item' ? '物品' : entity.type === 'location' ? '地点' : entity.type === 'faction' ? '势力' : entity.type} - 点击确认`}

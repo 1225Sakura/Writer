@@ -96,6 +96,16 @@
   --color-success: var(--color-location);
   --color-info:    var(--accent-100);
 
+  /* === Missing Variable Aliases (referenced by components) === */
+  --color-vermillion: var(--vermillion-100);
+  --accent-secondary: var(--accent-80);
+  --color-accent: var(--accent-100);
+
+  /* Missing variables referenced by TagList.tsx:41 */
+  --color-vermillion-red: var(--vermillion-100);
+  --color-character-light: #d4b07a;
+  --color-location-light: #8bc4b0;
+
   /* === Icon Tokens (used by Icon.tsx wrapper) === */
   --icon-primary:   var(--paper-100);
   --icon-secondary: var(--paper-85);
@@ -210,7 +220,7 @@
   --transition-slow:    350ms ease-out;
   --transition-spring:  400ms cubic-bezier(0.34, 1.56, 0.64, 1);
 
-  --ease-out:    cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-out:    cubic-bezier(0.22, 1, 0.36, 1);
   --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
   --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
   --ease-smooth: cubic-bezier(0.4, 0, 0.2, 1);
@@ -307,7 +317,9 @@
   --paper-60:  #9a8a6c;
 
   --accent-100: #8b6830;
+  --accent-95:  #9a7a38;
   --accent-90:  #7a5a28;
+  --accent-85:  #7a5c24;
   --accent-80:  #6a4c20;
 
   --color-surface-base:     #f0e8d8;
@@ -389,7 +401,9 @@
   --paper-60:  #586040;
 
   --accent-100: #9aaa70;
+  --accent-95:  #a8b878;
   --accent-90:  #8a9a60;
+  --accent-85:  #8a9a60;
   --accent-80:  #7a8850;
 
   --color-surface-base:     #1a2018;
@@ -461,7 +475,9 @@
   --paper-60:  #745c28;
 
   --accent-100: #b88830;
+  --accent-95:  #c89838;
   --accent-90:  #a87828;
+  --accent-85:  #a87828;
   --accent-80:  #986820;
 
   --color-surface-base:     #1e1810;
@@ -533,7 +549,9 @@
   --paper-60:  #48505c;
 
   --accent-100: #8aa0c0;
+  --accent-95:  #98b0d0;
   --accent-90:  #7a90b0;
+  --accent-85:  #7a90b0;
   --accent-80:  #6a80a0;
 
   --color-surface-base:     #0e1418;
@@ -605,7 +623,9 @@
   --paper-60:  #505830;
 
   --accent-100: #8aaa58;
+  --accent-95:  #98ba60;
   --accent-90:  #7a9a48;
+  --accent-85:  #7a9a48;
   --accent-80:  #6a8a38;
 
   --color-surface-base:     #101810;
