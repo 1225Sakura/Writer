@@ -109,7 +109,7 @@ function ChapterItem({
 }
 
 export function OutlineEditor() {
-  const { outline, chapters, addChapter, updateChapter, deleteChapter } = useSettingsStore()
+  const { outline, chapters, addChapter, updateChapter, deleteChapter, updateOutline } = useSettingsStore()
   const [editingChapterId, setEditingChapterId] = useState<number | null>(null)
   const [editingTitle, setEditingTitle] = useState('')
   const [summaryModalChapterId, setSummaryModalChapterId] = useState<number | null>(null)
@@ -117,6 +117,10 @@ export function OutlineEditor() {
   const [newOutlineTitle, setNewOutlineTitle] = useState('')
   const [newChapterTitle, setNewChapterTitle] = useState('')
   const [showAddChapter, setShowAddChapter] = useState(false)
+  const [isEditingOutlineTitle, setIsEditingOutlineTitle] = useState(false)
+  const [outlineTitleDraft, setOutlineTitleDraft] = useState('')
+  const [isEditingOutlineDesc, setIsEditingOutlineDesc] = useState(false)
+  const [outlineDescDraft, setOutlineDescDraft] = useState('')
 
   const handleCreateOutline = () => {
     if (newOutlineTitle.trim()) {
@@ -202,8 +206,41 @@ export function OutlineEditor() {
         </motion.button>
       </div>
 
-      <div className="mb-4 pb-3" style={{ borderBottom: '1px solid var(--border-subtle)' }}>
-        <h3 className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>{outline.title}</h3>
+      <div className="mb-4 pb-3 space-y-2" style={{ borderBottom: '1px solid var(--border-subtle)' }}>
+        {isEditingOutlineTitle ? (
+          <input type="text" value={outlineTitleDraft} onChange={(e) => setOutlineTitleDraft(e.target.value)}
+            onBlur={() => { if (outlineTitleDraft.trim()) updateOutline({ title: outlineTitleDraft.trim() }); setIsEditingOutlineTitle(false) }}
+            onKeyDown={(e) => { if (e.key === 'Enter') { if (outlineTitleDraft.trim()) updateOutline({ title: outlineTitleDraft.trim() }); setIsEditingOutlineTitle(false) } if (e.key === 'Escape') setIsEditingOutlineTitle(false) }}
+            autoFocus
+            className="w-full px-2 py-1 rounded border text-sm font-medium focus:outline-none"
+            style={{ backgroundColor: 'var(--color-surface-base)', borderColor: 'var(--color-outline)', color: 'var(--text-primary)' }} />
+        ) : (
+          <h3 role="button" tabIndex={0} onClick={() => { setOutlineTitleDraft(outline.title); setIsEditingOutlineTitle(true) }}
+            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setOutlineTitleDraft(outline.title); setIsEditingOutlineTitle(true) } }}
+            className="text-sm font-medium cursor-pointer transition-colors"
+            style={{ color: 'var(--text-primary)' }}
+            onMouseEnter={(e) => { e.currentTarget.style.color = 'var(--color-outline)' }}
+            onMouseLeave={(e) => { e.currentTarget.style.color = 'var(--text-primary)' }}>
+            {outline.title}
+          </h3>
+        )}
+        {isEditingOutlineDesc ? (
+          <textarea value={outlineDescDraft} onChange={(e) => setOutlineDescDraft(e.target.value)}
+            onBlur={() => { updateOutline({ description: outlineDescDraft.trim() }); setIsEditingOutlineDesc(false) }}
+            onKeyDown={(e) => { if (e.key === 'Escape') setIsEditingOutlineDesc(false) }}
+            autoFocus rows={3}
+            className="w-full px-2 py-1 rounded border text-xs focus:outline-none resize-y"
+            style={{ backgroundColor: 'var(--color-surface-base)', borderColor: 'var(--color-outline)', color: 'var(--text-primary)' }} />
+        ) : (
+          <p role="button" tabIndex={0} onClick={() => { setOutlineDescDraft(outline.description || ''); setIsEditingOutlineDesc(true) }}
+            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setOutlineDescDraft(outline.description || ''); setIsEditingOutlineDesc(true) } }}
+            className="text-xs cursor-pointer transition-colors"
+            style={{ color: outline.description ? 'var(--text-tertiary)' : 'var(--text-tertiary)', opacity: outline.description ? 1 : 0.6 }}
+            onMouseEnter={(e) => { e.currentTarget.style.color = 'var(--color-outline)' }}
+            onMouseLeave={(e) => { e.currentTarget.style.color = 'var(--text-tertiary)' }}>
+            {outline.description || '点击添加大纲描述...'}
+          </p>
+        )}
       </div>
 
       <div className="space-y-2">

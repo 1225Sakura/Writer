@@ -1,12 +1,4 @@
 // Store exports with backward compatibility
-// New modular stores
-export { useSessionStore, selectCurrentSession, selectSessionCount, selectSessionStatus } from './sessionStore'
-export { useMessageStore, selectMessageCount, selectIsEmptySession, selectUserMessages, selectAssistantMessages } from './messageStore'
-export { useChatEntityStore, selectConfirmedEntities, selectPendingEntities, selectEntitiesByType } from './chatEntityStore'
-export { useEntityStore, selectCharacterCount, selectEntityCounts, selectCharactersByTier, selectEntityStatus } from './entityStore'
-export { useRelationStore } from './relationStore'
-export { useFilterStore, selectActiveFilter, selectTags } from './filterStore'
-
 // Backward compatibility - re-export original stores
 export {
   useChatStore,
@@ -30,11 +22,6 @@ export {
 
 // Types from chatStore
 export type { ChatMessageLocal as ChatMessage, ExtractedEntityLocal as ExtractedEntity, EntityExtractionState, MessageCache } from './chatStore'
-
-// Settings sub-stores (typed facades over settingsStore)
-export { useSettingsDataStore, getDataState } from './settingsDataStore'
-export { useSettingsUIStore, getUIState } from './settingsUIStore'
-export { useSettingsValidationStore, getValidationState, validateEntity } from './settingsValidationStore'
 
 // Types from settingsStore
 export type { Relationship, CharacterLocal, Tag, FilterCriteria, HistoryEntry, BatchOperation, CharacterStorylineLocal, ValidationError, SettingsDataState, SettingsUIState, SettingsValidationState } from './settingsStore'
@@ -75,9 +62,6 @@ export {
 // Content Store (chapters, outlines, drafts, IF lines, plot threads, inspections)
 export {
   useContentStore,
-  type DraftVersionLocal as DraftVersion,
-  type PlotThreadLocal as PlotThread,
-  type AIInspectionResultLocal as AIInspectionResult,
   selectChapters,
   selectContentLoading,
   cleanupContentStore,
@@ -101,17 +85,6 @@ export {
   cleanupCheckerStore,
 } from './checkerStore'
 
-// History Store
-export {
-  useHistoryStore,
-  type HistoryActionType,
-  type HistoryEntityType,
-  type HistoryEntry as GlobalHistoryEntry,
-  type GroupedHistory,
-  selectRecentHistory,
-  selectUnsyncedCount,
-} from './historyStore'
-
 // Sync Store
 export {
   useSyncStore,
@@ -133,10 +106,6 @@ export {
 export {
   useContextStore,
   selectContextPack,
-  selectContextChunks,
-  selectContextStats,
-  selectContextWeights,
-  selectLastQuery,
   selectContextLoading,
   selectContextError,
   cleanupContextStore,
@@ -145,31 +114,13 @@ export {
 // Analytics Store
 export {
   useAnalyticsStore,
-  selectEngagementAnalysis,
   selectHookAnalysis,
   selectDebtReport,
   selectEngagementScore,
-  selectStrandDefinitions,
-  selectPacingAnalysis,
-  selectRedLines,
-  selectAdvice,
   selectAnalyticsLoading,
   selectAnalyticsError,
   cleanupAnalyticsStore,
 } from './analyticsStore'
-
-// Graph Store
-export {
-  useGraphStore,
-  selectGraphEntities,
-  selectGraphVisualization,
-  selectGraphSelectedNode,
-  selectGraphLoading,
-  selectGraphError,
-  selectGraphClusters,
-  selectGraphDuplicates,
-  cleanupGraphStore,
-} from './graphStore'
 
 // System Store
 export {

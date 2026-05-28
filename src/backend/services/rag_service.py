@@ -28,6 +28,7 @@ from backend.services.embedding_service import (
     embed_texts,
 )
 from backend.config import settings
+from backend.utils.exceptions import AIServiceError
 
 logger = logging.getLogger(__name__)
 
@@ -200,7 +201,7 @@ class RAGService:
                     )
             except ImportError:
                 pass  # sqlite-vec not installed; skip vector insert
-            except Exception as e:
+            except sqlite3.OperationalError as e:
                 logger.debug("vec_items insert failed for chunk %s: %s", chunk_id, e)
 
             # Update BM25 index
@@ -352,7 +353,7 @@ class RAGService:
                         [rowid, embedding.tobytes() if hasattr(embedding, 'tobytes') else emb_bytes]
                     )
                     count += 1
-                except Exception as e:
+                except sqlite3.OperationalError as e:
                     logger.warning("Failed to migrate vector rowid=%s: %s", rowid, e)
 
         conn.commit()
@@ -406,7 +407,7 @@ class RAGService:
                     INSERT OR REPLACE INTO chunks_fts (chunk_id, content)
                     VALUES (?, ?)
                 """, (chunk_id, chunk.content))
-        except Exception as exc:
+        except sqlite3.OperationalError as exc:
             logger.warning("FTS rebuild failed: %s", exc)
 
     # ------------------------------------------------------------------
@@ -550,7 +551,7 @@ class RAGService:
                         source_file=src_file,
                     ))
                 return results
-        except Exception as e:
+        except AIServiceError as e:
             logger.debug("sqlite-vec KNN failed, falling back to cosine: %s", e)
 
         # Fallback: cosine similarity (original implementation)
@@ -833,7 +834,7 @@ class RAGService:
             cursor.execute("SELECT SUM(doc_length) FROM doc_stats")
             total_len = cursor.fetchone()[0] or 0
             stats["total_tokens"] = total_len
-        except Exception as e:
+        except sqlite3.OperationalError as e:
             logger.debug("RAG stats query partial failure: %s", e)
             stats.setdefault("vectors", 0)
             stats.setdefault("chunks", 0)

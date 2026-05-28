@@ -139,7 +139,7 @@ except ImportError:
 @pytest.mark.skipif(not HAS_CRYPTOGRAPHY, reason="cryptography package not installed")
 class TestEncryption:
     def test_round_trip(self):
-        from infrastructure.security.encryption import encrypt_value, decrypt_value
+        from backend.infrastructure.security.encryption import encrypt_value, decrypt_value
         plaintext = "my-secret-api-key-12345"
         encrypted = encrypt_value(plaintext)
         assert encrypted != plaintext
@@ -147,23 +147,23 @@ class TestEncryption:
         assert decrypted == plaintext
 
     def test_empty_string(self):
-        from infrastructure.security.encryption import encrypt_value, decrypt_value
+        from backend.infrastructure.security.encryption import encrypt_value, decrypt_value
         assert encrypt_value("") == ""
         assert decrypt_value("") == ""
 
     def test_none_passthrough(self):
-        from infrastructure.security.encryption import encrypt_value, decrypt_value
+        from backend.infrastructure.security.encryption import encrypt_value, decrypt_value
         assert encrypt_value(None) is None
         assert decrypt_value(None) is None
 
     def test_different_inputs_different_outputs(self):
-        from infrastructure.security.encryption import encrypt_value
+        from backend.infrastructure.security.encryption import encrypt_value
         e1 = encrypt_value("key1")
         e2 = encrypt_value("key2")
         assert e1 != e2
 
     def test_unicode_content(self):
-        from infrastructure.security.encryption import encrypt_value, decrypt_value
+        from backend.infrastructure.security.encryption import encrypt_value, decrypt_value
         plaintext = "你好世界-API密钥"
         encrypted = encrypt_value(plaintext)
         decrypted = decrypt_value(encrypted)

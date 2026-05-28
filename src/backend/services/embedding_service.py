@@ -16,6 +16,7 @@ from typing import List, Optional
 import numpy as np
 
 from backend.config import settings
+from backend.utils.exceptions import EmbeddingError
 
 logger = logging.getLogger(__name__)
 
@@ -99,14 +100,14 @@ class EmbeddingService:
         if self.api_key:
             try:
                 return await self._embed_via_api(texts)
-            except Exception as exc:
+            except EmbeddingError as exc:
                 logger.warning("MiniMax embedding failed: %s", exc)
 
         # Fall back to local model
         if self.local_available:
             try:
                 return self._embed_via_local(texts)
-            except Exception as exc:
+            except EmbeddingError as exc:
                 logger.error("Local embedding also failed: %s", exc)
 
         logger.error("No embedding provider available")
@@ -181,7 +182,7 @@ class EmbeddingService:
                 )
                 for emb in embeddings:
                     results.append(emb.astype(np.float32))
-            except Exception as exc:
+            except EmbeddingError as exc:
                 logger.warning("Local embedding batch failed: %s", exc)
                 results.extend([None] * len(batch))
 
@@ -224,7 +225,7 @@ class EmbeddingService:
                 )
                 for emb in embeddings:
                     results.append(emb.astype(np.float32))
-            except Exception as exc:
+            except EmbeddingError as exc:
                 logger.warning("Local sync embedding failed: %s", exc)
                 results.extend([None] * len(batch))
 

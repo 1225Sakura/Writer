@@ -151,9 +151,9 @@ export const resolveDebt = (
   resolvedChapterId?: number
 ): Promise<{ message: string; debt_id: number }> =>
   api.post<{ message: string; debt_id: number }>(
-    `/engagement/debts/resolve/${debtId}`,
-    undefined,
-    resolvedChapterId ? { resolved_chapter_id: resolvedChapterId } as Record<string, unknown> : undefined
+    resolvedChapterId
+      ? `/engagement/debts/resolve/${debtId}?resolved_chapter_id=${resolvedChapterId}`
+      : `/engagement/debts/resolve/${debtId}`
   )
 
 // ---------------------------------------------------------------------------

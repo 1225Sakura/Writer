@@ -87,7 +87,7 @@ def log_with_context(
         corr_id = get_correlation_id()
         if corr_id:
             merged_extra["correlation_id"] = corr_id
-    except Exception:
+    except LookupError:
         pass
 
     logger.log(level, message, extra=merged_extra)

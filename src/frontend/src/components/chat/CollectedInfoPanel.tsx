@@ -8,17 +8,28 @@
  *   - ChatEmptyState.tsx   — Empty list placeholder with tips
  */
 
+import { useState, useCallback } from 'react'
 import { ExtractedEntity } from '@/store'
 import { CategorySection } from './CategorySection'
 import { EmptyState } from './ChatEmptyState'
-import { Sparkles, X } from 'lucide-react'
+import { Sparkles, X, CheckCheck, FileText, Loader2 } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { DURATION, EASE } from '@/components/shared/AnimationConfig'
 import { usePrefersReducedMotion } from '@/hooks/usePrefersReducedMotion'
+import { sessionApi } from '@/api/chat'
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from '@/components/ui/dialog'
 
 export interface CollectedInfoPanelProps {
   entities: ExtractedEntity[]
+  sessionId?: number | null
   onConfirmEntity?: (id: string) => void
+  onConfirmAll?: () => void
   onClose?: () => void
 }
 
@@ -32,8 +43,28 @@ const categoryLabels: Record<string, string> = {
   ifline: 'IF线',
 }
 
-export function CollectedInfoPanel({ entities, onConfirmEntity, onClose }: CollectedInfoPanelProps) {
+export function CollectedInfoPanel({ entities, sessionId, onConfirmEntity, onConfirmAll, onClose }: CollectedInfoPanelProps) {
   const prefersReducedMotion = usePrefersReducedMotion()
+  const [summaryOpen, setSummaryOpen] = useState(false)
+  const [summaryText, setSummaryText] = useState<string | null>(null)
+  const [summaryLoading, setSummaryLoading] = useState(false)
+  const [summaryError, setSummaryError] = useState<string | null>(null)
+
+  const handleViewSummary = useCallback(async () => {
+    if (!sessionId) return
+    setSummaryOpen(true)
+    setSummaryLoading(true)
+    setSummaryError(null)
+    setSummaryText(null)
+    try {
+      const res = await sessionApi.getSummary(sessionId)
+      setSummaryText(res.summary)
+    } catch (err) {
+      setSummaryError(err instanceof Error ? err.message : '获取摘要失败')
+    } finally {
+      setSummaryLoading(false)
+    }
+  }, [sessionId])
   const groupedEntities = entities.reduce(
     (acc, entity) => {
       const key = entity.type
@@ -92,6 +123,39 @@ export function CollectedInfoPanel({ entities, onConfirmEntity, onClose }: Colle
             )}
           </motion.div>
         </div>
+        {/* Batch confirm button */}
+        {onConfirmAll && entities.length - confirmedCount > 0 && (
+          <motion.button
+            className="mt-3 w-full flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors"
+            style={{
+              background: 'var(--accent-primary)',
+              color: 'var(--color-surface-raised)',
+            }}
+            onClick={onConfirmAll}
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.97 }}
+          >
+            <CheckCheck className="w-3.5 h-3.5" />
+            确认全部 ({entities.length - confirmedCount})
+          </motion.button>
+        )}
+        {/* View summary button */}
+        {sessionId && (
+          <motion.button
+            className="mt-2 w-full flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors border"
+            style={{
+              background: 'var(--color-surface-base)',
+              color: 'var(--text-secondary)',
+              borderColor: 'var(--border-default)',
+            }}
+            onClick={handleViewSummary}
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.97 }}
+          >
+            <FileText className="w-3.5 h-3.5" />
+            查看摘要
+          </motion.button>
+        )}
       </div>
 
       {/* Content */}
@@ -118,6 +182,32 @@ export function CollectedInfoPanel({ entities, onConfirmEntity, onClose }: Colle
           )}
         </AnimatePresence>
       </div>
+
+      {/* Summary dialog */}
+      <Dialog open={summaryOpen} onOpenChange={setSummaryOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>会话摘要</DialogTitle>
+            <DialogDescription>已收集设定的文字摘要</DialogDescription>
+          </DialogHeader>
+          <div className="mt-2 text-sm" style={{ color: 'var(--text-primary)', lineHeight: '1.75' }}>
+            {summaryLoading && (
+              <div className="flex items-center justify-center gap-2 py-8 text-secondary">
+                <Loader2 className="w-4 h-4 animate-spin" />
+                <span>正在获取摘要...</span>
+              </div>
+            )}
+            {summaryError && (
+              <div className="py-4 text-center" style={{ color: 'var(--color-faction)' }}>
+                {summaryError}
+              </div>
+            )}
+            {summaryText && (
+              <div className="whitespace-pre-wrap">{summaryText}</div>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

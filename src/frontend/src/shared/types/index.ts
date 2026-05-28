@@ -147,6 +147,10 @@ export interface Chapter {
   word_count: number
   chapter_order: number
   content_storage_id?: string
+  notes?: string
+  note_category?: string
+  note_pinned?: boolean
+  battle_station_data?: string
   created_at: string
   updated_at: string
 }
@@ -255,6 +259,7 @@ export interface WritingSettings {
   human_ai_ratio: number
   writing_style: string
   target_word_count: number
+  sprint_data_json?: string | null
   created_at: string
   updated_at: string
 }

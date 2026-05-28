@@ -62,6 +62,7 @@ export {
   ruleApi,
   writingSettingsApi,
   backupApi,
+  aiProviderConfigApi,
 } from "./settings"
 export { default as settingsApiDefault } from "./settings"
 

@@ -8,6 +8,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { SprintCompactButton } from './SprintCompactButton'
 import { SprintExpandedPanel } from './SprintExpandedPanel'
+import { writingSettingsApi } from '@/api/settings'
 
 const DEFAULT_SPRINT_MINUTES = 25
 const DEFAULT_BREAK_MINUTES = 5
@@ -34,11 +35,72 @@ export function WritingSprintTimer() {
     sprintCount: 0,
   })
   const intervalRef = useRef<NodeJS.Timeout | null>(null)
+  const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const loadedRef = useRef(false)
+
+  // Load sprint data from backend on mount
+  useEffect(() => {
+    if (loadedRef.current) return
+    loadedRef.current = true
+    writingSettingsApi.get().then((settings) => {
+      if (settings.sprint_data_json) {
+        try {
+          const data = JSON.parse(settings.sprint_data_json) as {
+            sprintMinutes?: number
+            breakMinutes?: number
+            sprintCount?: number
+          }
+          if (data.sprintMinutes) setSprintMinutes(data.sprintMinutes)
+          if (data.breakMinutes) setBreakMinutes(data.breakMinutes)
+          if (data.sprintCount) {
+            setTimer((prev) => ({ ...prev, sprintCount: data.sprintCount! }))
+          }
+          if (data.sprintMinutes) {
+            setTimer((prev) => ({
+              ...prev,
+              timeRemaining: data.sprintMinutes! * 60,
+              totalTime: data.sprintMinutes! * 60,
+            }))
+          }
+        } catch {
+          // Invalid JSON, ignore
+        }
+      }
+    }).catch(() => {
+      // Backend unavailable, use defaults
+    })
+  }, [])
+
+  // Debounced save of sprint data to backend
+  const saveSprintData = useCallback(
+    (sm: number, bm: number, sc: number) => {
+      if (saveTimerRef.current) clearTimeout(saveTimerRef.current)
+      saveTimerRef.current = setTimeout(() => {
+        writingSettingsApi.saveSprintData({
+          sprintMinutes: sm,
+          breakMinutes: bm,
+          sprintCount: sc,
+        }).catch(() => {
+          // Save failed silently
+        })
+      }, 1500)
+    },
+    []
+  )
+
+  // Persist sprint data when sprintMinutes, breakMinutes, or sprintCount change
+  useEffect(() => {
+    if (!loadedRef.current) return
+    saveSprintData(sprintMinutes, breakMinutes, timer.sprintCount)
+  }, [sprintMinutes, breakMinutes, timer.sprintCount, saveSprintData])
 
   useEffect(() => {
     return () => {
       if (intervalRef.current) {
         clearInterval(intervalRef.current)
+      }
+      if (saveTimerRef.current) {
+        clearTimeout(saveTimerRef.current)
       }
     }
   }, [])

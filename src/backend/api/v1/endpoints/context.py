@@ -17,6 +17,7 @@ from backend.infrastructure.database import get_db
 from backend.middleware.auth import require_auth
 from backend.services.context_manager import ContextManager, TextChunk
 from backend.core.services.ai.rag_adapter import RAGAdapter, SearchResult
+from backend.utils.exceptions import AppException, DatabaseError
 
 router = APIRouter(prefix="/context", tags=["context"], dependencies=[require_auth])
 
@@ -184,7 +185,7 @@ async def build_context(
         assembled = cm.assemble_context(pack, max_chars=request.max_chars)
     except ValueError as e:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
-    except Exception as e:
+    except AppException as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to build context: {str(e)}"
@@ -233,7 +234,7 @@ async def index_chapter(
         try:
             texts = [c.content for c in chunks]
             embeddings = await rag._embed(texts)
-        except Exception as exc:
+        except AppException as exc:
             logger = __import__("logging").getLogger(__name__)
             logger.warning("Embedding failed, falling back to BM25-only indexing: %s", exc)
 
@@ -246,7 +247,7 @@ async def index_chapter(
             degraded=rag.degraded_mode_reason is not None,
             degraded_reason=rag.degraded_mode_reason,
         )
-    except Exception as e:
+    except AppException as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to index chapter: {str(e)}"
@@ -280,7 +281,7 @@ async def query_context(
             chapter_id=request.chapter_id,
             center_entities=request.center_entities,
         )
-    except Exception as e:
+    except AppException as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"RAG query failed: {str(e)}"

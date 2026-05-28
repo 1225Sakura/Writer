@@ -8,6 +8,7 @@ Ranks context-pack sections with lightweight deterministic heuristics:
 
 from __future__ import annotations
 
+import json
 import math
 from typing import Any, Dict, List, Optional
 
@@ -287,13 +288,31 @@ class ContextRanker:
             + bonus
         )
 
+    def chapter_distance_decay(self, distance: int) -> float:
+        """Logarithmic chapter-distance decay.
+
+        Args:
+            distance: Chapter distance (0 = current, 1 = previous, etc.)
+
+        Returns:
+            Weight multiplier in (0, 1]
+
+        Formula: 1 / log2(distance + 2)
+        Examples:
+            distance=0 -> 1.0
+            distance=1 -> 0.631
+            distance=3 -> 0.431
+            distance=10 -> 0.278
+        """
+        return 1.0 / math.log2(max(0, distance) + 2)
+
     def _recency_score(
         self, source_chapter: Optional[int], current_chapter: int
     ) -> float:
         if source_chapter is None:
             return 0.0
         gap = max(0, int(current_chapter) - int(source_chapter))
-        return 1.0 / (1.0 + gap)
+        return self.chapter_distance_decay(gap)
 
     def _frequency_score(self, total: int) -> float:
         if total <= 0:
@@ -342,7 +361,7 @@ def _json_safe(value: Any) -> str:
         import json
 
         return json.dumps(value, ensure_ascii=False)
-    except Exception:
+    except json.JSONDecodeError:
         return str(value)
 
 

@@ -815,7 +815,7 @@ def import_from_zip(zip_bytes: bytes) -> dict:
         raise ValueError(f"Invalid ZIP archive: {e}")
     except ZipSecurityError:
         raise
-    except Exception as e:
+    except (json.JSONDecodeError, yaml.YAMLError) as e:
         logger.error(f"ZIP import failed: {e}")
         raise ValueError(f"Failed to import from ZIP: {e}")
 

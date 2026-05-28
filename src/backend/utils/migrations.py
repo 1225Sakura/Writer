@@ -75,7 +75,7 @@ async def check_migrations_current() -> bool:
                 return False
 
             return current_rev == head_rev
-        except Exception:
+        except subprocess.SubprocessError:
             return False
 
     return await loop.run_in_executor(None, _run_check)
@@ -150,7 +150,7 @@ async def get_migration_status() -> dict:
                 "pending_count": 0 if is_current else total_migrations,
                 "total_migrations": total_migrations,
             }
-        except Exception as e:
+        except subprocess.SubprocessError as e:
             return {
                 "current": None,
                 "head": None,

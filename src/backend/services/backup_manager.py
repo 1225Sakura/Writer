@@ -11,6 +11,8 @@ from enum import Enum
 from pathlib import Path
 from typing import Any, Callable, Awaitable
 
+from sqlalchemy.exc import SQLAlchemyError
+
 from backend.services.snapshot_manager import SnapshotManager, snapshot_manager
 
 logger = logging.getLogger(__name__)
@@ -234,7 +236,7 @@ class BackupManager:
                 await asyncio.sleep(60)  # Check every minute
             except asyncio.CancelledError:
                 break
-            except Exception as e:
+            except SQLAlchemyError as e:
                 logger.warning("Backup scheduler error (will retry): %s", e)
                 await asyncio.sleep(60)
 
@@ -247,7 +249,7 @@ class BackupManager:
         for handler in self._event_handlers:
             try:
                 await handler(event_type, data)
-            except Exception as e:
+            except SQLAlchemyError as e:
                 logger.debug("Backup event handler error: %s", e)
 
 

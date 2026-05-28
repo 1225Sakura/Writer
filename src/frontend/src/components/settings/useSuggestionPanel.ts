@@ -3,13 +3,14 @@
  * Extracted to reduce AISuggestionPanel.tsx line count.
  */
 
-import { useState, useCallback, useMemo, useEffect } from "react";
+import { useState, useCallback, useMemo, useEffect, useRef } from "react";
 import { useReducedMotion } from "framer-motion";
 import { useSettingsStore } from "@/store/settingsStore";
 import { useUIStore } from "@/store/uiStore";
 import type { EntityType } from "@/shared/types";
 import { SEVERITY_CONFIG, mapSeverity } from "./suggestionTypes";
 import type { Severity, IssueType, SuggestionItem, ReviewIteration, ReviewHistoryState } from "./suggestionTypes";
+import { aiReviewApi } from "@/api/aiReview";
 
 export function useSuggestionPanel() {
   const [isExpanded, setIsExpanded] = useState(true);
@@ -20,11 +21,44 @@ export function useSuggestionPanel() {
   const [showHistory, setShowHistory] = useState(false);
   const [showComparison, setShowComparison] = useState(false);
   const [reviewHistory, setReviewHistory] = useState<ReviewHistoryState>({ iterations: [], currentIterationId: null });
+  const historyLoaded = useRef(false);
 
   const prefersReducedMotion = useReducedMotion();
   const aiReviewResult = useSettingsStore((s) => s.aiReviewResult);
   const reviewWithAI = useSettingsStore((s) => s.reviewWithAI);
   const settingsCategory = useUIStore((s) => s.settingsCategory);
+
+  // Load review history from backend on mount
+  useEffect(() => {
+    if (historyLoaded.current) return;
+    historyLoaded.current = true;
+    aiReviewApi.getReviewHistory().then((res) => {
+      if (res.iterations.length > 0) {
+        const iterations: ReviewIteration[] = res.iterations.map((it) => ({
+          id: it.id,
+          timestamp: it.timestamp,
+          category: it.category as EntityType,
+          issueCount: it.issue_count,
+          severityCounts: it.severity_counts,
+          suggestions: it.suggestions.map((s) => ({
+            id: s.id,
+            type: s.type as IssueType,
+            severity: s.severity as Severity,
+            title: s.title,
+            description: s.description,
+            entityIds: s.entityIds,
+            entityType: s.entityType as EntityType | undefined,
+            autoFixable: s.autoFixable,
+            lineReference: s.lineReference,
+          })),
+        }));
+        setReviewHistory({
+          iterations,
+          currentIterationId: iterations[iterations.length - 1].id,
+        });
+      }
+    }).catch(() => { /* Backend unavailable — start with empty history */ });
+  }, []);
 
   const currentSuggestions: SuggestionItem[] = useMemo(() => {
     if (!aiReviewResult) return [];
@@ -72,6 +106,15 @@ export function useSuggestionPanel() {
           suggestions: [...currentSuggestions],
         };
         setReviewHistory((prev) => ({ iterations: [...prev.iterations, newIteration], currentIterationId: newIteration.id }));
+        // Persist to backend (fire-and-forget)
+        aiReviewApi.saveReviewIteration({
+          id: newIteration.id,
+          timestamp: newIteration.timestamp,
+          category: newIteration.category,
+          issue_count: newIteration.issueCount,
+          severity_counts: newIteration.severityCounts,
+          suggestions: newIteration.suggestions,
+        }).catch(() => { /* Silently ignore save failures */ });
       }
     }
   }, [aiReviewResult?.raw_response, currentSuggestions.length]);

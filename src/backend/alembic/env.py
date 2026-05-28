@@ -38,6 +38,7 @@ from backend.core.domain.entities import (
     ChatSession,
     ChatMessage,
     ExtractedEntity,
+    AIReviewHistory,
     WritingSettings,
     AIInspectionResult,
     WorkflowExecution,

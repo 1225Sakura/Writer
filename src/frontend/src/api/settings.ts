@@ -284,6 +284,16 @@ export const writingSettingsApi = {
   /** Update writing settings. */
   update: async (data: WritingSettingsUpdateRequest): Promise<WritingSettings> =>
     api.patch<WritingSettings>("/settings/writing", data),
+
+  /** Save sprint timer data (debounced by caller). */
+  saveSprintData: async (sprintData: {
+    sprintMinutes: number
+    breakMinutes: number
+    sprintCount: number
+  }): Promise<WritingSettings> =>
+    api.patch<WritingSettings>("/settings/writing", {
+      sprint_data_json: JSON.stringify(sprintData),
+    }),
 }
 
 // ============================================
@@ -299,24 +309,6 @@ export const backupApi = {
   import: async (data: ExportDataResponse): Promise<ImportSummaryResponse> =>
     api.post<ImportSummaryResponse>("/project/import", data),
 }
-
-// ============================================
-// Default Export
-// ============================================
-
-export default {
-  character: characterApi,
-  relationship: relationshipApi,
-  storyline: storylineApi,
-  item: itemApi,
-  location: locationApi,
-  faction: factionApi,
-  worldSetting: worldSettingApi,
-  rule: ruleApi,
-  writingSettings: writingSettingsApi,
-  backup: backupApi,
-}
-
 
 // ============================================
 // AI Provider Config
@@ -339,4 +331,22 @@ export const aiProviderConfigApi = {
     api.post<ConnectionTestResult>(`/settings/ai-provider/${id}/test`),
   testConnectionParams: (data: AIProviderConfigTest) =>
     api.post<ConnectionTestResult>("/settings/ai-provider/test", data),
+}
+
+// ============================================
+// Default Export
+// ============================================
+
+export default {
+  character: characterApi,
+  relationship: relationshipApi,
+  storyline: storylineApi,
+  item: itemApi,
+  location: locationApi,
+  faction: factionApi,
+  worldSetting: worldSettingApi,
+  rule: ruleApi,
+  writingSettings: writingSettingsApi,
+  backup: backupApi,
+  aiProviderConfig: aiProviderConfigApi,
 }

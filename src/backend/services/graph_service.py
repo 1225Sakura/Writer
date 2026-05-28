@@ -873,7 +873,7 @@ class GraphService:
                 f"Built NetworkX graph with {G.number_of_nodes()} nodes "
                 f"and {G.number_of_edges()} edges"
             )
-        except Exception as e:
+        except (KeyError, TypeError, ValueError) as e:
             logger.error(f"Failed to build NetworkX graph: {e}")
 
         # 将辅助映射附加到图对象上，供后续方法使用

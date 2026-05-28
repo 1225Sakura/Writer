@@ -3,7 +3,6 @@ import { persist, subscribeWithSelector } from 'zustand/middleware'
 import { immer } from 'zustand/middleware/immer'
 import { engagementApi } from '../api/engagement'
 import { showOperationError } from '../utils/toastHelper'
-import { pacingApi } from '../api/pacing'
 import type {
   EngagementAnalysisResponse,
   HookAnalysisResponse,
@@ -42,18 +41,9 @@ export interface AnalyticsState {
 
 export interface AnalyticsActions {
   // Engagement actions
-  analyzeEngagement: (chapterId: number) => Promise<void>
   detectHooks: (chapterId: number) => Promise<void>
   fetchDebts: (params?: { project_id?: number; current_chapter_id?: number }) => Promise<void>
   fetchScore: (chapterId: number) => Promise<void>
-  detectDebts: (chapterId: number) => Promise<void>
-  resolveDebt: (debtId: number, resolvedChapterId?: number) => Promise<void>
-
-  // Pacing actions
-  fetchStrands: () => Promise<void>
-  analyzePacing: (outlineId: number, useAi?: boolean) => Promise<void>
-  fetchRedLines: (outlineId: number) => Promise<void>
-  fetchAdvice: (outlineId: number, useAi?: boolean, chapterPosition?: number) => Promise<void>
 
   // Reset
   reset: () => void
@@ -85,23 +75,6 @@ export const useAnalyticsStore = create<AnalyticsState & AnalyticsActions>()(
     persist(
       immer((set) => ({
         ...initialState,
-
-        analyzeEngagement: async (chapterId) => {
-          set((s) => { s.loading = true; s.error = null })
-          try {
-            const data = await engagementApi.analyzeChapterEngagement(chapterId)
-            set((s) => {
-              s.engagementAnalysis = data
-              s.loading = false
-            })
-          } catch (err) {
-            set((s) => {
-              s.error = err instanceof Error ? err.message : '参与度分析失败'
-              s.loading = false
-            })
-            showOperationError('参与度分析', err)
-          }
-        },
 
         detectHooks: async (chapterId) => {
           set((s) => { s.loading = true; s.error = null })
@@ -151,114 +124,6 @@ export const useAnalyticsStore = create<AnalyticsState & AnalyticsActions>()(
               s.loading = false
             })
             showOperationError('获取参与度分数', err)
-          }
-        },
-
-        detectDebts: async (chapterId) => {
-          set((s) => { s.loading = true; s.error = null })
-          try {
-            const data = await engagementApi.detectDebtsFromChapter(chapterId)
-            set((s) => {
-              if (s.debtReport) {
-                s.debtReport.total_debts += data.length
-                s.debtReport.active_debts += data.length
-              }
-              s.loading = false
-            })
-          } catch (err) {
-            set((s) => {
-              s.error = err instanceof Error ? err.message : '检测叙事债务失败'
-              s.loading = false
-            })
-            showOperationError('检测叙事债务', err)
-          }
-        },
-
-        resolveDebt: async (debtId, resolvedChapterId) => {
-          set((s) => { s.loading = true; s.error = null })
-          try {
-            await engagementApi.resolveDebt(debtId, resolvedChapterId)
-            set((s) => {
-              if (s.debtReport) {
-                s.debtReport.active_debts = Math.max(0, s.debtReport.active_debts - 1)
-                s.debtReport.fulfilled_debts += 1
-              }
-              s.loading = false
-            })
-          } catch (err) {
-            set((s) => {
-              s.error = err instanceof Error ? err.message : '解决债务失败'
-              s.loading = false
-            })
-            showOperationError('解决债务', err)
-          }
-        },
-
-        fetchStrands: async () => {
-          set((s) => { s.loading = true; s.error = null })
-          try {
-            const data = await pacingApi.getStrandDefinitions()
-            set((s) => {
-              s.strandDefinitions = data
-              s.loading = false
-            })
-          } catch (err) {
-            set((s) => {
-              s.error = err instanceof Error ? err.message : '获取叙事线定义失败'
-              s.loading = false
-            })
-            showOperationError('获取叙事线定义', err)
-          }
-        },
-
-        analyzePacing: async (outlineId, useAi) => {
-          set((s) => { s.loading = true; s.error = null })
-          try {
-            const data = await pacingApi.analyzePacing(outlineId, useAi)
-            set((s) => {
-              s.pacingAnalysis = data
-              s.loading = false
-            })
-          } catch (err) {
-            set((s) => {
-              s.error = err instanceof Error ? err.message : '节奏分析失败'
-              s.loading = false
-            })
-            showOperationError('节奏分析', err)
-          }
-        },
-
-        fetchRedLines: async (outlineId) => {
-          set((s) => { s.loading = true; s.error = null })
-          try {
-            const data = await pacingApi.getRedlines(outlineId)
-            set((s) => {
-              s.redLines = data
-              s.loading = false
-            })
-          } catch (err) {
-            set((s) => {
-              s.error = err instanceof Error ? err.message : '获取红线状态失败'
-              s.loading = false
-            })
-            showOperationError('获取红线状态', err)
-          }
-        },
-
-        fetchAdvice: async (outlineId, useAi, chapterPosition) => {
-          set((s) => { s.loading = true; s.error = null })
-          try {
-            const data = await pacingApi.getStrandAdvice({ outline_id: outlineId, use_ai: useAi, chapter_position: chapterPosition })
-            set((s) => {
-              s.advice = data
-              s.loading = false
-            })
-          } catch (err) {
-            set((s) => {
-              s.error = err instanceof Error ? err.message : '获取叙事线建议失败'
-              s.loading = false
-            })
-            showOperationError('获取叙事线建议', err)
           }
         },
 

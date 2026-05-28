@@ -1,5 +1,7 @@
 """Tests for ContextRanker - context pack ranking with recency, frequency, and hook heuristics."""
 
+import math
+
 import pytest
 from backend.services.context_ranker import (
     ContextRanker,
@@ -329,6 +331,72 @@ class TestScoringHelpers:
         assert ranker._as_int(3.7) == 3
         assert ranker._as_int(None) is None
         assert ranker._as_int("abc") is None
+
+
+# =============================================================================
+# Chapter-Distance Decay
+# =============================================================================
+
+class TestChapterDistanceDecay:
+    """Test logarithmic chapter-distance decay function."""
+
+    def test_chapter_distance_decay_zero(self, ranker):
+        """distance=0 returns 1.0 (current chapter)."""
+        assert ranker.chapter_distance_decay(0) == 1.0
+
+    def test_chapter_distance_decay_one(self, ranker):
+        """distance=1 returns ~0.631 (1/log2(3))."""
+        result = ranker.chapter_distance_decay(1)
+        expected = 1.0 / math.log2(3)
+        assert abs(result - expected) < 1e-9
+        assert abs(result - 0.631) < 0.001
+
+    def test_chapter_distance_decay_three(self, ranker):
+        """distance=3 returns ~0.431 (1/log2(5))."""
+        result = ranker.chapter_distance_decay(3)
+        expected = 1.0 / math.log2(5)
+        assert abs(result - expected) < 1e-9
+        assert abs(result - 0.431) < 0.001
+
+    def test_chapter_distance_decay_ten(self, ranker):
+        """distance=10 returns ~0.278 (1/log2(12))."""
+        result = ranker.chapter_distance_decay(10)
+        expected = 1.0 / math.log2(12)
+        assert abs(result - expected) < 1e-9
+        assert abs(result - 0.278) < 0.001
+
+    def test_chapter_distance_decay_monotonic(self, ranker):
+        """Decay decreases monotonically with distance."""
+        for d in range(10):
+            assert ranker.chapter_distance_decay(d) > ranker.chapter_distance_decay(d + 1)
+
+    def test_chapter_distance_decay_negative_distance(self, ranker):
+        """Negative distance clamps to 0, returning 1.0."""
+        assert ranker.chapter_distance_decay(-5) == 1.0
+
+
+# =============================================================================
+# Recency score — exponential decay integration
+# =============================================================================
+
+class TestRecencyExponentialDecay:
+    """Verify _recency_score uses logarithmic decay."""
+
+    def test_recency_score_uses_logarithmic_decay(self, ranker):
+        """_recency_score now returns logarithmic decay values, not harmonic."""
+        score = ranker._recency_score(9, 10)
+        expected = 1.0 / math.log2(3)  # distance=1
+        assert abs(score - expected) < 1e-9
+
+    def test_recency_score_backward_compat_zero_gap(self, ranker):
+        """Same chapter (gap=0) still returns 1.0."""
+        score = ranker._recency_score(10, 10)
+        assert score == 1.0
+
+    def test_recency_score_none_still_zero(self, ranker):
+        """None source chapter still returns 0.0."""
+        score = ranker._recency_score(None, 10)
+        assert score == 0.0
 
 
 # =============================================================================

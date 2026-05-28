@@ -71,7 +71,7 @@ class JSONFormatter(logging.Formatter):
                 user_id = get_user_id()
                 if user_id:
                     context["user_id"] = user_id
-            except Exception:
+            except LookupError:
                 pass  # Context vars may not be set
             if context:
                 log_data["context"] = context
@@ -126,7 +126,7 @@ class HumanReadableFormatter(logging.Formatter):
                 corr_id = get_correlation_id()
                 if corr_id:
                     context_parts.append(f"corr={corr_id[:8]}")
-            except Exception:
+            except LookupError:
                 pass
 
         context_str = f" [{' '.join(context_parts)}]" if context_parts else ""

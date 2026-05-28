@@ -1,10 +1,10 @@
 # Export/Import API Routes
 
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, File, Form, HTTPException, Query, UploadFile
 from fastapi.responses import Response
 
 from backend.middleware.auth import require_auth
-from backend.core.domain.schemas import ImportRequest, ImportZipRequest
+from backend.core.domain.schemas import ImportRequest
 from backend.services.export_import import (
     export_project,
     export_to_json,
@@ -17,6 +17,7 @@ from backend.services.export_import import (
     ImportValidationError,
     ExportProgressCallback,
 )
+from backend.utils.exceptions import ExportImportError
 
 router = APIRouter(prefix="/project", tags=["project"], dependencies=[require_auth])
 
@@ -135,7 +136,7 @@ async def import_project_data(request: ImportRequest):
         )
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
-    except Exception as e:
+    except ExportImportError as e:
         raise HTTPException(status_code=500, detail=f"Import failed: {str(e)}")
 
 
@@ -184,7 +185,7 @@ async def import_from_yaml_file(
         )
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
-    except Exception as e:
+    except ExportImportError as e:
         raise HTTPException(status_code=500, detail=f"Import failed: {str(e)}")
 
 
@@ -194,26 +195,27 @@ async def import_from_yaml_file(
     description="从ZIP压缩包导入项目数据。",
 )
 async def import_from_zip_file(
-    zip_data: bytes,
-    request: ImportZipRequest,
-    validate: bool = True,
-    conflict_resolution: str = "import_wins"
+    zip_data: UploadFile = File(..., description="ZIP archive file"),
+    mode: str = Form("merge", description="Import mode: 'merge' or 'replace'"),
+    should_validate: bool = Form(True, description="Whether to validate imported data"),
+    conflict_resolution: str = Form("import_wins", description="How to resolve conflicts"),
 ):
     """
     Import project data from a ZIP archive.
 
     Args:
-        zip_data: ZIP archive bytes
-        request: ImportZipRequest with mode
-        validate: Whether to validate imported data
+        zip_data: ZIP archive file upload
+        mode: "merge" or "replace"
+        should_validate: Whether to validate imported data
         conflict_resolution: How to resolve conflicts
     """
     try:
-        project_data = import_from_zip(zip_data)
+        zip_bytes = await zip_data.read()
+        project_data = import_from_zip(zip_bytes)
         summary = await import_project(
             project_data,
-            mode=request.mode,
-            validate=validate,
+            mode=mode,
+            validate=should_validate,
             conflict_resolution=conflict_resolution
         )
         return {
@@ -233,5 +235,5 @@ async def import_from_zip_file(
         )
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
-    except Exception as e:
+    except ExportImportError as e:
         raise HTTPException(status_code=500, detail=f"Import failed: {str(e)}")

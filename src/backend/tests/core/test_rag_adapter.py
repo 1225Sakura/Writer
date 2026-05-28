@@ -185,8 +185,8 @@ class TestEmbed:
     @pytest.mark.asyncio
     async def test_embed_failure_sets_degraded(self, adapter):
         with patch.object(adapter, "_embed_via_minimax", new_callable=AsyncMock) as mock_minimax:
-            from backend.utils.exceptions import RAGError
-            mock_minimax.side_effect = RAGError("fail")
+            from backend.utils.exceptions import AIServiceError
+            mock_minimax.side_effect = AIServiceError("fail")
             with patch("backend.core.services.ai.rag_adapter.ai_service") as mock_ai:
                 mock_ai.router = MagicMock()
                 result = await adapter._embed(["hello"])

@@ -13,6 +13,41 @@ import type {
 } from "./types"
 
 // ============================================
+// Review History Types (frontend-local)
+// ============================================
+
+export interface ReviewHistorySeverityCounts {
+  error: number
+  warning: number
+  suggestion: number
+}
+
+export interface ReviewHistorySuggestionItem {
+  id: string
+  type: string
+  severity: string
+  title: string
+  description: string
+  entityIds?: number[]
+  entityType?: string
+  autoFixable: boolean
+  lineReference?: string
+}
+
+export interface ReviewHistoryIteration {
+  id: string
+  timestamp: string
+  category: string
+  issue_count: number
+  severity_counts: ReviewHistorySeverityCounts
+  suggestions: ReviewHistorySuggestionItem[]
+}
+
+export interface ReviewHistoryResponse {
+  iterations: ReviewHistoryIteration[]
+}
+
+// ============================================
 // AI Review API
 // ============================================
 
@@ -48,6 +83,33 @@ export const aiReviewApi = {
     return api.post<{ entities: ExtractedEntity[] }>("/ai/extract-entities", {
       chat_messages: chatMessages,
     })
+  },
+
+  // ============================================
+  // Review History Persistence
+  // ============================================
+
+  /**
+   * Load all review history iterations from the backend.
+   */
+  getReviewHistory: async (): Promise<ReviewHistoryResponse> => {
+    return api.get<ReviewHistoryResponse>("/ai/review-history")
+  },
+
+  /**
+   * Save a single review iteration to the backend.
+   */
+  saveReviewIteration: async (
+    iteration: ReviewHistoryIteration
+  ): Promise<ReviewHistoryIteration> => {
+    return api.post<ReviewHistoryIteration>("/ai/review-history", iteration)
+  },
+
+  /**
+   * Clear all review history from the backend.
+   */
+  clearReviewHistory: async (): Promise<{ success: boolean }> => {
+    return api.delete<{ success: boolean }>("/ai/review-history")
   },
 }
 

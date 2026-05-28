@@ -106,6 +106,30 @@ class SQLAlchemyChatMessageRepository(ChatMessageRepositoryInterface):
         )
         return list(result.scalars().all())
 
+    async def update(self, id: int, data: dict) -> Optional[ChatMessage]:
+        result = await self.db.execute(
+            select(ChatMessage).where(ChatMessage.id == id)
+        )
+        message = result.scalar_one_or_none()
+        if message is None:
+            return None
+        for key, value in data.items():
+            setattr(message, key, value)
+        await self.db.flush()
+        await self.db.refresh(message)
+        return message
+
+    async def delete(self, id: int) -> bool:
+        result = await self.db.execute(
+            select(ChatMessage).where(ChatMessage.id == id)
+        )
+        message = result.scalar_one_or_none()
+        if message is None:
+            return False
+        await self.db.delete(message)
+        await self.db.flush()
+        return True
+
 
 class SQLAlchemyExtractedEntityRepository(ExtractedEntityRepositoryInterface):
     """SQLAlchemy implementation of ExtractedEntity repository."""

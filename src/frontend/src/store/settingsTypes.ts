@@ -120,6 +120,7 @@ export interface SettingsDataState {
   isLoading: boolean
   error: string | null
   aiReviewResult: AIReviewResult | null
+  aiGenerateResult: string | null
   history: HistoryEntry[]
   historyIndex: number
   canUndo: boolean

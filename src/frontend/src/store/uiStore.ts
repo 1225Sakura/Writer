@@ -231,6 +231,7 @@ export const useUIStore = create<UIState & UIActions>()(
                 state.aiDrawerOpen = false
                 state.collaborationDrawerOpen = false
                 state.outlineDrawerOpen = false
+                state.checkerDrawerOpen = false
               }
             })
           },
@@ -560,7 +561,7 @@ export const useUIStore = create<UIState & UIActions>()(
 // ============================================
 
 export const selectAnyDrawerOpen = (state: UIState) =>
-  state.aiDrawerOpen || state.collaborationDrawerOpen || state.outlineDrawerOpen
+  state.aiDrawerOpen || state.collaborationDrawerOpen || state.outlineDrawerOpen || state.checkerDrawerOpen
 
 export const selectIsInWritingMode = (state: UIState) =>
   state.currentInterface === 'writing'
@@ -571,6 +572,7 @@ export const selectDrawerState = (state: UIState) =>
     aiDrawerOpen: state.aiDrawerOpen,
     collaborationDrawerOpen: state.collaborationDrawerOpen,
     outlineDrawerOpen: state.outlineDrawerOpen,
+    checkerDrawerOpen: state.checkerDrawerOpen,
   })
 
 /** 仅选择导航状态 */
@@ -609,6 +611,7 @@ export function cleanupUIStore() {
     aiDrawerOpen: false,
     collaborationDrawerOpen: false,
     outlineDrawerOpen: false,
+    checkerDrawerOpen: false,
     toasts: [],
     fullscreenWriting: false,
   })

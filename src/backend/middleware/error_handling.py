@@ -28,7 +28,7 @@ class ErrorHandlingMiddleware(BaseHTTPMiddleware):
             return response
         except ValidationError as e:
             return self._handle_validation_error(request, e)
-        except Exception as e:
+        except RuntimeError as e:
             return self._handle_generic_error(request, e)
 
     def _handle_validation_error(self, request: Request, exc: ValidationError) -> JSONResponse:

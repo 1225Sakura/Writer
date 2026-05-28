@@ -17,6 +17,8 @@ from __future__ import annotations
 import json
 import logging
 import re
+
+from backend.utils.exceptions import ValidationError
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from enum import Enum
@@ -615,7 +617,7 @@ class ConditionParser:
                     item=data.get("item", ""),
                     owner_field=data.get("owner_field", "owner"),
                 )
-        except Exception as e:
+        except ValidationError as e:
             logger.error("Failed to parse condition %s: %s", data, e)
             return None
 
@@ -721,7 +723,7 @@ class ConstraintDSLCParser:
                     rules.append(rule)
             except DSLValidationError:
                 raise
-            except Exception as e:
+            except ValidationError as e:
                 self._errors.append(f"Rule {idx}: {str(e)}")
 
         if self._errors:
@@ -904,7 +906,7 @@ class ConstraintDSLCParser:
                         elif cond_type not in [e.value for e in ConditionType]:
                             errors.append(f"Rule '{rule_id}' condition {c_idx} has unknown type '{cond_type}'")
 
-        except Exception as e:
+        except ValidationError as e:
             errors.append(f"Validation error: {str(e)}")
 
         return len(errors) == 0, errors

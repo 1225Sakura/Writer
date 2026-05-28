@@ -81,6 +81,19 @@ export const messageApi = {
       { skip, limit }
     )
   },
+
+  /** Update a message's content. */
+  edit: async (
+    messageId: number,
+    content: string
+  ): Promise<ChatMessage> => {
+    return api.patch<ChatMessage>(`/chat/messages/${messageId}`, { content })
+  },
+
+  /** Delete a message. */
+  delete: async (messageId: number): Promise<{ message: string }> => {
+    return api.delete<{ message: string }>(`/chat/messages/${messageId}`)
+  },
 }
 
 // ============================================
@@ -101,7 +114,7 @@ export const entityApi = {
 
   /** Confirm or unconfirm an extracted entity. */
   confirm: async (
-    entityId: number,
+    entityId: string,
     confirmed: boolean = true
   ): Promise<{ message: string }> => {
     return api.patch<{ message: string }>(

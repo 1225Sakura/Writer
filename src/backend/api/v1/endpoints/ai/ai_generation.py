@@ -9,6 +9,8 @@ from typing import Optional, AsyncIterator
 from backend.core.services.writing_settings.writing_settings_service import WritingSettingsService
 from backend.core.services.ai.ai_service import AIService
 
+from backend.utils.exceptions import AIServiceError
+
 from .dependencies import (
     get_ai_service,
     get_writing_settings_service,
@@ -132,7 +134,7 @@ async def generate_content(
                 yield f"event: chunk\ndata: {chunk}\n\n"
 
             yield f"event: done\ndata: {{\"total_chars\": {len(accumulated)}}}\n\n"
-        except Exception as exc:
+        except AIServiceError as exc:
             yield f"event: error\ndata: {{\"message\": \"{str(exc).replace(chr(34), chr(92)+chr(34))}\"}}\n\n"
 
     return StreamingResponse(

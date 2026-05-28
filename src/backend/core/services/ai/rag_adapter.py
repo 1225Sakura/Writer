@@ -23,8 +23,14 @@ import time
 from dataclasses import dataclass
 from typing import Any, Dict, List, Optional, Tuple
 
+from sqlalchemy.exc import SQLAlchemyError
+
 from backend.services.context_manager import ContextManager, TextChunk
 from backend.core.services.ai.ai_service import ai_service
+from backend.utils.exceptions import AIServiceError
+from backend.services.narrative_kg import NarrativeKG
+from backend.services.entity_registry import EntityRegistry
+from backend.services.sqlite_vec_service import SQLiteVecService
 
 logger = logging.getLogger(__name__)
 
@@ -90,7 +96,7 @@ class RAGAdapter:
                     from backend.services.ai import ProviderRouter
                     router = ProviderRouter(providers=[provider])
                     ai_service.set_router(router)
-            except Exception as exc:
+            except AIServiceError as exc:
                 logger.warning("Could not initialize embedding provider: %s", exc)
                 self._degraded_mode_reason = "embedding_provider_unavailable"
                 return [None] * len(texts)
@@ -100,7 +106,7 @@ class RAGAdapter:
         # a lightweight HTTP call to MiniMax's embedding endpoint
         try:
             return await self._embed_via_minimax(texts)
-        except Exception as exc:
+        except AIServiceError as exc:
             logger.warning("Embedding failed: %s", exc)
             self._degraded_mode_reason = "embedding_failed"
             return [None] * len(texts)
@@ -141,7 +147,7 @@ class RAGAdapter:
                         results.append(vec)
                     else:
                         results.append(None)
-            except Exception as exc:
+            except AIServiceError as exc:
                 logger.warning("MiniMax embedding API error: %s", exc)
                 return [None] * len(texts)
 
@@ -679,7 +685,7 @@ class RAGAdapter:
                     for c in related_chars:
                         if c.name not in expanded:
                             expanded.append(c.name)
-        except Exception as exc:
+        except SQLAlchemyError as exc:
             logger.warning("Entity graph expansion failed: %s", exc)
 
         return expanded[:max_entities]
@@ -754,3 +760,249 @@ class RAGAdapter:
         query_embedding = query_embeddings[0]
         rows = self._fetch_vectors_by_chunk_ids(candidate_ids, chunk_type)
         return self._vector_search_rows(query_embedding, rows, top_k=top_k)
+
+    # ------------------------------------------------------------------
+    # LeanRAG-style retrieval pipeline
+    # ------------------------------------------------------------------
+
+    def _extract_entities_from_query(
+        self,
+        query: str,
+        entity_registry: Optional[EntityRegistry] = None,
+    ) -> List[str]:
+        """Extract entity names from query using pattern matching.
+
+        Matches Chinese name patterns (2-4 char names) commonly found in
+        narrative queries, then optionally resolves them via EntityRegistry
+        to canonical names.
+        """
+        entities: List[str] = []
+        name_patterns = [
+            re.compile(r"(?![的和与跟向对])([一-鿿]{2,4})(?=(?:的|和|与|跟|向|对))"),
+            re.compile(r"(?:角色|人物|主角|配角)\s*[:：]?\s*([一-鿿]{2,4})"),
+        ]
+        for pattern in name_patterns:
+            for match in pattern.finditer(query):
+                name = match.group(1)
+                if entity_registry:
+                    record = entity_registry.resolve(name)
+                    if record:
+                        entities.append(record.canonical_name)
+                else:
+                    entities.append(name)
+        return list(set(entities))
+
+    async def _expand_via_narrative_kg(
+        self,
+        entities: List[str],
+        narrative_kg: NarrativeKG,
+        entity_registry: Optional[EntityRegistry] = None,
+        max_hops: int = 2,
+    ) -> List[str]:
+        """Expand entity list via NarrativeKG graph traversal.
+
+        For each seed entity, resolves it to a canonical ID, then performs
+        BFS up to *max_hops* to discover related entities.  Returns the
+        union of seed names and all discovered neighbor names.
+        """
+        expanded: set = set(entities)
+        for entity_name in entities:
+            if entity_registry:
+                record = entity_registry.resolve(entity_name)
+                if record:
+                    neighbors = narrative_kg.get_neighbors(
+                        record.canonical_id, max_hops=max_hops
+                    )
+                    for neighbor_id, _distance in neighbors.items():
+                        node = narrative_kg.get_node(neighbor_id)
+                        if node:
+                            expanded.add(node.name)
+        return list(expanded)
+
+    def _rerank_candidates(
+        self,
+        candidates: List[Tuple[str, float]],
+        query_entities: List[str],
+        chapter_decay_fn: Any = None,
+        current_chapter: int = 0,
+    ) -> List[Tuple[str, float]]:
+        """Rerank candidates by entity overlap + decay + recency.
+
+        Each candidate is a ``(chunk_id, vec_distance)`` pair.  The final
+        score combines:
+
+        * vector similarity  (40 %)  — ``1 - vec_distance``
+        * entity overlap     (40 %)  — Jaccard-like ratio
+        * chapter decay      (20 %)  — provided *chapter_decay_fn*
+        """
+        scored: List[Tuple[str, float]] = []
+        for chunk_id, vec_dist in candidates:
+            # Entity overlap score (0-1)
+            chunk_entities = self._get_chunk_entities(chunk_id)
+            overlap = len(set(query_entities) & set(chunk_entities)) / max(
+                len(query_entities), 1
+            )
+
+            # Decay score (use chapter-distance decay)
+            chunk_chapter = self._get_chunk_chapter(chunk_id)
+            decay = 1.0
+            if chapter_decay_fn and chunk_chapter is not None:
+                distance = max(0, current_chapter - chunk_chapter)
+                decay = chapter_decay_fn(distance)
+
+            # Combined score (lower vec_distance is better -> use 1 - dist)
+            combined = (1.0 - vec_dist) * 0.4 + overlap * 0.4 + decay * 0.2
+            scored.append((chunk_id, combined))
+
+        scored.sort(key=lambda x: x[1], reverse=True)
+        return scored
+
+    async def leanrag_search(
+        self,
+        query: str,
+        narrative_kg: Optional[NarrativeKG] = None,
+        entity_registry: Optional[EntityRegistry] = None,
+        sqlite_vec_service: Optional[SQLiteVecService] = None,
+        max_results: int = 10,
+        max_hops: int = 2,
+    ) -> List[Dict[str, Any]]:
+        """LeanRAG-style retrieval: entity-anchored + graph expansion + reranking.
+
+        Pipeline:
+            Query -> Entity Extraction -> Entity-Anchored Search (sqlite-vec)
+                    -> Graph Expansion (NarrativeKG, 1-2 hops)
+                    -> Candidate Collection (union)
+                    -> Contextual Reranking (entity overlap + decay + recency)
+                    -> Top-K Results
+        """
+
+        # Step 1: Extract entities from query
+        entities = self._extract_entities_from_query(query, entity_registry)
+
+        # Step 2: Entity-anchored search via sqlite-vec
+        candidates: List[Tuple[str, float]] = []
+        if sqlite_vec_service:
+            query_embeddings = await self._embed([query])
+            if query_embeddings and query_embeddings[0] is not None:
+                query_bytes = self._floats_to_bytes(query_embeddings[0])
+                vec_results = sqlite_vec_service.search_similar(
+                    query_bytes, limit=max_results * 3
+                )
+                candidates.extend(vec_results)
+
+        # Step 3: Graph expansion via NarrativeKG
+        if narrative_kg and entities:
+            expanded_entities = await self._expand_via_narrative_kg(
+                entities, narrative_kg, entity_registry, max_hops
+            )
+            for entity in expanded_entities:
+                entity_chunks = self._get_chunks_for_entity(entity)
+                candidates.extend(entity_chunks)
+
+        # Step 4: Deduplicate
+        seen: set = set()
+        unique_candidates: List[Tuple[str, float]] = []
+        for chunk_id, dist in candidates:
+            if chunk_id not in seen:
+                seen.add(chunk_id)
+                unique_candidates.append((chunk_id, dist))
+
+        # Step 5: Rerank
+        reranked = self._rerank_candidates(
+            unique_candidates,
+            entities,
+            chapter_decay_fn=self._chapter_distance_decay,
+            current_chapter=self._current_chapter,
+        )
+
+        # Step 6: Return top-K
+        results: List[Dict[str, Any]] = []
+        for chunk_id, score in reranked[:max_results]:
+            chunk = self._get_chunk_content(chunk_id)
+            if chunk:
+                results.append(
+                    {
+                        "chunk_id": chunk_id,
+                        "content": chunk,
+                        "score": score,
+                        "entities": self._get_chunk_entities(chunk_id),
+                    }
+                )
+
+        return results
+
+    # ------------------------------------------------------------------
+    # LeanRAG helper methods
+    # ------------------------------------------------------------------
+
+    @staticmethod
+    def _floats_to_bytes(floats: List[float]) -> bytes:
+        """Convert a list of floats to raw float32 bytes for sqlite-vec."""
+        import struct
+
+        return struct.pack(f"{len(floats)}f", *floats)
+
+    @staticmethod
+    def _chapter_distance_decay(distance: int) -> float:
+        """Chapter-distance decay: 1 / log2(distance + 2).
+
+        Returns 1.0 for distance 0 and decays towards 0 for larger gaps.
+        """
+        if distance <= 0:
+            return 1.0
+        return 1.0 / math.log2(distance + 2)
+
+    @property
+    def _current_chapter(self) -> int:
+        """Current chapter number from context manager stats."""
+        return int(self.cm.get_stats().get("max_chapter", 0))
+
+    def _get_chunk_entities(self, chunk_id: str) -> List[str]:
+        """Get entity names mentioned in a chunk.
+
+        Looks up the chunk content from the vectors table and extracts
+        Chinese name tokens (2-4 chars) as a proxy for entity mentions.
+        """
+        content = self._get_chunk_content(chunk_id)
+        if not content:
+            return []
+        return re.findall(r"[一-鿿]{2,4}", content)
+
+    def _get_chunk_chapter(self, chunk_id: str) -> Optional[int]:
+        """Get the chapter order for a chunk."""
+        with self.cm._get_conn() as conn:
+            cursor = conn.cursor()
+            cursor.execute(
+                "SELECT chapter_id FROM vectors WHERE chunk_id = ?",
+                (chunk_id,),
+            )
+            row = cursor.fetchone()
+            return int(row[0]) if row and row[0] is not None else None
+
+    def _get_chunks_for_entity(self, entity: str) -> List[Tuple[str, float]]:
+        """Find chunks mentioning an entity.
+
+        Returns list of ``(chunk_id, 0.0)`` pairs — distance is 0.0 because
+        these are exact entity matches rather than vector-distance results.
+        """
+        results: List[Tuple[str, float]] = []
+        with self.cm._get_conn() as conn:
+            cursor = conn.cursor()
+            cursor.execute(
+                "SELECT chunk_id, content FROM vectors ORDER BY chapter_id DESC"
+            )
+            for chunk_id, content in cursor.fetchall():
+                if content and entity in str(content):
+                    results.append((chunk_id, 0.0))
+        return results
+
+    def _get_chunk_content(self, chunk_id: str) -> Optional[str]:
+        """Get the text content of a chunk by ID."""
+        with self.cm._get_conn() as conn:
+            cursor = conn.cursor()
+            cursor.execute(
+                "SELECT content FROM vectors WHERE chunk_id = ?",
+                (chunk_id,),
+            )
+            row = cursor.fetchone()
+            return str(row[0]) if row and row[0] else None

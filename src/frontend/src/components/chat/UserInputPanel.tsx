@@ -1,5 +1,7 @@
 import { useState, useCallback, useEffect } from 'react'
 import { useChatStore } from '@/store/chatStore'
+import { useSettingsStore } from '@/store/settingsStore'
+import { showSuccess } from '@/utils/toastHelper'
 import { getWebSocketClient } from '@/api/websocket'
 import { InputField } from './InputField'
 import { InputSuggestions } from './InputSuggestions'
@@ -8,8 +10,16 @@ import { InputActions } from './InputActions'
 
 export function UserInputPanel() {
   const [input, setInput] = useState('')
-  const { sendMessage, createSession, clearSession, sessionId, isLoading, isStreaming, error, messages, exportToOutline } = useChatStore()
+  const { sendMessage, createSession, clearSession, sessionId, isLoading, isStreaming, error, messages, exportToOutline, pendingInput, setPendingInput } = useChatStore()
   const [showExportConfirm, setShowExportConfirm] = useState(false)
+
+  // Sync pendingInput from store (set by genre tags in EmptyState) to local input
+  useEffect(() => {
+    if (pendingInput) {
+      setInput(pendingInput)
+      setPendingInput('')
+    }
+  }, [pendingInput, setPendingInput])
 
   const handleSend = useCallback(async () => {
     if (!input.trim() || isLoading || isStreaming) return
@@ -69,10 +79,13 @@ export function UserInputPanel() {
     }, 100)
   }, [sessionId, createSession, sendMessage])
 
-  const handleExportOutline = () => {
+  const handleExportOutline = async () => {
     const result = exportToOutline()
     if (result.entries.length > 0) {
+      const { importFromChat } = useSettingsStore.getState()
+      await importFromChat(result.entries)
       setShowExportConfirm(true)
+      showSuccess(`已导出 ${result.entries.length} 个设定到设定编辑器`)
     }
   }
 

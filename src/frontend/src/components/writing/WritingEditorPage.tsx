@@ -3,6 +3,7 @@ import { useUIStore, useWritingStore } from '@/store'
 import { WritingToolbar } from './WritingToolbar'
 import { WritingCanvas } from './WritingCanvas'
 import { AIOperationDrawer } from './AIOperationDrawer'
+import { AICheckerPanel } from './AICheckerPanel'
 import { CollaborationPanel } from './CollaborationPanel'
 import { OutlineSidebar } from './OutlineSidebar'
 import { ChapterNotesPanel } from './ChapterNotesPanel'
@@ -29,6 +30,7 @@ function WritingEditorPageContent() {
     aiDrawerOpen,
     collaborationDrawerOpen,
     outlineDrawerOpen,
+    checkerDrawerOpen,
     toggleAIDrawer,
     toggleOutlineDrawer,
   } = useUIStore()
@@ -150,6 +152,29 @@ function WritingEditorPageContent() {
               style={{ boxShadow: DRAWER_EDGE_SHADOW }}
             >
               <CollaborationPanel />
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* AI Checker panel - unified edge style with ink shadow */}
+        <AnimatePresence initial={false}>
+          {checkerDrawerOpen && (!immersiveMode || chromeVisible) && (
+            <motion.div
+              key="checker-drawer"
+              initial={{ width: 0, opacity: 0, x: 48 }}
+              animate={{ width: 'var(--sidebar-ai-drawer-width)', opacity: 1, x: 0 }}
+              exit={{ width: 0, opacity: 0, x: 48 }}
+              transition={{
+                width: SPRING.DRAWER,
+                opacity: { duration: DURATION.NORMAL, ease: EASE.SMOOTH },
+                x: SPRING.DRAWER
+              }}
+              className="drawer-responsive drawer-right border-l border-[var(--border-default)] bg-[var(--color-surface-raised)] flex flex-col overflow-hidden relative z-20
+                         max-md:fixed max-md:inset-0 max-md:w-full max-md:h-full max-md:z-50 max-md:border-none max-md:rounded-none
+                         md:w-[var(--sidebar-ai-drawer-width)] lg:w-[var(--sidebar-ai-drawer-width-expanded)]"
+              style={{ boxShadow: DRAWER_EDGE_SHADOW }}
+            >
+              <AICheckerPanel />
             </motion.div>
           )}
         </AnimatePresence>

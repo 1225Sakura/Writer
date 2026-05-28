@@ -26,6 +26,7 @@ import {
   User,
   MapPin,
   Shield,
+  ShieldCheck,
   Globe,
   GitBranch,
   Save,
@@ -47,6 +48,7 @@ interface CommandDeps {
   toggleAIDrawer: () => void;
   toggleCollaborationDrawer: () => void;
   toggleOutlineDrawer: () => void;
+  toggleCheckerDrawer: () => void;
   toggleTheme: () => void;
   toggleImmersiveMode: () => void;
   toggleFocusMode: () => void;
@@ -163,6 +165,13 @@ export function buildCommands(d: CommandDeps): CommandItem[] {
       keywords: ["outline", "大纲", "面板"],
       disabled: d.currentInterface !== "writing",
       action: () => { d.toggleOutlineDrawer(); d.setIsOpen(false); },
+    },
+    {
+      id: "toggle-checker", label: "切换检查面板", shortcut: "Ctrl+5",
+      icon: <ShieldCheck className="w-4 h-4" />, category: "view",
+      keywords: ["checker", "检查", "质量", "面板"],
+      disabled: d.currentInterface !== "writing",
+      action: () => { d.toggleCheckerDrawer(); d.setIsOpen(false); },
     },
     {
       id: "toggle-immersive",

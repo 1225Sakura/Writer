@@ -76,7 +76,7 @@ class AsyncEventBus:
                     loop = asyncio.get_running_loop()
                     future = loop.run_in_executor(None, handler, payload)
                     tasks.append(asyncio.ensure_future(future))
-            except Exception:
+            except RuntimeError:
                 logger.exception("Failed to schedule handler for event: %s", event_type)
 
         if tasks:

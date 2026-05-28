@@ -31,6 +31,11 @@ class Chunk:
     parent_chunk_id: Optional[str] = None
     source_file: Optional[str] = None
     metadata: dict = field(default_factory=dict)
+    # SceneChunk extended fields (for entity-anchored retrieval)
+    characters_present: List[str] = field(default_factory=list)
+    timeline_position: int = 0  # chapter index
+    emotional_tone: str = ""  # extracted emotion
+    scene_type: str = ""  # "dialogue" | "action" | "introspection" | "description"
 
     @property
     def word_count(self) -> int:
@@ -182,6 +187,42 @@ class SceneChunker(ChunkStrategy):
 
     TIME_LOCATION_PATTERN: re.Pattern = re.compile(r"【([^】]+)】")
 
+    # Patterns for scene type detection
+    DIALOGUE_PATTERN: re.Pattern = re.compile(r'[""「」].*?[""「」]|说道|问道|答道|喊道|笑道')
+    ACTION_PATTERN: re.Pattern = re.compile(r'冲|跑|跳|打|杀|攻|挥|刺|劈|踢|拔|抽|扔|掷')
+    INTROSPECTION_PATTERN: re.Pattern = re.compile(r'想到|心中|暗自|觉得|感到|明白|回忆|思考|盘算')
+
+    def _detect_scene_type(self, text: str) -> str:
+        """Detect scene type from text content."""
+        dialogue_count = len(self.DIALOGUE_PATTERN.findall(text))
+        action_count = len(self.ACTION_PATTERN.findall(text))
+        introspection_count = len(self.INTROSPECTION_PATTERN.findall(text))
+
+        total = dialogue_count + action_count + introspection_count
+        if total == 0:
+            return "description"
+
+        if dialogue_count >= action_count and dialogue_count >= introspection_count:
+            return "dialogue"
+        elif action_count >= introspection_count:
+            return "action"
+        else:
+            return "introspection"
+
+    def _extract_characters(self, text: str, known_characters: List[str] = None) -> List[str]:
+        """Extract character names mentioned in text."""
+        characters = set()
+        # Use known character names if provided
+        if known_characters:
+            for name in known_characters:
+                if name in text:
+                    characters.add(name)
+        # Pattern-based extraction for Chinese names (2-4 char names)
+        name_pattern = re.compile(r'(?:名叫|名为|是)([一-鿿]{2,4})')
+        for match in name_pattern.finditer(text):
+            characters.add(match.group(1))
+        return sorted(characters)
+
     def chunk(self, text: str, metadata: dict) -> List[Chunk]:
         """Split by scene markers."""
         chunks: List[Chunk] = []
@@ -189,6 +230,7 @@ class SceneChunker(ChunkStrategy):
         scene_index = metadata.get("scene_index", 0)
         source_file = metadata.get("source_file")
         parent_chunk_id = metadata.get("parent_chunk_id")
+        known_characters = metadata.get("known_characters", [])
 
         # Find all scene boundary positions
         boundaries = [0]  # Start of text
@@ -226,6 +268,10 @@ class SceneChunker(ChunkStrategy):
             chunk_id = f"scene_{uuid.uuid4().hex[:12]}"
             prev_id = chunks[-1].chunk_id if chunks else None
 
+            # Extract SceneChunk metadata
+            characters = self._extract_characters(scene_text, known_characters)
+            scene_type = self._detect_scene_type(scene_text)
+
             chunk = Chunk(
                 chunk_id=chunk_id,
                 content=scene_text,
@@ -235,6 +281,9 @@ class SceneChunker(ChunkStrategy):
                 parent_chunk_id=parent_chunk_id or prev_id,
                 source_file=source_file,
                 metadata={**time_loc, "start_line": start_line},
+                characters_present=characters,
+                timeline_position=chapter_id,
+                scene_type=scene_type,
             )
             chunks.append(chunk)
             scene_index += 1

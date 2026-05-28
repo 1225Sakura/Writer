@@ -16,6 +16,7 @@ from backend.core.domain import ChatSession, ChatMessage, ExtractedEntity
 from backend.middleware.auth import require_auth
 from backend.core.domain.schemas import (
     ChatMessageCreateRequest,
+    ChatMessageUpdateRequest,
     ChatSessionUpdateRequest,
     ChatMessageResponse,
     ChatSessionResponse,
@@ -229,6 +230,38 @@ async def get_messages(
 
     messages = await msg_service.get_history(session_id, skip=skip, limit=limit)
     return messages
+
+
+@router.patch(
+    "/messages/{message_id}",
+    response_model=ChatMessageResponse,
+    dependencies=[require_auth],
+)
+async def update_message(
+    message_id: int,
+    req: ChatMessageUpdateRequest,
+    msg_service: ChatMessageService = Depends(get_chat_message_service),
+):
+    """Update a chat message's content."""
+    updated = await msg_service.update_message(message_id, req.content)
+    if not updated:
+        raise HTTPException(status_code=404, detail="Message not found")
+    return updated
+
+
+@router.delete(
+    "/messages/{message_id}",
+    dependencies=[require_auth],
+)
+async def delete_message(
+    message_id: int,
+    msg_service: ChatMessageService = Depends(get_chat_message_service),
+):
+    """Delete a chat message."""
+    deleted = await msg_service.delete_message(message_id)
+    if not deleted:
+        raise HTTPException(status_code=404, detail="Message not found")
+    return {"message": "Message deleted"}
 
 
 # ---------------------------------------------------------------------------

@@ -45,3 +45,28 @@ class SQLAlchemyChapterRepository(SQLAlchemyBaseRepository[Chapter], ChapterRepo
             .where(DraftVersion.version_number == version_number)
         )
         return result.scalar_one_or_none()
+
+    async def delete_draft_version(self, chapter_id: int, version_number: int) -> bool:
+        draft = await self.get_draft_version(chapter_id, version_number)
+        if draft is None:
+            return False
+        await self.db.delete(draft)
+        await self.db.flush()
+        return True
+
+    async def get_chapters_with_word_count(self, min_word_count: int, project_id: Optional[int] = None) -> List[Chapter]:
+        stmt = select(Chapter).where(Chapter.word_count >= min_word_count)
+        if project_id is not None:
+            stmt = stmt.where(Chapter.project_id == project_id)
+        result = await self.db.execute(stmt)
+        return list(result.scalars().all())
+
+    async def reorder_chapters(self, outline_id: int, chapter_orders: List[dict]) -> bool:
+        chapters = await self.get_by_outline(outline_id)
+        chapter_map = {c.id: c for c in chapters}
+        for entry in chapter_orders:
+            ch = chapter_map.get(entry["id"])
+            if ch:
+                ch.chapter_order = entry["chapter_order"]
+        await self.db.flush()
+        return True

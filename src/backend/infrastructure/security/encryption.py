@@ -88,6 +88,8 @@ def is_encryption_available() -> bool:
 
 def encrypt_value(plaintext: str) -> str:
     """Encrypt a plaintext string and return the Fernet token as UTF-8."""
+    if not plaintext:
+        return plaintext
     f = get_fernet()
     if f is None:
         raise RuntimeError("Encryption is not available (cryptography not installed)")

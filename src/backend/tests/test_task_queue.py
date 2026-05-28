@@ -27,7 +27,8 @@ async def _sample_handler(task: Task) -> dict:
 
 
 async def _failing_handler(task: Task) -> dict:
-    raise RuntimeError("Intentional failure")
+    from sqlalchemy.exc import SQLAlchemyError
+    raise SQLAlchemyError("Intentional failure")
 
 
 async def _cancelled_handler(task: Task) -> dict:

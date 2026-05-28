@@ -10,6 +10,7 @@ from dataclasses import dataclass, field
 from typing import AsyncIterator
 
 from .provider import AIProvider
+from backend.utils.exceptions import AIServiceError
 
 logger = logging.getLogger(__name__)
 
@@ -165,7 +166,7 @@ class ProviderRouter:
                 self._health[provider.name].record(success=True)
                 self._metrics[provider.name].record_call(success=True, latency_ms=latency_ms)
                 return result
-            except Exception as exc:
+            except AIServiceError as exc:
                 latency_ms = (time.time() - start) * 1000
                 logger.warning(
                     "Provider %s failed for generate: %s",
@@ -216,7 +217,7 @@ class ProviderRouter:
                 self._health[provider.name].record(success=True)
                 self._metrics[provider.name].record_call(success=True, latency_ms=latency_ms)
                 return
-            except Exception as exc:
+            except AIServiceError as exc:
                 latency_ms = (time.time() - start) * 1000
                 logger.warning(
                     "Provider %s failed for generate_stream: %s",
@@ -248,7 +249,7 @@ class ProviderRouter:
                 self._health[provider.name].record(success=True)
                 self._metrics[provider.name].record_call(success=True, latency_ms=latency_ms)
                 return result
-            except Exception as exc:
+            except AIServiceError as exc:
                 latency_ms = (time.time() - start) * 1000
                 logger.warning(
                     "Provider %s failed for review: %s",
@@ -276,7 +277,7 @@ class ProviderRouter:
                 self._health[provider.name].record(success=True)
                 self._metrics[provider.name].record_call(success=True, latency_ms=latency_ms)
                 return result
-            except Exception as exc:
+            except AIServiceError as exc:
                 latency_ms = (time.time() - start) * 1000
                 logger.warning(
                     "Provider %s failed for extract_entities: %s",

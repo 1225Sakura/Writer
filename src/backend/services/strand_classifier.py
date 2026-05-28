@@ -21,6 +21,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.core.domain import Chapter, DraftVersion
 from backend.core.services.ai.ai_service import AIService
+from backend.utils.exceptions import AIServiceError
 
 logger = logging.getLogger(__name__)
 
@@ -245,7 +246,7 @@ class StrandClassifier:
                     confidence=parsed.get("confidence", 0.8),
                     method="ai",
                 )
-        except Exception as e:
+        except AIServiceError as e:
             logger.warning("AI strand classification failed, falling back to heuristic: %s", e)
 
         # Fallback to heuristic

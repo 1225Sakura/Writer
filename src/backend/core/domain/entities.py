@@ -201,6 +201,9 @@ class Chapter(Base):
     chapter_order = Column(Integer, default=0)
     content_storage_id = Column(String(64), nullable=True)
     notes = Column(Text, nullable=True)
+    note_category = Column(String(50), nullable=True, default="note")
+    note_pinned = Column(Boolean, default=False)
+    battle_station_data = Column(Text, nullable=True)  # JSON: {"goal": str, "obstacle": str, "cost": str, "hook": str}
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
@@ -322,6 +325,7 @@ class WritingSettings(Base):
     human_ai_ratio = Column(Float, default=0.5)
     writing_style = Column(String, default="default")
     target_word_count = Column(Integer, default=3000)
+    sprint_data_json = Column(Text, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
@@ -381,3 +385,20 @@ class AIProviderConfig(Base):
     is_active = Column(Boolean, default=False, index=True)
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+
+# ============================================
+# AI Review History
+# ============================================
+
+class AIReviewHistory(Base):
+    __tablename__ = "ai_review_history"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    project_id = Column(Integer, ForeignKey("projects.id"), nullable=True, index=True)
+    iteration_id = Column(String(100), nullable=False, unique=True, index=True)
+    category = Column(String(50), nullable=False)
+    issue_count = Column(Integer, default=0)
+    severity_counts_json = Column(Text)  # JSON: {"error": N, "warning": N, "suggestion": N}
+    suggestions_json = Column(Text)  # JSON array of SuggestionItem objects
+    created_at = Column(DateTime, default=datetime.utcnow)

@@ -14,6 +14,8 @@ from backend.agents.data_agent import DataAgent
 
 from backend.api.v1.dependencies import get_event_bus
 
+from backend.utils.exceptions import AgentError, AIServiceError
+
 from .dependencies import (
     get_ai_provider,
     get_ai_service,
@@ -139,7 +141,7 @@ async def build_execution_package(
         return ContextResponse(**context)
     except ValueError as e:
         raise HTTPException(status_code=404, detail=str(e))
-    except Exception as e:
+    except (AgentError, AIServiceError) as e:
         raise HTTPException(status_code=500, detail=f"Failed to build context: {str(e)}")
 
 

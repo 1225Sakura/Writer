@@ -77,7 +77,7 @@ class RequestLoggingMiddleware(BaseHTTPMiddleware):
         try:
             response = await call_next(request)
             status_code = response.status_code
-        except Exception as e:
+        except RuntimeError as e:
             status_code = 500
             logger.error(
                 "Request failed with exception",

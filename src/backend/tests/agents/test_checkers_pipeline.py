@@ -261,7 +261,7 @@ class TestErrorHandling:
 
         checker2 = MagicMock(spec=BaseChecker)
         checker2.name = "bad_checker"
-        checker2.quick_scan = AsyncMock(side_effect=Exception("Failed"))
+        checker2.quick_scan = AsyncMock(side_effect=RuntimeError("Failed"))
 
         pipeline = CheckerPipeline(checkers=[checker1, checker2])
         results = await pipeline.run_quick_scan("content")

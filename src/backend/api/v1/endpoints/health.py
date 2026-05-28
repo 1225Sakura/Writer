@@ -20,6 +20,7 @@ from sqlalchemy import text
 
 from backend.config import settings
 from backend.utils.logging import get_logger
+from backend.utils.exceptions import DatabaseError, AppException
 
 logger = get_logger("writer-api.health")
 
@@ -33,7 +34,7 @@ async def _check_database() -> dict:
         async with engine.connect() as conn:
             await conn.execute(text("SELECT 1"))
         return {"status": "connected", "latency_ms": 0}
-    except Exception as e:
+    except DatabaseError as e:
         logger.error(f"Database health check failed: {e}")
         return {"status": "error", "detail": str(e)}
 
@@ -54,7 +55,7 @@ async def _check_ai_service() -> dict:
             }
     except ImportError:
         return {"status": "unknown", "message": "AI service module not available"}
-    except Exception as e:
+    except AppException as e:
         logger.error(f"AI service health check failed: {e}")
         return {"status": "error", "detail": str(e)}
 
@@ -83,7 +84,7 @@ async def _check_disk_space() -> dict:
             "used_percent": round(used_percent, 2),
             "path": str(data_dir),
         }
-    except Exception as e:
+    except AppException as e:
         logger.error(f"Disk space health check failed: {e}")
         return {"status": "error", "detail": str(e)}
 

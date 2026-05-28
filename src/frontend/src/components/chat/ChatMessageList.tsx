@@ -7,6 +7,7 @@
 
 import { useRef, useEffect } from 'react'
 import type { ChatMessage } from '@/store'
+import { useChatStore } from '@/store/chatStore'
 import { Sparkles, MessageSquareText, Wand2 } from 'lucide-react'
 import { Icon } from '@/components/ui/Icon'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -22,6 +23,7 @@ import { ChatBubble, StreamingBubble } from './ChatBubble'
 
 function EmptyState() {
   const prefersReducedMotion = usePrefersReducedMotion()
+  const setPendingInput = useChatStore((s) => s.setPendingInput)
 
   return (
     <motion.div
@@ -100,6 +102,7 @@ function EmptyState() {
             hover
             className="inline-flex items-center gap-1.5 text-sm cursor-pointer text-secondary hover:text-primary"
             style={{ whiteSpace: 'nowrap' }}
+            onClick={() => setPendingInput(`我想写一本${tag}小说`)}
           >
             <span className="flex-shrink-0 opacity-60"><Icon icon={MessageSquareText} size="xs" /></span>
             <span>{tag}</span>
@@ -121,6 +124,7 @@ interface MessageListProps {
   isLoading: boolean
   editMessage: (id: string, content: string) => void
   deleteMessage: (id: string) => void
+  retryMessage: (id: string) => void
   confirmEntity: (id: string) => void
 }
 
@@ -131,6 +135,7 @@ export function MessageList({
   isLoading,
   editMessage,
   deleteMessage,
+  retryMessage,
   confirmEntity,
 }: MessageListProps) {
   const scrollRef = useRef<HTMLDivElement>(null)
@@ -164,6 +169,7 @@ export function MessageList({
               index={index}
               onEdit={editMessage}
               onDelete={deleteMessage}
+              onRetry={retryMessage}
               onConfirmEntity={confirmEntity}
               isGrouped={isGrouped}
               isFirstInGroup={isFirstInGroup}

@@ -23,33 +23,6 @@ import { showOperationError } from '../utils/toastHelper'
 // Types
 // ============================================
 
-export interface DraftVersionLocal {
-  id: string
-  chapterId: string
-  content: string
-  versionNumber: number
-  createdAt: number
-}
-
-export interface PlotThreadLocal {
-  id: string
-  title: string
-  description?: string
-  status: 'open' | 'revealed' | 'closed'
-  createdChapterId: string
-  revealChapterId?: string
-}
-
-export interface AIInspectionResultLocal {
-  id: string
-  chapterId: string
-  inspectionType: 'consistency' | 'relationship' | 'foreshadowing' | 'suggestion'
-  issues: string[]
-  suggestions: string[]
-  autoFixed: boolean
-  createdAt: number
-}
-
 interface ContentLoadingState {
   outlines: boolean
   ifLines: boolean

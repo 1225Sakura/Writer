@@ -61,6 +61,7 @@ interface ChatState {
   extractionProgress: number
   messageCache: MessageCache
   lastActiveSessionId: number | null
+  pendingInput: string
 }
 
 interface ChatActions {
@@ -71,8 +72,8 @@ interface ChatActions {
   deleteSession: (sessionId: number) => Promise<void>
   sendMessage: (content: string, options?: { currentCategory?: string }) => Promise<void>
   loadMessages: () => Promise<void>
-  editMessage: (id: string, newContent: string) => void
-  deleteMessage: (id: string) => void
+  editMessage: (id: string, newContent: string) => Promise<void>
+  deleteMessage: (id: string) => Promise<void>
   retryMessage: (id: string) => Promise<void>
   updateStreamingContent: (content: string) => void
   finishStreaming: () => void
@@ -85,9 +86,10 @@ interface ChatActions {
   batchConfirmEntities: (ids: string[]) => Promise<void>
   extractEntitiesFromMessage: (messageId: string) => Promise<void>
   setExtractionState: (state: EntityExtractionState) => void
-  exportToOutline: () => { title: string; entries: { type: string; name: string; description?: string }[] }
+  exportToOutline: () => { title: string; entries: { type: ExtractedEntityLocal['type'] | 'plot_point'; name: string; description?: string }[] }
   clearMessageCache: () => void
   getCachedMessages: (sessionId: number) => ChatMessageLocal[] | undefined
+  setPendingInput: (text: string) => void
 }
 
 // ============================================
@@ -170,6 +172,7 @@ export const useChatStore = create<ChatState & ChatActions>()(
           extractionProgress: 0,
           messageCache: { messages: {}, cachedAt: {} },
           lastActiveSessionId: null,
+  pendingInput: '',
 
           createSession: async () => {
             set((state) => {
@@ -429,7 +432,8 @@ export const useChatStore = create<ChatState & ChatActions>()(
             }
           },
 
-          editMessage: (id, newContent) => {
+          editMessage: async (id, newContent) => {
+            // Update local state immediately
             set((state) => {
               const msg = state.messages.find((m) => m.id === id)
               if (msg) {
@@ -437,15 +441,32 @@ export const useChatStore = create<ChatState & ChatActions>()(
                 msg.editedAt = Date.now()
               }
             })
+            // Persist to backend
+            try {
+              await messageApi.edit(Number(id), newContent)
+            } catch (error) {
+              set((state) => {
+                state.error = (error as Error).message
+              })
+            }
           },
 
-          deleteMessage: (id) => {
+          deleteMessage: async (id) => {
+            // Update local state immediately
             set((state) => {
               state.messages = state.messages.filter((m) => m.id !== id)
               state.extractedEntities = state.extractedEntities.filter(
                 (e) => e.sourceMessageId !== id
               )
             })
+            // Persist to backend
+            try {
+              await messageApi.delete(Number(id))
+            } catch (error) {
+              set((state) => {
+                state.error = (error as Error).message
+              })
+            }
           },
 
           updateStreamingContent: (content) => {
@@ -535,7 +556,7 @@ export const useChatStore = create<ChatState & ChatActions>()(
 
           confirmEntity: async (id) => {
             try {
-              await entityApi.confirm(Number(id), true)
+              await entityApi.confirm(id, true)
               set((state) => {
                 const entity = state.extractedEntities.find((e) => e.id === id)
                 if (entity) entity.confirmed = true
@@ -549,7 +570,7 @@ export const useChatStore = create<ChatState & ChatActions>()(
             set((state) => { state.extractionState = 'confirming' })
             try {
               await Promise.all(
-                ids.map((id) => entityApi.confirm(Number(id), true))
+                ids.map((id) => entityApi.confirm(id, true))
               )
               set((state) => {
                 ids.forEach((id) => {
@@ -629,7 +650,7 @@ export const useChatStore = create<ChatState & ChatActions>()(
                 description: e.description,
               })),
               ...plotPoints.map((content, i) => ({
-                type: 'plot_point',
+                type: 'plot_point' as const,
                 name: `情节要点 ${i + 1}`,
                 description: content.slice(0, 100),
               })),
@@ -649,6 +670,12 @@ export const useChatStore = create<ChatState & ChatActions>()(
 
           getCachedMessages: (sessionId) => {
             return get().messageCache.messages[sessionId]
+          },
+
+          setPendingInput: (text) => {
+            set((state) => {
+              state.pendingInput = text
+            })
           },
         }),
         {

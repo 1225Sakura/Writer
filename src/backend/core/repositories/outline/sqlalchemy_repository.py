@@ -1,7 +1,7 @@
 # Auto Novel Writer - Outline Repository (SQLAlchemy Implementation)
 # Concrete SQLAlchemy implementation of OutlineRepositoryInterface
 
-from typing import Optional
+from typing import Optional, List
 from sqlalchemy import select
 from sqlalchemy.orm import selectinload
 
@@ -21,5 +21,15 @@ class SQLAlchemyOutlineRepository(SQLAlchemyBaseRepository[Outline], OutlineRepo
             select(Outline)
             .where(Outline.id == id)
             .options(selectinload(Outline.chapters))
+        )
+        return result.scalar_one_or_none()
+
+    async def get_active_outline(self, project_id: int) -> Optional[Outline]:
+        """Fetch the most recently created outline for a project."""
+        result = await self.db.execute(
+            select(Outline)
+            .where(Outline.project_id == project_id)
+            .order_by(Outline.id.desc())
+            .limit(1)
         )
         return result.scalar_one_or_none()

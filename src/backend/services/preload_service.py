@@ -5,6 +5,8 @@ from typing import Any, Optional
 from sqlalchemy import select, desc
 from sqlalchemy.orm import selectinload
 
+from backend.utils.exceptions import CacheError, DatabaseError
+
 from backend.infrastructure.database import async_session_maker
 from backend.core.domain.entities import (
     WorldSetting,
@@ -284,7 +286,7 @@ class PreloadService:
             self._stats["categories"][name] = {"count": count, "error": None}
             self._stats["total_items"] += count
             logger.debug("Preloaded %d %s", count, name)
-        except Exception as exc:
+        except DatabaseError as exc:
             error_msg = f"{name}: {exc}"
             self._stats["errors"].append(error_msg)
             self._stats["categories"][name] = {"count": 0, "error": str(exc)}
@@ -296,7 +298,7 @@ class PreloadService:
         if self._tiered_cache is not None:
             try:
                 self._tiered_cache.set(key, value, ttl=ttl, tier="l1")
-            except Exception as e:
+            except CacheError as e:
                 logger.debug("Tiered cache set failed (non-critical): %s", e)
 
 

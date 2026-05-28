@@ -39,7 +39,7 @@ def get_api_key_from_keyring(key_name: str = "api_key") -> Optional[str]:
         if value:
             logger.debug("Retrieved %s from system keyring", key_name)
         return value
-    except Exception as exc:  # noqa: BLE001
+    except (OSError, RuntimeError) as exc:
         logger.debug("Keyring read failed for %s: %s", key_name, exc)
         return None
 
@@ -60,7 +60,7 @@ def save_api_key_to_keyring(key_name: str, value: str) -> bool:
         kr.set_password(KEYRING_SERVICE_NAME, key_name, value)
         logger.info("Saved %s to system keyring", key_name)
         return True
-    except Exception as exc:  # noqa: BLE001
+    except (OSError, RuntimeError) as exc:
         logger.warning("Keyring write failed for %s: %s", key_name, exc)
         return False
 
@@ -80,7 +80,7 @@ def delete_api_key_from_keyring(key_name: str) -> bool:
         kr.delete_password(KEYRING_SERVICE_NAME, key_name)
         logger.info("Deleted %s from system keyring", key_name)
         return True
-    except Exception as exc:  # noqa: BLE001
+    except (OSError, RuntimeError) as exc:
         logger.debug("Keyring delete failed for %s: %s", key_name, exc)
         return False
 

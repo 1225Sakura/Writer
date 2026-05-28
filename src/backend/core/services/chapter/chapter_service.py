@@ -52,6 +52,17 @@ class ChapterService(BaseService[Chapter]):
         """Get a specific draft version."""
         return await self.repo.get_draft_version(chapter_id, version_number)
 
+    async def delete_draft_version(self, chapter_id: int, version_number: int) -> bool:
+        """Delete a specific draft version."""
+        deleted = await self.repo.delete_draft_version(chapter_id, version_number)
+        if deleted:
+            await self.cache.ainvalidate_tag("drafts")
+            await self.event_bus.publish(
+                "entity.deleted",
+                {"entity_type": "draft_version", "chapter_id": chapter_id, "version_number": version_number},
+            )
+        return deleted
+
     # Backward-compatible aliases
     create_chapter = BaseService.create
     update_chapter = update

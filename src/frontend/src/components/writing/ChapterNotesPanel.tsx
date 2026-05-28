@@ -39,10 +39,10 @@ export function ChapterNotesPanel() {
         setNotes([{
           id: 'default',
           content: note.content,
-          category: 'note',
-          createdAt: Date.now(),
-          updatedAt: Date.now(),
-          pinned: false,
+          category: note.category || 'note',
+          createdAt: note.createdAt || Date.now(),
+          updatedAt: note.updatedAt || Date.now(),
+          pinned: note.pinned || false,
         }])
       } else {
         setNotes([])
@@ -52,14 +52,15 @@ export function ChapterNotesPanel() {
 
   const handleSave = useCallback(() => {
     if (currentChapterId && noteContent.trim()) {
-      setChapterNote(currentChapterId, noteContent)
+      const existingPinned = editingNoteId ? (notes.find((n) => n.id === editingNoteId)?.pinned ?? false) : false
+      setChapterNote(currentChapterId, noteContent, selectedCategory, existingPinned)
       const newNote: ChapterNote = {
         id: editingNoteId || `note-${Date.now()}`,
         content: noteContent,
         category: selectedCategory,
         createdAt: editingNoteId ? (notes.find((n) => n.id === editingNoteId)?.createdAt || Date.now()) : Date.now(),
         updatedAt: Date.now(),
-        pinned: false,
+        pinned: existingPinned,
       }
       if (editingNoteId) {
         setNotes((prev) => prev.map((n) => (n.id === editingNoteId ? newNote : n)))
@@ -83,15 +84,19 @@ export function ChapterNotesPanel() {
     setNotes((prev) => {
       const note = prev.find((n) => n.id === noteId)
       if (!note) return prev
+      const newPinned = !note.pinned
+      if (currentChapterId) {
+        setChapterNote(currentChapterId, note.content, note.category, newPinned)
+      }
       const updated = prev.map((n) =>
-        n.id === noteId ? { ...n, pinned: !n.pinned } : n
+        n.id === noteId ? { ...n, pinned: newPinned } : n
       )
       return updated.sort((a, b) => {
         if (a.pinned === b.pinned) return b.updatedAt - a.updatedAt
         return a.pinned ? -1 : 1
       })
     })
-  }, [])
+  }, [currentChapterId, setChapterNote])
 
   const handleEdit = useCallback((note: ChapterNote) => {
     setNoteContent(note.content)
@@ -114,11 +119,11 @@ export function ChapterNotesPanel() {
     if (!currentChapterId || !isOpen) return
     const timeout = setTimeout(() => {
       if (noteContent.trim()) {
-        setChapterNote(currentChapterId, noteContent)
+        setChapterNote(currentChapterId, noteContent, selectedCategory)
       }
     }, 1000)
     return () => clearTimeout(timeout)
-  }, [noteContent, currentChapterId, isOpen, setChapterNote])
+  }, [noteContent, currentChapterId, isOpen, selectedCategory, setChapterNote])
 
   const pinnedCount = notes.filter((n) => n.pinned).length
 

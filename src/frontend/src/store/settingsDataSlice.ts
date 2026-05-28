@@ -21,6 +21,7 @@ import {
   ifLineApi,
   aiApi as aiGenerateApi,
 } from '../api/writing'
+import { consumeStream } from '../api/chat'
 import { aiReviewApi } from '../api/aiReview'
 import type { AIReviewResult } from '../api/types'
 import type {
@@ -69,6 +70,7 @@ export interface DataSliceState {
   isLoading: boolean
   error: string | null
   aiReviewResult: AIReviewResult | null
+  aiGenerateResult: string | null
   history: HistoryEntry[]
   historyIndex: number
   canUndo: boolean
@@ -107,13 +109,14 @@ export interface DataSliceActions {
   updateRule: (id: number, updates: Partial<Rule>) => Promise<void>
   deleteRule: (id: number) => Promise<void>
   setOutline: (outline: Outline) => Promise<void>
+  updateOutline: (updates: { title?: string; description?: string }) => Promise<void>
   addChapter: (chapter: Omit<Chapter, 'id'>) => Promise<void>
   updateChapter: (id: number, updates: Partial<Chapter>) => Promise<void>
   deleteChapter: (id: number) => Promise<void>
   addIFLine: (ifLine: Omit<IFLine, 'id'>) => Promise<void>
   updateIFLine: (id: number, updates: Partial<IFLine>) => Promise<void>
   deleteIFLine: (id: number) => Promise<void>
-  importFromChat: (entities: Array<{ type: EntityType; name: string; description?: string }>) => Promise<void>
+  importFromChat: (entities: Array<{ type: EntityType | 'plot_point' | 'chapter' | 'plot_thread'; name: string; description?: string }>) => Promise<void>
   batchDelete: (entityType: EntityType, ids: number[]) => Promise<void>
   batchUpdateTags: (entityType: EntityType, ids: number[], tags: string[]) => Promise<void>
   executeBatch: (operation: BatchOperation) => Promise<void>
@@ -155,6 +158,7 @@ export const createDataSlice = (
   isLoading: false,
   error: null,
   aiReviewResult: null,
+  aiGenerateResult: null,
   history: [],
   historyIndex: -1,
   canUndo: false,
@@ -318,10 +322,13 @@ export const createDataSlice = (
 
   generate: async (type, context) => {
     try {
-      await aiGenerateApi.generate({
+      set((state) => { state.aiGenerateResult = null })
+      const { stream } = await aiGenerateApi.generate({
         prompt: context || `生成${type}设定`,
         operation: 'continue',
       })
+      const result = await consumeStream(stream)
+      set((state) => { state.aiGenerateResult = result })
     } catch (error) {
       set((state) => { state.error = error instanceof Error ? error.message : String(error) })
     }
@@ -836,6 +843,19 @@ export const createDataSlice = (
     }
   },
 
+  updateOutline: async (updates) => {
+    const currentOutline = get().outline
+    if (!currentOutline) return
+    try {
+      const updated = await outlineApi.update(currentOutline.id, updates)
+      set((state) => {
+        state.outline = updated
+      })
+    } catch (error) {
+      showOperationError('更新大纲', error)
+    }
+  },
+
   addChapter: async (chapter) => {
     if (!get().outline) return
     try {
@@ -909,33 +929,54 @@ export const createDataSlice = (
   // ---- Batch Operations ----
 
   importFromChat: async (entities) => {
+    if (!entities || entities.length === 0) return
     try {
+      const state = get()
       for (const { type, name, description } of entities) {
+        if (!name?.trim()) continue
+        const trimmedName = name.trim()
         switch (type) {
           case 'character':
-            await get().addCharacter({ name, description, tier: 'supporting', tags: [] })
+            if (state.characters.some((c) => c.name === trimmedName)) continue
+            await get().addCharacter({ name: trimmedName, description, tier: 'supporting', tags: [] })
             break
           case 'item':
-            await get().addItem({ name, description })
+            if (state.items.some((i) => i.name === trimmedName)) continue
+            await get().addItem({ name: trimmedName, description })
             break
           case 'location':
-            await get().addLocation({ name, description, importance: 'minor' })
+            if (state.locations.some((l) => l.name === trimmedName)) continue
+            await get().addLocation({ name: trimmedName, description, importance: 'minor' })
             break
           case 'faction':
-            await get().addFaction({ name, description, type: 'other' })
+            if (state.factions.some((f) => f.name === trimmedName)) continue
+            await get().addFaction({ name: trimmedName, description, type: 'other' })
             break
           case 'world':
-            await get().addWorldSetting({ name, description: description || '' })
+            if (state.worldSettings.some((w) => w.name === trimmedName)) continue
+            await get().addWorldSetting({ name: trimmedName, description: description || '' })
             break
           case 'rule':
-            await get().addRule({ name, description: description || '', type: 'other' })
+            if (state.rules.some((r) => r.name === trimmedName)) continue
+            await get().addRule({ name: trimmedName, description: description || '', type: 'other' })
             break
           case 'outline':
-            await get().setOutline({ id: Date.now(), title: name, description: description || '' })
+            if (state.outline) continue
+            await get().setOutline({ id: Date.now(), title: trimmedName, description: description || '' })
             break
           case 'ifline':
-            await get().addIFLine({ title: name, description: description || '', sync_mode: 'manual', created_at: new Date().toISOString(), updated_at: new Date().toISOString() })
+            if (state.ifLines.some((i) => i.title === trimmedName)) continue
+            await get().addIFLine({ title: trimmedName, description: description || '', sync_mode: 'manual', created_at: new Date().toISOString(), updated_at: new Date().toISOString() })
             break
+          case 'plot_point':
+          case 'chapter':
+          case 'plot_thread': {
+            // Convert story structure entries to outline if none exists yet
+            if (!state.outline) {
+              await get().setOutline({ id: Date.now(), title: trimmedName, description: description || '' })
+            }
+            break
+          }
         }
       }
     } catch (error) {

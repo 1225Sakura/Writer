@@ -16,6 +16,8 @@ export interface ChapterNote {
   id: string
   chapterId: number
   content: string
+  category: string
+  pinned: boolean
   createdAt: number
   updatedAt: number
 }
@@ -94,7 +96,7 @@ interface WritingActions {
 
   // Notes
   getChapterNote: (chapterId: number) => ChapterNote | undefined
-  setChapterNote: (chapterId: number, content: string) => Promise<void>
+  setChapterNote: (chapterId: number, content: string, category?: string, pinned?: boolean) => Promise<void>
   deleteChapterNote: (chapterId: number) => Promise<void>
 
   // Session tracking
@@ -323,19 +325,26 @@ export const useWritingStore = create<WritingState & WritingActions>()(
             return get().chapterNotes.find((n) => n.chapterId === chapterId)
           },
 
-          setChapterNote: async (chapterId, content) => {
-            await chapterApi.update(chapterId, { notes: content })
+          setChapterNote: async (chapterId, content, category, pinned) => {
+            const updateData: Record<string, unknown> = { notes: content }
+            if (category !== undefined) updateData.note_category = category
+            if (pinned !== undefined) updateData.note_pinned = pinned
+            await chapterApi.update(chapterId, updateData)
             set((state) => {
               const existing = state.chapterNotes.find((n) => n.chapterId === chapterId)
               const now = Date.now()
               if (existing) {
                 existing.content = content
                 existing.updatedAt = now
+                if (category !== undefined) existing.category = category
+                if (pinned !== undefined) existing.pinned = pinned
               } else {
                 state.chapterNotes.push({
                   id: genNoteId(chapterId),
                   chapterId,
                   content,
+                  category: category ?? 'note',
+                  pinned: pinned ?? false,
                   createdAt: now,
                   updatedAt: now,
                 })
@@ -344,7 +353,7 @@ export const useWritingStore = create<WritingState & WritingActions>()(
           },
 
           deleteChapterNote: async (chapterId) => {
-            await chapterApi.update(chapterId, { notes: '' })
+            await chapterApi.update(chapterId, { notes: '', note_category: 'note', note_pinned: false })
             set((state) => {
               state.chapterNotes = state.chapterNotes.filter((n) => n.chapterId !== chapterId)
             })

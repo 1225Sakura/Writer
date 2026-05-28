@@ -17,7 +17,7 @@ import { PreviewPanel } from './PreviewPanel'
    ============================================================ */
 
 export function ChatInitPage() {
-  const { extractedEntities, sessionId, createSession, loadExtractedEntities, loadMessages, confirmEntity } = useChatStore()
+  const { extractedEntities, sessionId, createSession, loadExtractedEntities, loadMessages, confirmEntity, batchConfirmEntities } = useChatStore()
   const [sidebarOpen, setSidebarOpen] = useState(true)
   const [mobileInfoOpen, setMobileInfoOpen] = useState(false)
   const prefersReducedMotion = usePrefersReducedMotion()
@@ -61,7 +61,9 @@ export function ChatInitPage() {
         {/* Right: Collected info sidebar - desktop only */}
         <ChatSidebar
           entities={extractedEntities}
+          sessionId={sessionId}
           onConfirmEntity={confirmEntity}
+          onConfirmAll={() => batchConfirmEntities(extractedEntities.filter((e) => !e.confirmed).map((e) => e.id))}
         />
       </div>
 

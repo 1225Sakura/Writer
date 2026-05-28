@@ -33,6 +33,7 @@ from backend.services.constraints import (
     ConstraintCheckResult,
 )
 from backend.core.services.style.style_constraint import StyleConstraintEnforcer
+from backend.utils.exceptions import ConstraintError, AppException
 
 router = APIRouter(prefix="/constraints", tags=["constraints"])
 
@@ -234,7 +235,7 @@ async def check_constraints(
             outline_id=request.outline_id,
             mode=request.mode,
         )
-    except Exception as e:
+    except ConstraintError as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Constraint check failed: {str(e)}",
@@ -255,7 +256,7 @@ async def check_constraints(
             result.overall_score = engine._compute_score(result.violations)
             result.passed = result.overall_score >= ConstraintEngine.PASS_THRESHOLD
             result.summary = engine._build_summary(result.violations, result.overall_score)
-        except Exception:
+        except AppException:
             # Style check is best-effort; don't fail the whole request
             pass
 
@@ -317,7 +318,7 @@ async def list_rules(
             law_type=law_type_enum,
             status=status_enum,
         )
-    except Exception as e:
+    except ConstraintError as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to load rules: {str(e)}",
@@ -357,7 +358,7 @@ async def add_rule(
 
     try:
         created = await engine.add_rule(rule)
-    except Exception as e:
+    except ConstraintError as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to add rule: {str(e)}",
@@ -382,7 +383,7 @@ async def delete_rule(
 
     try:
         deleted = await engine.delete_rule(rule_id)
-    except Exception as e:
+    except ConstraintError as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to delete rule: {str(e)}",
@@ -439,7 +440,7 @@ async def get_violations(
             severity=severity_enum,
             limit=limit,
         )
-    except Exception as e:
+    except ConstraintError as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to load violations: {str(e)}",
@@ -481,7 +482,7 @@ async def check_style_constraints(
             target_style=request.target_style,
             target_word_count=request.target_word_count,
         )
-    except Exception as e:
+    except ConstraintError as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Style check failed: {str(e)}",

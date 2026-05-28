@@ -1,6 +1,8 @@
 import { Target } from 'lucide-react'
-import { useState } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { CollapsibleSection } from './CollapsibleSection'
+import { useWritingStore } from '@/store/writingStore'
+import { chapterApi } from '@/api/writing'
 
 interface BattleInputProps {
   label: string
@@ -28,12 +30,87 @@ function BattleInput({ label, value, onChange, placeholder, id }: BattleInputPro
   )
 }
 
+interface BattleStationData {
+  goal: string
+  obstacle: string
+  cost: string
+  hook: string
+}
+
 export function BattleStation() {
   const [isExpanded, setIsExpanded] = useState(true)
   const [goal, setGoal] = useState('')
   const [obstacle, setObstacle] = useState('')
   const [cost, setCost] = useState('')
   const [hook, setHook] = useState('')
+
+  const currentChapterId = useWritingStore((s) => s.currentChapterId)
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const skipSaveRef = useRef(true)
+
+  // Load battle station data when chapter changes
+  useEffect(() => {
+    if (!currentChapterId) {
+      setGoal('')
+      setObstacle('')
+      setCost('')
+      setHook('')
+      skipSaveRef.current = true
+      return
+    }
+
+    skipSaveRef.current = true
+    chapterApi.getById(currentChapterId).then((chapter) => {
+      if (chapter.battle_station_data) {
+        try {
+          const data: BattleStationData = JSON.parse(chapter.battle_station_data)
+          setGoal(data.goal || '')
+          setObstacle(data.obstacle || '')
+          setCost(data.cost || '')
+          setHook(data.hook || '')
+        } catch {
+          // Malformed JSON, keep defaults
+        }
+      } else {
+        setGoal('')
+        setObstacle('')
+        setCost('')
+        setHook('')
+      }
+      // Allow saves after a tick so the setState calls above don't trigger a save
+      setTimeout(() => { skipSaveRef.current = false }, 0)
+    }).catch(() => {
+      skipSaveRef.current = false
+    })
+  }, [currentChapterId])
+
+  // Debounced save when any field changes
+  const saveBattleStation = useCallback((data: BattleStationData) => {
+    if (!currentChapterId) return
+    if (debounceRef.current) clearTimeout(debounceRef.current)
+    debounceRef.current = setTimeout(async () => {
+      try {
+        await chapterApi.update(currentChapterId, {
+          battle_station_data: JSON.stringify(data),
+        })
+      } catch {
+        // Silently fail - non-critical feature
+      }
+    }, 800)
+  }, [currentChapterId])
+
+  // Trigger save when fields change (but not during initial load)
+  useEffect(() => {
+    if (skipSaveRef.current) return
+    saveBattleStation({ goal, obstacle, cost, hook })
+  }, [goal, obstacle, cost, hook, saveBattleStation])
+
+  // Cleanup debounce timer
+  useEffect(() => {
+    return () => {
+      if (debounceRef.current) clearTimeout(debounceRef.current)
+    }
+  }, [])
 
   return (
     <CollapsibleSection

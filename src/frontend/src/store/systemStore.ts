@@ -44,8 +44,6 @@ interface SystemActions {
   // Genres
   fetchGenres: () => Promise<void>
   fetchGenreProfile: (genre: string) => Promise<void>
-  applyGenre: (genre: string, projectId: number) => Promise<void>
-  buildProfile: (projectId: number, chapterContents?: string[]) => Promise<void>
 
   // Workflows
   listWorkflows: () => Promise<void>
@@ -56,15 +54,10 @@ interface SystemActions {
   fetchMetrics: (windowSeconds?: number) => Promise<void>
   fetchDebts: (params?: { debt_type?: string; status?: string }) => Promise<void>
   fetchTrends: (limit?: number) => Promise<void>
-  fetchStatus: () => Promise<void>
   fetchQuickStatus: () => Promise<void>
 
   // Constraints
-  checkConstraints: (content: string, chapterId?: number) => Promise<void>
   fetchConstraintRules: (params?: { law_type?: string; status?: string }) => Promise<void>
-  addConstraintRule: (rule: { law_type: string; name: string; description: string; pattern?: string; severity?: string }) => Promise<void>
-  deleteConstraintRule: (ruleId: string) => Promise<void>
-  checkStyleConstraints: (content: string, targetStyle?: string) => Promise<void>
 
   // Utility
   clearError: () => void
@@ -120,30 +113,6 @@ export const useSystemStore = create<SystemState & SystemActions>()(
               const message = err instanceof Error ? err.message : '获取类型档案失败'
               set((s) => { s.loading = false; s.error = message })
               showOperationError('获取类型档案', err)
-            }
-          },
-
-          applyGenre: async (genre, projectId) => {
-            set((s) => { s.loading = true; s.error = null })
-            try {
-              await genresApi.applyGenre(genre, { project_id: projectId, genre })
-              set((s) => { s.loading = false })
-            } catch (err) {
-              const message = err instanceof Error ? err.message : '应用类型失败'
-              set((s) => { s.loading = false; s.error = message })
-              showOperationError('应用类型', err)
-            }
-          },
-
-          buildProfile: async (projectId, chapterContents) => {
-            set((s) => { s.loading = true; s.error = null })
-            try {
-              const profile = await genresApi.buildProfileFromChapters({ project_id: projectId, chapter_contents: chapterContents })
-              set((s) => { s.builtProfile = profile; s.loading = false })
-            } catch (err) {
-              const message = err instanceof Error ? err.message : '构建类型档案失败'
-              set((s) => { s.loading = false; s.error = message })
-              showOperationError('构建类型档案', err)
             }
           },
 
@@ -220,17 +189,6 @@ export const useSystemStore = create<SystemState & SystemActions>()(
             }
           },
 
-          fetchStatus: async () => {
-            try {
-              const status = await observabilityApi.getProjectStatus()
-              set((s) => { s.projectStatus = status })
-            } catch (err) {
-              const message = err instanceof Error ? err.message : '获取项目状态失败'
-              set((s) => { s.error = message })
-              showOperationError('获取项目状态', err)
-            }
-          },
-
           fetchQuickStatus: async () => {
             try {
               const status = await observabilityApi.getQuickStatus()
@@ -244,18 +202,6 @@ export const useSystemStore = create<SystemState & SystemActions>()(
 
           // --- Constraint actions ---
 
-          checkConstraints: async (content, chapterId) => {
-            set((s) => { s.loading = true; s.error = null })
-            try {
-              const result = await constraintsApi.checkConstraints({ content, chapter_id: chapterId })
-              set((s) => { s.lastCheckResult = result; s.loading = false })
-            } catch (err) {
-              const message = err instanceof Error ? err.message : '约束检查失败'
-              set((s) => { s.loading = false; s.error = message })
-              showOperationError('约束检查', err)
-            }
-          },
-
           fetchConstraintRules: async (params) => {
             try {
               const result = await constraintsApi.listConstraintRules(params)
@@ -264,48 +210,6 @@ export const useSystemStore = create<SystemState & SystemActions>()(
               const message = err instanceof Error ? err.message : '获取约束规则失败'
               set((s) => { s.error = message })
               showOperationError('获取约束规则', err)
-            }
-          },
-
-          addConstraintRule: async (rule) => {
-            set((s) => { s.loading = true; s.error = null })
-            try {
-              const newRule = await constraintsApi.addConstraintRule(rule)
-              set((s) => {
-                s.constraintRules.push(newRule)
-                s.loading = false
-              })
-            } catch (err) {
-              const message = err instanceof Error ? err.message : '添加约束规则失败'
-              set((s) => { s.loading = false; s.error = message })
-              showOperationError('添加约束规则', err)
-            }
-          },
-
-          deleteConstraintRule: async (ruleId) => {
-            set((s) => { s.loading = true; s.error = null })
-            try {
-              await constraintsApi.deleteConstraintRule(ruleId)
-              set((s) => {
-                s.constraintRules = s.constraintRules.filter((r) => r.id !== ruleId)
-                s.loading = false
-              })
-            } catch (err) {
-              const message = err instanceof Error ? err.message : '删除约束规则失败'
-              set((s) => { s.loading = false; s.error = message })
-              showOperationError('删除约束规则', err)
-            }
-          },
-
-          checkStyleConstraints: async (content, targetStyle) => {
-            set((s) => { s.loading = true; s.error = null })
-            try {
-              const result = await constraintsApi.checkStyleConstraints({ content, target_style: targetStyle })
-              set((s) => { s.lastCheckResult = result; s.loading = false })
-            } catch (err) {
-              const message = err instanceof Error ? err.message : '风格约束检查失败'
-              set((s) => { s.loading = false; s.error = message })
-              showOperationError('风格约束检查', err)
             }
           },
 

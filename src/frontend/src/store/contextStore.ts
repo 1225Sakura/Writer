@@ -3,15 +3,7 @@ import { persist, subscribeWithSelector } from 'zustand/middleware'
 import { immer } from 'zustand/middleware/immer'
 import { contextApi } from '../api/context'
 import { showOperationError } from '../utils/toastHelper'
-import { contextRankApi } from '../api/contextRank'
-import type {
-  ContextBuildResponse,
-  ContextChunkResponse,
-  ContextStatsResponse,
-  ContextQueryResponse,
-  ContextQueryRequest,
-} from '../api/context'
-import type { WeightsResponse } from '../api/contextRank'
+import type { ContextBuildResponse } from '../api/context'
 import { createHybridStorage } from './utils/indexedDBStorage'
 
 // ============================================
@@ -21,11 +13,6 @@ import { createHybridStorage } from './utils/indexedDBStorage'
 export interface ContextState {
   // Data
   contextPack: ContextBuildResponse | null
-  chunks: ContextChunkResponse[]
-  stats: ContextStatsResponse | null
-  weights: WeightsResponse | null
-  lastQuery: ContextQueryResponse | null
-  lastIntent: Record<string, unknown> | null
 
   // UI state
   loading: boolean
@@ -35,21 +22,6 @@ export interface ContextState {
 export interface ContextActions {
   // Context endpoints
   buildContext: (chapterId: number, maxChars?: number) => Promise<void>
-  indexChapter: (chapterId: number, content: string, summary?: string) => Promise<void>
-  queryContext: (request: ContextQueryRequest) => Promise<void>
-  fetchChunks: (chapterId: number) => Promise<void>
-  deleteChunks: (chapterId: number) => Promise<void>
-  fetchStats: () => Promise<void>
-
-  // Context rank endpoints
-  rankContext: (pack?: Record<string, unknown>, chapter?: number) => Promise<void>
-  fetchWeights: () => Promise<void>
-  updateWeights: (request: {
-    entity_weights?: Record<string, number>
-    template_weights?: Record<string, Record<string, number>>
-    dynamic_weights?: Record<string, Record<string, Record<string, number>>>
-  }) => Promise<void>
-  detectIntent: (query: string) => Promise<void>
 
   // Reset
   reset: () => void
@@ -61,11 +33,6 @@ export interface ContextActions {
 
 const initialState: ContextState = {
   contextPack: null,
-  chunks: [],
-  stats: null,
-  weights: null,
-  lastQuery: null,
-  lastIntent: null,
   loading: false,
   error: null,
 }
@@ -97,158 +64,6 @@ export const useContextStore = create<ContextState & ContextActions>()(
           }
         },
 
-        indexChapter: async (chapterId, content, summary) => {
-          set((s) => { s.loading = true; s.error = null })
-          try {
-            await contextApi.indexChapter(chapterId, { content, summary })
-            set((s) => { s.loading = false })
-          } catch (err) {
-            set((s) => {
-              s.error = err instanceof Error ? err.message : '索引章节失败'
-              s.loading = false
-            })
-            showOperationError('索引章节', err)
-          }
-        },
-
-        queryContext: async (request) => {
-          set((s) => { s.loading = true; s.error = null })
-          try {
-            const data = await contextApi.queryContext(request)
-            set((s) => {
-              s.lastQuery = data
-              s.loading = false
-            })
-          } catch (err) {
-            set((s) => {
-              s.error = err instanceof Error ? err.message : '查询上下文失败'
-              s.loading = false
-            })
-            showOperationError('查询上下文', err)
-          }
-        },
-
-        fetchChunks: async (chapterId) => {
-          set((s) => { s.loading = true; s.error = null })
-          try {
-            const data = await contextApi.getChunks(chapterId)
-            set((s) => {
-              s.chunks = data.chunks
-              s.loading = false
-            })
-          } catch (err) {
-            set((s) => {
-              s.error = err instanceof Error ? err.message : '获取索引块失败'
-              s.loading = false
-            })
-            showOperationError('获取索引块', err)
-          }
-        },
-
-        deleteChunks: async (chapterId) => {
-          set((s) => { s.loading = true; s.error = null })
-          try {
-            await contextApi.deleteChunks(chapterId)
-            set((s) => {
-              s.chunks = s.chunks.filter((c) => c.chapter_id !== chapterId)
-              s.loading = false
-            })
-          } catch (err) {
-            set((s) => {
-              s.error = err instanceof Error ? err.message : '删除索引块失败'
-              s.loading = false
-            })
-            showOperationError('删除索引块', err)
-          }
-        },
-
-        fetchStats: async () => {
-          set((s) => { s.loading = true; s.error = null })
-          try {
-            const data = await contextApi.getContextStats()
-            set((s) => {
-              s.stats = data
-              s.loading = false
-            })
-          } catch (err) {
-            set((s) => {
-              s.error = err instanceof Error ? err.message : '获取索引统计失败'
-              s.loading = false
-            })
-            showOperationError('获取索引统计', err)
-          }
-        },
-
-        rankContext: async (pack, chapter) => {
-          set((s) => { s.loading = true; s.error = null })
-          try {
-            const data = await contextRankApi.rankContextPack({ pack, chapter })
-            set((s) => {
-              if (s.contextPack) {
-                s.contextPack = { ...s.contextPack, ...data.ranked_pack } as ContextBuildResponse
-              }
-              s.loading = false
-            })
-          } catch (err) {
-            set((s) => {
-              s.error = err instanceof Error ? err.message : '排名上下文失败'
-              s.loading = false
-            })
-            showOperationError('排名上下文', err)
-          }
-        },
-
-        fetchWeights: async () => {
-          set((s) => { s.loading = true; s.error = null })
-          try {
-            const data = await contextRankApi.getContextWeights()
-            set((s) => {
-              s.weights = data
-              s.loading = false
-            })
-          } catch (err) {
-            set((s) => {
-              s.error = err instanceof Error ? err.message : '获取权重失败'
-              s.loading = false
-            })
-            showOperationError('获取权重', err)
-          }
-        },
-
-        updateWeights: async (request) => {
-          set((s) => { s.loading = true; s.error = null })
-          try {
-            const data = await contextRankApi.updateContextWeights(request)
-            set((s) => {
-              s.weights = data
-              s.loading = false
-            })
-          } catch (err) {
-            set((s) => {
-              s.error = err instanceof Error ? err.message : '更新权重失败'
-              s.loading = false
-            })
-            showOperationError('更新权重', err)
-          }
-        },
-
-        detectIntent: async (query) => {
-          set((s) => { s.loading = true; s.error = null })
-          try {
-            const data = await contextRankApi.detectIntent(query)
-            set((s) => {
-              s.lastIntent = data
-              s.loading = false
-            })
-          } catch (err) {
-            set((s) => {
-              s.error = err instanceof Error ? err.message : '意图检测失败'
-              s.loading = false
-            })
-            showOperationError('意图检测', err)
-          }
-        },
-
         reset: () => {
           set(() => ({ ...initialState }))
         },
@@ -257,7 +72,7 @@ export const useContextStore = create<ContextState & ContextActions>()(
         name: 'context-store',
         storage: createHybridStorage(),
         partialize: (state) => ({
-          weights: state.weights,
+          contextPack: state.contextPack,
         }),
       },
     ),
@@ -269,10 +84,6 @@ export const useContextStore = create<ContextState & ContextActions>()(
 // ============================================
 
 export const selectContextPack = (s: ContextState) => s.contextPack
-export const selectContextChunks = (s: ContextState) => s.chunks
-export const selectContextStats = (s: ContextState) => s.stats
-export const selectContextWeights = (s: ContextState) => s.weights
-export const selectLastQuery = (s: ContextState) => s.lastQuery
 export const selectContextLoading = (s: ContextState) => s.loading
 export const selectContextError = (s: ContextState) => s.error
 

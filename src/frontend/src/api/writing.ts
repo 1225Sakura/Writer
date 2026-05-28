@@ -98,6 +98,9 @@ export const chapterApi = {
       word_count?: number
       chapter_order?: number
       notes?: string
+      note_category?: string
+      note_pinned?: boolean
+      battle_station_data?: string
     }
   ): Promise<Chapter> => {
     return api.patch<Chapter>(`/chapters/${chapterId}`, data)
@@ -333,36 +336,6 @@ export const checkerApi = {
 }
 
 // ============================================
-// AI Health & Failover
-// ============================================
-
-export const aiHealthApi = {
-  /** Get AI provider health status. */
-  health: async (): Promise<{
-    providers: Record<string, {
-      healthy: boolean
-      degraded: boolean
-      error_rate: number
-      call_count: number
-      success_rate: number
-      avg_latency_ms: number
-    }>
-    recommended: string
-  }> => {
-    return api.get("/ai/health")
-  },
-
-  /** Manually trigger provider failover. */
-  failover: async (targetProvider?: string): Promise<{
-    success: boolean
-    new_primary: string
-    message: string
-  }> => {
-    return api.post("/ai/failover", { target_provider: targetProvider })
-  },
-}
-
-// ============================================
 // AI Operations
 // ============================================
 
@@ -532,5 +505,4 @@ export default {
   ai: aiApi,
   styles: stylesApi,
   checker: checkerApi,
-  aiHealth: aiHealthApi,
 }

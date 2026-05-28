@@ -134,6 +134,9 @@ class ChapterResponse(BaseModel):
     word_count: int
     chapter_order: int
     notes: Optional[str] = None
+    note_category: Optional[str] = None
+    note_pinned: bool = False
+    battle_station_data: Optional[str] = None
     created_at: datetime
     updated_at: datetime
 
@@ -294,6 +297,7 @@ class WritingSettingsResponse(BaseModel):
     human_ai_ratio: float
     writing_style: str
     target_word_count: int
+    sprint_data_json: Optional[str] = None
 
 
 class WritingStyleResponse(BaseModel):

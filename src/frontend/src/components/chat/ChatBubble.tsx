@@ -7,7 +7,7 @@
 
 import { useState } from 'react'
 import type { ChatMessage } from '@/store'
-import { Pencil, Trash2, Check, X, User } from 'lucide-react'
+import { Pencil, Trash2, Check, X, User, RotateCcw } from 'lucide-react'
 import { Icon } from '@/components/ui/Icon'
 import { motion, AnimatePresence } from 'framer-motion'
 import { usePrefersReducedMotion } from '@/hooks/usePrefersReducedMotion'
@@ -29,6 +29,7 @@ export interface ChatBubbleProps {
   message: ChatMessage
   onEdit?: (id: string, content: string) => void
   onDelete?: (id: string) => void
+  onRetry?: (id: string) => void
   onConfirmEntity?: (id: string) => void
   index: number
   isGrouped?: boolean
@@ -36,7 +37,7 @@ export interface ChatBubbleProps {
   isLastInGroup?: boolean
 }
 
-export function ChatBubble({ message, onEdit, onDelete, onConfirmEntity, index, isGrouped = false, isFirstInGroup = true }: ChatBubbleProps) {
+export function ChatBubble({ message, onEdit, onDelete, onRetry, onConfirmEntity, index, isGrouped = false, isFirstInGroup = true }: ChatBubbleProps) {
   const isAssistant = message.role === 'assistant'
   const [isEditing, setIsEditing] = useState(false)
   const [editContent, setEditContent] = useState(message.content)
@@ -249,6 +250,30 @@ export function ChatBubble({ message, onEdit, onDelete, onConfirmEntity, index, 
               </motion.span>
             )}
           </motion.div>
+
+          {/* Retry button for failed messages */}
+          {!isAssistant && message.failed && (
+            <motion.div
+              className={`mt-1.5 ${isAssistant ? 'ml-1' : 'mr-1 text-right'}`}
+              initial={prefersReducedMotion ? {} : { opacity: 0, y: 4 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.2 }}
+            >
+              <motion.button
+                onClick={() => onRetry?.(message.id)}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium
+                           text-[var(--color-vermillion)] bg-[var(--color-vermillion)]/10
+                           hover:bg-[var(--color-vermillion)]/20 transition-all duration-150"
+                aria-label="重试发送"
+                title="重试"
+                whileHover={prefersReducedMotion ? {} : { scale: 1.04 }}
+                whileTap={prefersReducedMotion ? {} : { scale: 0.95 }}
+              >
+                <Icon icon={RotateCcw} size="xs" />
+                <span>发送失败，点击重试</span>
+              </motion.button>
+            </motion.div>
+          )}
         </div>
       </div>
     </motion.div>

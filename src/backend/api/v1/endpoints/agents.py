@@ -42,6 +42,7 @@ from backend.agents.checkers.ooc_checker import OOCChecker
 from backend.agents.checkers.high_point_checker import HighPointChecker
 from backend.agents.checkers.reader_pull_checker import ReaderPullChecker
 from backend.middleware.rate_limit import check_checker_rate_limit
+from backend.utils.exceptions import AgentError, CheckerError, AIServiceError
 
 router = APIRouter(prefix="/agents", tags=["agents"])
 
@@ -497,7 +498,7 @@ async def run_review_agent(request: ReviewRequest) -> ReviewResponse:
 
     try:
         result = await agent.execute(context)
-    except Exception as exc:
+    except AgentError as exc:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Review agent execution failed: {str(exc)}",
@@ -558,7 +559,7 @@ async def run_plot_agent(request: PlotRequest) -> PlotResponse:
 
     try:
         result = await agent.execute(context)
-    except Exception as exc:
+    except AgentError as exc:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Plot agent execution failed: {str(exc)}",
@@ -715,7 +716,7 @@ async def run_checker(
             suggestions=result_obj.suggestions,
         )
 
-    except Exception as e:
+    except (CheckerError, AIServiceError) as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Checker '{request.checker_name}' failed: {str(e)}"
@@ -804,7 +805,7 @@ async def run_all_checkers(
             results=checker_results,
         )
 
-    except Exception as e:
+    except (CheckerError, AIServiceError) as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Pipeline execution failed: {str(e)}"

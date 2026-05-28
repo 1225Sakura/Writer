@@ -13,6 +13,7 @@ from backend.agents.workflows import WORKFLOW_REGISTRY
 from backend.infrastructure.database import get_db
 from backend.middleware.auth import require_auth
 from backend.services.workflow_service import WorkflowExecutionService
+from backend.utils.exceptions import AppException
 
 router = APIRouter(prefix="/workflows", tags=["workflows"])
 
@@ -334,7 +335,7 @@ async def list_executions(
                     "started_at": record.started_at.isoformat() if record.started_at else None,
                     "completed_at": record.completed_at.isoformat() if record.completed_at else None,
                 })
-    except Exception:
+    except AppException:
         # Persistence is optional; ignore errors
         pass
 

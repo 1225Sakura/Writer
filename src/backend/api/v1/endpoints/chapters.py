@@ -483,6 +483,23 @@ async def get_draft_version(
     return draft
 
 
+@router.delete(
+    "/{chapter_id}/drafts/{version_number}",
+    summary="删除草稿版本",
+    description="删除指定章节的特定版本草稿。",
+)
+async def delete_draft_version(
+    chapter_id: int,
+    version_number: int,
+    service: ChapterService = Depends(get_chapter_service)
+):
+    """Delete a specific draft version."""
+    deleted = await service.delete_draft_version(chapter_id, version_number)
+    if not deleted:
+        raise DraftVersionNotFoundError(chapter_id=chapter_id)
+    return {"message": "Draft version deleted"}
+
+
 # AI Inspection results
 @router.get(
     "/{chapter_id}/inspections",

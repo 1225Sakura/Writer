@@ -22,6 +22,7 @@ from ..utils.exceptions import (
     AgentError,
     AgentTimeoutError,
     AIServiceError,
+    CheckerAnalysisError,
     DatabaseError,
 )
 from .base import AgentContext, AgentResult, BaseAgent, CheckerFeedback
@@ -151,6 +152,48 @@ class WorkflowContext:
     agent_timings: list[AgentTimingRecord] = field(default_factory=list)
     error_history: list[dict[str, Any]] = field(default_factory=list)
     cancelled: bool = False
+
+
+# ------------------------------------------------------------------
+# Conditional Edge & Human Checkpoint (Phase 4)
+# ------------------------------------------------------------------
+
+@dataclass
+class ConditionalEdge:
+    """Route to different next-stages based on agent output.
+
+    Attributes:
+        source_agent: The agent whose output is evaluated.
+        condition: Callable that receives the agent result and returns bool.
+        true_target: Stage to run if condition is met.
+        false_target: Stage to run if condition is not met.
+    """
+
+    source_agent: str
+    condition: Callable[[Any], bool]
+    true_target: str
+    false_target: str
+
+
+@dataclass
+class HumanCheckpoint:
+    """Pause workflow for human approval before proceeding.
+
+    Attributes:
+        stage_name: The stage after which the checkpoint is triggered.
+        prompt: Message shown to the user for approval.
+        auto_approve_timeout: Seconds to wait before auto-approving.
+            None means wait forever.
+    """
+
+    stage_name: str
+    prompt: str
+    auto_approve_timeout: Optional[int] = None
+
+
+# Event constant for checkpoint events
+WORKFLOW_CHECKPOINT_REACHED = "workflow.checkpoint.reached"
+WORKFLOW_CHECKPOINT_RESOLVED = "workflow.checkpoint.resolved"
 
 
 class AgentOrchestrator:
@@ -942,7 +985,7 @@ class AgentOrchestrator:
             try:
                 checker_results = await self._checker_pipeline.run_quick_scan(content)
                 aggregated = self._checker_pipeline.aggregate_results(checker_results)
-            except Exception as exc:
+            except (CheckerAnalysisError, RuntimeError) as exc:
                 logger.warning(
                     "Checker pipeline failed for agent '%s' (attempt %d), skipping feedback loop: %s",
                     agent_name,
@@ -1045,6 +1088,149 @@ class AgentOrchestrator:
         if not failed_checkers:
             return False
         return any(name in suggestion for name in failed_checkers)
+
+    # ------------------------------------------------------------------
+    # Conditional Edges & Human Checkpoints (Phase 4)
+    # ------------------------------------------------------------------
+
+    async def _evaluate_conditional_edge(
+        self, edge: ConditionalEdge, agent_result: Any
+    ) -> str:
+        """Evaluate a conditional edge against an agent result.
+
+        Runs the edge's condition callable with the agent result and returns
+        the appropriate target stage name.
+
+        Args:
+            edge: The conditional edge configuration.
+            agent_result: The output from the source agent (dict or AgentResult).
+
+        Returns:
+            The target stage name (true_target or false_target).
+        """
+        try:
+            condition_met = edge.condition(agent_result)
+        except Exception as exc:
+            logger.warning(
+                "Conditional edge condition for agent '%s' raised %s, defaulting to false_target",
+                edge.source_agent,
+                exc,
+            )
+            condition_met = False
+
+        target = edge.true_target if condition_met else edge.false_target
+        logger.info(
+            "Conditional edge: agent='%s' condition_met=%s -> '%s'",
+            edge.source_agent,
+            condition_met,
+            target,
+        )
+        return target
+
+    async def _wait_for_checkpoint(
+        self,
+        checkpoint: HumanCheckpoint,
+        context: Dict[str, Any],
+    ) -> bool:
+        """Emit a checkpoint event and wait for human approval.
+
+        Publishes a ``workflow.checkpoint.reached`` event on the event bus.
+        If ``auto_approve_timeout`` is set, automatically approves after the
+        timeout expires. Otherwise blocks until ``resolve_checkpoint`` is
+        called externally (e.g. via an API endpoint).
+
+        Args:
+            checkpoint: The checkpoint configuration.
+            context: Workflow context dict to include in the event payload.
+
+        Returns:
+            True if approved, False if rejected.
+        """
+        import asyncio
+
+        checkpoint_id = f"{context.get('execution_id', 'unknown')}_{checkpoint.stage_name}"
+
+        # Store checkpoint state for external resolution
+        if not hasattr(self, "_pending_checkpoints"):
+            self._pending_checkpoints: dict[str, asyncio.Future[bool]] = {}
+
+        future: asyncio.Future[bool] = asyncio.get_event_loop().create_future()
+        self._pending_checkpoints[checkpoint_id] = future
+
+        # Emit event
+        await self._event_bus.publish(
+            WORKFLOW_CHECKPOINT_REACHED,
+            {
+                "checkpoint_id": checkpoint_id,
+                "stage": checkpoint.stage_name,
+                "prompt": checkpoint.prompt,
+                "context": context,
+                "auto_approve_timeout": checkpoint.auto_approve_timeout,
+                "timestamp": datetime.now(timezone.utc).isoformat(),
+            },
+        )
+
+        logger.info(
+            "Human checkpoint reached: stage='%s', prompt='%s'",
+            checkpoint.stage_name,
+            checkpoint.prompt,
+        )
+
+        try:
+            if checkpoint.auto_approve_timeout is not None:
+                approved = await asyncio.wait_for(
+                    future, timeout=checkpoint.auto_approve_timeout
+                )
+            else:
+                approved = await future
+        except asyncio.TimeoutError:
+            logger.info(
+                "Human checkpoint '%s' auto-approved after %ds timeout",
+                checkpoint.stage_name,
+                checkpoint.auto_approve_timeout,
+            )
+            approved = True
+        finally:
+            self._pending_checkpoints.pop(checkpoint_id, None)
+
+        # Emit resolution event
+        await self._event_bus.publish(
+            WORKFLOW_CHECKPOINT_RESOLVED,
+            {
+                "checkpoint_id": checkpoint_id,
+                "stage": checkpoint.stage_name,
+                "approved": approved,
+                "timestamp": datetime.now(timezone.utc).isoformat(),
+            },
+        )
+
+        return approved
+
+    async def resolve_checkpoint(self, checkpoint_id: str, approved: bool) -> bool:
+        """Resolve a pending human checkpoint.
+
+        Called externally (e.g. from an API endpoint) when the user responds
+        to a checkpoint prompt.
+
+        Args:
+            checkpoint_id: The checkpoint identifier from the event payload.
+            approved: Whether the user approved or rejected.
+
+        Returns:
+            True if the checkpoint was found and resolved, False otherwise.
+        """
+        if not hasattr(self, "_pending_checkpoints"):
+            return False
+
+        future = self._pending_checkpoints.get(checkpoint_id)
+        if future is None or future.done():
+            return False
+
+        future.set_result(approved)
+        logger.info(
+            "Checkpoint '%s' resolved: approved=%s", checkpoint_id, approved
+        )
+        return True
 
     # ------------------------------------------------------------------
     # DAG / Topological Sort

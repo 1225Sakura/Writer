@@ -2,6 +2,8 @@ import { useState, useCallback, useEffect } from 'react'
 import { useWritingStore, useAIStore, useContextStore } from '@/store'
 import { getEditorInstance } from '@/store/editorRegistry'
 import { showToast } from '@/components/ui/Toast'
+import { aiApi, chapterApi } from '@/api/writing'
+import { consumeStream } from '@/api/chat'
 import { Button } from '@/components/ui/Button'
 import { motion, AnimatePresence } from 'framer-motion'
 import { DURATION, EASE } from '@/components/shared/AnimationConfig'
@@ -75,6 +77,7 @@ export function AIOperationDrawer() {
   const [previewResult, setPreviewResult] = useState<{ operation: string; original: string; result: string; qualityScore: number } | null>(null)
   const [isMinimized, _setIsMinimized] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
+  const [globalLoading, setGlobalLoading] = useState<string | null>(null)
 
   useCallback(() => { triggerHaptic() }, [])()
 
@@ -124,6 +127,80 @@ export function AIOperationDrawer() {
   }, [previewResult])
   const handleRejectResult = useCallback(() => { setPreviewResult(null); showToast('已放弃AI生成内容', 'info') }, [])
 
+  const handleGenerateNextChapter = useCallback(async () => {
+    const editor = getEditorInstance()
+    const context = editor?.state.doc.textContent ?? ''
+    if (!context) { showToast('当前没有内容，请先编写一些内容', 'warning'); return }
+
+    setGlobalLoading('generate')
+    try {
+      const res = await aiApi.generate({
+        prompt: context,
+        operation: 'continue',
+        chapter_id: useWritingStore.getState().currentChapterId ?? undefined,
+        human_ai_ratio: useWritingStore.getState().humanAIRatio,
+      })
+      const result = await consumeStream(res.stream)
+      setPreviewResult({ operation: 'continue', original: context.slice(-200), result, qualityScore: 0 })
+      showToast('下一章已生成', 'success')
+    } catch (error) {
+      showToast(`生成失败: ${error instanceof Error ? error.message : '未知错误'}`, 'error')
+    } finally {
+      setGlobalLoading(null)
+    }
+  }, [])
+
+  const handleOptimizeAll = useCallback(async () => {
+    setGlobalLoading('optimize')
+    try {
+      const chapters = await chapterApi.list()
+      if (!chapters.length) { showToast('没有可优化的章节', 'warning'); setGlobalLoading(null); return }
+
+      const ratio = useWritingStore.getState().humanAIRatio
+      let optimized = 0
+      for (const chapter of chapters) {
+        try {
+          const content = chapter.summary ?? chapter.title ?? `第${chapter.chapter_order ?? chapter.id}章`
+          const res = await aiApi.optimize(content, chapter.id, ratio)
+          await consumeStream(res.stream)
+          optimized++
+        } catch {
+          // Continue with remaining chapters
+        }
+      }
+      showToast(`全文优化完成 (${optimized}/${chapters.length}章)`, 'success')
+    } catch (error) {
+      showToast(`优化失败: ${error instanceof Error ? error.message : '未知错误'}`, 'error')
+    } finally {
+      setGlobalLoading(null)
+    }
+  }, [])
+
+  const handleRemoldStyle = useCallback(async () => {
+    const editor = getEditorInstance()
+    const content = editor?.state.doc.textContent ?? ''
+    if (!content) { showToast('当前没有内容，请先编写一些内容', 'warning'); return }
+
+    setGlobalLoading('remold')
+    try {
+      const style = useWritingStore.getState().writingStyle
+      const res = await aiApi.generate({
+        prompt: content,
+        operation: 'rewrite',
+        chapter_id: useWritingStore.getState().currentChapterId ?? undefined,
+        human_ai_ratio: useWritingStore.getState().humanAIRatio,
+        style,
+      })
+      const result = await consumeStream(res.stream)
+      setPreviewResult({ operation: 'rewrite', original: content.slice(0, 200), result, qualityScore: 0 })
+      showToast('文笔重塑完成', 'success')
+    } catch (error) {
+      showToast(`重塑失败: ${error instanceof Error ? error.message : '未知错误'}`, 'error')
+    } finally {
+      setGlobalLoading(null)
+    }
+  }, [])
+
   const toggleSection = (section: string) => {
     setExpandedSections((prev) => {
       const next = new Set(prev)
@@ -142,7 +219,7 @@ export function AIOperationDrawer() {
           <motion.div key="expanded" initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} transition={{ duration: DURATION.NORMAL, ease: EASE.SMOOTH }} className="space-y-3">
             {/* 全文操作 */}
             <Section title="全文操作" icon={<Icon icon={FileText} size="sm" />} isExpanded={expandedSections.has('global')} onToggle={() => toggleSection('global')}>
-              <GenerationOptions onGenerateNextChapter={() => showToast('正在生成下一章...', 'info')} onOptimizeAll={() => showToast('正在优化全文...', 'info')} onRemoldStyle={() => showToast('正在重塑文笔...', 'info')} />
+              <GenerationOptions onGenerateNextChapter={handleGenerateNextChapter} onOptimizeAll={handleOptimizeAll} onRemoldStyle={handleRemoldStyle} loading={globalLoading} />
             </Section>
 
             {/* 人机比例 */}

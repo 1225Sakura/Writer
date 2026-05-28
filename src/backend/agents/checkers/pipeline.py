@@ -13,7 +13,7 @@ from typing import Any
 logger = logging.getLogger(__name__)
 
 from .base import BaseChecker, CheckerResult
-from ...utils.exceptions import CheckerAnalysisError
+from ...utils.exceptions import CheckerAnalysisError, CheckerError
 
 
 class CheckerPipeline:
@@ -231,7 +231,7 @@ class CheckerPipeline:
                     failure_mode="analysis_failed",
                 ),
             )
-        except Exception as exc:
+        except (CheckerError, RuntimeError) as exc:
             logger.error("Checker '%s' unexpected error: %s", checker.name, exc, exc_info=True)
             return (
                 checker.name,

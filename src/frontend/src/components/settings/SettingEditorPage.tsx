@@ -9,6 +9,8 @@ import { RelationPanel } from './SettingsActions'
 
 export function SettingEditorPage() {
   const loadAll = useSettingsStore((state) => state.loadAll)
+  const undo = useSettingsStore((state) => state.undo)
+  const redo = useSettingsStore((state) => state.redo)
   const [sidebarOpen, setSidebarOpen] = useState(true)
   const [mobileNavOpen, setMobileNavOpen] = useState(false)
   const [viewMode, setViewMode] = useState<'edit' | 'canvas'>('edit')
@@ -16,6 +18,27 @@ export function SettingEditorPage() {
   useEffect(() => {
     loadAll()
   }, [loadAll])
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      const target = e.target as HTMLElement
+      const tagName = target.tagName.toLowerCase()
+      const isEditing = tagName === 'input' || tagName === 'textarea' || target.isContentEditable
+      if (isEditing) return
+
+      const isMod = e.metaKey || e.ctrlKey
+      if (isMod && e.key === 'z' && !e.shiftKey) {
+        e.preventDefault()
+        undo()
+      } else if ((isMod && e.key === 'y') || (isMod && e.key === 'z' && e.shiftKey)) {
+        e.preventDefault()
+        redo()
+      }
+    }
+
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [undo, redo])
 
   return (
     <motion.div

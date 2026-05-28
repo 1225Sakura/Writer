@@ -11,6 +11,8 @@ from typing import Any, Awaitable, Callable, Dict, List, Optional
 from sqlalchemy import select, update, delete, and_
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from sqlalchemy.exc import SQLAlchemyError
+
 from backend.infrastructure.database import async_session_maker
 from backend.core.domain.entities import BackgroundTask
 
@@ -197,7 +199,7 @@ class TaskQueue:
                 task = await asyncio.wait_for(self._queue.get(), timeout=1.0)
             except asyncio.TimeoutError:
                 continue
-            except Exception as e:
+            except SQLAlchemyError as e:
                 logger.error("Worker %s encountered fatal error, stopping: %s", worker_name, e)
                 break
 
@@ -227,7 +229,7 @@ class TaskQueue:
             task.status = TaskStatus.COMPLETED
             task.error = None
             logger.info("Task completed: %s", task.id)
-        except Exception as e:
+        except SQLAlchemyError as e:
             task.retries += 1
             if task.retries <= self.max_retries:
                 # Exponential backoff: 2^retries seconds
@@ -272,7 +274,7 @@ class TaskQueue:
                     )
                     session.add(db_task)
                 await session.commit()
-        except Exception as e:
+        except SQLAlchemyError as e:
             logger.error("Failed to persist task %s: %s", task.id, e)
 
     async def _get_task_from_db(self, task_id: str) -> Optional[Task]:

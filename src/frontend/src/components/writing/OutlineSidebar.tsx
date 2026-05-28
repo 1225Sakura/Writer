@@ -46,6 +46,7 @@ export function OutlineSidebar() {
     updatePlotThread,
     ifLines,
     fetchIFLines,
+    createChapter,
   } = useContentStore()
 
   const [activeTab, setActiveTab] = useState<'outline' | 'plot' | 'ifline'>('outline')
@@ -77,6 +78,10 @@ export function OutlineSidebar() {
       setCurrentChapter(chapterId)
     }
   }, [setCurrentChapter])
+
+  const handleAddChapter = useCallback(async () => {
+    await createChapter({})
+  }, [createChapter])
 
   const handleRevealThread = useCallback(async (threadId: number) => {
     await updatePlotThread(threadId, { status: 'revealed' })
@@ -177,7 +182,7 @@ export function OutlineSidebar() {
                   title="暂无章节大纲"
                   description="从添加第一个章节开始，构建你的故事结构"
                   action={
-                    <button className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium text-[var(--accent-primary)] bg-[var(--accent-primary)]/10 hover:bg-[var(--accent-primary)]/15 transition-colors">
+                    <button onClick={handleAddChapter} className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium text-[var(--accent-primary)] bg-[var(--accent-primary)]/10 hover:bg-[var(--accent-primary)]/15 transition-colors">
                       <Icon icon={Plus} size="xs" />
                       添加章节
                     </button>
@@ -197,6 +202,7 @@ export function OutlineSidebar() {
                   {/* Add chapter button */}
                   <div className="pt-2 pb-1 px-1">
                     <motion.button
+                      onClick={handleAddChapter}
                       whileHover={{ scale: 1.01 }}
                       whileTap={{ scale: 0.99 }}
                       className="

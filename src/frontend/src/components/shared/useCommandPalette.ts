@@ -23,6 +23,7 @@ export function useCommandPalette() {
     toggleAIDrawer,
     toggleCollaborationDrawer,
     toggleOutlineDrawer,
+    toggleCheckerDrawer,
     toggleTheme,
     theme,
     toggleImmersiveMode,
@@ -88,14 +89,14 @@ export function useCommandPalette() {
   const commands: CommandItem[] = useMemo(() =>
     buildCommands({
       currentInterface, currentChapterId, theme, immersiveMode, focusModeEnabled,
-      characters, locations, toggleAIDrawer, toggleCollaborationDrawer, toggleOutlineDrawer,
+      characters, locations, toggleAIDrawer, toggleCollaborationDrawer, toggleOutlineDrawer, toggleCheckerDrawer,
       toggleTheme, toggleImmersiveMode, toggleFocusMode, setCurrentInterface,
       setSettingsCategory, saveCurrentChapter, createChapter, createSession,
       recordCommand, executeAIOperation, setIsOpen,
     }),
     [
       currentInterface, currentChapterId, theme, immersiveMode, focusModeEnabled,
-      characters, locations, toggleAIDrawer, toggleCollaborationDrawer, toggleOutlineDrawer,
+      characters, locations, toggleAIDrawer, toggleCollaborationDrawer, toggleOutlineDrawer, toggleCheckerDrawer,
       toggleTheme, toggleImmersiveMode, toggleFocusMode, setCurrentInterface,
       setSettingsCategory, saveCurrentChapter, createChapter, executeAIOperation,
       recordCommand, createSession,

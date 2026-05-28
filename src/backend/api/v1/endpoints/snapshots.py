@@ -8,6 +8,7 @@ from backend.middleware.auth import require_auth
 from backend.services.snapshot_manager import snapshot_manager
 from backend.services.backup_manager import backup_manager, BackupSchedule, BackupTrigger
 from backend.services.archive_manager import archive_manager, ArchiveFormat
+from backend.utils.exceptions import SnapshotError
 
 router = APIRouter(prefix="/snapshots", tags=["snapshots"], dependencies=[require_auth])
 
@@ -33,7 +34,7 @@ async def create_snapshot(
             triggered_by="manual",
         )
         return result
-    except Exception as e:
+    except SnapshotError as e:
         raise HTTPException(status_code=500, detail=f"Failed to create snapshot: {str(e)}")
 
 
@@ -51,7 +52,7 @@ async def restore_snapshot(snapshot_id: str):
         raise HTTPException(status_code=404, detail="Snapshot not found")
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
-    except Exception as e:
+    except SnapshotError as e:
         raise HTTPException(status_code=500, detail=f"Failed to restore snapshot: {str(e)}")
 
 
@@ -112,7 +113,7 @@ async def trigger_backup(
             description=description,
         )
         return result
-    except Exception as e:
+    except SnapshotError as e:
         raise HTTPException(status_code=500, detail=f"Failed to trigger backup: {str(e)}")
 
 
@@ -198,7 +199,7 @@ async def export_project(
         return result
     except FileNotFoundError as e:
         raise HTTPException(status_code=404, detail=str(e))
-    except Exception as e:
+    except SnapshotError as e:
         raise HTTPException(status_code=500, detail=f"Failed to export project: {str(e)}")
 
 
@@ -224,7 +225,7 @@ async def import_project(
         raise HTTPException(status_code=409, detail=str(e))
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
-    except Exception as e:
+    except SnapshotError as e:
         raise HTTPException(status_code=500, detail=f"Failed to import project: {str(e)}")
 
 

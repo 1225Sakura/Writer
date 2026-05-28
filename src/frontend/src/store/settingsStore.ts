@@ -60,10 +60,11 @@ export const selectWritingSettings = (s: SettingsState) => s.writingSettings
 export const selectSettingsStatus = (s: SettingsState) => ({ isLoading: s.isLoading, error: s.error })
 export const selectCharactersShallow = (s: SettingsState) => s.characters
 export const selectAIReviewResult = (s: SettingsState) => s.aiReviewResult
+export const selectAIGenerateResult = (s: SettingsState) => s.aiGenerateResult
 export const selectCharactersByTier = (tier: string) => (s: SettingsState) => s.characters.filter((c) => c.tier === tier)
 
 export function cleanupSettingsStore(): void {
-  useSettingsStore.setState({ isLoading: false, error: null, aiReviewResult: null })
+  useSettingsStore.setState({ isLoading: false, error: null, aiReviewResult: null, aiGenerateResult: null })
 }
 
 // Re-exports for backward compatibility

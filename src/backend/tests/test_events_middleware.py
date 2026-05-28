@@ -31,7 +31,7 @@ class TestGetEntityType:
 class TestCacheInvalidationHandler:
     @pytest.mark.asyncio
     async def test_calls_clear_entity_cache(self):
-        with patch("events.handlers.get_cache_service") as mock_get:
+        with patch("backend.events.handlers.get_cache_service") as mock_get:
             mock_service = MagicMock()
             mock_get.return_value = mock_service
             await cache_invalidation_handler({"entity_type": "character"})
@@ -43,7 +43,7 @@ class TestCacheInvalidationHandler:
 
     @pytest.mark.asyncio
     async def test_cache_service_error(self):
-        with patch("events.handlers.get_cache_service") as mock_get:
+        with patch("backend.events.handlers.get_cache_service") as mock_get:
             mock_get.return_value.clear_entity_cache.side_effect = Exception("cache error")
             await cache_invalidation_handler({"entity_type": "character"})  # Should not raise
 

@@ -14,12 +14,14 @@ export function useGlobalShortcuts() {
   const currentInterface = useUIStore((s) => s.currentInterface)
   const aiDrawerOpen = useUIStore((s) => s.aiDrawerOpen)
   const collaborationDrawerOpen = useUIStore((s) => s.collaborationDrawerOpen)
+  const checkerDrawerOpen = useUIStore((s) => s.checkerDrawerOpen)
   const immersiveMode = useUIStore((s) => s.immersiveMode)
   const focusModeEnabled = useUIStore((s) => s.focusModeEnabled)
   const theme = useUIStore((s) => s.theme)
   const toggleAIDrawer = useUIStore((s) => s.toggleAIDrawer)
   const toggleCollaborationDrawer = useUIStore((s) => s.toggleCollaborationDrawer)
   const toggleOutlineDrawer = useUIStore((s) => s.toggleOutlineDrawer)
+  const toggleCheckerDrawer = useUIStore((s) => s.toggleCheckerDrawer)
   const toggleFullscreenWriting = useUIStore((s) => s.toggleFullscreenWriting)
   const toggleImmersiveMode = useUIStore((s) => s.toggleImmersiveMode)
   const toggleFocusMode = useUIStore((s) => s.toggleFocusMode)
@@ -234,6 +236,16 @@ export function useGlobalShortcuts() {
         return
       }
 
+      // ===== 切换检查面板: Ctrl+5 (写作界面) =====
+      if ((e.ctrlKey || e.metaKey) && e.key === '5') {
+        e.preventDefault()
+        if (currentInterface === 'writing') {
+          toggleCheckerDrawer()
+          showToast(checkerDrawerOpen ? '关闭检查面板' : '打开检查面板', 'info')
+        }
+        return
+      }
+
       // ===== 全屏: F11 (写作界面) =====
       if (e.key === 'F11') {
         e.preventDefault()
@@ -269,6 +281,7 @@ export function useGlobalShortcuts() {
       currentInterface,
       aiDrawerOpen,
       collaborationDrawerOpen,
+      checkerDrawerOpen,
       immersiveMode,
       focusModeEnabled,
       handleSave,
@@ -283,6 +296,7 @@ export function useGlobalShortcuts() {
       toggleAIDrawer,
       toggleCollaborationDrawer,
       toggleOutlineDrawer,
+      toggleCheckerDrawer,
     ]
   )
 

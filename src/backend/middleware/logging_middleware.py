@@ -44,7 +44,7 @@ async def logging_middleware(request: Request, call_next):
         response.headers["X-Request-ID"] = request_id
         return response
 
-    except Exception as e:
+    except RuntimeError as e:
         duration = time.time() - start_time
         logger.error(
             "request_error",

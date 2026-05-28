@@ -5,6 +5,7 @@ import {
   List,
   MessageCircle,
   Users,
+  ShieldCheck,
 } from 'lucide-react'
 import { Icon } from '@/components/ui/Icon'
 
@@ -16,6 +17,8 @@ export function ToolbarButtons() {
     toggleAIDrawer,
     collaborationDrawerOpen,
     toggleCollaborationDrawer,
+    checkerDrawerOpen,
+    toggleCheckerDrawer,
   } = useUIStore()
 
   return (
@@ -41,6 +44,13 @@ export function ToolbarButtons() {
         shortcut="Ctrl+4"
         isActive={collaborationDrawerOpen}
         onClick={toggleCollaborationDrawer}
+      />
+      <ToolbarButton
+        icon={<Icon icon={ShieldCheck} size="sm" />}
+        label="检查"
+        shortcut="Ctrl+5"
+        isActive={checkerDrawerOpen}
+        onClick={toggleCheckerDrawer}
       />
     </div>
   )

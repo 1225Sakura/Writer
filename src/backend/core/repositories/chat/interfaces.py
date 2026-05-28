@@ -59,6 +59,16 @@ class ChatMessageRepositoryInterface(ABC):
         """Fetch messages for a session, ordered by creation time (oldest first)."""
         ...
 
+    @abstractmethod
+    async def update(self, id: int, data: dict) -> Optional[ChatMessage]:
+        """Update a chat message by primary key."""
+        ...
+
+    @abstractmethod
+    async def delete(self, id: int) -> bool:
+        """Delete a chat message by primary key. Returns True if deleted."""
+        ...
+
 
 class ExtractedEntityRepositoryInterface(ABC):
     """Abstract interface for ExtractedEntity repository operations."""

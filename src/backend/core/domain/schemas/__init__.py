@@ -46,6 +46,7 @@ from .request_schemas import (
     PlotThreadUpdateRequest,
     # Chat requests
     ChatMessageCreateRequest,
+    ChatMessageUpdateRequest,
     ChatSessionCreateRequest,
     ChatSessionUpdateRequest,
     # AI requests
@@ -138,6 +139,7 @@ __all__ = [
     "PlotThreadCreateRequest",
     "PlotThreadUpdateRequest",
     "ChatMessageCreateRequest",
+    "ChatMessageUpdateRequest",
     "ChatSessionCreateRequest",
     "ChatSessionUpdateRequest",
     "GenerateRequest",

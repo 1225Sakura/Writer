@@ -7,10 +7,12 @@ Vector/index data is stored in a local SQLite file under data/rag/.
 
 from __future__ import annotations
 
+import asyncio
 import json
 import logging
 import math
 import re
+import sqlite3
 import struct
 from collections import Counter
 from contextlib import contextmanager
@@ -20,6 +22,9 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
 from backend.config import settings
+from backend.services.context_layers import LayerAssembler, LayeredContextPack, LayerType
+from backend.services.temporal_kg import TemporalKG, SVOQuad
+from backend.services.entity_registry import EntityRegistry
 
 logger = logging.getLogger(__name__)
 
@@ -114,6 +119,7 @@ class ContextManager:
         self._rag_db_path = self._resolve_rag_db_path()
         self._ensure_dirs()
         self._init_db()
+        self._layer_assembler = LayerAssembler()
 
     # ------------------------------------------------------------------
     # Paths & DB init
@@ -298,6 +304,8 @@ class ContextManager:
         chapter_id: int,
         db_session: Any,
         max_chars: int = 8000,
+        temporal_kg: Optional[TemporalKG] = None,
+        entity_registry: Optional[EntityRegistry] = None,
     ) -> Dict[str, Any]:
         """Build a context pack for a chapter from existing DB entities.
 
@@ -417,21 +425,54 @@ class ContextManager:
             for p in active_plots
         ]
 
-        return {
+        # NEW: Enrich with temporal KG quads
+        kg_context: Dict[str, Any] = {}
+        if temporal_kg:
+            recent_quads = await temporal_kg.query_by_chapter_range(
+                max(1, chapter.chapter_order - 10), chapter.chapter_order
+            )
+            kg_context = self._format_kg_context(recent_quads, chapter.chapter_order)
+
+        pack = {
             "meta": {"chapter_id": chapter_id, "chapter_order": chapter.chapter_order},
             "core": core,
             "scene": scene,
             "global": global_ctx,
             "recent_summaries": recent_summaries,
             "plot_threads": plot_threads,
+            "kg_context": kg_context,
         }
+
+        # Use LayerAssembler for 4-layer assembly
+        layered = self._layer_assembler.assemble(pack, chapter.chapter_order, max_chars)
+        pack["_layered"] = {
+            "layers": {lt.value: content for lt, content in layered.layers.items()},
+            "meta": layered.meta,
+            "weights_applied": {lt.value: w for lt, w in layered.weights_applied.items()},
+        }
+
+        return pack
 
     def assemble_context(
         self,
         pack: Dict[str, Any],
         max_chars: int = 8000,
     ) -> Dict[str, Any]:
-        """Assemble a context pack into a structured response with budgets."""
+        """Assemble a context pack into a structured response with budgets.
+
+        If the pack contains a ``_layered`` key, uses 4-layer assembly.
+        Otherwise falls back to the flat assembly for backward compatibility.
+        """
+        if "_layered" in pack:
+            return self._assemble_layered(pack["_layered"], max_chars)
+        return self._assemble_flat(pack, max_chars)
+
+    def _assemble_flat(
+        self,
+        pack: Dict[str, Any],
+        max_chars: int = 8000,
+    ) -> Dict[str, Any]:
+        """Existing flat assembly logic (backward compatible)."""
         weights = self._resolve_weights()
         sections: Dict[str, Any] = {}
 
@@ -457,6 +498,55 @@ class ContextManager:
 
         assembled["weights"] = weights
         return assembled
+
+    def _assemble_layered(
+        self,
+        layered: Dict[str, Any],
+        max_chars: int,
+    ) -> Dict[str, Any]:
+        """Assemble using 4-layer architecture with decay weights."""
+        assembled: Dict[str, Any] = {
+            "meta": layered.get("meta", {}),
+            "sections": {},
+        }
+        weights = layered.get("weights_applied", {})
+        for layer_name, content in layered.get("layers", {}).items():
+            weight = weights.get(layer_name, 0.25)
+            for section_name, section_data in content.items():
+                budget = int(max_chars * weight) if weight > 0 else int(max_chars * 0.05)
+                text = self._compact_json_text(section_data, budget)
+                assembled["sections"][section_name] = {
+                    "content": section_data,
+                    "text": text,
+                    "budget": budget,
+                    "layer": layer_name,
+                }
+        assembled["layered"] = True
+        assembled["weights"] = weights
+        return assembled
+
+    def _format_kg_context(
+        self,
+        quads: List[SVOQuad],
+        current_chapter_order: int,
+    ) -> Dict[str, Any]:
+        """Format SVO quads into context pack section."""
+        if not quads:
+            return {}
+        grouped: Dict[str, List[Dict[str, Any]]] = {}
+        for quad in quads:
+            key = f"ch{quad.chapter_order}"
+            grouped.setdefault(key, []).append({
+                "subject": quad.subject,
+                "verb": quad.verb,
+                "object": quad.object,
+                "confidence": quad.confidence,
+            })
+        return {
+            "recent_events": grouped,
+            "total_quads": len(quads),
+            "chapter_range": f"{quads[0].chapter_order}-{quads[-1].chapter_order}",
+        }
 
     def _resolve_weights(self) -> Dict[str, float]:
         return {
@@ -633,5 +723,5 @@ class ContextManager:
                     chapter_id,
                 ))
                 conn.commit()
-        except Exception as exc:
+        except sqlite3.OperationalError as exc:
             logger.warning("Failed to log RAG query: %s", exc)

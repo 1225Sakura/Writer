@@ -140,6 +140,20 @@ class ChatMessageService:
         """Get a single message by ID."""
         return await self._message_repo.get_by_id(message_id)
 
+    async def update_message(self, message_id: int, content: str) -> ChatMessage | None:
+        """Update a message's content."""
+        message = await self._message_repo.update(message_id, {"content": content})
+        if message:
+            logger.info("Updated message id=%s", message_id)
+        return message
+
+    async def delete_message(self, message_id: int) -> bool:
+        """Delete a message by ID."""
+        deleted = await self._message_repo.delete(message_id)
+        if deleted:
+            logger.info("Deleted message id=%s", message_id)
+        return deleted
+
     # ------------------------------------------------------------------
     # AI Integration
     # ------------------------------------------------------------------

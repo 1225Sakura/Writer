@@ -17,6 +17,7 @@ from backend.core.domain.schemas.request_schemas import (
 )
 from backend.utils.event_bus import AsyncEventBus
 from backend.infrastructure.cache.cache_service import CacheService
+from backend.utils.exceptions import AIServiceError
 from backend.infrastructure.security.encryption import (
     encrypt_value,
     decrypt_value,
@@ -227,7 +228,7 @@ class AIProviderConfigService:
                 message="连接超时，请检查网络和 Base URL",
                 error_detail="Timeout",
             )
-        except Exception as e:
+        except AIServiceError as e:
             latency_ms = (time.monotonic() - start) * 1000
             return ConnectionTestResult(
                 success=False,

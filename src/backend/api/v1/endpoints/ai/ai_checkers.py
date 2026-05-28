@@ -18,6 +18,8 @@ from backend.agents.checkers import (
     ReaderPullChecker,
 )
 
+from backend.utils.exceptions import CheckerError, AIServiceError
+
 from .dependencies import (
     get_ai_service,
     get_chapter_service,
@@ -151,7 +153,7 @@ async def check_consistency(
             issues=_checker_result_to_issues(result),
             suggestions=result.suggestions,
         )
-    except Exception as e:
+    except (CheckerError, AIServiceError) as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Consistency check failed: {str(e)}"
@@ -188,7 +190,7 @@ async def check_continuity(
             issues=_checker_result_to_issues(result),
             suggestions=result.suggestions,
         )
-    except Exception as e:
+    except (CheckerError, AIServiceError) as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Continuity check failed: {str(e)}"
@@ -225,7 +227,7 @@ async def check_pacing(
             issues=_checker_result_to_issues(result),
             suggestions=result.suggestions,
         )
-    except Exception as e:
+    except (CheckerError, AIServiceError) as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Pacing check failed: {str(e)}"
@@ -263,7 +265,7 @@ async def check_ooc(
             issues=_checker_result_to_issues(result),
             suggestions=result.suggestions,
         )
-    except Exception as e:
+    except (CheckerError, AIServiceError) as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"OOC check failed: {str(e)}"
@@ -300,7 +302,7 @@ async def check_high_point(
             issues=_checker_result_to_issues(result),
             suggestions=result.suggestions,
         )
-    except Exception as e:
+    except (CheckerError, AIServiceError) as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"High point check failed: {str(e)}"
@@ -337,7 +339,7 @@ async def check_reader_pull(
             issues=_checker_result_to_issues(result),
             suggestions=result.suggestions,
         )
-    except Exception as e:
+    except (CheckerError, AIServiceError) as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Reader pull check failed: {str(e)}"

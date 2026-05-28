@@ -490,6 +490,9 @@ class ChapterUpdateRequest(BaseModel):
     word_count: Optional[int] = Field(default=None, ge=0)
     chapter_order: Optional[int] = Field(default=None, ge=0)
     notes: Optional[str] = Field(default=None, max_length=MAX_TEXT_FIELD_LENGTH)
+    note_category: Optional[str] = Field(default=None, max_length=50)
+    note_pinned: Optional[bool] = Field(default=None)
+    battle_station_data: Optional[str] = Field(default=None, max_length=MAX_JSON_LENGTH)
 
     @field_validator('outline_id')
     @classmethod
@@ -689,6 +692,18 @@ class ChatMessageCreateRequest(BaseModel):
         return validate_non_empty(v, field_name='Content', max_length=MAX_MESSAGE_LENGTH)
 
 
+class ChatMessageUpdateRequest(BaseModel):
+    """Request to update a chat message's content."""
+    model_config = ConfigDict(str_strip_whitespace=True)
+
+    content: str = Field(..., min_length=1, max_length=MAX_MESSAGE_LENGTH)
+
+    @field_validator('content')
+    @classmethod
+    def validate_content(cls, v: str) -> str:
+        return validate_non_empty(v, field_name='Content', max_length=MAX_MESSAGE_LENGTH)
+
+
 class ChatSessionCreateRequest(BaseModel):
     """Request to create a chat session (no fields required)."""
     model_config = ConfigDict(str_strip_whitespace=True)
@@ -828,6 +843,7 @@ class WritingSettingsUpdateRequest(BaseModel):
     human_ai_ratio: Optional[float] = Field(default=None, ge=0.0, le=1.0)
     writing_style: Optional[str] = Field(default=None, max_length=50)
     target_word_count: Optional[int] = Field(default=None, gt=0)
+    sprint_data_json: Optional[str] = Field(default=None, max_length=MAX_JSON_LENGTH)
 
     @field_validator('writing_style')
     @classmethod

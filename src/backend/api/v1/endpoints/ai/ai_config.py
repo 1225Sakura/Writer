@@ -6,6 +6,7 @@ from pydantic import BaseModel, Field
 from typing import Optional
 
 from backend.core.services.ai.ai_service import ai_service
+from backend.utils.exceptions import AIServiceError
 
 router = APIRouter()
 
@@ -93,7 +94,7 @@ async def trigger_failover(request: FailoverRequest) -> FailoverResponse:
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=str(e)
         )
-    except Exception as e:
+    except AIServiceError as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failover failed: {str(e)}"
