@@ -19,8 +19,11 @@ KEYRING_SERVICE_NAME = "auto-novel-writer"
 
 def _get_keyring():
     """Lazy import keyring to allow graceful fallback."""
-    import keyring as kr
-    return kr
+    try:
+        import keyring as kr
+        return kr
+    except ImportError:
+        return None
 
 
 def get_api_key_from_keyring(key_name: str = "api_key") -> Optional[str]:
@@ -35,6 +38,8 @@ def get_api_key_from_keyring(key_name: str = "api_key") -> Optional[str]:
     """
     try:
         kr = _get_keyring()
+        if kr is None:
+            return None
         value = kr.get_password(KEYRING_SERVICE_NAME, key_name)
         if value:
             logger.debug("Retrieved %s from system keyring", key_name)
@@ -57,6 +62,8 @@ def save_api_key_to_keyring(key_name: str, value: str) -> bool:
     """
     try:
         kr = _get_keyring()
+        if kr is None:
+            return False
         kr.set_password(KEYRING_SERVICE_NAME, key_name, value)
         logger.info("Saved %s to system keyring", key_name)
         return True
@@ -77,6 +84,8 @@ def delete_api_key_from_keyring(key_name: str) -> bool:
     """
     try:
         kr = _get_keyring()
+        if kr is None:
+            return False
         kr.delete_password(KEYRING_SERVICE_NAME, key_name)
         logger.info("Deleted %s from system keyring", key_name)
         return True

@@ -21,7 +21,12 @@ logger = logging.getLogger("writer-api.security")
 # Key management
 # ---------------------------------------------------------------------------
 
-_KEY_PATH = Path.home() / ".writer" / "encryption.key"
+def _get_key_path() -> Path:
+    try:
+        home = Path.home()
+    except RuntimeError:
+        home = Path(os.environ.get("USERPROFILE", os.environ.get("HOME", ".")))
+    return home / ".writer" / "encryption.key"
 
 _fernet_instance: object | None = None  # lazy singleton
 
@@ -38,25 +43,25 @@ def _load_or_generate_key() -> bytes:
         except Exception as e:
             logger.warning("WRITER_ENCRYPTION_KEY env var is not a valid Fernet key; ignoring it: %s", e)
 
-    if _KEY_PATH.exists():
-        key = _KEY_PATH.read_bytes().strip()
+    if _get_key_path().exists():
+        key = _get_key_path().read_bytes().strip()
         try:
             from cryptography.fernet import Fernet
             Fernet(key)
             return key
         except Exception as e:
-            logger.warning("Encryption key at %s is invalid; regenerating: %s", _KEY_PATH, e)
+            logger.warning("Encryption key at %s is invalid; regenerating: %s", _get_key_path(), e)
 
     # Generate a new key
     from cryptography.fernet import Fernet
     key = Fernet.generate_key()
-    _KEY_PATH.parent.mkdir(parents=True, exist_ok=True)
-    _KEY_PATH.write_bytes(key)
+    _get_key_path().parent.mkdir(parents=True, exist_ok=True)
+    _get_key_path().write_bytes(key)
     try:
-        os.chmod(str(_KEY_PATH), 0o600)
+        os.chmod(str(_get_key_path()), 0o600)
     except OSError:
         pass  # Windows: chmod no-op for permission bits
-    logger.info("Generated new Fernet encryption key at %s", _KEY_PATH)
+    logger.info("Generated new Fernet encryption key at %s", _get_key_path())
     return key
 
 

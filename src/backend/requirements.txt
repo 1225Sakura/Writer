@@ -12,3 +12,4 @@ alembic>=1.13.0
 mistune>=2.0.0
 cryptography>=42.0.0
 sqlite-vec>=0.1.9
+keyring>=25.0.0
