@@ -36,7 +36,7 @@ export function NotesList({
       animate={{ opacity: 1, x: 0 }}
       exit={{ opacity: 0, x: 8 }}
       transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
-      className="p-3 space-y-2 max-h-[360px] overflow-y-auto"
+      className="p-3 space-y-2 max-h-[360px] overflow-y-auto scrollbar-thin"
     >
       {notes.length === 0 ? (
         <EmptyNotesState onCreate={onCreate} />

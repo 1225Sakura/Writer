@@ -165,7 +165,7 @@ export function OutlineSidebar() {
       </div>
 
       {/* Content */}
-      <div className="flex-1 overflow-y-auto relative z-10">
+      <div className="flex-1 overflow-y-auto scrollbar-thin relative z-10">
         <AnimatePresence mode="wait">
           {activeTab === 'outline' && (
             <motion.div

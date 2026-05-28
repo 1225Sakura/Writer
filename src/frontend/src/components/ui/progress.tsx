@@ -74,7 +74,7 @@ const Progress = React.forwardRef<
       <div
         className="absolute inset-0 rounded-full overflow-hidden"
         style={{
-          background: 'linear-gradient(90deg, transparent 0%, rgba(201,169,110,0.08) 50%, transparent 100%)',
+          background: 'linear-gradient(90deg, transparent 0%, color-mix(in srgb, var(--accent-100) 8%, transparent) 50%, transparent 100%)',
           animation: 'shimmer 2s infinite',
         }}
       />

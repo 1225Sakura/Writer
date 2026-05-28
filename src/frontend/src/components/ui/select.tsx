@@ -31,9 +31,9 @@ const selectTriggerVariants = cva(
         default:
           "border-[var(--border-default)] shadow-none",
         focus:
-          "border-[var(--accent-100)] shadow-[0_0_0_3px_rgba(201,169,110,0.25)]",
+          "border-[var(--accent-100)] shadow-[0_0_0_3px_color-mix(in srgb, var(--accent-100) 25%, transparent)]",
         error:
-          "border-[var(--vermillion-100)] shadow-[0_0_0_3px_rgba(196,92,92,0.25)]",
+          "border-[var(--vermillion-100)] shadow-[0_0_0_3px_color-mix(in srgb, var(--vermillion-100) 25%, transparent)]",
         disabled:
           "border-[var(--border-subtle)] shadow-none",
       },
@@ -105,7 +105,7 @@ const SelectTrigger = React.forwardRef<
             transition={{ duration: DURATION.FAST, ease: EASE.SMOOTH }}
             className="absolute inset-0 rounded-[var(--radius-input)] pointer-events-none"
             style={{
-              boxShadow: `inset 0 0 20px rgba(201, 169, 110, 0.12)`,
+              boxShadow: `inset 0 0 20px color-mix(in srgb, var(--accent-100) 12%, transparent)`,
               border: `1px solid var(--accent-100)`,
             }}
           />
@@ -159,7 +159,7 @@ const SelectContent = React.forwardRef<
     <SelectPrimitive.Content
       ref={ref}
       className={cn(
-        "relative z-50 max-h-[--radix-select-content-available-height] min-w-[8rem] overflow-y-auto overflow-x-hidden rounded-[var(--radius-lg)] border border-[var(--border-default)] bg-[var(--color-surface-raised)] text-[var(--text-primary)] shadow-[var(--shadow-drawer)]",
+        "relative z-[9999] max-h-[--radix-select-content-available-height] min-w-[8rem] overflow-y-auto overflow-x-hidden rounded-[var(--radius-lg)] border border-[var(--border-default)] bg-[var(--color-surface-raised)] text-[var(--text-primary)] shadow-[var(--shadow-drawer)]",
         "data-[state=open]:animate-in data-[state=closed]:animate-out",
         "data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0",
         "data-[state=closed]:zoom-out-90 data-[state=open]:zoom-in-95",

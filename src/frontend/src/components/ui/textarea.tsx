@@ -15,7 +15,7 @@ const textareaVariants = cva(
     // Focus states
     'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2',
     'focus-visible:ring-[var(--focus-ring)] focus-visible:border-[var(--accent-100)]',
-    'focus-visible:shadow-[0_0_0_3px_rgba(201,169,110,0.15)]',
+    'focus-visible:shadow-[0_0_0_3px_color-mix(in srgb, var(--accent-100) 15%, transparent)]',
     // Hover states
     'hover:border-[var(--border-strong)] hover:bg-[var(--color-surface-hover)]',
     // Disabled states
@@ -32,7 +32,7 @@ const textareaVariants = cva(
         error:
           'border-[var(--color-danger)] focus-visible:ring-[var(--vermillion-100)] focus-visible:border-[var(--color-danger)] focus-visible:shadow-[0_0_0_3px_var(--vermillion-muted)]',
         success:
-          'border-[var(--color-success)] focus-visible:ring-[var(--color-success)] focus-visible:border-[var(--color-success)] focus-visible:shadow-[0_0_0_3px_rgba(107,158,142,0.15)]',
+          'border-[var(--color-success)] focus-visible:ring-[var(--color-success)] focus-visible:border-[var(--color-success)] focus-visible:shadow-[0_0_0_3px_color-mix(in srgb, var(--color-location) 15%, transparent)]',
       },
     },
     defaultVariants: {

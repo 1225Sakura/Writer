@@ -21,7 +21,7 @@ const DialogOverlay = React.forwardRef<
   <DialogPrimitive.Overlay
     ref={ref}
     className={cn(
-      "fixed inset-0 z-50",
+      "fixed inset-0 z-[9999]",
       "bg-[var(--color-overlay)]",
       "data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0",
       "data-[state=closed]:duration-200 data-[state=open]:duration-200",
@@ -41,10 +41,10 @@ const DialogContent = React.forwardRef<
     <DialogPrimitive.Content
       ref={ref}
       className={cn(
-        "fixed left-[50%] top-[50%] z-50 grid w-full max-w-lg translate-x-[-50%] translate-y-[-50%] gap-4",
+        "fixed left-[50%] top-[50%] z-[9999] grid w-full max-w-lg translate-x-[-50%] translate-y-[-50%] gap-4",
         "border border-[var(--border-default)]",
         "bg-[var(--color-surface-raised)]",
-        "shadow-[0_8px_32px_rgba(0,0,0,0.4),0_4px_16px_rgba(0,0,0,0.25),0_2px_8px_rgba(0,0,0,0.2),inset_0_1px_0_rgba(255,255,255,0.05)]",
+        "shadow-[0_8px_32px_color-mix(in srgb, var(--ink-100) 40%, transparent),0_4px_16px_color-mix(in srgb, var(--ink-100) 25%, transparent),0_2px_8px_color-mix(in srgb, var(--ink-100) 20%, transparent),inset_0_1px_0_color-mix(in srgb, var(--paper-100) 5%, transparent)]",
         "p-6",
         "data-[state=open]:animate-in data-[state=closed]:animate-out",
         "data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0",

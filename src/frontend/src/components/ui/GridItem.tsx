@@ -58,7 +58,7 @@ export function BentoItem({
         hover
           ? {
               y: -1,
-              boxShadow: '0 4px 16px rgba(0, 0, 0, 0.1)',
+              boxShadow: '0 4px 16px color-mix(in srgb, var(--ink-100) 10%, transparent)',
             }
           : undefined
       }
@@ -70,7 +70,7 @@ export function BentoItem({
         <motion.div
           className="absolute inset-0 pointer-events-none"
           style={{
-            background: 'linear-gradient(105deg, transparent 40%, rgba(255,255,255,0.03) 45%, rgba(255,255,255,0.06) 50%, rgba(255,255,255,0.03) 55%, transparent 60%)',
+            background: 'linear-gradient(105deg, transparent 40%, color-mix(in srgb, var(--paper-100) 3%, transparent) 45%, color-mix(in srgb, var(--paper-100) 6%, transparent) 50%, color-mix(in srgb, var(--paper-100) 3%, transparent) 55%, transparent 60%)',
             backgroundSize: '200% 100%',
           }}
           animate={{ backgroundPosition: ['200% 0', '-200% 0'] }}

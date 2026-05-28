@@ -49,10 +49,10 @@ const ScrollBar = React.forwardRef<
         "hover:bg-[var(--accent-80)]",
         "active:bg-[var(--accent-100)]",
         "transition-colors duration-150",
-        "shadow-[inset_0_1px_1px_rgba(201,169,110,0.06)]",
+        "shadow-[inset_0_1px_1px_color-mix(in srgb, var(--accent-100) 6%, transparent)]",
         "before:absolute before:inset-0 before:rounded-full",
         "before:bg-gradient-to-b before:from-[var(--paper-100)]/5 before:to-transparent",
-        "hover:shadow-[inset_0_1px_2px_rgba(201,169,110,0.1)]"
+        "hover:shadow-[inset_0_1px_2px_color-mix(in srgb, var(--accent-100) 10%, transparent)]"
       )}
       style={{
         minWidth: orientation === "vertical" ? "6px" : undefined,

@@ -19,7 +19,7 @@ const SheetOverlay = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <SheetPrimitive.Overlay
     className={cn(
-      "fixed inset-0 z-50",
+      "fixed inset-0 z-[9999]",
       "data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0",
       "data-[state=closed]:duration-200 data-[state=open]:duration-200",
       "bg-[var(--color-overlay)]",
@@ -32,7 +32,7 @@ const SheetOverlay = React.forwardRef<
 SheetOverlay.displayName = SheetPrimitive.Overlay.displayName
 
 const sheetVariants = cva(
-  "fixed z-50 gap-4 bg-[var(--color-surface-raised)] border-[var(--border-default)] shadow-[0_8px_32px_rgba(0,0,0,0.3),0_4px_16px_rgba(0,0,0,0.2),0_2px_8px_rgba(0,0,0,0.15),inset_0_1px_0_rgba(255,255,255,0.05)] transition-all duration-[var(--transition-normal)] ease-out data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:duration-200 data-[state=open]:duration-200",
+  "fixed z-[9999] gap-4 bg-[var(--color-surface-raised)] border-[var(--border-default)] shadow-[0_8px_32px_color-mix(in srgb, var(--ink-100) 30%, transparent),0_4px_16px_color-mix(in srgb, var(--ink-100) 20%, transparent),0_2px_8px_color-mix(in srgb, var(--ink-100) 15%, transparent),inset_0_1px_0_color-mix(in srgb, var(--paper-100) 5%, transparent)] transition-all duration-[var(--transition-normal)] ease-out data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:duration-200 data-[state=open]:duration-200",
   {
     variants: {
       side: {

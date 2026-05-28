@@ -26,7 +26,7 @@ export function SwipeHintModal({ onOpenOutline, onOpenAIOperation }: SwipeHintMo
           transition={{ duration: DURATION.SLOW, ease: EASE.SMOOTH }}
           className="fixed inset-0 z-50 flex items-center justify-center md:hidden"
           style={{
-            background: 'rgba(0,0,0,0.5)',
+            background: 'color-mix(in srgb, var(--ink-100) 50%, transparent)',
           }}
           onClick={dismissSwipeHint}
           onKeyDown={(e) => {
@@ -48,7 +48,7 @@ export function SwipeHintModal({ onOpenOutline, onOpenAIOperation }: SwipeHintMo
             style={{
               background: 'var(--color-surface-raised)',
               border: '1px solid var(--border-default)',
-              boxShadow: '0 20px 60px rgba(0,0,0,0.4)',
+              boxShadow: '0 20px 60px color-mix(in srgb, var(--ink-100) 40%, transparent)',
             }}
             onClick={(e) => e.stopPropagation()}
             onKeyDown={(e) => {

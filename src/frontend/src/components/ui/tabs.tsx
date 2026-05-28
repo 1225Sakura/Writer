@@ -21,7 +21,7 @@ const TabsList = React.forwardRef<
     className={cn(
       "relative inline-flex h-10 items-center justify-center rounded-[var(--radius-lg)]",
       "bg-[var(--color-surface-overlay)]",
-      "border border-[var(--border-default)] shadow-[inset_0_1px_1px_rgba(201,169,110,0.04)]",
+      "border border-[var(--border-default)] shadow-[inset_0_1px_1px_color-mix(in srgb, var(--accent-100) 4%, transparent)]",
       "p-1 gap-1",
       className
     )}
@@ -109,7 +109,7 @@ const AnimatedTabs = React.forwardRef<
         className={cn(
           "relative inline-flex h-10 items-center justify-center rounded-[var(--radius-lg)]",
           "bg-[var(--color-surface-overlay)]",
-          "border border-[var(--border-default)] shadow-[inset_0_1px_1px_rgba(201,169,110,0.04)]",
+          "border border-[var(--border-default)] shadow-[inset_0_1px_1px_color-mix(in srgb, var(--accent-100) 4%, transparent)]",
           "p-1 gap-1 overflow-hidden",
           indicatorClassName
         )}

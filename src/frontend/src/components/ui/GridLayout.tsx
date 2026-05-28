@@ -50,36 +50,36 @@ export const colorMap: Record<BentoItemColor, CSSProperties> = {
     borderColor: 'var(--border-subtle)',
   },
   accent: {
-    background: 'rgba(var(--spotlight-accent), 0.08)',
-    borderColor: 'rgba(var(--spotlight-accent), 0.2)',
+    background: 'color-mix(in srgb, rgb(var(--spotlight-accent)) 8%, transparent)',
+    borderColor: 'color-mix(in srgb, rgb(var(--spotlight-accent)) 20%, transparent)',
   },
   character: {
-    background: 'rgba(var(--spotlight-character), 0.06)',
-    borderColor: 'rgba(var(--spotlight-character), 0.18)',
+    background: 'color-mix(in srgb, rgb(var(--spotlight-character)) 6%, transparent)',
+    borderColor: 'color-mix(in srgb, rgb(var(--spotlight-character)) 18%, transparent)',
   },
   item: {
-    background: 'rgba(var(--spotlight-item), 0.06)',
-    borderColor: 'rgba(var(--spotlight-item), 0.18)',
+    background: 'color-mix(in srgb, rgb(var(--spotlight-item)) 6%, transparent)',
+    borderColor: 'color-mix(in srgb, rgb(var(--spotlight-item)) 18%, transparent)',
   },
   location: {
-    background: 'rgba(var(--spotlight-location), 0.06)',
-    borderColor: 'rgba(var(--spotlight-location), 0.18)',
+    background: 'color-mix(in srgb, rgb(var(--spotlight-location)) 6%, transparent)',
+    borderColor: 'color-mix(in srgb, rgb(var(--spotlight-location)) 18%, transparent)',
   },
   faction: {
-    background: 'rgba(var(--spotlight-faction), 0.06)',
-    borderColor: 'rgba(var(--spotlight-faction), 0.18)',
+    background: 'color-mix(in srgb, rgb(var(--spotlight-faction)) 6%, transparent)',
+    borderColor: 'color-mix(in srgb, rgb(var(--spotlight-faction)) 18%, transparent)',
   },
   outline: {
-    background: 'rgba(var(--spotlight-outline), 0.06)',
-    borderColor: 'rgba(var(--spotlight-outline), 0.18)',
+    background: 'color-mix(in srgb, rgb(var(--spotlight-outline)) 6%, transparent)',
+    borderColor: 'color-mix(in srgb, rgb(var(--spotlight-outline)) 18%, transparent)',
   },
   ifline: {
-    background: 'rgba(var(--spotlight-ifline), 0.06)',
-    borderColor: 'rgba(var(--spotlight-ifline), 0.18)',
+    background: 'color-mix(in srgb, rgb(var(--spotlight-ifline)) 6%, transparent)',
+    borderColor: 'color-mix(in srgb, rgb(var(--spotlight-ifline)) 18%, transparent)',
   },
   vermillion: {
-    background: 'rgba(var(--spotlight-faction), 0.06)',
-    borderColor: 'rgba(var(--spotlight-faction), 0.18)',
+    background: 'color-mix(in srgb, rgb(var(--spotlight-faction)) 6%, transparent)',
+    borderColor: 'color-mix(in srgb, rgb(var(--spotlight-faction)) 18%, transparent)',
   },
 }
 

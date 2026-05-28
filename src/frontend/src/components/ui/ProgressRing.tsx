@@ -37,7 +37,7 @@ export const ProgressRing = React.forwardRef<HTMLDivElement, ProgressRingProps>(
       strokeWidth: strokeWidthProp,
       color = 'var(--accent-100)',
       secondaryColor,
-      trackColor = 'rgba(255,255,255,0.06)',
+      trackColor = 'color-mix(in srgb, var(--paper-100) 6%, transparent)',
       showPercentage = true,
       showValue = false,
       label,

@@ -74,7 +74,7 @@ export function WritingStatsChart({
               y1={y}
               x2={width - padding.right}
               y2={y}
-              stroke="rgba(255,255,255,0.06)"
+              stroke="color-mix(in srgb, var(--paper-100) 6%, transparent)"
               strokeWidth={1}
               strokeDasharray="2,4"
             />
@@ -216,8 +216,8 @@ export function WritingStatsChart({
           style={{
             left: tooltipPos.x + 8,
             top: tooltipPos.y - 32,
-            background: 'rgba(32, 33, 35, 0.95)',
-            border: '1px solid rgba(255,255,255,0.1)',
+            background: 'color-mix(in srgb, var(--ink-100) 95%, transparent)',
+            border: '1px solid color-mix(in srgb, var(--paper-100) 10%, transparent)',
             color: 'var(--paper-100)',
           }}
           initial={{ opacity: 0, y: 4 }}

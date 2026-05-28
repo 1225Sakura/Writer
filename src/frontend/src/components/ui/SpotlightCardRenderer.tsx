@@ -103,7 +103,7 @@ export function SpotlightRenderer({
         className="absolute inset-0 pointer-events-none transition-opacity duration-300"
         style={{
           opacity: isHovering ? 1 : 0,
-          background: `radial-gradient(${spotlightConfig.size}px circle at var(--spotlight-x) var(--spotlight-y), rgba(var(--spotlight-color), var(--spotlight-opacity)), transparent 60%)`,
+          background: `radial-gradient(${spotlightConfig.size}px circle at var(--spotlight-x) var(--spotlight-y), color-mix(in srgb, rgb(var(--spotlight-color)) calc(var(--spotlight-opacity) * 100%), transparent), transparent 60%)`,
         }}
       />
 
@@ -113,7 +113,7 @@ export function SpotlightRenderer({
         style={{
           opacity: isHovering ? 0.5 : 0,
           borderRadius: 'inherit',
-          boxShadow: `inset 0 0 0 1px rgba(${rgbValue}, 0.15)`,
+          boxShadow: `inset 0 0 0 1px color-mix(in srgb, rgb(${rgbValue}) 15%, transparent)`,
         }}
       />
 

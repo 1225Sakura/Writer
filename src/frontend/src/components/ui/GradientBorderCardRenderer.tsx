@@ -69,7 +69,7 @@ export function GradientBorderRenderer({
       onMouseEnter={() => setIsHovering(true)}
       onMouseLeave={() => setIsHovering(false)}
       whileHover={hoverGlow ? {
-        boxShadow: `0 0 ${glowConfig.spread}px rgba(${gradientGlowColor}, ${glowConfig.opacity}), 0 0 ${glowConfig.spread * 2}px rgba(${gradientGlowColor}, ${glowConfig.opacity * 0.5})`,
+        boxShadow: `0 0 ${glowConfig.spread}px color-mix(in srgb, rgb(${gradientGlowColor}) ${Math.round(glowConfig.opacity * 100)}%, transparent), 0 0 ${glowConfig.spread * 2}px color-mix(in srgb, rgb(${gradientGlowColor}) ${Math.round(glowConfig.opacity * 50)}%, transparent)`,
       } : undefined}
       whileTap={press ? { scale: 0.98 } : undefined}
       transition={{ duration: DURATION.SLOW, ease: EASE.SMOOTH }}
@@ -81,8 +81,8 @@ export function GradientBorderRenderer({
           style={{ borderRadius: radius }}
           animate={{
             boxShadow: isHovering
-              ? `inset 0 0 ${glowConfig.spread * 0.8}px rgba(${gradientGlowColor}, ${glowConfig.opacity * 0.3})`
-              : `inset 0 0 0px rgba(${gradientGlowColor}, 0)`,
+              ? `inset 0 0 ${glowConfig.spread * 0.8}px color-mix(in srgb, rgb(${gradientGlowColor}) ${Math.round(glowConfig.opacity * 30)}%, transparent)`
+              : `inset 0 0 0px color-mix(in srgb, rgb(${gradientGlowColor}) 0%, transparent)`,
           }}
           transition={{ duration: DURATION.SLOW, ease: EASE.SMOOTH }}
         />
@@ -115,7 +115,7 @@ export function GradientBorderRenderer({
           <motion.div
             className="absolute inset-0 pointer-events-none"
             style={{
-              background: `radial-gradient(ellipse at 50% 0%, rgba(${gradientGlowColor}, 0.06) 0%, transparent 60%)`,
+              background: `radial-gradient(ellipse at 50% 0%, color-mix(in srgb, rgb(${gradientGlowColor}) 6%, transparent) 0%, transparent 60%)`,
             }}
             animate={{ opacity: isHovering ? 1 : 0 }}
             transition={{ duration: DURATION.SLOW, ease: EASE.SMOOTH }}

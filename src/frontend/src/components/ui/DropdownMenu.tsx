@@ -23,7 +23,7 @@ export const DropdownMenuContent = React.forwardRef<
       sideOffset={sideOffset}
       className={twMerge(
         clsx(
-          'z-50 min-w-[8rem] overflow-hidden rounded-[var(--radius-card)] border border-[var(--border-default)]',
+          'z-[9999] min-w-[8rem] overflow-hidden rounded-[var(--radius-card)] border border-[var(--border-default)]',
           'bg-[var(--color-surface-raised)] p-1 shadow-[var(--shadow-drawer)]',
           'text-[var(--text-primary)] text-sm',
           'data-[state=open]:animate-in data-[state=closed]:animate-out',

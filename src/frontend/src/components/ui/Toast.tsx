@@ -49,8 +49,8 @@ const typeConfig = {
     icon: AlertCircle,
     borderColor: 'var(--color-danger)',
     iconColor: 'var(--color-danger)',
-    glowColor: 'rgba(196, 92, 92, 0.15)',
-    progressColor: 'rgba(196, 92, 92, 0.5)',
+    glowColor: 'color-mix(in srgb, var(--vermillion-100) 15%, transparent)',
+    progressColor: 'color-mix(in srgb, var(--vermillion-100) 50%, transparent)',
     ariaLabel: '错误提示',
   },
 }
