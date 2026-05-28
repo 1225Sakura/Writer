@@ -11,6 +11,7 @@ import {
 import type { SnapshotInfo } from '@/api/snapshots'
 import type { BackupStatusResponse } from '@/api/snapshots'
 import type { ImportProjectResponse } from '@/api/exportImport'
+import type { ExportDataResponse } from '@/api/types'
 
 export function SnapshotTab({
   snapshots, backupStatus, snapshotName, setSnapshotName, loading,
@@ -118,7 +119,7 @@ export function ExportTab({
   loading: boolean
   exportJSON: () => Promise<void>
   exportYAML: () => Promise<void>
-  exportZIP: (fmt: string) => Promise<void>
+  exportZIP: (format?: 'json' | 'yaml') => Promise<void>
 }) {
   return (
     <motion.div
@@ -147,7 +148,7 @@ export function ImportTab({
   setImportMode: (m: 'merge' | 'replace') => void
   loading: boolean
   importResult: ImportProjectResponse | null
-  importJSON: (data: unknown, mode: string) => Promise<void>
+  importJSON: (data: ExportDataResponse, mode?: 'merge' | 'replace') => Promise<void>
   importYAML: (text: string, mode: string) => Promise<void>
   importZIP: (file: File, mode: string) => Promise<void>
   clearImportResult: () => void

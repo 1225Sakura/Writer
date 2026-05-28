@@ -113,7 +113,7 @@ export function WorkflowsTab({ workflows, executions, loading, executeWorkflow, 
 
 export function ObservabilityTab({ metrics, debts, trends, loading, fetchMetrics, fetchDebts, fetchTrends }: {
   metrics: { entity_counts: Record<string, number> } | null
-  debts: { summary: { total: number; pending: number }; items: Array<{ id: string; type: string; description: string; status: string }> } | null
+  debts: { summary: { total: number; pending: number }; items: Array<{ id: string; type: string; description?: string; status: string }> } | null
   trends: { average_score: number; inspections_count: number; trend_direction: string; risk_flags: string[] } | null
   loading: boolean
   fetchMetrics: () => void
