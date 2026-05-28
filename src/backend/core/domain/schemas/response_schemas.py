@@ -188,7 +188,7 @@ class AIInspectionResultResponse(BaseModel):
     inspection_type: str
     issues_json: Optional[str]
     suggestions_json: Optional[str]
-    auto_fixed: bool
+    auto_fixed: Optional[bool] = None
     created_at: datetime
 
 

@@ -7,7 +7,12 @@ from backend.infrastructure.cache.cache_service import LRUCache
 
 logger = logging.getLogger(__name__)
 
-from diskcache import Cache
+try:
+    from diskcache import Cache
+    DISKCACHE_AVAILABLE = True
+except ImportError:
+    DISKCACHE_AVAILABLE = False
+    Cache = None
 
 
 class TieredCache:

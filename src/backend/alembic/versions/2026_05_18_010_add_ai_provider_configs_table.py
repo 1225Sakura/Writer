@@ -13,7 +13,7 @@ import sqlalchemy as sa
 
 # revision identifiers, used by Alembic.
 revision: str = '010_ai_provider_configs'
-down_revision: Union[str, Sequence[str], None] = '009_add_embedding_constraint_ext'
+down_revision: Union[str, Sequence[str], None] = '008_add_wiki'
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 

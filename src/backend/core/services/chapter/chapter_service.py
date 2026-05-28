@@ -36,7 +36,7 @@ class ChapterService(BaseService[Chapter]):
 
     async def list_draft_versions(self, chapter_id: int, skip: int = 0, limit: int = 20) -> List[DraftVersion]:
         """List all draft versions for a chapter."""
-        return await self.repo.get_draft_versions(chapter_id)
+        return await self.repo.get_draft_versions(chapter_id, skip=skip, limit=limit)
 
     async def create_draft_version(self, data: dict) -> DraftVersion:
         """Create a new draft version for a chapter."""

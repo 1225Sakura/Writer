@@ -17,7 +17,7 @@ import { PreviewPanel } from './PreviewPanel'
    ============================================================ */
 
 export function ChatInitPage() {
-  const { extractedEntities, sessionId, createSession, loadExtractedEntities, loadMessages, confirmEntity, batchConfirmEntities } = useChatStore()
+  const { extractedEntities, sessionId, createSession, loadExtractedEntities, loadMessages, confirmEntity, batchConfirmEntities, error } = useChatStore()
   const [sidebarOpen, setSidebarOpen] = useState(true)
   const [mobileInfoOpen, setMobileInfoOpen] = useState(false)
   const prefersReducedMotion = usePrefersReducedMotion()
@@ -36,6 +36,28 @@ export function ChatInitPage() {
       loadMessages()
     }
   }, [sessionId, loadExtractedEntities, loadMessages])
+
+  // Error state UI
+  if (error && !sessionId) {
+    return (
+      <motion.div
+        className="flex flex-col h-full items-center justify-center gap-4 p-8"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+      >
+        <div className="text-center space-y-2">
+          <h2 className="text-lg font-semibold text-foreground">连接失败</h2>
+          <p className="text-sm text-muted-foreground max-w-md">{error}</p>
+        </div>
+        <button
+          onClick={() => createSession()}
+          className="px-4 py-2 rounded-md bg-primary text-primary-foreground hover:bg-primary/90 transition-colors"
+        >
+          重试
+        </button>
+      </motion.div>
+    )
+  }
 
   return (
     <motion.div

@@ -34,7 +34,8 @@ function WritingEditorPageContent() {
     toggleAIDrawer,
     toggleOutlineDrawer,
   } = useUIStore()
-  const { init, loading } = useWritingStore()
+  const loading = useWritingStore((s) => s.loading)
+  const init = useWritingStore((s) => s.init)
   const { immersiveMode, chromeVisible } = useImmersiveModeContext()
 
   useEffect(() => {

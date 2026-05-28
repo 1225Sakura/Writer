@@ -14,6 +14,7 @@ from backend.core.domain.schemas.request_schemas import (
     CharacterUpdateRequest,
     CharacterRelationshipCreateRequest,
     CharacterStorylineCreateRequest,
+    CharacterStorylineUpdateRequest,
 )
 from backend.core.domain.schemas.response_schemas import (
     CharacterResponse,
@@ -211,7 +212,7 @@ async def create_character_storyline(
 async def update_character_storyline(
     character_id: int,
     storyline_id: int,
-    storyline: CharacterStorylineCreateRequest,
+    storyline: CharacterStorylineUpdateRequest,
     service: CharacterService = Depends(get_character_service)
 ):
     """Update a character storyline."""

@@ -1044,6 +1044,10 @@ async def _import_characters(session, data):
             description=char_data.get("description"),
             tier=char_data.get("tier"),
             cultivation_realm=char_data.get("cultivation_realm"),
+            tags=char_data.get("tags"),
+            project_id=char_data.get("project_id"),
+            created_at=char_data.get("created_at"),
+            updated_at=char_data.get("updated_at"),
         )
         session.add(char)
         count += 1
@@ -1089,6 +1093,10 @@ async def _import_items(session, data):
             description=item_data.get("description"),
             owner=item_data.get("owner"),
             location=item_data.get("location"),
+            tags=item_data.get("tags"),
+            project_id=item_data.get("project_id"),
+            created_at=item_data.get("created_at"),
+            updated_at=item_data.get("updated_at"),
         )
         session.add(item)
         count += 1
@@ -1103,6 +1111,10 @@ async def _import_locations(session, data):
             name=loc_data.get("name"),
             description=loc_data.get("description"),
             importance=loc_data.get("importance"),
+            tags=loc_data.get("tags"),
+            project_id=loc_data.get("project_id"),
+            created_at=loc_data.get("created_at"),
+            updated_at=loc_data.get("updated_at"),
         )
         session.add(loc)
         count += 1
@@ -1117,6 +1129,10 @@ async def _import_factions(session, data):
             name=fact_data.get("name"),
             description=fact_data.get("description"),
             type=fact_data.get("type"),
+            tags=fact_data.get("tags"),
+            project_id=fact_data.get("project_id"),
+            created_at=fact_data.get("created_at"),
+            updated_at=fact_data.get("updated_at"),
         )
         session.add(fact)
         count += 1
@@ -1131,6 +1147,10 @@ async def _import_world_settings(session, data):
             name=ws_data.get("name"),
             description=ws_data.get("description"),
             details_json=ws_data.get("details_json"),
+            tags=ws_data.get("tags"),
+            project_id=ws_data.get("project_id"),
+            created_at=ws_data.get("created_at"),
+            updated_at=ws_data.get("updated_at"),
         )
         session.add(ws)
         count += 1
@@ -1145,6 +1165,10 @@ async def _import_rules(session, data):
             name=rule_data.get("name"),
             description=rule_data.get("description"),
             type=rule_data.get("type"),
+            tags=rule_data.get("tags"),
+            project_id=rule_data.get("project_id"),
+            created_at=rule_data.get("created_at"),
+            updated_at=rule_data.get("updated_at"),
         )
         session.add(rule)
         count += 1
@@ -1160,6 +1184,7 @@ async def _import_outlines(session, data):
             description=outline_data.get("description"),
         )
         session.add(outline)
+        await session.flush()
 
         for chapter_data in outline_data.get("chapters", []):
             chapter = Chapter(
@@ -1198,6 +1223,7 @@ async def _import_chat_sessions(session, data):
             id=cs_data.get("id"),
         )
         session.add(chat_session)
+        await session.flush()
 
         for msg_data in cs_data.get("messages", []):
             msg = ChatMessage(

@@ -441,13 +441,16 @@ export const useChatStore = create<ChatState & ChatActions>()(
                 msg.editedAt = Date.now()
               }
             })
-            // Persist to backend
-            try {
-              await messageApi.edit(Number(id), newContent)
-            } catch (error) {
-              set((state) => {
-                state.error = (error as Error).message
-              })
+            // Persist to backend (only for messages with numeric IDs from server)
+            const numericId = Number(id)
+            if (!isNaN(numericId)) {
+              try {
+                await messageApi.edit(numericId, newContent)
+              } catch (error) {
+                set((state) => {
+                  state.error = (error as Error).message
+                })
+              }
             }
           },
 
@@ -459,13 +462,16 @@ export const useChatStore = create<ChatState & ChatActions>()(
                 (e) => e.sourceMessageId !== id
               )
             })
-            // Persist to backend
-            try {
-              await messageApi.delete(Number(id))
-            } catch (error) {
-              set((state) => {
-                state.error = (error as Error).message
-              })
+            // Persist to backend (only for messages with numeric IDs from server)
+            const numericId = Number(id)
+            if (!isNaN(numericId)) {
+              try {
+                await messageApi.delete(numericId)
+              } catch (error) {
+                set((state) => {
+                  state.error = (error as Error).message
+                })
+              }
             }
           },
 

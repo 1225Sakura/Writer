@@ -437,7 +437,6 @@ export interface RequestOptions {
   cacheTTL?: number // Cache TTL in ms, 0 to disable, default 1 min
   signal?: AbortSignal
   skipDedup?: boolean // Skip request deduplication
-  /** @deprecated Pass query params via the data argument or URL instead */
   params?: Record<string, unknown>
 }
 
@@ -477,9 +476,14 @@ const request = async <T>(
     } as ApiError)
   }
 
+  // Build cache key including params for GET requests
+  const cacheKey = method === 'get' && options.params
+    ? `${url}?${new URLSearchParams(options.params as Record<string, string>).toString()}`
+    : url
+
   // Check cache for GET requests
   if (method === 'get' && options.cacheTTL !== 0) {
-    const cached = apiCache.get<T>(url)
+    const cached = apiCache.get<T>(cacheKey)
     if (cached) {
       return cached
     }
@@ -503,6 +507,9 @@ const request = async <T>(
   if (options.signal) {
     config['signal'] = options.signal
   }
+  if (options.params) {
+    config['params'] = options.params
+  }
 
   const requestPromise = client.request<T>({
     method,
@@ -512,7 +519,7 @@ const request = async <T>(
   }).then((response) => {
     // Cache GET responses
     if (method === 'get') {
-      apiCache.set(url, response.data, options.cacheTTL)
+      apiCache.set(cacheKey, response.data, options.cacheTTL)
     }
     clearPendingRequest(dedupKey)
     return response.data
@@ -531,7 +538,7 @@ const request = async <T>(
 
 // Convenience method for GET requests
 const get = <T>(url: string, params?: Record<string, unknown>, options?: RequestOptions): Promise<T> =>
-  request<T>('get', url, { params }, options)
+  request<T>('get', url, undefined, { ...options, params })
 
 // Convenience method for POST requests
 const post = <T>(url: string, data?: unknown, options?: RequestOptions): Promise<T> =>

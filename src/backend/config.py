@@ -9,10 +9,16 @@ from pathlib import Path
 
 def _get_database_url() -> str:
     """Get database URL, handling both dev and packaged paths."""
-    # Check backend/data/ first (for dev and packaged fallback)
+    # Electron mode: WRITER_DATA_DIR takes precedence unconditionally
+    electron_data_dir = os.environ.get('WRITER_DATA_DIR')
+    if electron_data_dir:
+        data_dir = Path(electron_data_dir)
+        data_dir.mkdir(parents=True, exist_ok=True)
+        db_path = data_dir / 'writer.db'
+        return f"sqlite+aiosqlite:///{db_path.resolve()}"
+    # Dev mode: check backend/data/ first, then parent/data/
     db_path = Path(__file__).parent / 'data' / 'writer.db'
     if not db_path.exists():
-        # In packaged app, launcher creates DB at resources/data/writer.db
         alt_path = Path(__file__).parent.parent / 'data' / 'writer.db'
         if alt_path.exists():
             db_path = alt_path

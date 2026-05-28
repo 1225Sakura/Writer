@@ -147,6 +147,15 @@ class CharacterStorylineCreateRequest(BaseModel):
     arc: Optional[str] = Field(default=None, max_length=MAX_TEXT_FIELD_LENGTH)
     progress: int = Field(default=0, ge=0, le=100)
 
+
+class CharacterStorylineUpdateRequest(BaseModel):
+    """Request to update a character storyline (all fields optional)."""
+    model_config = ConfigDict(str_strip_whitespace=True)
+
+    title: Optional[str] = Field(default=None, min_length=1, max_length=MAX_TITLE_LENGTH)
+    arc: Optional[str] = Field(default=None, max_length=MAX_TEXT_FIELD_LENGTH)
+    progress: Optional[int] = Field(default=None, ge=0, le=100)
+
     @field_validator('character_id')
     @classmethod
     def validate_character_id(cls, v: int) -> int:

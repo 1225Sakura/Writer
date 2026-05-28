@@ -53,6 +53,8 @@ async def update_writing_settings(
 ):
     """Update writing settings."""
     settings = await service.get_writing_settings()
+    if settings is None:
+        settings = await service.create_default_writing_settings()
     db_settings = await service.update_writing_settings(settings.id, updates.model_dump(exclude_unset=True))
     if db_settings:
         get_cache_service().clear_entity_cache("writing_settings")
