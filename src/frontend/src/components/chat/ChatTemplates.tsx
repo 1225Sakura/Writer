@@ -158,7 +158,7 @@ export function ChatTemplates({ onSelect, disabled }: ChatTemplatesProps) {
               </div>
 
               {/* Template grid */}
-              <div className="p-2 grid grid-cols-2 gap-1.5 max-h-72 overflow-y-auto">
+              <div className="p-2 grid grid-cols-2 gap-1.5 max-h-72 overflow-y-auto scrollbar-thin">
                 {templates.map((template, i) => (
                   <motion.button
                     key={template.id}

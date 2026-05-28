@@ -191,7 +191,7 @@
   transition: background var(--transition-fast);
 }
 
-.entity-highlight--character { background: rgba(201, 160, 110, 0.15); }
+.entity-highlight--character { background: rgba(201, 169, 110, 0.15); }
 .entity-highlight--item      { background: rgba(155, 126, 217, 0.15); }
 .entity-highlight--location  { background: rgba(107, 158, 142, 0.15); }
 .entity-highlight--faction   { background: rgba(212, 93, 93, 0.15); }

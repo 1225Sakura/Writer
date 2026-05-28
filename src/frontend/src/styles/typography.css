@@ -138,13 +138,11 @@
   --writing-leading-loose: 2;
 
   /* ============================================================
-     TEXT COLOR VARIABLES (Standardized)
+     TEXT COLOR VARIABLES — REMOVED
+     These were hardcoded overrides that broke theme switching.
+     Canonical definitions are in design-tokens.css using
+     var(--paper-*) / var(--ink-*) references.
      ============================================================ */
-
-  --text-primary: #f7f8f8;
-  --text-secondary: #dcd6c8;
-  --text-muted: #8a8f98;
-  --text-inverse: #1a1a2e;
 
   /* ============================================================
      WRITING TYPOGRAPHY VARIABLES

@@ -97,9 +97,9 @@ export const containerVariants = {
 };
 
 export const pulseGlowVariants = {
-  idle: { boxShadow: "0 0 0px rgba(201, 169, 110, 0)" },
+  idle: { boxShadow: "0 0 0px rgba(var(--accent-rgb), 0)" },
   active: {
-    boxShadow: ["0 0 4px rgba(201, 169, 110, 0.2)", "0 0 14px rgba(201, 169, 110, 0.45)", "0 0 4px rgba(201, 169, 110, 0.2)"],
+    boxShadow: ["0 0 4px var(--glow-primary-sm)", "0 0 14px var(--glow-primary)", "0 0 4px var(--glow-primary-sm)"],
     transition: { duration: 2, repeat: Infinity, ease: "easeInOut" as const },
   },
 };

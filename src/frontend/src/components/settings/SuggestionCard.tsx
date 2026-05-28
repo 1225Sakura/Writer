@@ -93,9 +93,9 @@ export function SuggestionCard({
       className="rounded-xl group overflow-hidden relative"
       style={{
         background: isApplied
-          ? "linear-gradient(135deg, rgba(94,181,166,0.08) 0%, var(--color-surface-raised) 100%)"
+          ? "linear-gradient(135deg, rgba(var(--success-rgb),0.08) 0%, var(--color-surface-raised) 100%)"
           : config.gradient,
-        border: `1px solid ${isApplied ? "rgba(94,181,166,0.2)" : "var(--border-subtle)"}`,
+        border: `1px solid ${isApplied ? "rgba(var(--success-rgb),0.2)" : "var(--border-subtle)"}`,
       }}
       whileHover={!isApplied ? {
         scale: 1.01,
@@ -104,9 +104,9 @@ export function SuggestionCard({
       onMouseEnter={(e) => {
         if (!isApplied) {
           e.currentTarget.style.background =
-            "linear-gradient(135deg, rgba(201,169,110,0.06) 0%, var(--color-surface-overlay) 100%)";
+            "linear-gradient(135deg, rgba(var(--accent-rgb),0.06) 0%, var(--color-surface-overlay) 100%)";
           e.currentTarget.style.borderColor = `${config.colors.border}`;
-          e.currentTarget.style.boxShadow = `0 4px 20px rgba(0,0,0,0.25), 0 0 0 1px color-mix(in srgb, ${config.colors.glow} 31%, transparent), 0 0 24px color-mix(in srgb, ${config.colors.glow} 19%, transparent)`;
+          e.currentTarget.style.boxShadow = `0 4px 20px rgba(var(--ink-shadow-rgb),0.25), 0 0 0 1px color-mix(in srgb, ${config.colors.glow} 31%, transparent), 0 0 24px color-mix(in srgb, ${config.colors.glow} 19%, transparent)`;
         }
       }}
       onMouseLeave={(e) => {
@@ -210,16 +210,16 @@ export function SuggestionCard({
                     ? "var(--color-success)"
                     : "var(--text-tertiary)",
                   backgroundColor: isApplied
-                    ? "rgba(94,181,166,0.15)"
+                    ? "rgba(var(--success-rgb),0.15)"
                     : "transparent",
                 }}
                 onMouseEnter={(e) => {
                   if (!isApplied) {
                     e.currentTarget.style.backgroundColor =
-                      "rgba(94,181,166,0.15)";
+                      "rgba(var(--success-rgb),0.15)";
                     e.currentTarget.style.color = "var(--color-success)";
                     e.currentTarget.style.boxShadow =
-                      "0 0 10px rgba(94,181,166,0.35)";
+                      "0 0 10px rgba(var(--success-rgb),0.35)";
                   }
                 }}
                 onMouseLeave={(e) => {

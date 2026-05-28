@@ -57,7 +57,7 @@ export function WelcomePanel({ entities }: { entities: ExtractedEntityLocal[] })
       </div>
 
       {/* Entity summary */}
-      <div className="flex-1 overflow-y-auto py-2">
+      <div className="flex-1 overflow-y-auto scrollbar-thin py-2">
         {entities.length === 0 ? (
           <div className="text-center py-8 px-4">
             <p className="text-xs text-[var(--text-tertiary)]">

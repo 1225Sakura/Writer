@@ -24,20 +24,12 @@ export function StyleSelector({ writingStyle, onStyleChange }: StyleSelectorProp
           onClick={() => onStyleChange(style.value)}
           whileHover={{ scale: 1.01 }}
           whileTap={{ scale: 0.99 }}
-          className="w-full flex items-center gap-3 p-2.5 rounded-xl border transition-all duration-200 cursor-pointer text-left"
+          className={`w-full flex items-center gap-3 p-2.5 rounded-xl border transition-all duration-200 cursor-pointer text-left ${
+            writingStyle === style.value ? '' : 'hover:border-[var(--border-strong)]'
+          }`}
           style={{
             background: writingStyle === style.value ? 'var(--accent-muted)' : 'var(--color-surface-base)',
             borderColor: writingStyle === style.value ? 'color-mix(in srgb, var(--accent-primary) 40%, transparent)' : 'var(--border-default)',
-          }}
-          onMouseEnter={(e) => {
-            if (writingStyle !== style.value) {
-              e.currentTarget.style.borderColor = 'var(--border-strong)'
-            }
-          }}
-          onMouseLeave={(e) => {
-            if (writingStyle !== style.value) {
-              e.currentTarget.style.borderColor = 'var(--border-default)'
-            }
           }}
         >
           <span

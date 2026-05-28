@@ -56,7 +56,7 @@ export function PreviewPanel({ entities, onConfirmEntity }: {
       </div>
 
       {/* Content */}
-      <div className="flex-1 overflow-y-auto">
+      <div className="flex-1 overflow-y-auto scrollbar-thin">
         {entities.length === 0 ? (
           <div className="text-center py-8 text-secondary text-sm">
             开始对话后，这里将显示收集到的设定信息

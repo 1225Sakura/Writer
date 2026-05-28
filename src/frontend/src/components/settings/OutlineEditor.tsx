@@ -17,7 +17,7 @@ import { ChapterSummaryModal } from './ChapterSummaryModal'
 const statusColors: Record<string, { bg: string; text: string }> = {
   planning: { bg: 'var(--color-surface-overlay)', text: 'var(--text-tertiary)' },
   writing: { bg: 'var(--accent-muted)', text: 'var(--accent-primary)' },
-  completed: { bg: 'rgba(126,184,74,0.15)', text: 'var(--color-ifline)' },
+  completed: { bg: 'color-mix(in srgb, var(--color-ifline) 15%, transparent)', text: 'var(--color-ifline)' },
 }
 
 const statusLabels: Record<string, string> = {
@@ -51,10 +51,8 @@ function ChapterItem({
 }) {
   return (
     <motion.div
-      className="p-3 rounded-lg group"
+      className="p-3 rounded-lg group hover:bg-[var(--hover-bg)]"
       style={{ ...cardStyle, backgroundColor: 'var(--color-surface-raised)' }}
-      onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = 'var(--hover-bg)' }}
-      onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'var(--color-surface-raised)' }}
       whileHover={{ x: 2 }}
       transition={{ duration: DURATION.FAST, ease: EASE.SMOOTH }}
     >
@@ -71,10 +69,8 @@ function ChapterItem({
           ) : (
             <div role="button" tabIndex={0} onClick={onStartEdit}
               onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onStartEdit() } }}
-              className="font-medium text-sm cursor-pointer transition-colors"
-              style={{ color: 'var(--text-primary)' }}
-              onMouseEnter={(e) => { e.currentTarget.style.color = 'var(--color-outline)' }}
-              onMouseLeave={(e) => { e.currentTarget.style.color = 'var(--text-primary)' }}>
+              className="font-medium text-sm cursor-pointer transition-colors hover:text-[var(--color-outline)]"
+              style={{ color: 'var(--text-primary)' }}>
               {chapter.title || '未命名章节'}
             </div>
           )}
@@ -175,10 +171,8 @@ export function OutlineEditor() {
             </div>
           ) : (
             <motion.button onClick={() => setIsCreatingOutline(true)}
-              className="px-4 py-2 rounded-md text-sm font-medium transition-all"
+              className="px-4 py-2 rounded-md text-sm font-medium transition-all hover:bg-[var(--border-default)]"
               style={{ backgroundColor: 'var(--hover-bg)', color: 'var(--text-secondary)', border: '1px solid var(--border-default)' }}
-              onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = 'var(--border-default)' }}
-              onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'var(--hover-bg)' }}
               whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>创建大纲</motion.button>
           )}
         </div>
@@ -197,10 +191,8 @@ export function OutlineEditor() {
             transition={{ type: 'spring', stiffness: 500 }}>{chapters.length} 章节</motion.span>
         </div>
         <motion.button onClick={() => setShowAddChapter(true)}
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-all"
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-all hover:bg-[var(--border-default)]"
           style={{ backgroundColor: 'var(--hover-bg)', color: 'var(--text-secondary)', border: '1px solid var(--border-default)' }}
-          onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = 'var(--border-default)' }}
-          onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'var(--hover-bg)' }}
           whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
           <Icon icon={Plus} size="xs" color="secondary" />新增章节
         </motion.button>
@@ -217,10 +209,8 @@ export function OutlineEditor() {
         ) : (
           <h3 role="button" tabIndex={0} onClick={() => { setOutlineTitleDraft(outline.title); setIsEditingOutlineTitle(true) }}
             onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setOutlineTitleDraft(outline.title); setIsEditingOutlineTitle(true) } }}
-            className="text-sm font-medium cursor-pointer transition-colors"
-            style={{ color: 'var(--text-primary)' }}
-            onMouseEnter={(e) => { e.currentTarget.style.color = 'var(--color-outline)' }}
-            onMouseLeave={(e) => { e.currentTarget.style.color = 'var(--text-primary)' }}>
+            className="text-sm font-medium cursor-pointer transition-colors hover:text-[var(--color-outline)]"
+            style={{ color: 'var(--text-primary)' }}>
             {outline.title}
           </h3>
         )}
@@ -234,10 +224,8 @@ export function OutlineEditor() {
         ) : (
           <p role="button" tabIndex={0} onClick={() => { setOutlineDescDraft(outline.description || ''); setIsEditingOutlineDesc(true) }}
             onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setOutlineDescDraft(outline.description || ''); setIsEditingOutlineDesc(true) } }}
-            className="text-xs cursor-pointer transition-colors"
-            style={{ color: outline.description ? 'var(--text-tertiary)' : 'var(--text-tertiary)', opacity: outline.description ? 1 : 0.6 }}
-            onMouseEnter={(e) => { e.currentTarget.style.color = 'var(--color-outline)' }}
-            onMouseLeave={(e) => { e.currentTarget.style.color = 'var(--text-tertiary)' }}>
+            className="text-xs cursor-pointer transition-colors hover:text-[var(--color-outline)]"
+            style={{ color: outline.description ? 'var(--text-tertiary)' : 'var(--text-tertiary)', opacity: outline.description ? 1 : 0.6 }}>
             {outline.description || '点击添加大纲描述...'}
           </p>
         )}

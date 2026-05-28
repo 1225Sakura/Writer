@@ -149,7 +149,7 @@ export function MessageList({
   const showTypingIndicator = isLoading && !isStreaming && messages.length > 0
 
   return (
-    <div ref={scrollRef} className="h-full overflow-y-auto p-4 bg-ink-gradient" role="log" aria-live="polite" aria-label="聊天消息列表">
+    <div ref={scrollRef} className="h-full overflow-y-auto scrollbar-thin p-4 bg-ink-gradient" role="log" aria-live="polite" aria-label="聊天消息列表">
       {messages.length === 0 && !isStreaming && (
         <EmptyState />
       )}

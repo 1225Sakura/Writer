@@ -61,7 +61,7 @@ function CanvasNodeInner({ data, selected }: NodeProps) {
           borderRadius: 8,
           padding: '10px 12px',
           boxShadow: selected
-            ? '0 0 12px rgba(201, 169, 110, 0.3), var(--shadow-card)'
+            ? '0 0 12px var(--shadow-glow-sm), var(--shadow-card)'
             : 'var(--shadow-card)',
           transition: 'box-shadow 0.2s, border-color 0.2s',
           cursor: 'grab',

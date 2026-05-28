@@ -31,14 +31,8 @@ export function StatsHeader({ expanded, onToggleExpanded, onToggleVisible }: Sta
             e.stopPropagation()
             onToggleVisible()
           }}
-          className="ml-1 w-5 h-5 flex items-center justify-center rounded transition-colors"
+          className="ml-1 w-5 h-5 flex items-center justify-center rounded transition-colors hover:bg-[color-mix(in_srgb,var(--paper-100)_6%,transparent)]"
           style={{ color: 'var(--text-muted)' }}
-          onMouseEnter={(e) => {
-            (e.target as HTMLElement).style.background = 'color-mix(in srgb, var(--paper-100) 6%, transparent)'
-          }}
-          onMouseLeave={(e) => {
-            (e.target as HTMLElement).style.background = 'transparent'
-          }}
         >
           <span className="text-[10px]">&times;</span>
         </button>

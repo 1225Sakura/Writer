@@ -250,7 +250,7 @@ export function CheckerCard({
               <button
                 onClick={onRun}
                 disabled={isLoading}
-                className="w-full flex items-center justify-center gap-1.5 py-1.5 rounded-lg text-[10px] font-medium transition-all disabled:opacity-50"
+                className="w-full flex items-center justify-center gap-1.5 py-1.5 rounded-lg text-[10px] font-medium transition-all disabled:opacity-50 hover:brightness-110 hover:shadow-[0_0_8px_color-mix(in_srgb,currentColor_15%,transparent)] active:scale-[0.98]"
                 style={{
                   background: `color-mix(in srgb, ${config.color} 10%, transparent)`,
                   color: config.color,

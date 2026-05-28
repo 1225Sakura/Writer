@@ -13,15 +13,15 @@
 
 .bg-grid-pattern {
   background-image:
-    linear-gradient(rgba(201, 169, 110, 0.03) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(201, 169, 110, 0.03) 1px, transparent 1px);
+    linear-gradient(color-mix(in srgb, rgb(var(--spotlight-accent)) 3%, transparent) 1px, transparent 1px),
+    linear-gradient(90deg, color-mix(in srgb, rgb(var(--spotlight-accent)) 3%, transparent) 1px, transparent 1px);
   background-size: 60px 60px;
 }
 
 .bg-grid-pattern-light {
   background-image:
-    linear-gradient(rgba(201, 169, 110, 0.02) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(201, 169, 110, 0.02) 1px, transparent 1px);
+    linear-gradient(color-mix(in srgb, rgb(var(--spotlight-accent)) 2%, transparent) 1px, transparent 1px),
+    linear-gradient(90deg, color-mix(in srgb, rgb(var(--spotlight-accent)) 2%, transparent) 1px, transparent 1px);
   background-size: 60px 60px;
 }
 
@@ -33,7 +33,7 @@
   content: '';
   position: absolute;
   inset: 0;
-  background: repeating-linear-gradient(0deg, transparent, transparent 40px, rgba(201, 169, 110, 0.015) 40px, rgba(201, 169, 110, 0.015) 41px);
+  background: repeating-linear-gradient(0deg, transparent, transparent 40px, color-mix(in srgb, rgb(var(--spotlight-accent)) 1.5%, transparent) 40px, color-mix(in srgb, rgb(var(--spotlight-accent)) 1.5%, transparent) 41px);
   pointer-events: none;
   animation: wave-scroll 20s linear infinite;
 }
@@ -45,9 +45,9 @@
 
 .bg-starfield {
   background:
-    radial-gradient(ellipse at 20% 30%, rgba(201, 169, 110, 0.04) 0%, transparent 40%),
-    radial-gradient(ellipse at 80% 70%, rgba(201, 160, 110, 0.03) 0%, transparent 40%),
-    radial-gradient(ellipse at 50% 50%, rgba(245, 240, 230, 0.02) 0%, transparent 60%);
+    radial-gradient(ellipse at 20% 30%, color-mix(in srgb, rgb(var(--spotlight-accent)) 4%, transparent) 0%, transparent 40%),
+    radial-gradient(ellipse at 80% 70%, color-mix(in srgb, rgb(var(--spotlight-accent)) 3%, transparent) 0%, transparent 40%),
+    radial-gradient(ellipse at 50% 50%, color-mix(in srgb, var(--paper-95) 2%, transparent) 0%, transparent 60%);
 }
 
 /* ============================================================
@@ -79,8 +79,8 @@
 
 .bg-theme-gradient {
   background:
-    radial-gradient(ellipse at 20% 0%, rgba(201, 169, 110, 0.06) 0%, transparent 50%),
-    radial-gradient(ellipse at 80% 100%, rgba(196, 92, 92, 0.03) 0%, transparent 50%),
+    radial-gradient(ellipse at 20% 0%, color-mix(in srgb, rgb(var(--spotlight-accent)) 6%, transparent) 0%, transparent 50%),
+    radial-gradient(ellipse at 80% 100%, color-mix(in srgb, rgb(var(--spotlight-faction)) 3%, transparent) 0%, transparent 50%),
     linear-gradient(180deg, var(--color-surface-base) 0%, var(--ink-90) 50%, var(--color-surface-base) 100%);
   transition: background 0.3s ease;
 }
@@ -88,17 +88,17 @@
 [data-theme="light"] .bg-theme-gradient,
 .light .bg-theme-gradient {
   background:
-    radial-gradient(ellipse at 20% 0%, rgba(201, 169, 110, 0.04) 0%, transparent 50%),
-    radial-gradient(ellipse at 80% 100%, rgba(196, 92, 92, 0.02) 0%, transparent 50%),
-    linear-gradient(180deg, #faf8f3 0%, #f5f0e6 50%, #faf8f3 100%);
+    radial-gradient(ellipse at 20% 0%, color-mix(in srgb, rgb(var(--spotlight-accent)) 4%, transparent) 0%, transparent 50%),
+    radial-gradient(ellipse at 80% 100%, color-mix(in srgb, rgb(var(--spotlight-faction)) 2%, transparent) 0%, transparent 50%),
+    linear-gradient(180deg, var(--paper-95) 0%, var(--paper-90) 50%, var(--paper-95) 100%);
 }
 
 [data-theme="sepia"] .bg-theme-gradient,
 .sepia .bg-theme-gradient {
   background:
-    radial-gradient(ellipse at 25% 0%, rgba(180, 140, 90, 0.06) 0%, transparent 50%),
-    radial-gradient(ellipse at 75% 100%, rgba(180, 112, 64, 0.04) 0%, transparent 50%),
-    linear-gradient(180deg, #f7f2e8 0%, #f2ede3 50%, #f7f2e8 100%);
+    radial-gradient(ellipse at 25% 0%, color-mix(in srgb, rgb(var(--spotlight-world)) 6%, transparent) 0%, transparent 50%),
+    radial-gradient(ellipse at 75% 100%, color-mix(in srgb, rgb(var(--spotlight-accent)) 4%, transparent) 0%, transparent 50%),
+    linear-gradient(180deg, var(--paper-95) 0%, var(--paper-90) 50%, var(--paper-95) 100%);
 }
 
 .bg-ambient-glow {
@@ -110,8 +110,8 @@
   position: absolute;
   inset: 0;
   background:
-    radial-gradient(ellipse at 30% 20%, rgba(201, 169, 110, 0.05) 0%, transparent 50%),
-    radial-gradient(ellipse at 70% 80%, rgba(201, 160, 110, 0.03) 0%, transparent 50%);
+    radial-gradient(ellipse at 30% 20%, color-mix(in srgb, rgb(var(--spotlight-accent)) 5%, transparent) 0%, transparent 50%),
+    radial-gradient(ellipse at 70% 80%, color-mix(in srgb, rgb(var(--spotlight-accent)) 3%, transparent) 0%, transparent 50%);
   pointer-events: none;
   animation: ambient-shift 15s ease-in-out infinite;
 }
@@ -127,21 +127,21 @@
 
 .bg-chat {
   background:
-    radial-gradient(ellipse at 20% 0%, rgba(201, 169, 110, 0.06) 0%, transparent 50%),
-    radial-gradient(ellipse at 80% 100%, rgba(201, 160, 110, 0.04) 0%, transparent 50%),
+    radial-gradient(ellipse at 20% 0%, color-mix(in srgb, rgb(var(--spotlight-accent)) 6%, transparent) 0%, transparent 50%),
+    radial-gradient(ellipse at 80% 100%, color-mix(in srgb, rgb(var(--spotlight-accent)) 4%, transparent) 0%, transparent 50%),
     linear-gradient(180deg, var(--color-surface-base) 0%, var(--ink-90) 100%);
 }
 
 .bg-settings {
   background:
-    radial-gradient(ellipse at 30% 30%, rgba(107, 158, 142, 0.05) 0%, transparent 50%),
-    radial-gradient(ellipse at 70% 70%, rgba(201, 169, 110, 0.04) 0%, transparent 50%),
+    radial-gradient(ellipse at 30% 30%, color-mix(in srgb, rgb(var(--spotlight-location)) 5%, transparent) 0%, transparent 50%),
+    radial-gradient(ellipse at 70% 70%, color-mix(in srgb, rgb(var(--spotlight-accent)) 4%, transparent) 0%, transparent 50%),
     linear-gradient(180deg, var(--color-surface-base) 0%, var(--ink-90) 100%);
 }
 
 .bg-writing {
   background:
-    radial-gradient(ellipse at 50% 50%, rgba(201, 169, 110, 0.02) 0%, transparent 60%),
+    radial-gradient(ellipse at 50% 50%, color-mix(in srgb, rgb(var(--spotlight-accent)) 2%, transparent) 0%, transparent 60%),
     var(--color-surface-base);
 }
 
@@ -149,23 +149,23 @@
 [data-theme="light"] .bg-chat,
 .light .bg-chat {
   background:
-    radial-gradient(ellipse at 20% 0%, rgba(201, 169, 110, 0.04) 0%, transparent 50%),
-    radial-gradient(ellipse at 80% 100%, rgba(201, 160, 110, 0.03) 0%, transparent 50%),
+    radial-gradient(ellipse at 20% 0%, color-mix(in srgb, rgb(var(--spotlight-accent)) 4%, transparent) 0%, transparent 50%),
+    radial-gradient(ellipse at 80% 100%, color-mix(in srgb, rgb(var(--spotlight-accent)) 3%, transparent) 0%, transparent 50%),
     linear-gradient(180deg, var(--paper-100) 0%, var(--paper-95) 100%);
 }
 
 [data-theme="light"] .bg-settings,
 .light .bg-settings {
   background:
-    radial-gradient(ellipse at 30% 30%, rgba(107, 158, 142, 0.03) 0%, transparent 50%),
-    radial-gradient(ellipse at 70% 70%, rgba(201, 169, 110, 0.02) 0%, transparent 50%),
+    radial-gradient(ellipse at 30% 30%, color-mix(in srgb, rgb(var(--spotlight-location)) 3%, transparent) 0%, transparent 50%),
+    radial-gradient(ellipse at 70% 70%, color-mix(in srgb, rgb(var(--spotlight-accent)) 2%, transparent) 0%, transparent 50%),
     linear-gradient(180deg, var(--paper-100) 0%, var(--paper-95) 100%);
 }
 
 [data-theme="light"] .bg-writing,
 .light .bg-writing {
   background:
-    radial-gradient(ellipse at 50% 50%, rgba(201, 169, 110, 0.015) 0%, transparent 60%),
+    radial-gradient(ellipse at 50% 50%, color-mix(in srgb, rgb(var(--spotlight-accent)) 1.5%, transparent) 0%, transparent 60%),
     var(--paper-100);
 }
 
@@ -173,23 +173,23 @@
 [data-theme="sepia"] .bg-chat,
 .sepia .bg-chat {
   background:
-    radial-gradient(ellipse at 20% 0%, rgba(180, 140, 90, 0.05) 0%, transparent 50%),
-    radial-gradient(ellipse at 80% 100%, rgba(180, 112, 64, 0.03) 0%, transparent 50%),
+    radial-gradient(ellipse at 20% 0%, color-mix(in srgb, rgb(var(--spotlight-world)) 5%, transparent) 0%, transparent 50%),
+    radial-gradient(ellipse at 80% 100%, color-mix(in srgb, rgb(var(--spotlight-accent)) 3%, transparent) 0%, transparent 50%),
     linear-gradient(180deg, var(--paper-95) 0%, var(--paper-90) 100%);
 }
 
 [data-theme="sepia"] .bg-settings,
 .sepia .bg-settings {
   background:
-    radial-gradient(ellipse at 30% 30%, rgba(180, 140, 90, 0.04) 0%, transparent 50%),
-    radial-gradient(ellipse at 70% 70%, rgba(180, 112, 64, 0.025) 0%, transparent 50%),
+    radial-gradient(ellipse at 30% 30%, color-mix(in srgb, rgb(var(--spotlight-world)) 4%, transparent) 0%, transparent 50%),
+    radial-gradient(ellipse at 70% 70%, color-mix(in srgb, rgb(var(--spotlight-accent)) 2.5%, transparent) 0%, transparent 50%),
     linear-gradient(180deg, var(--paper-95) 0%, var(--paper-90) 100%);
 }
 
 [data-theme="sepia"] .bg-writing,
 .sepia .bg-writing {
   background:
-    radial-gradient(ellipse at 50% 50%, rgba(180, 112, 64, 0.02) 0%, transparent 60%),
+    radial-gradient(ellipse at 50% 50%, color-mix(in srgb, rgb(var(--spotlight-accent)) 2%, transparent) 0%, transparent 60%),
     var(--paper-100);
 }
 
@@ -197,23 +197,23 @@
 [data-theme="eye-care"] .bg-chat,
 .eye-care .bg-chat {
   background:
-    radial-gradient(ellipse at 20% 0%, rgba(111, 168, 108, 0.06) 0%, transparent 50%),
-    radial-gradient(ellipse at 80% 100%, rgba(156, 184, 150, 0.04) 0%, transparent 50%),
+    radial-gradient(ellipse at 20% 0%, color-mix(in srgb, rgb(var(--spotlight-ifline)) 6%, transparent) 0%, transparent 50%),
+    radial-gradient(ellipse at 80% 100%, color-mix(in srgb, rgb(var(--spotlight-location)) 4%, transparent) 0%, transparent 50%),
     linear-gradient(180deg, var(--color-surface-base) 0%, var(--color-surface-overlay) 100%);
 }
 
 [data-theme="eye-care"] .bg-settings,
 .eye-care .bg-settings {
   background:
-    radial-gradient(ellipse at 30% 30%, rgba(111, 168, 108, 0.05) 0%, transparent 50%),
-    radial-gradient(ellipse at 70% 70%, rgba(90, 140, 90, 0.03) 0%, transparent 50%),
+    radial-gradient(ellipse at 30% 30%, color-mix(in srgb, rgb(var(--spotlight-ifline)) 5%, transparent) 0%, transparent 50%),
+    radial-gradient(ellipse at 70% 70%, color-mix(in srgb, rgb(var(--spotlight-ifline)) 3%, transparent) 0%, transparent 50%),
     linear-gradient(180deg, var(--color-surface-base) 0%, var(--color-surface-overlay) 100%);
 }
 
 [data-theme="eye-care"] .bg-writing,
 .eye-care .bg-writing {
   background:
-    radial-gradient(ellipse at 50% 50%, rgba(111, 168, 108, 0.02) 0%, transparent 60%),
+    radial-gradient(ellipse at 50% 50%, color-mix(in srgb, rgb(var(--spotlight-ifline)) 2%, transparent) 0%, transparent 60%),
     var(--color-surface-base);
 }
 
@@ -221,23 +221,23 @@
 [data-theme="deep-blue"] .bg-chat,
 .deep-blue .bg-chat {
   background:
-    radial-gradient(ellipse at 20% 0%, rgba(91, 152, 248, 0.07) 0%, transparent 50%),
-    radial-gradient(ellipse at 80% 100%, rgba(157, 180, 207, 0.04) 0%, transparent 50%),
+    radial-gradient(ellipse at 20% 0%, color-mix(in srgb, rgb(var(--spotlight-outline)) 7%, transparent) 0%, transparent 50%),
+    radial-gradient(ellipse at 80% 100%, color-mix(in srgb, rgb(var(--spotlight-rule)) 4%, transparent) 0%, transparent 50%),
     linear-gradient(180deg, var(--color-surface-base) 0%, var(--color-surface-overlay) 100%);
 }
 
 [data-theme="deep-blue"] .bg-settings,
 .deep-blue .bg-settings {
   background:
-    radial-gradient(ellipse at 30% 30%, rgba(91, 152, 248, 0.05) 0%, transparent 50%),
-    radial-gradient(ellipse at 70% 70%, rgba(60, 117, 212, 0.03) 0%, transparent 50%),
+    radial-gradient(ellipse at 30% 30%, color-mix(in srgb, rgb(var(--spotlight-outline)) 5%, transparent) 0%, transparent 50%),
+    radial-gradient(ellipse at 70% 70%, color-mix(in srgb, rgb(var(--spotlight-outline)) 3%, transparent) 0%, transparent 50%),
     linear-gradient(180deg, var(--color-surface-base) 0%, var(--color-surface-overlay) 100%);
 }
 
 [data-theme="deep-blue"] .bg-writing,
 .deep-blue .bg-writing {
   background:
-    radial-gradient(ellipse at 50% 50%, rgba(91, 152, 248, 0.02) 0%, transparent 60%),
+    radial-gradient(ellipse at 50% 50%, color-mix(in srgb, rgb(var(--spotlight-outline)) 2%, transparent) 0%, transparent 60%),
     var(--color-surface-base);
 }
 
@@ -245,22 +245,22 @@
 [data-theme="forest"] .bg-chat,
 .forest .bg-chat {
   background:
-    radial-gradient(ellipse at 20% 0%, rgba(90, 175, 114, 0.07) 0%, transparent 50%),
-    radial-gradient(ellipse at 80% 100%, rgba(148, 184, 148, 0.04) 0%, transparent 50%),
+    radial-gradient(ellipse at 20% 0%, color-mix(in srgb, rgb(var(--spotlight-ifline)) 7%, transparent) 0%, transparent 50%),
+    radial-gradient(ellipse at 80% 100%, color-mix(in srgb, rgb(var(--spotlight-location)) 4%, transparent) 0%, transparent 50%),
     linear-gradient(180deg, var(--color-surface-base) 0%, var(--color-surface-overlay) 100%);
 }
 
 [data-theme="forest"] .bg-settings,
 .forest .bg-settings {
   background:
-    radial-gradient(ellipse at 30% 30%, rgba(90, 175, 114, 0.05) 0%, transparent 50%),
-    radial-gradient(ellipse at 70% 70%, rgba(60, 140, 80, 0.03) 0%, transparent 50%),
+    radial-gradient(ellipse at 30% 30%, color-mix(in srgb, rgb(var(--spotlight-ifline)) 5%, transparent) 0%, transparent 50%),
+    radial-gradient(ellipse at 70% 70%, color-mix(in srgb, rgb(var(--spotlight-ifline)) 3%, transparent) 0%, transparent 50%),
     linear-gradient(180deg, var(--color-surface-base) 0%, var(--color-surface-overlay) 100%);
 }
 
 [data-theme="forest"] .bg-writing,
 .forest .bg-writing {
   background:
-    radial-gradient(ellipse at 50% 50%, rgba(90, 175, 114, 0.02) 0%, transparent 60%),
+    radial-gradient(ellipse at 50% 50%, color-mix(in srgb, rgb(var(--spotlight-ifline)) 2%, transparent) 0%, transparent 60%),
     var(--color-surface-base);
 }

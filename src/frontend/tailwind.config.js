@@ -505,6 +505,24 @@ export default {
             display: 'none',
           },
         },
+        '.scrollbar-thin': {
+          'scrollbar-width': 'thin',
+          'scrollbar-color': 'var(--ink-70) transparent',
+          '&::-webkit-scrollbar': {
+            width: '6px',
+            height: '6px',
+          },
+          '&::-webkit-scrollbar-track': {
+            background: 'transparent',
+          },
+          '&::-webkit-scrollbar-thumb': {
+            'background-color': 'var(--ink-70)',
+            'border-radius': '9999px',
+            '&:hover': {
+              'background-color': 'var(--ink-60)',
+            },
+          },
+        },
         '.touch-manipulation': {
           'touch-action': 'manipulation',
         },

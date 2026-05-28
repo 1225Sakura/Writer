@@ -164,7 +164,7 @@ function SessionList({ sessions, activeSessionId, onSwitch, onDelete, onCreate }
 
       {/* Session items */}
       {sessions.length > 0 && (
-        <div className="max-h-[180px] overflow-y-auto px-2 pb-2">
+        <div className="max-h-[180px] overflow-y-auto scrollbar-thin px-2 pb-2">
           <AnimatePresence mode="popLayout">
             {sessions.map((session) => {
               const isActive = session.id === activeSessionId

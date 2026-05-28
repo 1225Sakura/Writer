@@ -203,32 +203,17 @@ const IconButton = memo(function IconButton({
       whileTap={{ scale: 0.92 }}
       onClick={onClick}
       title={title}
-      className="relative flex items-center justify-center w-10 h-10 rounded-full transition-all duration-200 flex-shrink-0 touch-target-min"
-      style={{
-        color: isActive ? 'var(--text-primary)' : 'var(--text-secondary)',
-        background: isActive
-          ? `color-mix(in srgb, ${glowColor} 20%, transparent)`
-          : 'transparent',
-        border: isActive
-          ? `1px solid color-mix(in srgb, ${glowColor} 40%, transparent)`
-          : '1px solid transparent',
-        boxShadow: isActive
-          ? `0 0 12px color-mix(in srgb, ${glowColor} 20%, transparent)`
-          : 'none',
-      }}
-      onMouseEnter={(e) => {
-        if (!isActive) {
-          e.currentTarget.style.background = 'var(--color-surface-raised)'
-          e.currentTarget.style.borderColor = 'var(--border-default)'
-          e.currentTarget.style.color = 'var(--text-primary)'
-        }
-      }}
-      onMouseLeave={(e) => {
-        if (!isActive) {
-          e.currentTarget.style.background = 'transparent'
-          e.currentTarget.style.borderColor = 'transparent'
-          e.currentTarget.style.color = 'var(--text-secondary)'
-        }
+      className={`relative flex items-center justify-center w-10 h-10 rounded-full transition-all duration-200 flex-shrink-0 touch-target-min ${
+        isActive
+          ? 'text-[var(--text-primary)]'
+          : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--color-surface-raised)] hover:border-[var(--border-default)]'
+      }`}
+      style={isActive ? {
+        background: `color-mix(in srgb, ${glowColor} 20%, transparent)`,
+        border: `1px solid color-mix(in srgb, ${glowColor} 40%, transparent)`,
+        boxShadow: `0 0 12px color-mix(in srgb, ${glowColor} 20%, transparent)`,
+      } : {
+        border: '1px solid transparent',
       }}
     >
       {icon}

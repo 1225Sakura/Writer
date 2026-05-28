@@ -76,25 +76,13 @@ export function StatusBar({
         className={`px-2 py-0.5 rounded-md text-xs transition-all duration-200 ${
           focusModeEnabled
             ? 'text-[var(--color-outline)]'
-            : 'text-[var(--text-tertiary)]'
+            : 'text-[var(--text-tertiary)] hover:bg-[color-mix(in_srgb,var(--accent-primary)_8%,transparent)] hover:border-[var(--border-subtle)]'
         }`}
         style={focusModeEnabled ? {
           background: 'color-mix(in srgb, var(--color-outline) 12%, transparent)',
           border: '1px solid color-mix(in srgb, var(--color-outline) 20%, transparent)',
         } : {
           border: '1px solid transparent',
-        }}
-        onMouseEnter={(e) => {
-          if (!focusModeEnabled) {
-            (e.currentTarget as HTMLElement).style.background = 'color-mix(in srgb, var(--accent-primary) 8%, transparent)'
-            ;(e.currentTarget as HTMLElement).style.borderColor = 'var(--border-subtle)'
-          }
-        }}
-        onMouseLeave={(e) => {
-          if (!focusModeEnabled) {
-            (e.currentTarget as HTMLElement).style.background = 'transparent'
-            ;(e.currentTarget as HTMLElement).style.borderColor = 'transparent'
-          }
         }}
         title="聚焦模式 (Ctrl+Shift+F)"
       >

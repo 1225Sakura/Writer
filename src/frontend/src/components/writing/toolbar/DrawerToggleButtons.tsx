@@ -76,28 +76,17 @@ const ToolbarButton = memo(function ToolbarButton({
       whileHover={{ scale: 1.04 }}
       whileTap={{ scale: 0.96 }}
       onClick={onClick}
-      className="relative flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all duration-200 overflow-hidden flex-shrink-0 group touch-target-min toolbar-btn-glow"
-      style={{
-        color: isActive ? 'var(--text-primary)' : 'var(--text-secondary)',
-        background: isActive ? 'var(--accent-primary)' : 'transparent',
-        border: isActive ? '1px solid color-mix(in srgb, var(--accent-primary) 60%, transparent)' : '1px solid transparent',
-        boxShadow: isActive ? '0 0 16px color-mix(in srgb, var(--accent-primary) 30%, transparent), inset 0 1px 0 color-mix(in srgb, var(--paper-100) 8%, transparent)' : 'none',
-      }}
-      onMouseEnter={(e) => {
-        if (!isActive) {
-          e.currentTarget.style.background = 'var(--color-surface-raised)'
-          e.currentTarget.style.borderColor = 'var(--border-default)'
-          e.currentTarget.style.color = 'var(--text-primary)'
-          e.currentTarget.style.boxShadow = '0 0 12px color-mix(in srgb, var(--accent-primary) 12%, transparent), inset 0 1px 0 color-mix(in srgb, var(--paper-100) 5%, transparent)'
-        }
-      }}
-      onMouseLeave={(e) => {
-        if (!isActive) {
-          e.currentTarget.style.background = 'transparent'
-          e.currentTarget.style.borderColor = 'transparent'
-          e.currentTarget.style.color = 'var(--text-secondary)'
-          e.currentTarget.style.boxShadow = 'none'
-        }
+      className={`relative flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all duration-200 overflow-hidden flex-shrink-0 group touch-target-min toolbar-btn-glow ${
+        isActive
+          ? 'text-[var(--text-primary)]'
+          : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--color-surface-raised)] hover:border-[var(--border-default)] hover:shadow-[0_0_12px_color-mix(in_srgb,var(--accent-primary)_12%,transparent),inset_0_1px_0_color-mix(in_srgb,var(--paper-100)_5%,transparent)]'
+      }`}
+      style={isActive ? {
+        background: 'var(--accent-primary)',
+        border: '1px solid color-mix(in srgb, var(--accent-primary) 60%, transparent)',
+        boxShadow: '0 0 16px color-mix(in srgb, var(--accent-primary) 30%, transparent), inset 0 1px 0 color-mix(in srgb, var(--paper-100) 8%, transparent)',
+      } : {
+        border: '1px solid transparent',
       }}
       title={shortcut ? `${label} (${shortcut})` : label}
     >

@@ -76,7 +76,7 @@ export function GraphCanvas() {
           style={{
             background: s.isGenerating ? 'var(--accent-muted)' : 'var(--paper-80)',
             border: '1px solid var(--border-default)',
-            boxShadow: s.isGenerating ? '0 0 12px var(--accent-glow)' : '0 2px 8px rgba(0,0,0,0.08)',
+            boxShadow: s.isGenerating ? '0 0 12px var(--accent-glow)' : '0 2px 8px rgba(var(--ink-shadow-rgb),0.08)',
             color: 'var(--accent-primary)',
           }}
         >
@@ -99,7 +99,7 @@ export function GraphCanvas() {
           onClick={s.toggleFullscreen}
           className="p-2 rounded-xl transition-all duration-200 group"
           title={s.isFullscreen ? '退出全屏' : '全屏'}
-          style={{ background: 'var(--paper-80)', border: '1px solid var(--border-subtle)', boxShadow: '0 4px 20px rgba(0,0,0,0.3)' }}
+          style={{ background: 'var(--paper-80)', border: '1px solid var(--border-subtle)', boxShadow: '0 4px 20px rgba(var(--ink-shadow-rgb),0.3)' }}
         >
           {s.isFullscreen ? (
             <Minimize2 className="w-3.5 h-3.5 transition-colors" style={{ color: 'var(--ink-90)', opacity: 0.5 }} />
@@ -111,7 +111,7 @@ export function GraphCanvas() {
           onClick={() => s.setViewMode(s.viewMode === '2d' ? '3d' : '2d')}
           className="p-2 rounded-xl transition-all duration-200 flex items-center gap-1.5 group"
           title={s.viewMode === '2d' ? '切换到3D视图' : '切换到2D视图'}
-          style={{ background: 'var(--paper-80)', border: '1px solid var(--border-subtle)', boxShadow: '0 4px 20px rgba(0,0,0,0.3)' }}
+          style={{ background: 'var(--paper-80)', border: '1px solid var(--border-subtle)', boxShadow: '0 4px 20px rgba(var(--ink-shadow-rgb),0.3)' }}
         >
           {s.viewMode === '2d' ? (
             <Box className="w-3.5 h-3.5 transition-colors" style={{ color: 'var(--ink-90)', opacity: 0.5 }} />

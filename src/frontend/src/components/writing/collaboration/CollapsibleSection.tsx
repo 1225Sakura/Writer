@@ -15,7 +15,7 @@ interface CollapsibleSectionProps {
 export function CollapsibleSection({ title, icon, isExpanded, onToggle, badge, accentColor, children }: CollapsibleSectionProps) {
   return (
     <div
-      className="rounded-xl overflow-hidden bg-[var(--color-surface-base)] border transition-all duration-200 hover:border-[var(--border-strong)] hover:shadow-[0_2px_12px_rgba(0,0,0,0.12)]"
+      className="rounded-xl overflow-hidden bg-[var(--color-surface-base)] border transition-all duration-200 hover:border-[var(--border-strong)] hover:shadow-[0_2px_12px_color-mix(in_srgb,var(--ink-100)_12%,transparent)]"
       style={{
         borderColor: 'var(--border-default)',
         boxShadow: accentColor ? `0 0 0 1px color-mix(in srgb, ${accentColor} 3%, transparent), inset 0 1px 0 color-mix(in srgb, ${accentColor} 2%, transparent)` : undefined,

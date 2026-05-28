@@ -32,7 +32,7 @@
    ============================================================ */
 
 :root {
-  --space-unit: 4px;
+  /* --space-unit is defined in design-tokens.css */
   --space-1: calc(var(--space-unit) * 1);   /* 4px */
   --space-2: calc(var(--space-unit) * 2);   /* 8px */
   --space-3: calc(var(--space-unit) * 3);   /* 12px */

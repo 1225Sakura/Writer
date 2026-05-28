@@ -159,7 +159,7 @@ export function CollectedInfoPanel({ entities, sessionId, onConfirmEntity, onCon
       </div>
 
       {/* Content */}
-      <div className="flex-1 overflow-y-auto p-3">
+      <div className="flex-1 overflow-y-auto scrollbar-thin p-3">
         <AnimatePresence mode="wait">
           {entities.length === 0 ? (
             <EmptyState />

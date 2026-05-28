@@ -54,7 +54,7 @@ export function WritingCanvas() {
     >
       {/* Writing area */}
       <div
-        className={`flex-1 overflow-y-auto relative writing-surface writing-surface--textured selection-warm ${focusModeEnabled ? 'vignette-overlay-strong' : 'vignette-overlay'} ${typewriterMode ? 'vignette-overlay-horizontal' : ''}`}
+        className={`flex-1 overflow-y-auto scrollbar-ink relative writing-surface writing-surface--textured selection-warm ${focusModeEnabled ? 'vignette-overlay-strong' : 'vignette-overlay'} ${typewriterMode ? 'vignette-overlay-horizontal' : ''}`}
       >
         <EditorToolbar editor={editor} />
 

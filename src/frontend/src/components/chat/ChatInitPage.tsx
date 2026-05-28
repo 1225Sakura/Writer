@@ -125,7 +125,7 @@ export function ChatInitPage() {
                   <X className="w-4 h-4" />
                 </motion.button>
               </div>
-              <div className="overflow-y-auto px-4 py-3" style={{ maxHeight: 'calc(85vh - 120px)' }}>
+              <div className="overflow-y-auto scrollbar-thin px-4 py-3" style={{ maxHeight: 'calc(85vh - 120px)' }}>
                 <PreviewPanel
                   entities={extractedEntities}
                   onConfirmEntity={confirmEntity}

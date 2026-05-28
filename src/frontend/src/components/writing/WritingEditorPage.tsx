@@ -89,7 +89,7 @@ function WritingEditorPageContent() {
             message="加载章节数据..."
           />
           {(loading.chapters || loading.outlines) ? (
-            <div className="h-full bg-[var(--writing-bg)] overflow-y-auto relative z-10">
+            <div className="h-full bg-[var(--writing-bg)] overflow-y-auto scrollbar-ink relative z-10">
               <WritingSkeleton />
             </div>
           ) : (

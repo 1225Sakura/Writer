@@ -61,7 +61,7 @@ export function GraphBackground() {
         className="absolute inset-0"
         style={{
           background:
-            'radial-gradient(ellipse at center, transparent 40%, rgba(26,21,16,0.12) 100%)',
+            'radial-gradient(ellipse at center, transparent 40%, rgba(var(--glass-base-rgb),0.12) 100%)',
         }}
       />
       <div
@@ -100,7 +100,7 @@ export function NodeHoverTooltip({
         top: Math.max(tooltip.y - 12, 8),
         background: 'var(--paper-80)',
         border: '1px solid var(--border-default)',
-        boxShadow: `0 16px 48px rgba(0,0,0,0.6), 0 0 0 1px var(--border-subtle), 0 0 40px color-mix(in srgb, ${config.glowColor} 19%, transparent), 0 4px 12px rgba(0,0,0,0.3)`,
+        boxShadow: `0 16px 48px rgba(var(--ink-shadow-rgb),0.6), 0 0 0 1px var(--border-subtle), 0 0 40px color-mix(in srgb, ${config.glowColor} 19%, transparent), 0 4px 12px rgba(var(--ink-shadow-rgb),0.3)`,
         fontFamily: 'var(--font-sans)',
       }}
     >
@@ -173,7 +173,7 @@ export function NodeDetailPanel({
         top: Math.max(detail.y - 16, 8),
         background: 'var(--paper-80)',
         border: '1px solid var(--border-default)',
-        boxShadow: `0 12px 40px rgba(0,0,0,0.5), 0 0 0 1px var(--border-subtle), 0 0 30px color-mix(in srgb, ${config.glowColor} 13%, transparent)`,
+        boxShadow: `0 12px 40px rgba(var(--ink-shadow-rgb),0.5), 0 0 0 1px var(--border-subtle), 0 0 30px color-mix(in srgb, ${config.glowColor} 13%, transparent)`,
         fontFamily: 'var(--font-sans)',
       }}
     >
@@ -247,11 +247,6 @@ export function ContextMenu({
     { icon: ExternalLink, label: '展开连接', action: () => { onHighlight(menu.node.id); onClose() } },
   ]
 
-  const itemBtnStyle = (hover: boolean) => ({
-    backgroundColor: hover ? 'rgba(201, 169, 110, 0.1)' : 'transparent',
-    color: hover ? 'var(--accent-primary)' : 'var(--ink-90)',
-  })
-
   return (
     <motion.div
       role="menu"
@@ -260,7 +255,7 @@ export function ContextMenu({
       exit={{ opacity: 0, scale: 0.92, y: -4 }}
       transition={{ duration: 0.12, ease: [0.16, 1, 0.3, 1] }}
       className="absolute z-40 rounded-xl overflow-hidden min-w-[160px]"
-      style={{ left: menu.x, top: menu.y, background: 'var(--paper-80)', border: '1px solid var(--border-default)', boxShadow: '0 12px 40px rgba(0,0,0,0.5), 0 0 0 1px var(--border-subtle)', fontFamily: 'var(--font-sans)' }}
+      style={{ left: menu.x, top: menu.y, background: 'var(--paper-80)', border: '1px solid var(--border-default)', boxShadow: '0 12px 40px rgba(var(--ink-shadow-rgb),0.5), 0 0 0 1px var(--border-subtle)', fontFamily: 'var(--font-sans)' }}
       onContextMenu={(e) => e.preventDefault()}
     >
       <div className="flex items-center gap-2 px-3 py-2 border-b border-[var(--border-subtle)]">
@@ -272,10 +267,8 @@ export function ContextMenu({
       <div className="p-1">
         {menuItems.map((item, idx) => (
           <button key={idx} onClick={item.action} role="menuitem"
-            className="flex items-center gap-2.5 w-full px-2.5 py-1.5 rounded-lg text-left transition-all duration-150"
+            className="flex items-center gap-2.5 w-full px-2.5 py-1.5 rounded-lg text-left transition-all duration-150 hover:bg-[var(--hover-bg)] hover:text-[var(--accent-primary)]"
             style={{ color: 'var(--ink-90)' }}
-            onMouseEnter={(e) => Object.assign(e.currentTarget.style, itemBtnStyle(true))}
-            onMouseLeave={(e) => Object.assign(e.currentTarget.style, itemBtnStyle(false))}
           >
             <item.icon className="w-3.5 h-3.5 flex-shrink-0" style={{ opacity: 0.6 }} />
             <span className="text-[11px]">{item.label}</span>

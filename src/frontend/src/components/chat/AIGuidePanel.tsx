@@ -48,7 +48,7 @@ export function AIGuidePanel() {
   const showTypingIndicator = isLoading && !isStreaming && messages.length > 0
 
   return (
-    <div ref={scrollRef} className="h-full overflow-y-auto p-4 bg-ink-gradient">
+    <div ref={scrollRef} className="h-full overflow-y-auto scrollbar-thin p-4 bg-ink-gradient">
       {messages.length === 0 && !isStreaming && (
         <AIGuideEmptyState />
       )}

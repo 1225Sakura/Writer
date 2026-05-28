@@ -36,16 +36,8 @@ export function IFLinesSection() {
               initial={{ opacity: 0, x: -8 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: index * 0.05 }}
-              className="group p-2.5 rounded-xl bg-[var(--color-surface-base)] border transition-all duration-200 cursor-default"
+              className="group p-2.5 rounded-xl bg-[var(--color-surface-base)] border transition-all duration-200 cursor-default hover:border-[color-mix(in_srgb,var(--color-ifline)_35%,transparent)] hover:shadow-[0_0_16px_color-mix(in_srgb,var(--color-ifline)_8%,transparent),inset_0_1px_0_color-mix(in_srgb,var(--color-ifline)_6%,transparent)]"
               style={{ borderColor: 'var(--border-default)' }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.borderColor = 'color-mix(in srgb, var(--color-ifline) 35%, transparent)'
-                e.currentTarget.style.boxShadow = '0 0 16px color-mix(in srgb, var(--color-ifline) 8%, transparent), inset 0 1px 0 color-mix(in srgb, var(--color-ifline) 6%, transparent)'
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.borderColor = 'var(--border-default)'
-                e.currentTarget.style.boxShadow = 'none'
-              }}
             >
               <div className="flex items-center gap-2 mb-1.5">
                 <span className="w-3 h-3 rounded-full flex-shrink-0 relative" style={{ background: 'var(--color-ifline)' }}>

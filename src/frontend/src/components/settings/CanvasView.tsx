@@ -210,7 +210,7 @@ export function CanvasView() {
         }}
       >
         <Background
-          color="rgba(201, 169, 110, 0.08)"
+          color="rgba(var(--accent-rgb), 0.08)"
           gap={24}
           size={1}
         />
@@ -229,7 +229,7 @@ export function CanvasView() {
         <MiniMap
           style={miniMapStyle}
           nodeColor="var(--accent-primary)"
-          maskColor="rgba(26, 21, 16, 0.7)"
+          maskColor="rgba(var(--glass-base-rgb), 0.7)"
           pannable
           zoomable
         />

@@ -45,7 +45,7 @@ export function ChatArea() {
     >
       <div className="flex-1 overflow-hidden relative">
         {isLoading && messages.length === 0 ? (
-          <div className="h-full overflow-y-auto p-4">
+          <div className="h-full overflow-y-auto scrollbar-thin p-4">
             <ChatSkeleton count={3} />
           </div>
         ) : (

@@ -127,6 +127,11 @@
 
   /* shadcn/ui bridge variables are now defined in styles/shadcn.css */
 
+  /* === RGB Triplets (for rgba() variable substitution) === */
+  --accent-rgb:   201, 169, 110;
+  --ink-shadow-rgb: 0, 0, 0;
+  --success-rgb:  94, 181, 166;
+
   /* === Glass Surface (parchment/leather tones) === */
   --glass-base-rgb:    26, 21, 16;
   --glass-bg:          rgba(var(--glass-base-rgb), 0.65);

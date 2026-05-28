@@ -152,30 +152,19 @@ const QuickAIButton = memo(function QuickAIButton({
       whileTap={{ scale: 0.96 }}
       onClick={onClick}
       disabled={isLoading}
-      className="relative flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all duration-200 flex-shrink-0 disabled:opacity-60"
-      style={{
-        color: isActive ? 'var(--text-primary)' : 'var(--accent-primary)',
-        background: isActive
-          ? 'var(--accent-primary)'
-          : 'color-mix(in srgb, var(--accent-primary) 10%, transparent)',
-        border: isActive
-          ? '1px solid color-mix(in srgb, var(--accent-primary) 50%, transparent)'
-          : '1px solid color-mix(in srgb, var(--accent-primary) 25%, transparent)',
-        boxShadow: isActive
-          ? '0 0 16px color-mix(in srgb, var(--accent-primary) 30%, transparent)'
-          : '0 0 8px color-mix(in srgb, var(--accent-primary) 10%, transparent)',
-      }}
-      onMouseEnter={(e) => {
-        if (!isActive && !isLoading) {
-          e.currentTarget.style.background = 'color-mix(in srgb, var(--accent-primary) 18%, transparent)'
-          e.currentTarget.style.boxShadow = '0 0 12px color-mix(in srgb, var(--accent-primary) 20%, transparent)'
-        }
-      }}
-      onMouseLeave={(e) => {
-        if (!isActive && !isLoading) {
-          e.currentTarget.style.background = 'color-mix(in srgb, var(--accent-primary) 10%, transparent)'
-          e.currentTarget.style.boxShadow = '0 0 8px color-mix(in srgb, var(--accent-primary) 10%, transparent)'
-        }
+      className={`relative flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all duration-200 flex-shrink-0 disabled:opacity-60 ${
+        isActive
+          ? 'text-[var(--text-primary)]'
+          : 'text-[var(--accent-primary)] hover:bg-[color-mix(in_srgb,var(--accent-primary)_18%,transparent)] hover:shadow-[0_0_12px_color-mix(in_srgb,var(--accent-primary)_20%,transparent)]'
+      }`}
+      style={isActive ? {
+        background: 'var(--accent-primary)',
+        border: '1px solid color-mix(in srgb, var(--accent-primary) 50%, transparent)',
+        boxShadow: '0 0 16px color-mix(in srgb, var(--accent-primary) 30%, transparent)',
+      } : {
+        background: 'color-mix(in srgb, var(--accent-primary) 10%, transparent)',
+        border: '1px solid color-mix(in srgb, var(--accent-primary) 25%, transparent)',
+        boxShadow: '0 0 8px color-mix(in srgb, var(--accent-primary) 10%, transparent)',
       }}
     >
       {isLoading ? (
@@ -216,22 +205,14 @@ const QuickOpButton = memo(function QuickOpButton({
       whileTap={{ scale: 0.98 }}
       onClick={onClick}
       disabled={isDisabled}
-      className="flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-xs transition-all duration-150 disabled:opacity-40 disabled:cursor-not-allowed"
+      className={`flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-xs transition-all duration-150 disabled:opacity-40 disabled:cursor-not-allowed ${
+        isLoading ? '' : 'hover:bg-[var(--color-surface-base)]'
+      }`}
       style={{
         color: 'var(--text-secondary)',
         background: isLoading
           ? 'color-mix(in srgb, var(--accent-primary) 12%, transparent)'
           : 'transparent',
-      }}
-      onMouseEnter={(e) => {
-        if (!isDisabled) {
-          e.currentTarget.style.background = 'var(--color-surface-base)'
-        }
-      }}
-      onMouseLeave={(e) => {
-        if (!isLoading) {
-          e.currentTarget.style.background = 'transparent'
-        }
       }}
     >
       <span className="inline-flex items-center justify-center shrink-0" style={{ color: op.color }}>

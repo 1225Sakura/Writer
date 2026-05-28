@@ -41,7 +41,7 @@ export function SearchInput({
         style={{
           background: 'var(--color-surface-base)',
           border: `1px solid ${isFocused ? 'var(--accent-primary)' : 'var(--border-subtle)'}`,
-          boxShadow: isFocused ? '0 0 0 2px rgba(201, 169, 110, 0.15)' : 'none',
+          boxShadow: isFocused ? '0 0 0 2px rgba(var(--accent-rgb), 0.15)' : 'none',
         }}
       >
         <Search className="w-3 h-3 flex-shrink-0" style={{ color: isFocused ? 'var(--accent-primary)' : 'var(--ink-90)', opacity: isFocused ? 0.8 : 0.4 }} />
@@ -77,11 +77,11 @@ export function SearchInput({
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -4 }}
             transition={{ duration: 0.12 }}
-            className="absolute top-full left-0 right-0 mt-1 rounded-lg overflow-hidden z-50 max-h-[160px] overflow-y-auto"
+            className="absolute top-full left-0 right-0 mt-1 rounded-lg overflow-hidden z-50 max-h-[160px] overflow-y-auto scrollbar-ink"
             style={{
               background: 'var(--paper-80)',
               border: '1px solid var(--border-default)',
-              boxShadow: '0 8px 24px rgba(0,0,0,0.4)',
+              boxShadow: '0 8px 24px rgba(var(--ink-shadow-rgb), 0.4)',
             }}
           >
             {searchResults.slice(0, 8).map((node) => {
@@ -91,14 +91,8 @@ export function SearchInput({
                 <button
                   key={node.id}
                   onClick={() => onSelectResult(node)}
-                  className="flex items-center gap-2 w-full px-2.5 py-1.5 text-left transition-all duration-150"
+                  className="flex items-center gap-2 w-full px-2.5 py-1.5 text-left transition-all duration-150 hover:bg-[color-mix(in_srgb,var(--accent-primary)_8%,transparent)]"
                   style={{ color: 'var(--ink-90)' }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.backgroundColor = 'rgba(201, 169, 110, 0.08)';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.backgroundColor = 'transparent';
-                  }}
                 >
                   <div
                     className="w-2.5 h-2.5 rounded-full flex-shrink-0"
@@ -163,7 +157,7 @@ export function FilterControls({
         style={{
           background: 'var(--paper-80)',
           border: "1px solid var(--border-default)",
-          boxShadow: "0 4px 20px rgba(0,0,0,0.4), 0 0 0 1px var(--border-subtle)",
+          boxShadow: "0 4px 20px rgba(var(--ink-shadow-rgb), 0.4), 0 0 0 1px var(--border-subtle)",
         }}
       >
         <FilterButton icon={ZoomIn} title="放大 (滚轮上)" onClick={onZoomIn} />
@@ -176,7 +170,7 @@ export function FilterControls({
         style={{
           background: 'var(--paper-80)',
           border: "1px solid var(--border-subtle)",
-          boxShadow: "0 4px 20px rgba(0,0,0,0.3), 0 0 0 1px var(--border-subtle)",
+          boxShadow: "0 4px 20px rgba(var(--ink-shadow-rgb), 0.3), 0 0 0 1px var(--border-subtle)",
         }}
       >
         <button
@@ -214,20 +208,11 @@ export function FilterControls({
                     <button
                       key={type}
                       onClick={() => onToggleType(type)}
-                      className="flex items-center gap-2 px-2 py-1.5 rounded-lg w-full transition-all duration-200"
+                      className="flex items-center gap-2 px-2 py-1.5 rounded-lg w-full transition-all duration-200 hover:bg-[color-mix(in_srgb,var(--accent-primary)_6%,transparent)]"
                       style={{
                         backgroundColor: isActive
                           ? `color-mix(in srgb, ${config.color} 9%, transparent)`
-                          : "transparent",
-                      }}
-                      onMouseEnter={(e) => {
-                        if (!isActive)
-                          e.currentTarget.style.backgroundColor =
-                            "rgba(201, 169, 110, 0.06)";
-                      }}
-                      onMouseLeave={(e) => {
-                        if (!isActive)
-                          e.currentTarget.style.backgroundColor = "transparent";
+                          : undefined,
                       }}
                     >
                       <div
