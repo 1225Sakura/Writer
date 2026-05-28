@@ -156,11 +156,6 @@ class CharacterStorylineUpdateRequest(BaseModel):
     arc: Optional[str] = Field(default=None, max_length=MAX_TEXT_FIELD_LENGTH)
     progress: Optional[int] = Field(default=None, ge=0, le=100)
 
-    @field_validator('character_id')
-    @classmethod
-    def validate_character_id(cls, v: int) -> int:
-        return validate_positive_id(v)
-
     @field_validator('title')
     @classmethod
     def validate_title(cls, v: str) -> str:

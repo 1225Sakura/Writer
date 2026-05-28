@@ -564,7 +564,7 @@ export { get, post, put, patch, del as delete }
 
 export const api = {
   get: <T>(url: string, params?: Record<string, unknown>, options?: RequestOptions) =>
-    request<T>('get', url, { params }, options),
+    request<T>('get', url, undefined, { ...options, params }),
 
   post: <T>(url: string, data?: unknown, options?: RequestOptions) =>
     request<T>('post', url, data, options),

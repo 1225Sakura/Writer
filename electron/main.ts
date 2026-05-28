@@ -189,8 +189,26 @@ function getBackendPaths(): { backendPath: string; launcherPath: string } {
   }
 }
 
+function isPortAvailable(port: number, host: string): Promise<boolean> {
+  return new Promise((resolve) => {
+    const server = require('net').createServer();
+    server.once('error', () => resolve(false));
+    server.once('listening', () => { server.close(); resolve(true); });
+    server.listen(port, host);
+  });
+}
+
 function startBackend(): Promise<void> {
-  return new Promise((resolve, reject) => {
+  return new Promise(async (resolve, reject) => {
+    // Check if port is already in use before spawning backend
+    const portAvailable = await isPortAvailable(BACKEND_PORT, BACKEND_HOST);
+    if (!portAvailable) {
+      const msg = `端口 ${BACKEND_PORT} 已被占用，请关闭占用该端口的程序后重试。`;
+      console.error(`[Electron] ${msg}`);
+      reject(new Error(msg));
+      return;
+    }
+
     const { backendPath, launcherPath } = getBackendPaths();
 
     if (!fs.existsSync(backendPath)) {

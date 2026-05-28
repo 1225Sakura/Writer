@@ -1,7 +1,7 @@
 import pytest
 from unittest.mock import MagicMock
 
-from src.backend.services.semantic_cache import (
+from backend.services.semantic_cache import (
     AdaptiveThreshold,
     CacheEntry,
     SemanticCache,

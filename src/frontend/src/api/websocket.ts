@@ -216,9 +216,9 @@ export class ChatWebSocketClient {
     // Derive WS URL from current API base
     const apiBase = (import.meta.env.VITE_API_BASE_URL as string) || 'http://127.0.0.1:8000'
     const wsProtocol = apiBase.startsWith('https') ? 'wss' : 'ws'
-    // Handle relative paths (e.g., '/api/v1' in dev) by defaulting to localhost:8000
+    // Handle relative paths (e.g., '/api/v1' in dev) by using current page host
     if (apiBase.startsWith('/')) {
-      return `${wsProtocol}://127.0.0.1:8000`
+      return `${wsProtocol}://${window.location.host}`
     }
     const host = apiBase.replace(/^https?:\/\//, '').replace(/\/api\/v1$/, '').replace(/\/$/, '')
     return `${wsProtocol}://${host}`
