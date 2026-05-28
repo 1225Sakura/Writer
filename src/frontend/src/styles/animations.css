@@ -134,7 +134,7 @@
 .ripple-effect {
   position: absolute;
   border-radius: 50%;
-  background: rgba(201, 169, 110, 0.15);
+  background: color-mix(in srgb, var(--accent-100) 15%, transparent);
   animation: ripple-effect 350ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
   pointer-events: none;
 }
@@ -203,11 +203,11 @@
 /* glow-breathe - glow breathing for emphasis */
 @keyframes glow-breathe {
   0%, 100% {
-    box-shadow: 0 0 4px rgba(201, 169, 110, 0.2), 0 0 8px rgba(201, 169, 110, 0.1);
+    box-shadow: 0 0 4px color-mix(in srgb, var(--accent-100) 20%, transparent), 0 0 8px color-mix(in srgb, var(--accent-100) 10%, transparent);
     opacity: 1;
   }
   50% {
-    box-shadow: 0 0 12px rgba(201, 169, 110, 0.4), 0 0 24px rgba(201, 169, 110, 0.2);
+    box-shadow: 0 0 12px color-mix(in srgb, var(--accent-100) 40%, transparent), 0 0 24px color-mix(in srgb, var(--accent-100) 20%, transparent);
     opacity: 0.95;
   }
 }
@@ -267,9 +267,9 @@
   background: linear-gradient(
     105deg,
     transparent 0%,
-    rgba(255, 255, 255, 0.03) 25%,
-    rgba(255, 255, 255, 0.08) 45%,
-    rgba(255, 255, 255, 0.03) 65%,
+    color-mix(in srgb, var(--paper-100) 3%, transparent) 25%,
+    color-mix(in srgb, var(--paper-100) 8%, transparent) 45%,
+    color-mix(in srgb, var(--paper-100) 3%, transparent) 65%,
     transparent 100%
   );
   background-size: 200% 100%;
@@ -298,9 +298,9 @@
 }
 
 @keyframes input-glow-expand {
-  0%   { box-shadow: 0 0 0 0 rgba(201, 169, 110, 0.35); }
-  70%  { box-shadow: 0 0 0 6px rgba(201, 169, 110, 0); }
-  100% { box-shadow: 0 0 0 0 rgba(201, 169, 110, 0); }
+  0%   { box-shadow: 0 0 0 0 color-mix(in srgb, var(--accent-100) 35%, transparent); }
+  70%  { box-shadow: 0 0 0 6px color-mix(in srgb, var(--accent-100) 0%, transparent); }
+  100% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--accent-100) 0%, transparent); }
 }
 
 @keyframes toast-slide-up {
@@ -375,11 +375,11 @@
 .animate-shimmer {
   background: linear-gradient(
     105deg,
-    rgba(255, 255, 255, 0.03) 0%,
-    rgba(255, 255, 255, 0.08) 20%,
-    rgba(255, 255, 255, 0.14) 40%,
-    rgba(255, 255, 255, 0.08) 60%,
-    rgba(255, 255, 255, 0.03) 100%
+    color-mix(in srgb, var(--paper-100) 3%, transparent) 0%,
+    color-mix(in srgb, var(--paper-100) 8%, transparent) 20%,
+    color-mix(in srgb, var(--paper-100) 14%, transparent) 40%,
+    color-mix(in srgb, var(--paper-100) 8%, transparent) 60%,
+    color-mix(in srgb, var(--paper-100) 3%, transparent) 100%
   );
   background-size: 250% 100%;
   animation: shimmer-smooth 2s cubic-bezier(0.22, 1, 0.36, 1) infinite;
@@ -388,11 +388,11 @@
 .animate-shimmer-smooth {
   background: linear-gradient(
     105deg,
-    rgba(255, 255, 255, 0.04) 0%,
-    rgba(255, 255, 255, 0.10) 25%,
-    rgba(255, 255, 255, 0.16) 45%,
-    rgba(255, 255, 255, 0.10) 65%,
-    rgba(255, 255, 255, 0.04) 100%
+    color-mix(in srgb, var(--paper-100) 4%, transparent) 0%,
+    color-mix(in srgb, var(--paper-100) 10%, transparent) 25%,
+    color-mix(in srgb, var(--paper-100) 16%, transparent) 45%,
+    color-mix(in srgb, var(--paper-100) 10%, transparent) 65%,
+    color-mix(in srgb, var(--paper-100) 4%, transparent) 100%
   );
   background-size: 300% 100%;
   animation: shimmer-smooth 2s cubic-bezier(0.22, 1, 0.36, 1) infinite;
@@ -441,7 +441,7 @@
 
 .hover-lift:hover {
   transform: translateY(-3px);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15), 0 2px 6px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 8px 24px color-mix(in srgb, var(--ink-100) 15%, transparent), 0 2px 6px color-mix(in srgb, var(--ink-100) 8%, transparent);
 }
 
 .press-down {
@@ -460,7 +460,7 @@
 
 .card-hover-lift:hover {
   transform: translateY(-3px);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15), 0 2px 6px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 8px 24px color-mix(in srgb, var(--ink-100) 15%, transparent), 0 2px 6px color-mix(in srgb, var(--ink-100) 8%, transparent);
 }
 
 /* Card hover glow expansion */
@@ -472,7 +472,7 @@
 
 .card-hover-glow:hover {
   transform: translateY(-2px);
-  box-shadow: 0 0 20px rgba(201, 169, 110, 0.15), 0 0 40px rgba(201, 169, 110, 0.08), 0 8px 24px rgba(0, 0, 0, 0.12);
+  box-shadow: 0 0 20px color-mix(in srgb, var(--accent-100) 15%, transparent), 0 0 40px color-mix(in srgb, var(--accent-100) 8%, transparent), 0 8px 24px color-mix(in srgb, var(--ink-100) 12%, transparent);
 }
 
 .btn-interactive {
@@ -485,12 +485,12 @@
 
 .btn-interactive:hover {
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+  box-shadow: 0 4px 12px color-mix(in srgb, var(--ink-100) 12%, transparent);
 }
 
 .btn-interactive:active {
   transform: translateY(0) scale(0.97);
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 1px 4px color-mix(in srgb, var(--ink-100) 8%, transparent);
 }
 
 /* Button press feedback - subtle scale */
@@ -530,7 +530,7 @@
 
 .input-focus-glow:focus {
   border-color: var(--border-focus);
-  box-shadow: 0 0 0 3px var(--accent-muted), 0 0 12px rgba(201, 169, 110, 0.15);
+  box-shadow: 0 0 0 3px var(--accent-muted), 0 0 12px color-mix(in srgb, var(--accent-100) 15%, transparent);
 }
 
 /* ============================================================
@@ -701,7 +701,7 @@
 
 .hover-card:hover {
   transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.12), 0 2px 6px rgba(0, 0, 0, 0.06);
+  box-shadow: 0 6px 20px color-mix(in srgb, var(--ink-100) 12%, transparent), 0 2px 6px color-mix(in srgb, var(--ink-100) 6%, transparent);
 }
 
 /* Icon hover - subtle scale */
@@ -920,7 +920,7 @@
   border: 1px solid var(--border-default);
   border-radius: var(--radius-lg);
   padding: 14px 18px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2), 0 2px 8px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 8px 32px color-mix(in srgb, var(--ink-100) 20%, transparent), 0 2px 8px color-mix(in srgb, var(--ink-100) 10%, transparent);
   min-width: 280px;
   max-width: 400px;
 }
@@ -1066,9 +1066,9 @@
 .empty-state-action-glow button:hover,
 .empty-state-action-glow a:hover,
 .empty-state-action-glow [role="button"]:hover {
-  box-shadow: 0 0 16px rgba(201, 169, 110, 0.25),
-              0 0 32px rgba(201, 169, 110, 0.12),
-              0 4px 12px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 0 16px color-mix(in srgb, var(--accent-100) 25%, transparent),
+              0 0 32px color-mix(in srgb, var(--accent-100) 12%, transparent),
+              0 4px 12px color-mix(in srgb, var(--ink-100) 10%, transparent);
   transform: translateY(-1px);
 }
 
@@ -1076,8 +1076,8 @@
 .empty-state-action-glow a:active,
 .empty-state-action-glow [role="button"]:active {
   transform: translateY(0) scale(0.98);
-  box-shadow: 0 0 8px rgba(201, 169, 110, 0.15),
-              0 2px 6px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 0 8px color-mix(in srgb, var(--accent-100) 15%, transparent),
+              0 2px 6px color-mix(in srgb, var(--ink-100) 8%, transparent);
 }
 
 /* ============================================================
@@ -1226,11 +1226,11 @@
 /* High contrast mode support */
 @media (prefers-contrast: high) {
   .ripple-effect {
-    background: rgba(201, 169, 110, 0.3);
+    background: color-mix(in srgb, var(--accent-100) 30%, transparent);
   }
 
   .animate-glow-breathe {
-    box-shadow: 0 0 8px rgba(201, 169, 110, 0.5);
+    box-shadow: 0 0 8px color-mix(in srgb, var(--accent-100) 50%, transparent);
   }
 }
 
@@ -1369,11 +1369,11 @@
 @keyframes pulse-attention {
   0%, 100% {
     transform: scale(1);
-    box-shadow: 0 0 0 0 rgba(201, 169, 110, 0.4);
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--accent-100) 40%, transparent);
   }
   50% {
     transform: scale(1.02);
-    box-shadow: 0 0 0 8px rgba(201, 169, 110, 0);
+    box-shadow: 0 0 0 8px color-mix(in srgb, var(--accent-100) 0%, transparent);
   }
 }
 
@@ -1557,7 +1557,7 @@
 }
 
 .hover-blur:hover {
-  box-shadow: inset 0 0 0 1px var(--border-subtle), 0 2px 8px rgba(0, 0, 0, 0.12);
+  box-shadow: inset 0 0 0 1px var(--border-subtle), 0 2px 8px color-mix(in srgb, var(--ink-100) 12%, transparent);
   background: var(--color-surface-hover);
 }
 

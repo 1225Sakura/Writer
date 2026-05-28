@@ -46,7 +46,7 @@ export function IconButton({
       color: 'var(--text-secondary)',
     },
     subtle: {
-      background: 'rgba(255, 255, 255, 0.05)',
+      background: 'color-mix(in srgb, var(--paper-100) 5%, transparent)',
       border: '1px solid var(--border-default)',
       color: 'var(--text-primary)',
     },

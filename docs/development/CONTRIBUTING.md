@@ -25,7 +25,7 @@ cd writer
 pip install -r requirements.txt
 
 # 安装前端依赖
-cd frontend && npm install
+cd src/frontend && npm install
 
 # 运行开发服务器
 # 后端
@@ -38,8 +38,7 @@ npm run dev
 
 ## 分支管理
 
-- `main` — 生产分支，仅通过 PR 合并
-- `develop` — 开发分支，所有功能合并至此
+- `master` — 主分支，所有功能合并至此
 - `feature/*` — 功能分支，命名如 `feature/chat-init-ui`
 - `fix/*` — 修复分支，命名如 `fix/ooc-detection`
 
@@ -74,7 +73,7 @@ refactor(style): migrate to shadcn/ui components
 2. 确保代码通过所有测试 (`pytest`, `npm test`)
 3. 填写 PR 描述，说明改动内容和关联 Issue
 4. 等待代码审查（至少 1 人 approve）
-5. 合并到 `develop` 分支
+5. 合并到 `master` 分支
 
 ---
 

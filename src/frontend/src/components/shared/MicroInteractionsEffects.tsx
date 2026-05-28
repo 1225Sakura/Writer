@@ -35,9 +35,9 @@ export function ShimmerButton({
   }
 
   const defaultShimmer = {
-    default: 'rgba(255, 255, 255, 0.04)',
-    accent: 'rgba(255, 255, 255, 0.1)',
-    danger: 'rgba(255, 255, 255, 0.04)',
+    default: 'color-mix(in srgb, var(--paper-100) 4%, transparent)',
+    accent: 'color-mix(in srgb, var(--paper-100) 10%, transparent)',
+    danger: 'color-mix(in srgb, var(--paper-100) 4%, transparent)',
   }
 
   return (

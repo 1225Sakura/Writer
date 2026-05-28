@@ -21,7 +21,7 @@ interface RippleEffectProps extends HTMLMotionProps<'span'> {
  * RippleEffect - Ripple click effect
  * Only triggers on click, not persistent
  */
-export function RippleEffect({ color = 'rgba(255, 255, 255, 0.2)', ...props }: RippleEffectProps) {
+export function RippleEffect({ color = 'color-mix(in srgb, var(--paper-100) 20%, transparent)', ...props }: RippleEffectProps) {
   return (
     <motion.span
       {...props}
@@ -205,13 +205,13 @@ export function CardHoverGlow({
   return (
     <motion.div
       className={cn('relative', className)}
-      initial={{ y: 0, boxShadow: '0 0 0 rgba(0,0,0,0)' }}
+      initial={{ y: 0, boxShadow: '0 0 0 color-mix(in srgb, var(--ink-100) 0%, transparent)' }}
       whileHover={
         reducedMotion
           ? undefined
           : {
               y: -2,
-              boxShadow: `0 0 ${20 * glowIntensity}px ${glowColor}, 0 0 ${40 * glowIntensity}px ${glowColor}, 0 8px 24px rgba(0, 0, 0, 0.12)`,
+              boxShadow: `0 0 ${20 * glowIntensity}px ${glowColor}, 0 0 ${40 * glowIntensity}px ${glowColor}, 0 8px 24px color-mix(in srgb, var(--ink-100) 12%, transparent)`,
             }
       }
       transition={{ duration: 0.25, ease: easeOutSmooth }}

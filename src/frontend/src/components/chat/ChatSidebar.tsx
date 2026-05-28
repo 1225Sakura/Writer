@@ -33,7 +33,7 @@ export function ChatSidebar({ entities, sessionId: _sessionId, onConfirmEntity, 
       {/* Desktop sidebar */}
       <div className="hidden md:block h-full">
         <motion.div
-          className="w-[var(--sidebar-left-width)] xl:w-[35%] xl:max-w-[var(--sidebar-ai-drawer-width-expanded)] xl:min-w-[var(--sidebar-left-width)] h-full shrink-0 overflow-hidden"
+          className="w-[var(--sidebar-left-width)] xl:w-[35%] xl:max-w-[var(--sidebar-ai-drawer-width-expanded)] xl:min-w-[var(--sidebar-left-width)] h-full shrink-0 overflow-hidden flex flex-col"
           style={{
             background: 'var(--color-surface-raised)',
             borderLeft: '1px solid var(--border-default)',
@@ -88,10 +88,10 @@ export function ChatSidebar({ entities, sessionId: _sessionId, onConfirmEntity, 
               onClick={() => setMobileOpen(false)}
             />
             <motion.div
-              className="md:hidden fixed right-0 top-0 bottom-0 z-40 w-[85%] max-w-[360px]"
+              className="md:hidden fixed right-0 top-0 bottom-0 z-40 w-[85%] max-w-[360px] flex flex-col"
               style={{
                 background: 'var(--color-surface-raised)',
-                boxShadow: '-8px 0 32px rgba(0,0,0,0.2)',
+                boxShadow: '-8px 0 32px color-mix(in srgb, var(--ink-100) 20%, transparent)',
               }}
               initial={{ x: '100%' }}
               animate={{ x: 0 }}

@@ -121,7 +121,7 @@ export function ShortcutsHelp({ initialInterface = 'global' }: ShortcutsHelpProp
             animate={{ scale: 1, opacity: 1, y: 0 }}
             exit={{ scale: 0.95, opacity: 0, y: 20 }}
             transition={SPRING.SNAPPY}
-            className="relative w-full max-w-2xl max-h-[85vh] rounded-2xl border border-[rgba(255,255,255,0.08)] bg-[var(--ink-90)] shadow-2xl overflow-hidden flex flex-col"
+            className="relative w-full max-w-2xl max-h-[85vh] rounded-2xl border border-[color-mix(in srgb, var(--paper-100) 8%, transparent)] bg-[var(--ink-90)] shadow-2xl overflow-hidden flex flex-col"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Header */}
@@ -227,7 +227,7 @@ export function ShortcutsHelp({ initialInterface = 'global' }: ShortcutsHelpProp
                                 {item.shortcut.split('+').map((key, i) => (
                                   <kbd
                                     key={i}
-                                    className="px-1.5 py-0.5 rounded bg-white/[0.08] border border-white/15 text-[11px] font-mono text-white/70 shadow-[0_1px_2px_rgba(0,0,0,0.3)] group-hover:bg-white/12 group-hover:border-white/25 group-hover:text-white/90 transition-all"
+                                    className="px-1.5 py-0.5 rounded bg-white/[0.08] border border-white/15 text-[11px] font-mono text-white/70 shadow-[0_1px_2px_color-mix(in srgb, var(--ink-100) 30%, transparent)] group-hover:bg-white/12 group-hover:border-white/25 group-hover:text-white/90 transition-all"
                                   >
                                     {key}
                                   </kbd>
@@ -283,7 +283,7 @@ export function ShortcutsHelpTrigger({ className = '' }: { className?: string })
     >
       <Keyboard className="w-4 h-4" />
       <span className="hidden sm:inline">快捷键</span>
-      <kbd className="hidden md:inline-flex px-1.5 py-0.5 rounded bg-[rgba(255,255,255,0.06)] text-[10px] font-mono">
+      <kbd className="hidden md:inline-flex px-1.5 py-0.5 rounded bg-[color-mix(in srgb, var(--paper-100) 6%, transparent)] text-[10px] font-mono">
         ?
       </kbd>
     </button>

@@ -45,15 +45,15 @@
 
 | 类型 | 色值 | 用途 |
 |------|------|------|
-| 深墨色 | #1a1a2e | 写作区背景（深色模式） |
-| 宣纸白 | #f5f0e6 | 正文文字/卡片背景 |
-| 朱砂红 | #c45c5c | 强调/警告/重要标记 |
-| 角色橙 | #e8b87d | 角色类型编码 |
-| 物品紫 | #9b7ed9 | 物品类型编码 |
-| 地点青 | #5eb5a6 | 地点类型编码 |
-| 势力红 | #d45d5d | 势力类型编码 |
-| 大纲蓝 | #5b8ee8 | 大纲类型编码 |
-| IF线绿 | #7eb84a | IF线类型编码 |
+| 深墨色 | #1a1510 | 写作区背景（深色模式） |
+| 宣纸白 | #f5eed6 | 正文文字/卡片背景 |
+| 朱砂红 | #8b3a3a | 强调/警告/重要标记 |
+| 角色橙 | #c9a06e | 角色类型编码 |
+| 物品紫 | #8b7aaa | 物品类型编码 |
+| 地点青 | #6b9e8e | 地点类型编码 |
+| 势力红 | #a04848 | 势力类型编码 |
+| 大纲蓝 | #7088a8 | 大纲类型编码 |
+| IF线绿 | #7a9e58 | IF线类型编码 |
 
 ---
 
@@ -127,30 +127,22 @@
 
 ---
 
-## API 设计（待补充）
+## API 设计
 
-| 端点 | 方法 | 说明 |
-|------|------|------|
-| /api/chat/session | POST | 创建聊天会话 |
-| /api/chat/messages | GET/POST | 获取/发送聊天消息 |
-| /api/settings | GET/PUT | 读取/更新设定 |
-| /api/chapters | CRUD | 章节管理 |
-| /api/ai/generate | POST | AI 生成内容 |
-| /api/ai/review | POST | AI 审查设定 |
-| /api/styles | GET | 获取文笔风格 |
+详细 API 文档请参考：[API.md](./API.md) 和 [API_ENDPOINTS.md](./api/API_ENDPOINTS.md)
 
 ---
 
-## 待完善章节
+## 已完成与待完善章节
 
-| 缺失内容 | 状态 | 说明 |
-|----------|------|------|
-| ChatMessage/ConversationSession 实体 | 待补充 | 界面1聊天对话数据模型 |
-| AIInspectionResult 实体 | 待补充 | AI审查结果存储 |
-| PlotThread/Foreshadowing 实体 | 待补充 | 伏笔追踪数据模型 |
-| DraftVersion/EditHistory | 待补充 | 写作版本管理 |
-| API Endpoint 详细设计 | 待补充 | 请求/响应格式 |
-| 错误处理与边界情况 | 待补充 | 网络中断、API超时等 |
-| 数据备份与迁移策略 | 待补充 | SQLite 备份方案 |
-| 日志与可观测性 | 待补充 | 运行日志、用户操作日志 |
-| 安全与隐私 | 待补充 | 本地数据加密 |
+| 内容 | 状态 | 说明 |
+|------|------|------|
+| ChatMessage/ConversationSession 实体 | ✅ 已完成 | models/entities.py 中定义 |
+| AIInspectionResult 实体 | ✅ 已完成 | models/entities.py 中定义 |
+| PlotThread/Foreshadowing 实体 | ✅ 已完成 | models/entities.py 中定义 |
+| DraftVersion/EditHistory | ✅ 已完成 | draft_versions 表 |
+| API Endpoint 详细设计 | ✅ 已完成 | 详见 docs/API.md |
+| 错误处理与边界情况 | ✅ 已完成 | middleware/errors.py + AppException |
+| 数据备份与迁移策略 | ✅ 已完成 | Alembic 迁移 + backup_manager.py |
+| 日志与可观测性 | ✅ 已完成 | docs/operations/LOGS.md |
+| 安全与隐私 | ✅ 已完成 | docs/SECURITY_AUDIT.md |

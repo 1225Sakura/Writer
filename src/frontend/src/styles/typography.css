@@ -538,7 +538,7 @@
 /* Writing text selection color */
 .writing-text-selection::selection,
 .writing-text-selection *::selection {
-  background: rgba(200, 180, 140, 0.3);
+  background: color-mix(in srgb, var(--paper-80) 30%, transparent);
   color: inherit;
 }
 

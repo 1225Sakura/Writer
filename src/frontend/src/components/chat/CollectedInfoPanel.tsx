@@ -115,7 +115,7 @@ export function CollectedInfoPanel({ entities, sessionId, onConfirmEntity, onCon
               <motion.div
                 className="absolute inset-0 rounded-full"
                 style={{
-                  background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent)',
+                  background: 'linear-gradient(90deg, transparent, color-mix(in srgb, var(--paper-100) 20%, transparent), transparent)',
                 }}
                 animate={{ x: ['-100%', '200%'] }}
                 transition={{ duration: 2, repeat: Infinity, repeatDelay: 2, ease: 'easeInOut' }}

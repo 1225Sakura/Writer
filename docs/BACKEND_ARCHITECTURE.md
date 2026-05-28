@@ -3,6 +3,10 @@
 > 本文档描述 Auto Novel Writer 后端系统的整体架构设计。
 > 版本: 1.0.0 | 更新日期: 2026-04-21
 
+**相关文档：**
+- [ARCHITECTURE.md](./ARCHITECTURE.md) — 架构决策记录 (ADR)
+- [OVERALL-ARCHITECTURE.md](./design/OVERALL-ARCHITECTURE.md) — 战略规划文档（路线图、风险分析）
+
 ---
 
 ## 目录

@@ -209,7 +209,7 @@ export function EntitySearch({ onResultClick }: EntitySearchProps) {
               <SearchFilters filterType={filterType} onFilterChange={setFilterType} />
 
               {/* Results or History */}
-              <div className="max-h-[320px] overflow-y-auto">
+              <div className="max-h-[320px] overflow-y-auto scrollbar-thin">
                 <AnimatePresence mode="wait">
                   {hasQuery ? (
                     <motion.div

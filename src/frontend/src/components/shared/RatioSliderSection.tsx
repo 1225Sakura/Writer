@@ -83,14 +83,14 @@ const RawSlider = memo(function RawSlider({
         className="relative h-1.5 w-full grow overflow-hidden rounded-full"
         style={{
           background: 'var(--border-default)',
-          boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.3)',
+          boxShadow: 'inset 0 1px 2px color-mix(in srgb, var(--ink-100) 30%, transparent)',
         }}
       >
         <SliderPrimitive.Range
           className="absolute h-full rounded-full"
           style={{
             background: 'linear-gradient(90deg, var(--accent-primary) 0%, var(--color-ifline) 100%)',
-            boxShadow: '0 0 8px color-mix(in srgb, var(--accent-primary) 30%, transparent)',
+            boxShadow: '0 0 8px color-mix(in srgb, var(--accent-100) 30%, transparent)',
           }}
         />
       </SliderPrimitive.Track>
@@ -100,7 +100,7 @@ const RawSlider = memo(function RawSlider({
         style={{
           borderColor: 'var(--accent-primary)',
           background: 'var(--color-surface-raised)',
-          boxShadow: '0 0 8px color-mix(in srgb, var(--accent-primary) 25%, transparent), 0 2px 4px rgba(0,0,0,0.25)',
+          boxShadow: '0 0 8px color-mix(in srgb, var(--accent-primary) 25%, transparent), 0 2px 4px color-mix(in srgb, var(--ink-100) 25%, transparent)',
         }}
       />
     </SliderPrimitive.Root>

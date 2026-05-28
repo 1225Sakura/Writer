@@ -347,7 +347,7 @@
   .settings-sidebar-overlay {
     position: fixed;
     inset: 0;
-    background: rgba(13, 13, 18, 0.5);
+    background: color-mix(in srgb, var(--ink-100) 50%, transparent);
     z-index: 99;
   }
 }

@@ -113,8 +113,8 @@ export function ChatBubble({ message, onEdit, onDelete, onConfirmEntity, index }
                 : 'linear-gradient(135deg, var(--accent-primary), color-mix(in srgb, var(--accent-primary) 85%, var(--accent-hover)))',
               color: isAssistant ? 'var(--text-primary)' : 'white',
               boxShadow: isAssistant
-                ? '0 4px 20px rgba(0,0,0,0.08), 0 1px 4px rgba(0,0,0,0.04), inset 0 1px 0 rgba(255,255,255,0.03)'
-                : '0 4px 20px color-mix(in srgb, var(--accent-primary) 25%, transparent), 0 2px 8px rgba(0,0,0,0.1)',
+                ? '0 4px 20px color-mix(in srgb, var(--ink-100) 8%, transparent), 0 1px 4px color-mix(in srgb, var(--ink-100) 4%, transparent), inset 0 1px 0 color-mix(in srgb, var(--paper-100) 3%, transparent)'
+                : '0 4px 20px color-mix(in srgb, var(--accent-primary) 25%, transparent), 0 2px 8px color-mix(in srgb, var(--ink-100) 10%, transparent)',
             }}
           >
             {isAssistant && (

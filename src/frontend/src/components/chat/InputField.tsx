@@ -63,7 +63,7 @@ export function InputField({
           animate={{
             boxShadow: isFocused
               ? '0 0 0 2px var(--accent-primary), 0 0 0 4px var(--accent-muted), 0 0 24px var(--glow-primary-sm)'
-              : '0 0 0 1px var(--border-default), 0 2px 8px rgba(0,0,0,0.04)',
+              : '0 0 0 1px var(--border-default), 0 2px 8px color-mix(in srgb, var(--ink-100) 4%, transparent)',
           }}
           transition={{ duration: DURATION.NORMAL, ease: EASE.SMOOTH }}
           style={{ borderRadius: 'var(--radius-xl)' }}

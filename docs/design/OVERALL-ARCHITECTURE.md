@@ -6,6 +6,10 @@
 > **技术栈**: Python FastAPI + React 18 + SQLite + MiniMax API
 > **文档类型**: 总体架构方案（汇总文档）
 
+**相关文档：**
+- [ARCHITECTURE.md](../ARCHITECTURE.md) — 架构决策记录 (ADR)
+- [BACKEND_ARCHITECTURE.md](../BACKEND_ARCHITECTURE.md) — 后端实现指南（分层架构、服务、事件系统）
+
 ---
 
 ## 目录

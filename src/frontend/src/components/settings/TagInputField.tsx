@@ -105,7 +105,7 @@ export function TagInputField({
                 aria-label="添加标签"
                 className="w-full pl-8 pr-3 py-1.5 rounded-md text-xs transition-all outline-none bg-white/5 text-[var(--text-primary)] border border-white/10 focus:border-[var(--border-focus)] focus:ring-1 focus:ring-[var(--accent-muted)]"
                 style={{
-                  borderColor: inputValue ? `color-mix(in srgb, ${entityColor} 31%, transparent)` : 'rgba(255,255,255,0.1)',
+                  borderColor: inputValue ? `color-mix(in srgb, ${entityColor} 31%, transparent)` : 'color-mix(in srgb, var(--paper-100) 10%, transparent)',
                   boxShadow: inputValue ? `0 0 0 2px color-mix(in srgb, ${entityColor} 8%, transparent)` : 'none',
                 }}
               />

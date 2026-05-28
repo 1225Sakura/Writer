@@ -38,22 +38,22 @@ const sizeStyles: Record<OverlaySize, { container: string; blur: string; bgOpaci
   fullscreen: {
     container: 'fixed inset-0 z-[100]',
     blur: 'blur(24px)',
-    bgOpacity: 'rgba(10, 11, 14, 0.92)',
+    bgOpacity: 'color-mix(in srgb, var(--ink-100) 92%, transparent)',
   },
   floating: {
     container: 'absolute inset-0 z-50 rounded-xl',
     blur: 'blur(16px)',
-    bgOpacity: 'rgba(10, 11, 14, 0.80)',
+    bgOpacity: 'color-mix(in srgb, var(--ink-100) 80%, transparent)',
   },
   inline: {
     container: 'absolute inset-0 z-40 rounded-lg',
     blur: 'blur(12px)',
-    bgOpacity: 'rgba(10, 11, 14, 0.70)',
+    bgOpacity: 'color-mix(in srgb, var(--ink-100) 70%, transparent)',
   },
   toolbar: {
     container: 'absolute inset-0 rounded-md',
     blur: 'blur(6px)',
-    bgOpacity: 'rgba(10, 11, 14, 0.55)',
+    bgOpacity: 'color-mix(in srgb, var(--ink-100) 55%, transparent)',
   },
 }
 

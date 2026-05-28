@@ -217,7 +217,7 @@ export function IconButton({
   return (
     <motion.button
       className={`p-2 rounded-xl relative overflow-hidden bg-surface-raised border border-default text-secondary touch-target-min
-                 transition-all duration-200 ease-out hidden sm:flex ${className}`}
+                 transition-all duration-200 ease-out hidden sm:flex items-center justify-center ${className}`}
       style={{
         boxShadow: `
           0 2px 8px color-mix(in srgb, var(--ink-100) 6%, transparent),

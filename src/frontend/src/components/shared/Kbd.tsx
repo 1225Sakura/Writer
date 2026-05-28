@@ -68,7 +68,7 @@ const variantMap: Record<KbdVariant, CSSProperties> = {
     background: 'var(--elevation-3)',
     border: '1px solid var(--border-default)',
     color: 'var(--text-secondary)',
-    boxShadow: '0 1px 2px rgba(0, 0, 0, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.05)',
+    boxShadow: '0 1px 2px color-mix(in srgb, var(--ink-100) 10%, transparent), inset 0 1px 0 color-mix(in srgb, var(--paper-100) 5%, transparent)',
   },
   subtle: {
     background: 'var(--elevation-2)',
@@ -78,13 +78,13 @@ const variantMap: Record<KbdVariant, CSSProperties> = {
   },
   accent: {
     background: 'var(--accent-muted)',
-    border: '1px solid rgba(201, 169, 110, 0.25)',
+    border: '1px solid color-mix(in srgb, var(--accent-100) 25%, transparent)',
     color: 'var(--accent-100)',
-    boxShadow: '0 0 8px rgba(201, 169, 110, 0.1)',
+    boxShadow: '0 0 8px color-mix(in srgb, var(--accent-100) 10%, transparent)',
   },
   danger: {
-    background: 'rgba(196, 92, 92, 0.08)',
-    border: '1px solid rgba(196, 92, 92, 0.2)',
+    background: 'color-mix(in srgb, var(--vermillion-100) 8%, transparent)',
+    border: '1px solid color-mix(in srgb, var(--vermillion-100) 20%, transparent)',
     color: 'var(--vermillion-100)',
     boxShadow: 'none',
   },

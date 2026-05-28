@@ -74,12 +74,12 @@ export function TagList({ tags, onRemove, entityType }: TagListProps) {
                 backgroundColor: `color-mix(in srgb, ${color} 7%, transparent)`,
                 color: color,
                 border: `1px solid color-mix(in srgb, ${color} 15%, transparent)`,
-                boxShadow: `0 1px 3px rgba(0,0,0,0.1), inset 0 1px 0 rgba(255,255,255,0.03)`,
+                boxShadow: `0 1px 3px color-mix(in srgb, var(--ink-100) 10%, transparent), inset 0 1px 0 color-mix(in srgb, var(--paper-100) 3%, transparent)`,
               }}
               whileHover={{
                 backgroundColor: `color-mix(in srgb, ${color} 9%, transparent)`,
                 borderColor: `color-mix(in srgb, ${color} 27%, transparent)`,
-                boxShadow: `0 4px 14px color-mix(in srgb, ${color} 19%, transparent), 0 1px 4px rgba(0,0,0,0.15)`,
+                boxShadow: `0 4px 14px color-mix(in srgb, ${color} 19%, transparent), 0 1px 4px color-mix(in srgb, var(--ink-100) 15%, transparent)`,
                 y: -2,
               }}
             >

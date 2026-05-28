@@ -28,7 +28,7 @@ export function TagSuggestions({
       <AnimatePresence>
         {showSuggestions && suggestions.length > 0 && (
           <motion.div
-            className="absolute top-full left-0 right-0 mt-1 rounded-md overflow-hidden z-10 bg-[var(--color-surface-base)] border border-[var(--border-default)]"
+            className="absolute top-full left-0 right-0 mt-1 rounded-md overflow-hidden z-[9999] bg-[var(--color-surface-base)] border border-[var(--border-default)]"
             initial={{ opacity: 0, y: -4, scaleY: 0.9 }}
             animate={{ opacity: 1, y: 0, scaleY: 1 }}
             exit={{ opacity: 0, y: -4, scaleY: 0.9 }}

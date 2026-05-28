@@ -52,21 +52,21 @@ interface GradientBorderProps {
 }
 
 const presetGradients: Record<GradientPreset, string[]> = {
-  accent: ['rgba(var(--spotlight-accent), 0.6)', 'rgba(var(--spotlight-location), 0.5)', 'rgba(var(--spotlight-character), 0.4)'],
-  warm: ['rgba(var(--spotlight-character), 0.6)', 'rgba(var(--spotlight-faction), 0.5)', 'rgba(var(--spotlight-faction), 0.4)'],
-  cool: ['rgba(var(--spotlight-accent), 0.6)', 'rgba(var(--spotlight-outline), 0.5)', 'rgba(var(--spotlight-location), 0.4)'],
+  accent: ['color-mix(in srgb, rgb(var(--spotlight-accent)) 60%, transparent)', 'color-mix(in srgb, rgb(var(--spotlight-location)) 50%, transparent)', 'color-mix(in srgb, rgb(var(--spotlight-character)) 40%, transparent)'],
+  warm: ['color-mix(in srgb, rgb(var(--spotlight-character)) 60%, transparent)', 'color-mix(in srgb, rgb(var(--spotlight-faction)) 50%, transparent)', 'color-mix(in srgb, rgb(var(--spotlight-faction)) 40%, transparent)'],
+  cool: ['color-mix(in srgb, rgb(var(--spotlight-accent)) 60%, transparent)', 'color-mix(in srgb, rgb(var(--spotlight-outline)) 50%, transparent)', 'color-mix(in srgb, rgb(var(--spotlight-location)) 40%, transparent)'],
   rainbow: [
-    'rgba(var(--spotlight-accent), 0.6)',
-    'rgba(var(--spotlight-outline), 0.5)',
-    'rgba(var(--spotlight-location), 0.5)',
-    'rgba(var(--spotlight-ifline), 0.5)',
-    'rgba(var(--spotlight-character), 0.5)',
-    'rgba(var(--spotlight-faction), 0.5)',
+    'color-mix(in srgb, rgb(var(--spotlight-accent)) 60%, transparent)',
+    'color-mix(in srgb, rgb(var(--spotlight-outline)) 50%, transparent)',
+    'color-mix(in srgb, rgb(var(--spotlight-location)) 50%, transparent)',
+    'color-mix(in srgb, rgb(var(--spotlight-ifline)) 50%, transparent)',
+    'color-mix(in srgb, rgb(var(--spotlight-character)) 50%, transparent)',
+    'color-mix(in srgb, rgb(var(--spotlight-faction)) 50%, transparent)',
   ],
-  sunset: ['rgba(var(--spotlight-character), 0.7)', 'rgba(var(--spotlight-faction), 0.6)', 'rgba(var(--spotlight-item), 0.5)'],
-  ocean: ['rgba(var(--spotlight-outline), 0.6)', 'rgba(var(--spotlight-location), 0.5)', 'rgba(var(--spotlight-accent), 0.4)'],
-  forest: ['rgba(var(--spotlight-ifline), 0.6)', 'rgba(var(--spotlight-location), 0.5)', 'rgba(var(--spotlight-accent), 0.4)'],
-  custom: ['rgba(var(--spotlight-accent), 0.6)', 'rgba(var(--spotlight-location), 0.5)'],
+  sunset: ['color-mix(in srgb, rgb(var(--spotlight-character)) 70%, transparent)', 'color-mix(in srgb, rgb(var(--spotlight-faction)) 60%, transparent)', 'color-mix(in srgb, rgb(var(--spotlight-item)) 50%, transparent)'],
+  ocean: ['color-mix(in srgb, rgb(var(--spotlight-outline)) 60%, transparent)', 'color-mix(in srgb, rgb(var(--spotlight-location)) 50%, transparent)', 'color-mix(in srgb, rgb(var(--spotlight-accent)) 40%, transparent)'],
+  forest: ['color-mix(in srgb, rgb(var(--spotlight-ifline)) 60%, transparent)', 'color-mix(in srgb, rgb(var(--spotlight-location)) 50%, transparent)', 'color-mix(in srgb, rgb(var(--spotlight-accent)) 40%, transparent)'],
+  custom: ['color-mix(in srgb, rgb(var(--spotlight-accent)) 60%, transparent)', 'color-mix(in srgb, rgb(var(--spotlight-location)) 50%, transparent)'],
 }
 
 const directionStyles: Record<GradientDirection, string> = {

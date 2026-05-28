@@ -125,7 +125,7 @@ export function ChatBubble({ message, onEdit, onDelete, onRetry, onConfirmEntity
               color: isAssistant ? 'var(--text-primary)' : 'white',
               boxShadow: isAssistant
                 ? 'var(--shadow-card)'
-                : '0 4px 20px color-mix(in srgb, var(--accent-primary) 25%, transparent), 0 2px 8px rgba(0,0,0,0.1)',
+                : '0 4px 20px color-mix(in srgb, var(--accent-primary) 25%, transparent), 0 2px 8px color-mix(in srgb, var(--ink-100) 10%, transparent)',
             }}
           >
             {isAssistant && (

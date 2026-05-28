@@ -199,8 +199,8 @@ export function AIAvatar({ isThinking = false }: { isThinking?: boolean }) {
                    bg-gradient-to-br from-accent-primary/30 to-accent-primary/10 border-2 border-accent-primary/40"
         style={{
           boxShadow: isThinking
-            ? '0 0 16px color-mix(in srgb, var(--accent-primary) 40%, transparent), inset 0 1px 2px rgba(255,255,255,0.1)'
-            : '0 0 10px color-mix(in srgb, var(--accent-primary) 25%, transparent), inset 0 1px 2px rgba(255,255,255,0.05)',
+            ? '0 0 16px color-mix(in srgb, var(--accent-primary) 40%, transparent), inset 0 1px 2px color-mix(in srgb, var(--paper-100) 10%, transparent)'
+            : '0 0 10px color-mix(in srgb, var(--accent-primary) 25%, transparent), inset 0 1px 2px color-mix(in srgb, var(--paper-100) 5%, transparent)',
         }}
       >
         <Icon icon={Bot} size="md" color="accent" />

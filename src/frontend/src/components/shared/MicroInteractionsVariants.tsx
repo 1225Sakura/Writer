@@ -41,7 +41,7 @@ export const microVariants: Record<string, Variants> = {
   cardGlow: {
     initial: { boxShadow: '0 0 0 var(--glow-primary-sm)' },
     hover: {
-      boxShadow: 'var(--glow-accent), 0 8px 24px rgba(0, 0, 0, 0.12)',
+      boxShadow: 'var(--glow-accent), 0 8px 24px color-mix(in srgb, var(--ink-100) 12%, transparent)',
       y: -2,
       transition: { duration: 0.25, ease: easeOutSmooth },
     },

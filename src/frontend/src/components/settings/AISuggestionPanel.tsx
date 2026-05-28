@@ -29,7 +29,7 @@ export function AISuggestionPanel() {
         className="w-full px-4 py-3 flex items-center justify-between transition-all hover:bg-[var(--color-surface-raised)] relative overflow-hidden"
         style={{
           borderBottom: s.isExpanded ? "1px solid var(--border-subtle)" : "none",
-          background: s.isReviewing ? "linear-gradient(135deg, rgba(var(--accent-rgb),0.08) 0%, var(--color-surface-base) 60%)" : "transparent",
+          background: s.isReviewing ? "linear-gradient(135deg, color-mix(in srgb, var(--accent-100) 8%, transparent) 0%, var(--color-surface-base) 60%)" : "transparent",
         }}
         animate={s.isReviewing ? "active" : "idle"} variants={pulseGlowVariants}>
         {s.isReviewing && !s.prefersReducedMotion && (
@@ -139,8 +139,8 @@ export function AISuggestionPanel() {
                     transition={{ delay: Math.min(s.displaySuggestions.length * 0.05 + 0.05, 0.3) }}>
                     <motion.button onClick={() => s.displaySuggestions.filter((i) => i.autoFixable).forEach((i) => s.handleApplyFix(i.id))}
                       className="flex-1 py-2 rounded-xl text-xs font-semibold transition-all relative overflow-hidden"
-                      style={{ background: "linear-gradient(135deg, rgba(var(--success-rgb),0.12) 0%, rgba(var(--success-rgb),0.06) 100%)", color: "var(--color-success)", border: "1px solid rgba(var(--success-rgb),0.25)" }}
-                      whileHover={{ scale: 1.01, boxShadow: "0 0 14px rgba(var(--success-rgb),0.3)" }} whileTap={{ scale: 0.98 }}>
+                      style={{ background: "linear-gradient(135deg, color-mix(in srgb, var(--color-success) 12%, transparent) 0%, color-mix(in srgb, var(--color-success) 6%, transparent) 100%)", color: "var(--color-success)", border: "1px solid color-mix(in srgb, var(--color-success) 25%, transparent)" }}
+                      whileHover={{ scale: 1.01, boxShadow: "0 0 14px color-mix(in srgb, var(--color-success) 30%, transparent)" }} whileTap={{ scale: 0.98 }}>
                       <Icon icon={Wand2} size="xs" color="success" className="inline-block mr-1 -mt-0.5" />应用所有修复
                     </motion.button>
                     <motion.button onClick={() => s.setDismissed(new Set(s.displaySuggestions.map((i) => i.id)))}
@@ -154,14 +154,14 @@ export function AISuggestionPanel() {
                 <motion.button onClick={s.handleReReview} disabled={s.isReviewing}
                   className="w-full py-2.5 rounded-xl text-xs font-semibold flex items-center justify-center gap-2 transition-all disabled:opacity-50 relative overflow-hidden"
                   style={{
-                    background: s.isReviewing ? "linear-gradient(135deg, rgba(var(--accent-rgb),0.15) 0%, rgba(var(--accent-rgb),0.08) 100%)" : "linear-gradient(135deg, rgba(var(--accent-rgb),0.12) 0%, rgba(var(--accent-rgb),0.06) 100%)",
-                    color: "var(--accent-primary)", border: "1px solid rgba(var(--accent-rgb),0.25)",
+                    background: s.isReviewing ? "linear-gradient(135deg, color-mix(in srgb, var(--accent-100) 15%, transparent) 0%, color-mix(in srgb, var(--accent-100) 8%, transparent) 100%)" : "linear-gradient(135deg, color-mix(in srgb, var(--accent-100) 12%, transparent) 0%, color-mix(in srgb, var(--accent-100) 6%, transparent) 100%)",
+                    color: "var(--accent-primary)", border: "1px solid color-mix(in srgb, var(--accent-100) 25%, transparent)",
                   }}
-                  whileHover={!s.isReviewing ? { scale: 1.01, boxShadow: "0 0 18px rgba(var(--accent-rgb),0.3), 0 0 36px rgba(var(--accent-rgb),0.15)" } : {}}
+                  whileHover={!s.isReviewing ? { scale: 1.01, boxShadow: "0 0 18px color-mix(in srgb, var(--accent-100) 30%, transparent), 0 0 36px color-mix(in srgb, var(--accent-100) 15%, transparent)" } : {}}
                   whileTap={!s.isReviewing ? { scale: 0.98 } : {}}>
                   {s.isReviewing && !s.prefersReducedMotion && (
                     <motion.div className="absolute inset-0"
-                      style={{ background: "linear-gradient(90deg, transparent 0%, rgba(var(--accent-rgb),0.1) 50%, transparent 100%)", backgroundSize: "200% 100%" }}
+                      style={{ background: "linear-gradient(90deg, transparent 0%, color-mix(in srgb, var(--accent-100) 10%, transparent) 50%, transparent 100%)", backgroundSize: "200% 100%" }}
                       variants={shimmerVariants} initial="initial" animate="animate" />
                   )}
                   <motion.div className="relative z-10" animate={s.isReviewing && !s.prefersReducedMotion ? { rotate: 360 } : { rotate: 0 }}

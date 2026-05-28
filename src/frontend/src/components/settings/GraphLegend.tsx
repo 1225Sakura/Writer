@@ -32,7 +32,7 @@ export function Legend({
         style={{
           background: 'var(--paper-80)',
           border: "1px solid var(--border-subtle)",
-          boxShadow: "0 4px 20px rgba(var(--ink-shadow-rgb),0.3)",
+          boxShadow: "0 4px 20px color-mix(in srgb, var(--ink-100) 30%, transparent)",
         }}
       >
         <Eye className="w-4 h-4 transition-colors" style={{ color: 'var(--ink-90)', opacity: 0.5 }} />
@@ -52,7 +52,7 @@ export function Legend({
         minWidth: "160px",
         background: 'var(--paper-80)',
         border: "1px solid var(--border-default)",
-        boxShadow: "0 8px 32px rgba(var(--ink-shadow-rgb),0.5), 0 0 0 1px var(--border-subtle)",
+        boxShadow: "0 8px 32px color-mix(in srgb, var(--ink-100) 50%, transparent), 0 0 0 1px var(--border-subtle)",
         fontFamily: 'var(--font-sans)',
       }}
     >
@@ -150,7 +150,7 @@ export function StatsBar({
       style={{
         background: 'var(--paper-80)',
         border: "1px solid var(--border-subtle)",
-        boxShadow: "0 4px 20px rgba(var(--ink-shadow-rgb),0.3), 0 0 0 1px var(--border-subtle)",
+        boxShadow: "0 4px 20px color-mix(in srgb, var(--ink-100) 30%, transparent), 0 0 0 1px var(--border-subtle)",
         fontFamily: 'var(--font-sans)',
       }}
     >

@@ -16,7 +16,7 @@ export function ListSkeleton({ items = 5, className, tone }: { items?: number; c
         <div
           key={i}
           className="flex items-center gap-3 p-3 rounded-[var(--radius-md)]"
-          style={{ backgroundColor: i % 2 === 0 ? 'transparent' : 'rgba(255,255,255,0.02)' }}
+          style={{ backgroundColor: i % 2 === 0 ? 'transparent' : 'color-mix(in srgb, var(--paper-100) 2%, transparent)' }}
         >
           <AvatarSkeleton size={32} tone={tone} />
           <div className="flex-1 space-y-1.5 min-w-0">
@@ -142,7 +142,7 @@ export function ListIconSkeleton({ items = 5, className, tone }: { items?: numbe
         <div
           key={i}
           className="flex items-center gap-3 p-3 rounded-[var(--radius-md)]"
-          style={{ backgroundColor: i % 2 === 0 ? 'transparent' : 'rgba(255,255,255,0.02)' }}
+          style={{ backgroundColor: i % 2 === 0 ? 'transparent' : 'color-mix(in srgb, var(--paper-100) 2%, transparent)' }}
         >
           {/* Icon placeholder */}
           <ShimmerBlock

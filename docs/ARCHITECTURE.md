@@ -4,6 +4,10 @@
 > Date: 2026-04-22
 > Status: Living document
 
+**相关文档：**
+- [BACKEND_ARCHITECTURE.md](./BACKEND_ARCHITECTURE.md) — 后端实现指南（分层架构、服务、事件系统）
+- [OVERALL-ARCHITECTURE.md](./design/OVERALL-ARCHITECTURE.md) — 战略规划文档（路线图、风险分析、功能矩阵）
+
 ---
 
 ## Table of Contents
