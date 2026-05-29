@@ -11,6 +11,7 @@ import type { EntityType } from "@/shared/types";
 import { SEVERITY_CONFIG, mapSeverity } from "./suggestionTypes";
 import type { Severity, IssueType, SuggestionItem, ReviewIteration, ReviewHistoryState } from "./suggestionTypes";
 import { aiReviewApi } from "@/api/aiReview";
+import { showWarning } from "@/utils/toastHelper";
 
 export function useSuggestionPanel() {
   const [isExpanded, setIsExpanded] = useState(true);
@@ -57,7 +58,7 @@ export function useSuggestionPanel() {
           currentIterationId: iterations[iterations.length - 1].id,
         });
       }
-    }).catch(() => { /* Backend unavailable — start with empty history */ });
+    }).catch(() => { showWarning('审查历史加载失败') });
   }, []);
 
   const currentSuggestions: SuggestionItem[] = useMemo(() => {
@@ -114,7 +115,7 @@ export function useSuggestionPanel() {
           issue_count: newIteration.issueCount,
           severity_counts: newIteration.severityCounts,
           suggestions: newIteration.suggestions,
-        }).catch(() => { /* Silently ignore save failures */ });
+        }).catch(() => { showWarning('审查结果保存失败') });
       }
     }
   }, [aiReviewResult?.raw_response, currentSuggestions.length]);

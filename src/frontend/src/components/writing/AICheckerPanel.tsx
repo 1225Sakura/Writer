@@ -148,43 +148,7 @@ export function AICheckerPanel() {
 
     const promises = checkers
       .filter((c) => c.key !== "ooc")
-      .map(async (config) => {
-        setResult(config.key, { loading: true, error: null });
-        try {
-          let data: CheckerResult["data"] = null;
-          switch (config.key) {
-            case "consistency":
-              data = await checkerApi.checkConsistency(currentChapterId);
-              break;
-            case "continuity":
-              data = await checkerApi.checkContinuity(currentChapterId);
-              break;
-            case "pacing":
-              data = await checkerApi.checkPacing(currentChapterId);
-              break;
-            case "highPoint":
-              data = await checkerApi.checkHighPoint(currentChapterId);
-              break;
-            case "readerPull":
-              data = await checkerApi.checkReaderPull(currentChapterId);
-              break;
-            case "outlineLaw": {
-              const res = await agentsApi.runChecker({ checker_name: "outline_law", chapter_id: currentChapterId });
-              data = { score: res.score, issues: res.issues, suggestions: res.suggestions } as unknown as CheckerResult["data"];
-              break;
-            }
-            case "settingPhysics": {
-              const res = await agentsApi.runChecker({ checker_name: "setting_physics", chapter_id: currentChapterId });
-              data = { score: res.score, issues: res.issues, suggestions: res.suggestions } as unknown as CheckerResult["data"];
-              break;
-            }
-          }
-          setResult(config.key, { loading: false, data, timestamp: Date.now() });
-        } catch (error) {
-          const message = error instanceof Error ? error.message : "检查失败";
-          setResult(config.key, { loading: false, error: message });
-        }
-      });
+      .map((config) => runChecker(config.key));
 
     await Promise.all(promises);
     setIsRunningAll(false);

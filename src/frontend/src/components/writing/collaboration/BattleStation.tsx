@@ -3,6 +3,7 @@ import { useState, useEffect, useRef, useCallback } from 'react'
 import { CollapsibleSection } from './CollapsibleSection'
 import { useWritingStore } from '@/store/writingStore'
 import { chapterApi } from '@/api/writing'
+import { showError } from '@/utils/toastHelper'
 
 interface BattleInputProps {
   label: string
@@ -81,6 +82,7 @@ export function BattleStation() {
       setTimeout(() => { skipSaveRef.current = false }, 0)
     }).catch(() => {
       skipSaveRef.current = false
+      showError('章节加载失败')
     })
   }, [currentChapterId])
 
@@ -94,7 +96,7 @@ export function BattleStation() {
           battle_station_data: JSON.stringify(data),
         })
       } catch {
-        // Silently fail - non-critical feature
+        showError('保存失败')
       }
     }, 800)
   }, [currentChapterId])

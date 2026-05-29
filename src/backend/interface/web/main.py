@@ -183,6 +183,8 @@ class ConnectionManager:
                 try:
                     if ws.client_state == WebSocketState.CONNECTED:
                         await ws.close(code=1001, reason="Server shutting down")
+                except WebSocketDisconnect:
+                    logger.debug("WebSocket already disconnected during shutdown")
                 except Exception as e:
                     logger.debug("Error closing WebSocket during shutdown: %s", e)
         self.active_connections.clear()
@@ -205,6 +207,9 @@ class ConnectionManager:
                     await connection.send_json(message)
                 else:
                     dead_connections.append(connection)
+            except WebSocketDisconnect:
+                logger.debug("WebSocket disconnected during send, marking as dead")
+                dead_connections.append(connection)
             except Exception as e:
                 logger.debug("WebSocket send failed, marking as dead: %s", e)
                 dead_connections.append(connection)
@@ -218,6 +223,8 @@ class ConnectionManager:
         try:
             if websocket.client_state == WebSocketState.CONNECTED:
                 await websocket.send_json(message)
+        except WebSocketDisconnect:
+            logger.debug("WebSocket disconnected during personal send")
         except Exception as e:
             logger.warning("Failed to send personal message: %s", e)
 
@@ -1053,7 +1060,7 @@ async def websocket_general(
             # Handle general messages
             await websocket.send_json({"type": "ack", "received": True})
     except WebSocketDisconnect:
-        pass
+        logger.debug("General WebSocket disconnected")
     except Exception as e:
         logger.error("WebSocket error: %s", e)
     finally:

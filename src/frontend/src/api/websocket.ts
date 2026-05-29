@@ -28,7 +28,6 @@ export interface WSCallbacks {
 interface QueuedMessage {
   data: WSMessage
   timestamp: number
-  retryCount: number
 }
 
 // ============================================
@@ -91,24 +90,28 @@ export class ChatWebSocketClient {
     }
 
     this.sessionId = sessionId
-    this.baseUrl = options.baseUrl || this.resolveWSUrl()
     this._intentionalClose = false
 
-    // Resolve API key asynchronously if not provided
-    if (options.apiKey) {
-      this.apiKey = options.apiKey
+    // Resolve base URL (async for Electron IPC), then connect
+    const urlPromise = options.baseUrl
+      ? Promise.resolve(options.baseUrl)
+      : this.resolveWSUrl()
+
+    const keyPromise = options.apiKey
+      ? Promise.resolve(options.apiKey)
+      : getApiKey().catch(() => null)
+
+    Promise.all([urlPromise, keyPromise]).then(([url, key]) => {
+      this.baseUrl = url
+      this.apiKey = key
       this.setStatus('connecting')
       this.tryConnect()
-    } else {
-      getApiKey().then((key) => {
-        this.apiKey = key
-        this.setStatus('connecting')
-        this.tryConnect()
-      }).catch(() => {
-        this.setStatus('connecting')
-        this.tryConnect()
-      })
-    }
+    }).catch(() => {
+      // Fallback: use env-based URL, connect without key
+      this.baseUrl = this.baseUrl || 'ws://127.0.0.1:8000'
+      this.setStatus('connecting')
+      this.tryConnect()
+    })
 
     // Watch online/offline
     if (!this.onlineCleanup) {
@@ -177,6 +180,7 @@ export class ChatWebSocketClient {
         this.ws.send(JSON.stringify(message))
         return true
       } catch (e) {
+        this.callbacks.onError?.(new Error('消息发送失败，已加入队列'))
         this.queueMessage(message)
         return false
       }
@@ -212,8 +216,22 @@ export class ChatWebSocketClient {
   // Private
   // ============================================
 
-  private resolveWSUrl(): string {
-    // Derive WS URL from current API base
+  private async resolveWSUrl(): Promise<string> {
+    // Electron production: ask main process for backend URL
+    const isElectron = typeof window !== 'undefined' && !!(window as Window & { electronAPI?: unknown }).electronAPI
+    const isDev = import.meta.env.DEV === true
+    if (isElectron && !isDev) {
+      try {
+        const backendUrl = await (window as Window & { electronAPI: { getBackendUrl: () => Promise<string> } }).electronAPI.getBackendUrl()
+        const wsProtocol = backendUrl.startsWith('https') ? 'wss' : 'ws'
+        const host = backendUrl.replace(/^https?:\/\//, '').replace(/\/api\/v1$/, '').replace(/\/$/, '')
+        return `${wsProtocol}://${host}`
+      } catch {
+        // Fallback to env-based resolution below
+      }
+    }
+
+    // Vite dev or direct browser build
     const apiBase = (import.meta.env.VITE_API_BASE_URL as string) || 'http://127.0.0.1:8000'
     const wsProtocol = apiBase.startsWith('https') ? 'wss' : 'ws'
     // Handle relative paths (e.g., '/api/v1' in dev) by using current page host
@@ -240,6 +258,7 @@ export class ChatWebSocketClient {
       this.ws = new WebSocket(url.toString())
       this.bindEvents()
     } catch (e) {
+      this.callbacks.onError?.(new Error('WebSocket 连接创建失败，正在重试'))
       this.scheduleReconnect()
     }
   }
@@ -369,7 +388,6 @@ export class ChatWebSocketClient {
     this.messageQueue.push({
       data: message,
       timestamp: Date.now(),
-      retryCount: 0,
     })
   }
 

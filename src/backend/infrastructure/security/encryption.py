@@ -149,12 +149,15 @@ async def migrate_plaintext_keys(session_factory) -> int:
             if raw is None:
                 continue
             # Check if already encrypted by trying to decrypt
+            from cryptography.fernet import InvalidToken
             try:
                 f.decrypt(raw.encode("utf-8"))
                 # Decryption succeeded => already encrypted
                 continue
-            except Exception:
+            except InvalidToken:
                 pass  # Not a valid Fernet token => plaintext
+            except Exception:
+                logger.debug("migrate_plaintext_keys: unexpected error decrypting key for config id=%d: %s", config.id, config.api_key[:20])
 
             # Encrypt the plaintext key
             config.api_key = encrypt_value(raw)

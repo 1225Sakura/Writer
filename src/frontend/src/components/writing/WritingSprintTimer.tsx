@@ -9,6 +9,7 @@ import { useState, useEffect, useCallback, useRef } from 'react'
 import { SprintCompactButton } from './SprintCompactButton'
 import { SprintExpandedPanel } from './SprintExpandedPanel'
 import { writingSettingsApi } from '@/api/settings'
+import { showWarning } from '@/utils/toastHelper'
 
 const DEFAULT_SPRINT_MINUTES = 25
 const DEFAULT_BREAK_MINUTES = 5
@@ -67,7 +68,7 @@ export function WritingSprintTimer() {
         }
       }
     }).catch(() => {
-      // Backend unavailable, use defaults
+      showWarning('冲刺数据加载失败，使用默认值')
     })
   }, [])
 
@@ -81,7 +82,7 @@ export function WritingSprintTimer() {
           breakMinutes: bm,
           sprintCount: sc,
         }).catch(() => {
-          // Save failed silently
+          showWarning('冲刺数据保存失败')
         })
       }, 1500)
     },

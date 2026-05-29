@@ -6,7 +6,7 @@ import { chapterApi, draftApi } from '../api/writing'
 import { writingSettingsApi } from '../api/settings'
 import { createHybridStorage } from './utils/indexedDBStorage'
 import { useContentStore } from './contentStore'
-import { showOperationError } from '../utils/toastHelper'
+import { showOperationError, showWarning } from '../utils/toastHelper'
 
 // Types
 
@@ -153,7 +153,7 @@ export const useWritingStore = create<WritingState & WritingActions>()(
             try {
               const contentStore = useContentStore.getState()
               const [settings] = await Promise.all([
-                writingSettingsApi.get().catch(() => null),
+                writingSettingsApi.get().catch(() => { showWarning('设置加载失败，使用默认值'); return null }),
                 contentStore.fetchChapters(),
                 contentStore.fetchOutlines(),
               ])

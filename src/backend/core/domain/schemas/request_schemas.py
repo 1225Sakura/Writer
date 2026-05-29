@@ -1,7 +1,6 @@
 # Auto Novel Writer - Request Schemas
 # All request models with comprehensive validation
 
-from datetime import datetime
 from typing import Optional, List, Any
 from pydantic import BaseModel, Field, field_validator, ConfigDict
 
@@ -50,10 +49,6 @@ class CharacterCreateRequest(BaseModel):
     def validate_gender(cls, v: Optional[str]) -> Optional[str]:
         if v is not None:
             v = sanitize_text(v, max_length=50)
-            valid_genders = {'male', 'female', 'other', 'unknown', '男', '女', '其他'}
-            if v and v.lower() not in valid_genders:
-                # Allow any non-empty value but sanitize
-                pass
         return v
 
     @field_validator('personality', 'desires', 'flaws', 'description')
@@ -767,7 +762,7 @@ class GenerateRequest(BaseModel):
     @classmethod
     def validate_operation(cls, v: str) -> str:
         v = sanitize_text(v, max_length=50)
-        if v not in VALID_OPERATIONS:
+        if v is None or v not in VALID_OPERATIONS:
             raise ValueError(f'Operation must be one of: {", ".join(sorted(VALID_OPERATIONS))}')
         return v
 

@@ -3,7 +3,7 @@
 
 import re
 import html
-from datetime import datetime, date
+from datetime import datetime, date, timezone
 from typing import Any, Optional, TypeVar, Generic, List
 from pydantic import BaseModel, Field, field_validator, ConfigDict
 
@@ -244,7 +244,7 @@ class ErrorResponse(BaseModel):
     error_code: str = "ERROR"
     message: str
     details: Optional[list[ErrorDetail]] = None
-    timestamp: datetime = Field(default_factory=datetime.utcnow)
+    timestamp: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
 
 class ValidationErrorResponse(ErrorResponse):
