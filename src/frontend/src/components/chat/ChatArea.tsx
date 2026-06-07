@@ -25,7 +25,7 @@ import { MessageList } from './ChatMessageList'
    ============================================================ */
 
 export function ChatArea() {
-  const { messages, isStreaming, currentStreamContent, isLoading, editMessage, deleteMessage, retryMessage, confirmEntity, extractEntitiesFromMessage } = useChatStore()
+  const { messages, isStreaming, currentStreamContent, isLoading, editMessage, deleteMessage, retryMessage, regenerateMessage, rateMessage, confirmEntity, extractEntitiesFromMessage, createBranch, switchBranch, activeBranchId } = useChatStore()
 
   // Extract entities from new assistant messages
   useEffect(() => {
@@ -57,7 +57,12 @@ export function ChatArea() {
             editMessage={editMessage}
             deleteMessage={deleteMessage}
             retryMessage={retryMessage}
+            regenerateMessage={regenerateMessage}
+            rateMessage={rateMessage}
             confirmEntity={confirmEntity}
+            branchMessage={createBranch}
+            activeBranchId={activeBranchId}
+            onSwitchBranch={switchBranch}
           />
         )}
       </div>

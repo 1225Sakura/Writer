@@ -1,8 +1,20 @@
+import { useMemo } from 'react'
 import { motion } from 'framer-motion'
 import { DURATION, EASE } from '@/components/shared/AnimationConfig'
-import { usePrefersReducedMotion } from '@/hooks/usePrefersReducedMotion'
 import { useChatStore } from '@/store/chatStore'
-import { PenLine, Target, Flame } from 'lucide-react'
+import { typeColors } from '@/lib/entityColors'
+import type { ExtractedEntityLocal } from '@/store/chatStore'
+import {
+  PenLine,
+  Target,
+  Flame,
+  Globe,
+  User,
+  Package,
+  MapPin,
+  Shield,
+  Scale,
+} from 'lucide-react'
 
 /* ============================================================
    TOP GRADIENT DIVIDER
@@ -108,12 +120,177 @@ function WritingGoalProgress() {
 }
 
 /* ============================================================
+   ENTITY TYPE ICONS (matching CategorySection)
+   ============================================================ */
+
+const typeIcons: Record<string, React.ReactNode> = {
+  world: <Globe />,
+  character: <User />,
+  item: <Package />,
+  location: <MapPin />,
+  faction: <Shield />,
+  rule: <Scale />,
+}
+
+const typeLabels: Record<string, string> = {
+  world: '世界观',
+  character: '角色',
+  item: '物品',
+  location: '地点',
+  faction: '势力',
+  rule: '规则',
+}
+
+/* ============================================================
+   COLLECTION PROGRESS
+   ============================================================ */
+
+interface TypeProgress {
+  type: string
+  confirmed: number
+  total: number
+  percent: number
+}
+
+function useCollectionProgress(): TypeProgress[] {
+  const extractedEntities = useChatStore((s) => s.extractedEntities)
+
+  return useMemo(() => {
+    const displayTypes = ['world', 'character', 'item', 'location', 'faction', 'rule'] as const
+    return displayTypes.map((type) => {
+      const entitiesOfType = extractedEntities.filter((e: ExtractedEntityLocal) => e.type === type)
+      const total = entitiesOfType.length
+      const confirmed = entitiesOfType.filter((e: ExtractedEntityLocal) => e.confirmed).length
+      const percent = total > 0 ? Math.round((confirmed / total) * 100) : 0
+      return { type, confirmed, total, percent }
+    })
+  }, [extractedEntities])
+}
+
+function CollectionProgress() {
+  const progressData = useCollectionProgress()
+  const hasAnyEntities = progressData.some((p) => p.total > 0)
+
+  if (!hasAnyEntities) return null
+
+  return (
+    <motion.div
+      className="flex items-center gap-3 flex-wrap"
+      initial={{ opacity: 0, y: 8 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: 0.4, duration: DURATION.SLOW, ease: EASE.SMOOTH }}
+    >
+      {progressData
+        .filter((p) => p.total > 0)
+        .map((p) => (
+          <div key={p.type} className="flex items-center gap-1.5" title={`${typeLabels[p.type] || p.type}: ${p.confirmed}/${p.total} 已确认`}>
+            <span
+              className="w-3 h-3 flex items-center justify-center [&>svg]:w-3 [&>svg]:h-3"
+              style={{ color: typeColors[p.type] || 'var(--text-tertiary)' }}
+            >
+              {typeIcons[p.type]}
+            </span>
+            <div className="w-10 h-0.5 rounded-full overflow-hidden bg-[var(--color-surface-base)]">
+              <div
+                className="h-full rounded-full transition-all duration-500"
+                style={{
+                  width: `${p.percent}%`,
+                  background: `linear-gradient(90deg, ${typeColors[p.type] || 'var(--accent-primary)'}, color-mix(in srgb, ${typeColors[p.type] || 'var(--accent-primary)'} 60%, white))`,
+                }}
+              />
+            </div>
+            <span className="text-[10px] tabular-nums text-[var(--text-tertiary)]">{p.percent}%</span>
+          </div>
+        ))}
+    </motion.div>
+  )
+}
+
+/* ============================================================
+   AI STATUS INDICATOR
+   ============================================================ */
+
+type AiStatus = 'thinking' | 'streaming' | 'idle' | 'extracting' | 'error'
+
+function useAiStatus(): { status: AiStatus; label: string } {
+  const isLoading = useChatStore((s) => s.isLoading)
+  const isStreaming = useChatStore((s) => s.isStreaming)
+  const error = useChatStore((s) => s.error)
+  const extractionState = useChatStore((s) => s.extractionState)
+
+  if (error) return { status: 'error', label: 'AI 请求出错' }
+  if (isStreaming) return { status: 'streaming', label: 'AI 正在生成回复' }
+  if (isLoading && !isStreaming) return { status: 'thinking', label: 'AI 正在思考' }
+  if (extractionState === 'extracting') return { status: 'extracting', label: '正在提取实体' }
+  return { status: 'idle', label: 'AI 正在引导你完善故事设定' }
+}
+
+function AiStatusIndicator() {
+  const { status, label } = useAiStatus()
+
+  const dotStyle: React.CSSProperties = (() => {
+    switch (status) {
+      case 'error':
+        return { backgroundColor: 'var(--color-error, #dc2626)' }
+      case 'thinking':
+      case 'streaming':
+      case 'extracting':
+        return { backgroundColor: 'var(--accent-primary)' }
+      case 'idle':
+      default:
+        return { backgroundColor: 'var(--color-ifline, #7a9e58)' }
+    }
+  })()
+
+  const dotAnimation = (() => {
+    switch (status) {
+      case 'thinking':
+        return { opacity: [0.5, 1, 0.5], scale: [1, 1.2, 1] }
+      case 'streaming':
+        return { opacity: [0.6, 1, 0.6], y: [-1, 1, -1] }
+      case 'extracting':
+        return { rotate: [0, 360] }
+      default:
+        return {}
+    }
+  })()
+
+  const dotTransition = (() => {
+    switch (status) {
+      case 'thinking':
+        return { duration: 2, repeat: Infinity, ease: 'easeInOut' as const }
+      case 'streaming':
+        return { duration: 1.2, repeat: Infinity, ease: 'easeInOut' as const }
+      case 'extracting':
+        return { duration: 1.5, repeat: Infinity, ease: 'linear' as const }
+      default:
+        return { duration: 0 }
+    }
+  })()
+
+  return (
+    <motion.div
+      className="flex items-center gap-1.5 text-xs text-[var(--text-secondary)] hidden sm:flex"
+      initial={{ opacity: 0, x: -8 }}
+      animate={{ opacity: 1, x: 0 }}
+      transition={{ delay: 0.35, duration: DURATION.SLOW, ease: EASE.SMOOTH }}
+    >
+      <motion.div
+        className="w-1.5 h-1.5 rounded-full"
+        style={dotStyle}
+        animate={dotAnimation}
+        transition={dotTransition}
+      />
+      <span>{label}</span>
+    </motion.div>
+  )
+}
+
+/* ============================================================
    CHAT FOOTER
    ============================================================ */
 
 export function ChatFooter() {
-  const prefersReducedMotion = usePrefersReducedMotion()
-
   return (
     <motion.footer
       className="h-[var(--layout-topbar-height)] flex items-center justify-between px-2 sm:px-4 shrink-0 relative z-20
@@ -131,21 +308,10 @@ export function ChatFooter() {
       {/* Top gradient divider decoration */}
       <TopGradientDivider />
 
-      {/* Left: AI status indicator */}
-      <div className="flex items-center gap-3">
-        <motion.div
-          className="flex items-center gap-1.5 text-xs text-[var(--text-secondary)] hidden sm:flex"
-          initial={{ opacity: 0, x: -8 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ delay: 0.35, duration: DURATION.SLOW, ease: EASE.SMOOTH }}
-        >
-          <motion.div
-            className="w-1.5 h-1.5 rounded-full bg-[var(--accent-primary)]"
-            animate={prefersReducedMotion ? {} : { opacity: [0.5, 1, 0.5], scale: [1, 1.2, 1] }}
-            transition={prefersReducedMotion ? { duration: 0 } : { duration: 2, repeat: Infinity, ease: 'easeInOut' }}
-          />
-          <span>AI 正在引导你完善故事设定</span>
-        </motion.div>
+      {/* Left: AI status indicator + Collection progress */}
+      <div className="flex items-center gap-3 min-w-0">
+        <AiStatusIndicator />
+        <CollectionProgress />
       </div>
 
       {/* Center: Word count stats */}

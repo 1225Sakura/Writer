@@ -21,6 +21,13 @@ import {
 // Types
 // ============================================
 
+export interface Attachment {
+  name: string
+  type: string
+  size: number
+  content: string
+}
+
 export interface ChatMessageLocal {
   id: string
   role: 'user' | 'assistant'
@@ -30,6 +37,8 @@ export interface ChatMessageLocal {
   entities?: ExtractedEntityLocal[]
   pending?: boolean
   failed?: boolean
+  rating?: 'up' | 'down'
+  attachments?: Attachment[]
 }
 
 export interface ExtractedEntityLocal {
@@ -77,6 +86,9 @@ interface ChatState {
   activeDates: string[]
   // Version snapshots (index only — full data in IndexedDB)
   snapshotIndex: VersionSnapshot[]
+  // Branch conversation
+  branches: Record<string, ChatMessageLocal[]>
+  activeBranchId: string | null
 }
 
 interface ChatActions {
@@ -85,11 +97,18 @@ interface ChatActions {
   switchSession: (sessionId: number) => Promise<void>
   clearSession: () => void
   deleteSession: (sessionId: number) => Promise<void>
-  sendMessage: (content: string, options?: { currentCategory?: string }) => Promise<void>
+  renameSession: (sessionId: number, title: string) => Promise<void>
+  archiveSession: (sessionId: number) => Promise<void>
+  unarchiveSession: (sessionId: number) => Promise<void>
+  pinSession: (sessionId: number) => Promise<void>
+  unpinSession: (sessionId: number) => Promise<void>
+  sendMessage: (content: string, options?: { currentCategory?: string; attachments?: Attachment[] }) => Promise<void>
   loadMessages: () => Promise<void>
   editMessage: (id: string, newContent: string) => Promise<void>
   deleteMessage: (id: string) => Promise<void>
   retryMessage: (id: string) => Promise<void>
+  regenerateMessage: (id: string) => Promise<void>
+  rateMessage: (id: string, rating: 'up' | 'down') => Promise<void>
   updateStreamingContent: (content: string) => void
   finishStreaming: () => void
   abortStreaming: () => void
@@ -114,6 +133,10 @@ interface ChatActions {
   loadSnapshots: () => Promise<void>
   rollbackSnapshot: (snapshotId: string) => Promise<void>
   diffSnapshotsAction: (oldId: string, newId: string) => EntityDiffItem[]
+  // Branch conversation actions
+  createBranch: (sourceMessageId: string) => void
+  switchBranch: (branchId: string | null) => void
+  deleteBranch: (branchId: string) => void
 }
 
 // ============================================
@@ -212,6 +235,8 @@ export const useChatStore = create<ChatState & ChatActions>()(
           },
           activeDates: [],
           snapshotIndex: [],
+          branches: {},
+          activeBranchId: null,
 
           createSession: async () => {
             set((state) => {
@@ -291,6 +316,7 @@ export const useChatStore = create<ChatState & ChatActions>()(
                 role: m.role as 'user' | 'assistant',
                 content: m.content,
                 createdAt: new Date(m.created_at).getTime(),
+                rating: m.rating as 'up' | 'down' | undefined,
               }))
               const extractedEntities: ExtractedEntityLocal[] = entities.map((e) => ({
                 id: String(e.id),
@@ -352,6 +378,76 @@ export const useChatStore = create<ChatState & ChatActions>()(
             }
           },
 
+          renameSession: async (sessionId, title) => {
+            try {
+              const updated = await sessionApi.update(sessionId, { title })
+              set((state) => {
+                const idx = state.sessions.findIndex((s) => s.id === sessionId)
+                if (idx !== -1) {
+                  state.sessions[idx].title = updated.title
+                }
+              })
+            } catch (error) {
+              set((state) => { state.error = (error as Error).message })
+            }
+          },
+
+          archiveSession: async (sessionId) => {
+            try {
+              await sessionApi.update(sessionId, { archived: true })
+              set((state) => {
+                const idx = state.sessions.findIndex((s) => s.id === sessionId)
+                if (idx !== -1) {
+                  state.sessions[idx].archived = true
+                }
+              })
+            } catch (error) {
+              set((state) => { state.error = (error as Error).message })
+            }
+          },
+
+          unarchiveSession: async (sessionId) => {
+            try {
+              await sessionApi.update(sessionId, { archived: false })
+              set((state) => {
+                const idx = state.sessions.findIndex((s) => s.id === sessionId)
+                if (idx !== -1) {
+                  state.sessions[idx].archived = false
+                }
+              })
+            } catch (error) {
+              set((state) => { state.error = (error as Error).message })
+            }
+          },
+
+          pinSession: async (sessionId) => {
+            try {
+              await sessionApi.update(sessionId, { pinned: true })
+              set((state) => {
+                const idx = state.sessions.findIndex((s) => s.id === sessionId)
+                if (idx !== -1) {
+                  state.sessions[idx].pinned = true
+                }
+              })
+            } catch (error) {
+              set((state) => { state.error = (error as Error).message })
+            }
+          },
+
+          unpinSession: async (sessionId) => {
+            try {
+              await sessionApi.update(sessionId, { pinned: false })
+              set((state) => {
+                const idx = state.sessions.findIndex((s) => s.id === sessionId)
+                if (idx !== -1) {
+                  state.sessions[idx].pinned = false
+                }
+              })
+            } catch (error) {
+              set((state) => { state.error = (error as Error).message })
+            }
+          },
+
           sendMessage: async (content, options = {}) => {
             const { sessionId, extractedEntities } = get()
             if (!sessionId) return
@@ -364,6 +460,7 @@ export const useChatStore = create<ChatState & ChatActions>()(
                 content,
                 createdAt: Date.now(),
                 pending: false,
+                attachments: options.attachments,
               })
               state.isStreaming = true
               state.currentStreamContent = ''
@@ -383,6 +480,18 @@ export const useChatStore = create<ChatState & ChatActions>()(
                   collectedSettings[key] = e.name
                 }
               })
+
+              // Parse #entity tags from message content and attach matched entities
+              const entityTagRegex = /#([一-龥a-zA-Z0-9_]+)/g
+              let tagMatch: RegExpExecArray | null
+              while ((tagMatch = entityTagRegex.exec(content)) !== null) {
+                const tagName = tagMatch[1]
+                const matchedEntity = extractedEntities.find((e) => e.name === tagName)
+                if (matchedEntity) {
+                  const mentionKey = `mention_${matchedEntity.type}_${matchedEntity.name}`
+                  collectedSettings[mentionKey] = matchedEntity.description || matchedEntity.name
+                }
+              }
 
               // Determine current category from extraction state
               const currentCategory = options.currentCategory ||
@@ -457,6 +566,55 @@ export const useChatStore = create<ChatState & ChatActions>()(
             await get().sendMessage(msg.content)
           },
 
+          regenerateMessage: async (id) => {
+            const { messages } = get()
+            const msgIndex = messages.findIndex((m) => m.id === id)
+            if (msgIndex === -1 || messages[msgIndex].role !== 'assistant') return
+
+            // Find the preceding user message
+            let userContent: string | null = null
+            for (let i = msgIndex - 1; i >= 0; i--) {
+              if (messages[i].role === 'user') {
+                userContent = messages[i].content
+                break
+              }
+            }
+            if (!userContent) return
+
+            // Remove the assistant message and resend
+            set((state) => {
+              state.messages = state.messages.filter((m) => m.id !== id)
+            })
+            await get().sendMessage(userContent)
+          },
+
+          rateMessage: async (id, rating) => {
+            const { messages } = get()
+            const msg = messages.find((m) => m.id === id)
+            if (!msg || msg.role !== 'assistant') return
+
+            // Toggle: if same rating, clear it
+            const newRating = msg.rating === rating ? undefined : rating
+
+            // Update local state immediately
+            set((state) => {
+              const m = state.messages.find((x) => x.id === id)
+              if (m) m.rating = newRating
+            })
+
+            // Persist to backend (only for messages with numeric IDs from server)
+            const numericId = Number(id)
+            if (!isNaN(numericId)) {
+              try {
+                await messageApi.rate(numericId, newRating ?? null)
+              } catch (error) {
+                set((state) => {
+                  state.error = (error as Error).message
+                })
+              }
+            }
+          },
+
           loadMessages: async () => {
             const { sessionId } = get()
             if (!sessionId) return
@@ -468,6 +626,7 @@ export const useChatStore = create<ChatState & ChatActions>()(
                 role: m.role as 'user' | 'assistant',
                 content: m.content,
                 createdAt: new Date(m.created_at).getTime(),
+                rating: m.rating as 'up' | 'down' | undefined,
               }))
               set((state) => {
                 state.messages = messages
@@ -841,6 +1000,64 @@ export const useChatStore = create<ChatState & ChatActions>()(
             if (!oldSnap || !newSnap) return []
             return diffSnapshotService(oldSnap.entities, newSnap.entities)
           },
+
+          // ============================================
+          // Branch Conversation Actions
+          // ============================================
+
+          createBranch: (sourceMessageId) => {
+            const { messages, activeBranchId } = get()
+            // Use the current message list (main or active branch)
+            const currentMessages = activeBranchId
+              ? get().branches[activeBranchId] ?? messages
+              : messages
+            const sourceIndex = currentMessages.findIndex((m) => m.id === sourceMessageId)
+            if (sourceIndex === -1) return
+
+            const branchId = `branch-${sourceMessageId}-${Date.now()}`
+            const branchMessages = currentMessages.slice(sourceIndex).map((m) => ({
+              ...m,
+              id: `${branchId}-${m.id}`,
+            }))
+
+            set((state) => {
+              state.branches[branchId] = branchMessages
+              state.activeBranchId = branchId
+              state.messages = branchMessages
+            })
+          },
+
+          switchBranch: (branchId) => {
+            set((state) => {
+              if (branchId === null) {
+                // Switch back to main branch — reload from cache or clear
+                state.activeBranchId = null
+                const cached = state.sessionId !== null
+                  ? state.messageCache.messages[state.sessionId]
+                  : undefined
+                state.messages = cached ?? []
+              } else {
+                const branch = state.branches[branchId]
+                if (branch) {
+                  state.activeBranchId = branchId
+                  state.messages = branch
+                }
+              }
+            })
+          },
+
+          deleteBranch: (branchId) => {
+            set((state) => {
+              delete state.branches[branchId]
+              if (state.activeBranchId === branchId) {
+                state.activeBranchId = null
+                const cached = state.sessionId !== null
+                  ? state.messageCache.messages[state.sessionId]
+                  : undefined
+                state.messages = cached ?? []
+              }
+            })
+          },
         }),
         {
           name: 'writer-chat-store-v2',
@@ -853,6 +1070,8 @@ export const useChatStore = create<ChatState & ChatActions>()(
             messageCache: state.messageCache,
             writingGoal: state.writingGoal,
             activeDates: state.activeDates,
+            branches: state.branches,
+            activeBranchId: state.activeBranchId,
           }),
           version: 3,
           migrate: (persistedState: any, version: number) => {

@@ -17,6 +17,7 @@ from backend.middleware.auth import require_auth
 from backend.core.domain.schemas import (
     ChatMessageCreateRequest,
     ChatMessageUpdateRequest,
+    ChatMessageRatingRequest,
     ChatSessionUpdateRequest,
     ChatMessageResponse,
     ChatSessionResponse,
@@ -148,6 +149,8 @@ async def update_session(
         session_id=session_id,
         title=req.title,
         status=req.status,
+        archived=req.archived,
+        pinned=req.pinned,
     )
     if not session:
         raise HTTPException(status_code=404, detail="Session not found")
@@ -262,6 +265,23 @@ async def delete_message(
     if not deleted:
         raise HTTPException(status_code=404, detail="Message not found")
     return {"message": "Message deleted"}
+
+
+@router.patch(
+    "/messages/{message_id}/rating",
+    response_model=ChatMessageResponse,
+    dependencies=[require_auth],
+)
+async def rate_message(
+    message_id: int,
+    req: ChatMessageRatingRequest,
+    msg_service: ChatMessageService = Depends(get_chat_message_service),
+):
+    """Update a chat message's rating (up, down, or null to clear)."""
+    updated = await msg_service.rate_message(message_id, req.rating)
+    if not updated:
+        raise HTTPException(status_code=404, detail="Message not found")
+    return updated
 
 
 # ---------------------------------------------------------------------------

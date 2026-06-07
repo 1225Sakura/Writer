@@ -60,7 +60,7 @@ class SQLAlchemyChatSessionRepository(ChatSessionRepositoryInterface):
         return True
 
     async def list(self, skip: int = 0, limit: int = 20, **filters) -> List[ChatSession]:
-        stmt = select(ChatSession).order_by(desc(ChatSession.updated_at))
+        stmt = select(ChatSession).order_by(desc(ChatSession.pinned), desc(ChatSession.updated_at))
         for column, value in filters.items():
             if hasattr(ChatSession, column) and value is not None:
                 stmt = stmt.where(getattr(ChatSession, column) == value)

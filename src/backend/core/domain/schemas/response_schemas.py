@@ -166,6 +166,27 @@ class DraftVersionResponse(BaseModel):
     created_at: Optional[datetime] = None
 
 
+class SnapshotResponse(BaseModel):
+    """Chapter snapshot response."""
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    chapter_id: int
+    content: str
+    version_number: int
+    is_marked: bool
+    created_at: datetime
+
+
+class SnapshotDiffResponse(BaseModel):
+    """Diff result between two snapshots."""
+    model_config = ConfigDict(from_attributes=True)
+
+    snapshot_a: SnapshotResponse
+    snapshot_b: SnapshotResponse
+    diff_lines: List[str]
+
+
 class PlotThreadResponse(BaseModel):
     """Plot thread response."""
     model_config = ConfigDict(from_attributes=True)
@@ -204,6 +225,7 @@ class ChatMessageResponse(BaseModel):
     session_id: int
     role: str
     content: str
+    rating: Optional[str] = None
     created_at: datetime
 
 
@@ -214,6 +236,8 @@ class ChatSessionResponse(BaseModel):
     id: int
     title: Optional[str] = None
     status: Optional[str] = None
+    archived: bool = False
+    pinned: bool = False
     created_at: datetime
     updated_at: datetime
 

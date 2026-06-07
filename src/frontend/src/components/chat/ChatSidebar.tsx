@@ -3,7 +3,7 @@ import { ExtractedEntity } from '@/store'
 import { useChatStore } from '@/store/chatStore'
 import { CollectedInfoPanel } from './CollectedInfoPanel'
 import { motion, AnimatePresence } from 'framer-motion'
-import { PanelRightClose, PanelRightOpen, MessageSquare, Trash2, Plus, Download, Upload, FileJson, FileText, AlertTriangle } from 'lucide-react'
+import { PanelRightClose, PanelRightOpen, MessageSquare, Trash2, Plus, Download, Upload, FileJson, FileText, AlertTriangle, Search, X, Pin, Archive, ArchiveRestore, MoreVertical, Pencil } from 'lucide-react'
 import { GlassCard } from '@/components/ui/GlassCard'
 import { DURATION, EASE } from '@/components/shared/AnimationConfig'
 import {
@@ -44,7 +44,7 @@ export function ChatSidebar({ entities, sessionId: _sessionId, onConfirmEntity, 
   const [importResult, setImportResult] = useState<ImportValidationResult | null>(null)
   const [importConfirm, setImportConfirm] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
-  const { sessions, sessionId, messages, loadSessions, switchSession, deleteSession, createSession, extractedEntities } = useChatStore()
+  const { sessions, sessionId, messages, loadSessions, switchSession, deleteSession, createSession, extractedEntities, renameSession, archiveSession, unarchiveSession, pinSession, unpinSession } = useChatStore()
 
   const handleExportJSON = () => {
     if (!sessionId) return
@@ -117,6 +117,11 @@ export function ChatSidebar({ entities, sessionId: _sessionId, onConfirmEntity, 
             onSwitch={switchSession}
             onDelete={deleteSession}
             onCreate={createSession}
+            onRename={renameSession}
+            onArchive={archiveSession}
+            onUnarchive={unarchiveSession}
+            onPin={pinSession}
+            onUnpin={unpinSession}
             onExportJSON={handleExportJSON}
             onExportMarkdown={handleExportMarkdown}
             onImport={handleImportClick}
@@ -178,6 +183,11 @@ export function ChatSidebar({ entities, sessionId: _sessionId, onConfirmEntity, 
                 onSwitch={switchSession}
                 onDelete={deleteSession}
                 onCreate={createSession}
+                onRename={renameSession}
+                onArchive={archiveSession}
+                onUnarchive={unarchiveSession}
+                onPin={pinSession}
+                onUnpin={unpinSession}
                 onExportJSON={handleExportJSON}
                 onExportMarkdown={handleExportMarkdown}
                 onImport={handleImportClick}
@@ -321,11 +331,16 @@ export function ChatSidebar({ entities, sessionId: _sessionId, onConfirmEntity, 
 // ============================================
 
 interface SessionListProps {
-  sessions: { id: number; created_at: string; updated_at: string }[]
+  sessions: { id: number; created_at: string; updated_at: string; title?: string; archived?: boolean; pinned?: boolean }[]
   activeSessionId: number | null
   onSwitch: (id: number) => void
   onDelete: (id: number) => void
   onCreate: () => void
+  onRename: (id: number, title: string) => Promise<void>
+  onArchive: (id: number) => Promise<void>
+  onUnarchive: (id: number) => Promise<void>
+  onPin: (id: number) => Promise<void>
+  onUnpin: (id: number) => Promise<void>
   onExportJSON: () => void
   onExportMarkdown: () => void
   onImport: () => void
@@ -333,8 +348,14 @@ interface SessionListProps {
   setExportMenuOpen: (open: boolean) => void
 }
 
-function SessionList({ sessions, activeSessionId, onSwitch, onDelete, onCreate, onExportJSON, onExportMarkdown, onImport, exportMenuOpen, setExportMenuOpen }: SessionListProps) {
+function SessionList({ sessions, activeSessionId, onSwitch, onDelete, onCreate, onRename, onArchive, onUnarchive, onPin, onUnpin, onExportJSON, onExportMarkdown, onImport, exportMenuOpen, setExportMenuOpen }: SessionListProps) {
   const [confirmDeleteId, setConfirmDeleteId] = useState<number | null>(null)
+  const [searchQuery, setSearchQuery] = useState('')
+  const [showArchived, setShowArchived] = useState(false)
+  const [contextMenu, setContextMenu] = useState<{ id: number; x: number; y: number } | null>(null)
+  const [editingId, setEditingId] = useState<number | null>(null)
+  const [editingTitle, setEditingTitle] = useState('')
+  const editInputRef = useRef<HTMLInputElement>(null)
 
   const handleDelete = (id: number) => {
     if (confirmDeleteId === id) {
@@ -343,6 +364,129 @@ function SessionList({ sessions, activeSessionId, onSwitch, onDelete, onCreate, 
     } else {
       setConfirmDeleteId(id)
     }
+  }
+
+  // Start inline rename
+  const startRename = (id: number, currentTitle?: string) => {
+    setEditingId(id)
+    setEditingTitle(currentTitle || `会话 #${id}`)
+    setContextMenu(null)
+    setTimeout(() => editInputRef.current?.select(), 0)
+  }
+
+  // Save rename
+  const saveRename = async () => {
+    if (editingId !== null && editingTitle.trim()) {
+      await onRename(editingId, editingTitle.trim())
+    }
+    setEditingId(null)
+    setEditingTitle('')
+  }
+
+  // Cancel rename
+  const cancelRename = () => {
+    setEditingId(null)
+    setEditingTitle('')
+  }
+
+  // Context menu handler
+  const handleContextMenu = (e: React.MouseEvent, sessionId: number) => {
+    e.preventDefault()
+    e.stopPropagation()
+    setContextMenu({ id: sessionId, x: e.clientX, y: e.clientY })
+  }
+
+  // Close context menu on outside click
+  useEffect(() => {
+    if (!contextMenu) return
+    const close = () => setContextMenu(null)
+    window.addEventListener('click', close)
+    return () => window.removeEventListener('click', close)
+  }, [contextMenu])
+
+  // Partition sessions: non-archived for main list, archived for collapsed section
+  const activeSessions = sessions.filter((s) => !s.archived)
+  const archivedSessions = sessions.filter((s) => s.archived)
+
+  // Filter sessions by search query
+  const filteredActiveSessions = searchQuery.trim()
+    ? activeSessions.filter((session) => {
+        const query = searchQuery.toLowerCase()
+        const label = session.title || (session.id === activeSessionId ? '当前会话' : `会话 #${session.id}`)
+        const date = formatSessionDate(session.updated_at)
+        return label.toLowerCase().includes(query) || date.toLowerCase().includes(query)
+      })
+    : activeSessions
+
+  const filteredArchivedSessions = searchQuery.trim()
+    ? archivedSessions.filter((session) => {
+        const query = searchQuery.toLowerCase()
+        const label = session.title || `会话 #${session.id}`
+        const date = formatSessionDate(session.updated_at)
+        return label.toLowerCase().includes(query) || date.toLowerCase().includes(query)
+      })
+    : archivedSessions
+
+  const renderSessionItem = (session: { id: number; created_at: string; updated_at: string; title?: string; archived?: boolean; pinned?: boolean }) => {
+    const isActive = session.id === activeSessionId
+    const label = session.title || (isActive ? '当前会话' : `会话 #${session.id}`)
+    const isEditing = editingId === session.id
+
+    return (
+      <motion.div
+        key={session.id}
+        layout
+        initial={{ opacity: 0, y: -8 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0, height: 0 }}
+        transition={{ duration: DURATION.FAST, ease: EASE.SMOOTH }}
+        className={`group flex items-center gap-2 px-2.5 py-1.5 rounded-lg cursor-pointer text-xs
+          ${isActive
+            ? 'bg-surface-base text-primary'
+            : 'text-secondary hover:bg-surface-base/50 hover:text-primary'
+          }`}
+        onClick={() => !isEditing && onSwitch(session.id)}
+        onContextMenu={(e) => handleContextMenu(e, session.id)}
+      >
+        {session.pinned && !isEditing && (
+          <Pin className="w-3 h-3 shrink-0 text-[var(--accent-primary)]" />
+        )}
+        {isEditing ? (
+          <input
+            ref={editInputRef}
+            type="text"
+            value={editingTitle}
+            onChange={(e) => setEditingTitle(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') saveRename()
+              if (e.key === 'Escape') cancelRename()
+            }}
+            onBlur={saveRename}
+            className="flex-1 min-w-0 bg-transparent border-b border-[var(--accent-primary)] text-xs text-[var(--text-primary)] focus:outline-none px-0.5"
+            onClick={(e) => e.stopPropagation()}
+          />
+        ) : (
+          <span className="flex-1 truncate">
+            <HighlightedText text={label} query={searchQuery} />
+          </span>
+        )}
+        <span className="text-[10px] opacity-50 shrink-0">
+          {formatSessionDate(session.updated_at)}
+        </span>
+        {/* Context menu trigger */}
+        <motion.button
+          className="p-0.5 rounded opacity-0 group-hover:opacity-100 transition-opacity text-secondary hover:text-primary"
+          onClick={(e) => {
+            e.stopPropagation()
+            handleContextMenu(e, session.id)
+          }}
+          whileTap={{ scale: 0.85 }}
+          title="更多操作"
+        >
+          <MoreVertical className="w-3 h-3" />
+        </motion.button>
+      </motion.div>
+    )
   }
 
   return (
@@ -416,56 +560,166 @@ function SessionList({ sessions, activeSessionId, onSwitch, onDelete, onCreate, 
         </div>
       </div>
 
+      {/* Search box */}
+      <div className="px-3 py-2">
+        <div className="relative">
+          <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[var(--text-tertiary)]" />
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="搜索会话..."
+            className="w-full pl-8 pr-8 py-1.5 text-xs rounded-lg
+                       bg-[var(--color-surface-base)] border border-[var(--border-default)]
+                       text-[var(--text-primary)] placeholder:text-[var(--text-tertiary)]
+                       focus:outline-none focus:border-[var(--accent-primary)] focus:ring-1 focus:ring-[var(--accent-primary)]/20
+                       transition-colors"
+          />
+          {searchQuery && (
+            <button
+              onClick={() => setSearchQuery('')}
+              className="absolute right-2 top-1/2 -translate-y-1/2 p-0.5 rounded text-[var(--text-tertiary)] hover:text-[var(--text-primary)]"
+            >
+              <X className="w-3 h-3" />
+            </button>
+          )}
+        </div>
+      </div>
+
       {/* Session items */}
-      {sessions.length > 0 && (
+      {filteredActiveSessions.length > 0 && (
         <div className="max-h-[180px] overflow-y-auto scrollbar-thin px-2 pb-2">
           <AnimatePresence mode="popLayout">
-            {sessions.map((session) => {
-              const isActive = session.id === activeSessionId
-              return (
-                <motion.div
-                  key={session.id}
-                  layout
-                  initial={{ opacity: 0, y: -8 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, height: 0 }}
-                  transition={{ duration: DURATION.FAST, ease: EASE.SMOOTH }}
-                  className={`group flex items-center gap-2 px-2.5 py-1.5 rounded-lg cursor-pointer text-xs
-                    ${isActive
-                      ? 'bg-surface-base text-primary'
-                      : 'text-secondary hover:bg-surface-base/50 hover:text-primary'
-                    }`}
-                  onClick={() => onSwitch(session.id)}
-                >
-                  <span className="flex-1 truncate">
-                    {isActive ? '当前会话' : `会话 #${session.id}`}
-                  </span>
-                  <span className="text-[10px] opacity-50 shrink-0">
-                    {formatSessionDate(session.updated_at)}
-                  </span>
-                  <motion.button
-                    className={`p-0.5 rounded opacity-0 group-hover:opacity-100 transition-opacity
-                      ${confirmDeleteId === session.id
-                        ? 'text-[var(--color-faction)] opacity-100'
-                        : 'text-secondary hover:text-primary'
-                      }`}
-                    onClick={(e) => {
-                      e.stopPropagation()
-                      handleDelete(session.id)
-                    }}
-                    onBlur={() => setConfirmDeleteId(null)}
-                    whileTap={{ scale: 0.85 }}
-                    title={confirmDeleteId === session.id ? '确认删除' : '删除会话'}
-                  >
-                    <Trash2 className="w-3 h-3" />
-                  </motion.button>
-                </motion.div>
-              )
-            })}
+            {filteredActiveSessions.map(renderSessionItem)}
           </AnimatePresence>
         </div>
       )}
+
+      {/* Archived sessions toggle */}
+      {archivedSessions.length > 0 && (
+        <div className="px-2 pb-2">
+          <button
+            className="flex items-center gap-1.5 w-full px-2.5 py-1.5 rounded-lg text-xs text-secondary hover:text-primary hover:bg-surface-base/50 transition-colors"
+            onClick={() => setShowArchived(!showArchived)}
+          >
+            <Archive className="w-3 h-3" />
+            <span>已归档 ({archivedSessions.length})</span>
+            <span className="ml-auto text-[10px]">{showArchived ? '收起' : '展开'}</span>
+          </button>
+          <AnimatePresence>
+            {showArchived && filteredArchivedSessions.length > 0 && (
+              <motion.div
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: 'auto' }}
+                exit={{ opacity: 0, height: 0 }}
+                className="overflow-hidden"
+              >
+                {filteredArchivedSessions.map(renderSessionItem)}
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+      )}
+
+      {/* Context menu portal */}
+      {contextMenu && (
+        <div
+          className="fixed z-[100] rounded-lg shadow-lg py-1 min-w-[140px]"
+          style={{
+            top: contextMenu.y,
+            left: contextMenu.x,
+            background: 'var(--color-surface-raised)',
+            border: '1px solid var(--border-default)',
+          }}
+        >
+          <button
+            className="flex items-center gap-2 w-full px-3 py-1.5 text-xs text-secondary hover:text-primary hover:bg-surface-base"
+            onClick={(e) => {
+              e.stopPropagation()
+              const session = sessions.find((s) => s.id === contextMenu.id)
+              startRename(contextMenu.id, session?.title)
+            }}
+          >
+            <Pencil className="w-3.5 h-3.5" />
+            重命名
+          </button>
+          <button
+            className="flex items-center gap-2 w-full px-3 py-1.5 text-xs text-secondary hover:text-primary hover:bg-surface-base"
+            onClick={(e) => {
+              e.stopPropagation()
+              const session = sessions.find((s) => s.id === contextMenu.id)
+              if (session?.pinned) {
+                onUnpin(contextMenu.id)
+              } else {
+                onPin(contextMenu.id)
+              }
+              setContextMenu(null)
+            }}
+          >
+            <Pin className="w-3.5 h-3.5" />
+            {sessions.find((s) => s.id === contextMenu.id)?.pinned ? '取消置顶' : '置顶'}
+          </button>
+          <button
+            className="flex items-center gap-2 w-full px-3 py-1.5 text-xs text-secondary hover:text-primary hover:bg-surface-base"
+            onClick={(e) => {
+              e.stopPropagation()
+              const session = sessions.find((s) => s.id === contextMenu.id)
+              if (session?.archived) {
+                onUnarchive(contextMenu.id)
+              } else {
+                onArchive(contextMenu.id)
+              }
+              setContextMenu(null)
+            }}
+          >
+            {sessions.find((s) => s.id === contextMenu.id)?.archived ? (
+              <>
+                <ArchiveRestore className="w-3.5 h-3.5" />
+                取消归档
+              </>
+            ) : (
+              <>
+                <Archive className="w-3.5 h-3.5" />
+                归档
+              </>
+            )}
+          </button>
+          <div className="border-t border-default my-1" />
+          <button
+            className={`flex items-center gap-2 w-full px-3 py-1.5 text-xs hover:bg-surface-base
+              ${confirmDeleteId === contextMenu.id
+                ? 'text-[var(--color-faction)]'
+                : 'text-secondary hover:text-primary'
+              }`}
+            onClick={(e) => {
+              e.stopPropagation()
+              handleDelete(contextMenu.id)
+              if (confirmDeleteId === contextMenu.id) {
+                setContextMenu(null)
+              }
+            }}
+          >
+            <Trash2 className="w-3.5 h-3.5" />
+            {confirmDeleteId === contextMenu.id ? '确认删除' : '删除'}
+          </button>
+        </div>
+      )}
     </div>
+  )
+}
+
+function HighlightedText({ text, query }: { text: string; query: string }) {
+  if (!query) return <>{text}</>
+  const index = text.toLowerCase().indexOf(query.toLowerCase())
+  if (index === -1) return <>{text}</>
+  return (
+    <>
+      {text.slice(0, index)}
+      <span className="bg-[var(--accent-primary)]/20 text-[var(--accent-primary)] rounded px-0.5">
+        {text.slice(index, index + query.length)}
+      </span>
+      {text.slice(index + query.length)}
+    </>
   )
 }
 

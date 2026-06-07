@@ -78,6 +78,8 @@ class ChatSessionService:
         session_id: int,
         title: str | None = None,
         status: str | None = None,
+        archived: bool | None = None,
+        pinned: bool | None = None,
     ) -> ChatSession | None:
         """Update a chat session's fields."""
         data: dict[str, Any] = {}
@@ -85,6 +87,10 @@ class ChatSessionService:
             data["title"] = title
         if status is not None:
             data["status"] = status
+        if archived is not None:
+            data["archived"] = archived
+        if pinned is not None:
+            data["pinned"] = pinned
         if not data:
             return await self._session_repo.get_by_id(session_id)
         session = await self._session_repo.update(session_id, data)
@@ -153,6 +159,13 @@ class ChatMessageService:
         if deleted:
             logger.info("Deleted message id=%s", message_id)
         return deleted
+
+    async def rate_message(self, message_id: int, rating: str | None) -> ChatMessage | None:
+        """Update a message's rating (up, down, or None to clear)."""
+        message = await self._message_repo.update(message_id, {"rating": rating})
+        if message:
+            logger.info("Rated message id=%s rating=%s", message_id, rating)
+        return message
 
     # ------------------------------------------------------------------
     # AI Integration

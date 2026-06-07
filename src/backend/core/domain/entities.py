@@ -210,6 +210,7 @@ class Chapter(Base):
     outline = relationship("Outline", back_populates="chapters")
     draft_versions = relationship("DraftVersion", back_populates="chapter", cascade="all, delete-orphan")
     ai_inspections = relationship("AIInspectionResult", back_populates="chapter", cascade="all, delete-orphan")
+    snapshots = relationship("Snapshot", back_populates="chapter", cascade="all, delete-orphan")
 
 
 class IFLine(Base):
@@ -236,6 +237,8 @@ class ChatSession(Base):
     project_id = Column(Integer, ForeignKey("projects.id"), nullable=True, index=True)
     title = Column(String(255), nullable=True)
     status = Column(String(50), default="active")
+    archived = Column(Boolean, default=False)
+    pinned = Column(Boolean, default=False)
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
@@ -251,6 +254,7 @@ class ChatMessage(Base):
     session_id = Column(Integer, ForeignKey("chat_sessions.id", ondelete="CASCADE"), nullable=False)
     role = Column(String, nullable=False)
     content = Column(Text, nullable=False)
+    rating = Column(String, nullable=True)  # 'up', 'down', or None
     created_at = Column(DateTime, default=datetime.utcnow)
 
     session = relationship("ChatSession", back_populates="messages")
@@ -402,3 +406,24 @@ class AIReviewHistory(Base):
     severity_counts_json = Column(Text)  # JSON: {"error": N, "warning": N, "suggestion": N}
     suggestions_json = Column(Text)  # JSON array of SuggestionItem objects
     created_at = Column(DateTime, default=datetime.utcnow)
+
+
+# ============================================
+# Snapshots (Version Snapshots)
+# ============================================
+
+class Snapshot(Base):
+    __tablename__ = "snapshots"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    chapter_id = Column(Integer, ForeignKey("chapters.id", ondelete="CASCADE"), nullable=False, index=True)
+    content = Column(Text, nullable=False)
+    version_number = Column(Integer, nullable=False)
+    is_marked = Column(Boolean, default=False)
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+    chapter = relationship("Chapter", back_populates="snapshots")
+
+    __table_args__ = (
+        Index("ix_snapshots_chapter_created", "chapter_id", "created_at"),
+    )

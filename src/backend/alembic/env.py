@@ -35,6 +35,7 @@ from backend.core.domain.entities import (
     IFLine,
     DraftVersion,
     PlotThread,
+    Snapshot,
     ChatSession,
     ChatMessage,
     ExtractedEntity,

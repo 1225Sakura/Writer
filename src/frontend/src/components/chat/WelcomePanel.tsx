@@ -1,6 +1,7 @@
 import { useState, useMemo, useCallback, useRef, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { BookOpen, Users, MapPin, Swords, ScrollText, Settings, PenTool, Search, X, ChevronRight, CheckCircle, Circle, CheckSquare, Square, Check, XCircle } from 'lucide-react'
+import { BookOpen, Users, MapPin, Swords, ScrollText, Settings, PenTool, Search, X, ChevronRight, CheckCircle, Circle, CheckSquare, Square, Check, XCircle, Pencil } from 'lucide-react'
+import { useChatStore } from '@/store/chatStore'
 import { typeColors } from '@/lib/entityColors'
 import type { ExtractedEntityLocal } from '@/store/chatStore'
 import { DURATION, EASE } from '@/components/shared/AnimationConfig'
@@ -533,6 +534,33 @@ function EntityCard({
   refCallback?: (el: HTMLDivElement | null) => void
 }) {
   const [expanded, setExpanded] = useState(false)
+  const [isEditing, setIsEditing] = useState(false)
+  const [editName, setEditName] = useState(entity.name)
+  const [editDescription, setEditDescription] = useState(entity.description || '')
+  const updateExtractedEntity = useChatStore((state) => state.updateExtractedEntity)
+
+  const handleStartEdit = useCallback(() => {
+    setEditName(entity.name)
+    setEditDescription(entity.description || '')
+    setIsEditing(true)
+    setExpanded(true)
+  }, [entity.name, entity.description])
+
+  const handleSaveEdit = useCallback(() => {
+    if (editName.trim()) {
+      updateExtractedEntity(entity.id, {
+        name: editName.trim(),
+        description: editDescription.trim() || undefined,
+      })
+    }
+    setIsEditing(false)
+  }, [entity.id, editName, editDescription, updateExtractedEntity])
+
+  const handleCancelEdit = useCallback(() => {
+    setEditName(entity.name)
+    setEditDescription(entity.description || '')
+    setIsEditing(false)
+  }, [entity.name, entity.description])
 
   return (
     <motion.div
@@ -597,6 +625,19 @@ function EntityCard({
         <span className={`flex-1 text-left truncate ${entity.confirmed ? 'text-[var(--text-secondary)]' : 'text-[var(--text-primary)]'}`}>
           <HighlightedText text={entity.name} query={searchQuery} />
         </span>
+        {!isEditing && !multiSelectMode && (
+          <button
+            onClick={(e) => {
+              e.stopPropagation()
+              handleStartEdit()
+            }}
+            className="flex-shrink-0 p-0.5 rounded transition-colors hover:bg-[var(--color-surface-hover)] text-[var(--text-tertiary)] hover:text-[var(--text-primary)]"
+            aria-label={`编辑 ${entity.name}`}
+            title="编辑"
+          >
+            <Pencil className="w-3 h-3" />
+          </button>
+        )}
         {entity.confirmed ? (
           <motion.div
             initial={{ scale: 0, rotate: -90 }}
@@ -621,25 +662,63 @@ function EntityCard({
             className="overflow-hidden"
           >
             <div className="px-2.5 pb-2 pt-1 border-t border-[var(--border-subtle)]">
-              {entity.description && (
-                <p className="text-[11px] text-[var(--text-secondary)] leading-relaxed mb-1">
-                  {entity.description}
-                </p>
+              {isEditing ? (
+                <div className="flex flex-col gap-1.5">
+                  <input
+                    type="text"
+                    value={editName}
+                    onChange={(e) => setEditName(e.target.value)}
+                    className="w-full px-2 py-1 text-xs rounded bg-[var(--color-surface-input)] border border-[var(--border-default)]
+                               text-[var(--text-primary)] focus:outline-none focus:border-[var(--accent-primary)] focus:ring-1 focus:ring-[var(--accent-primary)]/20"
+                    placeholder="实体名称"
+                    autoFocus
+                  />
+                  <textarea
+                    value={editDescription}
+                    onChange={(e) => setEditDescription(e.target.value)}
+                    className="w-full px-2 py-1 text-[11px] rounded bg-[var(--color-surface-input)] border border-[var(--border-default)]
+                               text-[var(--text-primary)] resize-none min-h-[40px] focus:outline-none focus:border-[var(--accent-primary)] focus:ring-1 focus:ring-[var(--accent-primary)]/20"
+                    placeholder="描述（可选）"
+                    rows={2}
+                  />
+                  <div className="flex items-center gap-1.5 justify-end">
+                    <button
+                      onClick={handleCancelEdit}
+                      className="px-2 py-0.5 text-[10px] rounded text-[var(--text-tertiary)] hover:text-[var(--text-primary)] hover:bg-[var(--color-surface-hover)] transition-colors"
+                    >
+                      取消
+                    </button>
+                    <button
+                      onClick={handleSaveEdit}
+                      className="px-2 py-0.5 text-[10px] rounded bg-[var(--accent-primary)] text-white hover:opacity-90 transition-opacity"
+                    >
+                      保存
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <>
+                  {entity.description && (
+                    <p className="text-[11px] text-[var(--text-secondary)] leading-relaxed mb-1">
+                      {entity.description}
+                    </p>
+                  )}
+                  <div className="flex items-center gap-2 mt-1">
+                    <span
+                      className="text-[9px] px-1.5 py-0.5 rounded-full"
+                      style={{
+                        backgroundColor: `color-mix(in srgb, ${color} 10%, transparent)`,
+                        color: color,
+                      }}
+                    >
+                      {typeLabels[entity.type] || entity.type}
+                    </span>
+                    {entity.confirmed && (
+                      <span className="text-[9px] text-[var(--color-ifline)]">已确认</span>
+                    )}
+                  </div>
+                </>
               )}
-              <div className="flex items-center gap-2 mt-1">
-                <span
-                  className="text-[9px] px-1.5 py-0.5 rounded-full"
-                  style={{
-                    backgroundColor: `color-mix(in srgb, ${color} 10%, transparent)`,
-                    color: color,
-                  }}
-                >
-                  {typeLabels[entity.type] || entity.type}
-                </span>
-                {entity.confirmed && (
-                  <span className="text-[9px] text-[var(--color-ifline)]">已确认</span>
-                )}
-              </div>
             </div>
           </motion.div>
         )}

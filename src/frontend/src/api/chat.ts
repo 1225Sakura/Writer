@@ -31,6 +31,11 @@ export const sessionApi = {
     return api.get<ChatSession>(`/chat/sessions/${sessionId}`)
   },
 
+  /** Update a chat session (title, archived, pinned, etc). */
+  update: async (sessionId: number, data: { title?: string; archived?: boolean; pinned?: boolean }): Promise<ChatSession> => {
+    return api.patch<ChatSession>(`/chat/sessions/${sessionId}`, data)
+  },
+
   /** Delete a chat session and all its messages. */
   delete: async (sessionId: number): Promise<{ message: string }> => {
     return api.delete<{ message: string }>(`/chat/sessions/${sessionId}`)
@@ -93,6 +98,14 @@ export const messageApi = {
   /** Delete a message. */
   delete: async (messageId: number): Promise<{ message: string }> => {
     return api.delete<{ message: string }>(`/chat/messages/${messageId}`)
+  },
+
+  /** Rate a message (up, down, or null to clear). */
+  rate: async (
+    messageId: number,
+    rating: 'up' | 'down' | null
+  ): Promise<ChatMessage> => {
+    return api.patch<ChatMessage>(`/chat/messages/${messageId}/rating`, { rating })
   },
 }
 

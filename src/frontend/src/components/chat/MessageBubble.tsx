@@ -227,7 +227,7 @@ export function MessageStatus({ status, timestamp }: { status?: 'sending' | 'sen
   }
 
   return (
-    <div className="flex items-center gap-1.5 text-xs text-secondary/70">
+    <div className="flex items-center gap-1.5 text-[10px] text-secondary/40">
       <span>{getRelativeTime(timestamp)}</span>
       {status === 'sending' && (
         <motion.span

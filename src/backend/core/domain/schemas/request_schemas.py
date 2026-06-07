@@ -520,6 +520,20 @@ class ChapterUpdateRequest(BaseModel):
         return v
 
 
+class ChapterOrderEntry(BaseModel):
+    """A single chapter order entry for reordering."""
+    id: int = Field(gt=0)
+    chapter_order: int = Field(ge=0)
+
+
+class ChapterReorderRequest(BaseModel):
+    """Request to reorder chapters within an outline."""
+    model_config = ConfigDict(str_strip_whitespace=True)
+
+    outline_id: int = Field(gt=0)
+    chapter_orders: List[ChapterOrderEntry] = Field(min_length=1)
+
+
 class IFLineCreateRequest(BaseModel):
     """Request to create an IF line."""
     model_config = ConfigDict(str_strip_whitespace=True)
@@ -599,6 +613,38 @@ class DraftVersionCreateRequest(BaseModel):
     @classmethod
     def validate_content(cls, v: str) -> str:
         return validate_non_empty(v, field_name='Content', max_length=MAX_CONTENT_LENGTH)
+
+
+# ============================================
+# Snapshot Request Schemas
+# ============================================
+
+class SnapshotCreateRequest(BaseModel):
+    """Request to create a chapter snapshot."""
+    model_config = ConfigDict(str_strip_whitespace=True)
+
+    content: str = Field(..., min_length=1, max_length=MAX_CONTENT_LENGTH)
+    is_marked: bool = Field(default=False)
+
+    @field_validator('content')
+    @classmethod
+    def validate_content(cls, v: str) -> str:
+        return validate_non_empty(v, field_name='Content', max_length=MAX_CONTENT_LENGTH)
+
+
+class SnapshotMarkRequest(BaseModel):
+    """Request to mark/unmark a snapshot."""
+    model_config = ConfigDict(str_strip_whitespace=True)
+
+    is_marked: bool
+
+
+class SnapshotDiffRequest(BaseModel):
+    """Request to diff two snapshots."""
+    model_config = ConfigDict(str_strip_whitespace=True)
+
+    snapshot_id_a: int = Field(..., gt=0, description="Base snapshot ID")
+    snapshot_id_b: int = Field(..., gt=0, description="Comparison snapshot ID")
 
 
 class PlotThreadCreateRequest(BaseModel):
@@ -716,6 +762,8 @@ class ChatSessionUpdateRequest(BaseModel):
 
     title: Optional[str] = Field(default=None, min_length=1, max_length=MAX_TITLE_LENGTH)
     status: Optional[str] = Field(default=None, max_length=50)
+    archived: Optional[bool] = Field(default=None)
+    pinned: Optional[bool] = Field(default=None)
 
     @field_validator('title')
     @classmethod
@@ -733,6 +781,20 @@ class ChatSessionUpdateRequest(BaseModel):
             if v not in valid_statuses:
                 raise ValueError(f'Status must be one of: {", ".join(sorted(valid_statuses))}')
             return v
+        return v
+
+
+class ChatMessageRatingRequest(BaseModel):
+    """Request to update a chat message's rating."""
+    model_config = ConfigDict(str_strip_whitespace=True)
+
+    rating: Optional[str] = Field(default=None, max_length=10)
+
+    @field_validator('rating')
+    @classmethod
+    def validate_rating(cls, v: Optional[str]) -> Optional[str]:
+        if v is not None and v not in ('up', 'down'):
+            raise ValueError('Rating must be "up" or "down"')
         return v
 
 

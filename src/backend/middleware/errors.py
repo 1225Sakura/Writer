@@ -69,6 +69,7 @@ class ErrorCode:
     CHAPTER_STATUS_INVALID = "CHAPTER_STATUS_INVALID"
     DRAFT_VERSION_NOT_FOUND = "DRAFT_VERSION_NOT_FOUND"
     DRAFT_VERSION_MISMATCH = "DRAFT_VERSION_MISMATCH"
+    SNAPSHOT_NOT_FOUND = "SNAPSHOT_NOT_FOUND"
 
     # Outline errors (6xxx)
     OUTLINE_NOT_FOUND = "OUTLINE_NOT_FOUND"
@@ -503,6 +504,24 @@ class DraftVersionMismatchError(ValidationError):
             message=f"Draft chapter ID mismatch: expected {expected_chapter_id}, got {actual_chapter_id}",
             error_code=ErrorCode.DRAFT_VERSION_MISMATCH,
             details=extra,
+        )
+
+
+class SnapshotNotFoundError(NotFoundError):
+    """Snapshot not found."""
+
+    def __init__(
+        self,
+        snapshot_id: Optional[int] = None,
+        details: Optional[Dict[str, Any]] = None,
+    ):
+        extra = {"snapshot_id": snapshot_id} if snapshot_id else {}
+        if details:
+            extra.update(details)
+        super().__init__(
+            message=f"Snapshot not found" + (f" (id={snapshot_id})" if snapshot_id else ""),
+            error_code=ErrorCode.SNAPSHOT_NOT_FOUND,
+            details=extra or None,
         )
 
 
