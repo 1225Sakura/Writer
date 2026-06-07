@@ -110,6 +110,10 @@ export function ChatBubble({ message, onEdit, onDelete, onRetry, onConfirmEntity
 
         {/* Bubble */}
         <div className="relative">
+          <motion.div
+            whileHover={prefersReducedMotion ? {} : { scale: 1.005 }}
+            transition={{ duration: DURATION.INSTANT, ease: EASE.SMOOTH }}
+          >
           <GlassCard
             intensity={isAssistant ? 'light' : 'medium'}
             border={isAssistant ? 'subtle' : 'none'}
@@ -231,6 +235,7 @@ export function ChatBubble({ message, onEdit, onDelete, onRetry, onConfirmEntity
               )}
             </div>
           </GlassCard>
+          </motion.div>
 
           {/* Timestamp */}
           <motion.div

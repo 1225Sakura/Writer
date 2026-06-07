@@ -7,6 +7,15 @@ import type { ChatSession, ExtractedEntity } from '../api/types'
 import { createHybridStorage } from './utils/indexedDBStorage'
 import { showApiError, showOperationError, showSuccess } from '@/utils/toastHelper'
 import type { ApiError } from '@/api/request'
+import type { WritingStats, WritingGoal } from '../services/writingStatsService'
+import { createSnapshot, listSnapshots, rollbackToSnapshot, diffSnapshots as diffSnapshotService, type VersionSnapshot, type EntityDiffItem } from '../services/versionService'
+import {
+  calculateTotalChars,
+  calculateTodayChars,
+  calculateStreak,
+  getTodayString,
+  updateActiveDates,
+} from '../services/writingStatsService'
 
 // ============================================
 // Types
@@ -62,6 +71,12 @@ interface ChatState {
   messageCache: MessageCache
   lastActiveSessionId: number | null
   pendingInput: string
+  // Writing stats and goals
+  writingStats: WritingStats
+  writingGoal: WritingGoal
+  activeDates: string[]
+  // Version snapshots (index only — full data in IndexedDB)
+  snapshotIndex: VersionSnapshot[]
 }
 
 interface ChatActions {
@@ -90,6 +105,15 @@ interface ChatActions {
   clearMessageCache: () => void
   getCachedMessages: (sessionId: number) => ChatMessageLocal[] | undefined
   setPendingInput: (text: string) => void
+  // Writing stats actions
+  updateWritingStats: () => void
+  setDailyGoal: (target: number) => void
+  calculateAndUpdateStreak: () => void
+  // Version snapshot actions
+  createSnapshotAction: () => void
+  loadSnapshots: () => Promise<void>
+  rollbackSnapshot: (snapshotId: string) => Promise<void>
+  diffSnapshotsAction: (oldId: string, newId: string) => EntityDiffItem[]
 }
 
 // ============================================
@@ -173,6 +197,21 @@ export const useChatStore = create<ChatState & ChatActions>()(
           messageCache: { messages: {}, cachedAt: {} },
           lastActiveSessionId: null,
   pendingInput: '',
+          // Writing stats initial state
+          writingStats: {
+            totalChars: 0,
+            todayChars: 0,
+            sessionChars: 0,
+            avgMessageChars: 0,
+            streakDays: 0,
+          },
+          writingGoal: {
+            dailyTarget: 2000,
+            currentProgress: 0,
+            lastActiveDate: '',
+          },
+          activeDates: [],
+          snapshotIndex: [],
 
           createSession: async () => {
             set((state) => {
@@ -379,6 +418,19 @@ export const useChatStore = create<ChatState & ChatActions>()(
                 state.messageCache.cachedAt[sessionId] = Date.now()
               })
               await saveCacheToStorage(get().messageCache)
+
+              // Async update writing stats (non-blocking)
+              if (typeof requestIdleCallback !== 'undefined') {
+                requestIdleCallback(() => {
+                  get().updateWritingStats()
+                  get().calculateAndUpdateStreak()
+                })
+              } else {
+                setTimeout(() => {
+                  get().updateWritingStats()
+                  get().calculateAndUpdateStreak()
+                }, 0)
+              }
             } catch (error) {
               set((state) => {
                 const msg = state.messages.find((m) => m.id === userMessageId)
@@ -586,6 +638,8 @@ export const useChatStore = create<ChatState & ChatActions>()(
                 state.extractionState = 'completed'
                 state.extractionProgress = 100
               })
+              // Trigger async snapshot after batch confirm
+              get().createSnapshotAction()
             } catch (error) {
               set((state) => {
                 state.error = (error as Error).message
@@ -662,6 +716,8 @@ export const useChatStore = create<ChatState & ChatActions>()(
               })),
             ]
             const title = plotPoints[0]?.slice(0, 20) || '未命名故事'
+            // Trigger async snapshot after outline export
+            get().createSnapshotAction()
             return { title, entries }
           },
 
@@ -683,6 +739,108 @@ export const useChatStore = create<ChatState & ChatActions>()(
               state.pendingInput = text
             })
           },
+
+          // ============================================
+          // Writing Stats Actions
+          // ============================================
+
+          updateWritingStats: () => {
+            const { messages, activeDates } = get()
+            const totalChars = calculateTotalChars(messages)
+            const todayChars = calculateTodayChars(messages)
+            const avgMessageChars = messages.length > 0 ? Math.round(totalChars / messages.length) : 0
+            const streakDays = calculateStreak(activeDates)
+
+            set((state) => {
+              state.writingStats = {
+                totalChars,
+                todayChars,
+                sessionChars: totalChars,
+                avgMessageChars,
+                streakDays,
+              }
+              state.writingGoal.currentProgress = todayChars
+            })
+          },
+
+          setDailyGoal: (target) => {
+            set((state) => {
+              state.writingGoal.dailyTarget = Math.max(0, target)
+            })
+          },
+
+          calculateAndUpdateStreak: () => {
+            const { activeDates, writingGoal } = get()
+            const today = getTodayString()
+
+            if (writingGoal.lastActiveDate !== today) {
+              const newActiveDates = updateActiveDates(activeDates, today)
+              const streakDays = calculateStreak(newActiveDates)
+              set((state) => {
+                state.activeDates = newActiveDates
+                state.writingStats.streakDays = streakDays
+                state.writingGoal.lastActiveDate = today
+              })
+            }
+          },
+
+          // ============================================
+          // Version Snapshot Actions
+          // ============================================
+
+          createSnapshotAction: () => {
+            const { sessionId, extractedEntities, messages } = get()
+            if (!sessionId) return
+            // Async via setTimeout(0) to not block
+            setTimeout(async () => {
+              try {
+                const snap = await createSnapshot(sessionId, extractedEntities, messages.length)
+                set((state) => {
+                  state.snapshotIndex.push(snap)
+                })
+              } catch {
+                // silent fail for snapshots
+              }
+            }, 0)
+          },
+
+          loadSnapshots: async () => {
+            const { sessionId } = get()
+            if (!sessionId) return
+            try {
+              const snapshots = await listSnapshots(sessionId)
+              set((state) => {
+                state.snapshotIndex = snapshots
+              })
+            } catch {
+              // silent
+            }
+          },
+
+          rollbackSnapshot: async (snapshotId) => {
+            const { sessionId } = get()
+            if (!sessionId) return
+            try {
+              const entities = await rollbackToSnapshot(sessionId, snapshotId)
+              if (entities) {
+                set((state) => {
+                  state.extractedEntities = entities
+                })
+              }
+            } catch (error) {
+              set((state) => {
+                state.error = (error as Error).message
+              })
+            }
+          },
+
+          diffSnapshotsAction: (oldId, newId) => {
+            const { snapshotIndex } = get()
+            const oldSnap = snapshotIndex.find((s) => s.id === oldId)
+            const newSnap = snapshotIndex.find((s) => s.id === newId)
+            if (!oldSnap || !newSnap) return []
+            return diffSnapshotService(oldSnap.entities, newSnap.entities)
+          },
         }),
         {
           name: 'writer-chat-store-v2',
@@ -693,8 +851,25 @@ export const useChatStore = create<ChatState & ChatActions>()(
             extractedEntities: state.extractedEntities,
             extractionState: state.extractionState,
             messageCache: state.messageCache,
+            writingGoal: state.writingGoal,
+            activeDates: state.activeDates,
           }),
-          version: 2,
+          version: 3,
+          migrate: (persistedState: any, version: number) => {
+            if (version === 2) {
+              // Migrate from v2 to v3: add writing stats fields
+              return {
+                ...persistedState,
+                writingGoal: {
+                  dailyTarget: 2000,
+                  currentProgress: 0,
+                  lastActiveDate: '',
+                },
+                activeDates: [],
+              }
+            }
+            return persistedState
+          },
         }
       )
     )

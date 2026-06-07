@@ -1,4 +1,5 @@
 import { useState, useCallback, useEffect } from 'react'
+import { motion } from 'framer-motion'
 import { useChatStore } from '@/store/chatStore'
 import { useSettingsStore } from '@/store/settingsStore'
 import { showSuccess } from '@/utils/toastHelper'
@@ -6,12 +7,16 @@ import { getWebSocketClient } from '@/api/websocket'
 import { InputField } from './InputField'
 import { InputSuggestions } from './InputSuggestions'
 import { InputActions } from './InputActions'
+import { FirstTimeHint } from './FirstTimeHint'
+import { usePrefersReducedMotion } from '@/hooks/usePrefersReducedMotion'
+import { DURATION, EASE } from '@/components/shared/AnimationConfig'
 
 
 export function UserInputPanel() {
   const [input, setInput] = useState('')
   const { sendMessage, createSession, clearSession, sessionId, isLoading, isStreaming, error, messages, exportToOutline, pendingInput, setPendingInput } = useChatStore()
   const [showExportConfirm, setShowExportConfirm] = useState(false)
+  const prefersReducedMotion = usePrefersReducedMotion()
 
   // Sync pendingInput from store (set by genre tags in EmptyState) to local input
   useEffect(() => {
@@ -102,6 +107,8 @@ export function UserInputPanel() {
 
   return (
     <div className="flex flex-col gap-3 p-4 bg-surface-base border-t border-default">
+      <FirstTimeHint />
+
       <InputSuggestions
         hasMessages={hasMessages}
         isLoading={isLoading}
@@ -121,6 +128,31 @@ export function UserInputPanel() {
         isStreaming={isStreaming}
         canSend={!!canSend}
       />
+
+      {/* Keyboard shortcut hints */}
+      <motion.div
+        className="flex items-center justify-center gap-4 text-[10px] text-tertiary/60 select-none"
+        initial={prefersReducedMotion ? {} : { opacity: 0, y: 4 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={prefersReducedMotion ? { duration: 0 } : { duration: DURATION.NORMAL, delay: 0.3, ease: EASE.SMOOTH }}
+      >
+        <span className="flex items-center gap-1">
+          <kbd className="px-1 py-0.5 rounded text-[9px] font-mono bg-surface-raised border border-default/50">Enter</kbd>
+          <span>发送</span>
+        </span>
+        <span className="flex items-center gap-1">
+          <kbd className="px-1 py-0.5 rounded text-[9px] font-mono bg-surface-raised border border-default/50">Shift</kbd>
+          <span>+</span>
+          <kbd className="px-1 py-0.5 rounded text-[9px] font-mono bg-surface-raised border border-default/50">Enter</kbd>
+          <span>换行</span>
+        </span>
+        <span className="flex items-center gap-1">
+          <kbd className="px-1 py-0.5 rounded text-[9px] font-mono bg-surface-raised border border-default/50">Ctrl</kbd>
+          <span>+</span>
+          <kbd className="px-1 py-0.5 rounded text-[9px] font-mono bg-surface-raised border border-default/50">S</kbd>
+          <span>保存</span>
+        </span>
+      </motion.div>
 
       <InputActions error={error} />
     </div>

@@ -1,6 +1,8 @@
 import { motion } from 'framer-motion'
 import { DURATION, EASE } from '@/components/shared/AnimationConfig'
 import { usePrefersReducedMotion } from '@/hooks/usePrefersReducedMotion'
+import { useChatStore } from '@/store/chatStore'
+import { PenLine, Target, Flame } from 'lucide-react'
 
 /* ============================================================
    TOP GRADIENT DIVIDER
@@ -27,6 +29,85 @@ function TopGradientDivider() {
 }
 
 /* ============================================================
+   WORD COUNT DISPLAY
+   ============================================================ */
+
+function WordCountDisplay() {
+  const writingStats = useChatStore((s) => s.writingStats)
+
+  return (
+    <motion.div
+      className="flex items-center gap-3 text-xs"
+      initial={{ opacity: 0, y: 8 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: 0.3, duration: DURATION.SLOW, ease: EASE.SMOOTH }}
+    >
+      <div className="flex items-center gap-1.5 text-[var(--text-secondary)]">
+        <PenLine className="w-3 h-3" />
+        <span className="tabular-nums">{writingStats.sessionChars.toLocaleString()}</span>
+        <span className="text-[var(--text-tertiary)]">字</span>
+      </div>
+      <div className="w-px h-3 bg-[var(--border-default)]" />
+      <div className="flex items-center gap-1.5 text-[var(--text-secondary)]">
+        <span className="text-[var(--text-tertiary)]">今日</span>
+        <span className="tabular-nums">{writingStats.todayChars.toLocaleString()}</span>
+      </div>
+      {writingStats.streakDays > 0 && (
+        <>
+          <div className="w-px h-3 bg-[var(--border-default)]" />
+          <div className="flex items-center gap-1 text-[var(--color-ifline)]">
+            <Flame className="w-3 h-3" />
+            <span className="tabular-nums">{writingStats.streakDays}</span>
+            <span className="text-[var(--text-tertiary)]">天</span>
+          </div>
+        </>
+      )}
+    </motion.div>
+  )
+}
+
+/* ============================================================
+   WRITING GOAL PROGRESS
+   ============================================================ */
+
+function WritingGoalProgress() {
+  const writingGoal = useChatStore((s) => s.writingGoal)
+  const progress = writingGoal.dailyTarget > 0
+    ? Math.min(100, Math.round((writingGoal.currentProgress / writingGoal.dailyTarget) * 100))
+    : 0
+
+  return (
+    <motion.div
+      className="flex items-center gap-2"
+      initial={{ opacity: 0, y: 8 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: 0.35, duration: DURATION.SLOW, ease: EASE.SMOOTH }}
+    >
+      <div className="flex items-center gap-1.5 text-xs text-[var(--text-secondary)]">
+        <Target className="w-3 h-3" />
+        <span className="tabular-nums">{writingGoal.currentProgress.toLocaleString()}</span>
+        <span className="text-[var(--text-tertiary)]">/</span>
+        <span className="tabular-nums">{writingGoal.dailyTarget.toLocaleString()}</span>
+      </div>
+      <div className="w-16 h-1.5 rounded-full overflow-hidden bg-[var(--color-surface-base)]">
+        <motion.div
+          className="h-full rounded-full"
+          style={{
+            background: progress >= 100
+              ? 'linear-gradient(90deg, var(--color-ifline), color-mix(in srgb, var(--color-ifline) 70%, var(--accent-primary)))'
+              : 'linear-gradient(90deg, var(--accent-primary), var(--accent-hover))',
+          }}
+          initial={{ width: 0 }}
+          animate={{ width: `${progress}%` }}
+          transition={{ duration: 0.8, ease: EASE.SMOOTH }}
+        />
+      </div>
+      <span className="text-[10px] text-[var(--text-tertiary)] tabular-nums">{progress}%</span>
+    </motion.div>
+  )
+}
+
+/* ============================================================
    CHAT FOOTER
    ============================================================ */
 
@@ -49,10 +130,11 @@ export function ChatFooter() {
     >
       {/* Top gradient divider decoration */}
       <TopGradientDivider />
+
       {/* Left: AI status indicator */}
       <div className="flex items-center gap-3">
         <motion.div
-          className="flex items-center gap-1.5 text-xs text-secondary hidden sm:inline"
+          className="flex items-center gap-1.5 text-xs text-[var(--text-secondary)] hidden sm:flex"
           initial={{ opacity: 0, x: -8 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ delay: 0.35, duration: DURATION.SLOW, ease: EASE.SMOOTH }}
@@ -66,8 +148,15 @@ export function ChatFooter() {
         </motion.div>
       </div>
 
-      {/* Right: reserved for future page-specific actions */}
-      <div className="flex items-center gap-1 sm:gap-2" />
+      {/* Center: Word count stats */}
+      <div className="hidden md:flex">
+        <WordCountDisplay />
+      </div>
+
+      {/* Right: Writing goal progress */}
+      <div className="hidden sm:flex">
+        <WritingGoalProgress />
+      </div>
     </motion.footer>
   )
 }
