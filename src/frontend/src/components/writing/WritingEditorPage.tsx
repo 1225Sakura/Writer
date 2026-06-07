@@ -1,7 +1,9 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useUIStore, useWritingStore } from '@/store'
 import { WritingToolbar } from './WritingToolbar'
 import { WritingCanvas } from './WritingCanvas'
+import { SplitEditorView } from './SplitEditorView'
+import { SearchReplaceBar } from './SearchReplaceBar'
 import { AIOperationDrawer } from './AIOperationDrawer'
 import { AICheckerPanel } from './AICheckerPanel'
 import { CollaborationPanel } from './CollaborationPanel'
@@ -36,7 +38,8 @@ function WritingEditorPageContent() {
   } = useUIStore()
   const loading = useWritingStore((s) => s.loading)
   const init = useWritingStore((s) => s.init)
-  const { immersiveMode, chromeVisible } = useImmersiveModeContext()
+  const { immersiveMode, chromeVisible, writingMode } = useImmersiveModeContext()
+  const [isSplitView, setIsSplitView] = useState(false)
 
   useEffect(() => {
     init()
@@ -67,7 +70,7 @@ function WritingEditorPageContent() {
 
       {/* Toolbar - vintage wood-grain strip with smart show/hide */}
       <AnimatePresence initial={false}>
-        {(!immersiveMode || chromeVisible) && (
+        {(writingMode === 'writing' || (!immersiveMode || chromeVisible)) && (
           <motion.div
             key="toolbar"
             initial={immersiveMode ? { opacity: 0, y: -16 } : false}
@@ -76,7 +79,10 @@ function WritingEditorPageContent() {
             transition={SPRING.IMMERSIVE}
             className="relative z-20"
           >
-            <WritingToolbar />
+            <WritingToolbar
+              isSplitView={isSplitView}
+              onToggleSplitView={() => setIsSplitView(!isSplitView)}
+            />
           </motion.div>
         )}
       </AnimatePresence>
@@ -93,8 +99,13 @@ function WritingEditorPageContent() {
             <div className="h-full bg-[var(--writing-bg)] overflow-y-auto scrollbar-ink relative z-10">
               <WritingSkeleton />
             </div>
+          ) : isSplitView ? (
+            <SplitEditorView onClose={() => setIsSplitView(false)} />
           ) : (
-            <WritingCanvas />
+            <>
+              <WritingCanvas />
+              <SearchReplaceBar />
+            </>
           )}
         </div>
 
@@ -104,17 +115,17 @@ function WritingEditorPageContent() {
 
         {/* Outline sidebar via shared LeftSidebar */}
         <LeftSidebar
-          isOpen={outlineDrawerOpen && (!immersiveMode || chromeVisible)}
+          isOpen={writingMode === 'collaboration' && outlineDrawerOpen && (!immersiveMode || chromeVisible)}
           onToggle={toggleOutlineDrawer}
           width="var(--sidebar-outline-width)"
-          visible={!immersiveMode || chromeVisible || outlineDrawerOpen}
+          visible={writingMode === 'collaboration' && (!immersiveMode || chromeVisible || outlineDrawerOpen)}
         >
           <OutlineSidebar />
         </LeftSidebar>
 
         {/* AI operation drawer - unified edge style with ink shadow */}
         <AnimatePresence initial={false}>
-          {aiDrawerOpen && (!immersiveMode || chromeVisible) && (
+          {writingMode === 'collaboration' && aiDrawerOpen && (!immersiveMode || chromeVisible) && (
             <motion.div
               key="ai-drawer"
               initial={{ width: 0, opacity: 0, x: 48 }}
@@ -137,7 +148,7 @@ function WritingEditorPageContent() {
 
         {/* Collaboration panel - unified edge style with ink shadow */}
         <AnimatePresence initial={false}>
-          {collaborationDrawerOpen && (!immersiveMode || chromeVisible) && (
+          {writingMode === 'collaboration' && collaborationDrawerOpen && (!immersiveMode || chromeVisible) && (
             <motion.div
               key="collab-drawer"
               initial={{ width: 0, opacity: 0, x: 36 }}
@@ -159,7 +170,7 @@ function WritingEditorPageContent() {
 
         {/* AI Checker panel - unified edge style with ink shadow */}
         <AnimatePresence initial={false}>
-          {checkerDrawerOpen && (!immersiveMode || chromeVisible) && (
+          {writingMode === 'collaboration' && checkerDrawerOpen && (!immersiveMode || chromeVisible) && (
             <motion.div
               key="checker-drawer"
               initial={{ width: 0, opacity: 0, x: 48 }}

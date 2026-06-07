@@ -15,7 +15,7 @@ import { useWritingStore, useContentStore, useAIStore, useCheckerStore, useUISto
 import { setEditorInstance } from '@/store/editorRegistry'
 import { useEffect, useRef, useCallback, useState } from 'react'
 import { showToast } from '@/components/ui/Toast'
-import { FocusModeExtension, ParagraphHighlightExtension, ParagraphHighlightPluginKey } from './extensions'
+import { FocusModeExtension, ParagraphHighlightExtension, ParagraphHighlightPluginKey, InlineAIExtension, StyleCheckExtension } from './extensions'
 
 export function useWritingEditor() {
   const {
@@ -100,12 +100,19 @@ export function useWritingEditor() {
         enabled: focusModeEnabled,
         dimOpacity: 0.22,
         blurAmount: 0.3,
-        focusRange: 'paragraph',
+        focusRange: focusModeEnabled
+          ? (paragraphFocusMode ? 'paragraph+sentence' : 'sentence')
+          : 'paragraph',
         fadeInDuration: 500,
         keepHeadingsVisible: true,
         keepEmptyLinesVisible: false,
       }),
       ParagraphHighlightExtension.configure({ enabled: paragraphFocusMode }),
+      InlineAIExtension,
+      StyleCheckExtension.configure({
+        enabled: true,
+        debounceMs: 2000,
+      }),
     ],
     content: currentContent,
     onUpdate: ({ editor }) => {
@@ -146,17 +153,48 @@ export function useWritingEditor() {
     },
   })
 
-  // Apply typewriter mode scroll padding
+  // Apply typewriter mode scroll behavior
   useEffect(() => {
     if (editor?.view?.dom) {
       const dom = editor.view.dom
       if (typewriterMode) {
-        dom.style.scrollPaddingTop = '45vh'
-        dom.style.scrollPaddingBottom = '45vh'
+        dom.style.scrollPaddingTop = '38vh'
+        dom.style.scrollPaddingBottom = '62vh'
       } else {
         dom.style.scrollPaddingTop = '33vh'
         dom.style.scrollPaddingBottom = '67vh'
       }
+    }
+  }, [editor, typewriterMode])
+
+  // Typewriter scroll: keep cursor at ~38% viewport height after each update
+  useEffect(() => {
+    if (!editor || !typewriterMode) return
+
+    const scrollToCursor = () => {
+      requestAnimationFrame(() => {
+        const { from } = editor.state.selection
+        const coords = editor.view.coordsAtPos(from)
+        if (!coords) return
+
+        const editorDom = editor.view.dom
+        const editorRect = editorDom.getBoundingClientRect()
+        const scrollContainer = editorDom.closest('.tiptap')?.parentElement || editorDom.parentElement
+        if (!scrollContainer) return
+
+        const cursorY = coords.top - editorRect.top + scrollContainer.scrollTop
+        const targetScroll = cursorY - scrollContainer.clientHeight * 0.38
+        scrollContainer.scrollTo({ top: targetScroll, behavior: 'smooth' })
+      })
+    }
+
+    // Listen for selection updates and content changes
+    editor.on('selectionUpdate', scrollToCursor)
+    editor.on('update', scrollToCursor)
+
+    return () => {
+      editor.off('selectionUpdate', scrollToCursor)
+      editor.off('update', scrollToCursor)
     }
   }, [editor, typewriterMode])
 
@@ -181,23 +219,27 @@ export function useWritingEditor() {
     }
   }, [currentContent, editor])
 
-  // Sync focus mode state to extension
+  // Sync focus mode state and options to extension
   useEffect(() => {
     if (editor) {
       const focusModeExt = editor.extensionManager.extensions.find(
-        (ext: any) => ext.name === 'focusMode'
+        (ext) => ext.name === 'focusMode'
       )
       if (focusModeExt && focusModeExt.options) {
+        const derivedFocusRange = focusModeEnabled
+          ? (paragraphFocusMode ? 'paragraph+sentence' : 'sentence')
+          : 'paragraph'
         focusModeExt.options.enabled = focusModeEnabled
+        focusModeExt.options.focusRange = derivedFocusRange
         editor.view.dispatch(editor.view.state.tr)
       }
     }
-  }, [focusModeEnabled, editor])
+  }, [focusModeEnabled, paragraphFocusMode, editor])
 
   // Register editor instance for keyboard shortcuts
   useEffect(() => {
-    if (editor) setEditorInstance(editor)
-    return () => setEditorInstance(null)
+    if (editor) setEditorInstance('main', editor)
+    return () => setEditorInstance('main', null)
   }, [editor])
 
   // Cleanup typing timeout on unmount

@@ -47,6 +47,10 @@ interface WritingState {
   targetWordCount: number
   editor: Editor | null
 
+  // Three-tier goals
+  chapterTargetWordCount: number
+  dailyTargetWordCount: number
+
   // Writing config
   humanAIRatio: number
   writingStyle: WritingStyle
@@ -92,6 +96,8 @@ interface WritingActions {
   setHumanAIRatio: (ratio: number) => void
   setWritingStyle: (style: WritingStyle) => void
   setTargetWordCount: (count: number) => void
+  setChapterTargetWordCount: (count: number) => void
+  setDailyTargetWordCount: (count: number) => void
   setEditor: (editor: Editor | null) => void
 
   // Notes
@@ -128,6 +134,8 @@ export const useWritingStore = create<WritingState & WritingActions>()(
           wordCount: 0,
           targetWordCount: 2000,
           editor: null,
+          chapterTargetWordCount: 3000,
+          dailyTargetWordCount: 2000,
           humanAIRatio: 70,
           writingStyle: 'default',
           loading: {
@@ -317,6 +325,8 @@ export const useWritingStore = create<WritingState & WritingActions>()(
           },
 
           setTargetWordCount: (count) => { set((s) => { s.targetWordCount = count }) },
+          setChapterTargetWordCount: (count) => { set((s) => { s.chapterTargetWordCount = count }) },
+          setDailyTargetWordCount: (count) => { set((s) => { s.dailyTargetWordCount = count }) },
           setEditor: (editor) => { set((s) => { s.editor = editor as unknown as typeof s.editor }) },
 
           // Notes
@@ -443,12 +453,14 @@ export const useWritingStore = create<WritingState & WritingActions>()(
             humanAIRatio: state.humanAIRatio,
             writingStyle: state.writingStyle,
             targetWordCount: state.targetWordCount,
+            chapterTargetWordCount: state.chapterTargetWordCount,
+            dailyTargetWordCount: state.dailyTargetWordCount,
             chapterNotes: state.chapterNotes,
             dailyStats: state.dailyStats,
             autoSaveEnabled: state.autoSaveEnabled,
             autoSaveInterval: state.autoSaveInterval,
           }),
-          version: 2,
+          version: 3,
         }
       )
     )
@@ -493,6 +505,43 @@ export const selectCurrentContent = (state: WritingState) => ({
 
 /** 仅选择 loading 状态 */
 export const selectLoadingState = (state: WritingState) => state.loading
+
+/** 三级目标进度选择器 */
+export const selectGoalProgress = (
+  scope: 'chapter' | 'daily' | 'global'
+) => {
+  const state = useWritingStore.getState()
+  const today = new Date().toISOString().split('T')[0]
+  const todayWordCount = state.dailyStats.find((d) => d.date === today)?.wordCount || 0
+  const totalWords = state.dailyStats.reduce((sum, d) => sum + d.wordCount, 0)
+
+  switch (scope) {
+    case 'chapter':
+      return {
+        current: state.wordCount,
+        target: state.chapterTargetWordCount,
+        progress: state.chapterTargetWordCount > 0
+          ? Math.min(100, Math.round((state.wordCount / state.chapterTargetWordCount) * 100))
+          : 0,
+      }
+    case 'daily':
+      return {
+        current: todayWordCount,
+        target: state.dailyTargetWordCount,
+        progress: state.dailyTargetWordCount > 0
+          ? Math.min(100, Math.round((todayWordCount / state.dailyTargetWordCount) * 100))
+          : 0,
+      }
+    case 'global':
+      return {
+        current: totalWords,
+        target: state.targetWordCount,
+        progress: state.targetWordCount > 0
+          ? Math.min(100, Math.round((totalWords / state.targetWordCount) * 100))
+          : 0,
+      }
+  }
+}
 
 /** 清理 writing store 临时状态 */
 export function cleanupWritingStore() {

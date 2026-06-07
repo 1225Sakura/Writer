@@ -9,6 +9,9 @@ interface ImmersiveModeContextValue {
   setImmersiveMode: (value: boolean) => void
   prefersReducedMotion: boolean
   lastTriggerElementRef: React.MutableRefObject<HTMLElement | null>
+  writingMode: 'writing' | 'collaboration'
+  toggleWritingMode: () => void
+  isDistractionFree: boolean
 }
 
 const ImmersiveModeContext = createContext<ImmersiveModeContextValue | null>(null)

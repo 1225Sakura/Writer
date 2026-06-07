@@ -6,7 +6,7 @@ export interface FocusModeOptions {
   enabled: boolean
   dimOpacity: number
   blurAmount: number
-  focusRange: 'paragraph' | 'sentence' | 'line'
+  focusRange: 'paragraph' | 'sentence' | 'line' | 'paragraph+sentence'
   fadeInDuration: number
   keepHeadingsVisible: boolean
   keepEmptyLinesVisible: boolean
@@ -150,6 +150,34 @@ export const FocusModeExtension = Extension.create<FocusModeOptions>({
                         }
                         isFocused = true
                       }
+                      break
+                    }
+
+                    case 'paragraph+sentence': {
+                      if (nodeEnd > selFrom && pos < selTo) {
+                        // Current paragraph: apply sentence-level dimming
+                        const textContent = node.textContent || ''
+                        const localCursorPos = Math.max(0, selFrom - pos - 1)
+                        const { from, to } = getSentenceBoundaries(textContent, localCursorPos)
+                        // Use a lighter dim for non-current sentences in the current paragraph
+                        const sentenceDimOpacity = Math.min(options.dimOpacity + 0.28, 0.5)
+                        if (from > 0) {
+                          decorations.push(
+                            Decoration.inline(pos + 1, pos + 1 + from, {
+                              style: `opacity: ${sentenceDimOpacity}; transition: opacity ${options.fadeInDuration}ms ease;`,
+                            })
+                          )
+                        }
+                        if (to < textContent.length) {
+                          decorations.push(
+                            Decoration.inline(pos + 1 + to, nodeEnd - 1, {
+                              style: `opacity: ${sentenceDimOpacity}; transition: opacity ${options.fadeInDuration}ms ease;`,
+                            })
+                          )
+                        }
+                        isFocused = true
+                      }
+                      // Non-current paragraphs fall through to the dim block below
                       break
                     }
                   }

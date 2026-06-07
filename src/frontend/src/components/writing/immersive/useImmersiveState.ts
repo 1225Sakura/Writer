@@ -5,6 +5,8 @@ import { usePrefersReducedMotion } from '@/hooks/usePrefersReducedMotion'
 const IMMERSIVE_HIDE_DELAY = 4000
 const TYPING_THRESHOLD_MS = 1000
 
+export type WritingMode = 'writing' | 'collaboration'
+
 export interface UseImmersiveStateReturn {
   immersiveMode: boolean
   chromeVisible: boolean
@@ -13,6 +15,9 @@ export interface UseImmersiveStateReturn {
   toggleImmersiveMode: () => void
   prefersReducedMotion: boolean
   lastTriggerElementRef: React.MutableRefObject<HTMLElement | null>
+  writingMode: WritingMode
+  toggleWritingMode: () => void
+  isDistractionFree: boolean
 }
 
 export function useImmersiveState(): UseImmersiveStateReturn {
@@ -31,8 +36,17 @@ export function useImmersiveState(): UseImmersiveStateReturn {
   // Track the element that triggered immersive mode for focus restoration
   const lastTriggerElementRef = useRef<HTMLElement | null>(null)
 
+  // Writing mode: 'writing' (distraction-free) or 'collaboration' (full UI)
+  const [writingMode, setWritingMode] = useState<WritingMode>('collaboration')
+
+  const isDistractionFree = writingMode === 'writing' || immersiveMode
+
+  const toggleWritingMode = useCallback(() => {
+    setWritingMode(prev => prev === 'writing' ? 'collaboration' : 'writing')
+  }, [])
+
   const scheduleHideChrome = useCallback(() => {
-    if (!immersiveMode) return
+    if (!immersiveMode || writingMode === 'writing') return
 
     if (hideTimeoutRef.current) {
       clearTimeout(hideTimeoutRef.current)
@@ -45,7 +59,7 @@ export function useImmersiveState(): UseImmersiveStateReturn {
         setChromeVisible(false)
       }, IMMERSIVE_HIDE_DELAY)
     }
-  }, [immersiveMode])
+  }, [immersiveMode, writingMode])
 
   const showChrome = useCallback(() => {
     setChromeVisible(true)
@@ -92,6 +106,8 @@ export function useImmersiveState(): UseImmersiveStateReturn {
     if (!immersiveMode) return
 
     const handleMouseMove = () => {
+      // In writing mode, never show chrome on mouse move
+      if (writingMode === 'writing') return
       if (!chromeVisible) {
         showChrome()
       }
@@ -103,6 +119,13 @@ export function useImmersiveState(): UseImmersiveStateReturn {
       if (!immersiveMode) return
 
       if (e.key === 'Escape') {
+        // In writing mode: first Escape switches to collaboration mode
+        if (writingMode === 'writing') {
+          setWritingMode('collaboration')
+          showChrome()
+          return
+        }
+        // In collaboration mode + immersive: exit immersive
         // Restore focus to the trigger element before exiting immersive mode
         if (lastTriggerElementRef.current && typeof lastTriggerElementRef.current.focus === 'function') {
           // Use setTimeout to ensure focus happens after the escape key is fully processed
@@ -134,7 +157,29 @@ export function useImmersiveState(): UseImmersiveStateReturn {
         clearTimeout(hideTimeoutRef.current)
       }
     }
-  }, [immersiveMode, chromeVisible, showChrome, scheduleHideChrome, setImmersiveMode])
+  }, [immersiveMode, chromeVisible, showChrome, scheduleHideChrome, setImmersiveMode, writingMode])
+
+  // Ctrl+. global handler for toggleWritingMode
+  useEffect(() => {
+    const handleGlobalKeyDown = (e: KeyboardEvent) => {
+      if (e.ctrlKey && e.key === '.') {
+        e.preventDefault()
+        toggleWritingMode()
+      }
+    }
+
+    document.addEventListener('keydown', handleGlobalKeyDown)
+    return () => {
+      document.removeEventListener('keydown', handleGlobalKeyDown)
+    }
+  }, [toggleWritingMode])
+
+  // When writingMode === 'writing': force chromeVisible = false
+  useEffect(() => {
+    if (writingMode === 'writing') {
+      setChromeVisible(false)
+    }
+  }, [writingMode])
 
   const toggleImmersiveMode = useCallback(() => {
     // Store current focused element as trigger
@@ -152,5 +197,8 @@ export function useImmersiveState(): UseImmersiveStateReturn {
     toggleImmersiveMode,
     prefersReducedMotion,
     lastTriggerElementRef,
+    writingMode,
+    toggleWritingMode,
+    isDistractionFree,
   }
 }

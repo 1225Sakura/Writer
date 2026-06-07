@@ -11,6 +11,10 @@ import { ChapterTitle } from './editor/ChapterTitle'
 import { StatusBar } from './editor/StatusBar'
 import { WritingCanvasStatusBar } from './WritingCanvasStatusBar'
 import { useWritingEditor } from './useWritingEditor'
+import { InlineAIPopup } from './InlineAIPopup'
+import { SelectionAIMenu } from './SelectionAIMenu'
+import { StyleCheckGutter, injectStyleCheckStyles } from './StyleCheckGutter'
+import { useEffect } from 'react'
 
 function formatDuration(seconds: number): string {
   if (seconds < 60) return `${seconds}秒`
@@ -46,6 +50,11 @@ export function WritingCanvas() {
     isEmpty,
   } = useWritingEditor()
 
+  // Inject style check CSS on mount
+  useEffect(() => {
+    injectStyleCheckStyles()
+  }, [])
+
   return (
     <div
       ref={editorContainerRef}
@@ -57,6 +66,7 @@ export function WritingCanvas() {
         className={`flex-1 overflow-y-auto scrollbar-ink relative writing-surface writing-surface--textured selection-warm ${focusModeEnabled ? 'vignette-overlay-strong' : 'vignette-overlay'} ${typewriterMode ? 'vignette-overlay-horizontal' : ''}`}
       >
         <EditorToolbar editor={editor} />
+        <SelectionAIMenu editor={editor} />
 
         <div
           className={`my-8 rounded-2xl max-w-[var(--writing-max-width)] mx-auto writing-card relative ink-texture
@@ -71,6 +81,8 @@ export function WritingCanvas() {
             `,
           }}
         >
+          {/* Style Check Gutter - left side indicator */}
+          <StyleCheckGutter editor={editor} />
           <div
             className="absolute top-0 left-6 right-6 h-px pointer-events-none"
             style={{
@@ -135,6 +147,8 @@ export function WritingCanvas() {
         isTyping={isTyping}
         loading={loading}
       />
+
+      <InlineAIPopup editor={editor} />
     </div>
   )
 }

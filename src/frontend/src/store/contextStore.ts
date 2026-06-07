@@ -10,9 +10,22 @@ import { createHybridStorage } from './utils/indexedDBStorage'
 // Types
 // ============================================
 
+export interface DerivedContext {
+  /** Extracted character names from context pack */
+  characterNames: string[]
+  /** Open plot threads mentioned in context */
+  openPlotThreads: string[]
+  /** Recent chapter summaries */
+  recentSummaries: string[]
+  /** Last updated timestamp */
+  updatedAt: number | null
+}
+
 export interface ContextState {
   // Data
   contextPack: ContextBuildResponse | null
+  /** Derived context extracted from context pack for AI operations */
+  derivedContext: DerivedContext
 
   // UI state
   loading: boolean
@@ -23,6 +36,9 @@ export interface ContextActions {
   // Context endpoints
   buildContext: (chapterId: number, maxChars?: number) => Promise<void>
 
+  // Derived context
+  extractDerivedContext: () => void
+
   // Reset
   reset: () => void
 }
@@ -31,8 +47,16 @@ export interface ContextActions {
 // Initial state
 // ============================================
 
+const initialDerivedContext: DerivedContext = {
+  characterNames: [],
+  openPlotThreads: [],
+  recentSummaries: [],
+  updatedAt: null,
+}
+
 const initialState: ContextState = {
   contextPack: null,
+  derivedContext: initialDerivedContext,
   loading: false,
   error: null,
 }
@@ -44,7 +68,7 @@ const initialState: ContextState = {
 export const useContextStore = create<ContextState & ContextActions>()(
   subscribeWithSelector(
     persist(
-      immer((set) => ({
+      immer((set, get) => ({
         ...initialState,
 
         buildContext: async (chapterId, maxChars) => {
@@ -55,6 +79,8 @@ export const useContextStore = create<ContextState & ContextActions>()(
               s.contextPack = data
               s.loading = false
             })
+            // Auto-extract derived context after building
+            get().extractDerivedContext()
           } catch (err) {
             set((s) => {
               s.error = err instanceof Error ? err.message : '构建上下文包失败'
@@ -62,6 +88,62 @@ export const useContextStore = create<ContextState & ContextActions>()(
             })
             showOperationError('构建上下文包', err)
           }
+        },
+
+        extractDerivedContext: () => {
+          const { contextPack } = get()
+          if (!contextPack) {
+            set((s) => { s.derivedContext = initialDerivedContext })
+            return
+          }
+
+          const sections = contextPack.sections || {}
+          const meta = contextPack.meta || {}
+
+          // Extract character names from sections
+          const characterNames: string[] = []
+          if (sections.characters && Array.isArray(sections.characters)) {
+            for (const char of sections.characters) {
+              if (typeof char === 'object' && char !== null && 'name' in char) {
+                characterNames.push((char as { name: string }).name)
+              } else if (typeof char === 'string') {
+                characterNames.push(char)
+              }
+            }
+          }
+
+          // Extract open plot threads from sections
+          const openPlotThreads: string[] = []
+          if (sections.plot_threads && Array.isArray(sections.plot_threads)) {
+            for (const thread of sections.plot_threads) {
+              if (typeof thread === 'string') {
+                openPlotThreads.push(thread)
+              } else if (typeof thread === 'object' && thread !== null && 'description' in thread) {
+                openPlotThreads.push((thread as { description: string }).description)
+              }
+            }
+          }
+
+          // Extract recent chapter summaries from meta
+          const recentSummaries: string[] = []
+          if (meta.chapter_summaries && Array.isArray(meta.chapter_summaries)) {
+            for (const summary of meta.chapter_summaries) {
+              if (typeof summary === 'string') {
+                recentSummaries.push(summary)
+              } else if (typeof summary === 'object' && summary !== null && 'text' in summary) {
+                recentSummaries.push((summary as { text: string }).text)
+              }
+            }
+          }
+
+          set((s) => {
+            s.derivedContext = {
+              characterNames,
+              openPlotThreads,
+              recentSummaries,
+              updatedAt: Date.now(),
+            }
+          })
         },
 
         reset: () => {
@@ -73,6 +155,7 @@ export const useContextStore = create<ContextState & ContextActions>()(
         storage: createHybridStorage(),
         partialize: (state) => ({
           contextPack: state.contextPack,
+          derivedContext: state.derivedContext,
         }),
       },
     ),
@@ -86,6 +169,10 @@ export const useContextStore = create<ContextState & ContextActions>()(
 export const selectContextPack = (s: ContextState) => s.contextPack
 export const selectContextLoading = (s: ContextState) => s.loading
 export const selectContextError = (s: ContextState) => s.error
+export const selectDerivedContext = (s: ContextState) => s.derivedContext
+export const selectCharacterNames = (s: ContextState) => s.derivedContext.characterNames
+export const selectOpenPlotThreads = (s: ContextState) => s.derivedContext.openPlotThreads
+export const selectRecentSummaries = (s: ContextState) => s.derivedContext.recentSummaries
 
 export const cleanupContextStore = () => {
   useContextStore.setState(initialState)

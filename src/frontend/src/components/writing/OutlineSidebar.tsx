@@ -21,6 +21,26 @@ import {
 } from 'lucide-react'
 import { Icon } from '@/components/ui/Icon'
 import { DURATION, EASE } from '@/components/shared/AnimationConfig'
+import { showToast } from '@/components/ui/Toast'
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  type DragEndEvent,
+  type DragStartEvent,
+  type DragOverEvent,
+} from '@dnd-kit/core'
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  verticalListSortingStrategy,
+  useSortable,
+} from '@dnd-kit/sortable'
+import { CSS } from '@dnd-kit/utilities'
 
 // Re-export sub-components
 export { TreeNode } from './OutlineTreeNode'
@@ -29,6 +49,48 @@ export { EmptyState, PlotThreadItem, IFLineItem } from './OutlineItems'
 
 import { TreeNode, type OutlineItem } from './OutlineTreeNode'
 import { EmptyState, PlotThreadItem, IFLineItem } from './OutlineItems'
+
+/* ============================================================
+   SortableTreeNode - Wrapper for TreeNode with drag-and-drop
+   ============================================================ */
+
+function SortableTreeNode({
+  item,
+  onSelect,
+  selectedId,
+  isDragging,
+}: {
+  item: OutlineItem
+  onSelect: (id: string) => void
+  selectedId: string | null
+  isDragging?: boolean
+}) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging: isSortableDragging,
+  } = useSortable({ id: item.id })
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isSortableDragging ? 0.5 : 1,
+  }
+
+  return (
+    <div ref={setNodeRef} style={style} {...attributes} {...listeners}>
+      <TreeNode
+        item={item}
+        onSelect={onSelect}
+        selectedId={selectedId}
+        isDragging={isDragging || isSortableDragging}
+      />
+    </div>
+  )
+}
 
 /* ============================================================
    OutlineSidebar -- Main Component
@@ -47,10 +109,24 @@ export function OutlineSidebar() {
     ifLines,
     fetchIFLines,
     createChapter,
+    updateChapter,
   } = useContentStore()
 
   const [activeTab, setActiveTab] = useState<'outline' | 'plot' | 'ifline'>('outline')
   const [outlineData, setOutlineData] = useState<OutlineItem[]>([])
+  const [activeId, setActiveId] = useState<string | null>(null)
+
+  // DnD sensors
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 8,
+      },
+    }),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  )
 
   useEffect(() => {
     fetchPlotThreads('open')
@@ -82,6 +158,46 @@ export function OutlineSidebar() {
   const handleAddChapter = useCallback(async () => {
     await createChapter({})
   }, [createChapter])
+
+  // Drag-and-drop handlers
+  const handleDragStart = useCallback((event: DragStartEvent) => {
+    setActiveId(String(event.active.id))
+  }, [])
+
+  const handleDragOver = useCallback((_event: DragOverEvent) => {
+    // Handle drag over if needed
+  }, [])
+
+  const handleDragEnd = useCallback(async (event: DragEndEvent) => {
+    const { active, over } = event
+    setActiveId(null)
+
+    if (!over || active.id === over.id) {
+      return
+    }
+
+    const oldIndex = outlineData.findIndex((item) => item.id === String(active.id))
+    const newIndex = outlineData.findIndex((item) => item.id === String(over.id))
+
+    if (oldIndex === -1 || newIndex === -1) {
+      return
+    }
+
+    // Reorder the outline data
+    const newOutlineData = arrayMove(outlineData, oldIndex, newIndex)
+    setOutlineData(newOutlineData)
+
+    // Update chapter order in the store
+    try {
+      const chapterId = parseInt(String(active.id))
+      if (!isNaN(chapterId)) {
+        await updateChapter(chapterId, { chapter_order: newIndex + 1 })
+        showToast('章节顺序已更新', 'success')
+      }
+    } catch {
+      showToast('更新章节顺序失败', 'error')
+    }
+  }, [outlineData, updateChapter])
 
   const handleRevealThread = useCallback(async (threadId: number) => {
     await updatePlotThread(threadId, { status: 'revealed' })
@@ -189,38 +305,50 @@ export function OutlineSidebar() {
                   }
                 />
               ) : (
-                <>
-                  {outlineData.map((item) => (
-                    <TreeNode
-                      key={item.id}
-                      item={item}
-                      onSelect={handleChapterSelect}
-                      selectedId={currentChapterId ? String(currentChapterId) : null}
-                    />
-                  ))}
-
-                  {/* Add chapter button */}
-                  <div className="pt-2 pb-1 px-1">
-                    <motion.button
-                      onClick={handleAddChapter}
-                      whileHover={{ scale: 1.01 }}
-                      whileTap={{ scale: 0.99 }}
-                      className="
-                        w-full flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl
-                        border border-dashed border-[var(--border-default)]
-                        text-xs font-medium text-[var(--text-tertiary)]
-                        hover:text-[var(--accent-primary)] hover:border-[var(--accent-primary)]/40
-                        hover:bg-[var(--accent-primary)]/5
-                        transition-all duration-200
-                        group
-                      "
-                    >
-                      <Icon icon={Plus} size="xs" className="transition-transform duration-200 group-hover:scale-110" />
-                      <span>添加章节</span>
-                    </motion.button>
-                  </div>
-                </>
+                <DndContext
+                  sensors={sensors}
+                  collisionDetection={closestCenter}
+                  onDragStart={handleDragStart}
+                  onDragOver={handleDragOver}
+                  onDragEnd={handleDragEnd}
+                >
+                  <SortableContext
+                    items={outlineData.map((item) => item.id)}
+                    strategy={verticalListSortingStrategy}
+                  >
+                    {outlineData.map((item) => (
+                      <SortableTreeNode
+                        key={item.id}
+                        item={item}
+                        onSelect={handleChapterSelect}
+                        selectedId={currentChapterId ? String(currentChapterId) : null}
+                        isDragging={activeId === item.id}
+                      />
+                    ))}
+                  </SortableContext>
+                </DndContext>
               )}
+
+              {/* Add chapter button */}
+              <div className="pt-2 pb-1 px-1">
+                <motion.button
+                  onClick={handleAddChapter}
+                  whileHover={{ scale: 1.01 }}
+                  whileTap={{ scale: 0.99 }}
+                  className="
+                    w-full flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl
+                    border border-dashed border-[var(--border-default)]
+                    text-xs font-medium text-[var(--text-tertiary)]
+                    hover:text-[var(--accent-primary)] hover:border-[var(--accent-primary)]/40
+                    hover:bg-[var(--accent-primary)]/5
+                    transition-all duration-200
+                    group
+                  "
+                >
+                  <Icon icon={Plus} size="xs" className="transition-transform duration-200 group-hover:scale-110" />
+                  <span>添加章节</span>
+                </motion.button>
+              </div>
             </motion.div>
           )}
 
