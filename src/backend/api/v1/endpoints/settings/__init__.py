@@ -67,6 +67,7 @@ from backend.api.v1.endpoints.settings.settings_world import router as world_rou
 from backend.api.v1.endpoints.settings.settings_rules import router as rules_router
 from backend.api.v1.endpoints.settings.settings_writing import router as writing_router
 from backend.api.v1.endpoints.settings.settings_ai_provider import router as ai_provider_router
+from backend.api.v1.endpoints.settings.settings_relations import router as relations_router
 
 # ---------------------------------------------------------------------------
 # Parent router — prefix and tags are set here; sub-routers have neither
@@ -86,3 +87,4 @@ router.include_router(world_router)
 router.include_router(rules_router)
 router.include_router(writing_router)
 router.include_router(ai_provider_router)
+router.include_router(relations_router)

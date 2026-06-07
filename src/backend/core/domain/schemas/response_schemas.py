@@ -379,3 +379,27 @@ class ConnectionTestResponse(BaseModel):
     latency_ms: float
     message: str
     error_detail: Optional[str] = None
+
+
+# ============================================
+# Entity Relation Response Schema
+# ============================================
+
+class EntityRelationResponse(BaseModel):
+    """Cross-entity relation response."""
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    project_id: Optional[int]
+    source_type: str
+    source_id: int
+    target_type: str
+    target_id: int
+    relation_type: str
+    label: Optional[str]
+    description: Optional[str]
+    properties_json: Optional[str]
+    directed: Optional[int]
+    weight: Optional[float]
+    created_at: datetime
+    updated_at: datetime

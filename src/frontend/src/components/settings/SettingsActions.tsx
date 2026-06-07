@@ -4,10 +4,12 @@ import { useSettingsStore } from '@/store/settingsStore'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   RefreshCw, Check, AlertCircle, Keyboard, Zap, BarChart3,
+  GitBranch, Eye,
 } from 'lucide-react'
 import { Icon } from '@/components/ui/Icon'
 import { Button } from '@/components/ui/Button'
 import { DURATION, EASE, SPRING } from '@/components/shared/AnimationConfig'
+import { CanvasView } from './CanvasView'
 
 const RelationGraph = lazy(() => import('./RelationGraph'))
 
@@ -142,9 +144,10 @@ export function StatusBar() {
   )
 }
 
-// Right panel: RelationGraph
+// Right panel: RelationGraph with ReactFlow / force-graph toggle
 export function RelationPanel() {
   const generateRelations = useSettingsStore((state) => state.generateRelations)
+  const [graphMode, setGraphMode] = useState<'reactflow' | 'forcegraph'>('reactflow')
 
   return (
     <motion.div
@@ -169,19 +172,35 @@ export function RelationPanel() {
             关系图谱
           </span>
         </div>
-        <Button
-          onClick={generateRelations}
-          variant="ghost"
-          size="icon"
-          title="生成关系"
-        >
-          <Icon icon={RefreshCw} size="sm" color="inherit" />
-        </Button>
+        <div className="flex items-center gap-1">
+          <Button
+            onClick={() => setGraphMode(graphMode === 'reactflow' ? 'forcegraph' : 'reactflow')}
+            variant="ghost"
+            size="sm"
+            title={graphMode === 'reactflow' ? '切换到快速预览 (force-graph)' : '切换到编辑模式 (ReactFlow)'}
+            className="gap-1 text-[10px]"
+          >
+            <Icon icon={graphMode === 'reactflow' ? Eye : GitBranch} size="xs" color="inherit" />
+            {graphMode === 'reactflow' ? '快速预览' : '编辑模式'}
+          </Button>
+          <Button
+            onClick={generateRelations}
+            variant="ghost"
+            size="icon"
+            title="生成关系"
+          >
+            <Icon icon={RefreshCw} size="sm" color="inherit" />
+          </Button>
+        </div>
       </div>
       <div className="flex-1 overflow-hidden">
-        <Suspense fallback={<div className="flex items-center justify-center h-full text-sm text-[var(--text-tertiary)]">加载关系图谱...</div>}>
-          <RelationGraph />
-        </Suspense>
+        {graphMode === 'reactflow' ? (
+          <CanvasView />
+        ) : (
+          <Suspense fallback={<div className="flex items-center justify-center h-full text-sm text-[var(--text-tertiary)]">加载关系图谱...</div>}>
+            <RelationGraph />
+          </Suspense>
+        )}
       </div>
     </motion.div>
   )

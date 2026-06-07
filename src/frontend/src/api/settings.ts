@@ -3,6 +3,7 @@ import type {
   Character,
   CharacterRelationship,
   CharacterStoryline,
+  EntityRelation,
   Item,
   Location,
   Faction,
@@ -71,6 +72,17 @@ export const relationshipApi = {
   ): Promise<CharacterRelationship> =>
     api.post<CharacterRelationship>(
       `/settings/characters/${characterId}/relationships`,
+      data
+    ),
+
+  /** Update a relationship. */
+  update: async (
+    characterId: number,
+    relationshipId: number,
+    data: Partial<CharacterRelationship>
+  ): Promise<CharacterRelationship> =>
+    api.put<CharacterRelationship>(
+      `/settings/characters/${characterId}/relationships/${relationshipId}`,
       data
     ),
 
@@ -297,6 +309,44 @@ export const writingSettingsApi = {
 }
 
 // ============================================
+// Entity Relations (cross-entity graph relationships)
+// ============================================
+
+export const entityRelationApi = {
+  /** List all relations, optionally filtered by source/target entity. */
+  list: async (params?: {
+    source_type?: string
+    source_id?: number
+    target_type?: string
+    target_id?: number
+  }): Promise<EntityRelation[]> =>
+    api.get<EntityRelation[]>("/settings/relations", params ?? {}),
+
+  /** Get a specific relation by ID. */
+  get: async (id: number): Promise<EntityRelation> =>
+    api.get<EntityRelation>(`/settings/relations/${id}`),
+
+  /** Create a new relation. */
+  create: async (data: Partial<EntityRelation>): Promise<EntityRelation> =>
+    api.post<EntityRelation>("/settings/relations", data),
+
+  /** Update an existing relation. */
+  update: async (id: number, data: Partial<EntityRelation>): Promise<EntityRelation> =>
+    api.patch<EntityRelation>(`/settings/relations/${id}`, data),
+
+  /** Delete a relation. */
+  delete: async (id: number): Promise<{ message: string }> =>
+    api.delete<{ message: string }>(`/settings/relations/${id}`),
+
+  /** Get all relations for a specific entity (as source or target). */
+  getByEntity: async (entityType: string, entityId: number): Promise<EntityRelation[]> =>
+    api.get<EntityRelation[]>("/settings/relations", {
+      source_type: entityType,
+      source_id: entityId,
+    }),
+}
+
+// ============================================
 // Export / Import
 // ============================================
 
@@ -341,6 +391,7 @@ export default {
   character: characterApi,
   relationship: relationshipApi,
   storyline: storylineApi,
+  entityRelation: entityRelationApi,
   item: itemApi,
   location: locationApi,
   faction: factionApi,

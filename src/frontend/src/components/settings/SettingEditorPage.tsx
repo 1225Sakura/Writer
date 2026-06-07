@@ -5,6 +5,7 @@ import { DURATION, EASE } from '@/components/shared/AnimationConfig'
 import { SettingsNav } from './SettingsNav'
 import { SettingsContent } from './SettingsContent'
 import { RelationPanel } from './SettingsActions'
+import { usePersistedViewMode } from './ViewSwitcher'
 
 
 export function SettingEditorPage() {
@@ -13,7 +14,7 @@ export function SettingEditorPage() {
   const redo = useSettingsStore((state) => state.redo)
   const [sidebarOpen, setSidebarOpen] = useState(true)
   const [mobileNavOpen, setMobileNavOpen] = useState(false)
-  const [viewMode, setViewMode] = useState<'edit' | 'canvas'>('edit')
+  const [viewMode, setViewMode] = usePersistedViewMode('list')
 
   useEffect(() => {
     loadAll()
@@ -57,7 +58,7 @@ export function SettingEditorPage() {
 
       <SettingsContent
         viewMode={viewMode}
-        onToggleViewMode={() => setViewMode(viewMode === 'edit' ? 'canvas' : 'edit')}
+        onViewModeChange={setViewMode}
         onMobileNavOpen={() => setMobileNavOpen(true)}
       />
 

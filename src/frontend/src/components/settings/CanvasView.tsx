@@ -1,4 +1,4 @@
-import { useMemo, useCallback, useEffect, type CSSProperties } from 'react'
+import { useMemo, useCallback, useEffect, useState, useRef, type CSSProperties } from 'react'
 import {
   ReactFlow,
   Background,
@@ -9,10 +9,21 @@ import {
   type Node,
   type Edge,
   type ColorMode,
+  type Connection,
 } from '@xyflow/react'
 import '@xyflow/react/dist/style.css'
 import { useSettingsStore } from '@/store/settingsStore'
 import { CanvasNode, type CanvasNodeData } from './CanvasNode'
+import {
+  RelationshipEdge,
+  RELATIONSHIP_TYPES,
+  type RelType,
+  type RelationshipEdgeData,
+} from './RelationshipEdge'
+import { CanvasContextMenu, type ContextMenuItem } from './CanvasContextMenu'
+import { RelationshipDetailPanel } from './RelationshipDetailPanel'
+import { RelationshipTypePicker } from './RelationshipTypePicker'
+import { Trash2, Edit3, Link, Eye } from 'lucide-react'
 
 // Entity type config for canvas nodes
 const ENTITY_TYPES = [
@@ -40,7 +51,15 @@ function autoLayout(nodes: Node[]): Node[] {
   }))
 }
 
+/** Parse entity ID like "char_5" → { prefix: "char", numericId: 5 } */
+function parseEntityNodeId(nodeId: string): { prefix: string; numericId: number } | null {
+  const match = nodeId.match(/^(\w+)_(\d+)$/)
+  if (!match) return null
+  return { prefix: match[1], numericId: Number(match[2]) }
+}
+
 const nodeTypes = { entityNode: CanvasNode }
+const edgeTypes = { relationship: RelationshipEdge }
 
 const miniMapStyle: CSSProperties = {
   backgroundColor: 'var(--paper-80)',
@@ -56,6 +75,27 @@ export function CanvasView() {
   const worldSettings = useSettingsStore((s) => s.worldSettings)
   const rules = useSettingsStore((s) => s.rules)
   const ifLines = useSettingsStore((s) => s.ifLines)
+  const addRelationship = useSettingsStore((s) => s.addRelationship)
+  const updateRelationship = useSettingsStore((s) => s.updateRelationship)
+  const removeRelationship = useSettingsStore((s) => s.removeRelationship)
+
+  // Context menu state
+  const [contextMenu, setContextMenu] = useState<{
+    x: number
+    y: number
+    items: ContextMenuItem[]
+  } | null>(null)
+
+  // Detail panel state
+  const [detailEdgeId, setDetailEdgeId] = useState<string | null>(null)
+
+  // Pending connection state (for new edge creation)
+  const [pendingConnection, setPendingConnection] = useState<{
+    sourceId: string
+    targetId: string
+    sourceLabel: string
+    targetLabel: string
+  } | null>(null)
 
   // Build nodes from entities
   const initialNodes = useMemo(() => {
@@ -85,7 +125,7 @@ export function CanvasView() {
 
   // Build edges from relationships
   const initialEdges = useMemo(() => {
-    const edges: Edge[] = []
+    const edges: Edge<RelationshipEdgeData>[] = []
 
     // Character relationships
     for (const char of characters) {
@@ -94,17 +134,18 @@ export function CanvasView() {
         const targetId = `char_${rel.targetId}`
         // Only add if target exists
         if (characters.some((c) => c.id === rel.targetId)) {
+          const relType: RelType =
+            rel.type in RELATIONSHIP_TYPES ? (rel.type as RelType) : 'other'
           edges.push({
             id: `rel_${char.id}_${rel.targetId}`,
             source: sourceId,
             target: targetId,
-            type: 'straight',
-            animated: rel.type === 'romantic',
-            style: {
-              stroke: 'var(--accent-primary)',
-              strokeWidth: 1.5,
-              strokeDasharray: '6 3',
-              opacity: 0.6,
+            type: 'relationship',
+            data: {
+              relationType: relType,
+              description: rel.description,
+              characterId: char.id,
+              relationshipId: rel.id,
             },
           })
         }
@@ -120,12 +161,8 @@ export function CanvasView() {
             id: `owns_${owner.id}_${item.id}`,
             source: `char_${owner.id}`,
             target: `item_${item.id}`,
-            style: {
-              stroke: 'var(--accent-primary)',
-              strokeWidth: 1,
-              strokeDasharray: '4 4',
-              opacity: 0.4,
-            },
+            type: 'relationship',
+            data: { relationType: 'other' },
           })
         }
       }
@@ -136,12 +173,8 @@ export function CanvasView() {
             id: `loc_${item.id}_${loc.id}`,
             source: `item_${item.id}`,
             target: `loc_${loc.id}`,
-            style: {
-              stroke: 'var(--accent-primary)',
-              strokeWidth: 1,
-              strokeDasharray: '4 4',
-              opacity: 0.4,
-            },
+            type: 'relationship',
+            data: { relationType: 'other' },
           })
         }
       }
@@ -153,61 +186,290 @@ export function CanvasView() {
   const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes)
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges)
 
+  // Keep a ref to edges for context menu callbacks
+  const edgesRef = useRef(edges)
+  edgesRef.current = edges
+  const nodesRef = useRef(nodes)
+  nodesRef.current = nodes
+
   // Sync when entities change
   useEffect(() => {
     setNodes(initialNodes)
     setEdges(initialEdges)
   }, [initialNodes, initialEdges, setNodes, setEdges])
 
-  const onNodeClick = useCallback((_event: React.MouseEvent, node: Node) => {
-    // Highlight connected edges on click
-    setEdges((eds) =>
-      eds.map((e) => ({
-        ...e,
-        style: {
-          ...e.style,
-          opacity: e.source === node.id || e.target === node.id ? 0.9 : 0.2,
-          strokeWidth: e.source === node.id || e.target === node.id ? 2 : 1,
-        },
-      }))
-    )
+  // ---- Node click: highlight connected edges ----
+  const onNodeClick = useCallback(
+    (_event: React.MouseEvent, node: Node) => {
+      setEdges((eds) =>
+        eds.map((e) => ({
+          ...e,
+          selected: e.source === node.id || e.target === node.id,
+        })),
+      )
+    },
+    [setEdges],
+  )
+
+  // ---- Pane click: reset selection ----
+  const onPaneClick = useCallback(() => {
+    setEdges((eds) => eds.map((e) => ({ ...e, selected: false })))
+    setContextMenu(null)
+    setDetailEdgeId(null)
   }, [setEdges])
 
-  const onPaneClick = useCallback(() => {
-    // Reset all edge highlights
-    setEdges((eds) =>
-      eds.map((e) => ({
-        ...e,
-        style: {
-          ...e.style,
-          opacity: 0.6,
-          strokeWidth: 1.5,
+  // ---- Node right-click ----
+  const onNodeContextMenu = useCallback(
+    (event: React.MouseEvent, node: Node) => {
+      event.preventDefault()
+      const parsed = parseEntityNodeId(node.id)
+
+      const items: ContextMenuItem[] = [
+        {
+          key: 'view',
+          label: '查看详情',
+          icon: <Eye size={14} />,
+          onClick: () => {
+            // Highlight connected edges
+            setEdges((eds) =>
+              eds.map((e) => ({
+                ...e,
+                selected: e.source === node.id || e.target === node.id,
+              })),
+            )
+          },
         },
-      }))
-    )
-  }, [setEdges])
+        {
+          key: 'add-rel',
+          label: '添加关系...',
+          icon: <Link size={14} />,
+          onClick: () => {
+            // Relationship creation is done via drag-connect handles
+          },
+          disabled: !parsed || parsed.prefix !== 'char',
+        },
+      ]
+
+      setContextMenu({ x: event.clientX, y: event.clientY, items })
+    },
+    [setEdges],
+  )
+
+  // ---- Pane right-click: close menu ----
+  const onPaneContextMenu = useCallback((event: React.MouseEvent | MouseEvent) => {
+    event.preventDefault()
+    setContextMenu(null)
+  }, [])
+
+  // ---- Edge click: show detail panel ----
+  const onEdgeClick = useCallback(
+    (_event: React.MouseEvent, edge: Edge) => {
+      setDetailEdgeId(edge.id)
+      setEdges((eds) =>
+        eds.map((e) => ({ ...e, selected: e.id === edge.id })),
+      )
+    },
+    [setEdges],
+  )
+
+  // ---- Edge right-click: context menu ----
+  const onEdgeContextMenu = useCallback(
+    (event: React.MouseEvent | MouseEvent, edge: Edge) => {
+      event.preventDefault()
+      const data = edge.data as RelationshipEdgeData | undefined
+
+      const items: ContextMenuItem[] = [
+        {
+          key: 'detail',
+          label: '编辑关系',
+          icon: <Edit3 size={14} />,
+          onClick: () => setDetailEdgeId(edge.id),
+        },
+        {
+          key: 'delete',
+          label: '删除关系',
+          icon: <Trash2 size={14} />,
+          danger: true,
+          onClick: () => {
+            setEdges((eds) => eds.filter((e) => e.id !== edge.id))
+            if (data?.characterId && data?.relationshipId) {
+              removeRelationship(data.characterId, data.relationshipId)
+            }
+          },
+        },
+      ]
+
+      setContextMenu({ x: event.clientX, y: event.clientY, items })
+    },
+    [removeRelationship, setEdges],
+  )
+
+  // ---- New connection created via drag ----
+  const onConnect = useCallback(
+    (connection: Connection) => {
+      if (!connection.source || !connection.target) return
+
+      const sourceNode = nodesRef.current.find((n) => n.id === connection.source)
+      const targetNode = nodesRef.current.find((n) => n.id === connection.target)
+      if (!sourceNode || !targetNode) return
+
+      // Prevent self-loops
+      if (connection.source === connection.target) return
+
+      // Prevent duplicate edges
+      const exists = edgesRef.current.some(
+        (e) => e.source === connection.source && e.target === connection.target,
+      )
+      if (exists) return
+
+      const sourceLabel =
+        (sourceNode.data as CanvasNodeData)?.entityName || connection.source
+      const targetLabel =
+        (targetNode.data as CanvasNodeData)?.entityName || connection.target
+
+      setPendingConnection({
+        sourceId: connection.source,
+        targetId: connection.target,
+        sourceLabel,
+        targetLabel,
+      })
+    },
+    [],
+  )
+
+  // ---- Handle relationship type selection from picker ----
+  const handleRelationshipTypeSelect = useCallback(
+    async (relType: RelType) => {
+      if (!pendingConnection) return
+
+      const { sourceId, targetId } = pendingConnection
+      const sourceParsed = parseEntityNodeId(sourceId)
+      const targetParsed = parseEntityNodeId(targetId)
+
+      const newEdgeId = `new_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`
+
+      // Add edge to canvas
+      setEdges((eds) => [
+        ...eds,
+        {
+          id: newEdgeId,
+          source: sourceId,
+          target: targetId,
+          type: 'relationship',
+          data: {
+            relationType: relType,
+            description: '',
+          } as RelationshipEdgeData,
+        },
+      ])
+
+      // Persist to store if both are characters
+      if (
+        sourceParsed?.prefix === 'char' &&
+        targetParsed?.prefix === 'char'
+      ) {
+        try {
+          await addRelationship(sourceParsed.numericId, {
+            targetId: targetParsed.numericId,
+            type: relType,
+            description: '',
+          })
+        } catch {
+          // Error already handled by store toast
+        }
+      }
+
+      setPendingConnection(null)
+    },
+    [pendingConnection, addRelationship, setEdges],
+  )
+
+  // ---- Handle relationship type update from detail panel ----
+  const handleUpdateRelationType = useCallback(
+    (edgeId: string, newType: RelType) => {
+      setEdges((eds) =>
+        eds.map((e) => {
+          if (e.id !== edgeId) return e
+          return {
+            ...e,
+            data: {
+              ...e.data,
+              relationType: newType,
+            } as RelationshipEdgeData,
+          }
+        }),
+      )
+
+      // Persist to store
+      const edge = edgesRef.current.find((e) => e.id === edgeId)
+      const data = edge?.data as RelationshipEdgeData | undefined
+      if (data?.characterId && data?.relationshipId) {
+        updateRelationship(data.characterId, data.relationshipId, {
+          type: newType,
+        })
+      }
+    },
+    [setEdges, updateRelationship],
+  )
+
+  // ---- Handle delete from detail panel ----
+  const handleDeleteFromPanel = useCallback(
+    (edgeId: string) => {
+      setEdges((eds) => eds.filter((e) => e.id !== edgeId))
+      const edge = edgesRef.current.find((e) => e.id === edgeId)
+      const data = edge?.data as RelationshipEdgeData | undefined
+      if (data?.characterId && data?.relationshipId) {
+        removeRelationship(data.characterId, data.relationshipId)
+      }
+      setDetailEdgeId(null)
+    },
+    [setEdges, removeRelationship],
+  )
+
+  // ---- Get label for a node ID ----
+  const getNodeLabel = useCallback(
+    (nodeId: string): string => {
+      const node = nodesRef.current.find((n) => n.id === nodeId)
+      return (node?.data as CanvasNodeData)?.entityName || nodeId
+    },
+    [],
+  )
+
+  // Detail panel edge data
+  const detailEdge = detailEdgeId
+    ? edgesRef.current.find((e) => e.id === detailEdgeId)
+    : null
 
   return (
-    <div className="w-full h-full" style={{ background: 'var(--ink-100)' }}>
+    <div className="w-full h-full relative" style={{ background: 'var(--ink-100)' }}>
       <ReactFlow
         nodes={nodes}
         edges={edges}
         onNodesChange={onNodesChange}
         onEdgesChange={onEdgesChange}
         onNodeClick={onNodeClick}
+        onNodeContextMenu={onNodeContextMenu}
         onPaneClick={onPaneClick}
+        onPaneContextMenu={onPaneContextMenu}
+        onEdgeClick={onEdgeClick}
+        onEdgeContextMenu={onEdgeContextMenu}
+        onConnect={onConnect}
         nodeTypes={nodeTypes}
+        edgeTypes={edgeTypes}
         fitView
         fitViewOptions={{ padding: 0.2 }}
         colorMode={'dark' as ColorMode}
         style={{ background: 'transparent' }}
         defaultEdgeOptions={{
-          style: {
-            stroke: 'var(--accent-primary)',
-            strokeWidth: 1.5,
-            strokeDasharray: '6 3',
-          },
+          type: 'relationship',
         }}
+        connectionLineStyle={{
+          stroke: 'var(--accent-primary)',
+          strokeWidth: 2,
+          strokeDasharray: '6 3',
+        }}
+        deleteKeyCode={null}
+        proOptions={{ hideAttribution: true }}
       >
         <Background
           color="rgba(var(--accent-rgb), 0.08)"
@@ -216,15 +478,17 @@ export function CanvasView() {
         />
         <Controls
           showInteractive={false}
-          style={{
-            button: {
-              backgroundColor: 'var(--paper-80)',
-              borderColor: 'var(--border-default)',
-              color: 'var(--ink-100)',
-              width: 28,
-              height: 28,
-            },
-          } as CSSProperties}
+          style={
+            {
+              button: {
+                backgroundColor: 'var(--paper-80)',
+                borderColor: 'var(--border-default)',
+                color: 'var(--ink-100)',
+                width: 28,
+                height: 28,
+              },
+            } as CSSProperties
+          }
         />
         <MiniMap
           style={miniMapStyle}
@@ -234,6 +498,39 @@ export function CanvasView() {
           zoomable
         />
       </ReactFlow>
+
+      {/* Context Menu */}
+      {contextMenu && (
+        <CanvasContextMenu
+          x={contextMenu.x}
+          y={contextMenu.y}
+          items={contextMenu.items}
+          onClose={() => setContextMenu(null)}
+        />
+      )}
+
+      {/* Relationship Detail Panel */}
+      {detailEdge && detailEdge.data && (
+        <RelationshipDetailPanel
+          edgeId={detailEdge.id}
+          sourceLabel={getNodeLabel(detailEdge.source)}
+          targetLabel={getNodeLabel(detailEdge.target)}
+          data={detailEdge.data as RelationshipEdgeData}
+          onUpdateRelationType={handleUpdateRelationType}
+          onDelete={handleDeleteFromPanel}
+          onClose={() => setDetailEdgeId(null)}
+        />
+      )}
+
+      {/* Relationship Type Picker (on new connection) */}
+      {pendingConnection && (
+        <RelationshipTypePicker
+          sourceLabel={pendingConnection.sourceLabel}
+          targetLabel={pendingConnection.targetLabel}
+          onSelect={handleRelationshipTypeSelect}
+          onCancel={() => setPendingConnection(null)}
+        />
+      )}
     </div>
   )
 }

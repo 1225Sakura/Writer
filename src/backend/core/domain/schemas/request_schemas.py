@@ -961,3 +961,59 @@ class AIProviderConfigTestRequest(BaseModel):
     model_name: str = Field(..., min_length=1)
     max_tokens: int = Field(default=4096, ge=1, le=1000000)
     temperature: float = Field(default=0.7, ge=0.0, le=2.0)
+
+
+# ============================================
+# Entity Relation Request Schemas
+# ============================================
+
+class EntityRelationCreateRequest(BaseModel):
+    """Request to create a cross-entity relation."""
+    model_config = ConfigDict(str_strip_whitespace=True)
+
+    source_type: str = Field(..., min_length=1, max_length=32)
+    source_id: int = Field(..., gt=0)
+    target_type: str = Field(..., min_length=1, max_length=32)
+    target_id: int = Field(..., gt=0)
+    relation_type: str = Field(..., min_length=1, max_length=64)
+    label: Optional[str] = Field(default=None, max_length=255)
+    description: Optional[str] = Field(default=None, max_length=MAX_DESCRIPTION_LENGTH)
+    properties_json: Optional[str] = Field(default=None, max_length=MAX_JSON_LENGTH)
+    directed: Optional[int] = Field(default=1)
+    weight: Optional[float] = Field(default=1.0)
+
+    @field_validator('source_type', 'target_type', 'relation_type')
+    @classmethod
+    def sanitize_relation_fields(cls, v: str) -> str:
+        return sanitize_text(v, max_length=100) if v else v
+
+    @field_validator('label', 'description')
+    @classmethod
+    def sanitize_optional_text(cls, v: Optional[str]) -> Optional[str]:
+        return sanitize_text(v, max_length=MAX_TEXT_FIELD_LENGTH) if v else v
+
+
+class EntityRelationUpdateRequest(BaseModel):
+    """Request to update a cross-entity relation."""
+    model_config = ConfigDict(str_strip_whitespace=True)
+
+    source_type: Optional[str] = Field(default=None, min_length=1, max_length=32)
+    source_id: Optional[int] = Field(default=None, gt=0)
+    target_type: Optional[str] = Field(default=None, min_length=1, max_length=32)
+    target_id: Optional[int] = Field(default=None, gt=0)
+    relation_type: Optional[str] = Field(default=None, min_length=1, max_length=64)
+    label: Optional[str] = Field(default=None, max_length=255)
+    description: Optional[str] = Field(default=None, max_length=MAX_DESCRIPTION_LENGTH)
+    properties_json: Optional[str] = Field(default=None, max_length=MAX_JSON_LENGTH)
+    directed: Optional[int] = None
+    weight: Optional[float] = None
+
+    @field_validator('source_type', 'target_type', 'relation_type')
+    @classmethod
+    def sanitize_relation_fields(cls, v: Optional[str]) -> Optional[str]:
+        return sanitize_text(v, max_length=100) if v else v
+
+    @field_validator('label', 'description')
+    @classmethod
+    def sanitize_optional_text(cls, v: Optional[str]) -> Optional[str]:
+        return sanitize_text(v, max_length=MAX_TEXT_FIELD_LENGTH) if v else v

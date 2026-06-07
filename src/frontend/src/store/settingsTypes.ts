@@ -17,6 +17,7 @@ import type {
   WritingSettings,
   CharacterRelationship,
   CharacterStoryline,
+  EntityRelation,
 } from '../shared/types'
 import type { AIReviewResult } from '../api/types'
 
@@ -116,6 +117,7 @@ export interface SettingsDataState {
   outline: Outline | null
   chapters: Chapter[]
   ifLines: IFLine[]
+  relations: EntityRelation[]
   writingSettings: WritingSettings | null
   isLoading: boolean
   error: string | null

@@ -24,6 +24,7 @@ export type {
   Character,
   CharacterRelationship,
   CharacterStoryline,
+  EntityRelation,
   Item,
   Location,
   Faction,

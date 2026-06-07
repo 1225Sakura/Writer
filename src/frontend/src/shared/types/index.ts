@@ -204,6 +204,41 @@ export type EntityType =
   | "plot_thread"
   | "ifline"
 
+// ============================================
+// Entity Relations (cross-entity relationships)
+// ============================================
+
+export type RelationType =
+  | "enemy"
+  | "ally"
+  | "owns"
+  | "located_in"
+  | "belongs_to"
+  | "family"
+  | "friend"
+  | "master"
+  | "disciple"
+  | "rival"
+  | "romantic"
+  | "custom"
+
+export interface EntityRelation {
+  id: number
+  project_id?: number
+  source_type: string // 'character' | 'item' | 'location' | 'faction' | etc.
+  source_id: number
+  target_type: string
+  target_id: number
+  relation_type: string // RelationType or custom string
+  label?: string
+  description?: string
+  properties_json?: string
+  directed?: number
+  weight?: number
+  created_at: string
+  updated_at: string
+}
+
 export interface ExtractedEntity {
   id: number
   project_id?: number

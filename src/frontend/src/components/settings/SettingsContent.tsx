@@ -1,16 +1,21 @@
 import { useUIStore } from '@/store/uiStore'
 import { useSettingsStore } from '@/store/settingsStore'
 import type { SettingsCategory } from '@/store/uiStore'
+import { getSchema } from '@/shared/entitySchema'
 import { EntityEditor } from './EntityEditor'
 import { AISuggestionPanel } from './AISuggestionPanel'
 import { EntitySearch } from './EntitySearch'
 import { Button } from '@/components/ui/Button'
 import { CanvasView } from './CanvasView'
+import { KanbanView } from './KanbanView'
+import { TableView } from './TableView'
 import { ProjectDataPanel } from './ProjectDataPanel'
 import { RelationGraph } from './RelationGraph'
 import { SystemPanel } from './SystemPanel'
+import { ViewSwitcher } from './ViewSwitcher'
+import type { ViewMode } from './ViewSwitcher'
 import {
-  Settings, Sparkles, Menu, Network, List,
+  Settings, Sparkles, Menu,
 } from 'lucide-react'
 import { Icon } from '@/components/ui/Icon'
 import { motion } from 'framer-motion'
@@ -20,15 +25,23 @@ import { SPRING, DURATION, EASE } from '@/components/shared/AnimationConfig'
 import { StatusBar } from './SettingsActions'
 
 interface SettingsContentProps {
-  viewMode: 'edit' | 'canvas'
-  onToggleViewMode: () => void
+  viewMode: ViewMode
+  onViewModeChange: (mode: ViewMode) => void
   onMobileNavOpen: () => void
 }
 
-export function SettingsContent({ viewMode, onToggleViewMode, onMobileNavOpen }: SettingsContentProps) {
+const ENTITIES_MAP: Record<string, string> = {
+  item: 'items', location: 'locations', faction: 'factions',
+  world: 'worldSettings', rule: 'rules', ifline: 'ifLines', character: 'characters',
+}
+
+export function SettingsContent({ viewMode, onViewModeChange, onMobileNavOpen }: SettingsContentProps) {
   const { settingsCategory, setSettingsCategory } = useUIStore()
   const generate = useSettingsStore((state) => state.generate)
   const isLoading = useSettingsStore((state) => state.isLoading)
+  const store = useSettingsStore()
+  const entities = ENTITIES_MAP[settingsCategory] ? (store as any)[ENTITIES_MAP[settingsCategory]] || [] : []
+  const schema = getSchema(settingsCategory)
 
   return (
     <motion.div
@@ -68,16 +81,7 @@ export function SettingsContent({ viewMode, onToggleViewMode, onMobileNavOpen }:
             }
           }} />
           <div className="flex items-center gap-0.5 ml-1">
-            <Button
-              onClick={onToggleViewMode}
-              variant="ghost"
-              size="sm"
-              className="gap-1"
-              title={viewMode === 'edit' ? '切换到画布视图' : '切换到编辑视图'}
-            >
-              {viewMode === 'edit' ? <Icon icon={Network} size="xs" color="inherit" /> : <Icon icon={List} size="xs" color="inherit" />}
-              {viewMode === 'edit' ? '画布' : '编辑'}
-            </Button>
+            <ViewSwitcher value={viewMode} onChange={onViewModeChange} />
             <Button
               onClick={() => {
                 if (!['outline', 'ifline', 'projectData', 'graph', 'system'].includes(settingsCategory)) {
@@ -111,6 +115,24 @@ export function SettingsContent({ viewMode, onToggleViewMode, onMobileNavOpen }:
       ) : viewMode === 'canvas' ? (
         <div className="flex-1 relative">
           <CanvasView />
+        </div>
+      ) : viewMode === 'kanban' ? (
+        <div className="flex-1 overflow-y-auto p-6 relative">
+          <KanbanView
+            entities={entities}
+            groupField={schema?.fields[0]?.key || 'name'}
+            groupOptions={[]}
+            onUpdate={(id, data) => (store as any)[`update${settingsCategory.charAt(0).toUpperCase() + settingsCategory.slice(1)}`]?.(id, data)}
+          />
+        </div>
+      ) : viewMode === 'table' && schema ? (
+        <div className="flex-1 overflow-y-auto p-6 relative">
+          <TableView
+            schema={schema}
+            entities={entities}
+            onUpdate={(id, data) => (store as any)[`update${settingsCategory.charAt(0).toUpperCase() + settingsCategory.slice(1)}`]?.(id, data)}
+            onDelete={(id) => (store as any)[`delete${settingsCategory.charAt(0).toUpperCase() + settingsCategory.slice(1)}`]?.(id)}
+          />
         </div>
       ) : (
         <>

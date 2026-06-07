@@ -8,6 +8,7 @@ import {
   characterApi,
   relationshipApi,
   storylineApi,
+  entityRelationApi,
   itemApi,
   locationApi,
   factionApi,
@@ -35,6 +36,7 @@ import type {
   IFLine,
   EntityType,
   WritingSettings,
+  EntityRelation,
 } from '../shared/types'
 import type {
   Relationship,
@@ -66,6 +68,7 @@ export interface DataSliceState {
   outline: Outline | null
   chapters: Chapter[]
   ifLines: IFLine[]
+  relations: EntityRelation[]
   writingSettings: WritingSettings | null
   isLoading: boolean
   error: string | null
@@ -91,8 +94,14 @@ export interface DataSliceActions {
   updateCharacter: (id: number, updates: Partial<CharacterLocal>) => Promise<void>
   deleteCharacter: (id: number) => Promise<void>
   addRelationship: (characterId: number, relationship: Omit<Relationship, 'id'>) => Promise<void>
+  updateRelationship: (characterId: number, relationshipId: number, updates: Partial<Omit<Relationship, 'id'>>) => Promise<void>
   removeRelationship: (characterId: number, relationshipId: number) => Promise<void>
   updateStorylineProgress: (characterId: number, storylineId: number, progress: number) => Promise<void>
+  loadRelations: () => Promise<void>
+  addRelation: (data: Partial<EntityRelation>) => Promise<string>
+  updateRelation: (id: number, data: Partial<EntityRelation>) => Promise<void>
+  deleteRelation: (id: number) => Promise<void>
+  getRelationsForEntity: (entityType: string, entityId: number) => EntityRelation[]
   addItem: (item: Omit<Item, 'id'>) => Promise<string>
   updateItem: (id: number, updates: Partial<Item>) => Promise<void>
   deleteItem: (id: number) => Promise<void>
@@ -154,6 +163,7 @@ export const createDataSlice = (
   outline: null,
   chapters: [],
   ifLines: [],
+  relations: [],
   writingSettings: null,
   isLoading: false,
   error: null,
@@ -485,6 +495,31 @@ export const createDataSlice = (
     }
   },
 
+  updateRelationship: async (characterId, relationshipId, updates) => {
+    try {
+      const apiRel = await relationshipApi.update(characterId, relationshipId, {
+        target_id: updates.targetId,
+        type: updates.type,
+        description: updates.description,
+      })
+      set((state) => {
+        const char = state.characters.find((c) => c.id === characterId)
+        if (char) {
+          const rel = char.relationships.find((r) => r.id === relationshipId)
+          if (rel) {
+            if (apiRel.target_id !== undefined) rel.targetId = apiRel.target_id
+            if (apiRel.type !== undefined) {
+              rel.type = isValidRelationshipType(apiRel.type) ? apiRel.type : 'other'
+            }
+            if (apiRel.description !== undefined) rel.description = apiRel.description
+          }
+        }
+      })
+    } catch (error) {
+      showOperationError('更新关系', error)
+    }
+  },
+
   removeRelationship: async (characterId, relationshipId) => {
     try {
       await relationshipApi.delete(characterId, relationshipId)
@@ -512,6 +547,112 @@ export const createDataSlice = (
     } catch (error) {
       showOperationError('更新故事线进度', error)
     }
+  },
+
+  // ---- Entity Relation CRUD (cross-entity graph relationships) ----
+
+  loadRelations: async () => {
+    try {
+      const relations = await entityRelationApi.list()
+      set((state) => { state.relations = relations })
+    } catch (error) {
+      showOperationError('加载关系数据', error)
+    }
+  },
+
+  addRelation: async (data) => {
+    try {
+      const apiRel = await entityRelationApi.create(data)
+      set((state) => {
+        state.relations.push(apiRel)
+        state.history.push({
+          id: genHistoryId(),
+          timestamp: Date.now(),
+          entityType: 'character',
+          entityId: apiRel.id,
+          action: 'create',
+          description: `创建关系: ${apiRel.source_type}#${apiRel.source_id} → ${apiRel.target_type}#${apiRel.target_id}`,
+        })
+        state.historyIndex = state.history.length - 1
+        state.canUndo = true
+        state.canRedo = false
+        if (state.history.length > MAX_HISTORY) {
+          state.history.shift()
+          state.historyIndex--
+        }
+      })
+      return String(apiRel.id)
+    } catch (error) {
+      showOperationError('创建关系', error)
+      return ''
+    }
+  },
+
+  updateRelation: async (id, data) => {
+    try {
+      const oldRel = get().relations.find((r) => r.id === id)
+      const apiRel = await entityRelationApi.update(id, data)
+      set((state) => {
+        const idx = state.relations.findIndex((r) => r.id === id)
+        if (idx >= 0) state.relations[idx] = apiRel
+        state.history.push({
+          id: genHistoryId(),
+          timestamp: Date.now(),
+          entityType: 'character',
+          entityId: id,
+          action: 'update',
+          description: `更新关系 #${id}`,
+          snapshot: oldRel ? { ...oldRel } : undefined,
+          forwardSnapshot: { ...apiRel },
+        })
+        state.historyIndex = state.history.length - 1
+        state.canUndo = true
+        state.canRedo = false
+        if (state.history.length > MAX_HISTORY) {
+          state.history.shift()
+          state.historyIndex--
+        }
+      })
+    } catch (error) {
+      showOperationError('更新关系', error)
+    }
+  },
+
+  deleteRelation: async (id) => {
+    try {
+      const oldRel = get().relations.find((r) => r.id === id)
+      await entityRelationApi.delete(id)
+      set((state) => {
+        state.relations = state.relations.filter((r) => r.id !== id)
+        state.history.push({
+          id: genHistoryId(),
+          timestamp: Date.now(),
+          entityType: 'character',
+          entityId: id,
+          action: 'delete',
+          description: `删除关系 #${id}`,
+          snapshot: oldRel,
+        })
+        state.historyIndex = state.history.length - 1
+        state.canUndo = true
+        state.canRedo = false
+        if (state.history.length > MAX_HISTORY) {
+          state.history.shift()
+          state.historyIndex--
+        }
+      })
+    } catch (error) {
+      showOperationError('删除关系', error)
+    }
+  },
+
+  getRelationsForEntity: (entityType, entityId) => {
+    const { relations } = get()
+    return relations.filter(
+      (r) =>
+        (r.source_type === entityType && r.source_id === entityId) ||
+        (r.target_type === entityType && r.target_id === entityId)
+    )
   },
 
   // ---- Item CRUD ----

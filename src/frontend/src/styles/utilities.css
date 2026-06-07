@@ -40,3 +40,13 @@
 .rounded-2xl  { border-radius: var(--radius-2xl); }
 .rounded-pill { border-radius: var(--radius-pill); }
 .rounded-full { border-radius: var(--radius-full); }
+
+/* Number input spinner removal */
+.number-no-spinners::-webkit-inner-spin-button,
+.number-no-spinners::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+.number-no-spinners[type=number] {
+  -moz-appearance: textfield;
+}

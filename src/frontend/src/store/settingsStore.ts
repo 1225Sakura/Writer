@@ -55,6 +55,7 @@ export const selectCharacterCount = (s: SettingsState) => s.characters.length
 export const selectEntityCounts = (s: SettingsState) => ({
   characters: s.characters.length, items: s.items.length, locations: s.locations.length,
   factions: s.factions.length, worldSettings: s.worldSettings.length, rules: s.rules.length, ifLines: s.ifLines.length,
+  relations: s.relations.length,
 })
 export const selectWritingSettings = (s: SettingsState) => s.writingSettings
 export const selectSettingsStatus = (s: SettingsState) => ({ isLoading: s.isLoading, error: s.error })
@@ -62,6 +63,13 @@ export const selectCharactersShallow = (s: SettingsState) => s.characters
 export const selectAIReviewResult = (s: SettingsState) => s.aiReviewResult
 export const selectAIGenerateResult = (s: SettingsState) => s.aiGenerateResult
 export const selectCharactersByTier = (tier: string) => (s: SettingsState) => s.characters.filter((c) => c.tier === tier)
+export const selectRelations = (s: SettingsState) => s.relations
+export const selectRelationsForEntity = (entityType: string, entityId: number) => (s: SettingsState) =>
+  s.relations.filter(
+    (r) =>
+      (r.source_type === entityType && r.source_id === entityId) ||
+      (r.target_type === entityType && r.target_id === entityId)
+  )
 
 export function cleanupSettingsStore(): void {
   useSettingsStore.setState({ isLoading: false, error: null, aiReviewResult: null, aiGenerateResult: null })
@@ -73,6 +81,7 @@ export type {
   HistoryEntry, BatchOperation, CharacterStorylineLocal,
   ValidationError, SettingsDataState, SettingsUIState, SettingsValidationState,
 } from './settingsTypes'
+export type { EntityRelation } from '../shared/types'
 export type { SettingsState }
 export type { EntityType } from '../shared/types'
 export { validateEntity } from './settingsValidationSlice'
