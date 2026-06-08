@@ -2,11 +2,11 @@
 # Concrete SQLAlchemy implementation of ChapterRepositoryInterface
 
 from typing import Optional, List
-from sqlalchemy import select
+from sqlalchemy import select, func
 
 from backend.core.repositories.base import SQLAlchemyBaseRepository
 from backend.core.repositories.chapter.interfaces import ChapterRepositoryInterface
-from backend.core.domain.entities import Chapter, DraftVersion
+from backend.core.domain.entities import Chapter, DraftVersion, Snapshot
 
 
 class SQLAlchemyChapterRepository(SQLAlchemyBaseRepository[Chapter], ChapterRepositoryInterface):
@@ -68,5 +68,61 @@ class SQLAlchemyChapterRepository(SQLAlchemyBaseRepository[Chapter], ChapterRepo
             ch = chapter_map.get(entry["id"])
             if ch:
                 ch.chapter_order = entry["chapter_order"]
+        await self.db.flush()
+        return True
+
+    # -- Snapshot operations --
+
+    async def get_snapshots(self, chapter_id: int, skip: int = 0, limit: int = 100) -> List[Snapshot]:
+        result = await self.db.execute(
+            select(Snapshot)
+            .where(Snapshot.chapter_id == chapter_id)
+            .order_by(Snapshot.created_at.desc())
+            .offset(skip)
+            .limit(limit)
+        )
+        return list(result.scalars().all())
+
+    async def create_snapshot(self, data: dict) -> Snapshot:
+        instance = Snapshot(**data)
+        self.db.add(instance)
+        await self.db.flush()
+        await self.db.refresh(instance)
+        return instance
+
+    async def get_snapshot(self, snapshot_id: int) -> Optional[Snapshot]:
+        result = await self.db.execute(
+            select(Snapshot).where(Snapshot.id == snapshot_id)
+        )
+        return result.scalar_one_or_none()
+
+    async def delete_snapshot(self, snapshot_id: int) -> bool:
+        snapshot = await self.get_snapshot(snapshot_id)
+        if snapshot is None:
+            return False
+        await self.db.delete(snapshot)
+        await self.db.flush()
+        return True
+
+    async def count_unmarked_snapshots(self, chapter_id: int) -> int:
+        result = await self.db.execute(
+            select(func.count(Snapshot.id))
+            .where(Snapshot.chapter_id == chapter_id)
+            .where(Snapshot.is_marked == False)
+        )
+        return result.scalar() or 0
+
+    async def delete_oldest_unmarked_snapshot(self, chapter_id: int) -> bool:
+        result = await self.db.execute(
+            select(Snapshot)
+            .where(Snapshot.chapter_id == chapter_id)
+            .where(Snapshot.is_marked == False)
+            .order_by(Snapshot.created_at.asc())
+            .limit(1)
+        )
+        oldest = result.scalar_one_or_none()
+        if oldest is None:
+            return False
+        await self.db.delete(oldest)
         await self.db.flush()
         return True

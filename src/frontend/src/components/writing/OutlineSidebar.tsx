@@ -47,7 +47,7 @@ export { TreeNode } from './OutlineTreeNode'
 export type { OutlineItem } from './OutlineTreeNode'
 export { EmptyState, PlotThreadItem, IFLineItem } from './OutlineItems'
 
-import { TreeNode, type OutlineItem } from './OutlineTreeNode'
+import { TreeNode, OutlineContextMenu, type OutlineItem } from './OutlineTreeNode'
 import { EmptyState, PlotThreadItem, IFLineItem } from './OutlineItems'
 
 /* ============================================================
@@ -59,11 +59,19 @@ function SortableTreeNode({
   onSelect,
   selectedId,
   isDragging,
+  onContextMenu,
+  renamingId,
+  onRenameConfirm,
+  onRenameCancel,
 }: {
   item: OutlineItem
   onSelect: (id: string) => void
   selectedId: string | null
   isDragging?: boolean
+  onContextMenu?: (e: React.MouseEvent, itemId: string) => void
+  renamingId?: string | null
+  onRenameConfirm?: (id: string, newTitle: string) => void
+  onRenameCancel?: () => void
 }) {
   const {
     attributes,
@@ -87,6 +95,10 @@ function SortableTreeNode({
         onSelect={onSelect}
         selectedId={selectedId}
         isDragging={isDragging || isSortableDragging}
+        onContextMenu={onContextMenu}
+        renamingId={renamingId}
+        onRenameConfirm={onRenameConfirm}
+        onRenameCancel={onRenameCancel}
       />
     </div>
   )
@@ -110,11 +122,14 @@ export function OutlineSidebar() {
     fetchIFLines,
     createChapter,
     updateChapter,
+    deleteChapter,
   } = useContentStore()
 
   const [activeTab, setActiveTab] = useState<'outline' | 'plot' | 'ifline'>('outline')
   const [outlineData, setOutlineData] = useState<OutlineItem[]>([])
   const [activeId, setActiveId] = useState<string | null>(null)
+  const [contextMenu, setContextMenu] = useState<{ x: number; y: number; itemId: string } | null>(null)
+  const [renamingId, setRenamingId] = useState<string | null>(null)
 
   // DnD sensors
   const sensors = useSensors(
@@ -203,6 +218,56 @@ export function OutlineSidebar() {
     await updatePlotThread(threadId, { status: 'revealed' })
     fetchPlotThreads('open')
   }, [updatePlotThread, fetchPlotThreads])
+
+  // Context menu handlers
+  const handleContextMenu = useCallback((e: React.MouseEvent, itemId: string) => {
+    setContextMenu({ x: e.clientX, y: e.clientY, itemId })
+  }, [])
+
+  const handleRename = useCallback((id: string) => {
+    setRenamingId(id)
+  }, [])
+
+  const handleRenameConfirm = useCallback(async (id: string, newTitle: string) => {
+    const chapterId = parseInt(id)
+    if (!isNaN(chapterId)) {
+      try {
+        await updateChapter(chapterId, { title: newTitle })
+        showToast('章节已重命名', 'success')
+      } catch {
+        showToast('重命名失败', 'error')
+      }
+    }
+    setRenamingId(null)
+  }, [updateChapter])
+
+  const handleRenameCancel = useCallback(() => {
+    setRenamingId(null)
+  }, [])
+
+  const handleDeleteChapter = useCallback(async (id: string) => {
+    const chapterId = parseInt(id)
+    if (!isNaN(chapterId)) {
+      try {
+        await deleteChapter(chapterId)
+        if (currentChapterId === chapterId) {
+          setCurrentChapter(null)
+        }
+        showToast('章节已删除', 'success')
+      } catch {
+        showToast('删除失败', 'error')
+      }
+    }
+  }, [deleteChapter, currentChapterId, setCurrentChapter])
+
+  const handleAddChildChapter = useCallback(async (parentId: string) => {
+    const parentChapter = chapters.find((c) => String(c.id) === parentId)
+    await createChapter({
+      title: `${parentChapter?.title || '章节'} - 子章节`,
+      outline_id: parentChapter?.outline_id,
+    })
+    showToast('子章节已添加', 'success')
+  }, [chapters, createChapter])
 
   const openThreads = plotThreads.filter((t) => t.status === 'open')
 
@@ -323,6 +388,10 @@ export function OutlineSidebar() {
                         onSelect={handleChapterSelect}
                         selectedId={currentChapterId ? String(currentChapterId) : null}
                         isDragging={activeId === item.id}
+                        onContextMenu={handleContextMenu}
+                        renamingId={renamingId}
+                        onRenameConfirm={handleRenameConfirm}
+                        onRenameCancel={handleRenameCancel}
                       />
                     ))}
                   </SortableContext>
@@ -403,6 +472,17 @@ export function OutlineSidebar() {
           )}
         </AnimatePresence>
       </div>
+
+      {/* Context Menu Portal */}
+      {contextMenu && (
+        <OutlineContextMenu
+          state={contextMenu}
+          onRename={handleRename}
+          onDelete={handleDeleteChapter}
+          onAddChild={handleAddChildChapter}
+          onClose={() => setContextMenu(null)}
+        />
+      )}
     </div>
   )
 }

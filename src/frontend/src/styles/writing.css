@@ -272,6 +272,12 @@
   animation: current-paragraph-indicator-in 0.3s var(--ease-out) forwards;
 }
 
+/* Keep indicator visible on hover for current paragraph */
+.writing-area .tiptap p.is-current-paragraph:hover::before {
+  opacity: 0.85;
+  animation: none;
+}
+
 @keyframes current-paragraph-indicator-in {
   from { opacity: 0; transform: translateX(-4px); }
   to { opacity: 0.7; transform: translateX(0); }
@@ -348,9 +354,10 @@
   45%, 55% { opacity: 1; }
 }
 
-/* Paragraph focus mode */
+/* Paragraph focus mode — enhanced dim + blur for non-current paragraphs */
 .paragraph-focus-mode .writing-area .tiptap p {
-  transition: opacity 0.35s var(--ease-out), filter 0.35s var(--ease-out);
+  transition: opacity 300ms ease, filter 300ms ease;
+  position: relative;
 }
 
 .paragraph-focus-mode .writing-area .tiptap p:not(.is-current-paragraph):not(:hover) {
@@ -363,14 +370,22 @@
   filter: none;
 }
 
-/* Typewriter scroll mode */
-.typewriter-mode .writing-area .tiptap {
-  scroll-padding-top: 45vh;
-  scroll-padding-bottom: 45vh;
+/* Enhance the existing left indicator bar in paragraph focus mode */
+.paragraph-focus-mode .writing-area .tiptap p.is-current-paragraph::before {
+  opacity: 0.85;
+  animation: paragraph-focus-indicator-in 300ms ease forwards;
 }
 
+@keyframes paragraph-focus-indicator-in {
+  from { opacity: 0; transform: translateX(-4px); }
+  to { opacity: 0.85; transform: translateX(0); }
+}
+
+/* Typewriter scroll mode — scroll-padding must be on the scroll container (.writing-surface) */
 .typewriter-mode .writing-surface {
   scroll-behavior: smooth;
+  scroll-padding-top: 45vh;
+  scroll-padding-bottom: 45vh;
 }
 
 /* Word count pill */
@@ -1399,5 +1414,35 @@
 
   .achievement-unlocked::after {
     animation: none;
+  }
+
+  .entity-jump-highlight {
+    animation: none !important;
+    box-shadow: none !important;
+  }
+}
+
+/* Entity jump-to highlight — brief glow on target paragraph */
+.writing-area .tiptap .entity-jump-highlight {
+  animation: entity-jump-glow 1s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  border-radius: 4px;
+}
+
+@keyframes entity-jump-glow {
+  0% {
+    background-color: color-mix(in srgb, var(--accent-primary) 18%, transparent);
+    box-shadow:
+      inset 3px 0 0 var(--accent-primary),
+      0 0 12px color-mix(in srgb, var(--accent-primary) 15%, transparent);
+  }
+  60% {
+    background-color: color-mix(in srgb, var(--accent-primary) 10%, transparent);
+    box-shadow:
+      inset 3px 0 0 color-mix(in srgb, var(--accent-primary) 60%, transparent),
+      0 0 6px color-mix(in srgb, var(--accent-primary) 8%, transparent);
+  }
+  100% {
+    background-color: transparent;
+    box-shadow: none;
   }
 }

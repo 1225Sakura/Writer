@@ -2,8 +2,15 @@ import { create } from 'zustand'
 import { persist, subscribeWithSelector } from 'zustand/middleware'
 import { immer } from 'zustand/middleware/immer'
 import { contextApi } from '../api/context'
+import { aiApi } from '../api/writing'
 import { showOperationError } from '../utils/toastHelper'
 import type { ContextBuildResponse } from '../api/context'
+import type {
+  DeepContextCharacter,
+  DeepContextPlotThread,
+  DeepContextOutline,
+  DeepContextIFLine,
+} from '../api/types'
 import { createHybridStorage } from './utils/indexedDBStorage'
 
 // ============================================
@@ -21,20 +28,40 @@ export interface DerivedContext {
   updatedAt: number | null
 }
 
+export interface DeepContextData {
+  /** Previous chapter summary for narrative continuity */
+  previousChapterSummary: string | null
+  /** Characters associated with the current chapter */
+  chapterCharacters: DeepContextCharacter[]
+  /** Plot threads with status labels (埋设/发展/揭示) */
+  plotThreadStatuses: DeepContextPlotThread[]
+  /** Current outline title and description */
+  outlineInfo: DeepContextOutline | null
+  /** Active IF lines */
+  activeIFLines: DeepContextIFLine[]
+  /** Last updated timestamp */
+  updatedAt: number | null
+}
+
 export interface ContextState {
   // Data
   contextPack: ContextBuildResponse | null
   /** Derived context extracted from context pack for AI operations */
   derivedContext: DerivedContext
+  /** Deep context for enhanced AI awareness */
+  deepContext: DeepContextData | null
 
   // UI state
   loading: boolean
+  deepContextLoading: boolean
   error: string | null
 }
 
 export interface ContextActions {
   // Context endpoints
   buildContext: (chapterId: number, maxChars?: number) => Promise<void>
+  /** Build deep context with chapter continuity, characters, plot threads */
+  buildDeepContext: (chapterId: number) => Promise<void>
 
   // Derived context
   extractDerivedContext: () => void
@@ -57,7 +84,9 @@ const initialDerivedContext: DerivedContext = {
 const initialState: ContextState = {
   contextPack: null,
   derivedContext: initialDerivedContext,
+  deepContext: null,
   loading: false,
+  deepContextLoading: false,
   error: null,
 }
 
@@ -87,6 +116,30 @@ export const useContextStore = create<ContextState & ContextActions>()(
               s.loading = false
             })
             showOperationError('构建上下文包', err)
+          }
+        },
+
+        buildDeepContext: async (chapterId) => {
+          set((s) => { s.deepContextLoading = true; s.error = null })
+          try {
+            const data = await aiApi.buildDeepContext(chapterId)
+            set((s) => {
+              s.deepContext = {
+                previousChapterSummary: data.previous_chapter?.summary ?? null,
+                chapterCharacters: data.characters ?? [],
+                plotThreadStatuses: data.plot_threads ?? [],
+                outlineInfo: data.outline ?? null,
+                activeIFLines: data.if_lines ?? [],
+                updatedAt: Date.now(),
+              }
+              s.deepContextLoading = false
+            })
+          } catch (err) {
+            set((s) => {
+              s.error = err instanceof Error ? err.message : '构建深度上下文失败'
+              s.deepContextLoading = false
+            })
+            showOperationError('构建深度上下文', err)
           }
         },
 
@@ -156,6 +209,7 @@ export const useContextStore = create<ContextState & ContextActions>()(
         partialize: (state) => ({
           contextPack: state.contextPack,
           derivedContext: state.derivedContext,
+          deepContext: state.deepContext,
         }),
       },
     ),
@@ -173,6 +227,15 @@ export const selectDerivedContext = (s: ContextState) => s.derivedContext
 export const selectCharacterNames = (s: ContextState) => s.derivedContext.characterNames
 export const selectOpenPlotThreads = (s: ContextState) => s.derivedContext.openPlotThreads
 export const selectRecentSummaries = (s: ContextState) => s.derivedContext.recentSummaries
+
+// Deep context selectors
+export const selectDeepContext = (s: ContextState) => s.deepContext
+export const selectDeepContextLoading = (s: ContextState) => s.deepContextLoading
+export const selectPreviousChapterSummary = (s: ContextState) => s.deepContext?.previousChapterSummary ?? null
+export const selectChapterCharacters = (s: ContextState) => s.deepContext?.chapterCharacters ?? []
+export const selectPlotThreadStatuses = (s: ContextState) => s.deepContext?.plotThreadStatuses ?? []
+export const selectOutlineInfo = (s: ContextState) => s.deepContext?.outlineInfo ?? null
+export const selectDeepContextActiveIFLines = (s: ContextState) => s.deepContext?.activeIFLines ?? []
 
 export const cleanupContextStore = () => {
   useContextStore.setState(initialState)

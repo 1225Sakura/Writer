@@ -2,7 +2,7 @@ import { create } from 'zustand'
 import { persist, subscribeWithSelector } from 'zustand/middleware'
 import { immer } from 'zustand/middleware/immer'
 import type { Editor } from '@tiptap/react'
-import { chapterApi, draftApi } from '../api/writing'
+import { chapterApi, draftApi, snapshotApi } from '../api/writing'
 import { writingSettingsApi } from '../api/settings'
 import { createHybridStorage } from './utils/indexedDBStorage'
 import { useContentStore } from './contentStore'
@@ -228,7 +228,7 @@ export const useWritingStore = create<WritingState & WritingActions>()(
               // Update chapter metadata
               await chapterApi.update(currentChapterId, { word_count: wordCount })
 
-              // Save content as draft version
+              // Save content as draft version + auto-create snapshot
               if (currentContent.trim()) {
                 const contentStore = useContentStore.getState()
                 const existingDrafts = contentStore.draftVersions.filter(
@@ -241,6 +241,9 @@ export const useWritingStore = create<WritingState & WritingActions>()(
                 // Refresh drafts
                 const updatedDrafts = await draftApi.list(currentChapterId)
                 useContentStore.setState((s) => { s.draftVersions = updatedDrafts })
+
+                // Auto-create snapshot (silent fail — non-blocking)
+                snapshotApi.create(currentChapterId, { content: currentContent }).catch(() => {})
               }
 
               // Update chapter in contentStore
@@ -287,6 +290,9 @@ export const useWritingStore = create<WritingState & WritingActions>()(
                 // Refresh drafts
                 const updatedDrafts = await draftApi.list(currentChapterId)
                 useContentStore.setState((s) => { s.draftVersions = updatedDrafts })
+
+                // Auto-create snapshot on periodic save (silent fail)
+                snapshotApi.create(currentChapterId, { content: currentContent }).catch(() => {})
               }
 
               // Update chapter in contentStore

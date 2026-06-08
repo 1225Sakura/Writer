@@ -1,5 +1,7 @@
 import { EditorContent } from '@tiptap/react'
 import { useUIStore } from '@/store'
+import { linkageEventBus } from '@/store/linkageStore'
+import type { LinkageEventPayload } from '@/store/linkageStore'
 import { motion, AnimatePresence } from 'framer-motion'
 import { EditorToolbar } from './EditorToolbar'
 import { WritingStatsOverlay } from './WritingStatsOverlay'
@@ -14,7 +16,7 @@ import { useWritingEditor } from './useWritingEditor'
 import { InlineAIPopup } from './InlineAIPopup'
 import { SelectionAIMenu } from './SelectionAIMenu'
 import { StyleCheckGutter, injectStyleCheckStyles } from './StyleCheckGutter'
-import { useEffect } from 'react'
+import { useEffect, useCallback } from 'react'
 
 function formatDuration(seconds: number): string {
   if (seconds < 60) return `${seconds}秒`
@@ -50,15 +52,73 @@ export function WritingCanvas() {
     isEmpty,
   } = useWritingEditor()
 
+  const { paragraphFocusMode } = useUIStore()
+
   // Inject style check CSS on mount
   useEffect(() => {
     injectStyleCheckStyles()
   }, [])
 
+  // Listen for entity-jump events from linkage store
+  const handleEntityJump = useCallback(
+    (payload: LinkageEventPayload) => {
+      if (payload.type !== 'entity-jump') return
+      if (!editor) return
+
+      const { entity, paragraphIndex } = payload.data
+      const editorEl = editorContainerRef.current?.querySelector('.ProseMirror')
+      if (!editorEl) return
+
+      let targetEl: HTMLElement | null = null
+
+      // Priority 1: Direct paragraph index lookup via data-paragraph-id
+      if (paragraphIndex !== undefined) {
+        targetEl = editorEl.querySelector(`[data-paragraph-id="${paragraphIndex}"]`) as HTMLElement | null
+      }
+
+      // Priority 2: Search by entity name in text content (first occurrence)
+      if (!targetEl && entity.name) {
+        const allParagraphs = editorEl.querySelectorAll('[data-paragraph-id]')
+        for (const p of allParagraphs) {
+          const paragraphEl = p as HTMLElement
+          if (paragraphEl.textContent?.includes(entity.name)) {
+            targetEl = paragraphEl
+            break
+          }
+        }
+      }
+
+      if (!targetEl) return
+
+      // Scroll into view with smooth behavior
+      targetEl.scrollIntoView({ behavior: 'smooth', block: 'center' })
+
+      // Apply highlight animation
+      targetEl.classList.add('entity-jump-highlight')
+      const handleAnimEnd = () => {
+        targetEl.classList.remove('entity-jump-highlight')
+        targetEl.removeEventListener('animationend', handleAnimEnd)
+      }
+      targetEl.addEventListener('animationend', handleAnimEnd)
+
+      // Safety timeout to remove highlight if animationend doesn't fire
+      setTimeout(() => {
+        targetEl.classList.remove('entity-jump-highlight')
+      }, 1200)
+    },
+    [editor, editorContainerRef],
+  )
+
+  // Subscribe to linkage event bus
+  useEffect(() => {
+    const unsubscribe = linkageEventBus.on('entity-jump', handleEntityJump)
+    return unsubscribe
+  }, [handleEntityJump])
+
   return (
     <div
       ref={editorContainerRef}
-      className={`h-full flex flex-col ${typewriterMode ? 'typewriter-mode' : ''}`}
+      className={`h-full flex flex-col ${typewriterMode ? 'typewriter-mode' : ''} ${focusModeEnabled && paragraphFocusMode ? 'paragraph-focus-mode' : ''}`}
       style={{ backgroundColor: 'var(--writing-bg)' }}
     >
       {/* Writing area */}

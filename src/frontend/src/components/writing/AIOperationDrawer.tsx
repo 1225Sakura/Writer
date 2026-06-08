@@ -3,6 +3,7 @@ import { useWritingStore, useAIStore, useContextStore } from '@/store'
 import { getEditorInstance } from '@/store/editorRegistry'
 import { showToast } from '@/components/ui/Toast'
 import { aiApi, chapterApi } from '@/api/writing'
+import { evaluateQualityHeuristic } from '@/utils/qualityHeuristic'
 import { consumeStream } from '@/api/chat'
 import { Button } from '@/components/ui/Button'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -69,6 +70,41 @@ function triggerHaptic() {
   }
 }
 
+/** Evaluate quality score via backend API, falling back to frontend heuristic. */
+async function evaluateQualityScore(original: string, result: string, operation: string): Promise<number> {
+  try {
+    const response = await aiApi.evaluateQuality(original, result, operation)
+    return response.overall
+  } catch {
+    // Backend unavailable — use frontend heuristic fallback
+    return evaluateQualityHeuristic(original, result, operation)
+  }
+}
+
+/** Get the paragraph text at the current cursor position. Returns null if no editor or empty doc. */
+function getParagraphAtCursor(editor: ReturnType<typeof getEditorInstance>): { text: string; isAtEnd: boolean } | null {
+  if (!editor) return null
+  const { state } = editor
+  const { selection } = state
+  const { $from } = selection
+
+  // Walk up to the nearest block node (paragraph, heading, etc.)
+  const depth = $from.depth
+  for (let d = depth; d >= 0; d--) {
+    const node = $from.node(d)
+    if (node.isBlock && node.textContent.trim()) {
+      const startPos = $from.start(d)
+      const endPos = $from.end(d)
+      const text = state.doc.textBetween(startPos, endPos, '\n')
+      // Check if cursor is at or near the end of this paragraph (within 2 chars)
+      const cursorPos = selection.from
+      const isAtEnd = cursorPos >= endPos - 2
+      return { text, isAtEnd }
+    }
+  }
+  return null
+}
+
 export function AIOperationDrawer() {
   const { humanAIRatio, setHumanAIRatio, writingStyle, setWritingStyle, currentChapterId } = useWritingStore()
   const { optimize, expand, condense: shrink, rewrite, continue: continueWriting, polish, aiJobQueue, currentJobId, cancelJob, retryJob } = useAIStore()
@@ -93,8 +129,22 @@ export function AIOperationDrawer() {
 
   const handleOperation = async (operation: 'optimize' | 'expand' | 'condense' | 'rewrite' | 'continue' | 'polish') => {
     const editor = getEditorInstance()
-    const selectedText = editor ? editor.state.doc.textBetween(editor.state.selection.from, editor.state.selection.to, ' ') : ''
-    if (!selectedText) { showToast('请先选中需要操作的文字', 'warning'); return }
+    let selectedText = editor ? editor.state.doc.textBetween(editor.state.selection.from, editor.state.selection.to, ' ') : ''
+
+    // When no text is selected, get the paragraph at cursor position
+    if (!selectedText) {
+      const paragraph = getParagraphAtCursor(editor)
+      if (!paragraph || !paragraph.text.trim()) {
+        showToast('请先选中文字或将光标放在段落中', 'warning')
+        return
+      }
+      // If cursor is at paragraph end and operation is not explicitly chosen as continue,
+      // still use the paragraph as context (the user clicked an operation button)
+      selectedText = paragraph.text
+      if (paragraph.isAtEnd && operation === 'continue') {
+        showToast('基于当前段落续写中...', 'info')
+      }
+    }
 
     setPreviewResult(null)
     setIsLoading(true)
@@ -109,7 +159,7 @@ export function AIOperationDrawer() {
         case 'polish': result = await polish(selectedText); break
         default: throw new Error(`Unknown operation: ${operation}`)
       }
-      const qualityScore = Math.round(70 + Math.random() * 25)
+      const qualityScore = await evaluateQualityScore(selectedText, result, operation)
       setPreviewResult({ operation, original: selectedText, result, qualityScore })
       showToast(`${getOperationLabel(operation)}完成`, 'success')
     } catch (error) {
@@ -141,7 +191,8 @@ export function AIOperationDrawer() {
         human_ai_ratio: useWritingStore.getState().humanAIRatio,
       })
       const result = await consumeStream(res.stream)
-      setPreviewResult({ operation: 'continue', original: context.slice(-200), result, qualityScore: 0 })
+      const qualityScore = await evaluateQualityScore(context.slice(-200), result, 'continue')
+      setPreviewResult({ operation: 'continue', original: context.slice(-200), result, qualityScore })
       showToast('下一章已生成', 'success')
     } catch (error) {
       showToast(`生成失败: ${error instanceof Error ? error.message : '未知错误'}`, 'error')
@@ -192,7 +243,8 @@ export function AIOperationDrawer() {
         style,
       })
       const result = await consumeStream(res.stream)
-      setPreviewResult({ operation: 'rewrite', original: content.slice(0, 200), result, qualityScore: 0 })
+      const qualityScore = await evaluateQualityScore(content.slice(0, 200), result, 'rewrite')
+      setPreviewResult({ operation: 'rewrite', original: content.slice(0, 200), result, qualityScore })
       showToast('文笔重塑完成', 'success')
     } catch (error) {
       showToast(`重塑失败: ${error instanceof Error ? error.message : '未知错误'}`, 'error')
@@ -296,7 +348,7 @@ export function AIOperationDrawer() {
                     ) : null)}
                   </AnimatePresence>
 
-                  <p className="text-xs mt-3 text-center" style={{ color: 'var(--text-tertiary)' }}>选中文字后点击或使用快捷键</p>
+                  <p className="text-xs mt-3 text-center" style={{ color: 'var(--text-tertiary)' }}>选中文字或点击操作按钮自动获取上下文</p>
 
                   <AnimatePresence>{previewResult && <DiffPreview original={previewResult.original} result={previewResult.result} qualityScore={previewResult.qualityScore} onAccept={handleAcceptResult} onReject={handleRejectResult} />}</AnimatePresence>
 

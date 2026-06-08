@@ -3,6 +3,7 @@ import { useUIStore, useWritingStore } from '@/store'
 import { WritingToolbar } from './WritingToolbar'
 import { WritingCanvas } from './WritingCanvas'
 import { SplitEditorView } from './SplitEditorView'
+import { CorkboardView } from './corkboard'
 import { SearchReplaceBar } from './SearchReplaceBar'
 import { AIOperationDrawer } from './AIOperationDrawer'
 import { AICheckerPanel } from './AICheckerPanel'
@@ -10,6 +11,7 @@ import { CollaborationPanel } from './CollaborationPanel'
 import { OutlineSidebar } from './OutlineSidebar'
 import { ChapterNotesPanel } from './ChapterNotesPanel'
 import { WritingSprintTimer } from './WritingSprintTimer'
+import { SnapshotPanel } from './snapshots'
 import { LeftSidebar } from '@/components/shared/LeftSidebar'
 import { motion, AnimatePresence } from 'framer-motion'
 import { WritingSkeleton } from '@/components/shared/SmartSkeleton'
@@ -33,11 +35,15 @@ function WritingEditorPageContent() {
     collaborationDrawerOpen,
     outlineDrawerOpen,
     checkerDrawerOpen,
+    snapshotDrawerOpen,
+    corkboardOpen,
     toggleAIDrawer,
     toggleOutlineDrawer,
+    toggleSnapshotDrawer,
   } = useUIStore()
   const loading = useWritingStore((s) => s.loading)
   const init = useWritingStore((s) => s.init)
+  const currentChapterId = useWritingStore((s) => s.currentChapterId)
   const { immersiveMode, chromeVisible, writingMode } = useImmersiveModeContext()
   const [isSplitView, setIsSplitView] = useState(false)
 
@@ -99,6 +105,8 @@ function WritingEditorPageContent() {
             <div className="h-full bg-[var(--writing-bg)] overflow-y-auto scrollbar-ink relative z-10">
               <WritingSkeleton />
             </div>
+          ) : corkboardOpen ? (
+            <CorkboardView />
           ) : isSplitView ? (
             <SplitEditorView onClose={() => setIsSplitView(false)} />
           ) : (
@@ -187,6 +195,29 @@ function WritingEditorPageContent() {
               style={{ boxShadow: DRAWER_EDGE_SHADOW }}
             >
               <AICheckerPanel />
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Snapshot panel drawer - version history */}
+        <AnimatePresence initial={false}>
+          {snapshotDrawerOpen && currentChapterId && (!immersiveMode || chromeVisible) && (
+            <motion.div
+              key="snapshot-drawer"
+              initial={{ width: 0, opacity: 0, x: 48 }}
+              animate={{ width: 'var(--sidebar-ai-drawer-width)', opacity: 1, x: 0 }}
+              exit={{ width: 0, opacity: 0, x: 48 }}
+              transition={{
+                width: SPRING.DRAWER,
+                opacity: { duration: DURATION.NORMAL, ease: EASE.SMOOTH },
+                x: SPRING.DRAWER
+              }}
+              className="drawer-responsive drawer-right border-l border-[var(--border-default)] bg-[var(--color-surface-raised)] flex flex-col overflow-hidden relative z-20
+                         max-md:fixed max-md:inset-0 max-md:w-full max-md:h-full max-md:z-50 max-md:border-none max-md:rounded-none
+                         md:w-[var(--sidebar-ai-drawer-width)] lg:w-[var(--sidebar-ai-drawer-width-expanded)]"
+              style={{ boxShadow: DRAWER_EDGE_SHADOW }}
+            >
+              <SnapshotPanel chapterId={currentChapterId} onClose={toggleSnapshotDrawer} />
             </motion.div>
           )}
         </AnimatePresence>

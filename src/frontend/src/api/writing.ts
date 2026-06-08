@@ -9,6 +9,7 @@ import type {
   AIContextResponse,
   AIExtractResponse,
   AIChapterInspectionResponse,
+  DeepContextResponse,
   PaginationParams,
   ChapterFilters,
   IFLineFilters,
@@ -19,6 +20,8 @@ import type {
   OOCCheckResponse,
   HighPointCheckResponse,
   ReaderPullCheckResponse,
+  ChapterSnapshot,
+  ChapterSnapshotDiff,
 } from "./types"
 import { api, resolveBaseURL, getApiKey } from "./request"
 
@@ -392,6 +395,15 @@ export const aiApi = {
   },
 
   /**
+   * Build a deep narrative context for a chapter.
+   * Returns previous chapter summary, associated characters, plot thread statuses,
+   * outline info, and IF lines.
+   */
+  buildDeepContext: async (chapterId: number): Promise<DeepContextResponse> => {
+    return api.post<DeepContextResponse>("/ai/context/deep", { chapter_id: chapterId })
+  },
+
+  /**
    * Extract structured entities from chapter content.
    * Returns entities, relationships, state changes, scenes, and summary.
    */
@@ -492,6 +504,64 @@ export const aiApi = {
       human_ai_ratio: humanAiRatio,
     })
   },
+
+  /** Evaluate AI output quality. Returns scores for coherence, style consistency, and plot reasonability. */
+  evaluateQuality: async (
+    original: string,
+    result: string,
+    operation?: string
+  ): Promise<{ overall: number; coherence: number; style_consistency: number; plot_reasonability: number }> => {
+    return api.post<{ overall: number; coherence: number; style_consistency: number; plot_reasonability: number }>(
+      "/ai/evaluate-quality",
+      { original, result, operation }
+    )
+  },
+}
+
+// ============================================
+// Chapter Snapshots
+// ============================================
+
+export const snapshotApi = {
+  /** List all snapshots for a chapter. */
+  list: async (
+    chapterId: number,
+    params: PaginationParams = {}
+  ): Promise<ChapterSnapshot[]> => {
+    const { skip = 0, limit = 50 } = params
+    return api.get<ChapterSnapshot[]>(`/chapters/${chapterId}/snapshots`, { skip, limit })
+  },
+
+  /** Create a new snapshot for a chapter. */
+  create: async (
+    chapterId: number,
+    data?: { content?: string; label?: string }
+  ): Promise<ChapterSnapshot> => {
+    return api.post<ChapterSnapshot>(`/chapters/${chapterId}/snapshots`, {
+      chapter_id: chapterId,
+      ...data,
+    })
+  },
+
+  /** Mark or unmark a snapshot. */
+  mark: async (
+    chapterId: number,
+    snapshotId: number,
+    data: { is_marked: boolean; label?: string }
+  ): Promise<ChapterSnapshot> => {
+    return api.patch<ChapterSnapshot>(
+      `/chapters/${chapterId}/snapshots/${snapshotId}/mark`,
+      data
+    )
+  },
+
+  /** Get diff between two snapshots. */
+  diff: async (data: {
+    old_snapshot_id: number
+    new_snapshot_id: number
+  }): Promise<ChapterSnapshotDiff> => {
+    return api.post<ChapterSnapshotDiff>("/chapters/snapshots/diff", data)
+  },
 }
 
 // Export all APIs
@@ -505,4 +575,5 @@ export default {
   ai: aiApi,
   styles: stylesApi,
   checker: checkerApi,
+  snapshot: snapshotApi,
 }

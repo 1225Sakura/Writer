@@ -5,7 +5,7 @@ from abc import abstractmethod
 from typing import Optional, List, TYPE_CHECKING
 
 from backend.core.repositories.base import BaseRepositoryInterface
-from backend.core.domain.entities import Chapter, DraftVersion
+from backend.core.domain.entities import Chapter, DraftVersion, Snapshot
 
 
 class ChapterRepositoryInterface(BaseRepositoryInterface[Chapter]):
@@ -49,4 +49,36 @@ class ChapterRepositoryInterface(BaseRepositoryInterface[Chapter]):
             outline_id: The outline whose chapters to reorder
             chapter_orders: List of {"id": chapter_id, "chapter_order": new_order}
         """
+        ...
+
+    # -- Snapshot operations --
+
+    @abstractmethod
+    async def get_snapshots(self, chapter_id: int, skip: int = 0, limit: int = 100) -> List[Snapshot]:
+        """Fetch all snapshots for a chapter, ordered by created_at desc."""
+        ...
+
+    @abstractmethod
+    async def create_snapshot(self, data: dict) -> Snapshot:
+        """Create a new snapshot."""
+        ...
+
+    @abstractmethod
+    async def get_snapshot(self, snapshot_id: int) -> Optional[Snapshot]:
+        """Get a snapshot by its ID."""
+        ...
+
+    @abstractmethod
+    async def delete_snapshot(self, snapshot_id: int) -> bool:
+        """Delete a snapshot by its ID."""
+        ...
+
+    @abstractmethod
+    async def count_unmarked_snapshots(self, chapter_id: int) -> int:
+        """Count unmarked (auto) snapshots for a chapter."""
+        ...
+
+    @abstractmethod
+    async def delete_oldest_unmarked_snapshot(self, chapter_id: int) -> bool:
+        """Delete the oldest unmarked snapshot for a chapter."""
         ...

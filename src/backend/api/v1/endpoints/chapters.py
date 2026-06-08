@@ -1,6 +1,7 @@
 # Auto Novel Writer - Chapters Routes
 # Interface 3: Chapter and story structure management
 
+import difflib
 from fastapi import APIRouter, Depends
 from typing import List, Optional
 
@@ -20,6 +21,7 @@ from backend.middleware.errors import (
     ChapterNotFoundError,
     OutlineNotFoundError,
     DraftVersionNotFoundError,
+    SnapshotNotFoundError,
     IFLineNotFoundError,
     PlotThreadNotFoundError,
     ValidationError,
@@ -28,9 +30,11 @@ from backend.middleware.errors import (
 # Import centralized schemas for enhanced validation
 from backend.core.domain.schemas import (
     OutlineCreateRequest, OutlineUpdateRequest, OutlineResponse,
-    ChapterCreateRequest, ChapterUpdateRequest, ChapterResponse,
+    ChapterCreateRequest, ChapterUpdateRequest, ChapterReorderRequest, ChapterResponse,
     IFLineCreateRequest, IFLineUpdateRequest, IFLineResponse,
     DraftVersionCreateRequest, DraftVersionResponse,
+    SnapshotCreateRequest, SnapshotMarkRequest, SnapshotDiffRequest,
+    SnapshotResponse, SnapshotDiffResponse,
     PlotThreadCreateRequest, PlotThreadUpdateRequest, PlotThreadResponse,
     AIInspectionResultResponse,
     MessageResponse,
@@ -369,6 +373,23 @@ async def list_chapters(
     summary="创建章节",
     description="创建新的章节。",
 )
+
+
+@router.patch(
+    "/reorder",
+    summary="章节拖拽排序",
+    description="批量更新章节的排序顺序。",
+)
+async def reorder_chapters(
+    request: ChapterReorderRequest,
+    service: ChapterService = Depends(get_chapter_service)
+):
+    """Reorder chapters within an outline via drag-and-drop."""
+    chapter_orders = [{"id": entry.id, "chapter_order": entry.chapter_order} for entry in request.chapter_orders]
+    success = await service.reorder_chapters(request.outline_id, chapter_orders)
+    if not success:
+        raise ValidationError(message="Failed to reorder chapters", error_code="REORDER_FAILED")
+    return {"message": "Chapters reordered successfully"}
 async def create_chapter(
     chapter: ChapterCreateRequest,
     service: ChapterService = Depends(get_chapter_service)
@@ -498,6 +519,136 @@ async def delete_draft_version(
     if not deleted:
         raise DraftVersionNotFoundError(chapter_id=chapter_id)
     return {"message": "Draft version deleted"}
+
+
+# Snapshot endpoints
+@router.post(
+    "/{chapter_id}/snapshots",
+    response_model=SnapshotResponse,
+    summary="创建快照",
+    description="为指定章节创建内容快照。自动快照保留最近20个，手动标记的快照永久保留。",
+)
+async def create_snapshot(
+    chapter_id: int,
+    snapshot: SnapshotCreateRequest,
+    service: ChapterService = Depends(get_chapter_service)
+):
+    """Create a new snapshot for a chapter."""
+    chapter = await service.get_chapter(chapter_id)
+    if not chapter:
+        raise ChapterNotFoundError(chapter_id=chapter_id)
+    return await service.create_snapshot(chapter_id, snapshot.model_dump())
+
+
+@router.get(
+    "/{chapter_id}/snapshots",
+    response_model=List[SnapshotResponse],
+    summary="列出快照",
+    description="获取指定章节的所有快照，按创建时间倒序排列。",
+)
+@cached(ttl=settings.cache_default_ttl, key_prefix="chapters:snapshots:list", invalidate_on=["snapshots"])
+async def list_snapshots(
+    chapter_id: int,
+    skip: int = 0,
+    limit: int = 100,
+    service: ChapterService = Depends(get_chapter_service)
+):
+    """List all snapshots for a chapter, newest first."""
+    return await service.list_snapshots(chapter_id, skip=skip, limit=limit)
+
+
+@router.get(
+    "/{chapter_id}/snapshots/{snapshot_id}",
+    response_model=SnapshotResponse,
+    summary="获取快照详情",
+    description="获取指定ID的快照详细信息。",
+)
+@cached(ttl=settings.cache_default_ttl, key_prefix="chapters:snapshots:detail", invalidate_on=["snapshots"])
+async def get_snapshot(
+    chapter_id: int,
+    snapshot_id: int,
+    service: ChapterService = Depends(get_chapter_service)
+):
+    """Get a specific snapshot."""
+    snapshot = await service.get_snapshot(snapshot_id)
+    if not snapshot or snapshot.chapter_id != chapter_id:
+        raise SnapshotNotFoundError(snapshot_id=snapshot_id)
+    return snapshot
+
+
+@router.delete(
+    "/{chapter_id}/snapshots/{snapshot_id}",
+    summary="删除快照",
+    description="删除指定ID的快照。",
+)
+async def delete_snapshot(
+    chapter_id: int,
+    snapshot_id: int,
+    service: ChapterService = Depends(get_chapter_service)
+):
+    """Delete a snapshot."""
+    snapshot = await service.get_snapshot(snapshot_id)
+    if not snapshot or snapshot.chapter_id != chapter_id:
+        raise SnapshotNotFoundError(snapshot_id=snapshot_id)
+    deleted = await service.delete_snapshot(snapshot_id)
+    if not deleted:
+        raise SnapshotNotFoundError(snapshot_id=snapshot_id)
+    return {"message": "Snapshot deleted"}
+
+
+@router.patch(
+    "/{chapter_id}/snapshots/{snapshot_id}/mark",
+    response_model=SnapshotResponse,
+    summary="标记/取消标记快照",
+    description="标记快照为永久保留或取消标记。手动标记的快照不会被自动清理。",
+)
+async def mark_snapshot(
+    chapter_id: int,
+    snapshot_id: int,
+    body: SnapshotMarkRequest,
+    service: ChapterService = Depends(get_chapter_service)
+):
+    """Mark or unmark a snapshot."""
+    snapshot = await service.get_snapshot(snapshot_id)
+    if not snapshot or snapshot.chapter_id != chapter_id:
+        raise SnapshotNotFoundError(snapshot_id=snapshot_id)
+    result = await service.mark_snapshot(snapshot_id, body.is_marked)
+    if not result:
+        raise SnapshotNotFoundError(snapshot_id=snapshot_id)
+    return result
+
+
+@router.post(
+    "/snapshots/diff",
+    response_model=SnapshotDiffResponse,
+    summary="快照对比",
+    description="比较两个快照之间的内容差异，返回逐行 diff 结果。",
+)
+async def diff_snapshots(
+    body: SnapshotDiffRequest,
+    service: ChapterService = Depends(get_chapter_service)
+):
+    """Compare two snapshots and return a line-by-line diff."""
+    snapshot_a = await service.get_snapshot(body.snapshot_id_a)
+    if not snapshot_a:
+        raise SnapshotNotFoundError(snapshot_id=body.snapshot_id_a)
+
+    snapshot_b = await service.get_snapshot(body.snapshot_id_b)
+    if not snapshot_b:
+        raise SnapshotNotFoundError(snapshot_id=body.snapshot_id_b)
+
+    diff_lines = list(difflib.unified_diff(
+        snapshot_a.content.splitlines(keepends=True),
+        snapshot_b.content.splitlines(keepends=True),
+        fromfile=f"snapshot_{snapshot_a.id}",
+        tofile=f"snapshot_{snapshot_b.id}",
+    ))
+
+    return SnapshotDiffResponse(
+        snapshot_a=SnapshotResponse.model_validate(snapshot_a),
+        snapshot_b=SnapshotResponse.model_validate(snapshot_b),
+        diff_lines=diff_lines,
+    )
 
 
 # AI Inspection results

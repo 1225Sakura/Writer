@@ -1,13 +1,16 @@
 import { useState } from 'react'
 import { motion } from 'framer-motion'
-import { ChevronDown, PenLine } from 'lucide-react'
+import { ChevronDown, PenLine, LayoutGrid, FileText } from 'lucide-react'
 import { SPRING } from '@/components/shared/AnimationConfig'
+import { useUIStore } from '@/store'
+import { Icon } from '@/components/ui/Icon'
 import { useImmersiveModeContext } from './immersive'
 import {
   ToolbarButtons,
   RatioSliderSection,
   QuickAIOperations,
   ToolbarRightSection,
+  FloatingToolBar,
 } from './toolbar'
 import { SplitViewButton } from './SplitEditorView'
 
@@ -68,6 +71,8 @@ function FullToolbar({
 
       <QuickAIOperations />
 
+      <CorkboardToggleButton />
+
       <SplitViewButton
         isSplit={isSplitView}
         onToggle={onToggleSplitView ?? (() => {})}
@@ -97,5 +102,40 @@ export function WritingToolbar({
 }) {
   const { writingMode } = useImmersiveModeContext()
 
-  return writingMode === 'writing' ? <MinimalToolbar /> : <FullToolbar isSplitView={isSplitView} onToggleSplitView={onToggleSplitView} />
+  return writingMode === 'writing' ? (
+    <>
+      <MinimalToolbar />
+      <FloatingToolBar />
+    </>
+  ) : (
+    <FullToolbar isSplitView={isSplitView} onToggleSplitView={onToggleSplitView} />
+  )
+}
+
+function CorkboardToggleButton() {
+  const { corkboardOpen, toggleCorkboard } = useUIStore()
+
+  return (
+    <motion.button
+      whileHover={{ scale: 1.04 }}
+      whileTap={{ scale: 0.96 }}
+      onClick={toggleCorkboard}
+      className={`relative flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all duration-200 overflow-hidden flex-shrink-0 group ${
+        corkboardOpen
+          ? 'text-[var(--text-primary)]'
+          : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--color-surface-raised)]'
+      }`}
+      style={corkboardOpen ? {
+        background: 'var(--accent-primary)',
+        border: '1px solid color-mix(in srgb, var(--accent-primary) 60%, transparent)',
+        boxShadow: '0 0 16px color-mix(in srgb, var(--accent-primary) 30%, transparent), inset 0 1px 0 color-mix(in srgb, var(--paper-100) 8%, transparent)',
+      } : {
+        border: '1px solid transparent',
+      }}
+      title={corkboardOpen ? '切换到写作视图' : '切换到软木板视图'}
+    >
+      <Icon icon={corkboardOpen ? FileText : LayoutGrid} size="sm" color="inherit" />
+      <span className="hidden sm:inline">{corkboardOpen ? '写作' : '软木板'}</span>
+    </motion.button>
+  )
 }
