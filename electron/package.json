@@ -27,6 +27,12 @@
     "asarUnpack": [
       "resources/backend/**/*"
     ],
+    "extraFiles": [
+      {
+        "from": "node_modules/electron/dist/ffmpeg.dll",
+        "to": "ffmpeg.dll"
+      }
+    ],
     "extraResources": [
       {
         "from": "../src/backend/.venv",
