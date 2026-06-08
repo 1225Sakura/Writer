@@ -1,0 +1,83 @@
+
+[1m[30m[46m RUN [49m[39m[22m [36mv4.1.7 [39m[90mD:/writer/src/frontend[39m
+      [2mCoverage enabled with [22m[33mv8[39m
+
+ [31m❯[39m src/__tests__/ux-benchmark.test.ts [2m([22m[2m6 tests[22m[2m | [22m[31m2 failed[39m[2m)[22m[32m 276[2mms[22m[39m
+[31m     [31m×[31m every .tsx file in src/components/ should have <=300 lines[39m[32m 74[2mms[22m[39m
+     [32m✓[39m no two .tsx files should share the same basename[32m 6[2mms[22m[39m
+     [32m✓[39m all custom .tsx files in components/ should use PascalCase[32m 2[2mms[22m[39m
+     [32m✓[39m component .tsx files should not reference legacy CSS variable names[32m 64[2mms[22m[39m
+[31m     [31m×[31m button and input elements should have ARIA labels or accessible text[39m[32m 12[2mms[22m[39m
+     [32m✓[39m component .tsx files should not contain hardcoded hex colors[32m 12[2mms[22m[39m
+ [32m✓[39m src/test/aiStore.test.ts [2m([22m[2m8 tests[22m[2m)[22m[32m 151[2mms[22m[39m
+ [32m✓[39m src/test/projectDataStore.test.ts [2m([22m[2m28 tests[22m[2m)[22m[32m 176[2mms[22m[39m
+ [32m✓[39m src/test/messageStore.test.ts [2m([22m[2m18 tests[22m[2m)[22m[32m 136[2mms[22m[39m
+ [32m✓[39m src/test/relationStore.test.ts [2m([22m[2m13 tests[22m[2m)[22m[32m 129[2mms[22m[39m
+ [32m✓[39m src/test/graphStore.test.ts [2m([22m[2m21 tests[22m[2m)[22m[32m 143[2mms[22m[39m
+ [32m✓[39m src/test/request-toast.test.ts [2m([22m[2m12 tests[22m[2m)[22m[32m 22[2mms[22m[39m
+ [32m✓[39m src/test/sessionStore.test.ts [2m([22m[2m17 tests[22m[2m)[22m[32m 120[2mms[22m[39m
+ [32m✓[39m src/test/checkerStore.test.ts [2m([22m[2m16 tests[22m[2m)[22m[32m 123[2mms[22m[39m
+ [32m✓[39m src/test/syncStore.test.ts [2m([22m[2m11 tests[22m[2m)[22m[32m 99[2mms[22m[39m
+ [32m✓[39m src/test/writingStore.test.ts [2m([22m[2m13 tests[22m[2m)[22m[32m 129[2mms[22m[39m
+ [32m✓[39m src/test/contentStore.test.ts [2m([22m[2m19 tests[22m[2m)[22m[32m 131[2mms[22m[39m
+ [32m✓[39m src/test/contextStore.test.ts [2m([22m[2m21 tests[22m[2m)[22m[32m 127[2mms[22m[39m
+ [32m✓[39m src/test/settingsDataSlice.test.ts [2m([22m[2m14 tests[22m[2m)[22m[32m 34[2mms[22m[39m
+ [32m✓[39m src/test/chatStore.test.ts [2m([22m[2m2 tests[22m[2m)[22m[32m 51[2mms[22m[39m
+ [32m✓[39m src/test/entityStore.test.ts [2m([22m[2m17 tests[22m[2m)[22m[32m 106[2mms[22m[39m
+
+[31m⎯⎯⎯⎯⎯⎯⎯[39m[1m[41m Failed Tests 2 [49m[22m[31m⎯⎯⎯⎯⎯⎯⎯[39m
+
+[41m[1m FAIL [22m[49m src/__tests__/ux-benchmark.test.ts[2m > [22mAC-1: Component size <=300 lines[2m > [22mevery .tsx file in src/components/ should have <=300 lines
+[31m[1mAssertionError[22m: The following files exceed 300 lines:
+  - settings\AIProviderPanel.tsx (308 lines)
+  - settings\ProjectDataPanel.tsx (367 lines)
+  - settings\SystemPanel.tsx (373 lines): expected [ …(3) ] to deeply equal [][39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- [][39m
+[31m+ [[39m
+[31m+   "settings\\AIProviderPanel.tsx (308 lines)",[39m
+[31m+   "settings\\ProjectDataPanel.tsx (367 lines)",[39m
+[31m+   "settings\\SystemPanel.tsx (373 lines)",[39m
+[31m+ ][39m
+
+[36m [2m❯[22m src/__tests__/ux-benchmark.test.ts:[2m133:7[22m[39m
+    [90m131|[39m       violations[33m,[39m
+    [90m132|[39m       `The following files exceed 300 lines:\n${violations.map(v => ` …
+    [90m133|[39m     )[33m.[39m[34mtoEqual[39m([])
+    [90m   |[39m       [31m^[39m
+    [90m134|[39m   })
+    [90m135|[39m })
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯[22m[39m
+
+[41m[1m FAIL [22m[49m src/__tests__/ux-benchmark.test.ts[2m > [22mAC-7: ARIA coverage on interactive elements[2m > [22mbutton and input elements should have ARIA labels or accessible text
+[31m[1mAssertionError[22m: Interactive elements missing ARIA labels:
+  - settings\ProjectDataPanel.tsx: 2 input(s), no associated label: expected [ Array(1) ] to deeply equal [][39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- [][39m
+[31m+ [[39m
+[31m+   "settings\\ProjectDataPanel.tsx: 2 input(s), no associated label",[39m
+[31m+ ][39m
+
+[36m [2m❯[22m src/__tests__/ux-benchmark.test.ts:[2m292:7[22m[39m
+    [90m290|[39m       critical[33m,[39m
+    [90m291|[39m       `Interactive elements missing ARIA labels:\n${critical.map(v => …
+    [90m292|[39m     )[33m.[39m[34mtoEqual[39m([])
+    [90m   |[39m       [31m^[39m
+    [90m293|[39m   })
+    [90m294|[39m })
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯[22m[39m
+
+
+[2m Test Files [22m [1m[31m1 failed[39m[22m[2m | [22m[1m[32m15 passed[39m[22m[90m (16)[39m
+[2m      Tests [22m [1m[31m2 failed[39m[22m[2m | [22m[1m[32m234 passed[39m[22m[90m (236)[39m
+[2m   Start at [22m 20:48:57
+[2m   Duration [22m 11.19s[2m (transform 3.34s, setup 15.25s, import 6.07s, tests 1.95s, environment 100.09s)[22m
+
