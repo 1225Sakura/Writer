@@ -135,24 +135,22 @@ export function SettingsContent({ viewMode, onViewModeChange, onMobileNavOpen }:
           />
         </div>
       ) : (
-        <>
-          <div className="flex-1 overflow-y-auto p-6 relative">
-            <SectionLoadingOverlay visible={isLoading} message="加载实体数据..." />
-            {isLoading ? (
-              <div className="space-y-4">
-                <SmartSkeleton variant="text" lines={1} width="30%" height={24} />
-                <EntityListSkeletonPreset items={5} />
-              </div>
-            ) : (
-              <EntityEditor category={settingsCategory} />
-            )}
-          </div>
+        <div className="flex-1 overflow-y-auto p-6 relative">
+          <SectionLoadingOverlay visible={isLoading} message="加载实体数据..." />
+          {isLoading ? (
+            <div className="space-y-4">
+              <SmartSkeleton variant="text" lines={1} width="30%" height={24} />
+              <EntityListSkeletonPreset items={5} />
+            </div>
+          ) : (
+            <EntityEditor category={settingsCategory} />
+          )}
 
-          {/* AI Suggestion Panel */}
-          <div className="border-t border-[var(--border-subtle)] relative z-10">
+          {/* AI Suggestion Panel — inside scrollable area so it doesn't compress content above */}
+          <div className="mt-4 border-t border-[var(--border-subtle)] relative z-10">
             <AISuggestionPanel />
           </div>
-        </>
+        </div>
       )}
 
       {/* Bottom status bar */}
