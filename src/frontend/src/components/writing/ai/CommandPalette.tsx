@@ -9,6 +9,7 @@
  */
 
 import { Extension } from '@tiptap/core'
+import { PluginKey } from '@tiptap/pm/state'
 import Suggestion from '@tiptap/suggestion'
 import type { SuggestionProps, SuggestionKeyDownProps } from '@tiptap/suggestion'
 // Icons are rendered via inline SVG in ICON_SVG map below
@@ -26,6 +27,13 @@ export interface CommandItem {
   icon: string // SVG path or component name
   keywords: string[]
 }
+
+/* ============================================================
+   PLUGIN KEY
+   ============================================================ */
+
+/** Unique ProseMirror plugin key for the command palette suggestion */
+const CommandPalettePluginKey = new PluginKey('commandPalette')
 
 /* ============================================================
    COMMAND DEFINITIONS
@@ -299,6 +307,7 @@ export const CommandPaletteExtension = Extension.create({
       Suggestion({
         editor: self.editor,
         char: '/',
+        pluginKey: CommandPalettePluginKey,
         allowSpaces: false,
         allowedPrefixes: null,
         startOfLine: false,

@@ -12,6 +12,7 @@
  */
 
 import { Extension } from '@tiptap/core'
+import { PluginKey } from '@tiptap/pm/state'
 import Suggestion from '@tiptap/suggestion'
 import type { SuggestionProps, SuggestionKeyDownProps } from '@tiptap/suggestion'
 import { aiApi } from '@/api/writing'
@@ -28,6 +29,9 @@ export interface GhostTextItem {
 /* ============================================================
    CONSTANTS
    ============================================================ */
+
+/** Unique ProseMirror plugin key for the ghost text suggestion */
+const GhostTextPluginKey = new PluginKey('ghostText')
 
 /** Default debounce before triggering AI suggestion (ms) */
 const DEFAULT_DEBOUNCE_MS = 500
@@ -83,7 +87,7 @@ export const GhostTextExtension = Extension.create({
       Suggestion({
         editor: self.editor,
         char: '\0', // We trigger manually, not by character
-        pluginKey: undefined,
+        pluginKey: GhostTextPluginKey,
         allowSpaces: true,
         allowedPrefixes: null,
         startOfLine: false,
