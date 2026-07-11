@@ -1,0 +1,7 @@
+{
+  "tool_name": "Bash",
+  "tool_input_preview": "{\"command\":\"cd /d D:\\\\writer\\\\src\\\\frontend && npx tsc --noEmit 2>&1 | head -80\",\"timeout\":120000,\"description\":\"Run TypeScript type check on frontend\"}",
+  "error": "Exit code 1\n/usr/bin/bash: line 1: cd: too many arguments",
+  "timestamp": "2026-04-29T03:48:20.359Z",
+  "retry_count": 2
+}

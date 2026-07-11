@@ -1,0 +1,7 @@
+{
+  "tool_name": "Bash",
+  "tool_input_preview": "{\"command\":\"cat C:\\\\Users\\\\36084\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\D--writer\\\\28a3fc62-d8fa-41dd-bb99-6c04b4011566\\\\tasks\\\\bz8yexhqj.output\",\"description\":\"Check build output\"}",
+  "error": "Exit code 1\n/usr/bin/cat: 'C:Users36084AppDataLocalTempclaudeD--writer28a3fc62-d8fa-41dd-bb99-6c04b4011566tasksbz8yexhqj.output': No such file or directory",
+  "timestamp": "2026-04-29T04:06:10.604Z",
+  "retry_count": 1
+}

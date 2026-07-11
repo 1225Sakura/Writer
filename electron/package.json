@@ -24,54 +24,14 @@
       "dist-electron/**/*"
     ],
     "asar": true,
-    "asarUnpack": [
-      "resources/backend/**/*"
-    ],
+    "asarUnpack": [],
     "extraFiles": [
       {
         "from": "node_modules/electron/dist/ffmpeg.dll",
         "to": "ffmpeg.dll"
       }
     ],
-    "extraResources": [
-      {
-        "from": "../src/backend/.venv",
-        "to": "python_venv",
-        "filter": [
-          "**/*",
-          "!__pycache__{,/**}",
-          "!**/*.pyc",
-          "!**/*.pyo",
-          "!_pytest{,/**}",
-          "!*_test.py",
-          "!.gitignore",
-          "!.lock",
-          "!.pth"
-        ]
-      },
-      {
-        "from": "../src/backend",
-        "to": "backend",
-        "filter": [
-          "**/*",
-          "!.venv{,/**}",
-          "!.omc{,/**}",
-          "!__pycache__{,/**}",
-          "!**/*.pyc",
-          "!**/*.pyo",
-          "!node_modules{,/**}",
-          "!tests{,/**}",
-          "!.env",
-          "!.env.example",
-          "!Dockerfile",
-          "!*.md",
-          "!cli.py",
-          "!start.py",
-          "!migrations.py",
-          "!init_db.py"
-        ]
-      }
-    ],
+    "extraResources": [],
     "win": {
       "target": "nsis",
       "icon": "public/icon.ico",

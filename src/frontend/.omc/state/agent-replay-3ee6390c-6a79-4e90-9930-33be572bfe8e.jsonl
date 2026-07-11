@@ -1,0 +1,6 @@
+{"t":0,"agent":"a6806b4","agent_type":"architect","event":"agent_start","parent_mode":"none"}
+{"t":0,"agent":"a6806b4","agent_type":"architect","event":"agent_stop","success":true}
+{"t":0,"agent":"system","event":"skill_invoked","skill_name":"oh-my-claudecode:ai-slop-cleaner"}
+{"t":0,"agent":"a8af478","agent_type":"executor","event":"agent_start","parent_mode":"none"}
+{"t":0,"agent":"a8af478","agent_type":"executor","event":"agent_stop","success":true}
+{"t":0,"agent":"system","event":"skill_invoked","skill_name":"oh-my-claudecode:cancel"}

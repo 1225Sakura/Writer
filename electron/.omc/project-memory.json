@@ -1,0 +1,160 @@
+{
+  "version": "1.0.0",
+  "lastScanned": 1776952487275,
+  "projectRoot": "D:\\writer\\electron",
+  "techStack": {
+    "languages": [
+      {
+        "name": "JavaScript/TypeScript",
+        "version": null,
+        "confidence": "high",
+        "markers": [
+          "package.json"
+        ]
+      },
+      {
+        "name": "TypeScript",
+        "version": null,
+        "confidence": "high",
+        "markers": [
+          "tsconfig.json"
+        ]
+      }
+    ],
+    "frameworks": [
+      {
+        "name": "vite",
+        "version": "6.2.0",
+        "category": "build"
+      }
+    ],
+    "packageManager": "npm",
+    "runtime": null
+  },
+  "build": {
+    "buildCommand": null,
+    "testCommand": "rsync -a --exclude='__pycache__' --exclude='*.pyc' --exclude='*.pyo' --exclude='_pytest' --exclude='*_test.py' --exclude='.gitignore' --exclude='.lock' --exclude='.pth' D:/writer/src/backend/.venv/ D:/writer/electron/release/win-unpacked/resources/python_venv/ 2>&1 && echo \"venv copied OK\" || cp -r D:/writer/src/backend/.venv D:/writer/electron/release/win-unpacked/resources/python_venv && echo \"venv copied via cp\"",
+    "lintCommand": null,
+    "devCommand": null,
+    "scripts": {
+      "build:electron": "npx tsc",
+      "electron:dev": "npm run build:electron && electron .",
+      "dist": "npm run build:electron && electron-builder",
+      "dist:win": "npm run build:electron && electron-builder --win"
+    }
+  },
+  "conventions": {
+    "namingStyle": null,
+    "importStyle": null,
+    "testPattern": null,
+    "fileOrganization": null
+  },
+  "structure": {
+    "isMonorepo": false,
+    "workspaces": [],
+    "mainDirectories": [
+      "public"
+    ],
+    "gitBranches": null
+  },
+  "customNotes": [],
+  "directoryMap": {
+    "dist-electron": {
+      "path": "dist-electron",
+      "purpose": null,
+      "fileCount": 5,
+      "lastAccessed": 1776952487228,
+      "keyFiles": [
+        "main.js",
+        "main.js.map",
+        "preload.js",
+        "preload.js.map",
+        "tsconfig.tsbuildinfo"
+      ]
+    },
+    "frontend-build": {
+      "path": "frontend-build",
+      "purpose": null,
+      "fileCount": 2,
+      "lastAccessed": 1776952487229,
+      "keyFiles": [
+        "index.html",
+        "manifest.json"
+      ]
+    },
+    "public": {
+      "path": "public",
+      "purpose": "Public files",
+      "fileCount": 1,
+      "lastAccessed": 1776952487244,
+      "keyFiles": [
+        "icon.ico"
+      ]
+    },
+    "release": {
+      "path": "release",
+      "purpose": null,
+      "fileCount": 3,
+      "lastAccessed": 1776952487245,
+      "keyFiles": [
+        "builder-debug.yml",
+        "Writer Setup 1.0.0.exe",
+        "Writer Setup 1.0.0.exe.blockmap"
+      ]
+    },
+    "frontend-build\\assets": {
+      "path": "frontend-build\\assets",
+      "purpose": "Static assets",
+      "fileCount": 17,
+      "lastAccessed": 1776952487246,
+      "keyFiles": [
+        "ChatInitPage-BAY-ENNJ.js",
+        "ChatInitPage-l0T1TAu0.js",
+        "index-Bj7SQE0D.css"
+      ]
+    },
+    "frontend-build\\dist": {
+      "path": "frontend-build\\dist",
+      "purpose": "Distribution/build output",
+      "fileCount": 2,
+      "lastAccessed": 1776952487247,
+      "keyFiles": [
+        "index.html",
+        "manifest.json"
+      ]
+    }
+  },
+  "hotPaths": [
+    {
+      "path": "package.json",
+      "accessCount": 8,
+      "lastAccessed": 1780925796183,
+      "type": "file"
+    },
+    {
+      "path": "main.ts",
+      "accessCount": 3,
+      "lastAccessed": 1778324231812,
+      "type": "file"
+    },
+    {
+      "path": "",
+      "accessCount": 2,
+      "lastAccessed": 1776952553568,
+      "type": "directory"
+    },
+    {
+      "path": "release",
+      "accessCount": 1,
+      "lastAccessed": 1776952576366,
+      "type": "directory"
+    },
+    {
+      "path": "release\\win-unpacked\\resources\\backend",
+      "accessCount": 1,
+      "lastAccessed": 1776952585679,
+      "type": "directory"
+    }
+  ],
+  "userDirectives": []
+}

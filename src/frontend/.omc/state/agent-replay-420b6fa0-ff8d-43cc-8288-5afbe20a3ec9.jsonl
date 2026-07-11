@@ -1,0 +1,8 @@
+{"t":0,"agent":"system","event":"skill_invoked","skill_name":"oh-my-claudecode:plan"}
+{"t":0,"agent":"a6fd951","agent_type":"architect","event":"agent_start","parent_mode":"none"}
+{"t":0,"agent":"a6fd951","agent_type":"architect","event":"agent_stop","success":true}
+{"t":0,"agent":"ad70deb","agent_type":"critic","event":"agent_start","parent_mode":"none"}
+{"t":0,"agent":"ad70deb","agent_type":"critic","event":"agent_stop","success":true}
+{"t":0,"agent":"system","event":"skill_invoked","skill_name":"oh-my-claudecode:ralph"}
+{"t":0,"agent":"a763617","agent_type":"unknown","event":"agent_stop","success":true}
+{"t":0,"agent":"system","event":"skill_invoked","skill_name":"oh-my-claudecode:cancel"}

@@ -1,0 +1,34 @@
+{
+  "version": 1,
+  "entries": {
+    "466399dafa2d20f60587180bad0a07358eb7f2bce724df0ff682f038ad33f5ad": {
+      "last_emitted_at_ms": 1780825799690,
+      "message": "Read multiple files in parallel when possible for faster analysis."
+    },
+    "79a93d4a2f8f50b95f852280616242fee1855dc99a3c75211917f55e72e95fae": {
+      "last_emitted_at_ms": 1780825582667,
+      "message": "Use parallel execution for independent tasks. Use run_in_background for long operations (npm install, builds, tests)."
+    },
+    "459c54e5f35d6a58dcd90d2aecc21fa6d1f35d241bc5b134c506f87dc7b6d67b": {
+      "last_emitted_at_ms": 1780825562996,
+      "message": "Combine searches in parallel when investigating multiple patterns."
+    },
+    "445ed27a3872b681d98190bae61ccb84954e1bc4e140df5370be958dee776b3a": {
+      "last_emitted_at_ms": 1780824485534,
+      "message": "Verify changes work after editing. Test functionality before marking complete."
+    },
+    "47c08fc6b79e0c07655ce0646960b9f72c6facead2302324bf9feb27e30625a3": {
+      "last_emitted_at_ms": 1780824228469,
+      "message": "Spawning agent: unknown (sonnet) [BACKGROUND] | Task: Deslop清理变更文件 | Active agents: 11"
+    },
+    "269c6cf7eae3daeba0dc0a50e7fb315c44ce6ca91b2c12648e740c62cb513c0e": {
+      "last_emitted_at_ms": 1780824113075,
+      "message": "Spawning agent: oh-my-claudecode:architect (sonnet) | Task: 重新验证视图模式修复 | Active agents: 11"
+    },
+    "59fcbde8f74fe8720f92018d85e0317679677d7fe70b75f3ca2e3301583de424": {
+      "last_emitted_at_ms": 1780823326079,
+      "message": "Spawning agent: oh-my-claudecode:architect (opus) | Task: 架构师最终验证 | Active agents: 11"
+    }
+  },
+  "updated_at": "2026-06-07T09:49:59.690Z"
+}

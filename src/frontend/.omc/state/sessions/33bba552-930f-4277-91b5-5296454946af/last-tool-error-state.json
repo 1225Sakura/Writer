@@ -1,0 +1,7 @@
+{
+  "tool_name": "Bash",
+  "tool_input_preview": "{\"command\":\"cd D:/writer/src/frontend && npx tsc --noEmit src/components/writing/ai/GhostTextExtension.tsx src/components/writing/ai/CommandPalette.tsx 2>&1\",\"timeout\":30000,\"description\":\"Type-check ...",
+  "error": "Exit code 2\nsrc/components/writing/ai/CommandPalette.tsx(16,28): error TS2307: Cannot find module '@/store' or its corresponding type declarations.\r\nsrc/components/writing/ai/CommandPalette.tsx(17,27): error TS2307: Cannot find module '@/components/ui/Toast' or its corresponding type declarations.\r\nsrc/components/writing/ai/GhostTextExtension.tsx(18,23): error TS2307: Cannot find module '@/api/writing' or its corresponding type declarations.\r\nsrc/components/writing/ai/GhostTextExtension.tsx(19,3...",
+  "timestamp": "2026-06-08T12:23:48.138Z",
+  "retry_count": 1
+}

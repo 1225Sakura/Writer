@@ -1,0 +1,15 @@
+{"t":0,"agent":"ab20ff2","agent_type":"general-purpose","event":"agent_start","parent_mode":"none"}
+{"t":0,"agent":"a3b766f","agent_type":"general-purpose","event":"agent_start","parent_mode":"none"}
+{"t":0,"agent":"a597354","agent_type":"general-purpose","event":"agent_start","parent_mode":"none"}
+{"t":0,"agent":"adafef4","agent_type":"general-purpose","event":"agent_start","parent_mode":"none"}
+{"t":0,"agent":"a3af56a","agent_type":"general-purpose","event":"agent_start","parent_mode":"none"}
+{"t":0,"agent":"ab20ff2","agent_type":"general-purpose","event":"agent_stop","success":true}
+{"t":0,"agent":"a3b766f","agent_type":"general-purpose","event":"agent_stop","success":true}
+{"t":0,"agent":"a3af56a","agent_type":"general-purpose","event":"agent_stop","success":true}
+{"t":0,"agent":"adafef4","agent_type":"general-purpose","event":"agent_stop","success":true}
+{"t":0,"agent":"a597354","agent_type":"general-purpose","event":"agent_stop","success":true}
+{"t":0,"agent":"system","event":"skill_invoked","skill_name":"ai-slop-cleaner"}
+{"t":0,"agent":"system","event":"skill_invoked","skill_name":"oh-my-claudecode:cancel"}
+{"t":0,"agent":"system","event":"skill_invoked","skill_name":"oh-my-claudecode:ai-slop-cleaner"}
+{"t":0,"agent":"system","event":"skill_invoked","skill_name":"oh-my-claudecode:cancel"}
+{"t":0,"agent":"a150e06","agent_type":"unknown","event":"agent_stop","success":true}

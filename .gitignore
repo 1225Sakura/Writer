@@ -21,20 +21,9 @@ wheels/
 *.egg
 MANIFEST
 
-# Virtual Environment
-venv/
-ENV/
-env/
-.venv
-
 # PyInstaller
 *.manifest
 *.spec
-
-# SQLite
-*.db
-*.sqlite
-*.sqlite3
 
 # Node
 node_modules/
@@ -72,8 +61,20 @@ temp/
 output/
 logs/
 
-# OMC (oh-my-claudecode)
-.omc/
+# OMC (oh-my-claudecode) - operational state ignored; plans/specs/research retained locally
+.omc/state/
+.omc/sessions/
+.omc/phases/
+.omc/artifacts/
+.omc/notepad.md
+.omc/progress.txt
+.omc/prd.json
+.omc/project-memory.json
+.omc/handoffs/
+.omc/template-version.json
+!.omc/plans/
+!.omc/specs/
+!.omc/research/
 
 # Frontend build
 dist/
@@ -100,16 +101,4 @@ secrets.json
 electron/dist-electron/
 electron/release/
 
-# Data
-data/
-
-# Database
-src/backend/db/*.db
-src/backend/.db
-
-# Pytest
-.pytest_cache/
-tests/.pytest_cache/
-.pytest_cache/
-.pytest_cache/
 electron/release/win-unpacked/Writer.exe

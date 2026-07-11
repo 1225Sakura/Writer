@@ -1,0 +1,7 @@
+{
+  "tool_name": "Bash",
+  "tool_input_preview": "{\"command\":\"mv \\\"D:/writer/electron/release\\\" \\\"D:/writer/electron/release-old\\\" && mv \\\"D:/writer/electron/release-new\\\" \\\"D:/writer/electron/release\\\" && echo \\\"Swapped OK\\\"\",\"description\":\"Swap rel...",
+  "error": "Exit code 1\n/usr/bin/mv: cannot move 'D:/writer/electron/release' to 'D:/writer/electron/release-old': Permission denied",
+  "timestamp": "2026-06-08T13:33:29.266Z",
+  "retry_count": 1
+}

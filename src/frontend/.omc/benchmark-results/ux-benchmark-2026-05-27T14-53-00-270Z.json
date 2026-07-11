@@ -1,0 +1,49 @@
+{
+  "timestamp": "2026-05-27T14-53-00-270Z",
+  "totalCriteria": 6,
+  "passed": 5,
+  "failed": 1,
+  "criteria": [
+    {
+      "criterion": 1,
+      "name": "Component size <=300 lines",
+      "passed": false,
+      "details": "Violation(s): settings\\AIProviderPanel.tsx (308 lines)"
+    },
+    {
+      "criterion": 2,
+      "name": "Zero duplicate component names",
+      "passed": true,
+      "details": "No duplicate component basenames found."
+    },
+    {
+      "criterion": 3,
+      "name": "PascalCase naming",
+      "passed": true,
+      "details": "All custom component files use PascalCase naming."
+    },
+    {
+      "criterion": 4,
+      "name": "No legacy CSS aliases",
+      "passed": true,
+      "details": "No legacy CSS variable aliases found in component files."
+    },
+    {
+      "criterion": 7,
+      "name": "ARIA 100% coverage",
+      "passed": true,
+      "details": "All interactive elements have ARIA labels. (0 wrapper note(s) skipped)"
+    },
+    {
+      "criterion": 8,
+      "name": "Design token usage",
+      "passed": true,
+      "details": "No hardcoded hex colors found in component files."
+    }
+  ],
+  "componentStats": {
+    "totalFiles": 246,
+    "maxLines": 308,
+    "minLines": 10
+  }
+}

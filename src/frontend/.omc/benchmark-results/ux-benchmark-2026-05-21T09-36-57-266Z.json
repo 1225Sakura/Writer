@@ -1,0 +1,49 @@
+{
+  "timestamp": "2026-05-21T09-36-57-266Z",
+  "totalCriteria": 6,
+  "passed": 4,
+  "failed": 2,
+  "criteria": [
+    {
+      "criterion": 1,
+      "name": "Component size <=300 lines",
+      "passed": false,
+      "details": "Violation(s): settings\\AIProviderPanel.tsx (308 lines); settings\\ProjectDataPanel.tsx (367 lines); settings\\SystemPanel.tsx (373 lines)"
+    },
+    {
+      "criterion": 2,
+      "name": "Zero duplicate component names",
+      "passed": true,
+      "details": "No duplicate component basenames found."
+    },
+    {
+      "criterion": 3,
+      "name": "PascalCase naming",
+      "passed": true,
+      "details": "All custom component files use PascalCase naming."
+    },
+    {
+      "criterion": 4,
+      "name": "No legacy CSS aliases",
+      "passed": true,
+      "details": "No legacy CSS variable aliases found in component files."
+    },
+    {
+      "criterion": 7,
+      "name": "ARIA 100% coverage",
+      "passed": false,
+      "details": "Violation(s): settings\\ProjectDataPanel.tsx: 2 input(s), no associated label"
+    },
+    {
+      "criterion": 8,
+      "name": "Design token usage",
+      "passed": true,
+      "details": "No hardcoded hex colors found in component files."
+    }
+  ],
+  "componentStats": {
+    "totalFiles": 244,
+    "maxLines": 373,
+    "minLines": 10
+  }
+}

@@ -1,7 +1,0 @@
-{
-  "tool_name": "Bash",
-  "tool_input_preview": "{\"command\":\"cd /d/writer/electron && npm run dist:win 2>&1\",\"timeout\":300000,\"description\":\"Build Electron Windows installer\"}",
-  "error": "Exit code 1\n\n> writer-desktop@1.0.0 dist:win\n> npm run build:electron && electron-builder --win\n\n\n> writer-desktop@1.0.0 build:electron\n> npx tsc\n\n  • electron-builder  version=25.1.8 os=10.0.26200\n  • loaded configuration  file=package.json (\"build\" field)\n  • executing @electron/rebuild  electronVersion=33.4.11 arch=x64 buildFromSource=false appDir=./\n  • installing native dependencies  arch=x64\n  • completed installing native dependencies\n  • packaging       platform=win32 arch=x64 electron=3...",
-  "timestamp": "2026-04-23T14:13:31.510Z",
-  "retry_count": 1
-}

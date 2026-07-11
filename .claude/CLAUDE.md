@@ -6,7 +6,7 @@
 
 **核心功能：** 三界面架构（聊天初始化 → 设定编辑 → 正文写作），支持文笔风格调节、人机协作比例控制、IF 线同步写作。
 
-**技术栈：** Python FastAPI (后端) + React 18 (前端) + SQLite (本地存储) + MiniMax API (AI)
+**技术栈：** React 18 + TypeScript + Vite + Tailwind CSS + Electron (electron-builder) + shadcn/ui + Zustand + MiniMax API (AI)
 
 **参考架构：** `D:/writer/read/reference-webnovel`
 
@@ -14,9 +14,10 @@
 
 ## 运行环境
 
-- **平台：** 本地桌面应用（Windows/macOS/Linux）
-- **打包：** PyInstaller / PyWebView 或 Tauri + Python
-- **网络：** 完全离线可用（API 调用依赖网络）
+- **平台：** 本地桌面应用（Windows/macOS/Linux），基于 Electron 渲染进程
+- **打包：** Electron + electron-builder（输出 `.exe`/`.dmg`/`.AppImage`）
+- **存储：** 本地文件（JSON / IndexedDB / localStorage），不依赖后端服务
+- **网络：** AI 调用需联网，UI 完全离线可用
 
 ---
 
@@ -74,27 +75,6 @@
 
 ---
 
-## 关键实体 (Ontology)
-
-| 实体 | 说明 |
-|------|------|
-| StoryOutline | 故事线，包含章节 |
-| IFLine | IF线，同步配角角色故事线 |
-| Chapter | 章节，属 StoryOutline |
-| Character | 角色，属 IFLine |
-| CharacterStory | 角色故事线 |
-| WritingStyle | 文笔风格（江南/卡夫卡/加缪/默认/自定义） |
-| AIGeneratedContent | AI 生成内容，含质量分 |
-
----
-
-## 状态管理
-
-- 使用 Zustand 管理 React 状态
-- 数据存储于本地 SQLite，参考 `reference-webnovel` 的 entity/relationship 模型
-
----
-
 ## 快捷键
 
 | 操作 | 快捷键 |
@@ -113,86 +93,4 @@
 - 不部署本地模型，纯 API 调用
 - 不做出版级校对/语法检查
 - 不做多语言/翻译功能
-
----
-
-## AI 生成模式
-
-**A+C 混合模式：**
-- 主线：用户 prompt → AI 生成 → 用户确认
-- IF线/配角线：AI 自动生成 → 用户偶尔介入
-- 人机比例可调（滑块控制）
-
----
-
-## 组件参考
-
-- 富文本编辑器：Tiptap / BlockNote
-- 关系图谱：react-force-graph-3d
-- UI组件库：shadcn/ui (Radix + Tailwind)
-- 侧边抽屉：@radix-ui/react-dialog (shadcn/ui Sheet)
-- 状态管理：Zustand
-- ORM：SQLAlchemy 或 Drizzle（待定）
-
----
-
-## API 设计（待补充）
-
-| 端点 | 方法 | 说明 |
-|------|------|------|
-| /api/chat/session | POST | 创建聊天会话 |
-| /api/chat/messages | GET/POST | 获取/发送聊天消息 |
-| /api/settings | GET/PUT | 读取/更新设定 |
-| /api/chapters | CRUD | 章节管理 |
-| /api/ai/generate | POST | AI 生成内容 |
-| /api/ai/review | POST | AI 审查设定 |
-| /api/styles | GET | 获取文笔风格 |
-
----
-
-## 构建系统
-
-### 本地自动化构建
-
-项目配置了 Git hooks 实现本地自动构建：
-
-- **post-commit hook**: 每次 `git commit` 后自动触发完整构建
-  - 位置: `.git/hooks/post-commit`
-  - 执行: `build-local.bat` → `scripts\local-build.ps1`
-  - 日志: `.build_logs/commit_<timestamp>.log`
-
-- **构建脚本**:
-  - `build-local.bat` - Windows 构建入口（调用 PowerShell）
-  - `scripts\local-build.ps1` - PowerShell 构建脚本
-  - `scripts\build.sh` - Linux/macOS 构建脚本
-
-### 构建流程
-
-1. 前端构建 (`src/frontend` npm run build)
-2. 复制产物到 `electron/frontend-build`
-3. Electron TypeScript 编译
-4. electron-builder 打包
-5. 输出: `electron/release/Writer Setup 1.0.0.exe`
-
-### 构建产物
-
-| 文件 | 说明 |
-|------|------|
-| `Writer Setup 1.0.0.exe` | Windows 安装程序 (85MB) |
-| `win-unpacked/Writer.exe` | 便携版 (无需安装) |
-
----
-
-## 待完善章节
-
-| 缺失内容 | 状态 | 说明 |
-|----------|------|------|
-| ChatMessage/ConversationSession 实体 | 待补充 | 界面1聊天对话数据模型 |
-| AIInspectionResult 实体 | 待补充 | AI审查结果存储 |
-| PlotThread/Foreshadowing 实体 | 待补充 | 伏笔追踪数据模型 |
-| DraftVersion/EditHistory | 待补充 | 写作版本管理 |
-| API Endpoint 详细设计 | 待补充 | 请求/响应格式 |
-| 错误处理与边界情况 | 待补充 | 网络中断、API超时等 |
-| 数据备份与迁移策略 | 待补充 | SQLite 备份方案 |
-| 日志与可观测性 | 待补充 | 运行日志、用户操作日志 |
-| 安全与隐私 | 待补充 | 本地数据加密 |
+- 无后端服务，数据全部存于前端本地存储

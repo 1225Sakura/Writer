@@ -1,0 +1,21 @@
+UX Benchmark Report — 2026-06-07T17-00-10-164Z
+==================================================
+Total criteria tested: 6
+Passed: 2
+Failed: 4
+
+Results:
+  [FAIL] AC-1: Component size <=300 lines
+  [FAIL] AC-2: Zero duplicate component names
+  [PASS] AC-3: PascalCase naming
+  [PASS] AC-4: No legacy CSS aliases
+  [FAIL] AC-7: ARIA 100% coverage
+  [FAIL] AC-8: Design token usage
+    Violation(s): chat\ChatBubble.tsx (436 lines); chat\ChatFooter.tsx (329 lines); chat\ChatMessageList.tsx (503 lines); chat\ChatSidebar.tsx (742 lines); chat\InputField.tsx (827 lines); chat\UserInputPanel.tsx (407 lines); chat\WelcomePanel.tsx (729 lines); settings\CanvasView.tsx (537 lines); settings\CategoryNav.tsx (419 lines); settings\ChapterEntityLinker.tsx (413 lines); settings\GraphCanvas.tsx (471 lines); settings\IFLineEnhancer.tsx (381 lines); settings\ListControls.tsx (359 lines); settings\OutlineEditor.tsx (538 lines); settings\SchemaDrivenEditor.tsx (474 lines); settings\SchemaFieldComponents.tsx (395 lines); settings\TemplateManager.tsx (334 lines); shared\ShortcutListener.tsx (308 lines); writing\AchievementSystem.tsx (335 lines); writing\ai\CommandPalette.tsx (494 lines); writing\ai\DiffViewer.tsx (595 lines); writing\AIOperationDrawer.tsx (357 lines); writing\extensions\StyleCheckExtension.tsx (427 lines); writing\InlineAIPopup.tsx (490 lines); writing\OutlineSidebar.tsx (489 lines); writing\OutlineTreeNode.tsx (464 lines); writing\SearchReplaceBar.tsx (430 lines); writing\SelectionAIMenu.tsx (446 lines); writing\snapshots\SnapshotDiffView.tsx (322 lines); writing\snapshots\SnapshotPanel.tsx (338 lines)
+    Duplicate(s): CommandPalette: shared\CommandPalette.tsx, writing\ai\CommandPalette.tsx; GoalProgressRing: writing\dashboard\GoalProgressRing.tsx, writing\GoalProgressRing.tsx; WritingHeatmap: writing\dashboard\WritingHeatmap.tsx, writing\WritingHeatmap.tsx
+    All custom component files use PascalCase naming.
+    No legacy CSS variable aliases found in component files.
+    Violation(s): chat\ChatSidebar.tsx: 3 input(s), no associated label; settings\TableViewHelpers.tsx: 2 input(s), no associated label; writing\SearchReplaceBar.tsx: 2 input(s), no associated label
+    Violation(s): chat\ChatFooter.tsx: #dc2626, #7a9e58; chat\ChatSidebar.tsx: #ef4444; chat\VersionDiffView.tsx: #22c55e, #ef4444, #eab308; chat\VersionHistoryPanel.tsx: #ef4444; writing\ai\CommandPalette.tsx: #7088a8, #b5a99a, #d6cfc3, #8a7d6e; writing\extensions\StyleCheckExtension.tsx: #1a1a1a, #f5f5f5; writing\InlineAIPopup.tsx: #a04848, #6b9e8e, #7088a8, #b5a99a, #8a7d6e, #9e9183, #d6cfc3, #f5eed6; writing\SelectionAIMenu.tsx: #7088a8, #6b6058, #b5a99a, #e0d8cc, #d6cfc3, #8a7d6e; writing\StyleCheckGutter.tsx: #dc2626, #ea580c, #9333ea, #1a1a1a, #f5f5f5
+
+Component Stats: 293 files, max 827 lines

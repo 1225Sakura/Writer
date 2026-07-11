@@ -1,0 +1,46 @@
+{
+  "version": 1,
+  "entries": {
+    "79a93d4a2f8f50b95f852280616242fee1855dc99a3c75211917f55e72e95fae": {
+      "last_emitted_at_ms": 1780849657785,
+      "message": "Use parallel execution for independent tasks. Use run_in_background for long operations (npm install, builds, tests)."
+    },
+    "459c54e5f35d6a58dcd90d2aecc21fa6d1f35d241bc5b134c506f87dc7b6d67b": {
+      "last_emitted_at_ms": 1780848547886,
+      "message": "Combine searches in parallel when investigating multiple patterns."
+    },
+    "466399dafa2d20f60587180bad0a07358eb7f2bce724df0ff682f038ad33f5ad": {
+      "last_emitted_at_ms": 1780848348175,
+      "message": "Read multiple files in parallel when possible for faster analysis."
+    },
+    "445ed27a3872b681d98190bae61ccb84954e1bc4e140df5370be958dee776b3a": {
+      "last_emitted_at_ms": 1780847880343,
+      "message": "Verify changes work after editing. Test functionality before marking complete."
+    },
+    "4211f44ac6f3f06070aba7f54cf5950b8ac848812b825cff25b6cbe452a206ac": {
+      "last_emitted_at_ms": 1780847854304,
+      "message": "Spawning agent: oh-my-claudecode:executor (inherit) | Task: Implement branch conversation | Active agents: 11"
+    },
+    "5ab10cb64ccd315d94f8b8ad8f92051ef06daa744359f2216964e55571410b33": {
+      "last_emitted_at_ms": 1780847373803,
+      "message": "Spawning agent: oh-my-claudecode:executor (inherit) | Task: Implement voice input and AI context | Active agents: 11"
+    },
+    "e335bc1631ba42e045714a2576052b7234e20bebb104210195b3d6f181778f02": {
+      "last_emitted_at_ms": 1780847172360,
+      "message": "Spawning agent: oh-my-claudecode:executor (inherit) [BACKGROUND] | Task: Implement remaining chat features | Active agents: 11"
+    },
+    "fadd2c957e34b8f7ae247b99059cda87f2f1d2d7ffc37c0600a748e7f86945ce": {
+      "last_emitted_at_ms": 1780846618704,
+      "message": "Spawning agent: oh-my-claudecode:executor (inherit) [BACKGROUND] | Task: Implement empty state suggestions | Active agents: 11"
+    },
+    "ce997c1d972d8c78e40d3c464082887c2defe759e33b47fbb5e1c34f73a691ca": {
+      "last_emitted_at_ms": 1780846612858,
+      "message": "Spawning agent: oh-my-claudecode:executor (inherit) [BACKGROUND] | Task: Implement context suggestions + commands | Active agents: 11"
+    },
+    "c285c7371c9a88909b8a5e36f802c3b6c3852b659ce07e9394cece1c4800b3b4": {
+      "last_emitted_at_ms": 1780846601485,
+      "message": "Spawning agent: oh-my-claudecode:executor (inherit) [BACKGROUND] | Task: Implement voice input | Active agents: 11"
+    }
+  },
+  "updated_at": "2026-06-07T16:27:37.785Z"
+}

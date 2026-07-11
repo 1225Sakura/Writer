@@ -1,0 +1,49 @@
+{
+  "timestamp": "2026-05-15T13-25-18-648Z",
+  "totalCriteria": 6,
+  "passed": 2,
+  "failed": 4,
+  "criteria": [
+    {
+      "criterion": 1,
+      "name": "Component size <=300 lines",
+      "passed": true,
+      "details": "All 240 component files are within the 300-line limit."
+    },
+    {
+      "criterion": 2,
+      "name": "Zero duplicate component names",
+      "passed": false,
+      "details": "Duplicate(s): EmptyState: chat\\EmptyState.tsx, ui\\EmptyState.tsx; CircularProgress: ui\\CircularProgress.tsx, writing\\CircularProgress.tsx; StyleSelector: writing\\operations\\StyleSelector.tsx, writing\\StyleSelector.tsx; ToolbarButtons: writing\\toolbar\\ToolbarButtons.tsx, writing\\ToolbarButtons.tsx"
+    },
+    {
+      "criterion": 3,
+      "name": "PascalCase naming",
+      "passed": false,
+      "details": "Violation(s): shared\\commandDefinitions.tsx (basename: \"commandDefinitions\"); writing\\checkerConfigs.tsx (basename: \"checkerConfigs\")"
+    },
+    {
+      "criterion": 4,
+      "name": "No legacy CSS aliases",
+      "passed": true,
+      "details": "No legacy CSS variable aliases found in component files."
+    },
+    {
+      "criterion": 7,
+      "name": "ARIA 100% coverage",
+      "passed": false,
+      "details": "Violation(s): settings\\EntitySearch.tsx: 1 input(s), no associated label; settings\\TagInputField.tsx: 1 input(s), no associated label; shared\\CommandPalette.tsx: 1 input(s), no associated label; shared\\MicroInteractionsButtons.tsx: 1 input(s), no associated label; ui\\input.tsx: 1 input(s), no associated label"
+    },
+    {
+      "criterion": 8,
+      "name": "Design token usage",
+      "passed": false,
+      "details": "Violation(s): settings\\TagList.tsx: #e87d9b, #8ee85b; shared\\BackgroundHelpers.tsx: #c9a96e, #e8b87d, #5eb5a6, #8b6d4f, #c45c5c; shared\\HeaderLogo.tsx: #fff; ui\\AnimatedBackground.tsx: #1a1a14; ui\\AvatarWithGlow.tsx: #0d0d12; ui\\ButtonEffects.tsx: #fff; ui\\DefaultCardRenderer.tsx: #fff"
+    }
+  ],
+  "componentStats": {
+    "totalFiles": 240,
+    "maxLines": 297,
+    "minLines": 10
+  }
+}

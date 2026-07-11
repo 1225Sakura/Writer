@@ -2,17 +2,19 @@
 
 面向中文网络小说作者的本地桌面写作软件，通过 AI 辅助完成从世界观构建、角色设定到正文创作的全流程。
 
-## 核心功能
+## 项目目标
 
-### 三界面架构
+为中文网文作者提供沉浸式、AI 协作的本地写作环境。无需联网即可使用全部界面与编辑功能，AI 辅助（生成/优化/检查）通过外部 API 提供。
 
-| 界面 | 功能 | 状态 |
-|------|------|------|
-| **聊天初始化** | AI 主动提问，收集世界观、角色、金手指等设定 | ✅ |
-| **设定编辑** | 左侧分类导航 + 右侧编辑器 + 关系可视化 | ✅ |
-| **正文写作** | 沉浸式写作 + AI 操作 + 协作面板 | ✅ |
+## 三界面架构
 
-### 写作界面功能 (v2.0)
+| 界面 | 功能 |
+|------|------|
+| **聊天初始化 (Chat Initialization)** | AI 主动提问，收集世界观、角色、金手指等设定；实时显示已收集信息面板，支持随时进入下一界面 |
+| **设定编辑 (Setting Editor)** | 左侧分类导航（世界观/角色/物品/地点/势力/规则/大纲/IF 线）+ 右侧编辑器 + 关系可视化；支持 AI 审查多轮迭代 |
+| **正文写作 (Writing Editor)** | 沉浸式写作区，AI 操作抽屉 + 协作面板抽屉独立展开/收起；工具栏覆盖写作/大纲/AI 操作/协作/返回设定 |
+
+### 写作界面功能
 
 #### 编辑器核心体验
 - **Corkboard 视图** — 章节卡片拖拽排序，类似 Scrivener
@@ -45,15 +47,14 @@
 
 | 层 | 技术 |
 |----|------|
-| **前端** | React 18 + TypeScript + Vite |
+| **前端框架** | React 18 + TypeScript + Vite |
 | **UI 组件** | shadcn/ui + Radix + Tailwind CSS |
-| **编辑器** | Tiptap (ProseMirror) |
+| **富文本编辑器** | Tiptap (ProseMirror) |
 | **状态管理** | Zustand |
 | **动画** | Framer Motion |
-| **后端** | Python FastAPI + SQLAlchemy |
-| **数据库** | SQLite (本地存储) |
-| **AI** | MiniMax API |
-| **打包** | Electron + electron-builder |
+| **桌面壳层** | Electron + electron-builder |
+
+数据全部保存在本地（Electron 内置存储），AI 能力通过外部 API 调用（用户在界面内配置）。
 
 ## 快捷键
 
@@ -101,107 +102,71 @@
 ```
 writer/
 ├── src/
-│   ├── frontend/          # React 前端
-│   │   ├── src/
-│   │   │   ├── components/
-│   │   │   │   ├── writing/      # 写作界面组件
-│   │   │   │   │   ├── corkboard/     # Corkboard 视图
-│   │   │   │   │   ├── snapshots/     # 版本快照
-│   │   │   │   │   ├── dashboard/     # 数据仪表盘
-│   │   │   │   │   ├── ai/            # AI 协作组件
-│   │   │   │   │   ├── linkage/       # 面板联动
-│   │   │   │   │   ├── toolbar/       # 工具栏
-│   │   │   │   │   ├── collaboration/ # 协作面板
-│   │   │   │   │   ├── editor/        # 编辑器子组件
-│   │   │   │   │   └── immersive/     # 沉浸模式
-│   │   │   │   ├── chat/         # 聊天界面
-│   │   │   │   ├── settings/     # 设定编辑器
-│   │   │   │   └── shared/       # 共享组件
-│   │   │   ├── store/            # Zustand 状态管理
-│   │   │   ├── api/              # API 调用
-│   │   │   ├── hooks/            # 自定义 Hooks
-│   │   │   └── styles/           # CSS 样式
-│   │   └── package.json
-│   └── backend/           # Python FastAPI 后端
-│       ├── api/           # API 路由
-│       ├── core/          # 核心业务逻辑
-│       │   ├── domain/    # 实体和 Schema
-│       │   ├── services/  # 服务层
-│       │   └── repositories/ # 仓库层
-│       ├── agents/        # AI Agent
-│       └── infrastructure/ # 基础设施
-├── electron/              # Electron 打包
-├── .omc/                  # OMC 状态文件
-└── CLAUDE.md              # 项目指令
+│   └── frontend/           # React 前端
+│       ├── src/
+│       │   ├── components/
+│       │   │   ├── writing/      # 写作界面组件
+│       │   │   │   ├── corkboard/     # Corkboard 视图
+│       │   │   │   ├── snapshots/     # 版本快照
+│       │   │   │   ├── dashboard/     # 数据仪表盘
+│       │   │   │   ├── ai/            # AI 协作组件
+│       │   │   │   ├── linkage/       # 面板联动
+│       │   │   │   ├── toolbar/       # 工具栏
+│       │   │   │   ├── collaboration/ # 协作面板
+│       │   │   │   ├── editor/        # 编辑器子组件
+│       │   │   │   └── immersive/     # 沉浸模式
+│       │   │   ├── chat/         # 聊天界面
+│       │   │   ├── settings/     # 设定编辑器
+│       │   │   └── shared/       # 共享组件
+│       │   ├── store/            # Zustand 状态管理
+│       │   ├── api/              # 外部 API 调用
+│       │   ├── hooks/            # 自定义 Hooks
+│       │   └── styles/           # CSS 样式
+│       └── package.json
+└── electron/               # Electron 桌面壳层
+    ├── main/               # 主进程
+    ├── preload/            # 预加载脚本
+    └── package.json
 ```
-
-## 构建
-
-### 本地构建
-
-```bash
-# Windows
-build-local.bat
-
-# 或手动执行
-cd src/frontend
-npm install
-npm run build
-cd ../..
-npx electron-builder
-```
-
-### 构建产物
-
-| 文件 | 说明 |
-|------|------|
-| `Writer Setup 1.0.0.exe` | Windows 安装程序 (~180MB) |
-| `win-unpacked/Writer.exe` | 便携版 (无需安装) |
-
-## API 端点
-
-### 章节管理
-
-| 端点 | 方法 | 说明 |
-|------|------|------|
-| `/chapters/` | GET | 列出所有章节 |
-| `/chapters/` | POST | 创建章节 |
-| `/chapters/{id}` | GET | 获取章节详情 |
-| `/chapters/{id}` | PATCH | 更新章节 |
-| `/chapters/{id}` | DELETE | 删除章节 |
-| `/chapters/reorder` | PATCH | 章节拖拽排序 |
-| `/chapters/{id}/snapshots` | GET/POST | 快照列表/创建 |
-| `/chapters/{id}/drafts` | GET/POST | 草稿版本管理 |
-
-### AI 操作
-
-| 端点 | 方法 | 说明 |
-|------|------|------|
-| `/ai/generate` | POST | AI 生成内容 (流式) |
-| `/ai/context` | POST | 构建 AI 上下文 |
-| `/ai/extract` | POST | 提取实体 |
-| `/ai/check/*` | POST | 各种检查 (一致性/连贯性/节奏/OOC) |
 
 ## 开发
 
 ### 环境要求
 
 - Node.js 18+
-- Python 3.11+
 - npm 或 yarn
 
-### 启动开发服务器
+### 安装与构建
 
 ```bash
-# 前端
+# 1. 构建前端
 cd src/frontend
 npm install
+npm run build
+
+# 2. 构建 Electron 桌面应用
+cd ../../electron
+npm install
+npm run build:electron
+```
+
+构建产物位于 `electron/release/`：
+
+| 文件 | 说明 |
+|------|------|
+| `Writer Setup 1.0.0.exe` | Windows 安装程序 (~180MB) |
+| `win-unpacked/Writer.exe` | 便携版 (无需安装) |
+
+### 开发模式
+
+```bash
+# 启动前端开发服务器（热重载）
+cd src/frontend
 npm run dev
 
-# 后端
-cd src/backend
-pip install -r requirements.txt
-python -m uvicorn app.main:app --reload
+# 启动 Electron 并连接开发服务器
+cd electron
+npm run dev
 ```
 
 ## 贡献

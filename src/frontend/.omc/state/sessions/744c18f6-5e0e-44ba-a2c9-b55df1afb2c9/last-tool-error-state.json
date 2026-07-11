@@ -1,0 +1,7 @@
+{
+  "tool_name": "mcp__plugin_oh-my-claudecode_t__lsp_diagnostics",
+  "tool_input_preview": "{\"file\":\"D:\\\\writer\\\\src\\\\frontend\\\\src\\\\shared\\\\crossReference.ts\"}",
+  "error": "Language server 'typescript-language-server' not found.\nInstall with: npm install -g typescript-language-server typescript",
+  "timestamp": "2026-06-07T17:09:54.135Z",
+  "retry_count": 6
+}
