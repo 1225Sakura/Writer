@@ -37,6 +37,7 @@ from app.models.location import Location  # noqa: E402
 from app.models.outline import Outline, Chapter  # noqa: E402
 from app.models.draft import Draft  # noqa: E402
 from app.models.project import Project  # noqa: E402
+from app.models.chat import ChatSession, ChatMessage  # noqa: E402
 
 __all__ += [
     "AIProvider", "WritingSettings", "AIInspectionResult",

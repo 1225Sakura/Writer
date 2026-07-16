@@ -20,6 +20,7 @@ from app.routers.settings_entities import (
 from app.routers.outlines import outlines_router
 from app.routers.chapters import chapters_router
 from app.routers.drafts import drafts_router
+from app.routers.chat import router as chat_router
 
 api_router = APIRouter(prefix="/api/v1")
 
@@ -33,3 +34,4 @@ api_router.include_router(ai_provider_router)
 api_router.include_router(outlines_router)
 api_router.include_router(chapters_router)
 api_router.include_router(drafts_router)
+api_router.include_router(chat_router)
