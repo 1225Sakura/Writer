@@ -29,6 +29,7 @@ from app.schemas.outline_generator import (
     GenerateOutlineRequest,
     GenerateOutlineResponse,
 )
+from app.schemas.outline_fork import ForkOutlineRequest, ForkOutlineResponse
 from app.schemas.settings_entities import (
     ItemCreate, ItemUpdate, ItemOut,
     LocationCreate, LocationUpdate, LocationOut,
@@ -54,6 +55,7 @@ __all__ = [
     "FillFieldsRequest", "FillFieldsResponse",
     "RewriteDescriptionRequest", "RewriteDescriptionResponse",
     "GenerateOutlineChapter", "GenerateOutlineRequest", "GenerateOutlineResponse",
+    "ForkOutlineRequest", "ForkOutlineResponse",
     "ItemCreate", "ItemUpdate", "ItemOut",
     "LocationCreate", "LocationUpdate", "LocationOut",
     "FactionCreate", "FactionUpdate", "FactionOut",

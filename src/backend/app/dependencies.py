@@ -19,6 +19,7 @@ from app.repositories.rule import RuleRepository
 from app.services.rule import RuleService
 from app.repositories.outline import OutlineRepository
 from app.services.outline import OutlineService
+from app.services.outline_fork import OutlineForkService
 from app.config import get_settings
 from app.repositories.chapter import ChapterRepository
 from app.services.chapter import ChapterService
@@ -44,6 +45,7 @@ __all__ = [
     "get_world_setting_repository", "get_world_setting_service",
     "get_rule_repository", "get_rule_service",
     "get_outline_repository", "get_outline_service",
+    "get_outline_fork_service",
     "get_chapter_repository", "get_chapter_service",
     "get_draft_repository", "get_draft_service",
     "get_ai_provider_repository", "get_ai_provider_service",
@@ -126,6 +128,14 @@ def get_chapter_repository(db=Depends(get_db)):
 
 def get_chapter_service(repo=Depends(get_chapter_repository)):
     return ChapterService(repo)
+
+
+def get_outline_fork_service(
+    outline_repo: OutlineRepository = Depends(get_outline_repository),
+    chapter_repo: ChapterRepository = Depends(get_chapter_repository),
+    db=Depends(get_db),
+):
+    return OutlineForkService(outline_repo, chapter_repo, db)
 
 
 def get_draft_repository(db=Depends(get_db)):

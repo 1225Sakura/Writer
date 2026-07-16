@@ -8,6 +8,8 @@ from fastapi import APIRouter, Depends, Query
 
 from app.schemas import (
     ApiResponse,
+    ForkOutlineRequest,
+    ForkOutlineResponse,
     GenerateOutlineRequest,
     GenerateOutlineResponse,
     OutlineCreate,
@@ -15,8 +17,13 @@ from app.schemas import (
     OutlineUpdate,
 )
 from app.core.exceptions import NotFoundException
-from app.dependencies import get_outline_generator_service, get_outline_service
+from app.dependencies import (
+    get_outline_fork_service,
+    get_outline_generator_service,
+    get_outline_service,
+)
 from app.services.outline import OutlineService
+from app.services.outline_fork import OutlineForkService
 from app.services.outline_generator import OutlineGeneratorService
 
 outlines_router = APIRouter(prefix="/chapters/outlines", tags=["Chapters"])
@@ -77,3 +84,18 @@ def delete_outline(outline_id: int, svc: OutlineService = Depends(get_outline_se
     if not svc.delete(outline_id):
         raise NotFoundException("Outline", outline_id)
     return ApiResponse(message="Outline deleted")
+
+
+@outlines_router.post("/{outline_id}/fork", status_code=201)
+def fork_outline(
+    outline_id: int,
+    body: ForkOutlineRequest,
+    svc: OutlineForkService = Depends(get_outline_fork_service),
+) -> ForkOutlineResponse:
+    result = svc.fork(
+        outline_id,
+        name=body.name,
+        project_id=body.project_id,
+        fork_chapter_id=body.fork_chapter_id,
+    )
+    return ForkOutlineResponse(**result)
