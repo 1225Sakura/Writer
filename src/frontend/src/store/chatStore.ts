@@ -5,6 +5,7 @@ import { sessionApi, messageApi, entityApi } from '../api/chat'
 import { aiReviewApi } from '../api/aiReview'
 import type { ChatSession, ExtractedEntity } from '../api/types'
 import { createHybridStorage } from './utils/indexedDBStorage'
+import { useUIStore } from './uiStore'
 import { showApiError, showOperationError, showSuccess } from '@/utils/toastHelper'
 import type { ApiError } from '@/api/request'
 import type { WritingStats, WritingGoal } from '../services/writingStatsService'
@@ -89,6 +90,10 @@ interface ChatState {
   // Branch conversation
   branches: Record<string, ChatMessageLocal[]>
   activeBranchId: string | null
+  // US-004: Auto-advance counter — increments on each sendMessage call.
+  // When turnCount reaches the threshold (default 3), the chat interface
+  // auto-switches to the settings editor via the cross-store reference.
+  turnCount: number
 }
 
 interface ChatActions {
@@ -237,6 +242,7 @@ export const useChatStore = create<ChatState & ChatActions>()(
           snapshotIndex: [],
           branches: {},
           activeBranchId: null,
+          turnCount: 0,
 
           createSession: async () => {
             set((state) => {
@@ -466,6 +472,16 @@ export const useChatStore = create<ChatState & ChatActions>()(
               state.currentStreamContent = ''
               state.error = null
             })
+
+            // US-004: Increment turn counter and auto-advance to settings
+            // when threshold is reached. Cross-store via useUIStore.getState()
+            // matches the pattern used in uiStore.ts cleanupUIStore().
+            set((state) => {
+              state.turnCount = (state.turnCount ?? 0) + 1
+            })
+            if (get().turnCount >= 3) {
+              useUIStore.getState().setCurrentInterface('settings')
+            }
 
             const abortController = new AbortController()
             set((state) => { state.streamAbortController = abortController })
