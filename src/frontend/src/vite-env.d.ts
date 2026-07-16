@@ -23,6 +23,7 @@ interface ElectronAPI {
   maximizeWindow: () => void
   closeWindow: () => void
   isMaximized: () => Promise<boolean>
+  appendAILog: (payload: object) => Promise<{ success: boolean; error?: string }>
   platform: string
 }
 

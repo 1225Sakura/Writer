@@ -12,6 +12,8 @@ import { TableView } from './TableView'
 import { ProjectDataPanel } from './ProjectDataPanel'
 import { RelationGraph } from './RelationGraph'
 import { SystemPanel } from './SystemPanel'
+import { SettingsAIButtonGroup } from './SettingsAIButtonGroup'
+import { FontSizeSetting } from './FontSizeSetting'
 import { ViewSwitcher } from './ViewSwitcher'
 import type { ViewMode } from './ViewSwitcher'
 import {
@@ -152,6 +154,18 @@ export function SettingsContent({ viewMode, onViewModeChange, onMobileNavOpen }:
           </div>
         </div>
       )}
+
+      {/* Settings AI Button Group — fixed footer rail, available across all categories */}
+      {settingsCategory !== 'system' && settingsCategory !== 'projectData' && (
+        <div className="border-t border-[var(--border-subtle)] bg-[var(--color-surface-overlay)] px-4 py-3 relative z-10">
+          <SettingsAIButtonGroup projectId={1} />
+        </div>
+      )}
+
+      {/* Font size strip + Bottom status bar (sibling rows, no wrapper to keep StatusBar styling intact) */}
+      <div className="flex items-center justify-end gap-3 px-4 py-1.5 border-t border-[var(--border-subtle)] bg-[var(--color-surface-overlay)] relative z-10">
+        <FontSizeSetting />
+      </div>
 
       {/* Bottom status bar */}
       <StatusBar />

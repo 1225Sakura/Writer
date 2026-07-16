@@ -80,6 +80,9 @@ export interface UIState {
   // Sidebar width (settings editor)
   settingsSidebarWidth: number
 
+  // Font size (writing font, px) — controls --writer-font-size CSS var
+  fontSize: number
+
   // Toast/notification queue
   toasts: Toast[]
 }
@@ -146,6 +149,9 @@ interface UIActions {
   // Sidebar
   setSettingsSidebarWidth: (width: number) => void
 
+  // Font size
+  setFontSize: (size: number) => void
+
   // Performance mode
   setReducedMotion: (enabled: boolean) => void
   toggleReducedMotion: () => void
@@ -196,6 +202,7 @@ export const useUIStore = create<UIState & UIActions>()(
           theme: 'dark',
           settingsCategory: 'world',
           settingsSidebarWidth: 240,
+          fontSize: 16,
           toasts: [],
           reducedMotion: false,
           lowPerformanceMode: false,
@@ -480,6 +487,24 @@ export const useUIStore = create<UIState & UIActions>()(
           },
 
           // ----------------------------------------
+          // Font size
+          // ----------------------------------------
+
+          setFontSize: (size) => {
+            const clamped = Math.max(12, Math.min(24, Math.round(size)))
+            set((state) => { state.fontSize = clamped })
+            // Mirror to localStorage and CSS variable for global application
+            if (typeof window !== 'undefined') {
+              try {
+                window.localStorage.setItem('writer-font-size', String(clamped))
+              } catch {
+                // localStorage may be unavailable (e.g. private browsing)
+              }
+              document.documentElement.style.setProperty('--writer-font-size', `${clamped}px`)
+            }
+          },
+
+          // ----------------------------------------
           // Performance mode
           // ----------------------------------------
 
@@ -541,6 +566,7 @@ export const useUIStore = create<UIState & UIActions>()(
             collaborationPanel: state.collaborationPanel,
             outlinePanel: state.outlinePanel,
             settingsSidebarWidth: state.settingsSidebarWidth,
+            fontSize: state.fontSize,
             immersiveMode: state.immersiveMode,
             focusModeEnabled: state.focusModeEnabled,
             typewriterMode: state.typewriterMode,
@@ -550,6 +576,11 @@ export const useUIStore = create<UIState & UIActions>()(
             lowPerformanceMode: state.lowPerformanceMode,
           }),
           version: 2,
+          migrate: (persistedState: unknown, _version: number) => {
+            // Additive: new fields (e.g. fontSize) take their defaults
+            // from the initial state if missing in older persisted snapshots.
+            return (persistedState ?? {}) as UIState
+          },
         }
       )
     )
