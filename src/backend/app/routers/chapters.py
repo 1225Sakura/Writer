@@ -7,12 +7,19 @@ from __future__ import annotations
 from fastapi import APIRouter, Depends, Query
 
 from app.core.exceptions import NotFoundException
-from app.dependencies import get_chapter_fork_service, get_chapter_service, get_draft_service
+from app.dependencies import (
+    get_chapter_fork_service,
+    get_chapter_service,
+    get_draft_service,
+    get_if_line_sync_service,
+)
 from app.schemas import ApiResponse, ChapterCreate, ChapterUpdate, ChapterOut
 from app.schemas.chapter_fork import ForkChapterRequest, ForkChapterResponse
+from app.schemas.if_line_sync import SyncRequest, SyncResponse
 from app.services.chapter import ChapterService
 from app.services.chapter_fork import ChapterForkService
 from app.services.draft import DraftService
+from app.services.if_line_sync import IFLineSyncService
 
 
 chapters_router = APIRouter(prefix="/chapters", tags=["Chapters"])
@@ -87,3 +94,18 @@ def fork_chapter(
 ) -> ForkChapterResponse:
     result = svc.fork(chapter_id, body.ifLineId, body.name)
     return ForkChapterResponse(**result)
+
+
+@chapters_router.post("/if-lines/{if_line_id}/sync")
+def sync_if_line(
+    if_line_id: int,
+    body: SyncRequest,
+    svc: IFLineSyncService = Depends(get_if_line_sync_service),
+) -> SyncResponse:
+    """Sync a base chapter into one or more target IF lines (US-017).
+
+    Returns synced chapters (when content was copied) and any conflicts
+    detected (when content diverged in the target line).
+    """
+    result = svc.sync(if_line_id, body.baseChapterId, body.targetLineIds)
+    return SyncResponse(**result)

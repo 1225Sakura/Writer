@@ -31,6 +31,12 @@ from app.schemas.outline_generator import (
 )
 from app.schemas.outline_fork import ForkOutlineRequest, ForkOutlineResponse
 from app.schemas.chapter_fork import ForkChapterRequest, ForkChapterResponse
+from app.schemas.if_line_sync import (
+    SyncRequest,
+    SyncedChapter,
+    SyncConflict,
+    SyncResponse,
+)
 from app.schemas.settings_entities import (
     ItemCreate, ItemUpdate, ItemOut,
     LocationCreate, LocationUpdate, LocationOut,
@@ -58,6 +64,7 @@ __all__ = [
     "GenerateOutlineChapter", "GenerateOutlineRequest", "GenerateOutlineResponse",
     "ForkOutlineRequest", "ForkOutlineResponse",
     "ForkChapterRequest", "ForkChapterResponse",
+    "SyncRequest", "SyncedChapter", "SyncConflict", "SyncResponse",
     "ItemCreate", "ItemUpdate", "ItemOut",
     "LocationCreate", "LocationUpdate", "LocationOut",
     "FactionCreate", "FactionUpdate", "FactionOut",

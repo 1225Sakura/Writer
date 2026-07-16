@@ -24,6 +24,8 @@ from app.config import get_settings
 from app.repositories.chapter import ChapterRepository
 from app.services.chapter import ChapterService
 from app.services.chapter_fork import ChapterForkService
+from app.repositories.if_line import IFLineRepository
+from app.services.if_line_sync import IFLineSyncService
 from app.repositories.draft import DraftRepository
 from app.services.draft import DraftService
 from app.repositories.ai_provider import AIProviderRepository
@@ -48,6 +50,7 @@ __all__ = [
     "get_outline_repository", "get_outline_service",
     "get_outline_fork_service",
     "get_chapter_repository", "get_chapter_service", "get_chapter_fork_service",
+    "get_if_line_repository", "get_if_line_sync_service",
     "get_draft_repository", "get_draft_service",
     "get_ai_provider_repository", "get_ai_provider_service",
     "get_entity_generator_service",
@@ -145,6 +148,19 @@ def get_chapter_fork_service(
     db=Depends(get_db),
 ):
     return ChapterForkService(chapter_repo, outline_repo, db)
+
+
+def get_if_line_repository(db=Depends(get_db)):
+    return IFLineRepository(db)
+
+
+def get_if_line_sync_service(
+    if_line_repo: IFLineRepository = Depends(get_if_line_repository),
+    chapter_repo: ChapterRepository = Depends(get_chapter_repository),
+    outline_repo: OutlineRepository = Depends(get_outline_repository),
+    db=Depends(get_db),
+):
+    return IFLineSyncService(db, if_line_repo, chapter_repo, outline_repo)
 
 
 def get_draft_repository(db=Depends(get_db)):
