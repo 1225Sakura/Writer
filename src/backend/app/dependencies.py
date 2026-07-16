@@ -25,6 +25,7 @@ from app.repositories.draft import DraftRepository
 from app.services.draft import DraftService
 from app.repositories.ai_provider import AIProviderRepository
 from app.services.ai_provider import AIProviderService
+from app.services.ai_generate_entity import EntityGeneratorService
 from app.repositories.chat import ChatSessionRepository, ChatMessageRepository
 from app.services.chat import ChatService
 
@@ -41,6 +42,7 @@ __all__ = [
     "get_chapter_repository", "get_chapter_service",
     "get_draft_repository", "get_draft_service",
     "get_ai_provider_repository", "get_ai_provider_service",
+    "get_entity_generator_service",
     "get_chat_service",
 ]
 
@@ -131,6 +133,11 @@ def get_ai_provider_repository(db=Depends(get_db)):
 
 def get_ai_provider_service(repo=Depends(get_ai_provider_repository)):
     return AIProviderService(repo)
+
+
+def get_entity_generator_service() -> EntityGeneratorService:
+    """EntityGeneratorService is stateless (uses global MiniMax config)."""
+    return EntityGeneratorService()
 
 
 # -- chat (US-007: 6 entity services injected for migrate-to-settings) -----

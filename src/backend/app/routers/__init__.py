@@ -11,6 +11,7 @@ from fastapi import APIRouter
 
 from app.routers import health, projects
 from app.routers.ai_generate import router as ai_generate_router
+from app.routers.ai_generate_entity import router as ai_generate_entity_router
 from app.routers.ai_provider import router as ai_provider_router
 from app.routers.settings_entities import (
     characters_router,
@@ -30,6 +31,7 @@ api_router = APIRouter(prefix="/api/v1")
 api_router.include_router(health.router)
 api_router.include_router(projects.router)
 api_router.include_router(ai_generate_router)
+api_router.include_router(ai_generate_entity_router)
 api_router.include_router(characters_router)
 api_router.include_router(items_router)
 api_router.include_router(locations_router)

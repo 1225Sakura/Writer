@@ -12,6 +12,7 @@ from app.schemas.ai import (
     AIGenerateRequest, WritingSettingsUpdate, WritingSettingsOut,
 )
 from app.schemas.ai_provider_test import AIProviderTestRequest, AIProviderTestResponse
+from app.schemas.ai_generate_entity import GenerateEntityRequest
 from app.schemas.settings_entities import (
     ItemCreate, ItemUpdate, ItemOut,
     LocationCreate, LocationUpdate, LocationOut,
@@ -31,6 +32,7 @@ __all__ = [
     "AIProviderCreate", "AIProviderUpdate", "AIProviderOut",
     "AIGenerateRequest", "WritingSettingsUpdate", "WritingSettingsOut",
     "AIProviderTestRequest", "AIProviderTestResponse",
+    "GenerateEntityRequest",
     "ItemCreate", "ItemUpdate", "ItemOut",
     "LocationCreate", "LocationUpdate", "LocationOut",
     "FactionCreate", "FactionUpdate", "FactionOut",
