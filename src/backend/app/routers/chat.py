@@ -1,17 +1,21 @@
-"""Chat router: 4 endpoints for interface-1 chat-init flow.
+"""Chat router: 5 endpoints for interface-1 chat-init flow + US-007 migrate.
 
 Endpoints:
-  POST   /api/v1/chat/sessions                  -> 201 create session
-  POST   /api/v1/chat/sessions/{id}/messages    -> 200 append message
-  POST   /api/v1/chat/sessions/{id}/extract-entities -> 200 AI extraction
-  GET    /api/v1/chat/sessions                  -> 200 list sessions
+  POST   /api/v1/chat/sessions                          -> 201 create session
+  POST   /api/v1/chat/sessions/{id}/messages            -> 200 append message
+  POST   /api/v1/chat/sessions/{id}/extract-entities    -> 200 AI extraction
+  POST   /api/v1/chat/sessions/{id}/migrate-to-settings -> 200 migrate (US-007)
+  GET    /api/v1/chat/sessions                          -> 200 list sessions
 """
 from __future__ import annotations
 
 from fastapi import APIRouter, Depends
 from fastapi.responses import JSONResponse
 
-from app.dependencies import get_db
+from app.dependencies import (
+    get_chat_service,
+    get_db,
+)
 from app.repositories.chat import ChatSessionRepository, ChatMessageRepository
 from app.repositories.project import ProjectRepository
 from app.schemas.chat import (
@@ -23,6 +27,8 @@ from app.schemas.chat import (
     ExtractEntitiesResponse,
     ListSessionsResponse,
     ChatSessionSummary,
+    MigrateToSettingsRequest,
+    MigrateToSettingsResponse,
 )
 from app.schemas.response import ApiResponse
 from app.services.chat import ChatService
@@ -30,7 +36,8 @@ from app.services.chat import ChatService
 router = APIRouter(prefix="/chat", tags=["Chat"])
 
 
-def _get_service(db=Depends(get_db)) -> ChatService:
+def _legacy_get_service(db=Depends(get_db)) -> ChatService:
+    """Inline factory kept for legacy endpoints (no entity services)."""
     return ChatService(
         session_repo=ChatSessionRepository(db),
         message_repo=ChatMessageRepository(db),
@@ -42,7 +49,7 @@ def _get_service(db=Depends(get_db)) -> ChatService:
 @router.post("/sessions")
 def create_session(
     data: CreateSessionRequest,
-    service: ChatService = Depends(_get_service),
+    service: ChatService = Depends(_legacy_get_service),
 ):
     sess = service.create_session(data.project_id)
     payload = CreateSessionResponse(
@@ -58,7 +65,7 @@ def create_session(
 def send_message(
     session_id: int,
     data: SendMessageRequest,
-    service: ChatService = Depends(_get_service),
+    service: ChatService = Depends(_legacy_get_service),
 ):
     msg = service.send_message(session_id, data.role, data.content)
     payload = SendMessageResponse(
@@ -75,7 +82,7 @@ def send_message(
 def extract_entities(
     session_id: int,
     data: ExtractEntitiesRequest,
-    service: ChatService = Depends(_get_service),
+    service: ChatService = Depends(_legacy_get_service),
 ):
     entities = service.extract_entities(data.content)
     return ApiResponse(
@@ -84,8 +91,29 @@ def extract_entities(
     )
 
 
+@router.post("/sessions/{session_id}/migrate-to-settings")
+def migrate_to_settings(
+    session_id: int,
+    data: MigrateToSettingsRequest,
+    service: ChatService = Depends(get_chat_service),
+):
+    """US-007: chat → 6 entity auto-migration."""
+    result = service.migrate_to_settings(
+        session_id=session_id,
+        project_id=data.project_id,
+        target_categories=data.target_categories,
+    )
+    return ApiResponse(
+        data=MigrateToSettingsResponse(**result).model_dump(),
+        message=(
+            f"Created {len(result.get('created', []))} entities"
+            + (" (partial: errors encountered)" if result.get("partial") else "")
+        ),
+    )
+
+
 @router.get("/sessions")
-def list_sessions(service: ChatService = Depends(_get_service)):
+def list_sessions(service: ChatService = Depends(_legacy_get_service)):
     raw = service.list_sessions()
     summaries = [
         ChatSessionSummary(

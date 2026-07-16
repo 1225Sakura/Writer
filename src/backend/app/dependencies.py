@@ -25,6 +25,8 @@ from app.repositories.draft import DraftRepository
 from app.services.draft import DraftService
 from app.repositories.ai_provider import AIProviderRepository
 from app.services.ai_provider import AIProviderService
+from app.repositories.chat import ChatSessionRepository, ChatMessageRepository
+from app.services.chat import ChatService
 
 __all__ = [
     "get_db",
@@ -39,6 +41,7 @@ __all__ = [
     "get_chapter_repository", "get_chapter_service",
     "get_draft_repository", "get_draft_service",
     "get_ai_provider_repository", "get_ai_provider_service",
+    "get_chat_service",
 ]
 
 
@@ -128,3 +131,39 @@ def get_ai_provider_repository(db=Depends(get_db)):
 
 def get_ai_provider_service(repo=Depends(get_ai_provider_repository)):
     return AIProviderService(repo)
+
+
+# -- chat (US-007: 6 entity services injected for migrate-to-settings) -----
+
+
+def get_chat_session_repository(db=Depends(get_db)):
+    return ChatSessionRepository(db)
+
+
+def get_chat_message_repository(db=Depends(get_db)):
+    return ChatMessageRepository(db)
+
+
+def get_chat_service(
+    session_repo: ChatSessionRepository = Depends(get_chat_session_repository),
+    message_repo: ChatMessageRepository = Depends(get_chat_message_repository),
+    project_repo: ProjectRepository = Depends(get_project_repository),
+    character_service: CharacterService = Depends(get_character_service),
+    item_service: ItemService = Depends(get_item_service),
+    location_service: LocationService = Depends(get_location_service),
+    faction_service: FactionService = Depends(get_faction_service),
+    world_setting_service: WorldSettingService = Depends(get_world_setting_service),
+    rule_service: RuleService = Depends(get_rule_service),
+) -> ChatService:
+    return ChatService(
+        session_repo=session_repo,
+        message_repo=message_repo,
+        project_repo=project_repo,
+        character_service=character_service,
+        item_service=item_service,
+        location_service=location_service,
+        faction_service=faction_service,
+        world_setting_service=world_setting_service,
+        rule_service=rule_service,
+        user_id="default-user",
+    )

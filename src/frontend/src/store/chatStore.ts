@@ -1,7 +1,13 @@
 import { create } from 'zustand'
 import { persist, subscribeWithSelector } from 'zustand/middleware'
 import { immer } from 'zustand/middleware/immer'
-import { sessionApi, messageApi, entityApi } from '../api/chat'
+import {
+  sessionApi,
+  messageApi,
+  entityApi,
+  migrateChatToSettings as migrateChatToSettingsApi,
+  type MigrateToSettingsResult,
+} from '../api/chat'
 import { aiReviewApi } from '../api/aiReview'
 import type { ChatSession, ExtractedEntity } from '../api/types'
 import { createHybridStorage } from './utils/indexedDBStorage'
@@ -129,6 +135,12 @@ interface ChatActions {
   clearMessageCache: () => void
   getCachedMessages: (sessionId: number) => ChatMessageLocal[] | undefined
   setPendingInput: (text: string) => void
+  // US-007: chat → 6 entity migration
+  migrateChatToSettings: (
+    sessionId: number,
+    projectId: number,
+    targetCategories: ExtractedEntityLocal['type'][],
+  ) => Promise<MigrateToSettingsResult>
   // Writing stats actions
   updateWritingStats: () => void
   setDailyGoal: (target: number) => void
@@ -913,6 +925,61 @@ export const useChatStore = create<ChatState & ChatActions>()(
             set((state) => {
               state.pendingInput = text
             })
+          },
+
+          // US-007: migrate a finished chat session into project settings.
+          migrateChatToSettings: async (sessionId, projectId, targetCategories) => {
+            set((state) => {
+              state.extractionState = 'confirming'
+              state.extractionProgress = 0
+              state.error = null
+            })
+            try {
+              const result = await migrateChatToSettingsApi(
+                sessionId,
+                projectId,
+                targetCategories,
+              )
+              set((state) => {
+                if (result.created && result.created.length > 0) {
+                  const confirmedNames = new Set(
+                    state.extractedEntities.map((e) => e.name),
+                  )
+                  for (const row of result.created) {
+                    if (!confirmedNames.has(row.name)) {
+                      state.extractedEntities.push({
+                        id: genEntityId(),
+                        type: row.type as ExtractedEntityLocal['type'],
+                        name: row.name,
+                        confirmed: true,
+                      })
+                      confirmedNames.add(row.name)
+                    }
+                  }
+                }
+                state.extractionState = 'completed'
+                state.extractionProgress = 100
+              })
+              const createdCount = result.created?.length ?? 0
+              const skippedCount = result.skipped?.length ?? 0
+              const errorCount = result.errors?.length ?? 0
+              const summary = `迁移完成：新建 ${createdCount}，跳过 ${skippedCount}，失败 ${errorCount}`
+              if (result.partial || errorCount > 0) {
+                showOperationError('迁移对话到设定', new Error(summary))
+              } else if (createdCount > 0) {
+                showSuccess(summary)
+              }
+              return result
+            } catch (error) {
+              const apiError = error as ApiError
+              set((state) => {
+                state.error = apiError?.message ?? 'migrate failed'
+                state.extractionState = 'error'
+                state.extractionProgress = 0
+              })
+              showOperationError('迁移对话到设定', error)
+              throw error
+            }
           },
 
           // ============================================

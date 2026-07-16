@@ -54,6 +54,39 @@ class ListSessionsResponse(BaseSchema):
     sessions: list[ChatSessionSummary]
 
 
+# US-007 -----------------------------------------------------------------
+
+
+class MigrateToSettingsRequest(BaseSchema):
+    project_id: int
+    target_categories: list[str]
+
+
+class CreatedEntity(BaseSchema):
+    type: str
+    id: int
+    name: str
+
+
+class SkippedEntity(BaseSchema):
+    type: str
+    name: str
+    reason: str = "already_exists"
+
+
+class MigrationError(BaseSchema):
+    type: str
+    name: str
+    error: str
+
+
+class MigrateToSettingsResponse(BaseSchema):
+    created: list[CreatedEntity] = []
+    skipped: list[SkippedEntity] = []
+    partial: bool = False
+    errors: list[MigrationError] = []
+
+
 __all__ = [
     "CreateSessionRequest",
     "CreateSessionResponse",
@@ -64,4 +97,9 @@ __all__ = [
     "ExtractEntitiesResponse",
     "ChatSessionSummary",
     "ListSessionsResponse",
+    "MigrateToSettingsRequest",
+    "MigrateToSettingsResponse",
+    "CreatedEntity",
+    "SkippedEntity",
+    "MigrationError",
 ]

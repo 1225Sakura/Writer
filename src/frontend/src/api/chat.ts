@@ -323,6 +323,54 @@ export default {
   streamChat,
 }
 
+/**
+ * US-007: Migrate chat session into project settings entities.
+ *
+ * POST /api/v1/chat/sessions/{sessionId}/migrate-to-settings
+ */
+export interface MigratedEntity {
+  type: string
+  id: number
+  name: string
+}
+
+export interface SkippedEntity {
+  type: string
+  name: string
+  reason: string
+}
+
+export interface MigrationError {
+  type: string
+  name: string
+  error: string
+}
+
+export interface MigrateToSettingsResult {
+  created: MigratedEntity[]
+  skipped: SkippedEntity[]
+  partial: boolean
+  errors: MigrationError[]
+}
+
+export const migrateChatToSettings = async (
+  sessionId: number,
+  projectId: number,
+  targetCategories: string[],
+): Promise<MigrateToSettingsResult> => {
+  const data = await api.post<{
+    success?: boolean
+    data?: MigrateToSettingsResult
+  }>(`/chat/sessions/${sessionId}/migrate-to-settings`, {
+    projectId,
+    targetCategories,
+  })
+  if (data && typeof data === 'object' && 'data' in data && data.data) {
+    return data.data
+  }
+  return data as unknown as MigrateToSettingsResult
+}
+
 // Alias for convenience
 export const chatApi = {
   session: sessionApi,
