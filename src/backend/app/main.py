@@ -16,8 +16,7 @@ from app.core.exceptions import (
     validation_exception_handler,
     generic_exception_handler,
 )
-from app.models import Base
-from app.database import engine
+# Tables managed by Alembic (alembic upgrade head on deploy)
 
 settings = get_settings()
 
@@ -41,9 +40,6 @@ app.add_middleware(
 # Exception handlers
 app.add_exception_handler(WriterException, writer_exception_handler)
 app.add_exception_handler(Exception, generic_exception_handler)
-
-# Auto-create tables on startup (Phase 1; Phase 2 uses Alembic migrations)
-Base.metadata.create_all(bind=engine)
 
 app.include_router(api_router)
 
