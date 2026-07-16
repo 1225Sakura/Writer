@@ -7,9 +7,11 @@ from __future__ import annotations
 from fastapi import APIRouter, Depends, Query
 
 from app.core.exceptions import NotFoundException
-from app.dependencies import get_chapter_service, get_draft_service
+from app.dependencies import get_chapter_fork_service, get_chapter_service, get_draft_service
 from app.schemas import ApiResponse, ChapterCreate, ChapterUpdate, ChapterOut
+from app.schemas.chapter_fork import ForkChapterRequest, ForkChapterResponse
 from app.services.chapter import ChapterService
+from app.services.chapter_fork import ChapterForkService
 from app.services.draft import DraftService
 
 
@@ -75,3 +77,13 @@ def delete_chapter(
     if not svc.delete(chapter_id):
         raise NotFoundException("Chapter", chapter_id)
     return ApiResponse(message="Chapter deleted")
+
+
+@chapters_router.post("/{chapter_id}/fork", status_code=201)
+def fork_chapter(
+    chapter_id: int,
+    body: ForkChapterRequest,
+    svc: ChapterForkService = Depends(get_chapter_fork_service),
+) -> ForkChapterResponse:
+    result = svc.fork(chapter_id, body.ifLineId, body.name)
+    return ForkChapterResponse(**result)

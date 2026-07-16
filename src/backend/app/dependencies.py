@@ -23,6 +23,7 @@ from app.services.outline_fork import OutlineForkService
 from app.config import get_settings
 from app.repositories.chapter import ChapterRepository
 from app.services.chapter import ChapterService
+from app.services.chapter_fork import ChapterForkService
 from app.repositories.draft import DraftRepository
 from app.services.draft import DraftService
 from app.repositories.ai_provider import AIProviderRepository
@@ -46,7 +47,7 @@ __all__ = [
     "get_rule_repository", "get_rule_service",
     "get_outline_repository", "get_outline_service",
     "get_outline_fork_service",
-    "get_chapter_repository", "get_chapter_service",
+    "get_chapter_repository", "get_chapter_service", "get_chapter_fork_service",
     "get_draft_repository", "get_draft_service",
     "get_ai_provider_repository", "get_ai_provider_service",
     "get_entity_generator_service",
@@ -136,6 +137,14 @@ def get_outline_fork_service(
     db=Depends(get_db),
 ):
     return OutlineForkService(outline_repo, chapter_repo, db)
+
+
+def get_chapter_fork_service(
+    chapter_repo: ChapterRepository = Depends(get_chapter_repository),
+    outline_repo: OutlineRepository = Depends(get_outline_repository),
+    db=Depends(get_db),
+):
+    return ChapterForkService(chapter_repo, outline_repo, db)
 
 
 def get_draft_repository(db=Depends(get_db)):
