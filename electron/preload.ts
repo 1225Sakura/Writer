@@ -46,6 +46,9 @@ const IPC_CHANNELS = {
     closeWindow: 'close-window',
     isMaximized: 'is-maximized',
   },
+  aiLog: {
+    append: 'ai-log:append',
+  },
 } as const;
 
 // Expose the secure API to the renderer
@@ -84,6 +87,9 @@ contextBridge.exposeInMainWorld('electronAPI', {
 
   // Platform info (static string, not live process reference)
   platform: PLATFORM,
+
+  // AI log
+  appendAILog: (payload: object) => ipcRenderer.invoke(IPC_CHANNELS.aiLog.append, payload),
 });
 
 // Type declaration for renderer process
@@ -111,6 +117,7 @@ declare global {
       closeWindow: () => void;
       isMaximized: () => Promise<boolean>;
       platform: NodeJS.Platform;
+      appendAILog: (payload: object) => Promise<{ success: boolean; error?: string }>;
     };
   }
 }
