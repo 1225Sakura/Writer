@@ -19,6 +19,7 @@ from app.repositories.rule import RuleRepository
 from app.services.rule import RuleService
 from app.repositories.outline import OutlineRepository
 from app.services.outline import OutlineService
+from app.config import get_settings
 from app.repositories.chapter import ChapterRepository
 from app.services.chapter import ChapterService
 from app.repositories.draft import DraftRepository
@@ -26,6 +27,7 @@ from app.services.draft import DraftService
 from app.repositories.ai_provider import AIProviderRepository
 from app.services.ai_provider import AIProviderService
 from app.services.ai_generate_entity import EntityGeneratorService
+from app.services.ai_review_consistency import ConsistencyReviewService
 from app.repositories.chat import ChatSessionRepository, ChatMessageRepository
 from app.services.chat import ChatService
 
@@ -43,6 +45,7 @@ __all__ = [
     "get_draft_repository", "get_draft_service",
     "get_ai_provider_repository", "get_ai_provider_service",
     "get_entity_generator_service",
+    "get_consistency_review_service",
     "get_chat_service",
 ]
 
@@ -138,6 +141,35 @@ def get_ai_provider_service(repo=Depends(get_ai_provider_repository)):
 def get_entity_generator_service() -> EntityGeneratorService:
     """EntityGeneratorService is stateless (uses global MiniMax config)."""
     return EntityGeneratorService()
+
+
+def get_consistency_review_service(
+    character_repo: CharacterRepository = Depends(get_character_repository),
+    item_repo: ItemRepository = Depends(get_item_repository),
+    location_repo: LocationRepository = Depends(get_location_repository),
+    faction_repo: FactionRepository = Depends(get_faction_repository),
+    world_setting_repo: WorldSettingRepository = Depends(get_world_setting_repository),
+    rule_repo: RuleRepository = Depends(get_rule_repository),
+) -> ConsistencyReviewService:
+    """ConsistencyReviewService needs an Anthropic client + 6 entity repos."""
+    from anthropic import Anthropic
+
+    settings = get_settings()
+    ai_client: object | None = None
+    if settings.anthropic_api_key:
+        ai_client = Anthropic(
+            api_key=settings.anthropic_api_key,
+            base_url=settings.anthropic_base_url,
+        )
+    entity_repos = {
+        "character": character_repo,
+        "item": item_repo,
+        "location": location_repo,
+        "faction": faction_repo,
+        "world_setting": world_setting_repo,
+        "rule": rule_repo,
+    }
+    return ConsistencyReviewService(ai_client, entity_repos)
 
 
 # -- chat (US-007: 6 entity services injected for migrate-to-settings) -----
