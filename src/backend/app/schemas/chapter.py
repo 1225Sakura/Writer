@@ -35,6 +35,11 @@ class ChapterBase(BaseSchema):
     note_category: str | None = None
     note_pinned: bool = False
     battle_station_data: str | None = None
+    # US-013: rich fields (sections JSON list of {title, summary}; text fields).
+    sections: list | None = None
+    pacing_notes: str | None = None
+    character_dynamics: str | None = None
+    foreshadowing: str | None = None
 
 
 class ChapterCreate(ChapterBase):
@@ -53,6 +58,10 @@ class ChapterUpdate(BaseSchema):
     note_category: str | None = None
     note_pinned: bool | None = None
     battle_station_data: str | None = None
+    sections: list | None = None
+    pacing_notes: str | None = None
+    character_dynamics: str | None = None
+    foreshadowing: str | None = None
 
 
 class ChapterOut(ChapterBase, TimestampSchema):

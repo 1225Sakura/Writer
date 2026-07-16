@@ -1,7 +1,7 @@
 """Outline and Chapter models."""
 from __future__ import annotations
 
-from sqlalchemy import String, Text, ForeignKey, Integer
+from sqlalchemy import JSON, String, Text, ForeignKey, Integer
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.models import BaseModel
@@ -34,6 +34,11 @@ class Chapter(BaseModel):
     note_category: Mapped[str | None] = mapped_column(String(100), nullable=True)
     note_pinned: Mapped[bool] = mapped_column(default=False)
     battle_station_data: Mapped[str | None] = mapped_column(Text, nullable=True)
+    # US-013: rich fields used by the outline generator / polish pipeline.
+    sections: Mapped[list | None] = mapped_column(JSON, nullable=True)
+    pacing_notes: Mapped[str | None] = mapped_column(Text, nullable=True)
+    character_dynamics: Mapped[str | None] = mapped_column(Text, nullable=True)
+    foreshadowing: Mapped[str | None] = mapped_column(Text, nullable=True)
 
     project: Mapped["Project"] = relationship(back_populates="chapters")
     outline: Mapped["Outline"] = relationship(back_populates="chapters")
