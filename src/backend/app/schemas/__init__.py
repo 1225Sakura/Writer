@@ -23,6 +23,11 @@ from app.schemas.ai_rewrite_description import (
     RewriteDescriptionRequest,
     RewriteDescriptionResponse,
 )
+from app.schemas.outline_generator import (
+    GenerateOutlineChapter,
+    GenerateOutlineRequest,
+    GenerateOutlineResponse,
+)
 from app.schemas.settings_entities import (
     ItemCreate, ItemUpdate, ItemOut,
     LocationCreate, LocationUpdate, LocationOut,
@@ -46,6 +51,7 @@ __all__ = [
     "ReviewConsistencyRequest", "ConsistencyIssue", "ReviewConsistencyResponse",
     "FillFieldsRequest", "FillFieldsResponse",
     "RewriteDescriptionRequest", "RewriteDescriptionResponse",
+    "GenerateOutlineChapter", "GenerateOutlineRequest", "GenerateOutlineResponse",
     "ItemCreate", "ItemUpdate", "ItemOut",
     "LocationCreate", "LocationUpdate", "LocationOut",
     "FactionCreate", "FactionUpdate", "FactionOut",

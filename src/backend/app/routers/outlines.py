@@ -6,10 +6,18 @@ from __future__ import annotations
 
 from fastapi import APIRouter, Depends, Query
 
-from app.schemas import OutlineCreate, OutlineUpdate, OutlineOut, ApiResponse
+from app.schemas import (
+    ApiResponse,
+    GenerateOutlineRequest,
+    GenerateOutlineResponse,
+    OutlineCreate,
+    OutlineOut,
+    OutlineUpdate,
+)
 from app.core.exceptions import NotFoundException
-from app.dependencies import get_outline_service
+from app.dependencies import get_outline_generator_service, get_outline_service
 from app.services.outline import OutlineService
+from app.services.outline_generator import OutlineGeneratorService
 
 outlines_router = APIRouter(prefix="/chapters/outlines", tags=["Chapters"])
 
@@ -32,6 +40,20 @@ def create_outline(
 ) -> ApiResponse[dict]:
     obj = svc.create(data, project_id=data.project_id)
     return ApiResponse(data=OutlineOut.model_validate(obj).model_dump())
+
+
+@outlines_router.post("/generate")
+def generate_outline(
+    data: GenerateOutlineRequest,
+    svc: OutlineGeneratorService = Depends(get_outline_generator_service),
+) -> ApiResponse[dict]:
+    result = svc.generate(
+        project_id=data.project_id,
+        chapter_count=data.chapter_count,
+        settings_snapshot=data.settings_snapshot,
+    )
+    validated = GenerateOutlineResponse.model_validate(result)
+    return ApiResponse(data=validated.model_dump(by_alias=True))
 
 
 @outlines_router.get("/{outline_id}")
