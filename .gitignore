@@ -82,6 +82,13 @@ out/
 .next/
 .nuxt/
 
+# E2E (US-020) — Playwright reports + per-journey data dirs + pid files
+playwright-report/
+test-results/
+data/e2e/
+.omc/e2e-pids.json
+src/frontend/playwright/.cache/
+
 # TypeScript
 *.tsbuildinfo
 

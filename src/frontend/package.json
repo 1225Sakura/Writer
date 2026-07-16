@@ -9,7 +9,14 @@
     "lint": "eslint .",
     "preview": "vite preview",
     "test": "vitest run",
-    "benchmark:ux": "vitest run src/__tests__/ux-benchmark.test.ts"
+    "benchmark:ux": "vitest run src/__tests__/ux-benchmark.test.ts",
+    "e2e": "playwright test",
+    "e2e:cold-start": "playwright test e2e/journeys/cold-start/",
+    "e2e:full-flow": "playwright test e2e/journeys/full-flow/",
+    "e2e:fix-flow": "playwright test e2e/journeys/fix-flow/",
+    "e2e:regression": "playwright test e2e/journeys/regression/",
+    "e2e:ui": "playwright test --ui",
+    "e2e:report": "playwright show-report"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",
