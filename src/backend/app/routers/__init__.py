@@ -14,6 +14,7 @@ from app.routers.ai_generate import router as ai_generate_router
 from app.routers.ai_generate_entity import router as ai_generate_entity_router
 from app.routers.ai_review import router as ai_review_router
 from app.routers.ai_fill_fields import router as ai_fill_fields_router
+from app.routers.ai_rewrite_description import router as ai_rewrite_description_router
 from app.routers.ai_provider import router as ai_provider_router
 from app.routers.settings_entities import (
     characters_router,
@@ -36,6 +37,7 @@ api_router.include_router(ai_generate_router)
 api_router.include_router(ai_generate_entity_router)
 api_router.include_router(ai_review_router)
 api_router.include_router(ai_fill_fields_router)
+api_router.include_router(ai_rewrite_description_router)
 api_router.include_router(characters_router)
 api_router.include_router(items_router)
 api_router.include_router(locations_router)

@@ -29,6 +29,7 @@ from app.services.ai_provider import AIProviderService
 from app.services.ai_generate_entity import EntityGeneratorService
 from app.services.ai_review_consistency import ConsistencyReviewService
 from app.services.ai_fill_fields import FieldFillerService
+from app.services.ai_rewrite_description import DescriptionRewriterService
 from app.repositories.chat import ChatSessionRepository, ChatMessageRepository
 from app.services.chat import ChatService
 
@@ -48,6 +49,7 @@ __all__ = [
     "get_entity_generator_service",
     "get_consistency_review_service",
     "get_field_filler_service",
+    "get_description_rewriter_service",
     "get_chat_service",
 ]
 
@@ -204,6 +206,35 @@ def get_field_filler_service(
         "rule": rule_repo,
     }
     return FieldFillerService(ai_client, entity_repos)
+
+
+def get_description_rewriter_service(
+    character_repo: CharacterRepository = Depends(get_character_repository),
+    item_repo: ItemRepository = Depends(get_item_repository),
+    location_repo: LocationRepository = Depends(get_location_repository),
+    faction_repo: FactionRepository = Depends(get_faction_repository),
+    world_setting_repo: WorldSettingRepository = Depends(get_world_setting_repository),
+    rule_repo: RuleRepository = Depends(get_rule_repository),
+) -> DescriptionRewriterService:
+    """DescriptionRewriterService needs an Anthropic client + 6 entity repos."""
+    from anthropic import Anthropic
+
+    settings = get_settings()
+    ai_client: object | None = None
+    if settings.anthropic_api_key:
+        ai_client = Anthropic(
+            api_key=settings.anthropic_api_key,
+            base_url=settings.anthropic_base_url,
+        )
+    entity_repos = {
+        "character": character_repo,
+        "item": item_repo,
+        "location": location_repo,
+        "faction": faction_repo,
+        "world_setting": world_setting_repo,
+        "rule": rule_repo,
+    }
+    return DescriptionRewriterService(ai_client, entity_repos)
 
 
 def get_chat_session_repository(db=Depends(get_db)):

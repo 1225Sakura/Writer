@@ -19,6 +19,10 @@ from app.schemas.ai_review import (
     ReviewConsistencyResponse,
 )
 from app.schemas.ai_fill_fields import FillFieldsRequest, FillFieldsResponse
+from app.schemas.ai_rewrite_description import (
+    RewriteDescriptionRequest,
+    RewriteDescriptionResponse,
+)
 from app.schemas.settings_entities import (
     ItemCreate, ItemUpdate, ItemOut,
     LocationCreate, LocationUpdate, LocationOut,
@@ -41,6 +45,7 @@ __all__ = [
     "GenerateEntityRequest",
     "ReviewConsistencyRequest", "ConsistencyIssue", "ReviewConsistencyResponse",
     "FillFieldsRequest", "FillFieldsResponse",
+    "RewriteDescriptionRequest", "RewriteDescriptionResponse",
     "ItemCreate", "ItemUpdate", "ItemOut",
     "LocationCreate", "LocationUpdate", "LocationOut",
     "FactionCreate", "FactionUpdate", "FactionOut",
