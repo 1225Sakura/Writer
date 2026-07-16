@@ -14,8 +14,11 @@ from app.routers.ai_generate import router as ai_generate_router
 from app.routers.ai_provider import router as ai_provider_router
 from app.routers.settings_entities import (
     characters_router,
+    factions_router,
     items_router,
     locations_router,
+    rules_router,
+    world_settings_router,
 )
 from app.routers.outlines import outlines_router
 from app.routers.chapters import chapters_router
@@ -30,6 +33,9 @@ api_router.include_router(ai_generate_router)
 api_router.include_router(characters_router)
 api_router.include_router(items_router)
 api_router.include_router(locations_router)
+api_router.include_router(factions_router)
+api_router.include_router(world_settings_router)
+api_router.include_router(rules_router)
 api_router.include_router(ai_provider_router)
 api_router.include_router(outlines_router)
 api_router.include_router(chapters_router)

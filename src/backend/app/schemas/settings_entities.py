@@ -1,4 +1,4 @@
-"""Item, Location, Faction schemas."""
+"""Item, Location, Faction, WorldSetting, and Rule schemas."""
 from __future__ import annotations
 
 from app.schemas.base import BaseSchema
@@ -60,7 +60,7 @@ class FactionBase(BaseSchema):
 
 
 class FactionCreate(FactionBase):
-    pass
+    project_id: int | None = None
 
 
 class FactionUpdate(BaseSchema):
@@ -71,5 +71,47 @@ class FactionUpdate(BaseSchema):
 
 
 class FactionOut(FactionBase):
+    id: int
+    project_id: int
+
+
+class WorldSettingBase(BaseSchema):
+    name: str
+    description: str | None = None
+    category: str | None = None
+
+
+class WorldSettingCreate(WorldSettingBase):
+    project_id: int | None = None
+
+
+class WorldSettingUpdate(BaseSchema):
+    name: str | None = None
+    description: str | None = None
+    category: str | None = None
+
+
+class WorldSettingOut(WorldSettingBase):
+    id: int
+    project_id: int
+
+
+class RuleBase(BaseSchema):
+    name: str
+    description: str | None = None
+    rule_type: str | None = None
+
+
+class RuleCreate(RuleBase):
+    project_id: int | None = None
+
+
+class RuleUpdate(BaseSchema):
+    name: str | None = None
+    description: str | None = None
+    rule_type: str | None = None
+
+
+class RuleOut(RuleBase):
     id: int
     project_id: int

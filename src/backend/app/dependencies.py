@@ -11,6 +11,12 @@ from app.repositories.item import ItemRepository
 from app.services.item import ItemService
 from app.repositories.location import LocationRepository
 from app.services.location import LocationService
+from app.repositories.faction import FactionRepository
+from app.services.faction import FactionService
+from app.repositories.world_setting import WorldSettingRepository
+from app.services.world_setting import WorldSettingService
+from app.repositories.rule import RuleRepository
+from app.services.rule import RuleService
 from app.repositories.outline import OutlineRepository
 from app.services.outline import OutlineService
 from app.repositories.chapter import ChapterRepository
@@ -26,6 +32,9 @@ __all__ = [
     "get_character_repository", "get_character_service",
     "get_item_repository", "get_item_service",
     "get_location_repository", "get_location_service",
+    "get_faction_repository", "get_faction_service",
+    "get_world_setting_repository", "get_world_setting_service",
+    "get_rule_repository", "get_rule_service",
     "get_outline_repository", "get_outline_service",
     "get_chapter_repository", "get_chapter_service",
     "get_draft_repository", "get_draft_service",
@@ -63,6 +72,30 @@ def get_location_repository(db=Depends(get_db)):
 
 def get_location_service(repo=Depends(get_location_repository)):
     return LocationService(repo)
+
+
+def get_faction_repository(db=Depends(get_db)):
+    return FactionRepository(db)
+
+
+def get_faction_service(repo=Depends(get_faction_repository)):
+    return FactionService(repo)
+
+
+def get_world_setting_repository(db=Depends(get_db)):
+    return WorldSettingRepository(db)
+
+
+def get_world_setting_service(repo=Depends(get_world_setting_repository)):
+    return WorldSettingService(repo)
+
+
+def get_rule_repository(db=Depends(get_db)):
+    return RuleRepository(db)
+
+
+def get_rule_service(repo=Depends(get_rule_repository)):
+    return RuleService(repo)
 
 
 def get_outline_repository(db=Depends(get_db)):

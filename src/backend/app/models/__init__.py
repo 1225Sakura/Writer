@@ -38,9 +38,13 @@ from app.models.outline import Outline, Chapter  # noqa: E402
 from app.models.draft import Draft  # noqa: E402
 from app.models.project import Project  # noqa: E402
 from app.models.chat import ChatSession, ChatMessage  # noqa: E402
+from app.models.faction import Faction  # noqa: E402
+from app.models.world_setting import WorldSetting  # noqa: E402
+from app.models.rule import Rule  # noqa: E402
 
 __all__ += [
     "AIProvider", "WritingSettings", "AIInspectionResult",
     "Character", "CharacterRelationship", "CharacterStoryline",
     "Item", "Location", "Outline", "Chapter", "Draft", "Project",
+    "ChatSession", "ChatMessage", "Faction", "WorldSetting", "Rule",
 ]

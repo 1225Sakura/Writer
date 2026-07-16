@@ -6,28 +6,46 @@ from fastapi import APIRouter, Depends
 from app.core.exceptions import NotFoundException
 from app.dependencies import (
     get_character_service,
+    get_faction_service,
     get_item_service,
     get_location_service,
+    get_rule_service,
+    get_world_setting_service,
 )
 from app.schemas import (
     ApiResponse,
     CharacterCreate,
     CharacterOut,
     CharacterUpdate,
+    FactionCreate,
+    FactionOut,
+    FactionUpdate,
     ItemCreate,
     ItemOut,
     ItemUpdate,
     LocationCreate,
     LocationOut,
     LocationUpdate,
+    RuleCreate,
+    RuleOut,
+    RuleUpdate,
+    WorldSettingCreate,
+    WorldSettingOut,
+    WorldSettingUpdate,
 )
 from app.services.character import CharacterService
+from app.services.faction import FactionService
 from app.services.item import ItemService
 from app.services.location import LocationService
+from app.services.rule import RuleService
+from app.services.world_setting import WorldSettingService
 
 items_router = APIRouter(prefix="/settings/items", tags=["Settings"])
 locations_router = APIRouter(prefix="/settings/locations", tags=["Settings"])
 characters_router = APIRouter(prefix="/settings/characters", tags=["Settings — Characters"])
+factions_router = APIRouter(prefix="/settings/factions", tags=["Settings — Factions"])
+world_settings_router = APIRouter(prefix="/settings/world-settings", tags=["Settings — World Settings"])
+rules_router = APIRouter(prefix="/settings/rules", tags=["Settings — Rules"])
 
 
 # Items
@@ -188,3 +206,161 @@ def delete_character(
     if not svc.delete(char_id):
         raise NotFoundException("Character", char_id)
     return ApiResponse(message="Character deleted")
+
+
+# Factions
+@factions_router.get("")
+def list_factions(
+    project_id: int | None = None,
+    svc: FactionService = Depends(get_faction_service),
+) -> ApiResponse[list]:
+    factions = svc.list(project_id=project_id)
+    return ApiResponse(data=[FactionOut.model_validate(faction).model_dump() for faction in factions])
+
+
+@factions_router.post("")
+def create_faction(
+    data: FactionCreate,
+    svc: FactionService = Depends(get_faction_service),
+) -> ApiResponse[dict]:
+    faction = svc.create(data, project_id=data.project_id)
+    return ApiResponse(data=FactionOut.model_validate(faction).model_dump())
+
+
+@factions_router.get("/{faction_id}")
+def get_faction(
+    faction_id: int,
+    svc: FactionService = Depends(get_faction_service),
+) -> ApiResponse[dict]:
+    faction = svc.get(faction_id)
+    if not faction:
+        raise NotFoundException("Faction", faction_id)
+    return ApiResponse(data=FactionOut.model_validate(faction).model_dump())
+
+
+@factions_router.patch("/{faction_id}")
+def update_faction(
+    faction_id: int,
+    data: FactionUpdate,
+    svc: FactionService = Depends(get_faction_service),
+) -> ApiResponse[dict]:
+    faction = svc.update(faction_id, data)
+    if not faction:
+        raise NotFoundException("Faction", faction_id)
+    return ApiResponse(data=FactionOut.model_validate(faction).model_dump())
+
+
+@factions_router.delete("/{faction_id}")
+def delete_faction(
+    faction_id: int,
+    svc: FactionService = Depends(get_faction_service),
+) -> ApiResponse[dict]:
+    if not svc.delete(faction_id):
+        raise NotFoundException("Faction", faction_id)
+    return ApiResponse(message="Faction deleted")
+
+
+# World settings
+@world_settings_router.get("")
+def list_world_settings(
+    project_id: int | None = None,
+    svc: WorldSettingService = Depends(get_world_setting_service),
+) -> ApiResponse[list]:
+    world_settings = svc.list(project_id=project_id)
+    return ApiResponse(
+        data=[WorldSettingOut.model_validate(item).model_dump() for item in world_settings]
+    )
+
+
+@world_settings_router.post("")
+def create_world_setting(
+    data: WorldSettingCreate,
+    svc: WorldSettingService = Depends(get_world_setting_service),
+) -> ApiResponse[dict]:
+    world_setting = svc.create(data, project_id=data.project_id)
+    return ApiResponse(data=WorldSettingOut.model_validate(world_setting).model_dump())
+
+
+@world_settings_router.get("/{world_setting_id}")
+def get_world_setting(
+    world_setting_id: int,
+    svc: WorldSettingService = Depends(get_world_setting_service),
+) -> ApiResponse[dict]:
+    world_setting = svc.get(world_setting_id)
+    if not world_setting:
+        raise NotFoundException("WorldSetting", world_setting_id)
+    return ApiResponse(data=WorldSettingOut.model_validate(world_setting).model_dump())
+
+
+@world_settings_router.patch("/{world_setting_id}")
+def update_world_setting(
+    world_setting_id: int,
+    data: WorldSettingUpdate,
+    svc: WorldSettingService = Depends(get_world_setting_service),
+) -> ApiResponse[dict]:
+    world_setting = svc.update(world_setting_id, data)
+    if not world_setting:
+        raise NotFoundException("WorldSetting", world_setting_id)
+    return ApiResponse(data=WorldSettingOut.model_validate(world_setting).model_dump())
+
+
+@world_settings_router.delete("/{world_setting_id}")
+def delete_world_setting(
+    world_setting_id: int,
+    svc: WorldSettingService = Depends(get_world_setting_service),
+) -> ApiResponse[dict]:
+    if not svc.delete(world_setting_id):
+        raise NotFoundException("WorldSetting", world_setting_id)
+    return ApiResponse(message="World setting deleted")
+
+
+# Rules
+@rules_router.get("")
+def list_rules(
+    project_id: int | None = None,
+    svc: RuleService = Depends(get_rule_service),
+) -> ApiResponse[list]:
+    rules = svc.list(project_id=project_id)
+    return ApiResponse(data=[RuleOut.model_validate(rule).model_dump() for rule in rules])
+
+
+@rules_router.post("")
+def create_rule(
+    data: RuleCreate,
+    svc: RuleService = Depends(get_rule_service),
+) -> ApiResponse[dict]:
+    rule = svc.create(data, project_id=data.project_id)
+    return ApiResponse(data=RuleOut.model_validate(rule).model_dump())
+
+
+@rules_router.get("/{rule_id}")
+def get_rule(
+    rule_id: int,
+    svc: RuleService = Depends(get_rule_service),
+) -> ApiResponse[dict]:
+    rule = svc.get(rule_id)
+    if not rule:
+        raise NotFoundException("Rule", rule_id)
+    return ApiResponse(data=RuleOut.model_validate(rule).model_dump())
+
+
+@rules_router.patch("/{rule_id}")
+def update_rule(
+    rule_id: int,
+    data: RuleUpdate,
+    svc: RuleService = Depends(get_rule_service),
+) -> ApiResponse[dict]:
+    rule = svc.update(rule_id, data)
+    if not rule:
+        raise NotFoundException("Rule", rule_id)
+    return ApiResponse(data=RuleOut.model_validate(rule).model_dump())
+
+
+@rules_router.delete("/{rule_id}")
+def delete_rule(
+    rule_id: int,
+    svc: RuleService = Depends(get_rule_service),
+) -> ApiResponse[dict]:
+    if not svc.delete(rule_id):
+        raise NotFoundException("Rule", rule_id)
+    return ApiResponse(message="Rule deleted")

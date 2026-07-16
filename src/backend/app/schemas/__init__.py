@@ -12,7 +12,13 @@ from app.schemas.ai import (
     AIGenerateRequest, WritingSettingsUpdate, WritingSettingsOut,
 )
 from app.schemas.ai_provider_test import AIProviderTestRequest, AIProviderTestResponse
-from app.schemas.settings_entities import ItemCreate, ItemUpdate, ItemOut, LocationCreate, LocationUpdate, LocationOut, FactionCreate, FactionUpdate, FactionOut
+from app.schemas.settings_entities import (
+    ItemCreate, ItemUpdate, ItemOut,
+    LocationCreate, LocationUpdate, LocationOut,
+    FactionCreate, FactionUpdate, FactionOut,
+    WorldSettingCreate, WorldSettingUpdate, WorldSettingOut,
+    RuleCreate, RuleUpdate, RuleOut,
+)
 
 __all__ = [
     "BaseSchema", "ApiResponse", "PaginatedResponse", "ErrorResponse",
@@ -28,4 +34,6 @@ __all__ = [
     "ItemCreate", "ItemUpdate", "ItemOut",
     "LocationCreate", "LocationUpdate", "LocationOut",
     "FactionCreate", "FactionUpdate", "FactionOut",
+    "WorldSettingCreate", "WorldSettingUpdate", "WorldSettingOut",
+    "RuleCreate", "RuleUpdate", "RuleOut",
 ]
