@@ -102,3 +102,15 @@ electron/dist-electron/
 electron/release/
 
 electron/release/win-unpacked/Writer.exe
+
+# Backend (src/backend/) — runtime artifacts
+src/backend/.venv/
+src/backend/.pytest_cache/
+src/backend/data/
+src/backend/.env
+src/backend/.omc/
+src/backend/*.db
+src/backend/*.sqlite
+src/backend/*.sqlite3
+src/backend/__pycache__/
+src/backend/**/__pycache__/
