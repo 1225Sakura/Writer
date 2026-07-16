@@ -6,6 +6,7 @@ from app.schemas.character import (
     CharacterRelationshipOut, CharacterStorylineOut,
 )
 from app.schemas.chapter import OutlineCreate, OutlineUpdate, OutlineOut, ChapterCreate, ChapterUpdate, ChapterOut
+from app.schemas.if_line import IFLineCreate, IFLineUpdate, IFLineOut
 from app.schemas.chapter_content import ChapterContentOut
 from app.schemas.ai import (
     AIProviderCreate, AIProviderUpdate, AIProviderOut,
@@ -43,6 +44,7 @@ __all__ = [
     "CharacterRelationshipOut", "CharacterStorylineOut",
     "OutlineCreate", "OutlineUpdate", "OutlineOut",
     "ChapterCreate", "ChapterUpdate", "ChapterOut",
+    "IFLineCreate", "IFLineUpdate", "IFLineOut",
     "ChapterContentOut",
     "AIProviderCreate", "AIProviderUpdate", "AIProviderOut",
     "AIGenerateRequest", "WritingSettingsUpdate", "WritingSettingsOut",

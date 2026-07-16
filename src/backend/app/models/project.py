@@ -22,4 +22,5 @@ class Project(BaseModel):
     rules: Mapped[list["Rule"]] = relationship(back_populates="project", cascade="all, delete-orphan")
     outlines: Mapped[list["Outline"]] = relationship(back_populates="project", cascade="all, delete-orphan")
     chapters: Mapped[list["Chapter"]] = relationship(back_populates="project", cascade="all, delete-orphan")
+    if_lines: Mapped[list["IFLine"]] = relationship(back_populates="project", cascade="all, delete-orphan")
     writing_settings: Mapped["WritingSettings"] = relationship(back_populates="project", uselist=False, cascade="all, delete-orphan")
