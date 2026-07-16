@@ -180,6 +180,13 @@ function isPortAvailable(port, host) {
 }
 function startBackend() {
     return new Promise(async (resolve, reject) => {
+        // MUST be first statement — before isPortAvailable — otherwise globalSetup's
+        // Python already occupies 8000 → isPortAvailable returns false → startBackend
+        // rejects → Electron never starts. (must_fix #8 / PRD AC-P0-18.4)
+        if (process.env.WRITER_E2E_EXTERNAL_BACKEND === '1') {
+            console.log('[Electron] External backend mode (env gate honored, skip spawning)');
+            return resolve();
+        }
         // Check if port is already in use before spawning backend
         const portAvailable = await isPortAvailable(BACKEND_PORT, BACKEND_HOST);
         if (!portAvailable) {
@@ -668,6 +675,30 @@ function registerIpcHandlers() {
     });
     electron_1.ipcMain.on('close-window', () => mainWindow?.close());
     electron_1.ipcMain.handle('is-maximized', () => mainWindow?.isMaximized() ?? false);
+    // AI log IPC (US-018) — write structured AI call events to userData/ai-log.jsonl
+    const aiLogPath = path_1.default.join(electron_1.app.getPath('userData'), 'ai-log.jsonl');
+    electron_1.ipcMain.handle('ai-log:append', async (_, payload) => {
+        try {
+            const line = JSON.stringify({
+                timestamp: payload.timestamp ?? new Date().toISOString(),
+                journeyId: payload.journeyId ?? null,
+                stageId: payload.stageId ?? null,
+                action: payload.action ?? 'unknown',
+                prompt: payload.prompt ?? null,
+                response: payload.response ?? null,
+                latencyMs: payload.latencyMs ?? null,
+                tokenCount: payload.tokenCount ?? null,
+                correlationId: payload.correlationId ?? null,
+            }) + '\n';
+            await fs_1.default.promises.appendFile(aiLogPath, line, 'utf-8');
+            return { success: true };
+        }
+        catch (err) {
+            const msg = err instanceof Error ? err.message : String(err);
+            console.error('[Electron] ai-log:append failed:', msg);
+            return { success: false, error: msg };
+        }
+    });
 }
 // ============================================
 // Utilities

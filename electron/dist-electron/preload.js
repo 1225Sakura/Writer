@@ -45,6 +45,9 @@ const IPC_CHANNELS = {
         closeWindow: 'close-window',
         isMaximized: 'is-maximized',
     },
+    aiLog: {
+        append: 'ai-log:append',
+    },
 };
 // Expose the secure API to the renderer
 electron_1.contextBridge.exposeInMainWorld('electronAPI', {
@@ -72,5 +75,7 @@ electron_1.contextBridge.exposeInMainWorld('electronAPI', {
     isMaximized: () => electron_1.ipcRenderer.invoke(IPC_CHANNELS.window.isMaximized),
     // Platform info (static string, not live process reference)
     platform: PLATFORM,
+    // AI log
+    appendAILog: (payload) => electron_1.ipcRenderer.invoke(IPC_CHANNELS.aiLog.append, payload),
 });
 //# sourceMappingURL=preload.js.map
