@@ -25,10 +25,8 @@
  *   - runs in `chromium` project only (no Electron).
  */
 import { test, expect, type Page } from '@playwright/test';
-import path from 'path';
-import { resetJourneyDataDir } from '../fixtures/reset';
+import { setupJourneyEnv } from '../fixtures/_helpers';
 
-const E2E_ROOT = path.resolve('data', 'e2e');
 const AI_REPLIES = [
   '好的，请问你想要创作什么类型的小说？',
   '世界观构建能告诉我更多细节吗？',
@@ -153,10 +151,7 @@ async function readChatStoreSnapshot(page: Page): Promise<{
 
 test.describe('US-021 regression — chat collection', () => {
   test.beforeEach(async ({ page }) => {
-    const journeyId = `chat-collect-regress-${Date.now()}-${Math.floor(Math.random() * 1e4)}`;
-    await resetJourneyDataDir(journeyId);
-    process.env.WRITER_DATA_DIR = path.join(E2E_ROOT, journeyId);
-    process.env.JOURNEY_ID = journeyId;
+    await setupJourneyEnv('chat-collect-regress');
     await setupMockedChatBackend(page);
   });
 

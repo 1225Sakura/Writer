@@ -22,10 +22,7 @@
  *  - mock backend counter resets per-test (closure scoped)
  */
 import { test, expect, type Page } from '@playwright/test';
-import path from 'path';
-import { resetJourneyDataDir } from '../fixtures/reset';
-
-const E2E_ROOT = path.resolve('data', 'e2e');
+import { setupJourneyEnv } from '../fixtures/_helpers';
 
 // Three canned AI replies — one per turn. The order is significant because
 // the happy-path test reads messageCache to verify message ordering.
@@ -197,10 +194,7 @@ test.describe('US-021 Phase 1 — chat collection journey', () => {
   test.beforeEach(async ({ page }) => {
     // Per-journey isolation: fresh data dir + env hint (mostly cosmetic for
     // chromium project but keeps the e2e layout consistent with Electron).
-    const journeyId = `chat-collect-${Date.now()}-${Math.floor(Math.random() * 1e4)}`;
-    await resetJourneyDataDir(journeyId);
-    process.env.WRITER_DATA_DIR = path.join(E2E_ROOT, journeyId);
-    process.env.JOURNEY_ID = journeyId;
+    await setupJourneyEnv('chat-collect');
 
     await setupMockedChatBackend(page);
   });
