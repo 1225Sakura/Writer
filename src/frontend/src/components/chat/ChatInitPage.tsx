@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useChatStore } from '@/store/chatStore'
+import { formatApiError } from '@/utils/formatApiError'
 import { ChatArea } from './ChatArea'
 import { ChatSidebar } from './ChatSidebar'
 import { ChatFooter } from './ChatFooter'
@@ -47,7 +48,7 @@ export function ChatInitPage() {
       >
         <div className="text-center space-y-2">
           <h2 className="text-lg font-semibold text-foreground">连接失败</h2>
-          <p className="text-sm text-muted-foreground max-w-md">{error}</p>
+          <p className="text-sm text-muted-foreground max-w-md">{formatApiError(error)}</p>
         </div>
         <button
           onClick={() => createSession()}

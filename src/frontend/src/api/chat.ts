@@ -358,12 +358,18 @@ export const migrateChatToSettings = async (
   projectId: number,
   targetCategories: string[],
 ): Promise<MigrateToSettingsResult> => {
+  // Phase 2 walkthrough discovered: backend MigrateToSettingsRequest schema
+  // expects snake_case `project_id` and `target_categories`. Sending
+  // camelCase produced a 422 with `{detail: [{type: "missing", loc: ["body",
+  // "project_id"], ...}]}`. The function signature stays camelCase so the
+  // chat store callers don't change; only the wire payload uses snake_case
+  // to match the Pydantic model (src/backend/app/schemas/chat.py:60-62).
   const data = await api.post<{
     success?: boolean
     data?: MigrateToSettingsResult
   }>(`/chat/sessions/${sessionId}/migrate-to-settings`, {
-    projectId,
-    targetCategories,
+    project_id: projectId,
+    target_categories: targetCategories,
   })
   if (data && typeof data === 'object' && 'data' in data && data.data) {
     return data.data
