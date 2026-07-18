@@ -183,7 +183,21 @@ export function useGlobalShortcuts() {
         }
       }
 
-      // 以下快捷键在输入框中不触发（保存、全屏、AI操作等）
+      // ===== AI操作: Ctrl+Shift+O/E/S/R/W/P (写作界面) =====
+      // US-025 fix (Phase 5 e2e): AI shortcuts MUST work when editor (ProseMirror
+      // contenteditable) is focused, otherwise users have no way to trigger
+      // optimize/expand/etc. Handle this BEFORE the isInput gate so selection-
+      // based ops still trigger.
+      if ((e.ctrlKey || e.metaKey) && e.shiftKey) {
+        const operationKey = AI_SHORTCUT_OPERATIONS[e.key]
+        if (operationKey) {
+          e.preventDefault()
+          handleAISelectionOperation(operationKey)
+          return
+        }
+      }
+
+      // 以下快捷键在输入框中不触发（保存、全屏等）
       if (isInput) {
         // 但保存和新建在输入框中仍然可用
         if ((e.ctrlKey || e.metaKey) && e.key === 's') {
@@ -271,16 +285,6 @@ export function useGlobalShortcuts() {
         e.preventDefault()
         handleFocusMode()
         return
-      }
-
-      // ===== AI操作: Ctrl+Shift+O/E/S/R/W/P (写作界面) =====
-      if ((e.ctrlKey || e.metaKey) && e.shiftKey) {
-        const operationKey = AI_SHORTCUT_OPERATIONS[e.key]
-        if (operationKey) {
-          e.preventDefault()
-          handleAISelectionOperation(operationKey)
-          return
-        }
       }
     },
     [
