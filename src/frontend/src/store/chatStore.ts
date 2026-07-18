@@ -11,7 +11,9 @@ import {
 import { aiReviewApi } from '../api/aiReview'
 import type { ChatSession, ExtractedEntity } from '../api/types'
 import { createHybridStorage } from './utils/indexedDBStorage'
-import { useUIStore } from './uiStore'
+// US-004 (commit 4): useUIStore was removed from chatStore; the auto-advance
+// side effect is owned by `src/components/chat/useChatAutoAdvance.ts`.
+// Kept import slot collapsed so future cross-store needs are obvious.
 import { showApiError, showOperationError, showSuccess } from '@/utils/toastHelper'
 import type { ApiError } from '@/api/request'
 import type { WritingStats, WritingGoal } from '../services/writingStatsService'
@@ -485,15 +487,15 @@ export const useChatStore = create<ChatState & ChatActions>()(
               state.error = null
             })
 
-            // US-004: Increment turn counter and auto-advance to settings
-            // when threshold is reached. Cross-store via useUIStore.getState()
-            // matches the pattern used in uiStore.ts cleanupUIStore().
+            // US-004 (commit 4): Increment turn counter only. The auto-advance
+            // side effect (currentInterface → 'settings' at threshold 3) was
+            // extracted into `src/components/chat/useChatAutoAdvance.ts` so
+            // the store stays a pure state container and the threshold is
+            // swappable from a single call site. The hook is wired into
+            // useGlobalShortcuts (ShortcutListener.tsx).
             set((state) => {
               state.turnCount = (state.turnCount ?? 0) + 1
             })
-            if (get().turnCount >= 3) {
-              useUIStore.getState().setCurrentInterface('settings')
-            }
 
             const abortController = new AbortController()
             set((state) => { state.streamAbortController = abortController })

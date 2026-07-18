@@ -8,9 +8,15 @@ import {
 import type { InterfaceType } from '@/store/uiStore'
 import { showToast } from '@/components/ui/Toast'
 import { executeAIOperation } from './ShortcutRegistry'
+import { useChatAutoAdvance } from '@/components/chat/useChatAutoAdvance'
 
 /** 全局快捷键管理器 Hook — 处理所有界面的全局快捷键 */
 export function useGlobalShortcuts() {
+  // US-004 (commit 4): Auto-advance from chat to settings once the user
+  // has sent enough turns. Mounted here so it shares the App-level
+  // <ShortcutManager /> subscription lifecycle. The hook owns the side
+  // effect so chatStore stays a pure state container.
+  useChatAutoAdvance()
   const currentInterface = useUIStore((s) => s.currentInterface)
   const aiDrawerOpen = useUIStore((s) => s.aiDrawerOpen)
   const collaborationDrawerOpen = useUIStore((s) => s.collaborationDrawerOpen)

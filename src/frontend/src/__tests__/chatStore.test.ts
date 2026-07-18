@@ -1,22 +1,22 @@
 /**
- * US-004 — Chat N-turn auto-advance to settings.
+ * US-004 — Chat N-turn counter (store-layer).
  *
- * Verifies the chat store's `turnCount` counter:
- *  - defaults to 0
+ * Per Phase 0 commit 4, the `turnCount` counter is owned purely by the
+ * chat store. The interface auto-advance side effect has been extracted
+ * into `src/components/chat/useChatAutoAdvance.ts` (see
+ * `__tests__/useChatAutoAdvance.test.ts`). These tests cover the store's
+ * mutation contract only:
+ *  - field defaults to 0
  *  - increments by 1 on each sendMessage call
- *  - persists across multiple calls (not reset)
- *  - triggers setCurrentInterface('settings') via cross-store reference
- *    when the threshold (3) is reached
+ *  - persists across multiple calls (never resets)
  */
 // @vitest-environment jsdom
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { useChatStore } from '@/store/chatStore'
-import { useUIStore } from '@/store/uiStore'
 
 // Mock the chat API so sendMessage completes successfully without hitting
-// the real (now inert) backend stub. Without this mock the catch branch
-// would fire because the stub returns the wrong response shape, but
-// turnCount would still increment — this mock keeps the test surface clean.
+// the real (now inert) backend stub. We only care about the counter here,
+// not the AI response.
 vi.mock('@/api/chat', async () => {
   const actual = await vi.importActual<typeof import('@/api/chat')>('@/api/chat')
   return {
@@ -43,21 +43,15 @@ vi.mock('@/api/chat', async () => {
   }
 })
 
-describe('US-004: Chat N-turn auto-advance hook', () => {
+describe('US-004: Chat turnCount store field (mutation only)', () => {
   beforeEach(() => {
-    // Reset both stores between tests so counters don't bleed across cases.
+    // Reset store between tests so counters don't bleed across cases.
     useChatStore.setState({ turnCount: 0, sessionId: null, messages: [] })
-    useUIStore.setState({ currentInterface: 'chat' })
   })
 
   it('turnCount field exists and defaults to 0', () => {
     const state = useChatStore.getState()
     expect(state.turnCount).toBe(0)
-  })
-
-  it('initial UI interface is "chat"', () => {
-    const ui = useUIStore.getState()
-    expect(ui.currentInterface).toBe('chat')
   })
 
   it('sendMessage 1 time increments turnCount to 1', async () => {
@@ -67,29 +61,15 @@ describe('US-004: Chat N-turn auto-advance hook', () => {
     await useChatStore.getState().sendMessage('hello world')
 
     expect(useChatStore.getState().turnCount).toBe(1)
-    // Below threshold — interface should NOT have changed.
-    expect(useUIStore.getState().currentInterface).toBe('chat')
   })
 
-  it('sendMessage 2 times sets turnCount=2 but interface stays on chat', async () => {
+  it('sendMessage 2 times sets turnCount=2', async () => {
     useChatStore.setState({ sessionId: 1 })
 
     await useChatStore.getState().sendMessage('turn one')
     await useChatStore.getState().sendMessage('turn two')
 
     expect(useChatStore.getState().turnCount).toBe(2)
-    expect(useUIStore.getState().currentInterface).toBe('chat')
-  })
-
-  it('sendMessage 3 times triggers auto-advance to settings interface', async () => {
-    useChatStore.setState({ sessionId: 1 })
-
-    await useChatStore.getState().sendMessage('turn one')
-    await useChatStore.getState().sendMessage('turn two')
-    await useChatStore.getState().sendMessage('turn three')
-
-    expect(useChatStore.getState().turnCount).toBe(3)
-    expect(useUIStore.getState().currentInterface).toBe('settings')
   })
 
   it('turnCount accumulates across sendMessage calls (never resets)', async () => {
@@ -100,7 +80,24 @@ describe('US-004: Chat N-turn auto-advance hook', () => {
     }
 
     expect(useChatStore.getState().turnCount).toBe(5)
-    // Once past threshold, interface stays on settings (does not flip back).
-    expect(useUIStore.getState().currentInterface).toBe('settings')
+  })
+
+  it('store does NOT mutate uiStore (auto-advance was extracted to hook)', async () => {
+    // Regression guard for commit 4 refactor: removing the inline
+    // `useUIStore.getState().setCurrentInterface('settings')` from
+    // sendMessage must not silently come back.
+    useChatStore.setState({ sessionId: 1 })
+    // Import dynamically so any future lazy loaders don't matter; the
+    // important thing is the snapshot of currentInterface afterwards.
+    const { useUIStore } = await import('@/store/uiStore')
+    const before = useUIStore.getState().currentInterface
+
+    await useChatStore.getState().sendMessage('only turn')
+    await useChatStore.getState().sendMessage('only turn 2')
+    await useChatStore.getState().sendMessage('only turn 3')
+
+    // Store action should not have flipped the interface. The hook is the
+    // only place that does that now.
+    expect(useUIStore.getState().currentInterface).toBe(before)
   })
 })
