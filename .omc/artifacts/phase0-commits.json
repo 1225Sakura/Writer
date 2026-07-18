@@ -681,6 +681,61 @@
       "notes_for_worker_2026-07-18": "Work was already landed in commit 1d0880c on 2026-07-17 (Co-Authored-By: 1225Sakura) and is reachable from master via merge ancestry. On 2026-07-18 layer5-chapter-fork worker re-verified: (1) all 5 production files exist with expected public API (ForkChapterRequest/Response, ChapterForkService, get_chapter_fork_service factory, POST /chapters/{id}/fork router with status_code=201), (2) ChapterForkService.fork() validates source chapter and IFLine (NotFoundException on either), resolves target outline via 3-tier preference, copies every field incl. US-013 rich fields, supports optional name override, returns dict with new_chapter_id/parent_chapter_id/if_line_id, (3) 12/12 tests pass in 0.45s, (4) full backend suite 359/4 skipped with no regression (16.37s), (5) live POST round-trip on a chapter with rich fields measures 8.71ms (target <2s for AC-P0-16.3), (6) HTTP error codes verified end-to-end: 201 happy / 404 NOT_FOUND on missing source / 422 on missing ifLineId. The work was already committed in master's history; this artifact entry records the verified landed state per the v3 plan and the layer5-chapter-fork task brief."
     },
     {
+      "commit": 17,
+      "subject": "feat(phase0): commit 17 IF line sync endpoint",
+      "short_hash": "7613611",
+      "full_hash": "76136116c60041f71ad213189ea06faaeac7d029",
+      "date": "2026-07-17T01:53:16+08:00",
+      "type": "router",
+      "scope": "backend",
+      "scope_files": [
+        "A src/backend/app/schemas/if_line_sync.py (SyncRequest / SyncedChapter / SyncConflict / SyncResponse Pydantic schemas, 39 lines)",
+        "A src/backend/app/services/if_line_sync.py (IFLineSyncService.sync / _resolve_fork_timestamp / _find_target_chapter, 159 lines)",
+        "A src/backend/app/repositories/if_line.py (IFLineRepository.get / list typed accessor, 28 lines)",
+        "M src/backend/app/routers/chapters.py (POST /api/v1/chapters/if-lines/{if_line_id}/sync at line 99-111, SyncRequest body + SyncResponse 200)",
+        "M src/backend/app/dependencies.py (get_if_line_sync_service factory at lines 157-163 — IFLineRepository + ChapterRepository + OutlineRepository + db)",
+        "M src/backend/app/schemas/__init__.py (export SyncRequest / SyncedChapter / SyncConflict / SyncResponse)",
+        "A src/backend/tests/test_if_line_sync.py (11 cases, 619 lines)"
+      ],
+      "deliverables": {
+        "router_endpoint": "POST /api/v1/chapters/if-lines/{if_line_id}/sync at src/backend/app/routers/chapters.py:99-111 (mounted under chapters router per the /chapters prefix; sync endpoint accepts SyncRequest body and returns SyncResponse with HTTP 200)",
+        "request_schema": "SyncRequest { baseChapterId: int (required), targetLineIds: list[int] (required) } — camelCase via Pydantic v2 BaseSchema (frontend convention)",
+        "response_schema": "SyncResponse { synced: list[SyncedChapter { chapterId, newRevision (ISO 8601 datetime) }], conflicts: list[SyncConflict { chapterId, type: 'content_mismatch'|'both_modified'|'missing_chapter', message }] } — camelCase to match public API surface",
+        "service": "IFLineSyncService(db, if_line_repo, chapter_repo, outline_repo) at src/backend/app/services/if_line_sync.py:28-158. Behavior: (1) load source IFLine by if_line_id → NotFoundException('IFLine', id) on miss; (2) load base chapter by base_chapter_id → NotFoundException('Chapter', id) on miss; (3) iterate target_line_ids — load each target IFLine, resolve fork_ts via IFLine.created_at (with fork_chapter.created_at and epoch fallback), locate target's matching chapter by chapter_order within target_line.fork_chapter.outline_id; (4) classify per target — identical content = idempotent no-op; both modified after fork = both_modified conflict; only target modified = content_mismatch conflict; only base modified = copy base content into target + commit + append to synced; (5) return {synced, conflicts}.",
+        "conflict_types": {
+          "missing_chapter": "target IFLine has no chapter at base.chapter_order (no matching chapter_order in fork_chapter's outline)",
+          "both_modified": "both target_chapter.updated_at and base_chapter.updated_at are after fork_ts (concurrent edits)",
+          "content_mismatch": "only target_chapter.updated_at is after fork_ts (target changed independently, base cannot overwrite blindly)"
+        },
+        "service_dependency": "app/dependencies.py:157-163 get_if_line_sync_service factory (IFLineRepository + ChapterRepository + OutlineRepository + db session)",
+        "router_registration": "app/routers/chapters.py:25 chapters_router = APIRouter(prefix='/chapters', tags=['Chapters']) is already registered in api_router via app/routers/__init__.py; sync endpoint added at line 99-111 under the existing /chapters prefix so the public path is /api/v1/chapters/if-lines/{if_line_id}/sync",
+        "tests_added": "tests/test_if_line_sync.py (11 cases, 619 lines): (1) test_sync_happy — service-level happy path with 2 targets; (2) test_sync_single_conflict — one target modified after fork yields content_mismatch; (3) test_sync_multiple_conflicts — multi-target with mixed both_modified/content_mismatch/missing_chapter outcomes; (4) test_sync_idempotent — repeated calls with same content = no-op (no DB write, no DB row count change); (5) test_sync_target_with_no_matching_chapter — target IFLine fork_chapter has no chapter at base.chapter_order yields missing_chapter; (6) test_sync_if_line_not_found_raises_404 — source IFLine id 9999 raises NotFoundException; (7) test_sync_base_chapter_not_found_raises_404 — base chapter id 8888 raises NotFoundException; (8) test_sync_empty_target_line_ids — empty list returns synced=[], conflicts=[]; (9) test_sync_integration — TestClient POST happy returns 200 with synced[]; (10) test_sync_integration_404_on_missing_chapter — TestClient POST with missing chapter id → 404 with ApiResponse{success: false, error.code: NOT_FOUND}; (11) test_sync_perf_50_chapters — 50-chapter sync completes in <2s (target <5s for AC-P0-17.4)",
+        "frontend_consumer": "src/frontend/src/store/syncStore.ts:238-247 calls api.post(/chapters/if-lines/{id}/sync) — endpoint now reachable from the frontend syncStore"
+      },
+      "ac": {
+        "AC-P0-17.1_endpoint_alive_with_required_schema": "pass (POST /api/v1/chapters/if-lines/{if_line_id}/sync at chapters.py:99-111 accepts {baseChapterId, targetLineIds[]} and returns SyncResponse {synced[{chapterId, newRevision}], conflicts[{chapterId, type, message}]}, HTTP 200)",
+        "AC-P0-17.2_conflict_detection": "pass (3 distinct conflict types emitted by IFLineSyncService: missing_chapter / both_modified / content_mismatch; each conflict record carries chapterId + type + message; verified via test_sync_multiple_conflicts + test_sync_single_conflict)",
+        "AC-P0-17.3_unit_tests_four_cases": "pass (11 cases in tests/test_if_line_sync.py: 8 service-level happy/error (happy/single-conflict/multi-conflict/idempotent/no-matching-chapter/404-if-line/404-chapter/empty-list) + 2 TestClient HTTP integration (happy/404) + 1 perf smoke. Well exceeds 4-case minimum.)",
+        "AC-P0-17.4_integration_under_5s": "pass (test_sync_perf_50_chapters completes 50-chapter sync under 2s target; test_if_line_sync.py integration suite 0.44s)"
+      },
+      "verification_evidence": {
+        "pytest_test_if_line_sync": "11 passed in 0.44s (re-verified 2026-07-18 with project .venv)",
+        "pytest_chapter_combined_4_files": "test_if_line_sync + test_chapter_fork + test_outline_fork + test_chapter = 11+12+12+35 = 70 cases in <5s (no regression)",
+        "router_route_table": "chapters_router.routes enumerated: POST /chapters/if-lines/{if_line_id}/sync present alongside /chapters/{chapter_id}/fork",
+        "app_import_smoke": "from app.main import app => OK; from app.services.if_line_sync import IFLineSyncService => OK; from app.schemas.if_line_sync import SyncRequest, SyncResponse => OK (via .venv)",
+        "schema_validation": "SyncRequest({'baseChapterId': 1, 'targetLineIds': [2, 3]}) parses; SyncResponse({'synced': [], 'conflicts': []}) serializes",
+        "service_layer_invocation": "IFLineSyncService(db, IFLineRepository(db), ChapterRepository(db), OutlineRepository(db)).sync(if_line_id=1, base_chapter_id=1, target_line_ids=[2, 3]) returns dict; raises NotFoundException on missing IDs",
+        "lsp": "unavailable: Python language server 'ty' is not installed"
+      },
+      "rebuild_gate_required": false,
+      "rebuild_reason": "no Electron main.ts/preload.ts changes in this commit (backend-only router + schema + service + repository + dependency + tests)",
+      "links": {
+        "plan": "D:/writer/.omc/plans/ralplan-e2e-full-flow-v3.md#commit-17-IF-line-sync",
+        "commit_message_excerpt": "feat(backend): if-line sync endpoint (含冲突检测). Adds POST /api/v1/chapters/if-lines/{if_line_id}/sync that copies a base chapter into one or more target IF lines, detecting conflicts when the target chapter was edited after the fork. IFLineSyncService.resolve fork timestamp = IFLine.created_at. Conflict types: missing_chapter, both_modified, content_mismatch. Idempotent: same content = no DB write. New schemas (SyncRequest/Response/SyncedChapter/SyncConflict) and IFLineRepository (typed accessor for IFLine rows). Endpoint mounted under chapters router; camelCase response shape (chapterId / newRevision / type / message) per API convention."
+      },
+      "notes_for_worker_2026-07-18": "Work was already landed in commit 7613611 on 2026-07-17 (Co-Authored-By: 1225Sakura) and is reachable from master via merge ancestry. On 2026-07-18 layer6-if-sync worker re-verified: (1) all 6 production files exist with expected public API (SyncRequest/SyncedChapter/SyncConflict/SyncResponse schemas, IFLineSyncService with sync/_resolve_fork_timestamp/_find_target_chapter, IFLineRepository.get/list, POST /chapters/if-lines/{if_line_id}/sync router with HTTP 200); (2) IFLineSyncService.sync() validates source IFLine and base chapter (NotFoundException on either), iterates target_line_ids, classifies each into idempotent-skip / both_modified / content_mismatch / missing_chapter / sync-copied, returns {synced, conflicts}; (3) 11/11 tests pass in 0.44s; (4) 50-chapter perf smoke completes under 2s (target <5s for AC-P0-17.4); (5) frontend syncStore.ts:238-247 reaches this endpoint with no client-side change required (path /chapters/if-lines/{id}/sync unchanged from the plan). The work was already committed in master's history; this artifact entry records the verified landed state per the v3 plan and the layer6-if-sync task brief."
+    },
+    {
       "commit": 7,
       "subject": "feat(phase0): commit 7 chat to 6-entity migration",
       "short_hash": "9d48a96",
