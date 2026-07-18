@@ -53,14 +53,14 @@ def create_outline(
 def generate_outline(
     data: GenerateOutlineRequest,
     svc: OutlineGeneratorService = Depends(get_outline_generator_service),
-) -> ApiResponse[dict]:
+) -> ApiResponse[GenerateOutlineResponse]:
     result = svc.generate(
         project_id=data.project_id,
         chapter_count=data.chapter_count,
         settings_snapshot=data.settings_snapshot,
     )
     validated = GenerateOutlineResponse.model_validate(result)
-    return ApiResponse(data=validated.model_dump(by_alias=True))
+    return ApiResponse(data=validated)
 
 
 @outlines_router.get("/{outline_id}")

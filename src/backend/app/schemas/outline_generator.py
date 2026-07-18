@@ -22,9 +22,15 @@ class GenerateOutlineRequest(BaseSchema):
 
 
 class GenerateOutlineChapter(BaseSchema):
+    model_config = ConfigDict(populate_by_name=True)
+
     id: int
     title: str
     summary: str
+    sections: list[str] | None = None
+    pacing_notes: str | None = Field(default=None, alias="pacingNotes")
+    character_dynamics: str | None = Field(default=None, alias="characterDynamics")
+    foreshadowing: str | None = None
 
 
 class GenerateOutlineResponse(BaseSchema):

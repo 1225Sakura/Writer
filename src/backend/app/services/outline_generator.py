@@ -1,7 +1,6 @@
-"""AI outline generation service (US-012).
+"""AI outline generation service (US-012/US-013).
 
-Generates and persists an outline with title/summary-only chapters via MiniMax.
-The richer chapter fields belong to US-013.
+Generates and persists an outline with rich chapter planning fields via MiniMax.
 """
 from __future__ import annotations
 
@@ -30,9 +29,9 @@ OUTLINE_PROMPT_TEMPLATE = """你是一个中文网络小说大纲生成器。请
 
 严格要求：
 - 严格输出 JSON 对象（不要 markdown 代码块，不要解释文字）
-- JSON 格式：{{"chapters": [{{"title": "章节标题", "summary": "章节剧情摘要"}}]}}
+- JSON 格式：{{"chapters": [{{"title": "章节标题", "summary": "章节剧情摘要", "sections": ["情节段落"], "pacingNotes": "节奏说明", "characterDynamics": "人物动态", "foreshadowing": "伏笔说明"}}]}}
 - chapters 必须恰好包含 {chapter_count} 项
-- 每章只包含 title 和 summary；不要生成 sections、pacingNotes、characterDynamics 或 foreshadowing
+- 每章必须返回 sections (string[]) / pacingNotes (string) / characterDynamics (string) / foreshadowing (string)
 - 标题应简洁有吸引力，摘要应说明本章核心事件、冲突与推进
 - 输出语言为简体中文
 
@@ -41,8 +40,8 @@ OUTLINE_PROMPT_TEMPLATE = """你是一个中文网络小说大纲生成器。请
 """
 
 
-def _parse_outline_payload(raw: str) -> list[dict[str, str]]:
-    """Parse title/summary chapters, tolerating fences, prose, and wrappers."""
+def _parse_outline_payload(raw: str) -> list[dict[str, Any]]:
+    """Parse chapter planning fields, tolerating fences, prose, and wrappers."""
     text = raw.strip()
     if text.startswith("```"):
         newline = text.find("\n")
@@ -87,7 +86,7 @@ def _parse_outline_payload(raw: str) -> list[dict[str, str]]:
     if not isinstance(chapters, list):
         return []
 
-    cleaned: list[dict[str, str]] = []
+    cleaned: list[dict[str, Any]] = []
     for chapter in chapters:
         if not isinstance(chapter, dict):
             continue
@@ -99,7 +98,20 @@ def _parse_outline_payload(raw: str) -> list[dict[str, str]]:
         summary = summary.strip()
         if not title or not summary:
             continue
-        cleaned.append({"title": title, "summary": summary})
+
+        item: dict[str, Any] = {"title": title, "summary": summary}
+        sections = chapter.get("sections")
+        if isinstance(sections, list):
+            item["sections"] = [
+                section.strip()
+                for section in sections
+                if isinstance(section, str) and section.strip()
+            ]
+        for field in ("pacingNotes", "characterDynamics", "foreshadowing"):
+            value = chapter.get(field)
+            if isinstance(value, str):
+                item[field] = value.strip()
+        cleaned.append(item)
     return cleaned
 
 
@@ -215,6 +227,10 @@ class OutlineGeneratorService:
                     chapter_order=order,
                     title=item["title"],
                     summary=item["summary"],
+                    sections=item.get("sections"),
+                    pacing_notes=item.get("pacingNotes"),
+                    character_dynamics=item.get("characterDynamics"),
+                    foreshadowing=item.get("foreshadowing"),
                 )
             )
             chapters.append(chapter)
@@ -226,6 +242,10 @@ class OutlineGeneratorService:
                     "id": chapter.id,
                     "title": chapter.title,
                     "summary": chapter.summary,
+                    "sections": chapter.sections,
+                    "pacingNotes": chapter.pacing_notes,
+                    "characterDynamics": chapter.character_dynamics,
+                    "foreshadowing": chapter.foreshadowing,
                 }
                 for chapter in chapters
             ],
@@ -236,7 +256,7 @@ class OutlineGeneratorService:
         prompt: str,
         chapter_count: int,
         timeout_s: float,
-    ) -> list[dict[str, str]]:
+    ) -> list[dict[str, Any]]:
         last_exc: Exception | None = None
         for _attempt in range(2):
             try:

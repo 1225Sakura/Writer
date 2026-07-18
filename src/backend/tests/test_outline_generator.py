@@ -42,9 +42,23 @@ def _make_ai_response(payload: dict | list | str) -> MagicMock:
     return response
 
 
-def _chapters(count: int) -> list[dict[str, str]]:
+def _chapters(count: int) -> list[dict[str, object]]:
     return [
         {"title": f"第{i}章", "summary": f"第{i}章剧情摘要"}
+        for i in range(1, count + 1)
+    ]
+
+
+def _rich_chapters(count: int) -> list[dict[str, object]]:
+    return [
+        {
+            "title": f"第{i}章",
+            "summary": f"第{i}章剧情摘要",
+            "sections": [f"第{i}章开端", f"第{i}章转折"],
+            "pacingNotes": "张弛有度",
+            "characterDynamics": "主角与同伴的信任加深",
+            "foreshadowing": "埋下玉佩来历的线索",
+        }
         for i in range(1, count + 1)
     ]
 
@@ -244,13 +258,45 @@ def test_generate_empty_project_entities_still_generates():
     ai_client.messages.create.assert_called_once()
 
 
+def test_generate_preserves_persists_and_prompts_for_rich_chapter_fields():
+    service, ai_client, *_prefix, created_chapters = _make_mock_service(
+        {"chapters": _rich_chapters(1)}
+    )
+
+    result = service.generate(project_id=1, chapter_count=1)
+
+    assert result["chapters"][0] == {
+        "id": 101,
+        **_rich_chapters(1)[0],
+    }
+    created = created_chapters[0]
+    assert created.sections == ["第1章开端", "第1章转折"]
+    assert created.pacing_notes == "张弛有度"
+    assert created.character_dynamics == "主角与同伴的信任加深"
+    assert created.foreshadowing == "埋下玉佩来历的线索"
+    prompt = ai_client.messages.create.call_args.kwargs["messages"][0]["content"]
+    assert "sections (string[])" in prompt
+    assert "pacingNotes (string)" in prompt
+    assert "characterDynamics (string)" in prompt
+    assert "foreshadowing (string)" in prompt
+    assert "不要生成 sections" not in prompt
+
+
 def test_generate_response_shape_includes_persisted_ids():
     service, *_rest = _make_mock_service({"chapters": _chapters(2)})
 
     result = service.generate(project_id=1, chapter_count=2)
 
     assert set(result) == {"outlineId", "chapters"}
-    assert set(result["chapters"][0]) == {"id", "title", "summary"}
+    assert set(result["chapters"][0]) == {
+        "id",
+        "title",
+        "summary",
+        "sections",
+        "pacingNotes",
+        "characterDynamics",
+        "foreshadowing",
+    }
     assert isinstance(result["outlineId"], int)
     assert all(isinstance(chapter["id"], int) for chapter in result["chapters"])
 
@@ -375,7 +421,7 @@ def test_generate_request_rejects_out_of_bounds_count(chapter_count):
 def test_generate_router_happy_path(client):
     from app.dependencies import get_outline_generator_service
 
-    service, *_rest = _make_mock_service({"chapters": _chapters(5)})
+    service, *_rest = _make_mock_service({"chapters": _rich_chapters(5)})
     app.dependency_overrides[get_outline_generator_service] = lambda: service
     try:
         response = client.post(
@@ -390,7 +436,19 @@ def test_generate_router_happy_path(client):
     assert body["success"] is True
     assert isinstance(body["data"]["outlineId"], int)
     assert len(body["data"]["chapters"]) == 5
-    assert set(body["data"]["chapters"][0]) == {"id", "title", "summary"}
+    assert set(body["data"]["chapters"][0]) == {
+        "id",
+        "title",
+        "summary",
+        "sections",
+        "pacingNotes",
+        "characterDynamics",
+        "foreshadowing",
+    }
+    assert body["data"]["chapters"][0]["sections"]
+    assert body["data"]["chapters"][0]["pacingNotes"]
+    assert body["data"]["chapters"][0]["characterDynamics"]
+    assert body["data"]["chapters"][0]["foreshadowing"]
 
 
 def test_generate_router_validates_response_schema(client):
@@ -490,3 +548,7 @@ def test_generate_live_minimax(db_session):
     assert len(result["chapters"]) == 1
     assert result["chapters"][0]["title"]
     assert result["chapters"][0]["summary"]
+    assert result["chapters"][0]["sections"]
+    assert result["chapters"][0]["pacingNotes"]
+    assert result["chapters"][0]["characterDynamics"]
+    assert result["chapters"][0]["foreshadowing"]
