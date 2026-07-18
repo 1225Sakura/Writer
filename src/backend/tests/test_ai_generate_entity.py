@@ -5,6 +5,7 @@ Production code calls real MiniMax via the same Anthropic client surface.
 """
 from __future__ import annotations
 
+import os
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -280,3 +281,59 @@ def test_generate_entity_under_30s_mocked(client):
     elapsed = time.monotonic() - started
     assert resp.status_code == 200
     assert elapsed < 30.0
+
+
+def test_generate_entity_tools_route_accepts_entity_type_and_context(client):
+    """The AI tools surface exposes the concise entity_type/context contract."""
+    response_mock = _make_ai_response({"name": "玄霜剑", "description": "寒气逼人的古剑"})
+
+    with patch("app.services.ai_generate_entity.Anthropic") as mock_anthropic:
+        mock_anthropic.return_value.messages.create.return_value = response_mock
+        resp = client.post(
+            "/api/v1/ai-tools/generate-entity",
+            json={"entity_type": "item", "context": "一把能冻结时间的古剑"},
+        )
+
+    assert resp.status_code == 200
+    assert resp.json()["data"]["entity"]["name"] == "玄霜剑"
+    prompt = mock_anthropic.return_value.messages.create.call_args.kwargs["messages"][0]["content"]
+    assert "一把能冻结时间的古剑" in prompt
+
+
+def test_generate_entity_tools_route_accepts_world_alias(client):
+    """The short contract uses world while the settings model uses world_setting."""
+    response_mock = _make_ai_response({"name": "九州大陆", "category": "geography"})
+
+    with patch("app.services.ai_generate_entity.Anthropic") as mock_anthropic:
+        mock_anthropic.return_value.messages.create.return_value = response_mock
+        resp = client.post(
+            "/api/v1/ai-tools/generate-entity",
+            json={"entity_type": "world", "context": "东方玄幻世界"},
+        )
+
+    assert resp.status_code == 200
+    assert resp.json()["data"]["entity"]["name"] == "九州大陆"
+    sent_prompt = mock_anthropic.return_value.messages.create.call_args.kwargs["messages"][0]["content"]
+
+
+@pytest.mark.integration
+@pytest.mark.skipif(
+    not (os.environ.get("ANTHROPIC_API_KEY") or os.environ.get("ANTHROPIC_AUTH_TOKEN")),
+    reason="Anthropic/MiniMax API credential not set; skipping live integration test",
+)
+def test_generate_entity_live_minimax_under_30s():
+    """Exercise the real MiniMax endpoint with the production timeout budget."""
+    import time
+
+    started = time.monotonic()
+    result = EntityGeneratorService().generate(
+        "character",
+        "一名沉默寡言、守护古城的年轻剑客",
+        project_id=1,
+        timeout_s=25.0,
+    )
+    elapsed = time.monotonic() - started
+
+    assert elapsed < 30.0
+    assert isinstance(result.get("entity"), dict)
+    assert result["entity"].get("name")

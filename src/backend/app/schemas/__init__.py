@@ -13,7 +13,7 @@ from app.schemas.ai import (
     AIGenerateRequest, WritingSettingsUpdate, WritingSettingsOut,
 )
 from app.schemas.ai_provider_test import AIProviderTestRequest, AIProviderTestResponse
-from app.schemas.ai_generate_entity import GenerateEntityRequest
+from app.schemas.ai_generate_entity import GenerateEntityRequest, GenerateEntityToolRequest
 from app.schemas.ai_review import (
     ReviewConsistencyRequest,
     ConsistencyIssue,
@@ -57,7 +57,7 @@ __all__ = [
     "AIProviderCreate", "AIProviderUpdate", "AIProviderOut",
     "AIGenerateRequest", "WritingSettingsUpdate", "WritingSettingsOut",
     "AIProviderTestRequest", "AIProviderTestResponse",
-    "GenerateEntityRequest",
+    "GenerateEntityRequest", "GenerateEntityToolRequest",
     "ReviewConsistencyRequest", "ConsistencyIssue", "ReviewConsistencyResponse",
     "FillFieldsRequest", "FillFieldsResponse",
     "RewriteDescriptionRequest", "RewriteDescriptionResponse",
