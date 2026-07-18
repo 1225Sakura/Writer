@@ -29,6 +29,27 @@ import { api, resolveBaseURL, getApiKey } from "./request"
 // Outlines
 // ============================================
 
+export interface GenerateOutlineRequest {
+  chapterCount: number
+  projectId: number
+  criteria?: Record<string, unknown>
+}
+
+export interface GeneratedOutlineChapter {
+  id: number
+  title: string
+  summary: string
+  sections: string[] | null
+  pacingNotes: string | null
+  characterDynamics: string | null
+  foreshadowing: string | null
+}
+
+export interface GenerateOutlineResponse {
+  outlineId: number
+  chapters: GeneratedOutlineChapter[]
+}
+
 export const outlineApi = {
   /** List all story outlines. */
   list: async (params: PaginationParams = {}): Promise<Outline[]> => {
@@ -44,6 +65,19 @@ export const outlineApi = {
   /** Create a new story outline. */
   create: async (data: { title: string; description?: string }): Promise<Outline> => {
     return api.post<Outline>("/chapters/outlines", data)
+  },
+
+  /** Generate an outline and its chapters with AI. */
+  generate: async ({
+    chapterCount,
+    projectId,
+    criteria,
+  }: GenerateOutlineRequest): Promise<GenerateOutlineResponse> => {
+    return api.post<GenerateOutlineResponse>("/chapters/outlines/generate", {
+      chapterCount,
+      projectId,
+      ...(criteria ? { settingsSnapshot: criteria } : {}),
+    })
   },
 
   /** Update an existing outline. */

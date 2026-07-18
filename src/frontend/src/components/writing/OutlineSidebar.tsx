@@ -115,6 +115,7 @@ export function OutlineSidebar() {
   } = useWritingStore()
   const {
     chapters,
+    outlines,
     plotThreads,
     fetchPlotThreads,
     updatePlotThread,
@@ -123,9 +124,13 @@ export function OutlineSidebar() {
     createChapter,
     updateChapter,
     deleteChapter,
+    generating,
+    outlineGenerationError,
+    generateOutline,
   } = useContentStore()
 
   const [activeTab, setActiveTab] = useState<'outline' | 'plot' | 'ifline'>('outline')
+  const [chapterCount, setChapterCount] = useState(5)
   const [outlineData, setOutlineData] = useState<OutlineItem[]>([])
   const [activeId, setActiveId] = useState<string | null>(null)
   const [contextMenu, setContextMenu] = useState<{ x: number; y: number; itemId: string } | null>(null)
@@ -173,6 +178,24 @@ export function OutlineSidebar() {
   const handleAddChapter = useCallback(async () => {
     await createChapter({})
   }, [createChapter])
+
+  const currentOutline = outlines[0]
+  const projectId = currentOutline?.project_id ?? chapters[0]?.project_id ?? 1
+
+  const handleGenerateOutline = useCallback(async () => {
+    await generateOutline({
+      chapterCount,
+      projectId,
+      criteria: { title: currentOutline?.title || 'AI 生成大纲' },
+    })
+  }, [chapterCount, currentOutline?.title, generateOutline, projectId])
+
+  const handleChapterCountChange = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
+    const nextValue = Number(event.target.value)
+    if (Number.isFinite(nextValue)) {
+      setChapterCount(Math.min(50, Math.max(1, nextValue)))
+    }
+  }, [])
 
   // Drag-and-drop handlers
   const handleDragStart = useCallback((event: DragStartEvent) => {
@@ -280,10 +303,10 @@ export function OutlineSidebar() {
   return (
     <div className="flex flex-col h-full bg-[var(--color-surface-raised)] relative">
       {/* Header */}
-      <div className="flex items-center justify-between px-4 py-3 border-b border-[var(--border-default)] relative z-10">
-        <div className="flex items-center gap-2.5">
+      <div className="flex items-center justify-between gap-2 px-4 py-3 border-b border-[var(--border-default)] relative z-10">
+        <div className="flex items-center gap-2.5 min-w-0">
           <div
-            className="w-7 h-7 rounded-lg flex items-center justify-center"
+            className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0"
             style={{
               background: 'color-mix(in srgb, var(--color-outline) 10%, transparent)',
               border: '1px solid color-mix(in srgb, var(--color-outline) 15%, transparent)',
@@ -291,14 +314,42 @@ export function OutlineSidebar() {
           >
             <Icon icon={BookOpen} size="xs" style={{ color: 'var(--color-outline)' }} />
           </div>
-          <div>
+          <div className="min-w-0">
             <span className="font-semibold text-sm text-[var(--text-primary)] tracking-tight">大纲</span>
-            <div className="text-[10px] text-[var(--text-tertiary)] leading-tight">
+            <div className="text-[10px] text-[var(--text-tertiary)] leading-tight truncate">
               {chapters.length} 章节 · {openThreads.length} 伏笔 · {ifLines.length} IF线
             </div>
           </div>
         </div>
+        <div className="flex items-center gap-1.5 flex-shrink-0">
+          <label htmlFor="outline-chapter-count" className="sr-only">生成章节数</label>
+          <input
+            id="outline-chapter-count"
+            type="number"
+            min={1}
+            max={50}
+            value={chapterCount}
+            onChange={handleChapterCountChange}
+            aria-label="生成章节数"
+            className="w-12 h-8 px-1.5 rounded-md border border-[var(--border-default)] bg-[var(--color-surface-base)] text-xs text-center text-[var(--text-primary)] focus:outline-none focus:border-[var(--color-outline)]"
+          />
+          <button
+            type="button"
+            onClick={handleGenerateOutline}
+            disabled={generating}
+            className="h-8 flex items-center gap-1 px-2 rounded-md text-[11px] font-medium bg-[var(--accent-primary)] text-[var(--paper-100)] transition-opacity disabled:opacity-50"
+          >
+            <Icon icon={Sparkles} size="xs" color="inherit" />
+            {generating ? '生成中…' : 'AI 生成大纲'}
+          </button>
+        </div>
       </div>
+
+      {outlineGenerationError && (
+        <div role="alert" className="px-4 py-2 text-xs text-[var(--color-error)] border-b border-[var(--border-default)]">
+          {outlineGenerationError}
+        </div>
+      )}
 
       {/* Tabs */}
       <div className="flex border-b border-[var(--border-default)] px-2 relative z-10">

@@ -8,6 +8,7 @@ import {
   ifLineApi,
   plotThreadApi,
   inspectionApi,
+  type GenerateOutlineRequest,
 } from '../api/writing'
 import type {
   Chapter,
@@ -17,7 +18,8 @@ import type {
   DraftVersion,
   AIInspectionResult,
 } from '../api/types'
-import { showOperationError } from '../utils/toastHelper'
+import { showError, showOperationError, showSuccess } from '../utils/toastHelper'
+import { formatApiError } from '../utils/formatApiError'
 
 // ============================================
 // Types
@@ -38,6 +40,8 @@ interface ContentState {
   plotThreads: PlotThread[]
   draftVersions: DraftVersion[]
   inspectionResults: AIInspectionResult[]
+  generating: boolean
+  outlineGenerationError: string | null
   loading: ContentLoadingState
 }
 
@@ -59,6 +63,7 @@ interface ContentActions {
   // Outline CRUD
   fetchOutlines: () => Promise<void>
   createOutline: (data: { title: string; description?: string }) => Promise<Outline>
+  generateOutline: (data: GenerateOutlineRequest) => Promise<void>
   updateOutline: (id: number, updates: { title?: string; description?: string }) => Promise<void>
   deleteOutline: (id: number) => Promise<void>
 
@@ -114,6 +119,8 @@ export const useContentStore = create<ContentState & ContentActions>()(
       plotThreads: [],
       draftVersions: [],
       inspectionResults: [],
+      generating: false,
+      outlineGenerationError: null,
       loading: {
         outlines: false,
         ifLines: false,
@@ -201,6 +208,47 @@ export const useContentStore = create<ContentState & ContentActions>()(
         } catch (error) {
           showOperationError('创建大纲', error)
           throw error
+        }
+      },
+
+      generateOutline: async (data) => {
+        set((state) => {
+          state.generating = true
+          state.outlineGenerationError = null
+        })
+        try {
+          const generated = await outlineApi.generate(data)
+          const generatedAt = new Date().toISOString()
+          const title = typeof data.criteria?.title === 'string'
+            ? data.criteria.title
+            : 'AI 生成大纲'
+          set((state) => {
+            state.outlines = [
+              ...state.outlines.filter((outline) => outline.id !== generated.outlineId),
+              {
+                id: generated.outlineId,
+                project_id: data.projectId,
+                title,
+              },
+            ]
+            state.chapters = generated.chapters.map((chapter, index) => ({
+              ...chapter,
+              project_id: data.projectId,
+              outline_id: generated.outlineId,
+              status: 'planning',
+              word_count: 0,
+              chapter_order: index + 1,
+              created_at: generatedAt,
+              updated_at: generatedAt,
+            }))
+          })
+          showSuccess('AI 大纲生成成功')
+        } catch (error) {
+          const message = formatApiError(error)
+          set((state) => { state.outlineGenerationError = message })
+          showError(message)
+        } finally {
+          set((state) => { state.generating = false })
         }
       },
 
@@ -445,6 +493,8 @@ export const selectContentLoading = (state: ContentState) => state.loading
 
 export function cleanupContentStore() {
   useContentStore.setState((state) => {
+    state.generating = false
+    state.outlineGenerationError = null
     state.loading.outlines = false
     state.loading.ifLines = false
     state.loading.plotThreads = false

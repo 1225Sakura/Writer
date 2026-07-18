@@ -7,6 +7,7 @@ vi.mock('@/api/writing', () => ({
   outlineApi: {
     list: vi.fn().mockResolvedValue([]),
     create: vi.fn().mockResolvedValue({ id: 1, title: 'Outline 1' }),
+    generate: vi.fn().mockResolvedValue({ outlineId: 1, chapters: [] }),
     update: vi.fn().mockResolvedValue({}),
     delete: vi.fn().mockResolvedValue({}),
   },
@@ -55,6 +56,8 @@ describe('contentStore', () => {
       plotThreads: [],
       draftVersions: [],
       inspectionResults: [],
+      generating: false,
+      outlineGenerationError: null,
       loading: { outlines: false, ifLines: false, plotThreads: false, drafts: false, inspections: false },
     })
   })
@@ -67,6 +70,8 @@ describe('contentStore', () => {
     expect(result.current.plotThreads).toEqual([])
     expect(result.current.draftVersions).toEqual([])
     expect(result.current.inspectionResults).toEqual([])
+    expect(result.current.generating).toBe(false)
+    expect(result.current.outlineGenerationError).toBeNull()
     expect(result.current.loading.outlines).toBe(false)
     expect(result.current.loading.drafts).toBe(false)
   })
@@ -80,6 +85,7 @@ describe('contentStore', () => {
     expect(typeof result.current.deleteChapter).toBe('function')
     expect(typeof result.current.fetchOutlines).toBe('function')
     expect(typeof result.current.createOutline).toBe('function')
+    expect(typeof result.current.generateOutline).toBe('function')
     expect(typeof result.current.fetchDrafts).toBe('function')
     expect(typeof result.current.saveDraftVersion).toBe('function')
     expect(typeof result.current.restoreDraftVersion).toBe('function')
@@ -177,6 +183,66 @@ describe('contentStore', () => {
     })
     expect(outline.title).toBe('New Outline')
     expect(result.current.outlines).toHaveLength(1)
+  })
+
+  it('should generate an outline and replace chapters with the rich response', async () => {
+    const { outlineApi } = await import('@/api/writing')
+    vi.mocked(outlineApi.generate).mockResolvedValueOnce({
+      outlineId: 9,
+      chapters: [{
+        id: 101,
+        title: '第一章',
+        summary: '开端',
+        sections: ['入城', '遇敌'],
+        pacingNotes: '先缓后急',
+        characterDynamics: '主角与同伴建立信任',
+        foreshadowing: '埋下玉佩线索',
+      }],
+    })
+
+    const { result } = renderHook(() => useContentStore())
+    await act(async () => {
+      await result.current.generateOutline({
+        chapterCount: 1,
+        projectId: 42,
+        criteria: { title: '第一卷' },
+      })
+    })
+
+    expect(outlineApi.generate).toHaveBeenCalledWith({
+      chapterCount: 1,
+      projectId: 42,
+      criteria: { title: '第一卷' },
+    })
+    expect(result.current.generating).toBe(false)
+    expect(result.current.outlineGenerationError).toBeNull()
+    expect(result.current.chapters[0]).toEqual(expect.objectContaining({
+      id: 101,
+      outline_id: 9,
+      project_id: 42,
+      sections: ['入城', '遇敌'],
+      pacingNotes: '先缓后急',
+      characterDynamics: '主角与同伴建立信任',
+      foreshadowing: '埋下玉佩线索',
+    }))
+  })
+
+  it('should format outline generation errors and clear generating state', async () => {
+    const { outlineApi } = await import('@/api/writing')
+    const { showError } = await import('@/utils/toastHelper')
+    vi.mocked(outlineApi.generate).mockRejectedValueOnce({
+      detail: [{ loc: ['body', 'chapterCount'], msg: '生成失败' }],
+    })
+
+    const { result } = renderHook(() => useContentStore())
+    await act(async () => {
+      await result.current.generateOutline({ chapterCount: 5, projectId: 1 })
+    })
+
+    expect(result.current.generating).toBe(false)
+    expect(result.current.outlineGenerationError).toBe('body.chapterCount: 生成失败')
+    expect(showError).toHaveBeenCalledWith('body.chapterCount: 生成失败')
+    expect(result.current.chapters).toEqual([])
   })
 
   it('should fetch and manage draft versions', async () => {

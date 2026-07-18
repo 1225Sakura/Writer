@@ -151,6 +151,10 @@ export interface Chapter {
   note_category?: string
   note_pinned?: boolean
   battle_station_data?: string
+  sections?: string[] | null
+  pacingNotes?: string | null
+  characterDynamics?: string | null
+  foreshadowing?: string | null
   created_at: string
   updated_at: string
 }
