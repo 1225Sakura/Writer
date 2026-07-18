@@ -3,6 +3,7 @@ import { motion } from 'framer-motion'
 import { Button } from '@/components/ui/Button'
 import { AlertTriangle, RefreshCw, Home, Bug, Feather } from 'lucide-react'
 import { DURATION, EASE } from '@/components/shared/AnimationConfig'
+import { formatApiError } from '@/utils/formatApiError'
 
 interface Props {
   children: ReactNode
@@ -129,7 +130,7 @@ export class ErrorBoundary extends Component<Props, State> {
                     border: '1px solid var(--border-subtle)',
                   }}
                 >
-                  <pre className="whitespace-pre-wrap break-all">{this.state.error.message}</pre>
+                  <pre className="whitespace-pre-wrap break-all">{formatApiError(this.state.error)}</pre>
                   {this.state.errorInfo && (
                     <pre className="whitespace-pre-wrap break-all mt-2 opacity-60">{this.state.errorInfo.componentStack}</pre>
                   )}
