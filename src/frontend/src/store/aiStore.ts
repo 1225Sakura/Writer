@@ -157,9 +157,11 @@ export const useAIStore = create<AIState & AIActions>()(
         const TIMEOUT_MS = 30000
 
         set((state) => {
+          const job = state.aiJobQueue.find((j) => j.id === nextJob.id)
+          if (!job) return
           state.currentJobId = nextJob.id
-          nextJob.status = 'processing'
-          nextJob.progress = 5
+          job.status = 'processing'
+          job.progress = 5
           state.loading.ai = true
         })
 
