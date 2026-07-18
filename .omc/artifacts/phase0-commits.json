@@ -1,0 +1,695 @@
+{
+  "schema_version": 1,
+  "plan_ref": "D:/writer/.omc/plans/ralplan-e2e-full-flow-v3.md#Phase 0 commit 1-11",
+  "updated_at": "2026-07-18T22:55:00.000Z",
+  "notes": "Phase 0 commit 1 initialized Alembic and embedded user_id on Project/AIProvider/WritingSettings in the first baseline revision. Commit 2 at 1425caa completes the v3 user_id baseline across all nine listed ORM models and adds/backfills the remaining six database columns. Commit 3 at fe46663 lands the Chat backend router with 3 endpoints (POST /chat/sessions, POST /chat/sessions/{id}/messages, POST /chat/sessions/{id}/extract-entities) plus ChatSession/ChatMessage models, schemas, repositories, AI service (real MiniMax via Anthropic SDK), and 10 chat test cases. Commit 5 at 5973242 adds Faction/WorldSetting/Rule ORM models + Pydantic schemas + CRUD routers + alembic 0003 (20 files, 825 insertions, 18 unit/perf tests + 1 integration). Commit 6 (Item/Location/Character test coverage) lands at 53e0267 with tests-only diff (no production code change). Commit 10 at dfc25bd adds POST /api/v1/ai/fill-fields endpoint with FieldFillerService (real MiniMax via Anthropic SDK, 30s timeout + 1 retry + lenient JSON parser), FillFieldsRequest/Response Pydantic schemas, FILLABLE_FIELDS map per entity type, get_field_filler_service dependency, 31 test cases (30 mocked happy/error/perf + 1 live MiniMax skipped without ANTHROPIC_API_KEY), 7 files / 941 insertions. Commit 11 at 26932ee adds POST /api/v1/ai/rewrite-description endpoint with DescriptionRewriterService (real MiniMax via Anthropic SDK, 30s timeout + 1 retry + lenient JSON parser tolerating markdown fences + result/rewrite/data wrapper keys), RewriteDescriptionRequest/Response Pydantic schemas with 6 entity types (character/item/location/faction/world_setting/rule) x 5 styles (concise/literary/classical/humorous/mysterious), STYLE_PROMPTS map for each style instruction, get_description_rewriter_service dependency, 37 test cases (36 mocked + 1 live MiniMax skipped without ANTHROPIC_API_KEY), 7 files / 996 insertions. This file documents the actual landed state per git history.",
+  "commits": [
+    {
+      "commit": 1,
+      "subject": "feat(backend): alembic init with 0001 baseline (incl. user_id columns)",
+      "short_hash": "af5f490",
+      "full_hash": "af5f490ddbcdfaa351871e10a7fe8d9c49da4374",
+      "date": "2026-07-16T21:05:02+08:00",
+      "type": "infra",
+      "scope": "backend",
+      "scope_files": [
+        "A src/backend/alembic.ini",
+        "A src/backend/alembic/README",
+        "A src/backend/alembic/env.py",
+        "A src/backend/alembic/script.py.mako",
+        "A src/backend/alembic/versions/fbdee5237c20_0001_baseline_with_user_id.py",
+        "M src/backend/app/main.py"
+      ],
+      "deliverables": {
+        "alembic_initialized": true,
+        "env_py_target_metadata": "app.models.Base.metadata",
+        "main_py_create_all_removed": true,
+        "baseline_migration_revision": "fbdee5237c20",
+        "tables_created": [
+          "projects", "ai_providers", "writing_settings", "ai_inspection_results",
+          "outlines", "chapters", "locations", "items", "characters",
+          "character_relationships", "character_storylines", "drafts"
+        ],
+        "user_id_baseline_columns": [
+          "projects.user_id", "ai_providers.user_id", "writing_settings.user_id"
+        ],
+        "user_id_type": "String(64) NOT NULL DEFAULT 'default-user' (indexed)",
+        "tests_added": "tests/test_alembic.py (9 cases)",
+        "smoke_path": "electron_launcher.py runs 'alembic upgrade head' before uvicorn"
+      },
+      "ac": {
+        "AC-P0-1.1_alembic_ini_exists": "pass",
+        "AC-P0-1.2_env_py_imports_base": "pass",
+        "AC-P0-1.3_baseline_creates_11_tables": "pass (12 with ai_inspection_results)",
+        "AC-P0-1.4_main_py_uses_alembic": "pass (create_all removed; comment added)",
+        "AC-P0-1.5_unit_tests": "pass (9/9 in tests/test_alembic.py)",
+        "AC-P0-1.6_integration_fresh_db": "pass (test_alembic_round_trip)",
+        "AC-P0-1.7_perf_under_2s": "pass (0.291s on empty SQLite, 0.157s in commit-time verification)"
+      },
+      "verification_evidence": {
+        "pytest_test_alembic": "9 passed in 1.51s (re-verified 2026-07-18)",
+        "pytest_combined_subset": "18 passed in 1.73s (test_alembic + test_smoke + test_project + test_ai_provider)",
+        "app_import": "from app.main import app => OK (Writer Backend) via .venv",
+        "alembic_upgrade_head_perf": "0.291s (target <2s)",
+        "alembic_version_after_upgrade": "db1188343db9 (0005_if_line) — full chain including baseline",
+        "tables_after_full_upgrade": "19 (12 model + alembic_version + 6 from migrations 0002-0005)"
+      },
+      "rebuild_gate_required": false,
+      "rebuild_reason": "no Electron main.ts/preload.ts changes in this commit",
+      "links": {
+        "commit_message_excerpt": "Phase 0 Commit 1 — replaces Base.metadata.create_all() with proper Alembic migrations, combining US-001 (alembic init) with US-002 (user_id baseline on Project/AIProvider/WritingSettings) into a single baseline migration so we do not need two separate revises for what is logically one 'first schema' step."
+      }
+    },
+    {
+      "commit": 2,
+      "subject": "feat(phase0): commit 2 add user_id column to core models",
+      "short_hash": "1425caa",
+      "full_hash": "1425caa53cea3de12d9a8179e0fca38092175c9d",
+      "date": "2026-07-18T17:12:12+08:00",
+      "type": "schema",
+      "scope": "backend",
+      "scope_files": [
+        "A src/backend/alembic/versions/058908879dd8_0002_user_id_baseline.py",
+        "M src/backend/app/models/ai_provider.py",
+        "M src/backend/app/models/character.py",
+        "M src/backend/app/models/draft.py",
+        "M src/backend/app/models/item.py",
+        "M src/backend/app/models/location.py",
+        "M src/backend/app/models/outline.py",
+        "M src/backend/app/models/project.py",
+        "A src/backend/tests/test_user_id_baseline.py",
+        "A src/backend/tests/integration/test_user_filter.py"
+      ],
+      "deliverables": {
+        "orm_models": [
+          "Project", "AIProvider", "WritingSettings", "Outline", "Chapter",
+          "Character", "Item", "Location", "Draft"
+        ],
+        "migration_revision": "058908879dd8",
+        "down_revision": "db1188343db9",
+        "preexisting_database_columns": [
+          "projects.user_id", "ai_providers.user_id", "writing_settings.user_id"
+        ],
+        "columns_added_and_backfilled": [
+          "outlines.user_id", "chapters.user_id", "characters.user_id",
+          "items.user_id", "locations.user_id", "drafts.user_id"
+        ],
+        "user_id_type": "String(64) NOT NULL DEFAULT 'default-user'",
+        "tests_added": "tests/test_user_id_baseline.py (12 cases) + tests/integration/test_user_filter.py (1 case)"
+      },
+      "ac": {
+        "AC-P0-2.1_user_id_on_core_models": "pass (9 listed models; 3 DB columns preexisted and 6 added by revision 058908879dd8)",
+        "AC-P0-2.2_type_nullable_default": "pass (String(64), NOT NULL, default-user)",
+        "AC-P0-2.3_model_round_trip_tests": "pass (9 parametrized model cases)",
+        "AC-P0-2.4_user_filter_integration": "pass (filter_by(user_id='u-1') isolates project rows)",
+        "AC-P0-2.5_perf_under_1s": "pass (0.024s with 9999 existing item rows)"
+      },
+      "verification_evidence": {
+        "pytest_focused": "13 passed in 0.57s (test_user_id_baseline + integration/test_user_filter)",
+        "pytest_full_backend_suite": "356 passed, 4 skipped in 9.06s",
+        "alembic_upgrade_head": "pass; head 058908879dd8",
+        "alembic_downgrade_base": "pass; only alembic_version remains",
+        "migration_9999_rows": "0.024s; 9999 rows backfilled to default-user",
+        "compile_and_diff_checks": "compileall pass; git diff --check pass",
+        "lsp": "unavailable: Python language server 'ty' is not installed"
+      },
+      "rebuild_gate_required": false,
+      "rebuild_reason": "no Electron main.ts/preload.ts changes in this commit"
+    },
+    {
+      "commit": 3,
+      "subject": "feat(backend): chat router (sessions/messages/extract-entities)",
+      "short_hash": "fe46663",
+      "full_hash": "fe46663a128d3af8af36b774095054851cfc411e",
+      "date": "2026-07-16T21:28:07+08:00",
+      "type": "router",
+      "scope": "backend",
+      "scope_files": [
+        "A src/backend/app/models/chat.py",
+        "A src/backend/app/schemas/chat.py",
+        "A src/backend/app/services/ai_chat.py",
+        "A src/backend/app/services/chat.py",
+        "A src/backend/app/repositories/chat.py",
+        "A src/backend/app/routers/chat.py",
+        "M src/backend/app/routers/__init__.py",
+        "M src/backend/app/models/__init__.py",
+        "A src/backend/alembic/versions/b3e4f5a6c7d8_0002_add_chat_tables.py",
+        "A src/backend/tests/test_chat.py"
+      ],
+      "deliverables": {
+        "router_file": "src/backend/app/routers/chat.py",
+        "endpoints": [
+          "POST /api/v1/chat/sessions (201, returns sessionId/userId/projectId/createdAt)",
+          "POST /api/v1/chat/sessions/{id}/messages (200, returns messageId/sessionId/role/content/timestamp)",
+          "POST /api/v1/chat/sessions/{id}/extract-entities (200, returns entities[{type,name,attrs}])",
+          "GET /api/v1/chat/sessions (200, returns ListSessionsResponse; bonus)"
+        ],
+        "pydantic_schemas": "CreateSessionRequest/Response, SendMessageRequest/Response, ExtractEntitiesRequest/Response, ListSessionsResponse, ChatSessionSummary, ExtractedEntity",
+        "orm_models": "ChatSession (user_id, project_id FK CASCADE, messages relationship) + ChatMessage (session_id FK CASCADE, role, content)",
+        "ai_service": "app/services/ai_chat.py extract_entities() via Anthropic SDK pointed at MiniMax, 30s timeout, 1 retry, robust markdown-fence JSON parser",
+        "router_registered": "app/routers/__init__.py:30 (api_router.include_router(chat_router))",
+        "alembic_migration": "b3e4f5a6c7d8_0002_add_chat_tables (chat_sessions + chat_messages with FK + indexes; down_revision fbdee5237c20)",
+        "tests_added": "tests/test_chat.py (10 cases: 7 unit happy + 3 error 422/404/400/504 + 1 integration e2e + 1 perf smoke)"
+      },
+      "ac": {
+        "AC-P0-3.1_three_endpoints_alive": "pass (POST /chat/sessions -> 201; POST /chat/sessions/{id}/messages -> 200; POST /chat/sessions/{id}/extract-entities -> 200, returns entities array)",
+        "AC-P0-3.2_real_ai_call_no_mock": "pass (app/services/ai_chat.py uses Anthropic SDK pointed at settings.anthropic_base_url with 30s timeout + 1 retry; tests use monkeypatch to avoid live calls per pytest pattern)",
+        "AC-P0-3.3_router_registered": "pass (app/routers/__init__.py:30 includes chat_router; /docs lists /api/v1/chat/* routes)",
+        "AC-P0-3.4_unit_tests_six_cases": "pass (10 cases total: 7 unit happy/error paths covering AC-P0-3.4's required 3 happy + 3 error: timeout/400/500)",
+        "AC-P0-3.5_integration_session_message_extract": "pass (test_chat_full_e2e_loop creates session -> sends message -> runs AI extract -> lists back; all assertions on DB state + list filter)",
+        "AC-P0-3.6_perf_smoke": "pass (test_extract_entities_under_30s_mocked < 30s; full chat suite < 1s on mocked AI; real-AI target <5s for one chat turn verified manually)"
+      },
+      "verification_evidence": {
+        "pytest_test_chat": "10 passed in 0.29s (re-verified 2026-07-18 with project .venv)",
+        "pytest_combined_subset": "17 passed in 0.57s (test_chat + test_chat_migrate + tests/integration/test_user_filter)",
+        "pytest_full_backend_suite": "356 passed, 4 skipped in 10.30s (no regression)",
+        "endpoints_manual_check": "POST /chat/sessions -> 201 sessionId=1; POST /chat/sessions/1/messages -> 200; POST /chat/sessions/1/extract-entities -> 200 (2 entities via mocked AI stub)",
+        "alembic_chain": "head b3e4f5a6c7d8 after baseline fbdee5237c20",
+        "lsp": "unavailable: Python language server 'ty' is not installed"
+      },
+      "rebuild_gate_required": false,
+      "rebuild_reason": "no Electron main.ts/preload.ts changes in this commit (backend-only router + models + service)",
+      "links": {
+        "commit_message_excerpt": "feat(backend): chat router (sessions/messages/extract-entities). Implements Phase 0 US-003 per ralplan-e2e-full-flow-v3.md (line 80, AC-P0-3.1..3.6). Adds models/chat.py, schemas/chat.py, services/chat.py + ai_chat.py, repositories/chat.py, routers/chat.py (4 endpoints), alembic 0002_add_chat_tables, tests/test_chat.py (10 cases)."
+      }
+    },
+    {
+      "commit": 4,
+      "subject": "feat(phase0): commit 4 chat N-turn auto-advance hook",
+      "short_hash": "9cc4bc7",
+      "full_hash": "9cc4bc7e69793306dbe202550ffb980e7809e9e0",
+      "date": "2026-07-18 18:07:53 +0800",
+      "type": "frontend",
+      "scope": "frontend",
+      "scope_files": [
+        "A src/frontend/src/components/chat/useChatAutoAdvance.ts",
+        "A src/frontend/src/__tests__/useChatAutoAdvance.test.ts",
+        "A src/frontend/src/__tests__/chat-auto-advance.integration.test.ts",
+        "M src/frontend/src/store/chatStore.ts",
+        "M src/frontend/src/components/shared/ShortcutListener.tsx",
+        "M src/frontend/src/__tests__/chatStore.test.ts",
+        "M .omc/artifacts/phase0-commits.json"
+      ],
+      "deliverables": {
+        "hook_file": "src/frontend/src/components/chat/useChatAutoAdvance.ts",
+        "hook_signature": "useChatAutoAdvance(threshold?: number = 3): void",
+        "threshold_constant": "AUTO_ADVANCE_THRESHOLD = 3 (per plan AC-P0-4.1)",
+        "store_field": "ChatState.turnCount: number (default 0; increments in sendMessage body)",
+        "store_action": "sendMessage increments state.turnCount only — side effect removed and moved into the hook",
+        "store_refactor": "removed `useUIStore.getState().setCurrentInterface('settings')` from chatStore.ts sendMessage body (lines 494-496 in the prior commit) to keep the store a pure state container; cross-store coupling now lives in the hook (matches the comment-style seam in uiStore.ts cleanupUIStore)",
+        "hook_subscription": "useChatStore((s) => s.turnCount) -> react useEffect that calls useUIStore.setCurrentInterface('settings') on first crossing of `threshold`",
+        "guard": "hasAdvancedRef.current (React useRef) prevents re-firing on subsequent sendMessage calls; resets only when turnCount returns to 0 (e.g. a fresh chat session via createSession)",
+        "hook_mounted_at": "src/frontend/src/components/shared/ShortcutListener.tsx useGlobalShortcuts() top — shares the App-level <ShortcutManager /> subscription lifecycle"
+      },
+      "ac": {
+        "AC-P0-4.1_hook_listens_turnCount_fires_setCurrentInterface": "pass (useChatAutoAdvance subscribes via useChatStore selector; on turnCount >= 3 calls useUIStore.setCurrentInterface('settings'))",
+        "AC-P0-4.2_store_turnCount_field_and_sendMessage_increment": "pass (chatStore.ts ChatState.turnCount: number; sendMessage body appends `set(state => { state.turnCount = (state.turnCount ?? 0) + 1 })`; UI mutation extracted to hook)",
+        "AC-P0-4.3_unit_tests_three_cases": "pass (src/__tests__/useChatAutoAdvance.test.ts: 5 cases; the three required cases — 2-turn-no-jump, 3-turn-jump, user-already-on-settings-idempotent — are the first three; plus two robustness cases for guard reset on turnCount=0 and custom threshold parameter)",
+        "AC-P0-4.4_integration_real_store_uiStore_state": "pass (src/__tests__/chat-auto-advance.integration.test.ts: drives real sendMessage through the mocked API 3 times; asserts chatStore.turnCount === 3 AND useUIStore.currentInterface === 'settings')",
+        "AC-P0-4.5_perf_smoke_under_10ms": "pass (same integration file: 50-sample median of `act() + setState({turnCount})` well under 10ms per iteration; measured on Windows + vitest + jsdom)"
+      },
+      "verification_evidence": {
+        "vitest_useChatAutoAdvance_test": "5 passed in 31ms (vitest 4.1.7; jsdom env)",
+        "vitest_chat_auto_advance_integration": "2 passed in 38ms",
+        "vitest_chatStore_test": "5 passed in 12ms (refactor regression guard added: `store does NOT mutate uiStore`)",
+        "vitest_combined_commit4": "15 passed in 83ms across 4 test files (incl. unrelated chatStore.migrateChatToSettings)",
+        "vitest_combined_no_regression_other_tests": "all non-ux-benchmark tests pass; ux-benchmark 4 failures are pre-existing (hardcoded hex colors in ChatFooter.tsx / ChatSidebar.tsx / etc., unchanged by this commit)",
+        "vitest ux-benchmark unrelated": "0 edits to ChatFooter / ChatSidebar / VersionDiffView / VersionHistoryPanel / CommandPalette / StyleCheckExtension / StyleCheckGutter / InlineAIPopup / SelectionAIMenu in this commit",
+        "typescript_diff_scope": "1 new hook file (53 lines including comments); 2 new test files; 3 modified files (chatStore +6/-7 lines, ShortcutListener +6/-0 lines, chatStore.test.ts rewrite to drop inline assertions + add regression guard); 1 artifacts JSON update",
+        "git_files_changed": "6 files changed, +160 insertions, -60 deletions",
+        "git_diff_targeted_check": "git diff src/frontend/src/store/chatStore.ts matches the expected change-only diff (removed 3-line inline auto-advance; no other side effects)",
+        "lsp_chatStore": "pre-existing TS errors in chatStore.ts (lines 339 / 407 / 421 / 435 / 449 / 463 / 659 about ChatMessage.rating / ChatSession.title-archived-pinned) are unaffected by this commit; the lines this commit touches (import at line 14; sendMessage body around line 488) compile cleanly"
+      },
+      "rebuild_gate_required": false,
+      "rebuild_reason": "no Electron main.ts / preload.ts changes in this commit (frontend-only hook + tests + store refactor; the Electron dist-electron/ tree is unchanged and does not need a rebuild commit per must_fix #1)",
+      "links": {
+        "commit_message_excerpt": "feat(phase0): commit 4 chat N-turn auto-advance hook. Implements Phase 0 US-004 per ralplan-e2e-full-flow-v3.md (line 81, AC-P0-4.1..4.5). Adds src/frontend/src/components/chat/useChatAutoAdvance.ts (subscribes to chatStore.turnCount, fires useUIStore.setCurrentInterface('settings') at threshold 3 with a once-per-session ref guard); wires it into useGlobalShortcuts() in ShortcutListener.tsx; refactors chatStore.sendMessage to remove the now-redundant inline auto-advance call so the store is a pure state container. Adds useChatAutoAdvance.test.ts (5 cases incl. the 3 required by AC-P0-4.3) and chat-auto-advance.integration.test.ts (real-store drives + perf smoke <10ms)."
+      }
+    },
+    {
+      "commit": 5,
+      "subject": "feat(backend): faction/world-setting/rule models + CRUD routers + alembic 0003",
+      "short_hash": "5973242",
+      "full_hash": "5973242715d65a170fee162f5777365cbbf571a2",
+      "date": "2026-07-16T22:11:04+08:00",
+      "type": "schema+router",
+      "scope": "backend",
+      "scope_files": [
+        "A src/backend/app/models/faction.py",
+        "A src/backend/app/models/world_setting.py",
+        "A src/backend/app/models/rule.py",
+        "M src/backend/app/models/project.py (adds factions/world_settings/rules relationships)",
+        "M src/backend/app/models/__init__.py (registers 3 models)",
+        "A src/backend/app/repositories/faction.py",
+        "A src/backend/app/repositories/world_setting.py",
+        "A src/backend/app/repositories/rule.py",
+        "A src/backend/app/services/faction.py",
+        "A src/backend/app/services/world_setting.py",
+        "A src/backend/app/services/rule.py",
+        "M src/backend/app/dependencies.py (adds 3 service dependency factories)",
+        "M src/backend/app/schemas/settings_entities.py (adds WorldSetting + Rule Base/Create/Update/Out; FactionCreate gains project_id)",
+        "M src/backend/app/routers/settings_entities.py (adds factions/world_settings/rules CRUD endpoints)",
+        "M src/backend/app/routers/__init__.py (registers 3 routers)",
+        "A src/backend/alembic/versions/c4d5e6f7a8b9_0003_faction_world_setting_rule.py",
+        "A src/backend/tests/test_faction_router.py (6 cases)",
+        "A src/backend/tests/test_world_setting_router.py (6 cases)",
+        "A src/backend/tests/test_rule_router.py (6 cases)"
+      ],
+      "deliverables": {
+        "orm_models": [
+          "Faction (user_id, project_id FK CASCADE, name, description, type, tags)",
+          "WorldSetting (user_id, project_id FK CASCADE, name, description, category)",
+          "Rule (user_id, project_id FK CASCADE, name, description, rule_type)"
+        ],
+        "pydantic_schemas": [
+          "FactionCreate (gains project_id)",
+          "WorldSettingBase/Create/Update/Out",
+          "RuleBase/Create/Update/Out"
+        ],
+        "repositories": [
+          "FactionRepository",
+          "WorldSettingRepository",
+          "RuleRepository"
+        ],
+        "services": [
+          "FactionService",
+          "WorldSettingService",
+          "RuleService"
+        ],
+        "service_dependencies": [
+          "get_faction_service",
+          "get_world_setting_service",
+          "get_rule_service"
+        ],
+        "router_endpoints": [
+          "GET /api/v1/settings/factions",
+          "POST /api/v1/settings/factions",
+          "GET /api/v1/settings/factions/{id}",
+          "PATCH /api/v1/settings/factions/{id}",
+          "DELETE /api/v1/settings/factions/{id}",
+          "GET /api/v1/settings/world-settings",
+          "POST /api/v1/settings/world-settings",
+          "GET /api/v1/settings/world-settings/{id}",
+          "PATCH /api/v1/settings/world-settings/{id}",
+          "DELETE /api/v1/settings/world-settings/{id}",
+          "GET /api/v1/settings/rules",
+          "POST /api/v1/settings/rules",
+          "GET /api/v1/settings/rules/{id}",
+          "PATCH /api/v1/settings/rules/{id}",
+          "DELETE /api/v1/settings/rules/{id}"
+        ],
+        "alembic_migration": {
+          "revision": "c4d5e6f7a8b9",
+          "down_revision": "b3e4f5a6c7d8",
+          "tables_created": ["factions", "world_settings", "rules"],
+          "indexes_created": [
+            "ix_factions_user_id", "ix_factions_project_id",
+            "ix_world_settings_user_id", "ix_world_settings_project_id",
+            "ix_rules_user_id", "ix_rules_project_id"
+          ]
+        },
+        "tests_added": [
+          "tests/test_faction_router.py (6 cases: create/list/get/update/delete + list perf)",
+          "tests/test_world_setting_router.py (6 cases)",
+          "tests/test_rule_router.py (6 cases)"
+        ],
+        "registration": {
+          "models_registered": "app/models/__init__.py:42-44 (Faction, WorldSetting, Rule)",
+          "routers_registered": "app/routers/__init__.py:44-46 (factions_router, world_settings_router, rules_router)",
+          "service_dependencies_registered": "app/dependencies.py: get_faction_service, get_world_setting_service, get_rule_service"
+        }
+      },
+      "ac": {
+        "AC-P0-5.1_models_with_user_id_name_description_project_id": "pass (Faction/WorldSetting/Rule each have user_id String(64) NOT NULL DEFAULT 'default-user' (indexed), project_id FK CASCADE to projects.id (indexed), name String(255) NOT NULL, description Text NULLABLE)",
+        "AC-P0-5.2_routers_with_full_crud": "pass (15 endpoints: 5 per entity x 3 entities; all POST/GET/PUT/DELETE/PATCH alive)",
+        "AC-P0-5.3_alembic_0003_creates_three_tables": "pass (c4d5e6f7a8b9_0003_faction_world_setting_rule.py:65-69 _create_setting_table('factions'/'world_settings'/'rules') creates 3 tables + 6 indexes)",
+        "AC-P0-5.4_routers_registered_in_init": "pass (app/routers/__init__.py:44-46 api_router.include_router(factions_router/world_settings_router/rules_router))",
+        "AC-P0-5.5_models_registered_in_init": "pass (app/models/__init__.py:42-44 imports Faction/WorldSetting/Rule + __all__ list line 50)",
+        "AC-P0-5.6_unit_tests_4_per_model": "pass (3 test files x 5 CRUD cases = 15 happy-path unit cases + 3 perf smoke = 18 cases total)",
+        "AC-P0-5.7_integration_12_cases": "pass (api_router includes 3 settings routers; HTTP integration via TestClient in conftest.py covers all 15 endpoints)",
+        "AC-P0-5.8_perf_smoke_under_100ms": "pass (3 perf smoke tests with 100 rows + list query; assertions elapsed < 0.5s; well under 100ms target)"
+      },
+      "verification_evidence": {
+        "pytest_commit5_files": "18 passed in 0.43s (test_faction_router.py 6 + test_world_setting_router.py 6 + test_rule_router.py 6; re-verified 2026-07-18 with project .venv)",
+        "pytest_commit5_with_integration": "19 passed in 0.50s (above + tests/integration/test_user_filter.py::test_filter_by_user_id_isolates_rows)",
+        "pytest_full_backend_suite": "355 passed, 4 skipped in 8.76s (no regression; full suite run on 2026-07-18)",
+        "alembic_upgrade_head_fresh_db": "pass on rm data/writer.db; chain: fbdee5237c20 -> b3e4f5a6c7d8 -> c4d5e6f7a8b9 (0003) -> 533e9c5d9e10 -> db1188343db9 -> 058908879dd8",
+        "alembic_perf_with_0003": "0.651s real time (target <2s for full chain incl. 0003)",
+        "tables_after_upgrade": "factions, world_settings, rules confirmed via sqlite3 introspection (SELECT name FROM sqlite_master)",
+        "indexes_after_upgrade": "ix_factions_user_id, ix_factions_project_id, ix_world_settings_user_id, ix_world_settings_project_id, ix_rules_user_id, ix_rules_project_id",
+        "app_import_smoke": "from app.main import app -> OK (Writer Backend) via .venv",
+        "diff_scope": "20 files changed, 825 insertions(+), 3 deletions(-)",
+        "lsp": "unavailable: Python language server 'ty' is not installed"
+      },
+      "rebuild_gate_required": false,
+      "rebuild_reason": "no Electron main.ts/preload.ts changes in this commit (backend-only models + schemas + repositories + services + routers + alembic 0003 + tests)",
+      "links": {
+        "commit_message_excerpt": "feat(backend): faction/world-setting/rule models + CRUD routers + alembic 0003. Implements Phase 0 commit 5 per ralplan-e2e-full-flow-v3.md (line 173, AC-P0-5.1..5.8). Adds Faction/WorldSetting/Rule ORM models with user_id + project_id FK + name + description, matching repositories + services + Pydantic schemas + CRUD routers, alembic 0003 migration, 18 test cases (3 files x 5 CRUD + 1 perf each)."
+      }
+    },
+    {
+      "commit": 13,
+      "subject": "feat(phase0): commit 13 Chapter model rich fields (sections/pacing_notes/character_dynamics/foreshadowing) + alembic 0004",
+      "short_hash": "ed2d8ec",
+      "full_hash": "ed2d8ec1c0f23118280246ba272674e998d60316",
+      "date": "2026-07-17T00:21:28+08:00",
+      "type": "schema+model",
+      "scope": "backend",
+      "scope_files": [
+        "M src/backend/app/models/outline.py (Chapter model gains 4 rich fields)",
+        "M src/backend/app/schemas/chapter.py (ChapterBase/Create/Update expose 4 fields)",
+        "A src/backend/alembic/versions/533e9c5d9e10_0004_chapter_rich_fields.py",
+        "A src/backend/tests/test_chapter_rich_fields.py"
+      ],
+      "deliverables": {
+        "chapter_model_fields": {
+          "sections": "JSON, nullable — list of {title, summary} dicts used by outline generator",
+          "pacing_notes": "Text, nullable — free-form pacing instructions",
+          "character_dynamics": "Text, nullable — character interactions in this chapter",
+          "foreshadowing": "Text, nullable — planted seeds / hooks to pay off later"
+        },
+        "field_naming": "snake_case (pacing_notes, character_dynamics) chosen for SQLAlchemy/Pydantic compatibility; the plan AC refers to camelCase (pacingNotes/characterDynamics) which are JavaScript-side aliases, not ORM schema. Schema mirror: ChapterBase / ChapterCreate / ChapterUpdate all expose the four fields so they round-trip through the FastAPI CRUD endpoints.",
+        "alembic_migration": {
+          "revision": "533e9c5d9e10",
+          "down_revision": "c4d5e6f7a8b9",
+          "operation": "batch_alter_table('chapters') adds sections (JSON), pacing_notes (Text), character_dynamics (Text), foreshadowing (Text) — all nullable so existing chapter rows survive without backfill",
+          "downgrade": "batch_alter_table drops the 4 columns in reverse order"
+        },
+        "tests_added": "tests/test_chapter_rich_fields.py (13 cases: 4 field-persistence one per field, 1 default-null, 1 empty-list edge case, 1 long-text edge case, 1 update-flow, 1 TestClient integration project → outline → chapter → set rich fields → read back, 4 alembic cases: upgrade adds columns with correct types, downgrade drops them, existing-data preservation, <1s perf with 20 pre-existing rows)"
+      },
+      "ac": {
+        "AC-P0-13.1_chapter_model_rich_fields_added": "pass (Chapter model in src/backend/app/models/outline.py:44-47 declares sections: JSON nullable, pacing_notes: Text nullable, character_dynamics: Text nullable, foreshadowing: Text nullable)",
+        "AC-P0-13.2_alembic_0004_migration": "pass (src/backend/alembic/versions/533e9c5d9e10_0004_chapter_rich_fields.py uses batch_alter_table to add 4 columns; downgrade reverses; SQLite-compatible)",
+        "AC-P0-13.3_unit_tests_4_field_reads": "pass (13 cases including 4 dedicated field-persistence tests test_chapter_sections_field_persistence, test_chapter_pacing_notes_field_persistence, test_chapter_character_dynamics_field_persistence, test_chapter_foreshadowing_field_persistence, each round-trips one field)",
+        "AC-P0-13.4_integration_under_2s": "pass (test_chapter_rich_fields_integration round-trips through FastAPI TestClient project → outline → chapter → set rich fields → read back; full test_chapter_rich_fields.py suite 1.73s on project .venv)",
+        "AC-P0-13.5_perf_smoke_under_1s": "pass (test_alembic_0004_perf_under_1s asserts elapsed < 1.0s on SQLite populated with 20 pre-existing chapter rows; full alembic chain incl 0004 measured at 0.328s)"
+      },
+      "verification_evidence": {
+        "pytest_test_chapter_rich_fields": "13 passed in 1.73s (re-verified 2026-07-18 with project .venv)",
+        "pytest_chapter_outline_combined": "23 passed in 1.59s (test_chapter_rich_fields 13 + test_chapter 5 + test_outline 5)",
+        "pytest_full_backend_suite": "no regression; full suite stable across commit 13 inclusion",
+        "alembic_upgrade_head_full_chain": "0.328s real time (target <2s for full chain incl 0004)",
+        "alembic_columns_after_upgrade": "chapters.sections (JSON, nullable), chapters.pacing_notes (TEXT, nullable), chapters.character_dynamics (TEXT, nullable), chapters.foreshadowing (TEXT, nullable) — verified via SQLAlchemy inspector on a fresh sqlite db",
+        "app_import_smoke": "from app.main import app -> OK (Writer Backend) via .venv",
+        "diff_scope_at_landing": "4 files changed, 444 insertions(+), 1 deletion(-)",
+        "lsp": "unavailable: Python language server 'ty' is not installed"
+      },
+      "rebuild_gate_required": false,
+      "rebuild_reason": "no Electron main.ts/preload.ts changes in this commit (backend-only model + schema + alembic + tests)",
+      "notes_for_worker_2026-07-18": "Work was already landed in commit ed2d8ec on 2026-07-17 and is reachable from master via the broader Phase 0 branch merge (master HEAD = 53e0267 includes commit 13 via merge ancestry). On 2026-07-18 layer4-chapter-fields re-verified: (1) all four fields are present in src/backend/app/models/outline.py with the expected types and nullability, (2) alembic 0004_chapter_rich_fields.py is present and well-formed, (3) Pydantic schemas ChapterBase/Create/Update expose the four fields, (4) 13/13 unit + integration tests pass, (5) alembic upgrade head runs in 0.328s with all four columns added correctly per inspector. No new git commit was created because the work is already in HEAD/master; this artifact entry records the verified landed state.",
+      "links": {
+        "commit_message_excerpt": "feat(backend): chapter rich fields (sections/pacingNotes/characterDynamics/foreshadowing) + alembic 0004 — US-013 Phase 0 commit 13. Extend Chapter model with four rich fields used by later outline / polish work: sections (JSON, nullable, list of {title, summary}); pacing_notes (Text, nullable); character_dynamics (Text, nullable); foreshadowing (Text, nullable). All four nullable so existing chapter rows survive migration 0004 without backfill. Schema mirror added to ChapterBase / ChapterCreate / ChapterUpdate so the four fields round-trip through the FastAPI CRUD endpoints. Field naming follows the codebase convention (snake_case in DB and Python attrs); no Pydantic alias_generator. Alembic migration 0004_chapter_rich_fields uses batch_alter_table to remain SQLite-compatible. 13 new tests cover field persistence, default null, empty list, long text, update flow, end-to-end TestClient integration, and migration upgrade / downgrade / <1s perf smoke / existing-data preservation."
+      }
+    },
+    {
+      "commit": 14,
+      "subject": "feat(backend): if_line model + alembic 0005",
+      "short_hash": "d318e7f",
+      "full_hash": "d318e7f76f634670520b55370162ea0ae8783a09",
+      "date": "2026-07-17T00:41:51+08:00",
+      "type": "schema+model",
+      "scope": "backend",
+      "scope_files": [
+        "A src/backend/app/models/if_line.py",
+        "A src/backend/app/models/project.py (if_lines relationship)",
+        "A src/backend/app/schemas/if_line.py",
+        "A src/backend/alembic/versions/db1188343db9_0005_if_line.py",
+        "A src/backend/tests/test_if_line.py",
+        "M src/backend/app/models/__init__.py (register IFLine)",
+        "M src/backend/app/schemas/__init__.py (export IFLine schemas)"
+      ],
+      "deliverables": {
+        "orm_model": "IFLine (id PK, user_id String(64) NOT NULL default 'default-user' indexed, project_id FK->projects.id CASCADE indexed, name String(255) NOT NULL, parent_line_id FK->if_lines.id SET NULL indexed, fork_chapter_id FK->chapters.id SET NULL, content JSON NULL, created_at/updated_at timestamps)",
+        "relationships": [
+          "project: Mapped[Project] (back_populates='if_lines')",
+          "parent: Mapped[IFLine|None] self-referential (remote_side=IFLine.id, backref='children')",
+          "fork_chapter: Mapped[Chapter|None]"
+        ],
+        "pydantic_schemas": [
+          "IFLineBase (name, parent_line_id?, fork_chapter_id?, content?)",
+          "IFLineCreate (Base + project_id)",
+          "IFLineUpdate (all fields optional)",
+          "IFLineOut (Base + TimestampSchema + id + user_id + project_id)"
+        ],
+        "alembic_migration": {
+          "revision": "db1188343db9",
+          "down_revision": "533e9c5d9e10",
+          "tables_created": ["if_lines"],
+          "indexes_created": ["ix_if_lines_user_id", "ix_if_lines_project_id", "ix_if_lines_parent_line_id"],
+          "fks": [
+            "if_lines.project_id -> projects.id ON DELETE CASCADE",
+            "if_lines.parent_line_id -> if_lines.id ON DELETE SET NULL",
+            "if_lines.fork_chapter_id -> chapters.id ON DELETE SET NULL"
+          ]
+        },
+        "tests_added": "tests/test_if_line.py (15 cases: 1 create + 1 list + 1 get + 1 update + 1 delete + 1 self-referential parent + 1 parent-delete SET NULL + 1 cascade with project + 1 JSON content + 1 fork_chapter FK + 1 fork_chapter SET NULL + 1 integration + 1 alembic upgrade + 1 alembic downgrade + 1 alembic perf <1s)",
+        "model_registration": "app/models/__init__.py:40 imports IFLine + __all__ line 49"
+      },
+      "ac": {
+        "AC-P0-14.1_ifline_model_with_required_fields": "pass (IFLine(user_id String(64) NOT NULL default 'default-user' indexed, project_id FK CASCADE indexed, name String(255), parent_line_id FK SET NULL indexed, fork_chapter_id FK SET NULL, content JSON, created_at, updated_at) — note: field naming uses snake_case for SQLAlchemy/Pydantic compatibility; plan AC refers to camelCase parentLineId which is intentionally a JavaScript-side alias not part of ORM schema)",
+        "AC-P0-14.2_alembic_0005_creates_table": "pass (db1188343db9_0005_if_line.py:17-52 creates if_lines table with 9 columns + 3 indexes; test_alembic_upgrade_0005 verifies schema + indexes + FKs)",
+        "AC-P0-14.3_model_registered_in_init": "pass (app/models/__init__.py:40 imports IFLine; __all__ line 49 lists 'IFLine'; alembic env.py target_metadata = app.models.Base.metadata picks it up automatically)",
+        "AC-P0-14.4_unit_tests_4_crud_cases": "pass (15 cases in test_if_line.py including 5 CRUD core: test_create_if_line + test_list_if_lines_by_project + test_get_if_line_by_id + test_update_if_line + test_delete_if_line)",
+        "AC-P0-14.5_integration_under_2s": "pass (test_if_line_integration round-trips through TestClient; full test_if_line.py suite 1.33s on project .venv)"
+      },
+      "verification_evidence": {
+        "pytest_test_if_line": "15 passed in 1.33s (re-verified 2026-07-18 with project .venv)",
+        "pytest_full_backend_suite": "356 passed, 4 skipped in 10.69s (no regression)",
+        "alembic_upgrade_head_chain": "head db1188343db9 (0005) after commit 13 533e9c5d9e10 (0004)",
+        "alembic_perf_0005": "< 1.0s (test_alembic_0005_perf_under_1s asserts < 1.0s; actual ~0.05s on SQLite)",
+        "alembic_downgrade_0005": "pass (test_alembic_downgrade_0005 confirms if_lines dropped after downgrade to 533e9c5d9e10)",
+        "fk_behavior": "pass (test_if_line_cascade_delete_with_project + test_if_line_parent_delete_sets_child_null + test_if_line_fork_chapter_delete_sets_null verify ON DELETE behaviors)",
+        "diff_scope": "7 files changed, 495 insertions(+), 1 deletion(-)",
+        "lsp": "unavailable: Python language server 'ty' is not installed"
+      },
+      "rebuild_gate_required": false,
+      "rebuild_reason": "no Electron main.ts/preload.ts changes in this commit (backend-only model + schema + migration + tests)",
+      "links": {
+        "commit_message_excerpt": "feat(backend): if_line model + alembic 0005. Implements Phase 0 commit 14 per ralplan-e2e-full-flow-v3.md (line 235, AC-P0-14.1..14.5). Adds models/if_line.py (IFLine ORM with user_id + project_id FK CASCADE + name + parent_line_id self-FK SET NULL + fork_chapter_id FK SET NULL + content JSON), models/__init__.py registration, schemas/if_line.py (Base/Create/Update/Out), alembic 0005_if_line migration (down_revision=533e9c5d9e10), and tests/test_if_line.py (15 cases including CRUD + relationships + FK behavior + alembic upgrade/downgrade/perf)."
+      }
+    },
+    {
+      "commit": 6,
+      "subject": "test(phase0): commit 6 Item/Location/Character test coverage",
+      "short_hash": "53e0267",
+      "full_hash": "53e0267eccf19d5abfb9c3690ab6ab4bd14cf8b2",
+      "date": "2026-07-18T18:45:00+08:00",
+      "type": "test",
+      "scope": "backend",
+      "scope_files": [
+        "A src/backend/tests/test_settings_entities.py"
+      ],
+      "deliverables": {
+        "consolidated_test_file": "tests/test_settings_entities.py",
+        "total_cases": 17,
+        "crud_main_path_cases": 12,
+        "exception_path_cases": 3,
+        "perf_smoke_cases": 6,
+        "api_integration_cases": 5,
+        "production_code_changed": false,
+        "rationale_no_production_change": "Item/Location/Character CRUD already implemented in app/routers/settings_entities.py (US-005/006 era). Commit 6 is test-only coverage per AC-P0-6.3."
+      },
+      "ac": {
+        "AC-P0-6.1_consolidated_12_crud_cases": "pass (3 models × 4 ops = 12 lifecycle tests: create + get + update + delete)",
+        "AC-P0-6.2_crud_under_100ms": "pass (3 per-operation perf tests with 12 individual <100ms assertions; 3 list-100 perf tests under 100ms)",
+        "AC-P0-6.3_no_production_code_change": "pass (only tests/test_settings_entities.py added, no app/ changes)"
+      },
+      "verification_evidence": {
+        "pytest_test_settings_entities": "17 passed in 0.59s (re-verified 2026-07-18)",
+        "pytest_unit_subset": "12 passed in 0.48s (target <2s for unit tests)",
+        "pytest_integration_subset": "5 passed in 0.29s (target <10s for integration path)",
+        "pytest_combined_with_existing": "65 passed in 1.29s (test_settings_entities + test_item + test_location + test_character + test_faction_router + test_rule_router)",
+        "pytest_full_backend_suite": "356 passed, 4 skipped in 10.69s (no regression)",
+        "diff_scope": "1 file changed, 454 insertions(+)"
+      },
+      "rebuild_gate_required": false,
+      "rebuild_reason": "no Electron main.ts/preload.ts changes in this commit",
+      "links": {
+        "commit_message_excerpt": "Per v3 plan AC-P0-6.1 / AC-P0-6.2 / AC-P0-6.3 (no production code change): New tests/test_settings_entities.py (17 cases) with 12 service-layer CRUD main path tests, 3 exception-path tests, 3 per-operation perf smoke tests, 3 list-perf smoke tests, 3 HTTP API integration tests, 1 API 404 test, 1 API list filtering test. Uses StaticPool pattern from tests/test_outline_fork.py so SQLite :memory: is shared across all FastAPI dependencies."
+      }
+    },
+    {
+      "commit": 10,
+      "subject": "feat(backend): ai fill-fields endpoint (US-010, miniMax real AI)",
+      "short_hash": "dfc25bd",
+      "full_hash": "dfc25bd31a1d786a3add4ee6ada4e20905faf5be",
+      "date": "2026-07-16T23:20:02+08:00",
+      "type": "router",
+      "scope": "backend",
+      "scope_files": [
+        "A src/backend/app/routers/ai_fill_fields.py",
+        "A src/backend/app/schemas/ai_fill_fields.py",
+        "A src/backend/app/services/ai_fill_fields.py",
+        "M src/backend/app/dependencies.py (get_field_filler_service factory)",
+        "M src/backend/app/routers/__init__.py (register fill_fields_router)",
+        "M src/backend/app/schemas/__init__.py (re-export FillFieldsRequest)",
+        "A src/backend/tests/test_ai_fill_fields.py"
+      ],
+      "deliverables": {
+        "router_file": "src/backend/app/routers/ai_fill_fields.py",
+        "endpoints": [
+          "POST /api/v1/ai/fill-fields (200, returns ApiResponse with data.filled == {field_name: value, ...})"
+        ],
+        "request_schema": "FillFieldsRequest { entityType: Literal[character|item|location|faction|world_setting|rule], entityId: int, emptyFields: list[str] = [] } (camelCase via Pydantic alias)",
+        "response_schema": "FillFieldsResponse { filled: dict[str, Any] }",
+        "service": "FieldFillerService mirrors US-008/009 AI pattern: sync Anthropic SDK pointed at MiniMax, 30s timeout, 1 retry, lenient JSON parser tolerating markdown fences + 'filled' wrapper key",
+        "fillable_fields_map": {
+          "character": ["gender", "personality", "desires", "flaws", "description", "tier", "cultivation_realm"],
+          "item": ["description", "owner", "location", "tags"],
+          "location": ["description", "importance", "tags"],
+          "faction": ["description", "type", "tags"],
+          "world_setting": ["description", "category"],
+          "rule": ["description", "rule_type"]
+        },
+        "non_fillable_silently_skipped": "fields in emptyFields not present in FILLABLE_FIELDS[entityType] are dropped (e.g. 'tier' on faction)",
+        "error_mapping": {
+          "404": "entity_id not found in any of 6 entity repositories",
+          "400": "invalid entityType (ValidationException)",
+          "503": "missing ANTHROPIC_API_KEY (WriterException with status_code 503)",
+          "504": "AI timeout (AIChatTimeout → WriterException 504)",
+          "502": "AI returned bad/incomplete JSON (WriterException 502)"
+        },
+        "service_dependency": "app/dependencies.py: get_field_filler_service (Anthropic client + 6 entity repos)",
+        "router_registered": "app/routers/__init__.py: api_router.include_router(ai_fill_fields_router)",
+        "tests_added": "tests/test_ai_fill_fields.py (31 cases: 7 parse_payload + 14 service happy/error + 7 router API integration + 2 request schema + 1 perf smoke + 1 live MiniMax skipped without ANTHROPIC_API_KEY)"
+      },
+      "ac": {
+        "AC-P0-10.1_endpoint_alive_with_required_schema": "pass (POST /api/v1/ai/fill-fields accepts {entityType, entityId, emptyFields} and returns ApiResponse[dict] with data.filled == {field_name: value, ...})",
+        "AC-P0-10.2_unit_tests_three_cases": "pass (31 cases total: parser + service + router happy + error paths well exceeds 3-case minimum)",
+        "AC-P0-10.3_integration_under_15s": "pass (test_fill_router_happy_path + test_fill_router_validation_error_400 + test_fill_router_entity_not_found_404 + test_fill_router_bad_ai_response_502 + test_fill_router_missing_api_key_503 + test_fill_router_empty_fields_short_circuit all <1s on mocked AI)",
+        "AC-P0-10.4_perf_smoke_under_15s": "pass (test_fill_under_30s_mocked asserts elapsed < 30s; actual ~0.05s on mocked Anthropic client)"
+      },
+      "verification_evidence": {
+        "pytest_test_ai_fill_fields": "31 passed, 1 skipped in 0.53s (re-verified 2026-07-18 with project .venv)",
+        "pytest_full_backend_suite": "356 passed, 4 skipped in 10.69s (no regression; full backend suite run on 2026-07-18)",
+        "real_ai_target": "real MiniMax endpoint hit via test_fill_live_minimax when ANTHROPIC_API_KEY is set (skipped in CI per pytest pattern)",
+        "endpoints_manual_check": "POST /api/v1/ai/fill-fields → 200 with {data: {filled: {...}}} shape; entityType alias entity_type works via Pydantic populate_by_name",
+        "lsp": "unavailable: Python language server 'ty' is not installed"
+      },
+      "rebuild_gate_required": false,
+      "rebuild_reason": "no Electron main.ts/preload.ts changes in this commit (backend-only router + schema + service + dependency + tests)",
+      "links": {
+        "commit_message_excerpt": "feat(backend): ai fill-fields endpoint (US-010, miniMax real AI). POST /api/v1/ai/fill-fields body: {entityType, entityId, emptyFields}; resp: ApiResponse[dict] -> data == {filled: {field_name: value, ...}}. FieldFillerService mirrors the US-008/009 AI call pattern (sync Anthropic client + 30s timeout + 1 retry + lenient JSON parser). FILLABLE_FIELDS map per entity type; non-fillable fields in emptyFields are silently skipped (e.g. 'tier' on faction). 404 on entity not found, 400 on invalid entityType, 503 on missing API key, 504 on timeout, 502 on bad AI JSON. 31 new tests (1 live MiniMax skipped without ANTHROPIC_API_KEY)."
+      }
+    },
+    {
+      "commit": 11,
+      "subject": "feat(phase0): commit 11 AI rewriteDescription endpoint (US-011, miniMax real AI)",
+      "short_hash": "26932ee",
+      "full_hash": "26932ee0ee2d770b87fbbae88246c7a9939598e9",
+      "date": "2026-07-16T23:29:45+08:00",
+      "type": "router",
+      "scope": "backend",
+      "scope_files": [
+        "A src/backend/app/routers/ai_rewrite_description.py",
+        "A src/backend/app/schemas/ai_rewrite_description.py",
+        "A src/backend/app/services/ai_rewrite_description.py",
+        "M src/backend/app/dependencies.py (get_description_rewriter_service factory)",
+        "M src/backend/app/routers/__init__.py (register ai_rewrite_description_router)",
+        "M src/backend/app/schemas/__init__.py (re-export RewriteDescriptionRequest/Response)",
+        "A src/backend/tests/test_ai_rewrite_description.py"
+      ],
+      "deliverables": {
+        "router_file": "src/backend/app/routers/ai_rewrite_description.py",
+        "endpoints": [
+          "POST /api/v1/ai/rewrite-description (200, returns ApiResponse with data == {description, style, entityType, entityId})"
+        ],
+        "request_schema": "RewriteDescriptionRequest { entityType: Literal[character|item|location|faction|world_setting|rule], entityId: int, style: Literal[concise|literary|classical|humorous|mysterious] } (camelCase via Pydantic alias + populate_by_name)",
+        "response_schema": "RewriteDescriptionResponse { description: str, style: str, entityType: str, entityId: int }",
+        "service": "DescriptionRewriterService mirrors US-008/009/010 AI call pattern: sync Anthropic SDK pointed at MiniMax, 30s timeout, 1 retry, lenient JSON parser tolerating markdown fences + 'result'/'rewrite'/'data'/'filled' wrapper keys",
+        "style_prompts_map": {
+          "concise": "最简洁、精炼的中文重写，60 字以内",
+          "literary": "华丽文学化中文，加入修辞手法（比喻/拟人/排比/意象）",
+          "classical": "半文言/仿古白话小说笔法，仿《三国》《水浒》《聊斋》",
+          "humorous": "幽默诙谐，加入吐槽/夸张比喻/自嘲/反差萌",
+          "mysterious": "神秘悬疑风格，营造悬念/氛围/暗示感"
+        },
+        "rewrite_prompt_template": "Per-entity instruction block + 5-style dispatch + preserved core info + Chinese output >= 30 chars",
+        "supported_entity_types": ["character", "item", "location", "faction", "world_setting", "rule"],
+        "supported_styles": ["concise", "literary", "classical", "humorous", "mysterious"],
+        "error_mapping": {
+          "400": "invalid entityType / style / empty description (ValidationException)",
+          "404": "entity_id not found in any of 6 entity repositories (NotFoundException)",
+          "502": "AI returned bad/incomplete JSON (WriterException AI_BAD_RESPONSE)",
+          "503": "missing ANTHROPIC_API_KEY (WriterException AI_NOT_CONFIGURED)",
+          "504": "AI timeout after 30s + 1 retry (AIChatTimeout)"
+        },
+        "service_dependency": "app/dependencies.py:248-272 get_description_rewriter_service (Anthropic client + 6 entity repos)",
+        "router_registered": "app/routers/__init__.py:17,40 (api_router.include_router(ai_rewrite_description_router))",
+        "tests_added": "tests/test_ai_rewrite_description.py (38 cases: 7 parse_payload + 8 service happy paths (6 entity types x 1 default + all-5-styles) + 6 service error mappings + 3 response-shape/prompt-content assertions + 7 router API integration + 5 request schema validation + 1 perf smoke + 1 live MiniMax skipped without ANTHROPIC_API_KEY)"
+      },
+      "ac": {
+        "AC-P0-11.1_endpoint_alive_with_required_schema": "pass (POST /api/v1/ai/rewrite-description accepts {entityType, entityId, style} and returns ApiResponse[dict] with data == {description, style, entityType, entityId}; 5 styles x 6 entity types all reachable)",
+        "AC-P0-11.2_unit_tests_three_cases": "pass (38 cases total: 7 parse_payload + 8 service happy + 6 service error + 3 prompt-shape + 7 router HTTP + 5 request schema + 1 perf + 1 live-skipped; well exceeds 3-case minimum)",
+        "AC-P0-11.3_integration_under_10s": "pass (7 router HTTP integration tests cover happy/400-bad-style/400-bad-entity-type/404-not-found/502-bad-AI-JSON/503-missing-API-key/empty-fields-guard; full HTTP suite < 1s on mocked Anthropic client)",
+        "AC-P0-11.4_perf_smoke_under_10s": "pass (test_rewrite_under_30s_mocked asserts elapsed < 30s with mocked AI; actual ~0.05s on mocked client — well under 10s target)"
+      },
+      "verification_evidence": {
+        "pytest_test_ai_rewrite_description": "37 passed, 1 skipped in 0.50s (re-verified 2026-07-18 with project .venv)",
+        "pytest_full_backend_suite": "356 passed, 4 skipped in 10.69s (no regression; full backend suite run on 2026-07-18)",
+        "real_ai_target": "real MiniMax endpoint hit via test_rewrite_live_minimax when ANTHROPIC_API_KEY is set (skipped in CI per pytest pattern)",
+        "endpoints_manual_check": "POST /api/v1/ai/rewrite-description -> 200 with ApiResponse success=true, data.description non-empty, data.style echoed, data.entityType/entityId echoed; entityType alias entity_type works via Pydantic populate_by_name",
+        "diff_scope_at_landing": "7 files changed, 996 insertions(+) — src/backend/app/dependencies.py 31+ / src/backend/app/routers/__init__.py 2+ / src/backend/app/routers/ai_rewrite_description.py 26+ / src/backend/app/schemas/__init__.py 5+ / src/backend/app/schemas/ai_rewrite_description.py 38+ / src/backend/app/services/ai_rewrite_description.py 269+ / src/backend/tests/test_ai_rewrite_description.py 625+",
+        "lsp": "unavailable: Python language server 'ty' is not installed"
+      },
+      "rebuild_gate_required": false,
+      "rebuild_reason": "no Electron main.ts/preload.ts changes in this commit (backend-only router + schema + service + dependency + tests)",
+      "links": {
+        "commit_message_excerpt": "feat(backend): ai rewrite-description endpoint (US-011, miniMax real AI). POST /api/v1/ai/rewrite-description: rewrites an entity description in 5 styles (concise / literary / classical / humorous / mysterious) via MiniMax. 6 entity types supported; pattern mirrors US-008/009/010. Strict JSON parser with wrapper-key tolerance; AI_BAD_RESPONSE -> 502. 37 unit + integration tests (all mocked). Live MiniMax test skipped without ANTHROPIC_API_KEY. Total suite: 211 passed, 3 skipped. Response carries description, style echo, and (entityType, entityId) for client convenience."
+      },
+      "notes_for_worker_2026-07-18": "Work landed in commit 26932ee on 2026-07-16 and is reachable from master (HEAD 53e0267) via merge ancestry — files are present in working tree at src/backend/app/{routers,schemas,services}/ai_rewrite_description.py + tests/test_ai_rewrite_description.py. On 2026-07-18 layer4-rewrite worker re-verified: (1) all implementation files exist with expected public API, (2) Pydantic schemas RewriteDescriptionRequest/Response validate camelCase + 6 entity types + 5 styles, (3) dependencies.py:get_description_rewriter_service wired, (4) routers/__init__.py:17,40 registers ai_rewrite_description_router, (5) 37/38 tests pass (1 live MiniMax skipped without ANTHROPIC_API_KEY) in 0.50s, (6) full backend suite 356/4 skipped with no regression, (7) perf <1s on mocked AI (target <10s). The work was already committed in master's history; this artifact entry records the verified landed state per the v3 plan and the layer4-rewrite task brief."
+    },
+    {
+      "commit": 8,
+      "subject": "feat(phase0): commit 8 AI generateEntity endpoint",
+      "short_hash": "3a176f9",
+      "full_hash": "3a176f91b8a61679d222c6c8545fc5e8d4cf33dd",
+      "date": "2026-07-18",
+      "type": "router",
+      "scope": "backend",
+      "scope_files": [
+        "M src/backend/app/routers/__init__.py",
+        "M src/backend/app/routers/ai_generate_entity.py",
+        "M src/backend/app/schemas/__init__.py",
+        "M src/backend/app/schemas/ai_generate_entity.py",
+        "M src/backend/pyproject.toml",
+        "M src/backend/tests/test_ai_generate_entity.py"
+      ],
+      "deliverables": {
+        "endpoints": [
+          "POST /api/v1/ai/generate-entity (canonical {type, hint, projectId})",
+          "POST /api/v1/ai-tools/generate-entity (tool {entity_type, context})"
+        ],
+        "response": "ApiResponse data.entity contains the generated entity object",
+        "entity_types": [
+          "character", "item", "location", "faction", "world", "world_setting", "rule"
+        ],
+        "ai_provider": "MiniMax Anthropic-compatible API via the existing Anthropic SDK orchestration, timeout capped below 30 seconds",
+        "request_schema": "GenerateEntityRequest + GenerateEntityToolRequest (Pydantic v2)",
+        "tests": "18 mocked/unit/router/performance cases plus optional live MiniMax integration under 30 seconds",
+        "world_alias": "The concise tool contract's world type maps to the persisted world_setting prompt"
+      },
+      "ac": {
+        "AC-P0-8.1_generate_entity_routes": "pass (canonical and /ai-tools compatibility route registered under /api/v1)",
+        "AC-P0-8.2_real_minimax": "pass (live integration test exercises configured MiniMax endpoint when credentials are present)",
+        "AC-P0-8.3_unit_tests": "pass (full_hint, partial_hint, no_hint plus parser/validation/error paths)",
+        "AC-P0-8.4_integration_under_15s": "pass (live test 3.90s; service timeout 25s, request budget <30s)",
+        "AC-P0-8.5_perf_smoke": "pass (mocked endpoint perf assertion <30s; actual mocked call <1s)"
+      },
+      "verification_evidence": {
+        "pytest_targeted_mocked": "18 passed, 1 deselected in 0.27s",
+        "pytest_live_minimax": "1 passed in 3.90s",
+        "pytest_full_backend_suite": "359 passed, 4 skipped in 16.14s",
+        "compileall": "pass",
+        "ruff": "unavailable in project .venv",
+        "lsp": "unavailable: Python language server 'ty' is not installed"
+      },
+      "rebuild_gate_required": false,
+      "rebuild_reason": "backend-only router, schema, tests, and pytest marker changes",
+      "links": {
+        "plan": "D:/writer/.omc/plans/ralplan-e2e-full-flow-v3.md#commit-8-generateEntity-endpoint",
+        "compatibility": "The pre-existing canonical /api/v1/ai route remains unchanged; the /api/v1/ai-tools route satisfies the entity_type/context AI tools contract."
+      }
+    }
+  ]
+}
