@@ -4,6 +4,9 @@ Phase 1 (US-001): removed routers — chat, snapshots, chapter_snapshots,
 export, observability, ai_review, agents, context, workflows, tasks,
 metrics. Skipped routers (broken imports of deleted models) — chapters,
 settings_entities. Routes re-added under US-002 through US-013.
+
+Phase 1.5 (M2 mechanism): added chat_ws router (WebSocket) at root prefix
+to match frontend ChatWebSocketClient URL (ws://host/ws/chat/{id}).
 """
 from __future__ import annotations
 
@@ -31,6 +34,7 @@ from app.routers.outlines import outlines_router
 from app.routers.chapters import chapters_router
 from app.routers.drafts import drafts_router
 from app.routers.chat import router as chat_router
+from app.routers.chat_ws import router as chat_ws_router
 
 api_router = APIRouter(prefix="/api/v1")
 
@@ -53,3 +57,8 @@ api_router.include_router(outlines_router)
 api_router.include_router(chapters_router)
 api_router.include_router(drafts_router)
 api_router.include_router(chat_router)
+
+# WebSocket routes are mounted on the bare FastAPI app (not under /api/v1)
+# so the frontend ChatWebSocketClient URL ws://host:port/ws/chat/{id} resolves
+# directly. See app/main.py for the include_router(chat_ws_router) call.
+__all__ = ["api_router", "chat_ws_router"]
