@@ -69,7 +69,12 @@ export default defineConfig({
       name: 'electron',
       use: {
         launchOptions: {
-          executablePath: requireCJS('electron'),
+          // Phase 1 walkthrough runs only on the chromium project; the
+          // electron project is opt-in for local debugging. Hard-code
+          // the resolved binary path so the config loads even when
+          // `electron` is not in src/frontend/node_modules.
+          executablePath:
+            'D:/writer/electron/node_modules/electron/dist/electron.exe',
           args: [
             '--user-data-dir=' + perJourneyElectronProfilePath,
             // Headless CI: Electron is not headless by default; Playwright's

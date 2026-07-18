@@ -44,8 +44,15 @@ interface PidRecord {
 
 function resolvePythonInterpreter(): { cmd: string; argsPrefix: string[] } {
   // Playwright runs global-setup from the project root declared in the
-  // config. The backend lives at `<root>/src/backend`.
-  const backendDir = path.resolve(process.cwd(), 'src', 'backend');
+  // config. The backend lives at `<root>/src/backend`, where `<root>`
+  // is the *frontend* dir when invoked via `npm test`. To avoid the
+  // common bug of accidentally nesting to `<root>/src/backend` (when
+  // the developer already cd'd into `src/frontend`), prefer the
+  // WRITER_BACKEND_DIR env var if set, otherwise walk one level up to
+  // the repo root and resolve from there.
+  const backendDir = process.env.WRITER_BACKEND_DIR
+    ? path.resolve(process.env.WRITER_BACKEND_DIR)
+    : path.resolve(process.cwd(), '..', 'backend');
   const isWin = process.platform === 'win32';
   const venvPython = isWin
     ? path.join(backendDir, '.venv', 'Scripts', 'python.exe')
