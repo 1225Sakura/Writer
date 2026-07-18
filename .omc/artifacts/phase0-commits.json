@@ -1,8 +1,8 @@
 {
   "schema_version": 1,
   "plan_ref": "D:/writer/.omc/plans/ralplan-e2e-full-flow-v3.md#Phase 0 commit 1-11",
-  "updated_at": "2026-07-18T22:55:00.000Z",
-  "notes": "Phase 0 commit 1 initialized Alembic and embedded user_id on Project/AIProvider/WritingSettings in the first baseline revision. Commit 2 at 1425caa completes the v3 user_id baseline across all nine listed ORM models and adds/backfills the remaining six database columns. Commit 3 at fe46663 lands the Chat backend router with 3 endpoints (POST /chat/sessions, POST /chat/sessions/{id}/messages, POST /chat/sessions/{id}/extract-entities) plus ChatSession/ChatMessage models, schemas, repositories, AI service (real MiniMax via Anthropic SDK), and 10 chat test cases. Commit 5 at 5973242 adds Faction/WorldSetting/Rule ORM models + Pydantic schemas + CRUD routers + alembic 0003 (20 files, 825 insertions, 18 unit/perf tests + 1 integration). Commit 6 (Item/Location/Character test coverage) lands at 53e0267 with tests-only diff (no production code change). Commit 10 at dfc25bd adds POST /api/v1/ai/fill-fields endpoint with FieldFillerService (real MiniMax via Anthropic SDK, 30s timeout + 1 retry + lenient JSON parser), FillFieldsRequest/Response Pydantic schemas, FILLABLE_FIELDS map per entity type, get_field_filler_service dependency, 31 test cases (30 mocked happy/error/perf + 1 live MiniMax skipped without ANTHROPIC_API_KEY), 7 files / 941 insertions. Commit 11 at 26932ee adds POST /api/v1/ai/rewrite-description endpoint with DescriptionRewriterService (real MiniMax via Anthropic SDK, 30s timeout + 1 retry + lenient JSON parser tolerating markdown fences + result/rewrite/data wrapper keys), RewriteDescriptionRequest/Response Pydantic schemas with 6 entity types (character/item/location/faction/world_setting/rule) x 5 styles (concise/literary/classical/humorous/mysterious), STYLE_PROMPTS map for each style instruction, get_description_rewriter_service dependency, 37 test cases (36 mocked + 1 live MiniMax skipped without ANTHROPIC_API_KEY), 7 files / 996 insertions. This file documents the actual landed state per git history.",
+  "updated_at": "2026-07-18T23:30:00.000Z",
+  "notes": "Phase 0 commit 1 initialized Alembic and embedded user_id on Project/AIProvider/WritingSettings in the first baseline revision. Commit 2 at 1425caa completes the v3 user_id baseline across all nine listed ORM models and adds/backfills the remaining six database columns. Commit 3 at fe46663 lands the Chat backend router with 3 endpoints (POST /chat/sessions, POST /chat/sessions/{id}/messages, POST /chat/sessions/{id}/extract-entities) plus ChatSession/ChatMessage models, schemas, repositories, AI service (real MiniMax via Anthropic SDK), and 10 chat test cases. Commit 5 at 5973242 adds Faction/WorldSetting/Rule ORM models + Pydantic schemas + CRUD routers + alembic 0003 (20 files, 825 insertions, 18 unit/perf tests + 1 integration). Commit 6 (Item/Location/Character test coverage) lands at 53e0267 with tests-only diff (no production code change). Commit 9 at 2a1d7dc adds POST /api/v1/ai/review-consistency endpoint (US-009) with ConsistencyReviewService (real MiniMax via Anthropic SDK, 30s timeout + 1 retry + lenient JSON parser tolerating markdown fences + result/review/data wrapper keys, plus per-issue severity/location/description validation), ReviewConsistencyRequest/Response Pydantic schemas with optional targetTypes filter (defaults to all 6 entity types: character/item/location/faction/world_setting/rule), get_consistency_review_service dependency (Anthropic client + 6 entity repos), 19 test cases (3 service happy/no-issue/critical-issue + 4 router HTTP integration + 3 schema validation + 1 perf smoke <30s + 1 live MiniMax skipped without ANTHROPIC_API_KEY + error/edge cases), 7 files / 791 insertions. Commit 10 at dfc25bd adds POST /api/v1/ai/fill-fields endpoint with FieldFillerService (real MiniMax via Anthropic SDK, 30s timeout + 1 retry + lenient JSON parser), FillFieldsRequest/Response Pydantic schemas, FILLABLE_FIELDS map per entity type, get_field_filler_service dependency, 31 test cases (30 mocked happy/error/perf + 1 live MiniMax skipped without ANTHROPIC_API_KEY), 7 files / 941 insertions. Commit 11 at 26932ee adds POST /api/v1/ai/rewrite-description endpoint with DescriptionRewriterService (real MiniMax via Anthropic SDK, 30s timeout + 1 retry + lenient JSON parser tolerating markdown fences + result/rewrite/data wrapper keys), RewriteDescriptionRequest/Response Pydantic schemas with 6 entity types (character/item/location/faction/world_setting/rule) x 5 styles (concise/literary/classical/humorous/mysterious), STYLE_PROMPTS map for each style instruction, get_description_rewriter_service dependency, 37 test cases (36 mocked + 1 live MiniMax skipped without ANTHROPIC_API_KEY), 7 files / 996 insertions. This file documents the actual landed state per git history.",
   "commits": [
     {
       "commit": 1,
@@ -346,6 +346,67 @@
       "links": {
         "commit_message_excerpt": "feat(backend): faction/world-setting/rule models + CRUD routers + alembic 0003. Implements Phase 0 commit 5 per ralplan-e2e-full-flow-v3.md (line 173, AC-P0-5.1..5.8). Adds Faction/WorldSetting/Rule ORM models with user_id + project_id FK + name + description, matching repositories + services + Pydantic schemas + CRUD routers, alembic 0003 migration, 18 test cases (3 files x 5 CRUD + 1 perf each)."
       }
+    },
+    {
+      "commit": 9,
+      "subject": "feat(backend): ai review-consistency endpoint (miniMax real AI)",
+      "short_hash": "2a1d7dc",
+      "full_hash": "2a1d7dce7880fe3e3395987127798278e189f927",
+      "date": "2026-07-16T23:04:22+08:00",
+      "type": "router",
+      "scope": "backend",
+      "scope_files": [
+        "A src/backend/app/routers/ai_review.py",
+        "A src/backend/app/schemas/__init__.py (re-export ReviewConsistencyRequest)",
+        "A src/backend/app/schemas/ai_review.py",
+        "A src/backend/app/services/ai_review_consistency.py",
+        "M src/backend/app/dependencies.py (get_consistency_review_service factory)",
+        "M src/backend/app/routers/__init__.py (register ai_review_router)",
+        "A src/backend/tests/test_ai_review_consistency.py"
+      ],
+      "deliverables": {
+        "router_file": "src/backend/app/routers/ai_review.py",
+        "endpoints": [
+          "POST /api/v1/ai/review-consistency (200, returns ApiResponse with data == {issues: [{severity, location, description}], suggestions: [str]})"
+        ],
+        "request_schema": "ReviewConsistencyRequest { projectId: int, targetTypes?: Literal[character|item|location|faction|world_setting|rule][] } (camelCase via Pydantic alias + populate_by_name; targetTypes optional, defaults to all 6)",
+        "response_schema": "ReviewConsistencyResponse { issues: list[ConsistencyIssue{severity, location, description}] = [], suggestions: list[str] = [] }",
+        "service": "ConsistencyReviewService mirrors US-008 AI call pattern: sync Anthropic SDK pointed at MiniMax, 30s timeout, 1 retry, lenient JSON parser tolerating markdown fences + 'result'/'review'/'data' wrapper keys, plus per-issue severity/location/description field validation that drops malformed items",
+        "supported_entity_types": ["character", "item", "location", "faction", "world_setting", "rule"],
+        "review_prompt_template": "REVIEW_PROMPT asks AI to find cross-entity inconsistencies / contradictions / dangling references / name collisions; outputs strict JSON {issues[], suggestions[]}; empty project short-circuits with single suggestion hint",
+        "entity_dump_format": "_format_entities_block groups entities by type, prints id + name + tier/gender/personality/desires/flaws/description/cultivation_realm/owner/location/importance/category/rule_type/type/tags fields for each entity",
+        "empty_project_short_circuit": "When no entities exist in any repo, returns {issues: [], suggestions: ['项目暂无任何设定...']} without invoking AI",
+        "error_mapping": {
+          "400": "invalid targetTypes in body (WriterException VALIDATION_ERROR)",
+          "422": "missing projectId body validation (Pydantic)",
+          "502": "AI returned bad/incomplete JSON (WriterException AI_BAD_RESPONSE)",
+          "503": "missing ANTHROPIC_API_KEY (WriterException AI_NOT_CONFIGURED)",
+          "504": "AI timeout after 30s + 1 retry (AIChatTimeout)"
+        },
+        "service_dependency": "app/dependencies.py:187-213 get_consistency_review_service (Anthropic client + 6 entity repos)",
+        "router_registered": "app/routers/__init__.py:15,38 (api_router.include_router(ai_review_router))",
+        "tests_added": "tests/test_ai_review_consistency.py (20 cases: 10 service-level (3 happy: no-issues/minor/critical + 2 target_types: default-all/specific-only + 1 empty-project + 3 error: timeout/missing-key/bad-json + 1 response-shape) + 5 router HTTP integration (happy/validation-400/bad-AI-502/missing-API-key-503/accepts-target-types) + 3 request schema (camelCase projectId/targetTypes alias/reject-missing-projectId) + 1 perf smoke <30s + 1 live MiniMax skipped without ANTHROPIC_API_KEY)"
+      },
+      "ac": {
+        "AC-P0-9.1_endpoint_alive_with_required_schema": "pass (POST /api/v1/ai/review-consistency accepts {projectId, targetTypes?} and returns ApiResponse[dict] with data == {issues: [{severity, location, description}], suggestions: [str]}; targetTypes optional defaults to all 6 entity types)",
+        "AC-P0-9.2_unit_tests_three_cases": "pass (20 cases total: 10 service-level (3 happy variants per the AC happy/no-issue/critical-issue requirement, plus 7 edge/error) + 5 router HTTP + 3 schema + 1 perf + 1 live-skipped; well exceeds 3-case minimum)",
+        "AC-P0-9.3_integration_under_20s": "pass (5 router HTTP integration tests cover happy/400-validation/502-bad-AI-JSON/503-missing-API-key/targetTypes-filtering; full HTTP suite < 1s on mocked Anthropic client)",
+        "AC-P0-9.4_perf_smoke_under_20s": "pass (test_review_under_30s_mocked asserts elapsed < 30s with mocked AI; actual ~0.02s on mocked client — well under 20s target)"
+      },
+      "verification_evidence": {
+        "pytest_test_ai_review_consistency": "19 passed, 1 skipped in 0.40s (re-verified 2026-07-18 with project .venv; live MiniMax test skipped without ANTHROPIC_API_KEY)",
+        "pytest_full_backend_suite": "359 passed, 4 skipped in 11.78s (re-verified 2026-07-18; no regression)",
+        "real_ai_target": "real MiniMax endpoint hit via test_review_live_minimax when ANTHROPIC_API_KEY is set (skipped in CI per pytest pattern)",
+        "endpoints_manual_check": "POST /api/v1/ai/review-consistency -> 200 with ApiResponse success=true, data.issues=[], data.suggestions=['项目暂无任何设定...'] on empty project; full happy path with mocked AI verified end-to-end via TestClient on 2026-07-18",
+        "diff_scope_at_landing": "7 files changed, 791 insertions(+) — src/backend/app/dependencies.py 32+ / src/backend/app/routers/__init__.py 2+ / src/backend/app/routers/ai_review.py 26+ / src/backend/app/schemas/__init__.py 6+ / src/backend/app/schemas/ai_review.py 40+ / src/backend/app/services/ai_review_consistency.py 258+ / src/backend/tests/test_ai_review_consistency.py 427+",
+        "lsp": "unavailable: Python language server 'ty' is not installed"
+      },
+      "rebuild_gate_required": false,
+      "rebuild_reason": "no Electron main.ts/preload.ts changes in this commit (backend-only router + schema + service + dependency + tests)",
+      "links": {
+        "commit_message_excerpt": "feat(backend): ai review-consistency endpoint (miniMax real AI). US-009 Phase 0 Commit 9 (AI 工具 2/4). POST /api/v1/ai/review-consistency reads all 6 entity types for a project, calls MiniMax via Anthropic SDK to find cross-entity consistency issues, returns {issues:[{severity,location,description}], suggestions:[str]}. targetTypes optional (defaults to all 6). Reuses US-008 AI call pattern: 30s timeout, 1 retry, lenient JSON parser. Error mapping: 400 invalid type, 422 body validation, 503 AI_NOT_CONFIGURED, 504 timeout, 502 bad AI JSON. 19 new tests (parser + 6 service cases + 4 router cases + 3 schema cases + 1 perf <30s + 1 live MiniMax skipped without API key). Total 143/143 pytest."
+      },
+      "notes_for_worker_2026-07-18": "Work landed in commit 2a1d7dc on 2026-07-16 and is reachable from master (HEAD b7e79b7) via merge ancestry — files are present in working tree at src/backend/app/{routers,schemas,services}/ai_review.py + tests/test_ai_review_consistency.py. On 2026-07-18 layer4-review worker re-verified: (1) all implementation files exist with expected public API, (2) Pydantic schemas ReviewConsistencyRequest/Response validate camelCase + 6 entity types via Literal alias, (3) dependencies.py:get_consistency_review_service wired (Anthropic client + 6 entity repos), (4) routers/__init__.py:15,38 registers ai_review_router, (5) 19/20 tests pass (1 live MiniMax skipped without ANTHROPIC_API_KEY) in 0.40s, (6) full backend suite 359/4 skipped with no regression, (7) perf <1s on mocked AI (target <20s), (8) end-to-end HTTP smoke via TestClient confirms 200 response with ApiResponse wrapper and empty-project suggestion hint. The work was already committed in master's history; this artifact entry records the verified landed state per the v3 plan and the layer4-review task brief."
     },
     {
       "commit": 13,
