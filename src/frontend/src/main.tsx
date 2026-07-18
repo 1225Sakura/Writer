@@ -1,5 +1,6 @@
 import React from 'react'
 import ReactDOM from 'react-dom/client'
+import { enableMapSet } from 'immer'
 import App from './App'
 import {
   useChatStore,
@@ -8,8 +9,17 @@ import {
   useWritingStore,
   useContentStore,
   useAIStore,
+  useSyncStore,
 } from './store'
 import './styles/index.css'
+
+// syncStore + any other immer+Map stores require the MapSet plugin.
+// Without this, any operation that touches a Map field (e.g. IFLineSyncState
+// in syncStore) throws "[Immer] The plugin for 'MapSet' has not been loaded".
+// US-026 (Phase 6) discovery: only the syncStore.test.ts file was calling
+// enableMapSet(), so production code crashed the moment the syncStore was
+// actually exercised (verified via Phase 6 walkthrough registerIFLine call).
+enableMapSet()
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
@@ -32,5 +42,6 @@ if (import.meta.env.DEV) {
     useWritingStore,
     useContentStore,
     useAIStore,
+    useSyncStore,
   }
 }
