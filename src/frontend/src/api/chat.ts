@@ -23,7 +23,17 @@ export const sessionApi = {
   /** List all chat sessions with pagination. */
   list: async (params: PaginationParams = {}): Promise<ChatSession[]> => {
     const { skip = 0, limit = 50 } = params
-    return api.get<ChatSession[]>("/chat/sessions", { skip, limit })
+    // Backend returns ApiResponse{data: ListSessionsResponse{sessions: [...]}}.
+    // Phase 1.5 M1 unwrap yields {sessions: [...]} — we still need to pluck
+    // `.sessions` so the chatStore can call .filter() / .map() on it.
+    const data = await api.get<{ sessions: ChatSession[] }>(
+      "/chat/sessions",
+      { skip, limit },
+    )
+    if (data && typeof data === 'object' && 'sessions' in data) {
+      return (data as { sessions: ChatSession[] }).sessions
+    }
+    return Array.isArray(data) ? (data as ChatSession[]) : []
   },
 
   /** Get a specific chat session by ID. */
