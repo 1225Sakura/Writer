@@ -20,6 +20,15 @@
  */
 import { defineConfig, devices } from '@playwright/test';
 import path from 'path';
+import { createRequire } from 'module';
+
+// v4: package.json declares "type": "module" — top-level await + ESM
+// resolution. The electron project needs the Electron binary path
+// (dynamic at install time) — use createRequire to drop back to CJS
+// resolution without breaking the rest of the config (which is fine as
+// ESM). This is the canonical fix for "ReferenceError: require is not
+// defined in ES module scope" reported by Playwright 1.61+ on Node 22+.
+const requireCJS = createRequire(import.meta.url);
 
 // v4: WRITER_DATA_DIR is set in setup-journey.ts BEFORE Playwright boots webServer
 // and globalSetup. If unset (e.g. running just `playwright test`), fall back to
@@ -60,7 +69,7 @@ export default defineConfig({
       name: 'electron',
       use: {
         launchOptions: {
-          executablePath: require('electron'),
+          executablePath: requireCJS('electron'),
           args: [
             '--user-data-dir=' + perJourneyElectronProfilePath,
             // Headless CI: Electron is not headless by default; Playwright's
