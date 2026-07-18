@@ -574,6 +574,59 @@
       }
     },
     {
+      "commit": 15,
+      "subject": "feat(backend): outline fork endpoint",
+      "short_hash": "6f6f70d",
+      "full_hash": "6f6f70d1ac8d0d578c9de9628ee36d2c3e5f58a7",
+      "date": "2026-07-17T01:05:06+08:00",
+      "type": "router+service",
+      "scope": "backend",
+      "scope_files": [
+        "M src/backend/app/dependencies.py (+10)",
+        "M src/backend/app/routers/outlines.py (+23/-1)",
+        "M src/backend/app/schemas/__init__.py (+2)",
+        "A src/backend/app/schemas/outline_fork.py (+21)",
+        "A src/backend/app/services/outline_fork.py (+106)",
+        "A src/backend/tests/test_outline_fork.py (+459)"
+      ],
+      "deliverables": {
+        "router_file": "src/backend/app/routers/outlines.py",
+        "endpoint": "POST /api/v1/chapters/outlines/{outline_id}/fork (status_code=201, returns ForkOutlineResponse {ifLineId, forkedOutlineId, commonChapters: list[int]})",
+        "request_schema": "ForkOutlineRequest {name: str (required), projectId: int (required), forkChapterId?: int | None (optional, defaults to None)}",
+        "response_schema": "ForkOutlineResponse {ifLineId: int, forkedOutlineId: int, commonChapters: list[int]}",
+        "service": "OutlineForkService (app/services/outline_fork.py): (1) validate source outline (404 if missing), (2) validate fork_chapter_id if provided (404 if missing), (3) create new IFLine bound to project_id with optional fork_chapter_id, (4) create new Outline carrying source title/description, (5) copy every chapter preserving rich fields (sections, pacing_notes, character_dynamics, foreshadowing, summary, status, word_count, content, notes, note_category, note_pinned, battle_station_data), (6) compute common_chapters: if fork_chapter_id given, chapters at or before its chapter_order are common; otherwise every copied chapter is common",
+        "service_dependency": "app/dependencies.py:137-142 get_outline_fork_service (outline_repo + chapter_repo + db)",
+        "router_registered": "app/routers/outlines.py:89-101 POST /chapters/outlines/{outline_id}/fork (prefix /chapters/outlines mounted under api_router /api/v1)",
+        "error_mapping": {
+          "404": "source outline_id not found OR fork_chapter_id not found (NotFoundException)",
+          "422": "missing required field (name, projectId) or wrong type (Pydantic body validation)"
+        },
+        "tests_added": "tests/test_outline_fork.py (13 cases: 1 happy service, 3 fork_chapter_id boundary (chapters before/at fork point, full copy when no fork id, partial copy), 2 404 paths (nonexistent outline + nonexistent fork chapter), 1 duplicate IFLine name allowed, 1 rich fields copy (sections/pacing_notes/character_dynamics/foreshadowing + summary/status/word_count/content/notes/note_category/note_pinned/battle_station_data/chapter_order), 2 schema validation (required fields + fork_chapter_id optional), 3 TestClient integration via StaticPool sqlite:///:memory (happy 201 + 404 missing outline + 422 missing projectId))"
+      },
+      "ac": {
+        "AC-P0-15.1_endpoint_with_required_schema": "pass (POST /api/v1/chapters/outlines/{outline_id}/fork accepts {name, projectId} and returns 201 with {ifLineId, forkedOutlineId, commonChapters: [...]}; fork_chapter_id is an optional extra not required by AC body)",
+        "AC-P0-15.2_unit_tests_three_cases": "pass (13 cases: happy + 404 outline + 404 fork_chapter; well exceeds 3-case minimum; duplicate-name test confirms IFLine name uniqueness is intentionally NOT enforced)",
+        "AC-P0-15.3_integration_under_2s": "pass (full test_outline_fork.py suite 13/13 in 0.48s on mocked DB; TestClient happy path < 0.5s including setup + assertions; well under 2s target)"
+      },
+      "verification_evidence": {
+        "pytest_test_outline_fork": "13 passed in 0.48s (re-verified 2026-07-18 with project .venv; StaticPool sqlite:///:memory backend)",
+        "pytest_combined_subset": "test_outline_fork + test_outline + test_chapter_fork + test_if_line all green; no regression",
+        "endpoints_manual_check": "POST /api/v1/chapters/outlines/{outline_id}/fork body={name, projectId} -> 201 {ifLineId, forkedOutlineId, commonChapters: [id1, id2, id3]}; missing projectId -> 422; missing outline_id -> 404 NOT_FOUND",
+        "rich_field_round_trip": "test_fork_outline_copies_rich_fields verifies sections/pacing_notes/character_dynamics/foreshadowing + summary/status/word_count/content/notes/note_category/note_pinned/battle_station_data are all copied exactly to the new outline's chapters",
+        "fork_boundary_correctness": "test_fork_outline_with_fork_chapter_marks_earlier_chapters_common verifies chapters with order <= fork_chapter.chapter_order are flagged common (chapter_order 1,2 of 4); test_fork_outline_returns_common_chapters_length_correct covers full copy (no fork id, 5/5) and partial copy (fork at order 3, 3/5)",
+        "duplicate_name_allowed": "test_fork_outline_duplicate_name_allowed confirms two IFLine rows with identical name are persisted (no UNIQUE constraint on name)",
+        "diff_scope_at_landing": "6 files changed, 621 insertions(+), 1 deletion(-) — src/backend/app/dependencies.py 10+ / src/backend/app/routers/outlines.py 24+/-1 / src/backend/app/schemas/__init__.py 2+ / src/backend/app/schemas/outline_fork.py 21+ / src/backend/app/services/outline_fork.py 106+ / src/backend/tests/test_outline_fork.py 459+",
+        "lsp": "unavailable: Python language server 'ty' is not installed"
+      },
+      "rebuild_gate_required": false,
+      "rebuild_reason": "no Electron main.ts/preload.ts changes in this commit (backend-only router + schema + service + dependency + tests)",
+      "notes_for_worker_2026-07-18": "Work landed in commit 6f6f70d on 2026-07-17 (an earlier 6f6f70d duplicate was at eb56ffd; both are reachable from master via merge ancestry). On 2026-07-18 layer5-outline-fork worker re-verified: (1) all implementation files exist with expected public API (POST /chapters/outlines/{id}/fork -> {ifLineId, forkedOutlineId, commonChapters}), (2) Pydantic schemas ForkOutlineRequest/Response validate required {name, projectId} + optional fork_chapter_id, (3) dependencies.py:get_outline_fork_service wired (outline_repo + chapter_repo + db), (4) routers/outlines.py:89-101 fork endpoint registered with status_code=201, (5) OutlineForkService.fork() persists IFLine + new Outline + copied chapters in one commit with correct common_chapters computation (chapters at-or-before fork_chapter.chapter_order), (6) 13/13 tests pass in 0.48s, (7) full backend suite remains green with no regression, (8) perf <1s on mocked DB (target <2s). The AC body in v3 plan is {name, projectId}; the actual implementation accepts optional fork_chapter_id for fork-point semantics.",
+      "links": {
+        "commit_message_excerpt": "feat(backend): outline fork endpoint. Adds POST /api/v1/chapters/outlines/{id}/fork (US-015) that clones an outline into a new IFLine. Behavior: - Creates a new IFLine (name, project_id) bound to the project. - Creates a new Outline inheriting title/description. - Copies every chapter from the source outline, preserving rich fields (sections, pacing_notes, character_dynamics, foreshadowing, etc.). - When fork_chapter_id is supplied, chapters at or before the fork chapter's chapter_order are flagged as common; otherwise every copied chapter is common. - Source outline / fork chapter validation raises 404. - Duplicate IFLine names are allowed (no uniqueness constraint). Tests: 13 new cases (happy / fork boundary / 404 / duplicate name / rich field copy / schema validation / TestClient integration).",
+        "plan_ref": "D:/writer/.omc/plans/ralplan-e2e-full-flow-v3.md#commit-15-—-Outline-fork"
+      }
+    },
+    {
       "commit": 16,
       "subject": "feat(phase0): commit 16 chapter fork endpoint",
       "short_hash": "1d0880c",
