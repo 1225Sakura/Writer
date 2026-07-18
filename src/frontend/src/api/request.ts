@@ -517,12 +517,19 @@ const request = async <T>(
     data,
     ...config,
   }).then((response) => {
+    // Unwrap backend ApiResponse envelope: {success, data} -> data
+    // Falls back to response.data if envelope is absent (raw JSON, non-API endpoints).
+    const body = response.data as unknown
+    const unwrapped =
+      body && typeof body === 'object' && 'data' in body && (body as { data?: unknown }).data !== undefined
+        ? (body as { data: T }).data
+        : (response.data as T)
     // Cache GET responses
     if (method === 'get') {
-      apiCache.set(cacheKey, response.data, options.cacheTTL)
+      apiCache.set(cacheKey, unwrapped as unknown, options.cacheTTL)
     }
     clearPendingRequest(dedupKey)
-    return response.data
+    return unwrapped
   }).catch((error) => {
     clearPendingRequest(dedupKey)
     throw error
