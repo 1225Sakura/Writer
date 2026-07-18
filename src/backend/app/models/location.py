@@ -10,6 +10,9 @@ from app.models import BaseModel
 class Location(BaseModel):
     __tablename__ = "locations"
 
+    user_id: Mapped[str] = mapped_column(
+        String(64), nullable=False, default="default-user"
+    )
     project_id: Mapped[int] = mapped_column(ForeignKey("projects.id", ondelete="CASCADE"))
     name: Mapped[str] = mapped_column(String(255))
     description: Mapped[str | None] = mapped_column(Text, nullable=True)

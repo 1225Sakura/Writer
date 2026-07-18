@@ -10,6 +10,9 @@ from app.models import BaseModel
 class Character(BaseModel):
     __tablename__ = "characters"
 
+    user_id: Mapped[str] = mapped_column(
+        String(64), nullable=False, default="default-user"
+    )
     project_id: Mapped[int] = mapped_column(ForeignKey("projects.id", ondelete="CASCADE"))
     name: Mapped[str] = mapped_column(String(255))
     gender: Mapped[str | None] = mapped_column(String(50), nullable=True)

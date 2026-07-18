@@ -10,6 +10,9 @@ from app.models import BaseModel
 class AIProvider(BaseModel):
     __tablename__ = "ai_providers"
 
+    user_id: Mapped[str] = mapped_column(
+        String(64), nullable=False, default="default-user"
+    )
     name: Mapped[str] = mapped_column(String(255))
     api_key_encrypted: Mapped[str | None] = mapped_column(Text, nullable=True)
     base_url: Mapped[str | None] = mapped_column(Text, nullable=True)
@@ -22,6 +25,9 @@ class AIProvider(BaseModel):
 class WritingSettings(BaseModel):
     __tablename__ = "writing_settings"
 
+    user_id: Mapped[str] = mapped_column(
+        String(64), nullable=False, default="default-user"
+    )
     project_id: Mapped[int] = mapped_column(ForeignKey("projects.id", ondelete="CASCADE"), unique=True)
     human_ai_ratio: Mapped[float] = mapped_column(REAL, default=0.5)
     writing_style: Mapped[str] = mapped_column(String(100), default="default")

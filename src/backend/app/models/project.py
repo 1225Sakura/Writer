@@ -10,6 +10,9 @@ from app.models import BaseModel
 class Project(BaseModel):
     __tablename__ = "projects"
 
+    user_id: Mapped[str] = mapped_column(
+        String(64), nullable=False, default="default-user"
+    )
     name: Mapped[str] = mapped_column(String(255), default="我的小说")
     description: Mapped[str | None] = mapped_column(Text, nullable=True)
     genre: Mapped[str | None] = mapped_column(String(100), nullable=True)

@@ -11,6 +11,9 @@ from app.core.constants import ChapterStatus
 class Outline(BaseModel):
     __tablename__ = "outlines"
 
+    user_id: Mapped[str] = mapped_column(
+        String(64), nullable=False, default="default-user"
+    )
     project_id: Mapped[int] = mapped_column(ForeignKey("projects.id", ondelete="CASCADE"))
     title: Mapped[str] = mapped_column(String(255), default="未命名大纲")
     description: Mapped[str | None] = mapped_column(Text, nullable=True)
@@ -22,6 +25,9 @@ class Outline(BaseModel):
 class Chapter(BaseModel):
     __tablename__ = "chapters"
 
+    user_id: Mapped[str] = mapped_column(
+        String(64), nullable=False, default="default-user"
+    )
     project_id: Mapped[int] = mapped_column(ForeignKey("projects.id", ondelete="CASCADE"))
     outline_id: Mapped[int | None] = mapped_column(ForeignKey("outlines.id", ondelete="SET NULL"), nullable=True)
     title: Mapped[str | None] = mapped_column(String(255), default="未命名章节")
