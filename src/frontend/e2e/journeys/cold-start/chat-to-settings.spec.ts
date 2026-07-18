@@ -34,7 +34,7 @@
  */
 import { test, expect, type Page } from '@playwright/test';
 import path from 'path';
-import { resetJourneyDataDir } from '../fixtures/reset';
+import { resetJourneyDataDir } from '../../fixtures/reset';
 
 const E2E_ROOT = path.resolve('data', 'e2e');
 

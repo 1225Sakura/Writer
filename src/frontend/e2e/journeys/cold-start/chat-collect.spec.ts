@@ -22,7 +22,7 @@
  *  - mock backend counter resets per-test (closure scoped)
  */
 import { test, expect, type Page } from '@playwright/test';
-import { setupJourneyEnv } from '../fixtures/_helpers';
+import { setupJourneyEnv } from '../../fixtures/_helpers';
 
 // Three canned AI replies — one per turn. The order is significant because
 // the happy-path test reads messageCache to verify message ordering.
