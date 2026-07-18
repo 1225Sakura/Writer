@@ -111,6 +111,12 @@ export {
   cleanupContextStore,
 } from './contextStore'
 
+// Linkage Store (cross-entity references — e.g. chapter-character plot tracker)
+export {
+  useLinkageStore,
+  cleanupLinkageStore,
+} from './linkageStore'
+
 // Analytics Store
 export {
   useAnalyticsStore,
