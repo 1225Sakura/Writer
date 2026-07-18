@@ -266,3 +266,61 @@ export function TreeNode({
     </div>
   )
 }
+
+// ============================================================
+// OutlineContextMenu — right-click context menu for outline items.
+// Phase 1 walkthrough: minimal functional stub (US-021 chat-collect
+// does not exercise this menu). Anchors at the right-click coords
+// and dispatches rename / delete / add-child / close to parent.
+// ============================================================
+export interface OutlineContextMenuState {
+  x: number
+  y: number
+  itemId: string
+}
+
+export interface OutlineContextMenuProps {
+  state: OutlineContextMenuState
+  onRename: (itemId: string) => void
+  onDelete: (itemId: string) => void
+  onAddChild: (itemId: string) => void
+  onClose: () => void
+}
+
+export function OutlineContextMenu(props: OutlineContextMenuProps) {
+  const { state, onRename, onDelete, onAddChild, onClose } = props
+  return (
+    <div
+      role="menu"
+      data-testid="outline-context-menu"
+      style={{ position: 'fixed', left: state.x, top: state.y, zIndex: 9999 }}
+      className="bg-[var(--color-surface)] border border-[var(--border-default)] rounded-md shadow-md text-sm"
+      onClick={(e) => e.stopPropagation()}
+    >
+      <button
+        type="button"
+        role="menuitem"
+        className="block w-full text-left px-3 py-1.5 hover:bg-[var(--color-surface-hover)]"
+        onClick={() => { onRename(state.itemId); onClose() }}
+      >
+        重命名
+      </button>
+      <button
+        type="button"
+        role="menuitem"
+        className="block w-full text-left px-3 py-1.5 hover:bg-[var(--color-surface-hover)]"
+        onClick={() => { onAddChild(state.itemId); onClose() }}
+      >
+        新增子节点
+      </button>
+      <button
+        type="button"
+        role="menuitem"
+        className="block w-full text-left px-3 py-1.5 text-[var(--color-error)] hover:bg-[var(--color-surface-hover)]"
+        onClick={() => { onDelete(state.itemId); onClose() }}
+      >
+        删除
+      </button>
+    </div>
+  )
+}
