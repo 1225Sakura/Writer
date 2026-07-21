@@ -168,14 +168,19 @@ interface SSEEvent {
  * Read an SSE streaming response and yield parsed events.
  */
 export async function* sseStreamReader(
-  stream: ReadableStream<Uint8Array>
+  stream: ReadableStream<Uint8Array>,
+  options: { signal?: AbortSignal } = {}
 ): AsyncGenerator<SSEEvent> {
+  const { signal } = options
   const reader = stream.getReader()
   const decoder = new TextDecoder()
   let buffer = ''
 
   try {
     while (true) {
+      if (signal?.aborted) {
+        throw new DOMException('Aborted', 'AbortError')
+      }
       const { done, value } = await reader.read()
       if (done) break
 
@@ -230,13 +235,15 @@ export async function* sseStreamReader(
  */
 export async function consumeStream(
   stream: ReadableStream<Uint8Array>,
-  callbacks: StreamCallbacks = {}
+  callbacks: StreamCallbacks = {},
+  options: { signal?: AbortSignal } = {}
 ): Promise<string> {
   const { onChunk, onProgress, onDone, onError } = callbacks
+  const { signal } = options
   let fullText = ''
 
   try {
-    for await (const sseEvent of sseStreamReader(stream)) {
+    for await (const sseEvent of sseStreamReader(stream, { signal })) {
       switch (sseEvent.event) {
         case 'chunk': {
           fullText += sseEvent.data

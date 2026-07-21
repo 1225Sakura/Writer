@@ -64,6 +64,9 @@ interface AIActions {
 
 const genJobId = () => `job-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`
 
+// v0.4 P0-Sec4b: per-job AbortController registry (replaces string-marker hack FE-011)
+const abortControllers = new Map<string, AbortController>()
+
 // ============================================
 // Store
 // ============================================
@@ -108,15 +111,21 @@ export const useAIStore = create<AIState & AIActions>()(
       },
 
       cancelJob: (jobId) => {
+        // v0.4 P0-Sec4b: real AbortController instead of string-marker hack (FE-011)
+        const job = get().aiJobQueue.find((j) => j.id === jobId)
+        if (!job) return
+        const ctrl = abortControllers.get(jobId)
+        if (ctrl) {
+          ctrl.abort()
+          abortControllers.delete(jobId)
+        }
         set((state) => {
-          const job = state.aiJobQueue.find((j) => j.id === jobId)
-          if (!job) return
-
-          if (job.status === 'pending') {
-            job.status = 'failed'
-            job.error = '已取消'
-          } else if (job.status === 'processing') {
-            job.error = '取消中...'
+          const j = state.aiJobQueue.find((jj) => jj.id === jobId)
+          if (!j) return
+          if (j.status === 'pending' || j.status === 'processing') {
+            j.status = 'failed'
+            j.error = '已取消'
+            j.progress = 0
           }
         })
       },
@@ -175,7 +184,8 @@ export const useAIStore = create<AIState & AIActions>()(
         for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
           // Check if job was cancelled before starting
           const currentJob = get().aiJobQueue.find((j) => j.id === nextJob.id)
-          if (!currentJob || currentJob.error === '取消中...') {
+          const currentCtrl = abortControllers.get(nextJob.id)
+          if (!currentJob || currentCtrl?.signal.aborted) {
             set((state) => {
               const job = state.aiJobQueue.find((j) => j.id === nextJob.id)
               if (job) {
@@ -189,6 +199,10 @@ export const useAIStore = create<AIState & AIActions>()(
             return
           }
 
+          // v0.4 P0-Sec4b: create AbortController per job attempt
+          const abortController = new AbortController()
+          abortControllers.set(nextJob.id, abortController)
+
           if (attempt > 0) {
             set((state) => {
               const job = state.aiJobQueue.find((j) => j.id === nextJob.id)
@@ -200,6 +214,11 @@ export const useAIStore = create<AIState & AIActions>()(
             })
             // Exponential backoff before retry
             await new Promise((r) => setTimeout(r, Math.pow(2, attempt) * 1000))
+          }
+
+          // Pre-flight cancellation check
+          if (abortController.signal.aborted) {
+            throw new DOMException('Aborted', 'AbortError')
           }
 
           try {
@@ -227,7 +246,7 @@ export const useAIStore = create<AIState & AIActions>()(
                 throw new Error('Unknown job type')
             }
 
-            // Consume stream with timeout, progress tracking, and cancellation check
+            // Consume stream with timeout, progress tracking, and cancellation via AbortController
             const result = await Promise.race([
               consumeStream(res.stream, {
                 onChunk: () => {
@@ -245,7 +264,7 @@ export const useAIStore = create<AIState & AIActions>()(
                     if (job) job.progress = 100
                   })
                 },
-              }),
+              }, { signal: abortController.signal }),
               new Promise<string>((_, reject) => {
                 setTimeout(() => {
                   reject(new Error('AI生成超时，请重试'))
@@ -255,7 +274,7 @@ export const useAIStore = create<AIState & AIActions>()(
 
             // Check if cancelled during stream consumption
             const postStreamJob = get().aiJobQueue.find((j) => j.id === nextJob.id)
-            if (postStreamJob?.error === '取消中...') {
+            if (postStreamJob?.error === '已取消' || abortController.signal.aborted) {
               set((state) => {
                 const job = state.aiJobQueue.find((j) => j.id === nextJob.id)
                 if (job) {
@@ -292,9 +311,9 @@ export const useAIStore = create<AIState & AIActions>()(
             break
           } catch (error) {
             lastError = error instanceof Error ? error : new Error(String(error))
-            // Don't retry on cancellation
-            const checkJob = get().aiJobQueue.find((j) => j.id === nextJob.id)
-            if (checkJob?.error === '取消中...') {
+            // Don't retry on cancellation (real AbortError detection)
+            const checkCtrl = abortControllers.get(nextJob.id)
+            if (checkCtrl?.signal.aborted || (error instanceof DOMException && error.name === 'AbortError')) {
               set((state) => {
                 const job = state.aiJobQueue.find((j) => j.id === nextJob.id)
                 if (job) {
