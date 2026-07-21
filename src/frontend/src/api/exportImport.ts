@@ -11,7 +11,8 @@
  * - Import from ZIP (/project/import/zip)
  */
 
-import { api } from "./request"
+import { api, getApiKey } from "./request"
+import { getBackendUrl } from "./electron"
 import type { ExportDataResponse, ImportSummaryResponse } from "./types"
 
 // ---------------------------------------------------------------------------
@@ -66,27 +67,34 @@ export const exportProject = (
     since: options.since,
   } as Record<string, unknown>)
 
+// v0.4 P0-Sec6: blob methods use getBackendUrl() + Authorization header
+async function authedFetch(path: string, init: RequestInit = {}): Promise<Response> {
+  const base = await getBackendUrl()
+  const apiKey = await getApiKey()
+  const headers = new Headers(init.headers)
+  if (apiKey) headers.set("X-API-Key", apiKey)
+  const response = await fetch(`${base}${path}`, { ...init, headers })
+  if (!response.ok) {
+    throw new Error(`Request failed: ${response.status} ${response.statusText}`)
+  }
+  return response
+}
+
 /** Export project as JSON file download. Returns blob URL. */
 export const exportAsJson = async (): Promise<Blob> => {
-  const response = await fetch(`/api/v1/project/export/json`, {
+  const response = await authedFetch("/api/v1/project/export/json", {
     method: "GET",
     headers: { Accept: "application/json" },
   })
-  if (!response.ok) {
-    throw new Error(`Export failed: ${response.status}`)
-  }
   return response.blob()
 }
 
 /** Export project as YAML file download. Returns blob. */
 export const exportAsYaml = async (): Promise<Blob> => {
-  const response = await fetch(`/api/v1/project/export/yaml`, {
+  const response = await authedFetch("/api/v1/project/export/yaml", {
     method: "GET",
     headers: { Accept: "application/x-yaml" },
   })
-  if (!response.ok) {
-    throw new Error(`Export failed: ${response.status}`)
-  }
   return response.blob()
 }
 
@@ -94,16 +102,13 @@ export const exportAsYaml = async (): Promise<Blob> => {
 export const exportAsZip = async (
   options: ExportZipOptions = {}
 ): Promise<Blob> => {
-  const response = await fetch(
+  const response = await authedFetch(
     `/api/v1/project/export/zip?format=${options.format || "json"}`,
     {
       method: "GET",
       headers: { Accept: "application/zip" },
     }
   )
-  if (!response.ok) {
-    throw new Error(`Export failed: ${response.status}`)
-  }
   return response.blob()
 }
 
@@ -123,14 +128,26 @@ export const importFromYaml = (
   api.post<ImportProjectResponse>("/project/import/yaml", request)
 
 /** Import project data from ZIP archive. */
-export const importFromZip = (
+export const importFromZip = async (
   zipData: Blob,
   request: ImportZipRequest = {}
 ): Promise<ImportProjectResponse> => {
+  const base = await getBackendUrl()
+  const apiKey = await getApiKey()
   const formData = new FormData()
   formData.append("zip_data", zipData)
   formData.append("mode", request.mode || "merge")
-  return api.post<ImportProjectResponse>("/project/import/zip", formData)
+  const headers: Record<string, string> = {}
+  if (apiKey) headers["X-API-Key"] = apiKey
+  const response = await fetch(`${base}/api/v1/project/import/zip`, {
+    method: "POST",
+    headers,
+    body: formData,
+  })
+  if (!response.ok) {
+    throw new Error(`Import ZIP failed: ${response.status} ${response.statusText}`)
+  }
+  return response.json() as Promise<ImportProjectResponse>
 }
 
 // ---------------------------------------------------------------------------

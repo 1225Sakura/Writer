@@ -27,14 +27,20 @@ app = FastAPI(
     redoc_url="/redoc" if settings.debug else None,
 )
 
-# CORS — allow Electron renderer origin
+# CORS — v0.4 P0-Sec6: restrict to specific origins (was overly broad: all localhost + file://)
+ALLOWED_ORIGINS = [
+    "http://localhost:5173",  # Vite dev server
+    "http://localhost:8000",   # Backend health check from browser
+    "app://writer",            # Electron renderer (custom protocol)
+]
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173", "http://localhost:8000", "file://"],  # Vite dev + Electron file://
-    allow_origin_regex=r"http://(127\.0\.0\.1|localhost)(:\d+)?",
+    allow_origins=ALLOWED_ORIGINS,
+    allow_origin_regex=r"^https?://(127\.0\.0\.1|localhost)(:\d+)?$",
     allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_methods=["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
+    allow_headers=["Content-Type", "Authorization", "X-API-Key", "X-Request-ID"],
+    expose_headers=["X-Request-ID"],
 )
 
 # Exception handlers
