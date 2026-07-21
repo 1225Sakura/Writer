@@ -61,7 +61,7 @@ temp/
 output/
 logs/
 
-# OMC (oh-my-claudecode) - operational state ignored; plans/specs/research retained locally
+# OMC (oh-my-claudecode) - operational state ignored; plans/specs/research tracked in docs/
 .omc/state/
 .omc/sessions/
 .omc/phases/
@@ -72,9 +72,12 @@ logs/
 .omc/project-memory.json
 .omc/handoffs/
 .omc/template-version.json
-!.omc/plans/
-!.omc/specs/
-!.omc/research/
+# OMC recursive: cover non-root .omc/ instances (src/frontend/.omc/, electron/.omc/, etc.)
+**/.omc/state/
+**/.omc/sessions/
+**/.omc/phases/
+**/.omc/artifacts/
+**/.omc/handoffs/
 
 # Frontend build
 dist/
@@ -91,6 +94,17 @@ src/frontend/playwright/.cache/
 
 # TypeScript
 *.tsbuildinfo
+*.tsbuild
+
+# Vite compiled config artifacts
+vite.config.js
+vite.config.d.ts
+
+# Screenshots (test artifacts)
+screenshots/
+
+# Agent worktrees
+.claude/worktrees/
 
 # Environment
 .env
@@ -107,8 +121,6 @@ secrets.json
 # Electron
 electron/dist-electron/
 electron/release/
-
-electron/release/win-unpacked/Writer.exe
 
 # Backend (src/backend/) — runtime artifacts
 src/backend/.venv/
