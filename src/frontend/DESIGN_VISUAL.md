@@ -2,7 +2,7 @@
 
 **文档版本：** 1.0
 **创建日期：** 2026-04-22
-**基于规格：** `.omc/specs/deep-interview-自动化写作软件.md`
+**基于规格：** `docs/specs/deep-interview-自动化写作软件.md`（v0.4 patch 起路径迁出 .omc/）
 **前置报告：** `spec-review.md`（界面设计评分9/10）、`structure-review.md`
 
 ---
