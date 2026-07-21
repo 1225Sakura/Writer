@@ -2,6 +2,11 @@
 
 // Electron API type augmentation (mirrors electron/preload.ts declarations)
 // This makes window.electronAPI available in the frontend TypeScript
+interface DialogTokenHandle {
+  token: string
+  path: string
+}
+
 interface ElectronAPI {
   getBackendUrl: () => Promise<string>
   getBackendStatus: () => Promise<{
@@ -14,10 +19,10 @@ interface ElectronAPI {
   getApiKey: () => Promise<string | null>
   setApiKey: (key: string) => Promise<void>
   openExternal: (url: string) => Promise<void>
-  showSaveDialog: (options: import('electron').SaveDialogOptions) => Promise<string | null>
-  showOpenDialog: (options: import('electron').OpenDialogOptions) => Promise<string[] | null>
-  readFile: (filePath: string) => Promise<string>
-  writeFile: (filePath: string, content: string) => Promise<boolean>
+  showSaveDialog: (options: import('electron').SaveDialogOptions) => Promise<DialogTokenHandle | null>
+  showOpenDialog: (options: import('electron').OpenDialogOptions) => Promise<DialogTokenHandle[] | null>
+  readFileByToken: (token: string) => Promise<string>
+  writeFileByToken: (token: string, content: string) => Promise<boolean>
   getAppInfo: () => Promise<{ version: string; name: string; isDev: boolean; platform: string }>
   minimizeWindow: () => void
   maximizeWindow: () => void

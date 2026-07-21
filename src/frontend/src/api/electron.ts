@@ -187,36 +187,44 @@ export interface OpenDialogOptions {
 // File Operations (Electron only)
 // ============================================
 
+// v0.4 P0-Sec3: dialog returns token, file ops accept token
+export interface DialogTokenHandle {
+  token: string;
+  path: string;
+}
+
 export async function showSaveDialog(
   options: SaveDialogOptions
-): Promise<string | null> {
+): Promise<DialogTokenHandle | null> {
   const api = getElectronAPI();
   if (!api) return null;
-  return api.showSaveDialog(options as unknown as Parameters<typeof api.showSaveDialog>[0]);
+  const result = await api.showSaveDialog(options as unknown as Parameters<typeof api.showSaveDialog>[0]);
+  return result ?? null;
 }
 
 export async function showOpenDialog(
   options: OpenDialogOptions
-): Promise<string[] | null> {
+): Promise<DialogTokenHandle[] | null> {
   const api = getElectronAPI();
   if (!api) return null;
-  return api.showOpenDialog(options as unknown as Parameters<typeof api.showOpenDialog>[0]);
+  const result = await api.showOpenDialog(options as unknown as Parameters<typeof api.showOpenDialog>[0]);
+  return result ?? null;
 }
 
-export async function readFile(filePath: string): Promise<string> {
+export async function readFile(token: string): Promise<string> {
   const api = getElectronAPI();
   if (!api) {
     throw new Error('File operations only available in Electron');
   }
-  return api.readFile(filePath);
+  return api.readFileByToken(token);
 }
 
-export async function writeFile(filePath: string, content: string): Promise<boolean> {
+export async function writeFile(token: string, content: string): Promise<boolean> {
   const api = getElectronAPI();
   if (!api) {
     throw new Error('File operations only available in Electron');
   }
-  return api.writeFile(filePath, content);
+  return api.writeFileByToken(token, content);
 }
 
 // ============================================

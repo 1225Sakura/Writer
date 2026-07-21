@@ -9,6 +9,56 @@ import { spawn, ChildProcess } from 'child_process';
 import path from 'path';
 import fs from 'fs';
 import http from 'http';
+import crypto from 'crypto';
+
+// ===== v0.4 P0-Sec3: Dialog Token System =====
+// Replaces path-based IPC readFile/writeFile with token-based to prevent CWE-22 Path Traversal.
+// Tokens are 256-bit cryptographic random, mapped to dialog-returned paths in main process only.
+// Renderer cannot forge paths — only main process issues tokens after showSaveDialog/showOpenDialog.
+interface DialogToken {
+  token: string;
+  path: string;
+  createdAt: number;
+  mode: 'read' | 'write';
+}
+const TOKEN_TTL_MS = 60_000; // 60 seconds
+const TOKEN_MAX_ENTRIES = 256; // LRU cap
+const tokenMap = new Map<string, DialogToken>();
+
+function issueDialogToken(filePath: string, mode: 'read' | 'write'): string {
+  const token = crypto.randomBytes(32).toString('hex');
+  tokenMap.set(token, { token, path: filePath, createdAt: Date.now(), mode });
+  // LRU eviction
+  if (tokenMap.size > TOKEN_MAX_ENTRIES) {
+    const oldest = [...tokenMap.entries()].sort((a, b) => a[1].createdAt - b[1].createdAt)[0];
+    if (oldest) tokenMap.delete(oldest[0]);
+  }
+  return token;
+}
+
+function consumeDialogToken(token: string, mode: 'read' | 'write'): string | null {
+  const entry = tokenMap.get(token);
+  if (!entry) return null;
+  if (entry.mode !== mode) return null;
+  if (Date.now() - entry.createdAt > TOKEN_TTL_MS) {
+    tokenMap.delete(token);
+    return null;
+  }
+  // Single-use for write tokens; read tokens reusable within TTL
+  if (mode === 'write') tokenMap.delete(token);
+  return entry.path;
+}
+
+// ===== v0.4 P0-Sec3: URL Scheme Allowlist =====
+const ALLOWED_EXTERNAL_SCHEMES = new Set(['https:', 'http:']);
+function validateExternalUrl(url: string): boolean {
+  try {
+    const parsed = new URL(url);
+    return ALLOWED_EXTERNAL_SCHEMES.has(parsed.protocol);
+  } catch {
+    return false;
+  }
+}
 
 // ============================================
 // Configuration
@@ -712,27 +762,44 @@ function registerIpcHandlers(): void {
   ipcMain.handle('set-api-key', (_, key: string) => { cachedApiKey = key; });
 
   // External links
-  ipcMain.handle('open-external', (_, url: string) => shell.openExternal(url));
+  // v0.4 P0-Sec3: open-external validates URL scheme (no file:// / javascript: / data:)
+  ipcMain.handle('open-external', async (_, url: string) => {
+    if (!validateExternalUrl(url)) {
+      throw new Error(`Blocked external URL with disallowed scheme: ${url.slice(0, 50)}`);
+    }
+    await shell.openExternal(url);
+  });
 
-  // File dialogs
+  // File dialogs — return token instead of raw path (P0-Sec3 token system)
   ipcMain.handle('show-save-dialog', async (_, options: Electron.SaveDialogOptions) => {
     if (!mainWindow) return null;
     const result = await dialog.showSaveDialog(mainWindow, options);
-    return result.canceled ? null : result.filePath;
+    if (result.canceled || !result.filePath) return null;
+    const token = issueDialogToken(result.filePath, 'write');
+    return { token, path: result.filePath };
   });
 
   ipcMain.handle('show-open-dialog', async (_, options: Electron.OpenDialogOptions) => {
     if (!mainWindow) return null;
     const result = await dialog.showOpenDialog(mainWindow, options);
-    return result.canceled ? null : result.filePaths;
+    if (result.canceled || result.filePaths.length === 0) return null;
+    const tokens = result.filePaths.map((p) => ({
+      token: issueDialogToken(p, 'read'),
+      path: p,
+    }));
+    return tokens;
   });
 
-  // File operations
-  ipcMain.handle('read-file', async (_, filePath: string) => {
+  // File operations — accept token only, not arbitrary path (CWE-22 mitigation)
+  ipcMain.handle('read-file', async (_, token: string) => {
+    const filePath = consumeDialogToken(token, 'read');
+    if (!filePath) throw new Error('Invalid or expired dialog token');
     return fs.promises.readFile(filePath, 'utf-8');
   });
 
-  ipcMain.handle('write-file', async (_, filePath: string, content: string) => {
+  ipcMain.handle('write-file', async (_, token: string, content: string) => {
+    const filePath = consumeDialogToken(token, 'write');
+    if (!filePath) throw new Error('Invalid or expired dialog token');
     await fs.promises.writeFile(filePath, content, 'utf-8');
     return true;
   });

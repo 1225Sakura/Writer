@@ -71,10 +71,12 @@ contextBridge.exposeInMainWorld('electronAPI', {
   showOpenDialog: (options: Electron.OpenDialogOptions) =>
     ipcRenderer.invoke(IPC_CHANNELS.dialog.showOpenDialog, options),
 
-  // File operations
-  readFile: (filePath: string) => ipcRenderer.invoke(IPC_CHANNELS.file.readFile, filePath),
-  writeFile: (filePath: string, content: string) =>
-    ipcRenderer.invoke(IPC_CHANNELS.file.writeFile, filePath, content),
+  // File operations — token-based (v0.4 P0-Sec3 hardening)
+  // Renderer must obtain a token via showSaveDialog/showOpenDialog first
+  // Arbitrary paths no longer accepted — prevents CWE-22 Path Traversal
+  readFileByToken: (token: string) => ipcRenderer.invoke(IPC_CHANNELS.file.readFile, token),
+  writeFileByToken: (token: string, content: string) =>
+    ipcRenderer.invoke(IPC_CHANNELS.file.writeFile, token, content),
 
   // App info
   getAppInfo: () => ipcRenderer.invoke(IPC_CHANNELS.app.getAppInfo),
@@ -109,8 +111,8 @@ declare global {
       openExternal: (url: string) => Promise<void>;
       showSaveDialog: (options: Electron.SaveDialogOptions) => Promise<string | null>;
       showOpenDialog: (options: Electron.OpenDialogOptions) => Promise<string[] | null>;
-      readFile: (filePath: string) => Promise<string>;
-      writeFile: (filePath: string, content: string) => Promise<boolean>;
+      readFileByToken: (token: string) => Promise<string>;
+      writeFileByToken: (token: string, content: string) => Promise<boolean>;
       getAppInfo: () => Promise<{ version: string; name: string; isDev: boolean; platform: string }>;
       minimizeWindow: () => void;
       maximizeWindow: () => void;
