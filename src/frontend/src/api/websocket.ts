@@ -52,6 +52,7 @@ export class ChatWebSocketClient {
   private ws: WebSocket | null = null
   private sessionId: number | null = null
   private apiKey: string | null = null
+  private wsTicket: string | null = null
   private baseUrl: string = ''
 
   private status: WebSocketStatus = 'disconnected'
@@ -250,7 +251,12 @@ export class ChatWebSocketClient {
     }
 
     const url = new URL(`${this.baseUrl}/ws/chat/${this.sessionId}`)
-    if (this.apiKey) {
+    // v0.4 P0-Sec2: query string uses short-lived ticket, NOT api_key (avoids access logs/devtools leak)
+    // Ticket must be obtained via POST /auth/ws-ticket first
+    if (this.wsTicket) {
+      url.searchParams.set('ticket', this.wsTicket)
+    } else if (this.apiKey) {
+      // Fallback for environments without ticket endpoint (P0-Sec1a dev)
       url.searchParams.set('api_key', this.apiKey)
     }
 

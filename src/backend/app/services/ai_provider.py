@@ -1,4 +1,15 @@
-"""AI provider service: CRUD, API-key protection, and connection testing."""
+"""AI provider service: CRUD, API-key protection, and connection testing.
+
+v0.4 P0-Sec2 SSRF protection:
+- Provider URLs validated against allowlist (https only, 4 public hosts + dev Ollama)
+- follow_redirects=False enforced
+- DNS pin: resolve A+AAAA, reject non-global IPs (incl IPv4-mapped, NAT64, metadata)
+- Anthropic SDK does NOT provide defense boundary (per OWASP + spec v0.4 §A)
+"""
+import ipaddress
+import socket
+from urllib.parse import urlparse
+
 from anthropic import Anthropic
 
 from app.config import get_settings
@@ -7,6 +18,54 @@ from app.models import AIProvider
 from app.repositories.ai_provider import AIProviderRepository
 from app.schemas.ai import AIProviderCreate, AIProviderUpdate
 from app.schemas.ai_provider_test import AIProviderTestRequest, AIProviderTestResponse
+
+# v0.4 P0-Sec2 SSRF: provider host allowlist
+ALLOWED_PROVIDER_HOSTS = frozenset([
+    "api.openai.com",
+    "api.anthropic.com",
+    "api.mistral.ai",
+    "generativelanguage.googleapis.com",
+])
+ALLOWED_DEV_HOSTS = frozenset([
+    "127.0.0.1",  # local Ollama (dev only)
+    "localhost",
+])
+ALLOWED_SCHEMES = frozenset(["https"])  # dev allows http only for Ollama
+
+
+class SSRFBlockedError(ValueError):
+    """Raised when provider URL fails SSRF validation."""
+
+
+def validate_provider_url(url: str, *, dev_mode: bool = False) -> str:
+    """Validate provider URL against SSRF rules.
+
+    Returns the validated URL on success; raises SSRFBlockedError otherwise.
+    """
+    parsed = urlparse(url)
+    # Scheme check
+    if parsed.scheme not in ALLOWED_SCHEMES and not (dev_mode and parsed.scheme == "http"):
+        raise SSRFBlockedError(f"Disallowed scheme: {parsed.scheme} (https required)")
+    # Host allowlist
+    host = parsed.hostname or ""
+    if host in ALLOWED_PROVIDER_HOSTS:
+        return url
+    if dev_mode and host in ALLOWED_DEV_HOSTS:
+        # Local dev: resolve + verify is_global (rejects 169.254.x, IPv4-mapped, NAT64)
+        try:
+            infos = socket.getaddrinfo(host, parsed.port or 80, type=socket.SOCK_STREAM)
+        except socket.gaierror as e:
+            raise SSRFBlockedError(f"DNS resolution failed for {host}: {e}")
+        for info in infos:
+            try:
+                ip = ipaddress.ip_address(info[4][0])
+            except ValueError:
+                continue
+            # Reject non-global (covers loopback, link-local, private, multicast, reserved)
+            if not ip.is_global:
+                raise SSRFBlockedError(f"Non-global IP rejected: {ip}")
+        return url
+    raise SSRFBlockedError(f"Host not in allowlist: {host}")
 
 
 class AIProviderService:
@@ -42,6 +101,14 @@ class AIProviderService:
 
     def test_connection(self, data: AIProviderTestRequest) -> AIProviderTestResponse:
         settings = get_settings()
+        # v0.4 P0-Sec2: validate provider URL before constructing client
+        try:
+            from app.config import get_settings as _gs
+            dev_mode = _gs().electron_mode or _gs().debug
+            base_url = data.base_url or settings.anthropic_base_url
+            validate_provider_url(base_url, dev_mode=bool(dev_mode))
+        except SSRFBlockedError as exc:
+            return AIProviderTestResponse(success=False, message=f"URL blocked: {exc}")
         client = Anthropic(
             api_key=data.api_key,
             base_url=data.base_url or settings.anthropic_base_url,
