@@ -1,8 +1,0 @@
-{"t":0,"agent":"a9be2ef","agent_type":"architect","event":"agent_start","parent_mode":"none"}
-{"t":0,"agent":"a9be2ef","agent_type":"architect","event":"agent_stop","success":true,"duration_ms":67930}
-{"t":0,"agent":"system","event":"skill_invoked","skill_name":"ai-slop-cleaner"}
-{"t":0,"agent":"a0bbf07","agent_type":"code-simplifier","event":"agent_start","parent_mode":"none"}
-{"t":0,"agent":"a0bbf07","agent_type":"code-simplifier","event":"agent_stop","success":true,"duration_ms":116323}
-{"t":0,"agent":"system","event":"skill_invoked","skill_name":"oh-my-claudecode:cancel"}
-{"t":0,"agent":"a8f3a7f","agent_type":"unknown","event":"agent_stop","success":true}
-{"t":0,"agent":"a4ee16d","agent_type":"unknown","event":"agent_stop","success":true}

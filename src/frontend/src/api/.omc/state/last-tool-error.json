@@ -1,7 +1,0 @@
-{
-  "tool_name": "Bash",
-  "tool_input_preview": "{\"command\":\"cd src/backend && python -c \\\"import ast; import sys; errors=[]; [errors.append(f) or print(f) for f in __import__('glob').glob('**/*.py', recursive=True) if not any(x in f for x in ['__py...",
-  "error": "Exit code 1\n/usr/bin/bash: line 1: cd: src/backend: No such file or directory",
-  "timestamp": "2026-04-23T10:33:51.791Z",
-  "retry_count": 2
-}
