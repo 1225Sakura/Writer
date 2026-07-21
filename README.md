@@ -75,17 +75,11 @@
 
 ## 色彩系统
 
-| 类型 | 色值 | 用途 |
-|------|------|------|
-| 深墨色 | `#1a1510` | 写作区背景（深色模式） |
-| 宣纸白 | `#f5eed6` | 正文文字/卡片背景 |
-| 朱砂红 | `#8b3a3a` | 强调/警告/重要标记 |
-| 角色橙 | `#c9a06e` | 角色类型编码 |
-| 物品紫 | `#8b7aaa` | 物品类型编码 |
-| 地点青 | `#6b9e8e` | 地点类型编码 |
-| 势力红 | `#a04848` | 势力类型编码 |
-| 大纲蓝 | `#7088a8` | 大纲类型编码 |
-| IF 线绿 | `#7a9e58` | IF 线类型编码 |
+> **色彩 SSOT（Single Source of Truth）：** 详见 [`src/frontend/src/styles/design-tokens.css`](src/frontend/src/styles/design-tokens.css)。
+> 完整色值在 design-tokens.css 的 `:root` CSS 变量中维护（含 dark/light/sepia/forest/eye-care/deep-blue 6 种主题）；
+> 本 README 不重复 hex 值，修改颜色请直接改 design-tokens.css。
+
+主题支持：深色 (Dark) / 浅色 (Light) / 护眼 (Eye-care) / 深蓝 (Deep Blue) / 复古 (Sepia) / 森林 (Forest)。
 
 ## 主题
 
@@ -124,8 +118,9 @@ writer/
 │       │   └── styles/           # CSS 样式
 │       └── package.json
 └── electron/               # Electron 桌面壳层
-    ├── main/               # 主进程
-    ├── preload/            # 预加载脚本
+    ├── main.ts             # 主进程（**flat file**，非目录）
+    ├── preload.ts          # 预加载脚本（**flat file**，非目录）
+    ├── public/             # 静态资源（icon.ico 等）
     └── package.json
 ```
 
@@ -166,7 +161,8 @@ npm run dev
 
 # 启动 Electron 并连接开发服务器
 cd electron
-npm run dev
+npm install   # 首次启动前需先装 Electron 依赖
+npm run electron:dev
 ```
 
 ## 贡献
