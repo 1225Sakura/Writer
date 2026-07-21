@@ -10,6 +10,7 @@ Endpoints:
 from __future__ import annotations
 
 from fastapi import APIRouter, Depends
+from app.core.security import verify_api_key
 from fastapi.responses import JSONResponse
 
 from app.dependencies import (
@@ -33,7 +34,7 @@ from app.schemas.chat import (
 from app.schemas.response import ApiResponse
 from app.services.chat import ChatService
 
-router = APIRouter(prefix="/chat", tags=["Chat"])
+router = APIRouter(prefix="/chat", tags=["Chat"], dependencies=[Depends(verify_api_key)])
 
 
 def _legacy_get_service(db=Depends(get_db)) -> ChatService:
