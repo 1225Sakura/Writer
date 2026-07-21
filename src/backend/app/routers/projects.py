@@ -1,12 +1,13 @@
 """Project CRUD routes — thin HTTP adapter over ProjectService."""
 from fastapi import APIRouter, Depends
 from app.dependencies import get_project_service
+from app.core.security import verify_api_key
 from app.services.project import ProjectService
 from app.schemas.project import ProjectCreate, ProjectUpdate, ProjectOut
 from app.schemas.response import ApiResponse
 from app.core.exceptions import NotFoundException
 
-router = APIRouter(prefix="/projects", tags=["Projects"])
+router = APIRouter(prefix="/projects", tags=["Projects"], dependencies=[Depends(verify_api_key)])
 
 def _serialize(p) -> dict:
     return ProjectOut.model_validate(p).model_dump()

@@ -7,6 +7,8 @@ from __future__ import annotations
 from fastapi import APIRouter, Depends, Query
 
 from app.core.exceptions import NotFoundException
+from app.core.security import verify_api_key
+from fastapi import Depends
 from app.dependencies import (
     get_chapter_fork_service,
     get_chapter_service,
@@ -22,7 +24,7 @@ from app.services.draft import DraftService
 from app.services.if_line_sync import IFLineSyncService
 
 
-chapters_router = APIRouter(prefix="/chapters", tags=["Chapters"])
+chapters_router = APIRouter(prefix="/chapters", tags=["Chapters"], dependencies=[Depends(verify_api_key)])
 
 
 @chapters_router.get("")

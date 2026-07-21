@@ -4,6 +4,8 @@ from __future__ import annotations
 from fastapi import APIRouter, Depends
 
 from app.core.exceptions import NotFoundException
+from app.core.security import verify_api_key
+from fastapi import Depends
 from app.dependencies import (
     get_character_service,
     get_faction_service,
@@ -40,12 +42,12 @@ from app.services.location import LocationService
 from app.services.rule import RuleService
 from app.services.world_setting import WorldSettingService
 
-items_router = APIRouter(prefix="/settings/items", tags=["Settings"])
-locations_router = APIRouter(prefix="/settings/locations", tags=["Settings"])
-characters_router = APIRouter(prefix="/settings/characters", tags=["Settings — Characters"])
-factions_router = APIRouter(prefix="/settings/factions", tags=["Settings — Factions"])
-world_settings_router = APIRouter(prefix="/settings/world-settings", tags=["Settings — World Settings"])
-rules_router = APIRouter(prefix="/settings/rules", tags=["Settings — Rules"])
+items_router = APIRouter(prefix="/settings/items", tags=["Settings"], dependencies=[Depends(verify_api_key)])
+locations_router = APIRouter(prefix="/settings/locations", tags=["Settings"], dependencies=[Depends(verify_api_key)])
+characters_router = APIRouter(prefix="/settings/characters", tags=["Settings — Characters"], dependencies=[Depends(verify_api_key)])
+factions_router = APIRouter(prefix="/settings/factions", tags=["Settings — Factions"], dependencies=[Depends(verify_api_key)])
+world_settings_router = APIRouter(prefix="/settings/world-settings", tags=["Settings — World Settings"], dependencies=[Depends(verify_api_key)])
+rules_router = APIRouter(prefix="/settings/rules", tags=["Settings — Rules"], dependencies=[Depends(verify_api_key)])
 
 
 # Items
