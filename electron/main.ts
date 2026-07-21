@@ -824,11 +824,61 @@ function registerIpcHandlers(): void {
   ipcMain.on('close-window', () => mainWindow?.close());
   ipcMain.handle('is-maximized', () => mainWindow?.isMaximized() ?? false);
 
-  // AI log IPC (US-018) — write structured AI call events to userData/ai-log.jsonl
-  const aiLogPath = path.join(app.getPath('userData'), 'ai-log.jsonl');
-  ipcMain.handle('ai-log:append', async (_, payload: any) => {
+  // AI log IPC (v0.4 P0-Sec4c) — default no-op per P-MINIMAL-SECRET; WRITER_AI_LOG=1 to enable
+  const aiLogDir = path.join(app.getPath('userData'), 'logs');
+  fs.mkdirSync(aiLogDir, { recursive: true });
+  const aiLogPath = path.join(aiLogDir, 'ai-log.jsonl');
+
+  // Redact: hash + truncate sensitive fields; never log raw key/url-token
+  function redactAiLog<T extends Record<string, unknown>>(record: T): T {
+    const out = { ...record } as Record<string, unknown>;
+    const secretPatterns: Array<[RegExp, string]> = [
+      [/sk-[a-zA-Z0-9]{20,}/g, '[REDACTED-sk]'],
+      [/sk-ant-[a-zA-Z0-9-]{20,}/g, '[REDACTED-sk-ant]'],
+      [/token=[a-zA-Z0-9_-]{8,}/g, 'token=[REDACTED]'],
+      [/api_key=[a-zA-Z0-9_-]{8,}/g, 'api_key=[REDACTED]'],
+    ];
+    function redactString(s: string): string {
+      let r = s;
+      for (const [pat, rep] of secretPatterns) r = r.replace(pat, rep);
+      return r;
+    }
+    for (const k of Object.keys(out)) {
+      const v = out[k];
+      if (typeof v === 'string') {
+        if (v.length > 200 && (k === 'prompt' || k === 'response' || k === 'content')) {
+          const hash = require('crypto').createHash('sha256').update(v).digest('hex').slice(0, 16);
+          out[k] = `[TRUNCATED:${v.length}:sha256=${hash}] ${redactString(v.slice(0, 200))}...`;
+        } else {
+          out[k] = redactString(v);
+        }
+      }
+    }
+    return out as T;
+  }
+
+  // Rotation: keep 3 files of 10MB each
+  async function rotateAiLogIfNeeded(): Promise<void> {
     try {
-      const line = JSON.stringify({
+      const stat = await fs.promises.stat(aiLogPath).catch(() => null);
+      if (!stat || stat.size < 10 * 1024 * 1024) return;
+      const ts = Date.now();
+      await fs.promises.rename(aiLogPath, `${aiLogPath}.${ts}.1`).catch(() => {});
+      const dir = await fs.promises.readdir(aiLogDir).catch(() => []);
+      const backups = dir.filter((f) => f.startsWith('ai-log.jsonl.')).sort();
+      while (backups.length > 3) {
+        await fs.promises.unlink(path.join(aiLogDir, backups.shift()!)).catch(() => {});
+      }
+    } catch {/* ignore */}
+  }
+
+  ipcMain.handle('ai-log:append', async (_, payload: any) => {
+    if (process.env.WRITER_AI_LOG !== '1') {
+      return { success: true, skipped: true };
+    }
+    try {
+      await rotateAiLogIfNeeded();
+      const redacted = redactAiLog({
         timestamp: payload.timestamp ?? new Date().toISOString(),
         journeyId: payload.journeyId ?? null,
         stageId: payload.stageId ?? null,
@@ -838,8 +888,11 @@ function registerIpcHandlers(): void {
         latencyMs: payload.latencyMs ?? null,
         tokenCount: payload.tokenCount ?? null,
         correlationId: payload.correlationId ?? null,
-      }) + '\n';
+      });
+      const line = JSON.stringify(redacted) + '\n';
       await fs.promises.appendFile(aiLogPath, line, 'utf-8');
+      // chmod 0o600 on each write (P-MINIMAL-SECRET)
+      await fs.promises.chmod(aiLogPath, 0o600);
       return { success: true };
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
