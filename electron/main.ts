@@ -921,6 +921,27 @@ function debounce<T extends (...args: unknown[]) => void>(fn: T, ms: number): (.
 app.whenReady().then(async () => {
   console.log('[Electron] App ready, mode:', isDev ? 'development' : 'production');
 
+  // v0.4 P0-Sec7: CSP injection at session level (applies to all webContents)
+  // Tiptap + Framer Motion temporary allowed 'unsafe-inline'; future nonce/hash migration
+  const cspValue = [
+    "default-src 'self'",
+    "script-src 'self' 'unsafe-inline'",
+    "style-src 'self' 'unsafe-inline'",
+    "img-src 'self' data: blob:",
+    "connect-src 'self' ws://127.0.0.1:8000 https://api.openai.com https://api.anthropic.com https://api.mistral.ai https://generativelanguage.googleapis.com",
+    "object-src 'none'",
+    "base-uri 'none'",
+    "frame-ancestors 'none'",
+  ].join('; ')
+  session.defaultSession.webRequest.onHeadersReceived((details, callback) => {
+    callback({
+      responseHeaders: {
+        ...details.responseHeaders,
+        'Content-Security-Policy': [cspValue],
+      },
+    })
+  })
+
   registerIpcHandlers();
 
   // Show splash screen while backend starts
