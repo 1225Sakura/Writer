@@ -4,7 +4,7 @@
  * backend health monitoring, auto-restart, and window state persistence.
  */
 
-import { app, BrowserWindow, ipcMain, shell, dialog, screen } from 'electron';
+import { app, BrowserWindow, ipcMain, session, shell, dialog, screen } from 'electron';
 import { spawn, ChildProcess } from 'child_process';
 import path from 'path';
 import fs from 'fs';
@@ -933,7 +933,7 @@ app.whenReady().then(async () => {
     "base-uri 'none'",
     "frame-ancestors 'none'",
   ].join('; ')
-  session.defaultSession.webRequest.onHeadersReceived((details, callback) => {
+  session.defaultSession.webRequest.onHeadersReceived((details: Electron.OnHeadersReceivedDetails, callback: (response: Electron.Response) => void) => {
     callback({
       responseHeaders: {
         ...details.responseHeaders,
