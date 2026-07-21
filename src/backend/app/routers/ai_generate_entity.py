@@ -13,6 +13,7 @@ from __future__ import annotations
 from fastapi import APIRouter, Depends
 
 from app.dependencies import get_entity_generator_service
+from app.core.security import verify_api_key
 from app.schemas.ai_generate_entity import (
     GenerateEntityRequest,
     GenerateEntityToolRequest,
@@ -21,8 +22,8 @@ from app.schemas.base import ApiResponse
 from app.services.ai_generate_entity import EntityGeneratorService
 
 
-router = APIRouter(prefix="/ai", tags=["AI"])
-tools_router = APIRouter(prefix="/ai-tools", tags=["AI"])
+router = APIRouter(prefix="/ai", tags=["AI"], dependencies=[Depends(verify_api_key)])
+tools_router = APIRouter(prefix="/ai-tools", tags=["AI"], dependencies=[Depends(verify_api_key)])
 
 
 @router.post("/generate-entity")
