@@ -7,6 +7,7 @@ from __future__ import annotations
 from fastapi import APIRouter, Depends, Query
 
 from app.schemas import (
+from app.core.security import verify_api_key
     ApiResponse,
     ForkOutlineRequest,
     ForkOutlineResponse,
@@ -26,7 +27,7 @@ from app.services.outline import OutlineService
 from app.services.outline_fork import OutlineForkService
 from app.services.outline_generator import OutlineGeneratorService
 
-outlines_router = APIRouter(prefix="/chapters/outlines", tags=["Chapters"])
+outlines_router = APIRouter(prefix="/chapters/outlines", tags=["Chapters"], dependencies=[Depends(verify_api_key)])
 
 
 @outlines_router.get("")

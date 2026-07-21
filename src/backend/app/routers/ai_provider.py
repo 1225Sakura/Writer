@@ -2,12 +2,13 @@
 from fastapi import APIRouter, Depends
 
 from app.dependencies import get_ai_provider_service
+from app.core.security import verify_api_key
 from app.schemas.ai import AIProviderCreate, AIProviderOut
 from app.schemas.ai_provider_test import AIProviderTestRequest, AIProviderTestResponse
 from app.schemas.response import ApiResponse
 from app.services.ai_provider import AIProviderService
 
-router = APIRouter(prefix="/settings/ai-provider", tags=["Settings"])
+router = APIRouter(prefix="/settings/ai-provider", tags=["Settings"], dependencies=[Depends(verify_api_key)])
 
 
 @router.get("")

@@ -12,13 +12,14 @@ from __future__ import annotations
 from fastapi import APIRouter, Depends
 
 from app.core.exceptions import NotFoundException
+from app.core.security import verify_api_key
 from app.dependencies import get_chapter_service, get_draft_service
 from app.schemas import ApiResponse
 from app.services.chapter import ChapterService
 from app.services.draft import DraftService
 
 
-drafts_router = APIRouter(prefix="/chapters", tags=["Chapters"])
+drafts_router = APIRouter(prefix="/chapters", tags=["Chapters"], dependencies=[Depends(verify_api_key)])
 
 
 def _serialize(d) -> dict:
