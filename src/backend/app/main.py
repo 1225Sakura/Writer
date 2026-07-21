@@ -2,11 +2,16 @@
 
 2026 Decision: sync SQLAlchemy + FastAPI sync endpoints (thread pool) for local desktop.
 No async engine complexity needed. SQLite WAL mode handles concurrency well enough.
+
+v0.4 P0-Sec8: X-Request-ID middleware generates/mints correlation_id per request.
 """
 from __future__ import annotations
 
-from fastapi import FastAPI
+import uuid
+
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from starlette.middleware.base import BaseHTTPMiddleware
 
 from app.config import get_settings
 from app.routers import api_router, chat_ws_router
@@ -18,6 +23,17 @@ from app.core.exceptions import (
     generic_exception_handler,
 )
 # Tables managed by Alembic (alembic upgrade head on deploy)
+
+
+class CorrelationIDMiddleware(BaseHTTPMiddleware):
+    """Mint or read X-Request-ID; attach to request.state for exception handlers."""
+
+    async def dispatch(self, request: Request, call_next):
+        cid = request.headers.get("X-Request-ID") or str(uuid.uuid4())
+        request.state.correlation_id = cid
+        response = await call_next(request)
+        response.headers["X-Request-ID"] = cid
+        return response
 
 settings = get_settings()
 
