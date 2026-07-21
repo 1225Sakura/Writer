@@ -13,13 +13,12 @@ export default defineConfig({
   server: {
     port: 5173,
     proxy: {
+      // Backend is LIVE FastAPI on http://localhost:8000 (electron/main.ts:201-301 spawns Python subprocess)
+      // All frontend API calls use /api/v1/* prefix (18 routers mounted)
+      // Vite proxy passes /api/* paths through unchanged — no rewrite needed
       '/api': {
         target: 'http://localhost:8000',
         changeOrigin: true,
-        // Note: Backend routes are already /api/v1/*, so no rewrite needed.
-        // The frontend calls /api/health -> proxy -> http://localhost:8000/api/health
-        // But backend health is at /api/v1/health, so frontend should call /api/v1/health.
-        // Vite proxy passes /api/v1/health through unchanged.
       },
     },
   },
