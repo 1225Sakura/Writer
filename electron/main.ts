@@ -933,7 +933,7 @@ app.whenReady().then(async () => {
     "base-uri 'none'",
     "frame-ancestors 'none'",
   ].join('; ')
-  session.defaultSession.webRequest.onHeadersReceived((details: Electron.OnHeadersReceivedDetails, callback: (response: Electron.Response) => void) => {
+  session.defaultSession.webRequest.onHeadersReceived((details, callback) => {
     callback({
       responseHeaders: {
         ...details.responseHeaders,
