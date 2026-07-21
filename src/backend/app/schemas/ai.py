@@ -14,6 +14,7 @@ class AIProviderBase(BaseSchema):
     max_tokens: int = 4096
     temperature: float = 0.7
     is_active: bool = True
+    use_env: bool = False  # v0.4 P0-Sec5 D.2.2: explicit env fallback flag
 
 
 class AIProviderCreate(AIProviderBase):
@@ -40,7 +41,8 @@ class AIProviderOut(BaseSchema):
     is_active: bool
     created_at: str
     updated_at: str
-    # api_key never returned
+    # api_key never returned (v0.4 P0-Sec5 D.2.1: list never returns full key)
+    masked_key: str | None = None  # last 4 chars + "sk-***" prefix
 
     @classmethod
     def model_validate(cls, obj, **kwargs):
@@ -51,7 +53,18 @@ class AIProviderOut(BaseSchema):
             if isinstance(val, datetime):
                 val = val.isoformat()
             data[key] = val
+        # Compute masked_key from raw api_key (last 4 chars only)
+        raw_key = getattr(obj, "api_key_encrypted", None) or ""
+        if raw_key and len(raw_key) > 4:
+            data["masked_key"] = f"sk-***{raw_key[-4:]}"
+        else:
+            data["masked_key"] = None
         return cls(**data)
+
+
+# v0.4 P0-Sec5 D.2.1: separate schema for full key retrieval
+class AIProviderKeyOut(BaseSchema):
+    api_key: str | None = None  # decrypted; None if use_env=True
 
 
 class AIGenerateRequest(BaseSchema):

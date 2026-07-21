@@ -112,6 +112,20 @@ class AIProviderService:
     def delete(self, id: int) -> bool:
         return self._repo.delete(id)
 
+    def activate(self, id: int) -> AIProvider | None:
+        """v0.4 P0-Sec5: idempotent activate; single-active enforced by DB partial unique index."""
+        provider = self._repo.get(id)
+        if not provider:
+            return None
+        # Deactivate all other providers, then activate this one
+        # (DB partial unique index ensures only one is_active=True at a time)
+        for p in self._repo.list(limit=10000):
+            if p.id != id and p.is_active:
+                p.is_active = False
+                self._repo.update(p, {"is_active": False})
+        provider.is_active = True
+        return self._repo.update(provider, {"is_active": True})
+
     def test_connection(self, data: AIProviderTestRequest) -> AIProviderTestResponse:
         settings = get_settings()
         # v0.4 P0-Sec2: validate provider URL before constructing client
