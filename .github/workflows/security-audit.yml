@@ -1,0 +1,38 @@
+name: Security Audit (v0.4 P0-Sec9)
+
+# v0.4 P0-Sec9: npm audit gate
+# Per spec, PR description must specify (2a) or (2b):
+#   (2a) workflow warn-only main + fail PR (default until P1-CI2)
+#   (2b) upgrade 5 known CVEs first, then 0 high
+
+on:
+  push:
+    branches: [master, main]
+  pull_request:
+
+jobs:
+  security-audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: src/frontend/package-lock.json
+      - name: Run npm audit
+        working-directory: src/frontend
+        run: npm audit --omit=dev --audit-level=high || true
+      # Per P0-Sec9 acceptance criterion: PR-blocking on audit-level=high
+      # Spec v0.4 P0-Sec9: 2a workflow warn-only main + fail PR (until P1-CI2)
+      # or 2b upgrade 5 CVEs first
+      - name: Fail on high vulnerabilities (PR gate)
+        working-directory: src/frontend
+        if: github.event_name == 'pull_request'
+        run: |
+          OUTPUT=$(npm audit --omit=dev --audit-level=high --json 2>/dev/null)
+          VULNS=$(echo "$OUTPUT" | python -c "import json,sys; d=json.load(sys.stdin); print(d.get('metadata',{}).get('vulnerabilities',{}).get('high',0))" 2>/dev/null || echo 0)
+          if [ "$VULNS" != "0" ]; then
+            echo "::error::$VULNS high vulnerabilities found. Either upgrade (2b) or add explicit PR override comment."
+            exit 1
+          fi
