@@ -10,6 +10,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.config import get_settings
 from app.routers import api_router, chat_ws_router
+from app.routers.auth import router as auth_router
 from app.core.exceptions import (
     WriterException,
     writer_exception_handler,
@@ -50,5 +51,7 @@ app.add_exception_handler(Exception, generic_exception_handler)
 app.include_router(api_router)
 # WebSocket router is mounted at root (no /api/v1 prefix) — see app/routers/__init__.py.
 app.include_router(chat_ws_router)
+# v0.4 P0-Sec1a: auth router mounted at /auth/* for key init/status/refresh
+app.include_router(auth_router)
 
 # No startup seed — first project created via ProjectService.create_with_defaults()

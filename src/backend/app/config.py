@@ -41,7 +41,12 @@ class Settings(BaseSettings):
     max_output_tokens: int = 4096
 
     # Security (API key for local desktop auth — X-API-Key header)
-    api_key: str = "writer-local-key-change-me"
+    # v0.4 P0-Sec1a: default key generated on first launch + stored in OS keychain
+    # The literal default "writer-local-key-change-me" was REMOVED (P-A02a)
+    # Key persistence: written to OS keychain via python-keyring on first init;
+    # subsequent launches read from keychain. If keychain unavailable, fallback to
+    # userData/.secret_file with chmod 0600 (P0-Sec1a D.2.7).
+    api_key: str = ""
 
     # AI (Anthropic SDK with MiniMax proxy)
     anthropic_api_key: str = Field(
