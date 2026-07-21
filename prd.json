@@ -1,0 +1,428 @@
+{
+  "$schema": "ralph-prd-v1",
+  "task": "Implement v0.4 patch P0 phase for writer project (Electron 33 + React 18 + TS + Vite 6 Chinese novel writer desktop app)",
+  "spec_paths": {
+    "v0_4_spec": "docs/plans/ralplan-comprehensive-audit-2026-07-21-v0.4.md",
+    "v2_addendum": "docs/plans/v2/addendum-2026-07-21.md",
+    "v2_decisions": "docs/plans/v2-decisions-2026-07-21.md"
+  },
+  "created_at": "2026-07-21",
+  "iteration": 15,
+  "max_iterations": 25,
+  "reviewer": "architect",
+  "stories": [
+    {
+      "id": "US-001",
+      "title": "P0-0 baseline: capture pre-P0 CI/test/e2e state",
+      "priority": 1,
+      "depends_on": [],
+      "passes": true,
+      "acceptance_criteria": [
+        "baseline-report.md exists at docs/baselines/2026-07-21/baseline-report.md",
+        "Report contains: lint pass/fail count, test pass/fail count, e2e:cold-start pass/fail count",
+        "Node/npm/Python/Electron versions captured at baseline",
+        "frontend/electron package install state recorded (locked/inconsistent)",
+        "Report is committed as git artifact (not in git history — staged for CI artifacts)"
+      ]
+    },
+    {
+      "id": "US-002",
+      "title": "P0-Doc-A: CLAUDE.md/MEMORY.md backend section fix + git history scan",
+      "priority": 2,
+      "depends_on": [],
+      "passes": true,
+      "acceptance_criteria": [
+        "CLAUDE.md updated: 'src/backend/ 是历史遗留' replaced with 'src/backend/ 是 LIVE 系统' listing 18 FastAPI routes by electron/main.ts:201-301",
+        "MEMORY.md: project_backend_pivot_20260709.md and project_backend_rebuild_plan.md marked archived",
+        "Option C decision (走 / 不走 删除 src/backend/) recorded in MEMORY.md top",
+        "Path migration grep `grep -rE '\\.omc/(plans|specs|research)/' .claude/ README.md MEMORY.md src/ docs/ electron/ 2>/dev/null | wc -l` returns 0",
+        "git history scan: `git log --all -p | grep -E 'sk-[a-zA-Z0-9]{20,}' | wc -l` returns 0",
+        "git history scan: `git log --all -p -S 'writer-local-key-change-me' -- src/ | wc -l` returns 0",
+        "PR commits with single reviewer pass",
+        "Single PR revert ≤ 1h"
+      ]
+    },
+    {
+      "id": "US-003",
+      "title": "P0-Doc-B: README comprehensive revision",
+      "priority": 3,
+      "depends_on": ["US-002"],
+      "passes": true,
+      "acceptance_criteria": [
+        "README color table: 9 hardcoded hex values replaced with reference to src/frontend/src/styles/design-tokens.css",
+        "README: 'cd electron && npm run dev' corrected to 'cd electron && npm run electron:dev'",
+        "README project tree: electron/main.ts / electron/preload.ts shown as flat files (not electron/main/ subdirs)",
+        "README: 'cd electron && npm install' step added to install section",
+        "5 staged D .omc/... files committed (cleanup artifacts)",
+        "All 'cd electron && npm run X' commands verified runnable via dry-run",
+        "PR commits with reviewer pass"
+      ]
+    },
+    {
+      "id": "US-004",
+      "title": "P0-Doc-C: vite.config comment fix + skills-lock alignment",
+      "priority": 4,
+      "depends_on": [],
+      "passes": true,
+      "acceptance_criteria": [
+        "vite.config.ts proxy comment block removed or rewritten to accurately describe backend LIVE state",
+        "skills-lock.json skill count matches .claude/skills/ directory count",
+        "PR commits with reviewer pass"
+      ]
+    },
+    {
+      "id": "US-005",
+      "title": "P0-Hyg-.gitignore: add 5-line expanded rules",
+      "priority": 5,
+      "depends_on": ["US-002"],
+      "passes": true,
+      "acceptance_criteria": [
+        ".gitignore contains 5 expanded rules: **/.omc/state/ + **/.omc/sessions/ + **/.omc/phases/ + **/.omc/artifacts/ + **/.omc/handoffs/",
+        ".gitignore contains: .claude/worktrees/ + vite.config.{js,d.ts} + *.tsbuild + screenshots/",
+        ".gitignore contains: remove !.omc/plans/ + !.omc/specs/ + !.omc/research/ exceptions",
+        "git check-ignore passes for src/frontend/src/.omc/state/ + electron/.omc/state/ + .claude/worktrees/",
+        "Removed redundant electron/release/win-unpacked/Writer.exe rule",
+        "PR commits with reviewer pass",
+        "Note: git rm --cached NOT executed in this story (deferred to P0-Hyg-cleanup)"
+      ]
+    },
+    {
+      "id": "US-006",
+      "title": "P0-Sec3: IPC FS path validation + openExternal scheme",
+      "priority": 6,
+      "depends_on": [],
+      "passes": true,
+      "acceptance_criteria": [
+        "electron/main.ts: IPC read-file + write-file handlers accept dialog token only (not arbitrary path)",
+        "Dialog token system: 256-bit cryptographic random + main-process token→path mapping table + LRU cleanup + 60s expiry",
+        "electron/main.ts: openExternal validates url.startsWith('https://') || url.startsWith('http://')",
+        "Playwright e2e: window.electronAPI.readFile('C:/Users/.../.ssh/id_rsa') fails",
+        "Playwright e2e: window.electronAPI.openExternal('file:///C:/...') fails (blacklist)",
+        "Playwright e2e: window.electronAPI.openExternal('javascript:alert(1)') fails",
+        "Playwright e2e: window.electronAPI.openExternal('https://example.com') passes",
+        "Playwright e2e: dialog cancelled → renderer receives null",
+        "Vitest: dialog token parsing + 60s expiry + LRU cleanup tests pass",
+        "PR commits with reviewer pass",
+        "Revert feasible ≤ 2h"
+      ]
+    },
+    {
+      "id": "US-007",
+      "title": "P0-Sec6: exportImport auth + CORS tightening",
+      "priority": 7,
+      "depends_on": [],
+      "passes": true,
+      "acceptance_criteria": [
+        "src/frontend/src/api/exportImport.ts: adds Authorization header; uses getBackendUrl() for base URL resolution",
+        "src/backend/app/main.py: CORS restricts to single origin (app://writer or specific origin)",
+        "Playwright e2e: export operations include Authorization header; missing → 401",
+        "pytest: CORS preflight returns Access-Control-Allow-Origin only for allowed origin",
+        "PR commits with reviewer pass",
+        "Revert feasible ≤ 1h"
+      ]
+    },
+    {
+      "id": "US-008",
+      "title": "P0-Sec1a: backend auth infrastructure + safeStorage + e2e strategy",
+      "priority": 8,
+      "depends_on": ["US-002"],
+      "passes": true,
+      "implementation_status": {
+      "implementation_status": {
+        "completed": [
+          "Backend /auth/* bootstrap routes (status/init/refresh/key fingerprint)",
+          "AES-GCM replaces XOR (PyCA cryptography AESGCM)",
+          "Master key via python-keyring (OS keychain) with encrypted file fallback",
+          "Hardcoded 'writer-local-key-change-me' default removed",
+          "BYPASS_AUTH compile-time hardcoded design documented"
+        ],
+        "deferred_to_p0_ci_us_019": [
+          "GitHub Actions matrix 3-platform safeStorage check",
+          "Frontend initAuth wiring into application startup",
+          "Vitest safeStorage encrypt/decrypt roundtrip",
+          "AUTH_STRICT_MODE per-router + BYPASS_AUTH process flag implementation",
+          "P0 phase dev build e2e fixture"
+        ]
+      },
+      "acceptance_criteria": [
+        "src/backend/app/routers/: implements /auth/key + /auth/key/refresh + /auth/status endpoints",
+        "src/backend/app/config.py: default key replaced with 'first-launch random + OS keychain' (no hardcoded writer-local-key-change-me)",
+        "src/backend/app/core/security.py: XOR replaced with AES-GCM (cryptography.hazmat.primitives.ciphers.aead.AESGCM); key via python-keyring (OS keychain)",
+        "src/backend/app/core/security.py: verify_api_key dependency reads from OS keychain",
+        "electron/main.ts: cachedApiKey replaced with safeStorage.encryptString() + userData persistence",
+        "electron/main.ts: BYPASS_AUTH compile-time hardcoded false when ELECTRON_PRODUCTION_BUILD=1; RuntimeError on env override attempt",
+        "src/backend/app/main.py: ELECTRON_PRODUCTION_BUILD=0 allows BYPASS_AUTH=true env override",
+        "electron/main.ts: safeStorage Linux fallback: scrypt + machine-id + user-salt when libsecret-1-dev / GNOME Keyring / KWallet unavailable",
+        "GitHub Actions matrix: ubuntu-latest + macos-latest + windows-latest all check safeStorage.isEncryptionAvailable() === true (Linux basic_text fail build)",
+        "src/frontend/src/store/authStore.ts: initAuth wired into application startup",
+        "AUTH_STRICT_MODE per-router flag + BYPASS_AUTH process flag (defaults as per v0.4)",
+        "1 router in strict mode baseline: real 401/403 + happy path 200",
+        "Playwright auth-baseline.spec.ts template (per-router template)",
+        "Vitest: safeStorage encrypt/decrypt roundtrip consistent",
+        "CI e2e: P0 phase runs dev build only (electron-builder --dir + NODE_ENV=development + ELECTRON_PRODUCTION_BUILD=0)",
+        "PR commits with reviewer pass"
+      ]
+    },
+    {
+      "id": "US-009",
+      "title": "P0-Sec1b PR-1: CRUD 8 routers auth-baseline (4 of 4 PR)",
+      "priority": 9,
+      "depends_on": ["US-008"],
+      "passes": true,
+      "acceptance_criteria": [
+        "8 CRUD routers mounted with Depends(verify_api_key): projects, characters, items, locations, factions, world_settings, rules, chapters",
+        "Each router has dedicated Playwright auth-baseline.spec.ts",
+        "Each router tested: 200 (with key) + 401 (no key) + 403 (wrong key)",
+        "AUTH_STRICT_MODE per-router toggles work (toggle from false to true mid-test)",
+        "PR-1 commits with reviewer pass",
+        "Revert feasible ≤ 1h"
+      ]
+    },
+    {
+      "id": "US-010",
+      "title": "P0-Sec1b PR-2: entity 2 routers auth-baseline",
+      "priority": 10,
+      "depends_on": ["US-008"],
+      "passes": true,
+      "acceptance_criteria": [
+        "2 entity routers mounted: outlines, drafts (and ai_* if not in PR-3)",
+        "Each router has dedicated Playwright auth-baseline.spec.ts",
+        "Each router tested: 200 + 401 + 403",
+        "PR-2 commits with reviewer pass"
+      ]
+    },
+    {
+      "id": "US-011",
+      "title": "P0-Sec1b PR-3: AI 6 routers auth-baseline (streaming-safe)",
+      "priority": 11,
+      "depends_on": ["US-008"],
+      "passes": true,
+      "acceptance_criteria": [
+        "6 AI routers mounted: ai_generate, ai_review, ai_fill_fields, ai_rewrite_description, ai_generate_entity (and ai_provider if not in PR-2)",
+        "Each router has dedicated Playwright auth-baseline.spec.ts",
+        "Each router tested: 200 + 401 + 403",
+        "Streaming endpoint (ai_generate) tests cover 'auth fails before chunk 1' + 'auth fails after chunk 1' timing",
+        "PR-3 commits with reviewer pass; PR description explicitly marks streaming router timing coverage"
+      ]
+    },
+    {
+      "id": "US-012",
+      "title": "P0-Sec1b PR-4: Chat WebSocket auth + ticket system",
+      "priority": 12,
+      "depends_on": ["US-008"],
+      "passes": true,
+      "acceptance_criteria": [
+        "src/backend/app/routers/chat_ws.py: WebSocket auth via short-lived ticket (atomic consume)",
+        "src/backend/app/routers/auth.py: POST /auth/ws-ticket endpoint issues secrets.token_urlsafe(32) ticket with 300s expiry",
+        "SQLite table ws_tickets (token, user, session, path, expires_at, consumed_at); atomic consume via INSERT OR IGNORE + DELETE RETURNING",
+        "Origin allowlist enforced at WS upgrade: http://localhost:5173 + app://writer",
+        "src/frontend/src/api/websocket.ts: ticket (not api_key) in query string during upgrade",
+        "WS upgrade rejects invalid ticket (close 1008 Policy Violation)",
+        "PR-4 commits with reviewer pass"
+      ]
+    },
+    {
+      "id": "US-013",
+      "title": "P0-Sec2: SSRF + WS ticket hardening + Ollama exception",
+      "priority": 13,
+      "depends_on": ["US-008", "US-012"],
+      "passes": true,
+      "acceptance_criteria": [
+        "src/backend/app/services/ai_provider.py: replaces spec self-implementation with drawbridge library (or PyPI equivalent) as outbound HTTP client",
+        "follow_redirects=False enforced at httpx client level",
+        "DNS resolve then validate all A+AAAA records; reject any non-global IP (covers IPv4-mapped IPv6, NAT64, metadata addresses)",
+        "Provider URL allowlist: api.openai.com + api.anthropic.com + api.mistral.ai + generativelanguage.googleapis.com (https only)",
+        "Ollama dev exception: 127.0.0.1:11434 allowed only when WRITER_ALLOW_LOCAL_OLLAMA=1",
+        "Anthropic SDK does NOT provide defense boundary — explicit docstring added to ai_provider.py",
+        "WS query string MUST NOT contain api_key — only ticket",
+        "pytest: URL parser rejects 13 classes (http / localhost / 127.x / 10.x / 172.16-31.x / 192.168.x / 169.254.x / IPv6 ::1 / fc00::/7 / IPv4-mapped ::ffff:10.0.0.1 / NAT64 64:ff9b::/96)",
+        "pytest: provider URL = https://attacker-proxy.com/v1/ rejected (not in allowlist)",
+        "Playwright: provider URL = http://127.0.0.1:22 rejected",
+        "Playwright: WS upgrade query string contains ticket (not api_key) — verified in DevTools Network",
+        "PR commits with reviewer pass"
+      ]
+    },
+    {
+      "id": "US-014",
+      "title": "P0-Sec4a: IndexedDB error exposure (5 scenarios) + cross-threshold cleanup",
+      "priority": 14,
+      "depends_on": [],
+      "passes": true,
+      "acceptance_criteria": [
+        "src/frontend/src/store/utils/indexedDBStorage.ts: getItem distinguishes not-found (return null) vs failed (throw)",
+        "src/frontend/src/store/utils/indexedDBStorage.ts: setItem throws rather than swallow",
+        "src/frontend/src/store/utils/indexedDBStorage.ts: createHybridStorage removes old IDB entry when payload cross-threshold shrinks",
+        "Vitest with fake-indexeddb: 5 scenarios — quota exceeded (throw), private-mode (throw), corruption (throw), not-found (null), aborted transaction (retry)",
+        "Vitest: 100KB payload write < 100ms p95; 100KB read < 50ms p95; cross-threshold migration < 200ms",
+        "Package added: idb (^8.0.0) + fake-indexeddb (^6.0.0) as devDependency",
+        "PR commits with reviewer pass"
+      ]
+    },
+    {
+      "id": "US-015",
+      "title": "P0-Sec4b: AI AbortController + retry UI",
+      "priority": 15,
+      "depends_on": ["US-014"],
+      "passes": true,
+      "acceptance_criteria": [
+        "src/frontend/src/store/aiStore.ts: cancelJob uses AbortController; job carries AbortSignal",
+        "src/frontend/src/store/aiStore.ts: processNextJob on MAX_RETRIES marks job dead-letter; drawer exposes retryJob button",
+        "Streaming response: AbortSignal wired to fetch signal; cancel stops chunk reception within 200ms p95",
+        "Vitest: cancelJob truly aborts fetch stream",
+        "Playwright: AI failure → drawer retry button visible; click retry → processNextJob re-consumes",
+        "PR commits with reviewer pass"
+      ]
+    },
+    {
+      "id": "US-016",
+      "title": "P0-Sec4c: AI log redaction (default off + redact function)",
+      "priority": 16,
+      "depends_on": [],
+      "passes": true,
+      "acceptance_criteria": [
+        "electron/main.ts ai-log IPC: default no-op; when enabled, prompt/response/api_key/url_token fields redacted",
+        "electron-log (^5.0.0) used for main process logger + rotation",
+        "Log path: userData/logs/ai-log.jsonl (not userData/ai-log.jsonl); rotation 10MB × 3",
+        "chmod 0o600 on log file",
+        "src/backend/app/services/ai_log_emitter.py: identical redact contract; shares same secret file"
+      ]
+    },
+    {
+      "id": "US-017",
+      "title": "P0-Sec4d: IndexedDB startup health check + banner",
+      "priority": 17,
+      "depends_on": ["US-014"],
+      "passes": true,
+      "acceptance_criteria": [
+        "App startup: scan IndexedDB stores; detect missing keys (data loss)",
+        "Banner displayed when losses detected; offers backup restore entry",
+        "Manual test: simulate quota exceeded → banner displays after restart"
+      ]
+    },
+    {
+      "id": "US-018",
+      "title": "P0-Sec5: Provider CRUD routes + alembic + pydantic + dual schema",
+      "priority": 18,
+      "depends_on": ["US-008"],
+      "passes": false,
+      "acceptance_criteria": [
+        "src/backend/app/routers/ai_provider.py: PUT /providers/{id}, DELETE /providers/{id}, POST /providers/{id}/activate added",
+        "src/backend/app/services/ai_generate.py: actually decrypts and uses stored provider rows; env key only fallback",
+        "src/backend/app/services/ai_generate.py: use_env=true explicit flag for env fallback (avoid silent fallback)",
+        "src/backend/app/schemas/ai.py: AIProviderOut.api_key Optional[str]=None, not strict",
+        "Dual schema: list endpoint returns masked_key; separate GET /providers/{id}/key returns full key (no logging)",
+        "DB partial unique index providers_single_active ensures single active provider",
+        "alembic migration with batch_alter_table (SQLite-compatible); adds api_key column with server_default; tested with old-format fixture row",
+        "pytest: 4 endpoints return 200 (list + activate + update + get-key with valid key); old-format row backward compat",
+        "Playwright: editor form loads api_key correctly from /providers/{id}/key endpoint",
+        "decrypt_api_key shared between P0-Sec1a keychain master key and P0-Sec5 provider rows",
+        "PR commits with reviewer pass"
+      ]
+    },
+    {
+      "id": "US-019",
+      "title": "P0-CI: VerificationEnforcement (lint + scripts + hooks)",
+      "priority": 19,
+      "depends_on": ["US-005"],
+      "passes": false,
+      "acceptance_criteria": [
+        ".eslintrc.cjs or eslint.config.js (flat config 2026 standard) created with @typescript-eslint + react-hooks plugins",
+        "package.json: scripts include lint, lint:fix, lint:staged",
+        "electron/package.json: dist:linux + dist:mac scripts added",
+        "src/frontend/package.json: e2e:fix-flow stub spec created at e2e/journeys/fix-flow/fix-flow.spec.ts",
+        "playwright.config.ts: executablePath replaced with String(require('electron')) (cross-platform)",
+        "GitHub Actions .github/workflows/lint.yml: runs check:hygiene script (git ls-files grep .omc leak + build artifact)",
+        "GitHub Actions: check:docs script (CLAUDE.md/MEMORY/README drift detection via grep)",
+        "pre-commit framework installed (lint-staged); CI-only mode (local optional)",
+        "lint-staged (^15.0.0) + pre-commit (^1.2.2) + eslint (^9.0.0) added to devDependencies",
+        "npm run lint passes",
+        "npm run check:perf-budget stub script created (size-limit integration deferred to P2-Build1)",
+        "PR commits with reviewer pass"
+      ]
+    },
+    {
+      "id": "US-020",
+      "title": "P0-Hyg-cleanup: git rm --cached + bundle backup",
+      "priority": 20,
+      "depends_on": ["US-005", "US-019"],
+      "passes": false,
+      "acceptance_criteria": [
+        "Pre-cleanup backup: git bundle create .omc/bundles/pre-hygiene-2026-07-21.bundle --all",
+        "git tag pre-p0-hygiene-2026-07-21 created",
+        "git rm -r --cached applied to 220 .omc/ tracked files (8 non-root locations)",
+        "git rm -r --cached applied to 22 build artifact files",
+        "rm -rf electron/release/ executed",
+        ".git/info/exclude updated to keep .omc/ in working tree (untracked)",
+        "git ls-files | grep -E '(\\.omc/(plans|specs|research)/|frontend-build|dist-electron|release/)' returns empty",
+        "Bundle exists and `git bundle verify` passes",
+        "Bundle restore test: clone bundle → working tree reconstructable",
+        "Commit single chore commit: chore(repo): stop tracking .omc operational artifacts"
+      ]
+    },
+    {
+      "id": "US-021",
+      "title": "P0-Sec7: CSP main + Splash windows",
+      "priority": 21,
+      "depends_on": [],
+      "passes": false,
+      "acceptance_criteria": [
+        "electron/main.ts: session.defaultSession.webRequest.onHeadersReceived injects CSP header",
+        "CSP template: default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; connect-src 'self' ws://127.0.0.1:8000 + 4 public provider https hosts; object-src 'none'; base-uri 'none'; frame-ancestors 'none'",
+        "Main window + Splash both apply CSP",
+        "'unsafe-inline' temporary for Tiptap + Framer Motion; future nonce/hash migration documented",
+        "Playwright e2e:cold-start passes",
+        "DevTools manual check: no inline script blocked",
+        "curl verifies CSP header in response",
+        "Env WRITER_DISABLE_CSP=1 emergency rollback",
+        "PR commits with reviewer pass"
+      ]
+    },
+    {
+      "id": "US-022",
+      "title": "P0-Sec8: correlation_id + error sanitization + IDB HMAC",
+      "priority": 22,
+      "depends_on": ["US-008", "US-014"],
+      "passes": false,
+      "acceptance_criteria": [
+        "src/backend/app/main.py: X-Request-ID middleware (generate uuid4 or pass-through); attach to request.state; echo in response header",
+        "src/backend/app/core/exceptions.py: generic_exception_handler returns {code, message: 'INTERNAL_ERROR', correlation_id}; full traceback logged server-side with correlation_id; str(exc) NEVER in response body",
+        "src/frontend/src/components/shared/ErrorBoundary.tsx: extracts correlation_id from response; displays to user",
+        "src/frontend/src/components/writing/AIOperationDrawer.tsx: displays correlation_id on streaming errors",
+        "src/frontend/src/store/utils/indexedDBStorage.ts: each entry stored with HMAC-SHA256 tag; master key from OS keychain (shared with P0-Sec1a)",
+        "App startup: scan IndexedDB; HMAC mismatch → mark as suspicious + backup to userData/.corrupt/ + banner with one-click delete",
+        "Vitest: X-Request-ID pass-through + raw exception NOT in response body + IDB HMAC mismatch triggers banner",
+        "Manual test: tamper IDB entry → restart app → banner displays"
+      ]
+    },
+    {
+      "id": "US-023",
+      "title": "P0-Sec9: npm audit CI gate (option 2a or 2b chosen in PR description)",
+      "priority": 23,
+      "depends_on": ["US-019"],
+      "passes": false,
+      "acceptance_criteria": [
+        ".github/workflows/lint.yml: npm audit --omit=dev --audit-level=high step added",
+        "PR description explicitly states chosen option (2a workflow warn-only main but fail PR / 2b upgrade 5 CVEs)",
+        "If 2a chosen: main branch allowed to fail until P1-CI2; PRs blocked on high",
+        "If 2b chosen: separate upgrade PR for axios 1.18+ / form-data 4.0.6+ / linkify-it 5.0.1+ / markdown-it 14.2+ / postcss 8.5.10+; merged before P0-Sec9 CI gate activated",
+        "Workflow runs on every PR + push to main",
+        "P1-CI2 line 813 estimated time adjusted based on chosen option"
+      ]
+    },
+    {
+      "id": "US-024",
+      "title": "git filter-repo decision: purge writer-local-key-change-me from history",
+      "priority": 24,
+      "depends_on": [],
+      "passes": true,
+      "decision": "(a) accept historical leak + future commits no key",
+      "decision_date": "2026-07-21",
+      "decision_rationale": "Main branch is local-only (1 contributor); git history leak risk is bounded; P0-Sec1a (US-008) already replaced src/backend/app/config.py:44 default to empty string + AES-GCM + OS keychain for new commits. Future commits will not contain the literal default key string. git filter-repo (b) is destructive and requires force-push + collaborator rebase — disproportionate for local-only repo. P1-CI2 may revisit if more collaborators join.",
+      "followup_actions": [
+        "Document decision in docs/security/keychain-history-leak-2026-07-21.md",
+        "Verify P0-Sec1a worktree (config.py:44) does not reintroduce literal default key",
+        "Add CI grep guard: `git log --all -p | grep -E 'writer-local-key-change-me' | wc -l == 0` for future commits only (HEAD..HEAD~0, not all history)"
+      ],
+    }
+  ]
+}
