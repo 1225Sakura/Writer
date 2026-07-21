@@ -2,14 +2,16 @@
 
 v0.4 P0-Sec2 SSRF protection:
 - Provider URLs validated against allowlist (https only, 4 public hosts + dev Ollama)
-- follow_redirects=False enforced
+- follow_redirects=False enforced at httpx.Client level (passed via Anthropic SDK http_client param)
 - DNS pin: resolve A+AAAA, reject non-global IPs (incl IPv4-mapped, NAT64, metadata)
 - Anthropic SDK does NOT provide defense boundary (per OWASP + spec v0.4 §A)
 """
 import ipaddress
+import os
 import socket
 from urllib.parse import urlparse
 
+import httpx
 from anthropic import Anthropic
 
 from app.config import get_settings
@@ -41,6 +43,7 @@ def validate_provider_url(url: str, *, dev_mode: bool = False) -> str:
     """Validate provider URL against SSRF rules.
 
     Returns the validated URL on success; raises SSRFBlockedError otherwise.
+    Dev-mode Ollama exception requires WRITER_ALLOW_LOCAL_OLLAMA=1 env var (per Q6 spec).
     """
     parsed = urlparse(url)
     # Scheme check
@@ -51,6 +54,11 @@ def validate_provider_url(url: str, *, dev_mode: bool = False) -> str:
     if host in ALLOWED_PROVIDER_HOSTS:
         return url
     if dev_mode and host in ALLOWED_DEV_HOSTS:
+        # v0.4 Q6: require explicit env var gate for Ollama dev exception
+        if os.environ.get("WRITER_ALLOW_LOCAL_OLLAMA") != "1":
+            raise SSRFBlockedError(
+                "Ollama dev exception requires WRITER_ALLOW_LOCAL_OLLAMA=1 env var"
+            )
         # Local dev: resolve + verify is_global (rejects 169.254.x, IPv4-mapped, NAT64)
         try:
             infos = socket.getaddrinfo(host, parsed.port or 80, type=socket.SOCK_STREAM)
@@ -66,6 +74,11 @@ def validate_provider_url(url: str, *, dev_mode: bool = False) -> str:
                 raise SSRFBlockedError(f"Non-global IP rejected: {ip}")
         return url
     raise SSRFBlockedError(f"Host not in allowlist: {host}")
+
+
+def _build_httpx_client_no_redirect() -> httpx.Client:
+    """Construct httpx.Client with follow_redirects=False (spec v0.4 P0-Sec2 D.1.4)."""
+    return httpx.Client(follow_redirects=False, timeout=30.0)
 
 
 class AIProviderService:
@@ -112,6 +125,7 @@ class AIProviderService:
         client = Anthropic(
             api_key=data.api_key,
             base_url=data.base_url or settings.anthropic_base_url,
+            http_client=_build_httpx_client_no_redirect(),
         )
         try:
             client.messages.create(
