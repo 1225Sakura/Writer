@@ -1,0 +1,82 @@
+# v0.4 patch P0 实施 — progress.txt (FINAL)
+
+## 当前 iteration
+- **iteration**: 17
+- **phase**: Step 7 reviewer verification complete (revise → fixed 3 blockers → re-submit)
+- **timestamp**: 2026-07-21
+- **state**: 24/24 stories passes=true, all 3 architect blockers resolved
+
+## 已完成 stories (24/24)
+| ID | Title | Commit |
+|----|-------|--------|
+| US-001 | P0-0 baseline | (baseline-report.md) |
+| US-002 | P0-Doc-A backend fix | `faf54c3` |
+| US-003 | P0-Doc-B README | `b3f06f2` |
+| US-004 | P0-Doc-C vite.config | `fd281a8` |
+| US-005 | P0-Hyg-.gitignore | `b760f6f` |
+| US-006 | P0-Sec3 IPC FS | `2b11bc3` |
+| US-007 | P0-Sec6 exportImport + CORS | `00ac914` |
+| US-008 | P0-Sec1a auth (backend) + initAuth wiring | `5b59c93` + (follow-up in this iteration) |
+| US-009 | P0-Sec1b PR-1 8 CRUD | `2af5cb5` |
+| US-010 | P0-Sec1b PR-2 3 entity | `0590acc` |
+| US-011 | P0-Sec1b PR-3 5 AI | `1499067` |
+| US-012 | P0-Sec1b PR-4 chat + WS ticket | `1471428` |
+| US-013 | P0-Sec2 SSRF + WS ticket | `ab2ba4b` |
+| US-014 | P0-Sec4a IndexedDB 错误暴露 | `86d9634` |
+| US-015 | P0-Sec4b AI AbortController | `0705c7e` |
+| US-016 | P0-Sec4c AI 日志 redaction | `514ffd9` |
+| US-017 | P0-Sec4d IDB 健康检查 | `57b49e3` |
+| US-018 | P0-Sec5 Provider 完整修复 | `3de78f5` |
+| US-019 | P0-CI VerificationEnforcement | `ce7882a` |
+| US-020 | P0-Hyg-cleanup git rm --cached | `65d5ac9` |
+| US-021 | P0-Sec7 CSP | `0c7ec4b` + `4084289` + `0f881a5` |
+| US-022 | P0-Sec8 correlation_id (backend) | `0980205` |
+| US-023 | P0-Sec9 npm audit CI | `087dbd5` |
+| US-024 | filter-repo decision (option a) | `32b7b0b` |
+
+## 第二轮 ralph session 修复（re-review 后）
+
+| 修复 | Commit |
+|------|--------|
+| US-008 initAuth wiring into main.tsx (Architect blocker #3) | (this iteration) |
+| F-15 vite.config.js + vite.config.d.ts untrack (Architect noted) | (this iteration) |
+| PRD passes sync for US-018/019/020/021/022/023 (Architect blocker #1) | (this iteration) |
+| progress.txt updated (Architect blocker #2) | (this iteration) |
+
+## 累计统计 (FINAL)
+- **24/24 stories passes=true** (100%)
+- **30+ commits in ralph session (累计)**
+- **~4000+ lines code changes**
+- **170 files / 9649 lines removed** (仓库卫生 US-020)
+- **0 .omc/ tracked files** in this repo
+- **0 build artifacts tracked**
+
+## 关键安全改进 (cumulative)
+1. **AES-GCM 替代 XOR** (PyCA cryptography) + **OS keychain** (python-keyring)
+2. **14+ routers** mounted with `Depends(verify_api_key)`
+3. **WS ticket** 系统 (256-bit + SQLite atomic consume + 5min TTL)
+4. **IPC FS token** (256-bit + 60s TTL + LRU 256)
+5. **Provider URL allowlist** + DNS pin + dev Ollama env gate
+6. **CORS** restrict 3 specific origins
+7. **AbortController** 真实取消（FE-011 修复）
+8. **AI log** default off + redact + rotation
+9. **IDB error exposure** (5 scenarios, fail-loud)
+10. **IDB health check** + banner
+11. **Provider dual schema** (masked list + separate key retrieval)
+12. **CSP** main + Splash via session.webRequest
+13. **X-Request-ID correlation_id** middleware
+14. **npm audit** PR-gate CI
+15. **filter-repo decision (a)** documented
+
+## Next actions
+Per ralph SKILL Step 7.5: ai-slop-cleaner pass on changed files
+Per ralph SKILL Step 7.6: regression re-verification
+Per ralph SKILL Step 8: cancel ralph + clean state files
+
+## Learnings (cumulative)
+- P0 实施的关键是"安全优先"：所有 spec 中的 security findings 都得到具体实现
+- 文档同步比代码更容易遗忘（PRD passes 字段需要 explicit 更新）
+- progress.txt 是 review artifact，必须随 commits 同步
+- initAuth wiring 是 backend auth 的关键 missing piece——US-008 完成后才能真正"应用启动时认证"
+- 14 PR → 4 PR (Q8) 合并对单人接手者是正确的；spec 验证后未现 review 疲劳
+- Filter-repo 决策：单人 + 本地-only 的场景下，决策 (a) 是务实的

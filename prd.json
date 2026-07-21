@@ -304,7 +304,7 @@
       "title": "P0-Sec5: Provider CRUD routes + alembic + pydantic + dual schema",
       "priority": 18,
       "depends_on": ["US-008"],
-      "passes": false,
+      "passes": true,
       "acceptance_criteria": [
         "src/backend/app/routers/ai_provider.py: PUT /providers/{id}, DELETE /providers/{id}, POST /providers/{id}/activate added",
         "src/backend/app/services/ai_generate.py: actually decrypts and uses stored provider rows; env key only fallback",
@@ -324,7 +324,7 @@
       "title": "P0-CI: VerificationEnforcement (lint + scripts + hooks)",
       "priority": 19,
       "depends_on": ["US-005"],
-      "passes": false,
+      "passes": true,
       "acceptance_criteria": [
         ".eslintrc.cjs or eslint.config.js (flat config 2026 standard) created with @typescript-eslint + react-hooks plugins",
         "package.json: scripts include lint, lint:fix, lint:staged",
@@ -345,7 +345,7 @@
       "title": "P0-Hyg-cleanup: git rm --cached + bundle backup",
       "priority": 20,
       "depends_on": ["US-005", "US-019"],
-      "passes": false,
+      "passes": true,
       "acceptance_criteria": [
         "Pre-cleanup backup: git bundle create .omc/bundles/pre-hygiene-2026-07-21.bundle --all",
         "git tag pre-p0-hygiene-2026-07-21 created",
@@ -364,7 +364,7 @@
       "title": "P0-Sec7: CSP main + Splash windows",
       "priority": 21,
       "depends_on": [],
-      "passes": false,
+      "passes": true,
       "acceptance_criteria": [
         "electron/main.ts: session.defaultSession.webRequest.onHeadersReceived injects CSP header",
         "CSP template: default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; connect-src 'self' ws://127.0.0.1:8000 + 4 public provider https hosts; object-src 'none'; base-uri 'none'; frame-ancestors 'none'",
@@ -382,7 +382,7 @@
       "title": "P0-Sec8: correlation_id + error sanitization + IDB HMAC",
       "priority": 22,
       "depends_on": ["US-008", "US-014"],
-      "passes": false,
+      "passes": true,
       "acceptance_criteria": [
         "src/backend/app/main.py: X-Request-ID middleware (generate uuid4 or pass-through); attach to request.state; echo in response header",
         "src/backend/app/core/exceptions.py: generic_exception_handler returns {code, message: 'INTERNAL_ERROR', correlation_id}; full traceback logged server-side with correlation_id; str(exc) NEVER in response body",
@@ -399,7 +399,7 @@
       "title": "P0-Sec9: npm audit CI gate (option 2a or 2b chosen in PR description)",
       "priority": 23,
       "depends_on": ["US-019"],
-      "passes": false,
+      "passes": true,
       "acceptance_criteria": [
         ".github/workflows/lint.yml: npm audit --omit=dev --audit-level=high step added",
         "PR description explicitly states chosen option (2a workflow warn-only main but fail PR / 2b upgrade 5 CVEs)",

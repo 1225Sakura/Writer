@@ -11,6 +11,7 @@ import {
   useAIStore,
   useSyncStore,
 } from './store'
+import { initAuth } from './api/auth'
 import './styles/index.css'
 
 // syncStore + any other immer+Map stores require the MapSet plugin.
@@ -45,3 +46,11 @@ if (import.meta.env.DEV) {
     useSyncStore,
   }
 }
+
+// v0.4 P0-Sec1a US-008: invoke initAuth on app startup (fire-and-forget)
+// initAuth calls /auth/key/init → caches API key in electron secureStorage
+// All subsequent api.* calls include X-API-Key header via request.ts interceptor
+initAuth().catch((err) => {
+  // Best-effort: app still functional (request.ts will surface 401 on first protected call)
+  console.error('[main] initAuth failed:', err)
+})
