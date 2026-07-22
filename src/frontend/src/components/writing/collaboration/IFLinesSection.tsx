@@ -1,3 +1,4 @@
+import { useShallow } from 'zustand/react/shallow'
 import { useContentStore, useWritingStore } from '@/store'
 import { ifLineApi } from '@/api/ifLineApi'
 import { motion } from 'framer-motion'
@@ -24,8 +25,22 @@ const syncStatusStyles: Record<SyncStatus, { bg: string; color: string; icon: ty
 
 export function IFLinesSection() {
   const [isExpanded, setIsExpanded] = useState(true)
-  const { ifLines, fetchIFLines, invalidate } = useContentStore()
-  const { wordCount, targetWordCount, currentChapterId } = useWritingStore()
+  // v0.5 Phase 4.2 FE-022: useShallow groups 3-store pick so the
+  // section only re-renders when one of those fields changes.
+  const { ifLines, fetchIFLines, invalidate } = useContentStore(
+    useShallow((s) => ({
+      ifLines: s.ifLines,
+      fetchIFLines: s.fetchIFLines,
+      invalidate: s.invalidate,
+    })),
+  )
+  const { wordCount, targetWordCount, currentChapterId } = useWritingStore(
+    useShallow((s) => ({
+      wordCount: s.wordCount,
+      targetWordCount: s.targetWordCount,
+      currentChapterId: s.currentChapterId,
+    })),
+  )
   const [syncingLineId, setSyncingLineId] = useState<number | null>(null)
   const [lastSyncByLineId, setLastSyncByLineId] = useState<
     Record<number, { synced: number; conflicts: number }>

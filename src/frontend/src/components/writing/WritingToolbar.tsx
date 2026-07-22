@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { motion } from 'framer-motion'
+import { useShallow } from 'zustand/react/shallow'
 import { ChevronDown, PenLine, LayoutGrid, FileText } from 'lucide-react'
 import { SPRING } from '@/components/shared/AnimationConfig'
 import { useUIStore } from '@/store'
@@ -113,7 +114,13 @@ export function WritingToolbar({
 }
 
 function CorkboardToggleButton() {
-  const { corkboardOpen, toggleCorkboard } = useUIStore()
+  // v0.5 Phase 4.2 FE-022
+  const { corkboardOpen, toggleCorkboard } = useUIStore(
+    useShallow((s) => ({
+      corkboardOpen: s.corkboardOpen,
+      toggleCorkboard: s.toggleCorkboard,
+    })),
+  )
 
   return (
     <motion.button

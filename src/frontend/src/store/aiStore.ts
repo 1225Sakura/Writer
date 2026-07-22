@@ -4,6 +4,11 @@ import { immer } from 'zustand/middleware/immer'
 import { aiApi, stylesApi } from '../api/writing'
 import { consumeStream } from '../api/chat'
 import { showOperationError } from '../utils/toastHelper'
+// Phase 5.2 (FE-002): previously dynamic-imported inside processNextJob to
+// "hide" a circular dep. There is no actual cycle: writingStore does not
+// import aiStore (verified with grep). Top-level import is safe and
+// removes the dynamic-import latency cost.
+import { useWritingStore } from './writingStore'
 
 // ============================================
 // Types
@@ -174,8 +179,8 @@ export const useAIStore = create<AIState & AIActions>()(
           state.loading.ai = true
         })
 
-        // Get chapterId and ratio from writingStore
-        const { useWritingStore } = await import('./writingStore')
+        // Get chapterId and ratio from writingStore (top-level import; no
+        // circular dep — writingStore never imports aiStore).
         const chapterId = useWritingStore.getState().currentChapterId ?? undefined
         const ratio = useWritingStore.getState().humanAIRatio
         let lastError: Error | null = null

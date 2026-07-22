@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { useShallow } from 'zustand/react/shallow'
 import { useUIStore, useWritingStore } from '@/store'
 import { WritingToolbar } from './WritingToolbar'
 import { WritingCanvas } from './WritingCanvas'
@@ -30,6 +31,10 @@ import { EASE, DURATION, SPRING } from '@/components/shared/AnimationConfig'
 const DRAWER_EDGE_SHADOW = 'var(--shadow-drawer)'
 
 function WritingEditorPageContent() {
+  // v0.5 Phase 4.2 FE-022: useShallow collapses 8 field picks into
+  // a single subscription so this page only re-renders when one of
+  // the picked UI fields changes. zustand's default would re-render
+  // on ANY field change in useUIStore.
   const {
     aiDrawerOpen,
     collaborationDrawerOpen,
@@ -40,7 +45,19 @@ function WritingEditorPageContent() {
     toggleAIDrawer,
     toggleOutlineDrawer,
     toggleSnapshotDrawer,
-  } = useUIStore()
+  } = useUIStore(
+    useShallow((s) => ({
+      aiDrawerOpen: s.aiDrawerOpen,
+      collaborationDrawerOpen: s.collaborationDrawerOpen,
+      outlineDrawerOpen: s.outlineDrawerOpen,
+      checkerDrawerOpen: s.checkerDrawerOpen,
+      snapshotDrawerOpen: s.snapshotDrawerOpen,
+      corkboardOpen: s.corkboardOpen,
+      toggleAIDrawer: s.toggleAIDrawer,
+      toggleOutlineDrawer: s.toggleOutlineDrawer,
+      toggleSnapshotDrawer: s.toggleSnapshotDrawer,
+    })),
+  )
   const loading = useWritingStore((s) => s.loading)
   const init = useWritingStore((s) => s.init)
   const currentChapterId = useWritingStore((s) => s.currentChapterId)

@@ -238,19 +238,16 @@ export const useWritingStore = create<WritingState & WritingActions>()(
                   content: currentContent,
                   version_number: existingDrafts.length + 1,
                 })
-                // Refresh drafts
+                // Refresh drafts via public writer (v0.5 Phase 4.2 FE-001).
                 const updatedDrafts = await draftApi.list(currentChapterId)
-                useContentStore.setState((s) => { s.draftVersions = updatedDrafts })
+                contentStore.setDraftVersions(updatedDrafts)
 
                 // Auto-create snapshot (silent fail — non-blocking)
                 snapshotApi.create(currentChapterId, { content: currentContent }).catch(() => {})
               }
 
-              // Update chapter in contentStore
-              useContentStore.setState((s) => {
-                const ch = s.chapters.find((c) => c.id === currentChapterId)
-                if (ch) ch.word_count = wordCount
-              })
+              // Update chapter in contentStore via public writer (v0.5 Phase 4.2 FE-001).
+              useContentStore.getState().updateChapterWordCount(currentChapterId, wordCount)
 
               set((state) => {
                 state.saveStatus = 'saved'
@@ -287,19 +284,16 @@ export const useWritingStore = create<WritingState & WritingActions>()(
                   content: currentContent,
                   version_number: drafts.length + 1,
                 })
-                // Refresh drafts
+                // Refresh drafts via public writer (v0.5 Phase 4.2 FE-001).
                 const updatedDrafts = await draftApi.list(currentChapterId)
-                useContentStore.setState((s) => { s.draftVersions = updatedDrafts })
+                useContentStore.getState().setDraftVersions(updatedDrafts)
 
                 // Auto-create snapshot on periodic save (silent fail)
                 snapshotApi.create(currentChapterId, { content: currentContent }).catch(() => {})
               }
 
-              // Update chapter in contentStore
-              useContentStore.setState((s) => {
-                const ch = s.chapters.find((c) => c.id === currentChapterId)
-                if (ch) ch.word_count = wordCount
-              })
+              // Update chapter via public writer (v0.5 Phase 4.2 FE-001).
+              useContentStore.getState().updateChapterWordCount(currentChapterId, wordCount)
 
               set((state) => {
                 state.saveStatus = 'saved'

@@ -8,6 +8,7 @@
  */
 
 import { useState, useEffect, useCallback } from 'react'
+import { useShallow } from 'zustand/react/shallow'
 import { useWritingStore, useContentStore, useUIStore } from '@/store'
 import { ifLineApi } from '@/api/ifLineApi'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -110,10 +111,17 @@ function SortableTreeNode({
    ============================================================ */
 
 export function OutlineSidebar() {
-  const {
-    currentChapterId,
-    setCurrentChapter,
-  } = useWritingStore()
+  // v0.5 Phase 4.2 FE-022: useShallow groups many field picks so this
+  // heavy component only re-renders when ONE OF the picked fields
+  // changes (zustand default re-renders on ANY field change in the
+  // store). Collapsing 14 individual selectors to 2 subscriptions cuts
+  // render churn by an order of magnitude on chat-driven workflows.
+  const { currentChapterId, setCurrentChapter } = useWritingStore(
+    useShallow((s) => ({
+      currentChapterId: s.currentChapterId,
+      setCurrentChapter: s.setCurrentChapter,
+    })),
+  )
   const {
     chapters,
     outlines,
@@ -128,7 +136,23 @@ export function OutlineSidebar() {
     generating,
     outlineGenerationError,
     generateOutline,
-  } = useContentStore()
+  } = useContentStore(
+    useShallow((s) => ({
+      chapters: s.chapters,
+      outlines: s.outlines,
+      plotThreads: s.plotThreads,
+      fetchPlotThreads: s.fetchPlotThreads,
+      updatePlotThread: s.updatePlotThread,
+      ifLines: s.ifLines,
+      fetchIFLines: s.fetchIFLines,
+      createChapter: s.createChapter,
+      updateChapter: s.updateChapter,
+      deleteChapter: s.deleteChapter,
+      generating: s.generating,
+      outlineGenerationError: s.outlineGenerationError,
+      generateOutline: s.generateOutline,
+    })),
+  )
 
   const [activeTab, setActiveTab] = useState<'outline' | 'plot' | 'ifline'>('outline')
   const [chapterCount, setChapterCount] = useState(5)

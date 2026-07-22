@@ -52,6 +52,13 @@ interface ContentActions {
   // new server-side rows the existing snapshots don't know about.
   invalidate: () => void
 
+  // v0.5 Phase 4.2 FE-001: Public writers used by sibling slices
+  // (writingStore) so each side does NOT reach into the other's
+  // immutable state via `setState` directly. Both run inside the
+  // existing immer producer so callers get structural sharing.
+  setDraftVersions: (drafts: DraftVersion[]) => void
+  updateChapterWordCount: (id: number, wordCount: number) => void
+
   // Chapter CRUD
   setChapters: (chapters: Chapter[]) => void
   fetchChapters: () => Promise<void>
@@ -150,6 +157,24 @@ export const useContentStore = create<ContentState & ContentActions>()(
           state.loading.drafts = false
           state.loading.inspections = false
           state.outlineGenerationError = null
+        })
+      },
+
+      // ----------------------------------------
+      // Public writers (v0.5 Phase 4.2 FE-001)
+      // ----------------------------------------
+      // Sibling slices (writingStore) need to mutate chapters / drafts
+      // after their own async work. Exposing these as public actions
+      // means writingStore no longer reaches into contentStore's
+      // internals via setState.
+      setDraftVersions: (drafts) => {
+        set((state) => { state.draftVersions = drafts })
+      },
+
+      updateChapterWordCount: (id, wordCount) => {
+        set((state) => {
+          const ch = state.chapters.find((c) => c.id === id)
+          if (ch) ch.word_count = wordCount
         })
       },
 
