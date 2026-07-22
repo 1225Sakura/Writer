@@ -1,16 +1,13 @@
-import { EditorContent } from '@tiptap/react'
 import { useUIStore } from '@/store'
 import { linkageEventBus } from '@/store/linkageStore'
 import type { LinkageEventPayload } from '@/store/linkageStore'
-import { motion, AnimatePresence } from 'framer-motion'
+import { AnimatePresence } from 'framer-motion'
 import { EditorToolbar } from './EditorToolbar'
 import { WritingStatsOverlay } from './WritingStatsOverlay'
-import { DURATION, EASE } from '@/components/shared/AnimationConfig'
 import { FloatingWordCount } from './editor/FloatingWordCount'
-import { EmptyStatePrompt } from './editor/EmptyStatePrompt'
-import { WritingLoadingState } from './editor/WritingLoadingState'
 import { ChapterTitle } from './editor/ChapterTitle'
 import { StatusBar } from './editor/StatusBar'
+import { TiptapEditor } from './editor/TiptapEditor'
 import { WritingCanvasStatusBar } from './WritingCanvasStatusBar'
 import { useWritingEditor } from './useWritingEditor'
 import { InlineAIPopup } from './InlineAIPopup'
@@ -156,23 +153,13 @@ export function WritingCanvas() {
 
           <div className="min-h-full px-12 pb-16 relative">
             <AnimatePresence mode="wait">
-              {isLoading ? (
-                <WritingLoadingState key="loading" />
-              ) : isEmpty && !currentContent?.trim() ? (
-                <EmptyStatePrompt
-                  key="empty"
-                  onStart={() => editor?.commands.focus('end')}
-                />
-              ) : (
-                <motion.div
-                  key="editor"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ duration: DURATION.SLOW, ease: EASE.SMOOTH }}
-                >
-                  <EditorContent editor={editor} id="editor-content" />
-                </motion.div>
-              )}
+              <TiptapEditor
+                key="editor-shell"
+                editor={editor}
+                currentContent={currentContent}
+                isLoading={isLoading}
+                isEmpty={isEmpty}
+              />
             </AnimatePresence>
           </div>
         </div>

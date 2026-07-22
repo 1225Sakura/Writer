@@ -21,6 +21,7 @@ import { useCallback, useState } from 'react'
 import { Sparkles, ShieldCheck, Wand2, RefreshCw, Loader2, Check, AlertCircle } from 'lucide-react'
 import { Icon } from '@/components/ui/Icon'
 import { api } from '@/api/request'
+import { useContentStore } from '@/store/contentStore'
 
 export type EntityCategory =
   | 'character'
@@ -191,6 +192,11 @@ export function SettingsAIButtonGroup(props: SettingsAIButtonGroupProps) {
         const data = (await api.post(action.endpoint, body)) as { data?: unknown }
         const latencyMs = Date.now() - startedAt
         setStatus(action.key, 'success')
+        // Phase 3 E.3: invalidate the content store so the settings page
+        // refetches the entity we just generated / rewrote / filled.
+        // Without this, the table would still show stale data until the
+        // next manual refresh.
+        useContentStore.getState().invalidate()
         onResult?.(action.key, data)
         await emitAILog({
           action: action.key,

@@ -16,6 +16,7 @@ import { setEditorInstance } from '@/store/editorRegistry'
 import { useEffect, useRef, useCallback, useState } from 'react'
 import { showToast } from '@/components/ui/Toast'
 import { FocusModeExtension, ParagraphHighlightExtension, ParagraphHighlightPluginKey, InlineAIExtension, StyleCheckExtension } from './extensions'
+import { GhostTextExtension } from './ai/GhostTextExtension'
 
 export function useWritingEditor() {
   const {
@@ -112,6 +113,12 @@ export function useWritingEditor() {
       StyleCheckExtension.configure({
         enabled: true,
         debounceMs: 2000,
+      }),
+      GhostTextExtension.configure({
+        // Phase 3 E.1: snappy 200ms debounce so suggestions feel
+        // conversational, not laggy. Backend rate-limits per chapter so
+        // cost is bounded.
+        debounceMs: 200,
       }),
     ],
     content: currentContent,
