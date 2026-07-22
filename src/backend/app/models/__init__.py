@@ -44,6 +44,7 @@ from app.models.world_setting import WorldSetting  # noqa: E402
 from app.models.rule import Rule  # noqa: E402
 from app.models.context import ContextChunk, ContextStats, ContextWeights  # noqa: E402
 from app.models.engagement import EngagementScore, CoolPoint, Fulfillment  # noqa: E402
+from app.models.pacing import PacingCurve, Recommendation  # noqa: E402
 
 __all__ += [
     "AIProvider", "WritingSettings", "AIInspectionResult",
@@ -52,4 +53,5 @@ __all__ += [
     "ChatSession", "ChatMessage", "Faction", "WorldSetting", "Rule",
     "ContextChunk", "ContextStats", "ContextWeights",
     "EngagementScore", "CoolPoint", "Fulfillment",
+    "PacingCurve", "Recommendation",
 ]
