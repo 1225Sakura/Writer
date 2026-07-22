@@ -53,6 +53,7 @@ import {
   MAX_HISTORY,
   entityTypeToArrayName,
 } from './settingsTypes'
+import { createEntityHandlers } from './settingsEntityFactory'
 
 // ============================================
 // Data Slice State
@@ -655,320 +656,71 @@ export const createDataSlice = (
     )
   },
 
-  // ---- Item CRUD ----
+  // ---- Item / Location / Faction / WorldSetting / Rule CRUD ----
+  // FE-017 Phase 4.2: refactored to use createEntityHandlers factory.
+  // The factory returns `{ add, update, remove, getById, list }`; we alias
+  // them to `{ addItem, updateItem, deleteItem, ... }` to preserve the
+  // public DataSliceActions interface exactly.
 
-  addItem: async (item) => {
-    try {
-      const apiItem = await itemApi.create(item)
-      set((state) => { state.items.push(apiItem) })
-      return String(apiItem.id)
-    } catch (error) {
-      showOperationError('创建物品', error)
-      return ''
+  ...(() => {
+    const itemH = createEntityHandlers<Item>({ set, get }, {
+      entityType: 'item',
+      arrayKey: 'items',
+      apiClient: itemApi,
+      addLabel: '创建物品',
+      updateLabel: '更新物品',
+      deleteLabel: '删除物品',
+    })
+    const locationH = createEntityHandlers<Location>({ set, get }, {
+      entityType: 'location',
+      arrayKey: 'locations',
+      apiClient: locationApi,
+      addLabel: '创建地点',
+      updateLabel: '更新地点',
+      deleteLabel: '删除地点',
+    })
+    const factionH = createEntityHandlers<Faction>({ set, get }, {
+      entityType: 'faction',
+      arrayKey: 'factions',
+      apiClient: factionApi,
+      addLabel: '创建势力',
+      updateLabel: '更新势力',
+      deleteLabel: '删除势力',
+    })
+    const worldSettingH = createEntityHandlers<WorldSetting>({ set, get }, {
+      entityType: 'world',
+      arrayKey: 'worldSettings',
+      apiClient: worldSettingApi,
+      addLabel: '创建世界观',
+      updateLabel: '更新世界观',
+      deleteLabel: '删除世界观',
+    })
+    const ruleH = createEntityHandlers<Rule>({ set, get }, {
+      entityType: 'rule',
+      arrayKey: 'rules',
+      apiClient: ruleApi,
+      addLabel: '创建规则',
+      updateLabel: '更新规则',
+      deleteLabel: '删除规则',
+    })
+    return {
+      addItem: itemH.add,
+      updateItem: itemH.update,
+      deleteItem: itemH.remove,
+      addLocation: locationH.add,
+      updateLocation: locationH.update,
+      deleteLocation: locationH.remove,
+      addFaction: factionH.add,
+      updateFaction: factionH.update,
+      deleteFaction: factionH.remove,
+      addWorldSetting: worldSettingH.add,
+      updateWorldSetting: worldSettingH.update,
+      deleteWorldSetting: worldSettingH.remove,
+      addRule: ruleH.add,
+      updateRule: ruleH.update,
+      deleteRule: ruleH.remove,
     }
-  },
-
-  updateItem: async (id, updates) => {
-    try {
-      const oldItem = get().items.find((i) => i.id === id)
-      await itemApi.update(id, updates)
-      set((state) => {
-        const item = state.items.find((i) => i.id === id)
-        if (item) Object.assign(item, updates)
-        state.history.push({
-          id: genHistoryId(),
-          timestamp: Date.now(),
-          entityType: 'item',
-          entityId: id,
-          action: 'update',
-          description: `更新物品: ${updates.name || item?.name}`,
-          snapshot: oldItem ? { ...oldItem } : undefined,
-          forwardSnapshot: item ? { ...item } : undefined,
-        })
-        state.historyIndex = state.history.length - 1
-        state.canUndo = true
-        state.canRedo = false
-      })
-    } catch (error) {
-      showOperationError('更新物品', error)
-    }
-  },
-
-  deleteItem: async (id) => {
-    try {
-      const oldItem = get().items.find((i) => i.id === id)
-      await itemApi.delete(id)
-      set((state) => {
-        state.items = state.items.filter((i) => i.id !== id)
-        state.history.push({
-          id: genHistoryId(),
-          timestamp: Date.now(),
-          entityType: 'item',
-          entityId: id,
-          action: 'delete',
-          description: `删除物品: ${oldItem?.name || String(id)}`,
-          snapshot: oldItem ? { ...oldItem } : undefined,
-        })
-        state.historyIndex = state.history.length - 1
-        state.canUndo = true
-        state.canRedo = false
-      })
-    } catch (error) {
-      showOperationError('删除物品', error)
-    }
-  },
-
-  // ---- Location CRUD ----
-
-  addLocation: async (location) => {
-    try {
-      const apiLoc = await locationApi.create(location)
-      set((state) => { state.locations.push(apiLoc) })
-      return String(apiLoc.id)
-    } catch (error) {
-      showOperationError('创建地点', error)
-      return ''
-    }
-  },
-
-  updateLocation: async (id, updates) => {
-    try {
-      const oldLoc = get().locations.find((l) => l.id === id)
-      await locationApi.update(id, updates)
-      set((state) => {
-        const loc = state.locations.find((l) => l.id === id)
-        if (loc) Object.assign(loc, updates)
-        state.history.push({
-          id: genHistoryId(),
-          timestamp: Date.now(),
-          entityType: 'location',
-          entityId: id,
-          action: 'update',
-          description: `更新地点: ${updates.name || loc?.name}`,
-          snapshot: oldLoc ? { ...oldLoc } : undefined,
-          forwardSnapshot: loc ? { ...loc } : undefined,
-        })
-        state.historyIndex = state.history.length - 1
-        state.canUndo = true
-        state.canRedo = false
-      })
-    } catch (error) {
-      showOperationError('更新地点', error)
-    }
-  },
-
-  deleteLocation: async (id) => {
-    try {
-      const oldLoc = get().locations.find((l) => l.id === id)
-      await locationApi.delete(id)
-      set((state) => {
-        state.locations = state.locations.filter((l) => l.id !== id)
-        state.history.push({
-          id: genHistoryId(),
-          timestamp: Date.now(),
-          entityType: 'location',
-          entityId: id,
-          action: 'delete',
-          description: `删除地点: ${oldLoc?.name || String(id)}`,
-          snapshot: oldLoc ? { ...oldLoc } : undefined,
-        })
-        state.historyIndex = state.history.length - 1
-        state.canUndo = true
-        state.canRedo = false
-      })
-    } catch (error) {
-      showOperationError('删除地点', error)
-    }
-  },
-
-  // ---- Faction CRUD ----
-
-  addFaction: async (faction) => {
-    try {
-      const apiFac = await factionApi.create(faction)
-      set((state) => { state.factions.push(apiFac) })
-      return String(apiFac.id)
-    } catch (error) {
-      showOperationError('创建势力', error)
-      return ''
-    }
-  },
-
-  updateFaction: async (id, updates) => {
-    try {
-      const oldFac = get().factions.find((f) => f.id === id)
-      await factionApi.update(id, updates)
-      set((state) => {
-        const fac = state.factions.find((f) => f.id === id)
-        if (fac) Object.assign(fac, updates)
-        state.history.push({
-          id: genHistoryId(),
-          timestamp: Date.now(),
-          entityType: 'faction',
-          entityId: id,
-          action: 'update',
-          description: `更新势力: ${updates.name || fac?.name}`,
-          snapshot: oldFac ? { ...oldFac } : undefined,
-          forwardSnapshot: fac ? { ...fac } : undefined,
-        })
-        state.historyIndex = state.history.length - 1
-        state.canUndo = true
-        state.canRedo = false
-      })
-    } catch (error) {
-      showOperationError('更新势力', error)
-    }
-  },
-
-  deleteFaction: async (id) => {
-    try {
-      const oldFac = get().factions.find((f) => f.id === id)
-      await factionApi.delete(id)
-      set((state) => {
-        state.factions = state.factions.filter((f) => f.id !== id)
-        state.history.push({
-          id: genHistoryId(),
-          timestamp: Date.now(),
-          entityType: 'faction',
-          entityId: id,
-          action: 'delete',
-          description: `删除势力: ${oldFac?.name || String(id)}`,
-          snapshot: oldFac ? { ...oldFac } : undefined,
-        })
-        state.historyIndex = state.history.length - 1
-        state.canUndo = true
-        state.canRedo = false
-      })
-    } catch (error) {
-      showOperationError('删除势力', error)
-    }
-  },
-
-  // ---- WorldSetting CRUD ----
-
-  addWorldSetting: async (setting) => {
-    try {
-      const apiWS = await worldSettingApi.create(setting)
-      set((state) => { state.worldSettings.push(apiWS) })
-      return String(apiWS.id)
-    } catch (error) {
-      showOperationError('创建世界观', error)
-      return ''
-    }
-  },
-
-  updateWorldSetting: async (id, updates) => {
-    try {
-      const oldWS = get().worldSettings.find((w) => w.id === id)
-      await worldSettingApi.update(id, updates)
-      set((state) => {
-        const ws = state.worldSettings.find((w) => w.id === id)
-        if (ws) Object.assign(ws, updates)
-        state.history.push({
-          id: genHistoryId(),
-          timestamp: Date.now(),
-          entityType: 'world',
-          entityId: id,
-          action: 'update',
-          description: `更新世界观: ${updates.name || ws?.name}`,
-          snapshot: oldWS ? { ...oldWS } : undefined,
-          forwardSnapshot: ws ? { ...ws } : undefined,
-        })
-        state.historyIndex = state.history.length - 1
-        state.canUndo = true
-        state.canRedo = false
-      })
-    } catch (error) {
-      showOperationError('更新世界观', error)
-    }
-  },
-
-  deleteWorldSetting: async (id) => {
-    try {
-      const oldWS = get().worldSettings.find((w) => w.id === id)
-      await worldSettingApi.delete(id)
-      set((state) => {
-        state.worldSettings = state.worldSettings.filter((w) => w.id !== id)
-        state.history.push({
-          id: genHistoryId(),
-          timestamp: Date.now(),
-          entityType: 'world',
-          entityId: id,
-          action: 'delete',
-          description: `删除世界观: ${oldWS?.name || String(id)}`,
-          snapshot: oldWS ? { ...oldWS } : undefined,
-        })
-        state.historyIndex = state.history.length - 1
-        state.canUndo = true
-        state.canRedo = false
-      })
-    } catch (error) {
-      showOperationError('删除世界观', error)
-    }
-  },
-
-  // ---- Rule CRUD ----
-
-  addRule: async (rule) => {
-    try {
-      const apiRule = await ruleApi.create(rule)
-      set((state) => { state.rules.push(apiRule) })
-      return String(apiRule.id)
-    } catch (error) {
-      showOperationError('创建规则', error)
-      return ''
-    }
-  },
-
-  updateRule: async (id, updates) => {
-    try {
-      const oldRule = get().rules.find((r) => r.id === id)
-      await ruleApi.update(id, updates)
-      set((state) => {
-        const r = state.rules.find((x) => x.id === id)
-        if (r) Object.assign(r, updates)
-        state.history.push({
-          id: genHistoryId(),
-          timestamp: Date.now(),
-          entityType: 'rule',
-          entityId: id,
-          action: 'update',
-          description: `更新规则: ${updates.name || r?.name}`,
-          snapshot: oldRule ? { ...oldRule } : undefined,
-          forwardSnapshot: r ? { ...r } : undefined,
-        })
-        state.historyIndex = state.history.length - 1
-        state.canUndo = true
-        state.canRedo = false
-      })
-    } catch (error) {
-      showOperationError('更新规则', error)
-    }
-  },
-
-  deleteRule: async (id) => {
-    try {
-      const oldRule = get().rules.find((r) => r.id === id)
-      await ruleApi.delete(id)
-      set((state) => {
-        state.rules = state.rules.filter((r) => r.id !== id)
-        state.history.push({
-          id: genHistoryId(),
-          timestamp: Date.now(),
-          entityType: 'rule',
-          entityId: id,
-          action: 'delete',
-          description: `删除规则: ${oldRule?.name || String(id)}`,
-          snapshot: oldRule ? { ...oldRule } : undefined,
-        })
-        state.historyIndex = state.history.length - 1
-        state.canUndo = true
-        state.canRedo = false
-      })
-    } catch (error) {
-      showOperationError('删除规则', error)
-    }
-  },
+  })(),
 
   // ---- Outline ----
 
