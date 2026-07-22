@@ -7,13 +7,12 @@ v0.4 P0-Sec8: X-Request-ID middleware generates/mints correlation_id per request
 """
 from __future__ import annotations
 
-import uuid
-
-from fastapi import FastAPI, Request
+from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from starlette.middleware.base import BaseHTTPMiddleware
 
 from app.config import get_settings
+from app.core.logging import configure_logging
+from app.core.middleware import CorrelationIDMiddleware
 from app.routers import api_router, chat_ws_router
 from app.routers.auth import router as auth_router
 from app.core.exceptions import (
@@ -24,16 +23,8 @@ from app.core.exceptions import (
 )
 # Tables managed by Alembic (alembic upgrade head on deploy)
 
-
-class CorrelationIDMiddleware(BaseHTTPMiddleware):
-    """Mint or read X-Request-ID; attach to request.state for exception handlers."""
-
-    async def dispatch(self, request: Request, call_next):
-        cid = request.headers.get("X-Request-ID") or str(uuid.uuid4())
-        request.state.correlation_id = cid
-        response = await call_next(request)
-        response.headers["X-Request-ID"] = cid
-        return response
+# Configure root logger with correlation_id filter + formatter (idempotent).
+configure_logging()
 
 settings = get_settings()
 
@@ -44,21 +35,27 @@ app = FastAPI(
     redoc_url="/redoc" if settings.debug else None,
 )
 
-# CORS — v0.4 P0-Sec6: restrict to specific origins (was overly broad: all localhost + file://)
-ALLOWED_ORIGINS = [
-    "http://localhost:5173",  # Vite dev server
-    "http://localhost:8000",   # Backend health check from browser
-    "app://writer",            # Electron renderer (custom protocol)
-]
+# v0.4 P0-Sec8: Register CorrelationIDMiddleware so X-Request-ID is captured
+# at the outermost layer (caller-supplied or freshly minted).
+# Starlette's add_middleware does `user_middleware.insert(0, ...)` — each
+# later call is PREPENDED. After build_middleware_stack wraps in order,
+# the first element of user_middleware becomes the OUTERMOST wrapper.
+# Therefore we add CORSMiddleware FIRST, then CorrelationIDMiddleware —
+# so the final wrap order is: CorrelationID → CORS → router.
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=ALLOWED_ORIGINS,
+    allow_origins=[
+        "http://localhost:5173",  # Vite dev server
+        "http://localhost:8000",   # Backend health check from browser
+        "app://writer",            # Electron renderer (custom protocol)
+    ],
     allow_origin_regex=r"^https?://(127\.0\.0\.1|localhost)(:\d+)?$",
     allow_credentials=True,
     allow_methods=["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
     allow_headers=["Content-Type", "Authorization", "X-API-Key", "X-Request-ID"],
     expose_headers=["X-Request-ID"],
 )
+app.add_middleware(CorrelationIDMiddleware)
 
 # Exception handlers
 app.add_exception_handler(WriterException, writer_exception_handler)
