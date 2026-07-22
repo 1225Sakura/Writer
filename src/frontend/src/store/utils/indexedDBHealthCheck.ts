@@ -7,7 +7,7 @@
  * - Manual test: simulate quota exceeded → banner displays after restart
  */
 
-import { openDB, type IDBPDatabase, type DBSchema } from 'idb'
+import { openDB } from 'idb'
 import { indexedDBStorage, IndexedDBStorageError } from './indexedDBStorage'
 
 const DB_NAME = 'writer-store-db'

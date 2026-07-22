@@ -1,5 +1,5 @@
 """AI generation SSE route."""
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
 from fastapi.responses import StreamingResponse
 
 from app.services.ai_generate import stream_chunks

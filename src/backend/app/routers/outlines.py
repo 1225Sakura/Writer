@@ -7,7 +7,6 @@ from __future__ import annotations
 from fastapi import APIRouter, Depends, Query
 
 from app.schemas import (
-from app.core.security import verify_api_key
     ApiResponse,
     ForkOutlineRequest,
     ForkOutlineResponse,
@@ -18,6 +17,7 @@ from app.core.security import verify_api_key
     OutlineUpdate,
 )
 from app.core.exceptions import NotFoundException
+from app.core.security import verify_api_key
 from app.dependencies import (
     get_outline_fork_service,
     get_outline_generator_service,

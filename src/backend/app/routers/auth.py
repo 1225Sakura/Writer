@@ -8,7 +8,7 @@ from __future__ import annotations
 from fastapi import APIRouter, Depends, HTTPException, status
 
 from app.config import get_settings
-from app.core.security import get_or_init_api_key
+from app.core.security import get_or_init_api_key, verify_api_key
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 

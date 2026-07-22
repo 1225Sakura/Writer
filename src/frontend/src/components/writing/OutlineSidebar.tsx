@@ -8,7 +8,8 @@
  */
 
 import { useState, useEffect, useCallback } from 'react'
-import { useWritingStore, useContentStore } from '@/store'
+import { useWritingStore, useContentStore, useUIStore } from '@/store'
+import { ifLineApi } from '@/api/ifLineApi'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   List,
@@ -135,6 +136,15 @@ export function OutlineSidebar() {
   const [activeId, setActiveId] = useState<string | null>(null)
   const [contextMenu, setContextMenu] = useState<{ x: number; y: number; itemId: string } | null>(null)
   const [renamingId, setRenamingId] = useState<string | null>(null)
+  const [forkingIfLineId, setForkingIfLineId] = useState<string | null>(null)
+  const [forkTarget, setForkTarget] = useState<string | null>(null)
+
+  // Feature flag: only render the fork UI when explicitly enabled
+  // (v0.5 patch Phase 0a.5 vertical slice). Default is OFF in shipped
+  // builds; tests flip it via window.__writerE2E.useUIStore.getState()
+  // before opening the sidebar.
+  const ifUiEnabled = useUIStore((s) => s.feature_flags.IF_UI)
+  const setFeatureFlag = useUIStore((s) => s.setFeatureFlag)
 
   // DnD sensors
   const sensors = useSensors(
@@ -516,8 +526,63 @@ export function OutlineSidebar() {
                 />
               ) : (
                 ifLines.map((line) => (
-                  <IFLineItem key={line.id} line={line} />
+                  <div key={line.id} className="space-y-1.5">
+                    <IFLineItem line={line} />
+                    {ifUiEnabled && (
+                      <button
+                        type="button"
+                        data-testid={`fork-if-line-${line.id}`}
+                        aria-label={`分叉 IF 线 ${(line as { name?: string }).name ?? line.id}`}
+                        disabled={forkingIfLineId === String(line.id)}
+                        onClick={async () => {
+                          const sourceChapterId = currentChapterId
+                            ? String(currentChapterId)
+                            : undefined
+                          setForkingIfLineId(String(line.id))
+                          setForkTarget(currentChapterId ? String(currentChapterId) : null)
+                          try {
+                            const data = await ifLineApi.forkIFLine(
+                              String(line.id),
+                              sourceChapterId ? { source_chapter_id: sourceChapterId } : {}
+                            )
+                            showToast(
+                              `已分叉 IF 线 (新章节 #${data.forked_chapter_id})`,
+                              'success',
+                            )
+                            // Refresh chapters + IF lines so the new branch appears.
+                            await fetchIFLines()
+                          } catch (err) {
+                            const message =
+                              (err as { message?: string })?.message ?? '分叉失败'
+                            showToast(message, 'error')
+                          } finally {
+                            setForkingIfLineId(null)
+                            setForkTarget(null)
+                          }
+                        }}
+                        className="w-full flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-medium border border-dashed border-[var(--border-default)] text-[var(--text-tertiary)] hover:text-[var(--accent-primary)] hover:border-[var(--accent-primary)]/40 hover:bg-[var(--accent-primary)]/5 transition-colors disabled:opacity-50"
+                      >
+                        <Icon icon={GitBranch} size="xs" />
+                        {forkingIfLineId === String(line.id) && forkTarget
+                          ? `分叉中… (锚点章节 ${forkTarget})`
+                          : '分叉 IF 线'}
+                      </button>
+                    )}
+                  </div>
                 ))
+              )}
+
+              {/* Dev-only toggle for the feature flag (only shown in dev builds). */}
+              {import.meta.env.DEV && (
+                <label className="mt-2 flex items-center gap-2 text-[11px] text-[var(--text-tertiary)]">
+                  <input
+                    type="checkbox"
+                    checked={ifUiEnabled}
+                    onChange={(e) => setFeatureFlag('IF_UI', e.target.checked)}
+                    data-testid="toggle-if-ui"
+                  />
+                  <span>启用 IF 线分叉 UI（v0.5 vertical slice）</span>
+                </label>
               )}
             </motion.div>
           )}

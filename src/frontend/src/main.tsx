@@ -11,6 +11,7 @@ import {
   useAIStore,
   useSyncStore,
 } from './store'
+import { ifLineApi } from './api/ifLineApi'
 import { initAuth } from './api/auth'
 import './styles/index.css'
 
@@ -36,6 +37,8 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
 if (import.meta.env.DEV) {
   // US-025 (Phase 5): also expose UI/writing/content/AI stores so the e2e
   // driver can set currentChapterId, drive AI shortcuts, and read AI log.
+  // v0.5 patch Phase 0a.5: also expose ifLineApi for the IF vertical-slice
+  // e2e driver (no UI button to flip the feature flag at runtime).
   ;(window as unknown as { __writerE2E?: unknown }).__writerE2E = {
     useChatStore,
     useSettingsStore,
@@ -44,6 +47,7 @@ if (import.meta.env.DEV) {
     useContentStore,
     useAIStore,
     useSyncStore,
+    ifLineApi,
   }
 }
 

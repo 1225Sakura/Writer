@@ -35,6 +35,7 @@ from app.routers.chapters import chapters_router
 from app.routers.drafts import drafts_router
 from app.routers.chat import router as chat_router
 from app.routers.chat_ws import router as chat_ws_router
+from app.routers.if_minimal import router as if_minimal_router
 
 api_router = APIRouter(prefix="/api/v1")
 
@@ -57,6 +58,7 @@ api_router.include_router(outlines_router)
 api_router.include_router(chapters_router)
 api_router.include_router(drafts_router)
 api_router.include_router(chat_router)
+api_router.include_router(if_minimal_router)
 
 # WebSocket routes are mounted on the bare FastAPI app (not under /api/v1)
 # so the frontend ChatWebSocketClient URL ws://host:port/ws/chat/{id} resolves

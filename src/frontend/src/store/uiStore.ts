@@ -85,6 +85,13 @@ export interface UIState {
 
   // Toast/notification queue
   toasts: Toast[]
+
+  // Feature flags (v0.5 patch Phase 0a.5)
+  // All defaults are false so previously-shipped UIs are unaffected.
+  feature_flags: {
+    /** Enable IF vertical slice UI (fork IF line button in OutlineSidebar). */
+    IF_UI: boolean
+  }
 }
 
 export interface Toast {
@@ -162,6 +169,9 @@ interface UIActions {
   addToast: (toast: Omit<Toast, 'id'>) => string
   removeToast: (id: string) => void
   clearToasts: () => void
+
+  // Feature flags (v0.5 patch Phase 0a.5)
+  setFeatureFlag: (key: keyof UIState['feature_flags'], value: boolean) => void
 }
 
 // ============================================
@@ -205,6 +215,9 @@ export const useUIStore = create<UIState & UIActions>()(
           fontSize: 16,
           toasts: [],
           reducedMotion: false,
+          feature_flags: {
+            IF_UI: false,
+          },
           lowPerformanceMode: false,
 
           // ----------------------------------------
@@ -553,6 +566,16 @@ export const useUIStore = create<UIState & UIActions>()(
 
           clearToasts: () => {
             set((state) => { state.toasts = [] })
+          },
+
+          // ----------------------------------------
+          // Feature flags (v0.5 patch Phase 0a.5)
+          // ----------------------------------------
+
+          setFeatureFlag: (key, value) => {
+            set((state) => {
+              state.feature_flags[key] = value
+            })
           },
         }),
         {
