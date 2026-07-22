@@ -46,6 +46,7 @@ from app.models.context import ContextChunk, ContextStats, ContextWeights  # noq
 from app.models.engagement import EngagementScore, CoolPoint, Fulfillment  # noqa: E402
 from app.models.pacing import PacingCurve, Recommendation  # noqa: E402
 from app.models.observability import MetricEvent, ErrorEvent, AuditEvent, UsageEvent  # noqa: E402
+from app.models.snapshots import Snapshot, SnapshotTag  # noqa: E402
 
 __all__ += [
     "AIProvider", "WritingSettings", "AIInspectionResult",
@@ -56,4 +57,5 @@ __all__ += [
     "EngagementScore", "CoolPoint", "Fulfillment",
     "PacingCurve", "Recommendation",
     "MetricEvent", "ErrorEvent", "AuditEvent", "UsageEvent",
+    "Snapshot", "SnapshotTag",
 ]

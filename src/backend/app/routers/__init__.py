@@ -40,6 +40,7 @@ from app.routers.context import router as context_router
 from app.routers.engagement import router as engagement_router
 from app.routers.pacing import router as pacing_router
 from app.routers.observability import router as observability_router
+from app.routers.snapshots import router as snapshots_router
 
 api_router = APIRouter(prefix="/api/v1")
 
@@ -67,6 +68,7 @@ api_router.include_router(context_router)
 api_router.include_router(engagement_router)
 api_router.include_router(pacing_router)
 api_router.include_router(observability_router)
+api_router.include_router(snapshots_router)
 
 # WebSocket routes are mounted on the bare FastAPI app (not under /api/v1)
 # so the frontend ChatWebSocketClient URL ws://host:port/ws/chat/{id} resolves
