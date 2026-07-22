@@ -42,10 +42,12 @@ from app.models.chat import ChatSession, ChatMessage  # noqa: E402
 from app.models.faction import Faction  # noqa: E402
 from app.models.world_setting import WorldSetting  # noqa: E402
 from app.models.rule import Rule  # noqa: E402
+from app.models.context import ContextChunk, ContextStats, ContextWeights  # noqa: E402
 
 __all__ += [
     "AIProvider", "WritingSettings", "AIInspectionResult",
     "Character", "CharacterRelationship", "CharacterStoryline",
     "Item", "Location", "Outline", "Chapter", "Draft", "Project", "IFLine",
     "ChatSession", "ChatMessage", "Faction", "WorldSetting", "Rule",
+    "ContextChunk", "ContextStats", "ContextWeights",
 ]
