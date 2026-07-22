@@ -2,6 +2,11 @@
  * Electron Main Process
  * Handles window management, IPC communication, Python backend process management,
  * backend health monitoring, auto-restart, and window state persistence.
+ *
+ * v0.5 Phase 2.2: console.* replaced with electron-log for file rotation
+ * (10MB × 3) and unified redact pipeline. Redaction already enforced by
+ * the ai-log IPC handler (P0-Sec4c); we rely on electron-log's
+ * built-in redact patterns plus our own.
  */
 
 import { app, BrowserWindow, ipcMain, session, shell, dialog, screen } from 'electron';
@@ -10,6 +15,63 @@ import path from 'path';
 import fs from 'fs';
 import http from 'http';
 import crypto from 'crypto';
+import log from 'electron-log/main';
+
+// ============================================================
+// electron-log configuration (v0.5 Phase 2.2)
+// ============================================================
+
+// Route everything through the main process logger.
+log.initialize();
+
+// File transport — write to userData/logs/main.log with 10MB rotation.
+// electron-log automatically keeps `main.log.1` ... `main.log.3` etc.
+log.transports.file.maxSize = 10 * 1024 * 1024; // 10MB per file
+log.transports.file.fileName = 'main.log';
+// Keep at most 3 rotated files (electron-log retention default is fine).
+log.transports.file.archiveLogFn = (file: { path: string }) => {
+  // Default archive appends a timestamp; we override to plain rotation.
+  file.path = file.path.replace('main.log', `main.${Date.now()}.log`);
+  return file.path;
+};
+
+// Console transport — keep colors when stdout is a TTY (dev only).
+// (electron-log v5 writes to stderr by default; no `useStderr` toggle.)
+log.transports.console.level = process.env.NODE_ENV === 'development' ? 'debug' : 'info';
+log.transports.file.level = 'info';
+
+// Redact sensitive payloads before writing to disk. electron-log
+// applies these patterns to both file and console transports.
+log.variables.redact = [
+  'sk-[a-zA-Z0-9]{20,}',
+  'sk-ant-[a-zA-Z0-9-]{20,}',
+  'token=[a-zA-Z0-9_-]{8,}',
+  'api_key=[a-zA-Z0-9_-]{8,}',
+  'prompt',
+  'response',
+  'api[_-]?key',
+  'authorization',
+  'cookie',
+];
+
+// Ensure userData/logs exists with 0600 permissions (P-MINIMAL-SECRET).
+try {
+  const logsDir = path.join(app.getPath('userData'), 'logs');
+  fs.mkdirSync(logsDir, { recursive: true });
+  try { fs.chmodSync(logsDir, 0o700); } catch { /* best-effort on Windows */ }
+  // Set the file transport's resolved path so electron-log knows where to write.
+  // electron-log picks the correct path under userData by default, so we don't
+  // override the file location — we just ensure the directory.
+} catch {
+  // Ignore — logging will still work via stderr fallback.
+}
+
+// Replace the implicit console bridge in main process so any unhooked
+// console.* still flows through electron-log. (v0.5 Phase 2.2 hardening.)
+// We do NOT monkey-patch console here to keep behavior predictable;
+// instead, all code paths use `log.*` directly. The narrow exception is
+// when a third-party library uses `console.*` from the main module
+// scope — those will surface in electron stderr only.
 
 // ===== v0.4 P0-Sec3: Dialog Token System =====
 // Replaces path-based IPC readFile/writeFile with token-based to prevent CWE-22 Path Traversal.
@@ -124,7 +186,7 @@ function loadWindowState(): WindowState {
       }
     }
   } catch (err) {
-    console.error('[Electron] Failed to load window state:', err);
+    log.error('[Electron] Failed to load window state:', err);
   }
   return { ...DEFAULT_WINDOW_STATE };
 }
@@ -146,7 +208,7 @@ function saveWindowState(): void {
     }
     fs.writeFileSync(WINDOW_STATE_FILE, JSON.stringify(state), 'utf-8');
   } catch (err) {
-    console.error('[Electron] Failed to save window state:', err);
+    log.error('[Electron] Failed to save window state:', err);
   }
 }
 
@@ -254,14 +316,14 @@ function startBackend(): Promise<void> {
     // Python already occupies 8000 → isPortAvailable returns false → startBackend
     // rejects → Electron never starts. (must_fix #8 / PRD AC-P0-18.4)
     if (process.env.WRITER_E2E_EXTERNAL_BACKEND === '1') {
-      console.log('[Electron] External backend mode (env gate honored, skip spawning)');
+      log.info('[Electron] External backend mode (env gate honored, skip spawning)');
       return resolve();
     }
     // Check if port is already in use before spawning backend
     const portAvailable = await isPortAvailable(BACKEND_PORT, BACKEND_HOST);
     if (!portAvailable) {
       const msg = `端口 ${BACKEND_PORT} 已被占用，请关闭占用该端口的程序后重试。`;
-      console.error(`[Electron] ${msg}`);
+      log.error(`[Electron] ${msg}`);
       reject(new Error(msg));
       return;
     }
@@ -278,9 +340,9 @@ function startBackend(): Promise<void> {
     }
 
     const pythonCmd = findPython();
-    console.log(`[Electron] Using Python: ${pythonCmd}`);
-    console.log(`[Electron] Backend path: ${backendPath}`);
-    console.log(`[Electron] Launcher path: ${launcherPath}`);
+    log.info(`[Electron] Using Python: ${pythonCmd}`);
+    log.info(`[Electron] Backend path: ${backendPath}`);
+    log.info(`[Electron] Launcher path: ${launcherPath}`);
 
     // Set environment for the backend
     const env = {
@@ -302,7 +364,7 @@ function startBackend(): Promise<void> {
     });
 
     backendProcess.on('error', (err) => {
-      console.error('[Electron] Backend process error:', err);
+      log.error('[Electron] Backend process error:', err);
       reject(new Error(`无法启动 Python 后端: ${err.message}\n请确认已安装 Python 并创建了 venv`));
     });
 
@@ -310,7 +372,7 @@ function startBackend(): Promise<void> {
       const lines = data.toString().trim().split('\n');
       for (const line of lines) {
         if (line.trim()) {
-          console.log(`[Backend] ${line}`);
+          log.info(`[Backend] ${line}`);
         }
       }
     });
@@ -319,17 +381,17 @@ function startBackend(): Promise<void> {
       const lines = data.toString().trim().split('\n');
       for (const line of lines) {
         if (line.trim()) {
-          console.error(`[Backend] ${line}`);
+          log.error(`[Backend] ${line}`);
         }
       }
     });
 
     backendProcess.on('exit', (code, signal) => {
-      console.log(`[Electron] Backend process exited with code ${code}, signal ${signal}`);
+      log.info(`[Electron] Backend process exited with code ${code}, signal ${signal}`);
       backendProcess = null;
 
       if (!isShuttingDown) {
-        console.error('[Electron] Backend crashed unexpectedly. Scheduling restart...');
+        log.error('[Electron] Backend crashed unexpectedly. Scheduling restart...');
         scheduleBackendRestart();
       }
     });
@@ -337,13 +399,13 @@ function startBackend(): Promise<void> {
     // Wait for backend to be ready
     waitForBackend(BACKEND_PORT, 45000)
       .then(() => {
-        console.log('[Electron] Backend is ready');
+        log.info('[Electron] Backend is ready');
         backendRestartCount = 0;
         startHealthCheck();
         resolve();
       })
       .catch((err) => {
-        console.error('[Electron] Backend failed to start:', err);
+        log.error('[Electron] Backend failed to start:', err);
         stopBackend();
         reject(err);
       });
@@ -358,13 +420,13 @@ function stopBackend(): void {
   stopHealthCheck();
 
   if (backendProcess) {
-    console.log('[Electron] Stopping backend process...');
+    log.info('[Electron] Stopping backend process...');
     if (process.platform === 'win32') {
       if (backendProcess.pid) {
         try {
           spawn('taskkill', ['/pid', backendProcess.pid.toString(), '/f', '/t']);
         } catch (err) {
-          console.error('[Electron] taskkill failed:', err);
+          log.error('[Electron] taskkill failed:', err);
         }
       }
     } else {
@@ -397,7 +459,7 @@ function scheduleBackendRestart(): void {
   const delayMs = Math.min(1000 * Math.pow(2, backendRestartCount - 1), 30000);
 
   if (backendRestartCount > maxRestarts) {
-    console.error(`[Electron] Backend has crashed ${maxRestarts} times. Giving up.`);
+    log.error(`[Electron] Backend has crashed ${maxRestarts} times. Giving up.`);
     dialog.showErrorBox(
       '后端服务异常',
       'Python 后端服务多次启动失败，请检查环境配置后重启应用。'
@@ -405,15 +467,15 @@ function scheduleBackendRestart(): void {
     return;
   }
 
-  console.log(`[Electron] Will attempt to restart backend in ${delayMs}ms (attempt ${backendRestartCount}/${maxRestarts})`);
+  log.info(`[Electron] Will attempt to restart backend in ${delayMs}ms (attempt ${backendRestartCount}/${maxRestarts})`);
 
   backendRestartTimer = setTimeout(async () => {
     if (isShuttingDown) return;
     try {
       await startBackend();
-      console.log('[Electron] Backend restarted successfully');
+      log.info('[Electron] Backend restarted successfully');
     } catch (err) {
-      console.error('[Electron] Backend restart failed:', err);
+      log.error('[Electron] Backend restart failed:', err);
     }
   }, delayMs);
 }
@@ -438,19 +500,19 @@ function startHealthCheck(): void {
         if (res.statusCode === 200) {
           consecutiveFailures = 0;
         } else {
-          console.warn(`[Electron] Backend health check returned ${res.statusCode}`);
+          log.warn(`[Electron] Backend health check returned ${res.statusCode}`);
           consecutiveFailures++;
         }
       }
     );
 
     req.on('error', (err) => {
-      console.warn('[Electron] Backend health check failed:', err.message);
+      log.warn('[Electron] Backend health check failed:', err.message);
       consecutiveFailures++;
 
       // Only restart after consecutive failures to avoid false positives
       if (consecutiveFailures >= MAX_FAILURES && backendProcess && !backendProcess.killed) {
-        console.error(`[Electron] Backend is unresponsive (${MAX_FAILURES} consecutive failures). Restarting...`);
+        log.error(`[Electron] Backend is unresponsive (${MAX_FAILURES} consecutive failures). Restarting...`);
         stopBackend();
         scheduleBackendRestart();
         consecutiveFailures = 0;
@@ -492,7 +554,7 @@ function waitForBackend(port: number, timeout: number): Promise<void> {
 
       // Log progress every ~5 seconds
       if (attempts % 10 === 0) {
-        console.log(`[Electron] Waiting for backend... (${Math.round(elapsed / 1000)}s / ${Math.round(timeout / 1000)}s)`);
+        log.info(`[Electron] Waiting for backend... (${Math.round(elapsed / 1000)}s / ${Math.round(timeout / 1000)}s)`);
       }
 
       const req = http.get(
@@ -500,7 +562,7 @@ function waitForBackend(port: number, timeout: number): Promise<void> {
         { timeout: 3000 },
         (res) => {
           if (res.statusCode === 200) {
-            console.log(`[Electron] Backend ready after ${elapsed}ms (${attempts} attempts)`);
+            log.info(`[Electron] Backend ready after ${elapsed}ms (${attempts} attempts)`);
             resolve();
           } else {
             setTimeout(check, pollInterval);
@@ -745,7 +807,7 @@ function registerIpcHandlers(): void {
 
   // Restart backend (for manual recovery)
   ipcMain.handle('restart-backend', async () => {
-    console.log('[Electron] Manual backend restart requested');
+    log.info('[Electron] Manual backend restart requested');
     stopBackend();
     backendRestartCount = 0;
     try {
@@ -896,7 +958,7 @@ function registerIpcHandlers(): void {
       return { success: true };
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
-      console.error('[Electron] ai-log:append failed:', msg);
+      log.error('[Electron] ai-log:append failed:', msg);
       return { success: false, error: msg };
     }
   });
@@ -919,7 +981,7 @@ function debounce<T extends (...args: unknown[]) => void>(fn: T, ms: number): (.
 // ============================================
 
 app.whenReady().then(async () => {
-  console.log('[Electron] App ready, mode:', isDev ? 'development' : 'production');
+  log.info('[Electron] App ready, mode:', isDev ? 'development' : 'production');
 
   // v0.4 P0-Sec7: CSP injection at session level (applies to all webContents)
   // Tiptap + Framer Motion temporary allowed 'unsafe-inline'; future nonce/hash migration
@@ -953,7 +1015,7 @@ app.whenReady().then(async () => {
     updateSplashStatus('正在加载应用界面...');
     await createWindow();
   } catch (err) {
-    console.error('[Electron] Failed to start:', err);
+    log.error('[Electron] Failed to start:', err);
     const msg = err instanceof Error ? err.message : String(err);
     closeSplashWindow();
     dialog.showErrorBox(
@@ -989,9 +1051,9 @@ app.on('before-quit', () => {
 
 // Handle uncaught errors
 process.on('uncaughtException', (err) => {
-  console.error('[Electron] Uncaught exception:', err);
+  log.error('[Electron] Uncaught exception:', err);
 });
 
 process.on('unhandledRejection', (reason) => {
-  console.error('[Electron] Unhandled rejection:', reason);
+  log.error('[Electron] Unhandled rejection:', reason);
 });

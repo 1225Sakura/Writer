@@ -4,8 +4,13 @@
 No async engine complexity needed. SQLite WAL mode handles concurrency well enough.
 
 v0.4 P0-Sec8: X-Request-ID middleware generates/mints correlation_id per request.
+
+v0.5 Phase 2.3: OpenTelemetry FastAPI instrumentation + structlog JSON
+logs wired via app.core.logging.configure_logging.
 """
 from __future__ import annotations
+
+import logging
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -24,6 +29,7 @@ from app.core.exceptions import (
 # Tables managed by Alembic (alembic upgrade head on deploy)
 
 # Configure root logger with correlation_id filter + formatter (idempotent).
+# Also configures structlog JSON pipeline (no-op if structlog missing).
 configure_logging()
 
 settings = get_settings()
@@ -34,6 +40,25 @@ app = FastAPI(
     docs_url="/docs" if settings.debug else None,
     redoc_url="/redoc" if settings.debug else None,
 )
+
+# v0.5 Phase 2.3: OpenTelemetry FastAPI instrumentation. Wraps request
+# handlers to emit spans for incoming HTTP traffic. The default OTLP
+# HTTP exporter is disabled by default — traces land in-memory unless
+# OTEL_EXPORTER_OTLP_ENDPOINT is configured. The instrumentation is
+# wrapped in a try/except so CI without the opentelemetry package
+# doesn't crash the app at import time.
+try:
+    from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor  # type: ignore
+    FastAPIInstrumentor.instrument_app(app)
+    logging.getLogger(__name__).info(
+        "opentelemetry.fastapi.instrumentation.enabled",
+        extra={"otel_instrumentation": "fastapi"},
+    )
+except Exception as exc:  # pragma: no cover — defensive
+    logging.getLogger(__name__).debug(
+        "opentelemetry.fastapi.instrumentation.skipped",
+        extra={"reason": str(exc)},
+    )
 
 # v0.4 P0-Sec8: Register CorrelationIDMiddleware so X-Request-ID is captured
 # at the outermost layer (caller-supplied or freshly minted).
