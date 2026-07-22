@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback } from 'react'
+import { useState, useMemo, useCallback, useCallback as _ucb } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   DndContext,
@@ -16,12 +16,23 @@ import {
   rectSortingStrategy,
   arrayMove,
 } from '@dnd-kit/sortable'
+import { Grid } from 'react-window'
 import { useContentStore, useWritingStore, useUIStore } from '@/store'
 import { chapterApi } from '@/api/writing'
 import { showOperationError } from '@/utils/toastHelper'
-import { ChapterCard, ChapterCardOverlay } from './ChapterCard'
+import { ChapterCardOverlay } from './ChapterCard'
 import { CorkboardToolbar, type SortMode } from './CorkboardToolbar'
-import { STAGGER_CONTAINER, STAGGER_ITEM } from '@/components/shared/AnimationConfig'
+import { STAGGER_CONTAINER } from '@/components/shared/AnimationConfig'
+import { useContainerSize } from './useContainerSize'
+import { CorkboardCell } from './CorkboardCell'
+import { CorkboardEmptyState } from './CorkboardEmptyState'
+import {
+  CARD_HEIGHT,
+  CARD_MIN_WIDTH,
+  GRID_GAP,
+  OVERSCAN_ROWS,
+  computeColumnCount,
+} from './corkboardConstants'
 import type { Chapter, ChapterStatus } from '@/shared/types'
 
 /* ---- Component ---- */
@@ -49,13 +60,9 @@ export function CorkboardView() {
 
   const filteredChapters = useMemo(() => {
     let result = [...chapters]
-
-    // Filter
     if (filterStatus !== 'all') {
       result = result.filter((c) => c.status === filterStatus)
     }
-
-    // Sort
     switch (sortMode) {
       case 'order':
         result.sort((a, b) => a.chapter_order - b.chapter_order)
@@ -74,7 +81,6 @@ export function CorkboardView() {
         break
       }
     }
-
     return result
   }, [chapters, sortMode, filterStatus])
 
@@ -88,6 +94,19 @@ export function CorkboardView() {
     [filteredChapters],
   )
 
+  /* ---- Container sizing for virtualization ---- */
+
+  const { ref: containerRef, size: containerSize } = useContainerSize<HTMLDivElement>()
+
+  const columnCount = useMemo(
+    () => computeColumnCount(containerSize.width),
+    [containerSize.width],
+  )
+  const rowCount = useMemo(
+    () => Math.ceil(filteredChapters.length / columnCount),
+    [filteredChapters.length, columnCount],
+  )
+
   /* ---- DnD handlers ---- */
 
   const handleDragStart = useCallback((event: DragStartEvent) => {
@@ -97,41 +116,26 @@ export function CorkboardView() {
   const handleDragEnd = useCallback(async (event: DragEndEvent) => {
     const { active, over } = event
     setActiveId(null)
-
     if (!over || active.id === over.id) return
 
     const oldIndex = filteredChapters.findIndex((c) => c.id === active.id)
     const newIndex = filteredChapters.findIndex((c) => c.id === over.id)
     if (oldIndex === -1 || newIndex === -1) return
 
-    // Reorder in the full chapter list
     const reordered = arrayMove(filteredChapters, oldIndex, newIndex)
-
-    // Update chapter_order for all affected chapters
-    const updates: Chapter[] = reordered.map((ch, idx) => ({
-      ...ch,
-      chapter_order: idx,
-    }))
-
-    // Merge back into the full chapters array
+    const updates: Chapter[] = reordered.map((ch, idx) => ({ ...ch, chapter_order: idx }))
     const fullUpdated = chapters.map((ch) => {
       const match = updates.find((u) => u.id === ch.id)
       return match ?? ch
     })
 
-    // Optimistic update
     setChapters(fullUpdated)
-
-    // Persist to backend
     try {
       await Promise.all(
-        updates.map((ch) =>
-          chapterApi.update(ch.id, { chapter_order: ch.chapter_order })
-        )
+        updates.map((ch) => chapterApi.update(ch.id, { chapter_order: ch.chapter_order })),
       )
     } catch (error) {
       showOperationError('保存章节顺序', error)
-      // Revert on failure
       setChapters(chapters)
     }
   }, [filteredChapters, chapters, setChapters])
@@ -146,32 +150,54 @@ export function CorkboardView() {
         status: 'planning',
       })
     } catch {
-      // error already handled in store
+      // store already surfaces the toast
     }
   }, [chapters.length, createChapter])
 
   /* ---- Click handler (v0.5 Phase 3 Track C) ---- */
 
   const handleCardClick = useCallback((chapterId: number) => {
-    // 1. Anchor the writing editor on this chapter.
     setCurrentChapter(chapterId)
-    // 2. Switch to the writing interface so the editor renders.
     setCurrentInterface('writing')
-    // 3. Scroll the corresponding chapter anchor into view if one
-    //    exists. Best-effort — silent ignore if absent (the editor
-    //    may not be mounted yet; the chapter_id anchor is sufficient
-    //    to drive its content).
     if (typeof window !== 'undefined') {
       const anchor = document.querySelector<HTMLElement>(
-        `[data-chapter-anchor="${chapterId}"]`
+        `[data-chapter-anchor="${chapterId}"]`,
       )
-      if (anchor) {
-        anchor.scrollIntoView({ behavior: 'smooth', block: 'start' })
-      }
+      if (anchor) anchor.scrollIntoView({ behavior: 'smooth', block: 'start' })
     }
   }, [setCurrentChapter, setCurrentInterface])
 
+  /* ---- Cell renderer (memoized) ---- */
+
+  const Cell = useCallback(
+    ({
+      rowIndex,
+      columnIndex,
+      style,
+    }: {
+      rowIndex: number
+      columnIndex: number
+      style: React.CSSProperties
+    }) => (
+      <CorkboardCell
+        rowIndex={rowIndex}
+        columnIndex={columnIndex}
+        columnCount={columnCount}
+        chapters={filteredChapters}
+        onClick={handleCardClick}
+        style={style}
+      />
+    ),
+    [filteredChapters, columnCount, handleCardClick],
+  )
+
   /* ---- Render ---- */
+
+  const gridWidth = Math.max(0, containerSize.width)
+  const cellWidth = columnCount > 0
+    ? Math.max(CARD_MIN_WIDTH, Math.floor((gridWidth - GRID_GAP * (columnCount - 1)) / columnCount))
+    : CARD_MIN_WIDTH
+  const cellHeight = CARD_HEIGHT + GRID_GAP
 
   return (
     <div className="h-full flex flex-col overflow-hidden bg-[var(--color-surface-base)]">
@@ -184,9 +210,16 @@ export function CorkboardView() {
         onCreateChapter={handleCreateChapter}
       />
 
-      <div className="flex-1 overflow-y-auto scrollbar-ink p-4">
+      <div
+        ref={containerRef}
+        className="flex-1 overflow-hidden scrollbar-ink p-4"
+        data-testid="corkboard-container"
+      >
         {filteredChapters.length === 0 ? (
-          <EmptyState filterStatus={filterStatus} onCreateChapter={handleCreateChapter} />
+          <CorkboardEmptyState
+            filterStatus={filterStatus}
+            onCreateChapter={handleCreateChapter}
+          />
         ) : (
           <DndContext
             sensors={sensors}
@@ -195,90 +228,33 @@ export function CorkboardView() {
             onDragEnd={handleDragEnd}
           >
             <SortableContext items={sortableIds} strategy={rectSortingStrategy}>
-              <motion.div
-                className="grid gap-3"
-                style={{
-                  gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))',
-                }}
-                variants={STAGGER_CONTAINER}
-                initial="hidden"
-                animate="visible"
-              >
-                <AnimatePresence initial={false}>
-                  {filteredChapters.map((chapter) => (
-                    <motion.div
-                      key={chapter.id}
-                      layout
-                      variants={STAGGER_ITEM}
-                      initial="hidden"
-                      animate="visible"
-                      exit="exit"
-                    >
-                      <ChapterCard
-                        chapter={chapter}
-                        onClick={handleCardClick}
-                      />
-                    </motion.div>
-                  ))}
-                </AnimatePresence>
-              </motion.div>
+              <AnimatePresence initial={false}>
+                <motion.div
+                  variants={STAGGER_CONTAINER}
+                  initial="hidden"
+                  animate="visible"
+                  style={{ width: '100%', height: '100%' }}
+                >
+                  <Grid<{ rowIndex: number; columnIndex: number; style: React.CSSProperties }>
+                    cellComponent={Cell as never}
+                    cellProps={{} as never}
+                    columnCount={columnCount}
+                    rowCount={rowCount}
+                    columnWidth={cellWidth}
+                    rowHeight={cellHeight}
+                    overscanCount={OVERSCAN_ROWS}
+                    style={{ width: '100%', height: '100%' }}
+                  />
+                </motion.div>
+              </AnimatePresence>
             </SortableContext>
 
             <DragOverlay dropAnimation={null}>
-              {activeChapter ? (
-                <ChapterCardOverlay chapter={activeChapter} />
-              ) : null}
+              {activeChapter ? <ChapterCardOverlay chapter={activeChapter} /> : null}
             </DragOverlay>
           </DndContext>
         )}
       </div>
-    </div>
-  )
-}
-
-/* ---- Empty state ---- */
-
-function EmptyState({
-  filterStatus,
-  onCreateChapter,
-}: {
-  filterStatus: ChapterStatus | 'all'
-  onCreateChapter: () => void
-}) {
-  return (
-    <div className="flex flex-col items-center justify-center h-full text-center py-20">
-      <div
-        className="w-16 h-16 rounded-full flex items-center justify-center mb-4"
-        style={{
-          background: 'color-mix(in srgb, var(--accent-primary) 10%, transparent)',
-          border: '1px solid color-mix(in srgb, var(--accent-primary) 20%, transparent)',
-        }}
-      >
-        <span className="text-2xl opacity-60">📋</span>
-      </div>
-      <h3 className="text-sm font-medium text-[var(--text-primary)] mb-1">
-        {filterStatus === 'all' ? '还没有章节' : '没有匹配的章节'}
-      </h3>
-      <p className="text-xs text-[var(--text-tertiary)] mb-4">
-        {filterStatus === 'all'
-          ? '创建第一个章节开始写作吧'
-          : '尝试切换筛选条件查看其他章节'}
-      </p>
-      {filterStatus === 'all' && (
-        <motion.button
-          whileHover={{ scale: 1.04 }}
-          whileTap={{ scale: 0.96 }}
-          onClick={onCreateChapter}
-          className="px-4 py-2 rounded-lg text-xs font-medium transition-colors"
-          style={{
-            background: 'var(--accent-primary)',
-            color: 'var(--paper-100)',
-            border: '1px solid color-mix(in srgb, var(--accent-primary) 60%, transparent)',
-          }}
-        >
-          创建第一章
-        </motion.button>
-      )}
     </div>
   )
 }

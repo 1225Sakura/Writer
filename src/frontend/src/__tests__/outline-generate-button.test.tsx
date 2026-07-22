@@ -43,6 +43,13 @@ vi.mock('@/store', () => ({
     deleteChapter: storeMocks.deleteChapter,
     updatePlotThread: storeMocks.updatePlotThread,
   }),
+  // v0.5 Phase 3 Track C: useUIStore consumed by the IF fork button
+  // (feature-flag gated). Track E.5 keeps the gate; default OFF so
+  // these tests stay focused on the AI generation controls.
+  useUIStore: () => ({
+    feature_flags: { IF_UI: false },
+    setFeatureFlag: vi.fn(),
+  }),
 }))
 
 describe('OutlineSidebar AI generation controls', () => {
