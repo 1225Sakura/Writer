@@ -369,16 +369,19 @@ export const aiProviderConfigApi = {
     api.get<AIProviderConfig[]>("/settings/ai-provider", { project_id: projectId }),
   get: (id: number) =>
     api.get<AIProviderConfig>(`/settings/ai-provider/${id}`),
+  // Phase 1 Track A: backend uses PUT (full replace) not PATCH (partial).
+  // PATCH was misaligned with backend; tests broke. Aligned here.
+  getKey: (id: number) =>
+    api.get<{ api_key: string }>(`/settings/ai-provider/${id}/key`),
   create: (data: AIProviderConfigCreate) =>
     api.post<AIProviderConfig>("/settings/ai-provider", data),
   update: (id: number, data: AIProviderConfigUpdate) =>
-    api.patch<AIProviderConfig>(`/settings/ai-provider/${id}`, data),
+    api.put<AIProviderConfig>(`/settings/ai-provider/${id}`, data),
   delete: (id: number) =>
     api.delete(`/settings/ai-provider/${id}`),
   activate: (id: number) =>
     api.post<AIProviderConfig>(`/settings/ai-provider/${id}/activate`),
-  testConnection: (id: number) =>
-    api.post<ConnectionTestResult>(`/settings/ai-provider/${id}/test`),
+  // Phase 1 Track A: backend has no `/{id}/test`; test uses request body.
   testConnectionParams: (data: AIProviderConfigTest) =>
     api.post<ConnectionTestResult>("/settings/ai-provider/test", data),
 }

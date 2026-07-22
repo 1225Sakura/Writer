@@ -82,10 +82,22 @@ def get_ai_provider_key(
     provider = service.get(provider_id)
     if not provider:
         raise HTTPException(status_code=404, detail="Provider not found")
-    decrypted = decrypt_api_key(provider.api_key_encrypted) if provider.api_key_encrypted else None
-    return ApiResponse(
-        data=AIProviderKeyOut(api_key=decrypted).model_dump(),
+    # v0.5 Phase 1 Track A: decrypt_api_key now returns SecretStr; call .get()
+    # for the actual plaintext. Clear the SecretStr after serializing to JSON.
+    decrypted_secret = (
+        decrypt_api_key(provider.api_key_encrypted)
+        if provider.api_key_encrypted
+        else None
     )
+    try:
+        decrypted = decrypted_secret.get() if decrypted_secret else None
+        response = ApiResponse(
+            data=AIProviderKeyOut(api_key=decrypted).model_dump(),
+        )
+    finally:
+        if decrypted_secret is not None:
+            decrypted_secret.clear()
+    return response
 
 
 @router.post("/test")

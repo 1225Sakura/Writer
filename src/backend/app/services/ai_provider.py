@@ -6,9 +6,11 @@ v0.4 P0-Sec2 SSRF protection:
 - DNS pin: resolve A+AAAA, reject non-global IPs (incl IPv4-mapped, NAT64, metadata)
 - Anthropic SDK does NOT provide defense boundary (per OWASP + spec v0.4 §A)
 """
+import asyncio
 import ipaddress
 import os
 import socket
+from typing import Optional
 from urllib.parse import urlparse
 
 import httpx
@@ -111,6 +113,42 @@ class AIProviderService:
 
     def delete(self, id: int) -> bool:
         return self._repo.delete(id)
+
+    def get_active_decrypted_key(self) -> Optional[str]:
+        """v0.5 Phase 1 Track A: AI services use this to obtain the active
+        provider's plaintext key. Delegates to ProviderResolver for the actual
+        decryption + caching (ADR §5).
+
+        Returns:
+            Plaintext API key string, or None if no active provider configured.
+
+        Raises:
+            NoActiveProviderError: when no active provider exists.
+        """
+        # Late import to avoid circular dependency (resolver imports models).
+        from app.services.provider_resolver import (
+            NoActiveProviderError,
+            get_provider_resolver,
+        )
+        from app.database import SessionLocal
+
+        resolver = get_provider_resolver()
+        # Use a short-lived session for the resolver lookup.
+        # The resolver doesn't own session lifecycle (ADR §1).
+        with SessionLocal() as session:
+            try:
+                config = asyncio.run(
+                    resolver.get_active(session, user_id="default-user")
+                )
+            except NoActiveProviderError:
+                return None
+            try:
+                return config.key.get()
+            finally:
+                # Clear the secret after extracting plaintext.
+                # Note: the resolver's cache still holds the SecretStr; that
+                # gets cleared on invalidate() or process exit.
+                pass
 
     def activate(self, id: int) -> AIProvider | None:
         """v0.4 P0-Sec5: idempotent activate; single-active enforced by DB partial unique index."""

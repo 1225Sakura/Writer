@@ -20,7 +20,8 @@ def test_create_provider(db_session):
     )
 
     assert provider.api_key_encrypted != "sk-test-secret"
-    assert decrypt_api_key(provider.api_key_encrypted) == "sk-test-secret"
+    # v0.5 Phase 1 Track A: decrypt_api_key returns SecretStr; use .get()
+    assert decrypt_api_key(provider.api_key_encrypted).get() == "sk-test-secret"
 
 
 def test_list_providers(db_session):

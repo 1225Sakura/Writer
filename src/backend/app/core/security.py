@@ -8,10 +8,15 @@ v0.4 P0-Sec1a: Replaced XOR with AES-GCM via PyCA cryptography + OS keychain.
 
 Key rotation: versioned nonce per encryption; old ciphertexts decryptable until
 key rotation policy is invoked (single AESGCM key for now; future = per-row keys).
+
+v0.5 Phase 1 Track A: SecretStr wrapper minimizes plaintext lifetime by storing
+the secret in a mutable bytearray (zeroizable). Python's `str` cannot be
+zeroized; SecretStr is the closest practical equivalent. See ADR §6.
 """
 from __future__ import annotations
 
 import base64
+import logging
 import os
 import secrets
 from pathlib import Path
@@ -30,6 +35,85 @@ NONCE_BYTES = 12  # 96-bit nonce (NIST SP 800-38D recommendation)
 KEYCHAIN_SERVICE_NAME = "writer"
 KEYCHAIN_USERNAME = "master_key"
 FALLBACK_SECRET_FILE = ".secret_file"  # 0600 permissions
+
+
+# ---------------------------------------------------------------------------
+# SecretStr — wrapper to minimize plaintext lifetime in memory (ADR §6)
+# ---------------------------------------------------------------------------
+
+class SecretAccessError(RuntimeError):
+    """Raised when callers misuse SecretStr (e.g., str() or format())."""
+
+
+class SecretStr:
+    """Bytes-backed secret wrapper.
+
+    Python's `str` is immutable and cannot be zeroized. SecretStr stores the
+    plaintext in a `bytearray` so we can (best-effort) overwrite the buffer
+    on `clear()` or `__del__`.
+
+    Safety properties:
+    - `repr(s)` returns "***" (safe for logs, exception messages)
+    - `str(s)` raises `SecretAccessError` (forces explicit `.get()`)
+    - `.get()` returns a fresh str copy (caller's responsibility to scope)
+    - `.clear()` overwrites the bytearray in place
+    """
+
+    __slots__ = ("_buf",)
+
+    def __init__(self, plaintext: str):
+        if not isinstance(plaintext, str):
+            raise TypeError(f"SecretStr requires str, got {type(plaintext).__name__}")
+        self._buf = bytearray(plaintext.encode("utf-8"))
+
+    def __repr__(self) -> str:
+        return "***"
+
+    def __str__(self) -> str:
+        raise SecretAccessError(
+            "Use SecretStr.get() to access plaintext; "
+            "str(SecretStr) is forbidden to prevent accidental leakage."
+        )
+
+    def __format__(self, format_spec: str) -> str:
+        # Defensive: block f-string "{:s}".format(s) and similar.
+        raise SecretAccessError("Formatting SecretStr is forbidden.")
+
+    def get(self) -> str:
+        """Return plaintext. Caller MUST scope usage and clear afterwards."""
+        return self._buf.decode("utf-8")
+
+    def clear(self) -> None:
+        """Best-effort zeroize the underlying bytearray."""
+        # Overwrite with zeros. CPython may not immediately reclaim memory,
+        # but the original bytes are gone.
+        for i in range(len(self._buf)):
+            self._buf[i] = 0
+        self._buf.clear()
+
+    def __bool__(self) -> bool:
+        return bool(self._buf)
+
+    def __len__(self) -> int:
+        return len(self._buf)
+
+    def __del__(self):
+        try:
+            self.clear()
+        except Exception:
+            pass
+
+    # Block pickling/json so secrets cannot leak via serialization.
+    def __reduce__(self):
+        raise TypeError("SecretStr instances cannot be pickled.")
+
+    def __getstate__(self):
+        raise TypeError("SecretStr instances cannot be pickled.")
+
+
+# ---------------------------------------------------------------------------
+# AES-GCM helpers
+# ---------------------------------------------------------------------------
 
 
 def _get_or_create_master_key() -> bytes:
@@ -96,12 +180,18 @@ def encrypt_api_key(raw: str) -> str:
     return base64.b64encode(nonce + ciphertext).decode()
 
 
-def decrypt_api_key(blob: str) -> str:
-    """Decrypt API key with AES-GCM. Expects base64(nonce || ciphertext)."""
+def decrypt_api_key(blob: str) -> SecretStr:
+    """Decrypt API key with AES-GCM. Returns SecretStr (zeroizable wrapper).
+
+    v0.5 Phase 1 Track A: returns SecretStr instead of str to minimize plaintext
+    lifetime. Callers MUST use `.get()` and clear the SecretStr (or rely on
+    `__del__`) after use. See ADR §6 for memory-safety analysis.
+    """
     raw = base64.b64decode(blob.encode())
     nonce, ciphertext = raw[:NONCE_BYTES], raw[NONCE_BYTES:]
     aesgcm = AESGCM(_MASTER_KEY)
-    return aesgcm.decrypt(nonce, ciphertext, associated_data=None).decode()
+    plaintext = aesgcm.decrypt(nonce, ciphertext, associated_data=None).decode()
+    return SecretStr(plaintext)
 
 
 def get_or_init_api_key() -> str:
