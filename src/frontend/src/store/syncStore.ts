@@ -251,7 +251,7 @@ export const useSyncStore = create<SyncState & SyncActions>()(
                             ss.lastSyncedAt = Date.now()
                           }
                         })
-                      } catch (syncError) {
+                      } catch (_syncError) {
                         set((state) => {
                           const ss = state.ifLineSyncStates.get(ifLineId)
                           if (ss) {
@@ -270,7 +270,7 @@ export const useSyncStore = create<SyncState & SyncActions>()(
                 state.lastGlobalSync = Date.now()
                 state.isSyncing = false
               })
-            } catch (error) {
+            } catch (_error) {
               showError('全局同步失败，请稍后重试')
               set((state) => { state.isSyncing = false })
             }

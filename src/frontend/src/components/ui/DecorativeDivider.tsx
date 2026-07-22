@@ -72,7 +72,7 @@ export const DecorativeDivider = React.forwardRef<HTMLDivElement, DecorativeDivi
       shimmer = false,
       animated = true,
       spacing = 'md',
-      thickness = 'thin',
+      thickness: _thickness = 'thin',
       ...props
     },
     ref

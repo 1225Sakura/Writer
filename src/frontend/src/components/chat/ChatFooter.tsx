@@ -231,14 +231,14 @@ function AiStatusIndicator() {
   const dotStyle: React.CSSProperties = (() => {
     switch (status) {
       case 'error':
-        return { backgroundColor: 'var(--color-error, #dc2626)' }
+        return { backgroundColor: 'var(--color-error)' }
       case 'thinking':
       case 'streaming':
       case 'extracting':
         return { backgroundColor: 'var(--accent-primary)' }
       case 'idle':
       default:
-        return { backgroundColor: 'var(--color-ifline, #7a9e58)' }
+        return { backgroundColor: 'var(--color-ifline)' }
     }
   })()
 

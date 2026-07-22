@@ -352,8 +352,8 @@ export const StyleCheckExtension = Extension.create<StyleCheckOptions>({
                     position: fixed;
                     z-index: 10000;
                     padding: 8px 12px;
-                    background: var(--ink-90, #1a1a1a);
-                    color: var(--paper-100, #f5f5f5);
+                    background: var(--ink-90);
+                    color: var(--paper-100);
                     border-radius: 6px;
                     font-size: 13px;
                     line-height: 1.4;

@@ -180,7 +180,7 @@ export class ChatWebSocketClient {
       try {
         this.ws.send(JSON.stringify(message))
         return true
-      } catch (e) {
+      } catch (_e) {
         this.callbacks.onError?.(new Error('消息发送失败，已加入队列'))
         this.queueMessage(message)
         return false
@@ -263,7 +263,7 @@ export class ChatWebSocketClient {
     try {
       this.ws = new WebSocket(url.toString())
       this.bindEvents()
-    } catch (e) {
+    } catch (_e) {
       this.callbacks.onError?.(new Error('WebSocket 连接创建失败，正在重试'))
       this.scheduleReconnect()
     }

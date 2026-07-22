@@ -68,7 +68,7 @@ export function useTypingEffect(text: string, speed: number = 18, enabled: boole
     return () => {
       if (rafRef.current) cancelAnimationFrame(rafRef.current)
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+     
   }, [text, speed, enabled, messageId])
 
   return { displayed, isComplete }
@@ -79,13 +79,16 @@ export function useTypingEffect(text: string, speed: number = 18, enabled: boole
    ============================================================ */
 
 export function HighlightedContent({ content, entities }: { content: string; entities?: ExtractedEntity[] }) {
+  // Hooks must run unconditionally — declare them first regardless of
+  // whether `entities` is empty.
+  const regexRef = useRef<RegExp | null>(null)
+  const keyRef = useRef<string>('')
+
   if (!entities || entities.length === 0) {
     return <div className="text-sm whitespace-pre-wrap leading-relaxed text-primary">{content}</div>
   }
 
   const sortedEntities = [...entities].sort((a, b) => b.name.length - a.name.length)
-  const regexRef = useRef<RegExp | null>(null)
-  const keyRef = useRef<string>('')
   const entityNamesKey = sortedEntities.map((e) => e.name).join(',')
 
   if (regexRef.current === null || keyRef.current !== entityNamesKey) {

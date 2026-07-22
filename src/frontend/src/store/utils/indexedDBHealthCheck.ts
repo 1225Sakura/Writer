@@ -8,7 +8,7 @@
  */
 
 import { openDB } from 'idb'
-import { indexedDBStorage, IndexedDBStorageError } from './indexedDBStorage'
+import { indexedDBStorage as _indexedDBStorage, IndexedDBStorageError as _IndexedDBStorageError } from './indexedDBStorage'
 
 const DB_NAME = 'writer-store-db'
 const STORE_NAME = 'store-data'

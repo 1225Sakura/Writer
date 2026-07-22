@@ -273,7 +273,9 @@ export async function consumeStream(
             if (e instanceof Error && e.message !== 'AI generation failed') {
               throw e
             }
-            throw new Error(sseEvent.data || 'AI generation failed')
+            const fallback = new Error(sseEvent.data || 'AI generation failed')
+             
+            throw fallback
           }
         }
       }

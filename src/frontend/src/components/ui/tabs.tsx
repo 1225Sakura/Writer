@@ -78,7 +78,7 @@ interface AnimatedTabsProps extends React.ComponentPropsWithoutRef<typeof Tabs> 
 const AnimatedTabs = React.forwardRef<
   React.ElementRef<typeof Tabs>,
   AnimatedTabsProps
->(({ className, indicatorClassName, triggerClassName, contentClassName, children, ...props }, ref) => {
+>(({ className, indicatorClassName, triggerClassName: _triggerClassName, contentClassName, children, ...props }, ref) => {
   const [activeTab, setActiveTab] = React.useState<string | undefined>(undefined)
   const listRef = React.useRef<HTMLDivElement>(null)
   const [indicatorStyle, setIndicatorStyle] = React.useState<React.CSSProperties>({})

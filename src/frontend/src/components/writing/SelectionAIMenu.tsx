@@ -272,8 +272,8 @@ export function SelectionAIMenu({ editor }: SelectionAIMenuProps) {
               className="text-[10px] font-medium px-1.5 py-0.5 rounded mr-1"
               style={{
                 backgroundColor:
-                  'color-mix(in srgb, var(--color-outline, #7088a8) 20%, transparent)',
-                color: 'var(--color-outline, #7088a8)',
+                  'color-mix(in srgb, var(--color-outline) 20%, transparent)',
+                color: 'var(--color-outline)',
               }}
             >
               AI
@@ -297,22 +297,22 @@ export function SelectionAIMenu({ editor }: SelectionAIMenuProps) {
                   className="flex items-center gap-1 px-2 py-1.5 rounded-lg text-xs transition-all duration-150"
                   style={{
                     color: isProcessing
-                      ? 'var(--paper-30, #6b6058)'
-                      : 'var(--paper-70, #b5a99a)',
+                      ? 'var(--paper-30)'
+                      : 'var(--paper-70)',
                     opacity: isProcessing ? 0.5 : 1,
                   }}
                   onMouseEnter={(e) => {
                     if (!isProcessing) {
                       e.currentTarget.style.backgroundColor =
                         'color-mix(in srgb, var(--paper-100) 8%, transparent)'
-                      e.currentTarget.style.color = 'var(--paper-90, #e0d8cc)'
+                      e.currentTarget.style.color = 'var(--paper-90)'
                     }
                   }}
                   onMouseLeave={(e) => {
                     e.currentTarget.style.backgroundColor = 'transparent'
                     e.currentTarget.style.color = isProcessing
-                      ? 'var(--paper-30, #6b6058)'
-                      : 'var(--paper-70, #b5a99a)'
+                      ? 'var(--paper-30)'
+                      : 'var(--paper-70)'
                   }}
                   title={`${op.label}${op.shortcut ? ` (${op.shortcut})` : ''}`}
                   aria-label={op.label}
@@ -339,8 +339,8 @@ export function SelectionAIMenu({ editor }: SelectionAIMenuProps) {
               className="flex items-center gap-1 px-2 py-1.5 rounded-lg text-xs transition-all duration-150"
               style={{
                 color: showCustomInput
-                  ? 'var(--color-outline, #7088a8)'
-                  : 'var(--paper-70, #b5a99a)',
+                  ? 'var(--color-outline)'
+                  : 'var(--paper-70)',
               }}
               onMouseEnter={(e) => {
                 e.currentTarget.style.backgroundColor =
@@ -380,8 +380,8 @@ export function SelectionAIMenu({ editor }: SelectionAIMenuProps) {
                   disabled={isProcessing}
                   className="flex-1 bg-transparent border-none outline-none text-xs px-2 py-1 min-w-[200px]"
                   style={{
-                    color: 'var(--paper-85, #d6cfc3)',
-                    caretColor: 'var(--paper-85, #d6cfc3)',
+                    color: 'var(--paper-85)',
+                    caretColor: 'var(--paper-85)',
                   }}
                   onKeyDown={(e) => {
                     if (e.key === 'Enter') {
@@ -397,8 +397,8 @@ export function SelectionAIMenu({ editor }: SelectionAIMenuProps) {
                   style={{
                     color:
                       isProcessing || !customInput.trim()
-                        ? 'var(--paper-30, #6b6058)'
-                        : 'var(--color-outline, #7088a8)',
+                        ? 'var(--paper-30)'
+                        : 'var(--color-outline)',
                     opacity:
                       isProcessing || !customInput.trim() ? 0.5 : 1,
                   }}
@@ -422,7 +422,7 @@ export function SelectionAIMenu({ editor }: SelectionAIMenuProps) {
                     setCustomInput('')
                   }}
                   className="p-1.5 rounded-lg transition-colors duration-150"
-                  style={{ color: 'var(--paper-50, #8a7d6e)' }}
+                  style={{ color: 'var(--paper-50)' }}
                   onMouseEnter={(e) => {
                     e.currentTarget.style.backgroundColor =
                       'color-mix(in srgb, var(--paper-100) 8%, transparent)'

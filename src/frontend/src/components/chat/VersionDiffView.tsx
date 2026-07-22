@@ -61,19 +61,19 @@ export function VersionDiffView({ diff, oldTimestamp, newTimestamp }: VersionDif
       <div className="flex gap-2 px-1">
         {added.length > 0 && (
           <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium"
-            style={{ background: 'var(--color-diff-added-bg, rgba(34,197,94,0.15))', color: 'var(--color-diff-added, #22c55e)' }}>
+            style={{ background: 'var(--color-diff-added-bg, rgba(34,197,94,0.15))', color: 'var(--color-diff-added)' }}>
             <Plus className="w-3 h-3" /> +{added.length} 新增
           </span>
         )}
         {removed.length > 0 && (
           <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium"
-            style={{ background: 'var(--color-diff-removed-bg, rgba(239,68,68,0.15))', color: 'var(--color-diff-removed, #ef4444)' }}>
+            style={{ background: 'var(--color-diff-removed-bg, rgba(239,68,68,0.15))', color: 'var(--color-diff-removed)' }}>
             <Minus className="w-3 h-3" /> -{removed.length} 删除
           </span>
         )}
         {modified.length > 0 && (
           <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium"
-            style={{ background: 'var(--color-diff-modified-bg, rgba(234,179,8,0.15))', color: 'var(--color-diff-modified, #eab308)' }}>
+            style={{ background: 'var(--color-diff-modified-bg, rgba(234,179,8,0.15))', color: 'var(--color-diff-modified)' }}>
             <Pencil className="w-3 h-3" /> ~{modified.length} 修改
           </span>
         )}
@@ -95,19 +95,19 @@ function DiffItemRow({ item }: { item: EntityDiffItem }) {
   const colorMap = {
     added: {
       bg: 'var(--color-diff-added-bg, rgba(34,197,94,0.08))',
-      border: 'var(--color-diff-added, #22c55e)',
+      border: 'var(--color-diff-added)',
       icon: Plus,
       label: '新增',
     },
     removed: {
       bg: 'var(--color-diff-removed-bg, rgba(239,68,68,0.08))',
-      border: 'var(--color-diff-removed, #ef4444)',
+      border: 'var(--color-diff-removed)',
       icon: Minus,
       label: '删除',
     },
     modified: {
       bg: 'var(--color-diff-modified-bg, rgba(234,179,8,0.08))',
-      border: 'var(--color-diff-modified, #eab308)',
+      border: 'var(--color-diff-modified)',
       icon: Pencil,
       label: '修改',
     },

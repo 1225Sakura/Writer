@@ -81,6 +81,7 @@ export function CellEditor({
       defaultValue={value}
       onBlur={handleBlur}
       onKeyDown={handleKeyDown}
+      aria-label={`编辑 ${field.label}`}
       className="w-full bg-[var(--color-surface-raised)] text-[var(--text-primary)] text-xs px-1.5 py-1 rounded border border-[var(--accent-primary)] outline-none"
     />
   )
@@ -164,6 +165,7 @@ export function Checkbox({
       type="checkbox"
       checked={checked}
       onChange={onChange}
+      aria-label="选择行"
       className="w-3.5 h-3.5 rounded accent-[var(--accent-primary)] cursor-pointer"
     />
   )

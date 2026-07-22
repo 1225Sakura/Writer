@@ -294,6 +294,7 @@ export function SearchReplaceBar() {
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
+                aria-label="搜索"
                 placeholder="搜索..."
                 className="flex-1 bg-transparent text-sm text-[var(--text-primary)] placeholder:text-[var(--text-tertiary)] outline-none"
               />
@@ -388,6 +389,7 @@ export function SearchReplaceBar() {
                       value={replaceQuery}
                       onChange={(e) => setReplaceQuery(e.target.value)}
                       placeholder="替换..."
+                      aria-label="替换"
                       className="flex-1 bg-transparent text-sm text-[var(--text-primary)] placeholder:text-[var(--text-tertiary)] outline-none"
                     />
                   </div>

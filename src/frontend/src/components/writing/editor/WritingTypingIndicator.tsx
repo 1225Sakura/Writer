@@ -6,7 +6,7 @@ interface TypingIndicatorProps {
   isTyping: boolean
 }
 
-export function WritingTypingIndicator({ }: TypingIndicatorProps) {
+export function WritingTypingIndicator(_: TypingIndicatorProps) {
   const prefersReducedMotion = usePrefersReducedMotion()
 
   return (

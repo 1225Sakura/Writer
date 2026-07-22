@@ -271,10 +271,10 @@ export function InlineAIPopup({ editor }: InlineAIPopupProps) {
               style={{
                 backgroundColor:
                   state.phase === 'error'
-                    ? 'var(--color-faction, #a04848)'
+                    ? 'var(--color-faction)'
                     : state.phase === 'result'
-                      ? 'var(--color-location, #6b9e8e)'
-                      : 'var(--color-outline, #7088a8)',
+                      ? 'var(--color-location)'
+                      : 'var(--color-outline)',
                 animation:
                   state.phase === 'loading' || state.phase === 'streaming'
                     ? 'pulse 1.5s ease-in-out infinite'
@@ -283,7 +283,7 @@ export function InlineAIPopup({ editor }: InlineAIPopupProps) {
             />
             <span
               className="text-xs font-medium"
-              style={{ color: 'var(--paper-70, #b5a99a)' }}
+              style={{ color: 'var(--paper-70)' }}
             >
               {state.phase === 'loading'
                 ? 'AI 思考中...'
@@ -295,7 +295,7 @@ export function InlineAIPopup({ editor }: InlineAIPopupProps) {
             </span>
             <span
               className="text-xs ml-auto"
-              style={{ color: 'var(--paper-50, #8a7d6e)', fontFamily: 'monospace' }}
+              style={{ color: 'var(--paper-50)', fontFamily: 'monospace' }}
             >
               {state.prompt.length > 20
                 ? state.prompt.slice(0, 20) + '...'
@@ -310,7 +310,7 @@ export function InlineAIPopup({ editor }: InlineAIPopupProps) {
                 <InkDropLoader />
                 <span
                   className="text-sm"
-                  style={{ color: 'var(--paper-60, #9e9183)' }}
+                  style={{ color: 'var(--paper-60)' }}
                 >
                   正在构思...
                 </span>
@@ -320,14 +320,14 @@ export function InlineAIPopup({ editor }: InlineAIPopupProps) {
             {(state.phase === 'streaming' || state.phase === 'result') && (
               <div
                 className="text-sm leading-relaxed whitespace-pre-wrap"
-                style={{ color: 'var(--paper-85, #d6cfc3)' }}
+                style={{ color: 'var(--paper-85)' }}
               >
                 {displayText}
                 {state.phase === 'streaming' && (
                   <span
                     className="inline-block w-0.5 h-4 ml-0.5 align-middle"
                     style={{
-                      backgroundColor: 'var(--color-outline, #7088a8)',
+                      backgroundColor: 'var(--color-outline)',
                       animation: 'blink 1s step-end infinite',
                     }}
                   />
@@ -339,7 +339,7 @@ export function InlineAIPopup({ editor }: InlineAIPopupProps) {
               <div className="flex items-center gap-2">
                 <span
                   className="text-sm"
-                  style={{ color: 'var(--color-faction, #a04848)' }}
+                  style={{ color: 'var(--color-faction)' }}
                 >
                   {state.errorMessage}
                 </span>
@@ -411,21 +411,21 @@ function ActionButton({ label, shortcut, variant, onClick }: ActionButtonProps) 
     { bg: string; border: string; text: string; hoverBg: string }
   > = {
     primary: {
-      bg: 'var(--color-outline, #7088a8)',
+      bg: 'var(--color-outline)',
       border: 'transparent',
-      text: 'var(--paper-100, #f5eed6)',
-      hoverBg: 'color-mix(in srgb, var(--color-outline, #7088a8) 85%, black)',
+      text: 'var(--paper-100)',
+      hoverBg: 'color-mix(in srgb, var(--color-outline) 85%, black)',
     },
     secondary: {
       bg: 'transparent',
       border: 'color-mix(in srgb, var(--paper-100) 15%, transparent)',
-      text: 'var(--paper-70, #b5a99a)',
+      text: 'var(--paper-70)',
       hoverBg: 'color-mix(in srgb, var(--paper-100) 8%, transparent)',
     },
     ghost: {
       bg: 'transparent',
       border: 'transparent',
-      text: 'var(--paper-50, #8a7d6e)',
+      text: 'var(--paper-50)',
       hoverBg: 'color-mix(in srgb, var(--paper-100) 5%, transparent)',
     },
   }
@@ -453,7 +453,7 @@ function ActionButton({ label, shortcut, variant, onClick }: ActionButtonProps) 
         className="text-[10px] px-1 py-0.5 rounded"
         style={{
           backgroundColor: 'color-mix(in srgb, var(--paper-100) 8%, transparent)',
-          color: 'var(--paper-50, #8a7d6e)',
+          color: 'var(--paper-50)',
           fontFamily: 'monospace',
         }}
       >
@@ -471,7 +471,7 @@ function InkDropLoader() {
         <motion.div
           key={i}
           className="w-1.5 h-1.5 rounded-full"
-          style={{ backgroundColor: 'var(--color-outline, #7088a8)' }}
+          style={{ backgroundColor: 'var(--color-outline)' }}
           animate={{
             scale: [1, 1.4, 1],
             opacity: [0.4, 1, 0.4],

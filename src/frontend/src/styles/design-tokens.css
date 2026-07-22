@@ -107,6 +107,11 @@
   --color-success: var(--color-location);
   --color-info:    var(--accent-100);
 
+  /* === Style Check (ProseMirror gutter decorations) === */
+  --style-error:    #dc2626; /* weak-verb wavy underline (red) */
+  --style-warning:  #ea580c; /* adverb wavy underline (orange) */
+  --style-passive:  #9333ea; /* passive-voice wavy underline (purple) */
+
   /* === Missing Variable Aliases (referenced by components) === */
   --color-vermillion: var(--vermillion-100);
   --accent-secondary: var(--accent-80);

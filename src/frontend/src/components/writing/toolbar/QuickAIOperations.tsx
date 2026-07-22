@@ -81,7 +81,7 @@ export function QuickAIOperations() {
         editor.commands.insertContent(result)
         showToast(`${operation}完成`, 'success')
       }
-    } catch (error) {
+    } catch (_error) {
       showToast(`${operation}失败`, 'error')
     } finally {
       setQuickOpLoading(null)

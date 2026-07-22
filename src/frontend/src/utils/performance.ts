@@ -56,7 +56,7 @@ class PerformanceMonitor {
           }
         })
         observer.observe({ type: 'paint', buffered: true })
-      } catch (e) {
+      } catch (_e) {
         // Observer not supported
       }
     }
@@ -71,7 +71,7 @@ class PerformanceMonitor {
           this.recordMetric('LCP', lcp.startTime)
         })
         observer.observe({ type: 'largest-contentful-paint', buffered: true })
-      } catch (e) {
+      } catch (_e) {
         // Observer not supported
       }
     }
@@ -91,7 +91,7 @@ class PerformanceMonitor {
           this.recordMetric('CLS', clsValue * 1000) // Convert to ms-like scale
         })
         observer.observe({ type: 'layout-shift', buffered: true })
-      } catch (e) {
+      } catch (_e) {
         // Observer not supported
       }
     }
@@ -106,7 +106,7 @@ class PerformanceMonitor {
           this.recordMetric('FID', fid.processingStart - fid.startTime)
         })
         observer.observe({ type: 'first-input', buffered: true })
-      } catch (e) {
+      } catch (_e) {
         // Observer not supported
       }
     }

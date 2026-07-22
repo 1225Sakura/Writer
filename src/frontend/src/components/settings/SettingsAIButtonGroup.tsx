@@ -117,7 +117,7 @@ async function emitAILog(payload: Record<string, unknown>): Promise<void> {
     })
   } catch (err) {
     // Logging is best-effort; never throw into the UI layer.
-    // eslint-disable-next-line no-console
+     
     console.warn('[SettingsAIButtonGroup] appendAILog failed', err)
   }
 }

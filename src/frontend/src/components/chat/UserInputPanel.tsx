@@ -75,7 +75,7 @@ export function UserInputPanel() {
         if (pa.previewUrl) URL.revokeObjectURL(pa.previewUrl)
       })
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+     
   }, [])
 
   // Sync pendingInput from store

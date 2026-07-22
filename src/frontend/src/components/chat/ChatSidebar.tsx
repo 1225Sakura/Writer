@@ -212,6 +212,7 @@ export function ChatSidebar({ entities, sessionId: _sessionId, onConfirmEntity, 
         type="file"
         accept=".json"
         className="hidden"
+        aria-label="导入对话 JSON 文件"
         onChange={handleFileChange}
       />
 
@@ -277,7 +278,7 @@ export function ChatSidebar({ entities, sessionId: _sessionId, onConfirmEntity, 
                       className="flex items-center gap-2 px-3 py-2 rounded-lg text-xs"
                       style={{ background: 'var(--color-diff-removed-bg, rgba(239,68,68,0.1))' }}
                     >
-                      <AlertTriangle className="w-4 h-4 shrink-0" style={{ color: 'var(--color-diff-removed, #ef4444)' }} />
+                      <AlertTriangle className="w-4 h-4 shrink-0" style={{ color: 'var(--color-diff-removed)' }} />
                       <span className="flex-1">导入将覆盖当前实体数据，确定继续？</span>
                       <button
                         className="px-2 py-1 rounded text-xs text-secondary hover:text-primary"
@@ -287,7 +288,7 @@ export function ChatSidebar({ entities, sessionId: _sessionId, onConfirmEntity, 
                       </button>
                       <button
                         className="px-2 py-1 rounded text-xs font-medium text-white"
-                        style={{ background: 'var(--color-diff-removed, #ef4444)' }}
+                        style={{ background: 'var(--color-diff-removed)' }}
                         onClick={handleConfirmImport}
                       >
                         确定
@@ -299,7 +300,7 @@ export function ChatSidebar({ entities, sessionId: _sessionId, onConfirmEntity, 
                 <div className="space-y-3">
                   <div className="rounded-lg p-3 text-xs"
                     style={{ background: 'var(--color-diff-removed-bg, rgba(239,68,68,0.08))' }}>
-                    <div className="flex items-center gap-1.5 font-medium mb-2" style={{ color: 'var(--color-diff-removed, #ef4444)' }}>
+                    <div className="flex items-center gap-1.5 font-medium mb-2" style={{ color: 'var(--color-diff-removed)' }}>
                       <AlertTriangle className="w-3.5 h-3.5" /> 导入验证失败
                     </div>
                     <ul className="space-y-1">
@@ -456,6 +457,7 @@ function SessionList({ sessions, activeSessionId, onSwitch, onDelete, onCreate, 
             ref={editInputRef}
             type="text"
             value={editingTitle}
+            aria-label="重命名会话"
             onChange={(e) => setEditingTitle(e.target.value)}
             onKeyDown={(e) => {
               if (e.key === 'Enter') saveRename()
@@ -569,6 +571,7 @@ function SessionList({ sessions, activeSessionId, onSwitch, onDelete, onCreate, 
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="搜索会话..."
+            aria-label="搜索会话"
             className="w-full pl-8 pr-8 py-1.5 text-xs rounded-lg
                        bg-[var(--color-surface-base)] border border-[var(--border-default)]
                        text-[var(--text-primary)] placeholder:text-[var(--text-tertiary)]

@@ -30,11 +30,11 @@ interface IssueGroup {
 // Constants
 // ============================================
 
-/** Color definitions for each issue type */
+/** Color definitions for each issue type (CSS variable references; SSOT = design-tokens.css). */
 const ISSUE_COLORS: Record<StyleIssueType, string> = {
-  weak_verb: '#dc2626',   // red
-  adverb: '#ea580c',      // orange
-  passive: '#9333ea',     // purple
+  weak_verb: 'var(--style-error)',
+  adverb:    'var(--style-warning)',
+  passive:   'var(--style-passive)',
 }
 
 /** Labels for each issue type */
@@ -148,8 +148,8 @@ export function StyleCheckGutter({ editor }: StyleCheckGutterProps) {
           width: '32px',
           height: '32px',
           borderRadius: '8px',
-          backgroundColor: 'var(--ink-90, #1a1a1a)',
-          color: 'var(--paper-100, #f5f5f5)',
+          backgroundColor: 'var(--ink-90)',
+          color: 'var(--paper-100)',
           fontSize: '11px',
           fontWeight: 600,
           boxShadow: '0 1px 3px rgba(0,0,0,0.2)',
@@ -218,7 +218,7 @@ export function injectStyleCheckStyles(): void {
   style.textContent = `
     /* Weak verbs - red wavy underline */
     .style-check-weak-verb {
-      text-decoration: underline wavy #dc2626;
+      text-decoration: underline wavy var(--style-error);
       text-decoration-skip-ink: none;
       text-underline-offset: 3px;
       cursor: help;
@@ -226,12 +226,12 @@ export function injectStyleCheckStyles(): void {
     }
 
     .style-check-weak-verb:hover {
-      background-color: #dc262615;
+      background-color: color-mix(in srgb, var(--style-error) 8%, transparent);
     }
 
     /* Adverbs - orange wavy underline */
     .style-check-adverb {
-      text-decoration: underline wavy #ea580c;
+      text-decoration: underline wavy var(--style-warning);
       text-decoration-skip-ink: none;
       text-underline-offset: 3px;
       cursor: help;
@@ -239,12 +239,12 @@ export function injectStyleCheckStyles(): void {
     }
 
     .style-check-adverb:hover {
-      background-color: #ea580c15;
+      background-color: color-mix(in srgb, var(--style-warning) 8%, transparent);
     }
 
     /* Passive voice - purple wavy underline */
     .style-check-passive {
-      text-decoration: underline wavy #9333ea;
+      text-decoration: underline wavy var(--style-passive);
       text-decoration-skip-ink: none;
       text-underline-offset: 3px;
       cursor: help;
@@ -252,7 +252,7 @@ export function injectStyleCheckStyles(): void {
     }
 
     .style-check-passive:hover {
-      background-color: #9333ea15;
+      background-color: color-mix(in srgb, var(--style-passive) 8%, transparent);
     }
 
     /* Tooltip transitions */
