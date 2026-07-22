@@ -11,6 +11,10 @@
     "preview": "vite preview",
     "test": "vitest run",
     "benchmark:ux": "vitest run src/__tests__/ux-benchmark.test.ts",
+    "test:a11y:axe": "playwright test e2e/journeys/a11y/axe.spec.ts",
+    "test:a11y:keyboard": "playwright test e2e/journeys/a11y/keyboard.spec.ts",
+    "test:a11y:focus": "playwright test e2e/journeys/a11y/focus.spec.ts",
+    "test:a11y:semantics": "vitest run src/test/a11y/semantics.test.tsx",
     "e2e": "playwright test",
     "e2e:cold-start": "playwright test e2e/journeys/cold-start/",
     "e2e:full-flow": "playwright test e2e/journeys/full-flow/",
@@ -72,6 +76,7 @@
     "zustand": "^5.0.0"
   },
   "devDependencies": {
+    "@axe-core/playwright": "^4.12.1",
     "@eslint/js": "^10.0.1",
     "@testing-library/dom": "^10.4.1",
     "@testing-library/jest-dom": "^6.9.1",

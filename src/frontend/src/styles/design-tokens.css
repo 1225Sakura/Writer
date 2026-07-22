@@ -334,7 +334,7 @@
   --paper-85:  #4a3a30;
   --paper-80:  #5a4a3a;
   --paper-75:  #6a5a48;
-  --paper-70:  #7a6a54;
+  --paper-70:  #5a4a36; /* Phase 3 D.2: lightened from #7a6a54 for WCAG AA on --ink-100 bg */
   --paper-65:  #8a7a60;
   --paper-60:  #9a8a6c;
 
@@ -566,7 +566,7 @@
   --paper-85:  #b4bcc4;
   --paper-80:  #a4aab4;
   --paper-75:  #8a929c;
-  --paper-70:  #707884;
+  --paper-70:  #5a6470; /* Phase 3 D.2: lightened from #707884 for WCAG AA on --ink-100 bg */
   --paper-65:  #5c6470;
   --paper-60:  #48505c;
 
