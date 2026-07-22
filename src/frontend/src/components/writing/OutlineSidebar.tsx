@@ -549,8 +549,16 @@ export function OutlineSidebar() {
                               `已分叉 IF 线 (新章节 #${data.forked_chapter_id})`,
                               'success',
                             )
-                            // Refresh chapters + IF lines so the new branch appears.
-                            await fetchIFLines()
+                            // v0.5 Phase 3 Track C: invalidate the content
+                            // store so the new chapter row is picked up on
+                            // the next fetch. fetchIFLines is the optimistic
+                            // path; the invalidate ensures subsequent readers
+                            // (corkboard, snapshot view, etc.) re-hit the API.
+                            try { useContentStore.getState().invalidate() } catch { /* noop */ }
+                            await Promise.allSettled([
+                              fetchIFLines(),
+                              useContentStore.getState().fetchChapters?.() ?? Promise.resolve(),
+                            ])
                           } catch (err) {
                             const message =
                               (err as { message?: string })?.message ?? '分叉失败'

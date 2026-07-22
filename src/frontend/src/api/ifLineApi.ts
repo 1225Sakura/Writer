@@ -157,6 +157,59 @@ export const ifLineApi = {
   forkIFLine,
   getIFLines,
   generateIdempotencyKey,
+  syncIFLine,
 }
 
 export default ifLineApi
+
+// ============================================
+// Sync (POST /api/v1/chapters/if-lines/{id}/sync)
+// ============================================
+
+export interface SyncIFLineRequest {
+  baseChapterId: number | string
+  targetLineIds: Array<number | string>
+}
+
+export interface SyncIFLineSynced {
+  chapterId: number | string
+  newRevision: string
+}
+
+export interface SyncIFLineConflict {
+  chapterId: number | string
+  type: string
+  message: string
+}
+
+export interface SyncIFLineResult {
+  synced: SyncIFLineSynced[]
+  conflicts: SyncIFLineConflict[]
+}
+
+/**
+ * Sync a base chapter's content across one or more target IF-Lines.
+ * Hits POST /api/v1/chapters/if-lines/{id}/sync (existing legacy
+ * endpoint — same one exercised by tests/test_if_line_sync.py).
+ *
+ * Returns `{synced, conflicts}` envelopes from the backend.
+ */
+export async function syncIFLine(
+  ifLineId: string | number,
+  payload: SyncIFLineRequest
+): Promise<SyncIFLineResult> {
+  // The legacy endpoint is mounted at /api/v1/chapters/if-lines/{id}/sync,
+  // not at /api/v1/if-lines/{id}/sync. Resolve the URL via the existing
+  // api.* helper so the axios baseURL + auth header interceptor run.
+  const envelope = await api.post<{
+    success?: boolean
+    data?: SyncIFLineResult
+  }>(`/chapters/if-lines/${encodeURIComponent(String(ifLineId))}/sync`, {
+    baseChapterId: String(payload.baseChapterId),
+    targetLineIds: payload.targetLineIds.map((id) => String(id)),
+  })
+  if (!envelope?.data) {
+    return { synced: [], conflicts: [] }
+  }
+  return envelope.data
+}

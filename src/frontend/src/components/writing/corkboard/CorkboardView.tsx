@@ -16,7 +16,7 @@ import {
   rectSortingStrategy,
   arrayMove,
 } from '@dnd-kit/sortable'
-import { useContentStore } from '@/store'
+import { useContentStore, useWritingStore, useUIStore } from '@/store'
 import { chapterApi } from '@/api/writing'
 import { showOperationError } from '@/utils/toastHelper'
 import { ChapterCard, ChapterCardOverlay } from './ChapterCard'
@@ -30,6 +30,11 @@ export function CorkboardView() {
   const chapters = useContentStore((s) => s.chapters)
   const createChapter = useContentStore((s) => s.createChapter)
   const setChapters = useContentStore((s) => s.setChapters)
+
+  // v0.5 Phase 3 Track C: card click now navigates into the writing
+  // editor focused on the chosen chapter (no longer a no-op stub).
+  const setCurrentChapter = useWritingStore((s) => s.setCurrentChapter)
+  const setCurrentInterface = useUIStore((s) => s.setCurrentInterface)
 
   const [activeId, setActiveId] = useState<number | null>(null)
   const [sortMode, setSortMode] = useState<SortMode>('order')
@@ -145,11 +150,26 @@ export function CorkboardView() {
     }
   }, [chapters.length, createChapter])
 
-  /* ---- Click handler ---- */
+  /* ---- Click handler (v0.5 Phase 3 Track C) ---- */
 
-  const handleCardClick = useCallback((_chapterId: number) => {
-    // Future: navigate to chapter in writing editor
-  }, [])
+  const handleCardClick = useCallback((chapterId: number) => {
+    // 1. Anchor the writing editor on this chapter.
+    setCurrentChapter(chapterId)
+    // 2. Switch to the writing interface so the editor renders.
+    setCurrentInterface('writing')
+    // 3. Scroll the corresponding chapter anchor into view if one
+    //    exists. Best-effort — silent ignore if absent (the editor
+    //    may not be mounted yet; the chapter_id anchor is sufficient
+    //    to drive its content).
+    if (typeof window !== 'undefined') {
+      const anchor = document.querySelector<HTMLElement>(
+        `[data-chapter-anchor="${chapterId}"]`
+      )
+      if (anchor) {
+        anchor.scrollIntoView({ behavior: 'smooth', block: 'start' })
+      }
+    }
+  }, [setCurrentChapter, setCurrentInterface])
 
   /* ---- Render ---- */
 

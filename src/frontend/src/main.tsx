@@ -11,7 +11,7 @@ import {
   useAIStore,
   useSyncStore,
 } from './store'
-import { ifLineApi } from './api/ifLineApi'
+import { ifLineApi, syncIFLine, forkIFLine } from './api/ifLineApi'
 import { initAuth } from './api/auth'
 import { initSentry } from './lib/sentry'
 import { performanceMonitor } from './utils/performance'
@@ -65,6 +65,9 @@ if (import.meta.env.DEV) {
     useAIStore,
     useSyncStore,
     ifLineApi,
+    forkIFLine,
+    syncIFLine,
+    feature_flags: (useUIStore.getState() as { feature_flags: { IF_UI: boolean } }).feature_flags,
   }
 }
 

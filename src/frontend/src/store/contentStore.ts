@@ -46,6 +46,12 @@ interface ContentState {
 }
 
 interface ContentActions {
+  // Invalidate — v0.5 Phase 3 Track C (IF UI):
+  // Reset the loaded-once flag for all resources so the next fetch re-hits
+  // the backend. Used after fork / sync / outline mutations that produce
+  // new server-side rows the existing snapshots don't know about.
+  invalidate: () => void
+
   // Chapter CRUD
   setChapters: (chapters: Chapter[]) => void
   fetchChapters: () => Promise<void>
@@ -127,6 +133,24 @@ export const useContentStore = create<ContentState & ContentActions>()(
         plotThreads: false,
         drafts: false,
         inspections: false,
+      },
+
+      // ----------------------------------------
+      // Invalidate (v0.5 Phase 3 Track C)
+      // ----------------------------------------
+      // Reset client-side cache so the next fetch re-hits the backend.
+      // Does NOT clear the loaded arrays — callers can choose to either
+      // (a) rely on optimistic inserts they already did, or (b) call
+      // fetchChapters/fetchOutlines/fetchIFLines next.
+      invalidate: () => {
+        set((state) => {
+          state.loading.outlines = false
+          state.loading.ifLines = false
+          state.loading.plotThreads = false
+          state.loading.drafts = false
+          state.loading.inspections = false
+          state.outlineGenerationError = null
+        })
       },
 
       // ----------------------------------------

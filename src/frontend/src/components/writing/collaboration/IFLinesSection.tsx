@@ -1,7 +1,9 @@
 import { useContentStore, useWritingStore } from '@/store'
+import { ifLineApi } from '@/api/ifLineApi'
 import { motion } from 'framer-motion'
 import { useState, useEffect, useMemo } from 'react'
 import { GitBranch, CheckCircle2, AlertCircle, Clock } from 'lucide-react'
+import { showToast } from '@/components/ui/Toast'
 import { CollapsibleSection } from './CollapsibleSection'
 import { CollaboratorAvatars } from './CollaboratorAvatars'
 
@@ -22,14 +24,67 @@ const syncStatusStyles: Record<SyncStatus, { bg: string; color: string; icon: ty
 
 export function IFLinesSection() {
   const [isExpanded, setIsExpanded] = useState(true)
-  const { ifLines, fetchIFLines } = useContentStore()
-  const { wordCount, targetWordCount } = useWritingStore()
+  const { ifLines, fetchIFLines, invalidate } = useContentStore()
+  const { wordCount, targetWordCount, currentChapterId } = useWritingStore()
+  const [syncingLineId, setSyncingLineId] = useState<number | null>(null)
+  const [lastSyncByLineId, setLastSyncByLineId] = useState<
+    Record<number, { synced: number; conflicts: number }>
+  >({})
 
   const mainlineProgress = useMemo(() => {
     return targetWordCount > 0 ? Math.min((wordCount / targetWordCount) * 100, 100) : 0
   }, [wordCount, targetWordCount])
 
   useEffect(() => { fetchIFLines() }, [fetchIFLines])
+
+  const handleSync = async (line: typeof ifLines[number]) => {
+    if (!currentChapterId) {
+      showToast('请先选择一个章节作为同步源', 'warning')
+      return
+    }
+    const numericId = typeof line.id === 'number' ? line.id : Number(line.id)
+    if (!Number.isFinite(numericId)) {
+      showToast('IF 线 id 无效', 'error')
+      return
+    }
+    // Find other IF lines to sync *to* (target list).
+    const targetIds = ifLines
+      .filter((other) => other.id !== line.id)
+      .map((other) => (typeof other.id === 'number' ? other.id : Number(other.id)))
+      .filter((id) => Number.isFinite(id))
+    if (targetIds.length === 0) {
+      showToast('没有其他 IF 线可同步', 'warning')
+      return
+    }
+    setSyncingLineId(numericId)
+    try {
+      const result = await ifLineApi.syncIFLine(numericId, {
+        baseChapterId: currentChapterId,
+        targetLineIds: targetIds,
+      })
+      setLastSyncByLineId((prev) => ({
+        ...prev,
+        [numericId]: {
+          synced: result.synced.length,
+          conflicts: result.conflicts.length,
+        },
+      }))
+      const conflictMsg = result.conflicts.length
+        ? `, ${result.conflicts.length} 个冲突待处理`
+        : ''
+      showToast(
+        `同步完成 (${result.synced.length} 章${conflictMsg})`,
+        result.conflicts.length ? 'warning' : 'success',
+      )
+      try { invalidate() } catch { /* noop */ }
+      await fetchIFLines()
+    } catch (err) {
+      const message = (err as { message?: string })?.message ?? '同步失败'
+      showToast(message, 'error')
+    } finally {
+      setSyncingLineId(null)
+    }
+  }
 
   return (
     <CollapsibleSection
@@ -86,6 +141,53 @@ export function IFLinesSection() {
                         <StatusIcon className="w-3 h-3" />
                         {label}
                       </span>
+                    </div>
+                  )
+                })()}
+
+                {/* v0.5 Phase 3 Track C: sync action button */}
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px]" style={{ color: 'var(--text-tertiary)' }}>同步操作</span>
+                  <button
+                    type="button"
+                    data-testid={`sync-if-line-${line.id}`}
+                    aria-label={`同步 IF 线 ${line.title ?? line.id}`}
+                    disabled={
+                      syncingLineId === (typeof line.id === 'number' ? line.id : Number(line.id)) ||
+                      !currentChapterId
+                    }
+                    onClick={() => handleSync(line)}
+                    className="inline-flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-full font-medium border transition-colors disabled:opacity-50"
+                    style={{
+                      borderColor: 'var(--color-ifline)',
+                      color: 'var(--color-ifline)',
+                      backgroundColor: 'color-mix(in srgb, var(--color-ifline) 8%, transparent)',
+                    }}
+                  >
+                    <GitBranch className="w-3 h-3" />
+                    {syncingLineId === (typeof line.id === 'number' ? line.id : Number(line.id))
+                      ? '同步中…'
+                      : '同步到其他 IF 线'}
+                  </button>
+                </div>
+
+                {/* v0.5 Phase 3 Track C: last sync result */}
+                {(() => {
+                  const numericId = typeof line.id === 'number' ? line.id : Number(line.id)
+                  const summary = lastSyncByLineId[numericId]
+                  if (!summary) return null
+                  return (
+                    <div
+                      data-testid={`sync-result-${line.id}`}
+                      className="flex items-center gap-2 text-[10px]"
+                      style={{ color: 'var(--text-tertiary)' }}
+                    >
+                      <span style={{ color: 'var(--color-ifline)' }}>{summary.synced} 已同步</span>
+                      {summary.conflicts > 0 && (
+                        <span style={{ color: 'var(--color-forbidden)' }}>
+                          {summary.conflicts} 冲突
+                        </span>
+                      )}
                     </div>
                   )
                 })()}
