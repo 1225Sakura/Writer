@@ -13,7 +13,24 @@ import {
 } from './store'
 import { ifLineApi } from './api/ifLineApi'
 import { initAuth } from './api/auth'
+import { initSentry } from './lib/sentry'
+import { performanceMonitor } from './utils/performance'
 import './styles/index.css'
+
+// Phase 2.1: Sentry renderer init. No-ops when VITE_SENTRY_DSN is unset so
+// local dev and CI builds still work without a Sentry project.
+initSentry()
+
+// Phase 2.4: forward performance metrics to Sentry (when configured) so we
+// can baseline cold-start FCP/LCP from real renderer sessions.
+performanceMonitor.subscribe((metrics) => {
+  if (import.meta.env.VITE_SENTRY_DSN) {
+    // Dynamic import keeps @sentry/react out of the bundle when DSN is off.
+    import('@sentry/react').then(({ Sentry }) => {
+      Sentry.captureMessage('perf.metrics', { extra: metrics, level: 'info' })
+    })
+  }
+})
 
 // syncStore + any other immer+Map stores require the MapSet plugin.
 // Without this, any operation that touches a Map field (e.g. IFLineSyncState

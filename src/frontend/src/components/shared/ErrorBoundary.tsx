@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/Button'
 import { AlertTriangle, RefreshCw, Home, Bug, Feather } from 'lucide-react'
 import { DURATION, EASE } from '@/components/shared/AnimationConfig'
 import { formatApiError } from '@/utils/formatApiError'
+import { Sentry } from '@/lib/sentry'
 
 interface Props {
   children: ReactNode
@@ -28,8 +29,16 @@ export class ErrorBoundary extends Component<Props, State> {
     return { hasError: true, error, errorInfo: null }
   }
 
-  componentDidCatch(_error: Error, errorInfo: ErrorInfo) {
+  componentDidCatch(error: Error, errorInfo: ErrorInfo) {
     this.setState({ errorInfo })
+    // Phase 2.1: forward to Sentry with React component stack. beforeSend
+    // in lib/sentry.ts already redacts AI prompt/response/api_key fields.
+    Sentry?.captureException(error, {
+      extra: {
+        componentStack: errorInfo.componentStack,
+        pageName: this.props.pageName,
+      },
+    })
   }
 
   handleReload = () => {

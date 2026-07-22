@@ -44,4 +44,50 @@ test.describe('US-020 cold-start smoke', () => {
     const bodyText = await page.locator('body').innerText();
     expect(bodyText.length, 'body should contain rendered content').toBeGreaterThan(0);
   });
-});
+
+  /**
+   * Phase 2.4: Web Vitals smoke for cold-start journey.
+   *
+   * Asserts renderer-side First Contentful Paint (FCP) and Largest
+   * Contentful Paint (LCP) stay within thresholds derived from
+   * `src/utils/performance.ts` rating bands (good/poor). These bounds
+   * are intentionally generous for dev-mode Vite — production builds
+   * should beat them. Update perf-baseline.md when these shift.
+   */
+  test('cold-start Web Vitals stay within thresholds', async ({ page }) => {
+    await page.goto('/');
+
+    // Wait until the React root is mounted (Suspense fallback counts).
+    await expect(page.locator('#root')).not.toBeEmpty();
+
+    // Drain a brief window so the LCP observer flushes. ~1.5s covers
+    // 95th percentile dev-server cold renders (vite first-load + tsx parse).
+    await page.waitForTimeout(1500);
+
+    const webVitals = await page.evaluate(() => {
+      type Entry = PerformanceEntry & {
+        renderTime?: number
+        loadTime?: number
+        size?: number
+      }
+      const fcpEntry = performance
+        .getEntriesByType('paint')
+        .find((e) => e.name === 'first-contentful-paint') as Entry | undefined
+      const lcpEntries = performance.getEntriesByType(
+        'largest-contentful-paint',
+      ) as Entry[]
+      const lcp = lcpEntries[lcpEntries.length - 1]
+      return {
+        fcp: fcpEntry ? fcpEntry.startTime : null,
+        lcp: lcp ? (lcp.renderTime ?? lcp.loadTime ?? lcp.startTime) : null,
+      }
+    })
+
+    // Phase 2.4 thresholds: FCP < 3000ms, LCP < 5000ms (dev-mode generous).
+    // See docs/baselines/2026-07-22/perf-baseline.md for measured values.
+    expect(webVitals.fcp, 'FCP must be measurable').not.toBeNull()
+    expect(webVitals.fcp!).toBeLessThan(3000)
+    expect(webVitals.lcp, 'LCP must be measurable').not.toBeNull()
+    expect(webVitals.lcp!).toBeLessThan(5000)
+  })
+})
